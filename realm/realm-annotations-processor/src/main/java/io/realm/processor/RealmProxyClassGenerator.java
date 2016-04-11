@@ -644,6 +644,12 @@ public class RealmProxyClassGenerator {
                 "Realm", "realm", className, "object", "boolean", "update", "Map<RealmModel,RealmObjectProxy>", "cache" // Argument type & argument name
         );
 
+        writer
+            .beginControlFlow("if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId)")
+                .emitStatement("throw new IllegalArgumentException(\"Objects which belong to Realm instances in other" +
+                        " threads cannot be copied into this Realm instance.\")")
+            .endControlFlow();
+
         // If object is already in the Realm there is nothing to update
         writer
             .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm() != null && ((RealmObjectProxy)object).getRealm().getPath().equals(realm.getPath()))")
@@ -760,7 +766,7 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                writer.emitStatement("((%s) realmObject).%s(((%s)newObject).%s())",
+                writer.emitStatement("((%s) realmObject).%s(((%s) newObject).%s())",
                         interfaceName, setter, interfaceName, getter);
             }
         }
@@ -780,14 +786,14 @@ public class RealmProxyClassGenerator {
             .beginControlFlow("if (currentDepth > maxDepth || realmObject == null)")
                 .emitStatement("return null")
             .endControlFlow()
-            .emitStatement("CacheData<%s> cachedObject = (CacheData) cache.get(realmObject)", className)
+            .emitStatement("CacheData<RealmObject> cachedObject = cache.get(realmObject)")
             .emitStatement("%s standaloneObject", className)
             .beginControlFlow("if (cachedObject != null)")
                 .emitSingleLineComment("Reuse cached object or recreate it because it was encountered at a lower depth.")
                 .beginControlFlow("if (currentDepth >= cachedObject.minDepth)")
-                    .emitStatement("return cachedObject.object")
+                    .emitStatement("return (%s)cachedObject.object", className)
                 .nextControlFlow("else")
-                    .emitStatement("standaloneObject = cachedObject.object")
+                    .emitStatement("standaloneObject = (%s)cachedObject.object", className)
                     .emitStatement("cachedObject.minDepth = currentDepth")
                 .endControlFlow()
             .nextControlFlow("else")
@@ -906,6 +912,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitToStringMethod(JavaWriter writer) throws IOException {
+        if (metadata.containsToString()) {
+            return;
+        }
         writer.emitAnnotation("Override");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
         writer.beginControlFlow("if (!RealmObject.isValid(this))");
@@ -954,6 +963,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitHashcodeMethod(JavaWriter writer) throws IOException {
+        if (metadata.containsHashCode()) {
+            return;
+        }
         writer.emitAnnotation("Override");
         writer.beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("String realmName = proxyState.getRealm().getPath()");
@@ -970,6 +982,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitEqualsMethod(JavaWriter writer) throws IOException {
+        if (metadata.containsEquals()) {
+            return;
+        }
         String proxyClassName = className + Constants.PROXY_SUFFIX;
         writer.emitAnnotation("Override");
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");

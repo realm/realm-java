@@ -57,6 +57,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
@@ -135,8 +136,7 @@ public class RealmTests {
 
     private void populateTestRealm(Realm realm, int objects) {
         realm.beginTransaction();
-        realm.allObjects(AllTypes.class).clear();
-        realm.allObjects(NonLatinFieldNames.class).clear();
+        realm.deleteAll();
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
@@ -144,6 +144,7 @@ public class RealmTests {
             allTypes.setColumnDate(new Date());
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
+
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
             NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
@@ -182,6 +183,26 @@ public class RealmTests {
 
         thrown.expect(RealmIOException.class);
         Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+    }
+
+    @Test
+    public void getInstance_twiceWhenRxJavaUnavailable() {
+        // test for https://github.com/realm/realm-java/issues/2416
+
+        // Though it's not a recommended way to create multiple configuration instance with the same parameter, it's legal.
+        final RealmConfiguration configuration1 = configFactory.createConfiguration("no_RxJava.realm");
+        TestHelper.emulateRxJavaUnavailable(configuration1);
+        final RealmConfiguration configuration2 = configFactory.createConfiguration("no_RxJava.realm");
+        TestHelper.emulateRxJavaUnavailable(configuration2);
+
+        final Realm realm1 = Realm.getInstance(configuration1);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            final Realm realm2 = Realm.getInstance(configuration2);
+            realm2.close();
+        } finally {
+            realm1.close();
+        }
     }
 
     @Test
@@ -234,6 +255,20 @@ public class RealmTests {
     public void getInstance() {
         assertNotNull("Realm.getInstance unexpectedly returns null", realm);
         assertTrue("Realm.getInstance does not contain expected table", realm.contains(AllTypes.class));
+    }
+
+    @Test
+    public void getInstance_context() {
+        RealmConfiguration config = new RealmConfiguration.Builder(context).build();
+        Realm.deleteRealm(config);
+
+        Realm testRealm = Realm.getInstance(context);
+        assertNotNull("Realm.getInstance unexpectedly returns null", testRealm);
+        assertTrue("Realm.getInstance does not contain expected table", testRealm.contains(AllTypes.class));
+        config = testRealm.getConfiguration();
+        config.getRealmFolder().equals(context.getFilesDir());
+        testRealm.close();
+        Realm.deleteRealm(config);
     }
 
     @Test
@@ -611,8 +646,8 @@ public class RealmTests {
         METHOD_BEGIN,
         METHOD_COMMIT,
         METHOD_CANCEL,
-        METHOD_CLEAR,
-        METHOD_CLEAR_ALL,
+        METHOD_DELETE_TYPE,
+        METHOD_DELETE_ALL,
         METHOD_DISTINCT,
         METHOD_CREATE_OBJECT,
         METHOD_COPY_TO_REALM,
@@ -644,11 +679,11 @@ public class RealmTests {
                         case METHOD_CANCEL:
                             realm.cancelTransaction();
                             break;
-                        case METHOD_CLEAR:
-                            realm.clear(AllTypes.class);
+                        case METHOD_DELETE_TYPE:
+                            realm.delete(AllTypes.class);
                             break;
-                        case METHOD_CLEAR_ALL:
-                            realm.clear();
+                        case METHOD_DELETE_ALL:
+                            realm.deleteAll();
                             break;
                         case METHOD_DISTINCT:
                             realm.distinct(AllTypesPrimaryKey.class, "columnLong");
@@ -813,14 +848,13 @@ public class RealmTests {
     }
 
     @Test
-    public void clear_type() {
-        // ** clear non existing table should succeed
-
+    public void delete_type() {
+        // ** delete non existing table should succeed
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         realm.commitTransaction();
 
-        // ** clear existing class, but leave other classes classes
+        // ** delete existing class, but leave other classes classes
 
         // Add two classes
         populateTestRealm();
@@ -830,7 +864,7 @@ public class RealmTests {
         realm.commitTransaction();
         // Clear
         realm.beginTransaction();
-        realm.clear(Dog.class);
+        realm.delete(Dog.class);
         realm.commitTransaction();
         // Check one class is cleared but other class is still there
         RealmResults<AllTypes> resultListTypes = realm.where(AllTypes.class).findAll();
@@ -838,9 +872,9 @@ public class RealmTests {
         RealmResults<Dog> resultListDogs = realm.where(Dog.class).findAll();
         assertEquals(0, resultListDogs.size());
 
-        // ** clear() must throw outside a transaction
+        // ** delete() must throw outside a transaction
         try {
-            realm.clear(AllTypes.class);
+            realm.delete(AllTypes.class);
             fail("Expected exception");
         } catch (IllegalStateException ignored) {
         }
@@ -881,7 +915,7 @@ public class RealmTests {
     @Test
     public void utf8Tests() {
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         realm.commitTransaction();
 
         String file = "assets/unicode_codepoints.csv";
@@ -962,7 +996,7 @@ public class RealmTests {
             realm.allObjects(StringOnly.class).get(0).getChars();
 
             realm.beginTransaction();
-            realm.clear(StringOnly.class);
+            realm.delete(StringOnly.class);
             realm.commitTransaction();
         }
     }
@@ -1329,6 +1363,36 @@ public class RealmTests {
     }
 
     @Test
+    public void copyToRealm_objectInOtherThreadThrows() {
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+
+        realm.beginTransaction();
+        final Dog dog = realm.createObject(Dog.class);
+        realm.commitTransaction();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                try {
+                    bgRealm.copyToRealm(dog);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals("Objects which belong to Realm instances in other threads cannot be copied into this" +
+                                    " Realm instance.",
+                            expected.getMessage());
+                }
+                bgRealm.cancelTransaction();
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgThreadDoneLatch);
+    }
+
+    @Test
     public void copyToRealmOrUpdate_null() {
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
@@ -1580,6 +1644,68 @@ public class RealmTests {
 
         assertEquals(2, realm.allObjects(AllTypesPrimaryKey.class).size());
         assertEquals(1, realm.allObjects(DogPrimaryKey.class).size());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_objectInOtherThreadThrows() {
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+
+        realm.beginTransaction();
+        final OwnerPrimaryKey ownerPrimaryKey = realm.createObject(OwnerPrimaryKey.class);
+        realm.commitTransaction();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                try {
+                    bgRealm.copyToRealm(ownerPrimaryKey);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals("Objects which belong to Realm instances in other threads cannot be copied into this" +
+                                    " Realm instance.",
+                            expected.getMessage());
+                }
+                bgRealm.cancelTransaction();
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgThreadDoneLatch);
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_listHasObjectInOtherThreadThrows() {
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+        final OwnerPrimaryKey ownerPrimaryKey = new OwnerPrimaryKey();
+
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        realm.commitTransaction();
+        ownerPrimaryKey.setDogs(new RealmList<Dog>(dog));
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                try {
+                    bgRealm.copyToRealm(ownerPrimaryKey);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals("Objects which belong to Realm instances in other threads cannot be copied into this" +
+                                    " Realm instance.",
+                            expected.getMessage());
+                }
+                bgRealm.cancelTransaction();
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgThreadDoneLatch);
     }
 
     @Test
@@ -1840,8 +1966,8 @@ public class RealmTests {
         try { realm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
         try { realm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
         try { realm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
-        try { realm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
-        try { realm.clear();                        fail(); } catch (IllegalStateException expected) {}
+        try { realm.delete(AllTypes.class);         fail(); } catch (IllegalStateException expected) {}
+        try { realm.deleteAll();                    fail(); } catch (IllegalStateException expected) {}
 
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
@@ -2124,48 +2250,54 @@ public class RealmTests {
         realm.commitTransaction();
     }
 
+    private void populateForDistinctInvalidTypesLinked(Realm realm) {
+        realm.beginTransaction();
+        AllJavaTypes notEmpty = new AllJavaTypes();
+        notEmpty.setFieldBinary(new byte[]{1, 2, 3});
+        notEmpty.setFieldObject(notEmpty);
+        notEmpty.setFieldList(new RealmList<AllJavaTypes>(notEmpty));
+        realm.copyToRealm(notEmpty);
+        realm.commitTransaction();
+    }
+
     // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
     @Test
     public void distinct() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        RealmResults<AnnotationIndexTypes> distinctBool = realm.distinct(AnnotationIndexTypes.class, "indexBoolean");
+        RealmResults<AnnotationIndexTypes> distinctBool = realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL);
         assertEquals(2, distinctBool.size());
-
-        for (String fieldName : new String[]{"Long", "Date", "String"}) {
-            RealmResults<AnnotationIndexTypes> distinct = realm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
-            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
+            RealmResults<AnnotationIndexTypes> distinct = realm.distinct(AnnotationIndexTypes.class, field);
+            assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
 
     @Test
-    public void distinct_nullValues() {
+    public void distinct_withNullValues() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
-        for (String fieldName : new String[]{"Date", "String"}) {
-            RealmResults<AnnotationIndexTypes> distinct = realm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
-            assertEquals("index" + fieldName, 1, distinct.size());
+        for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
+            RealmResults<AnnotationIndexTypes> distinct = realm.distinct(AnnotationIndexTypes.class, field);
+            assertEquals(field, 1, distinct.size());
         }
     }
 
     @Test
-    public void distinct_noneIndexedFieldsThrows() {
+    public void distinct_notIndexedFieldsThrows() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
             try {
-                realm.distinct(AnnotationIndexTypes.class, "notIndex" + fieldName);
-                fail("notIndex" + fieldName);
-            } catch (UnsupportedOperationException ignored) {
+                realm.distinct(AnnotationIndexTypes.class, field);
+                fail(field);
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
@@ -2174,9 +2306,9 @@ public class RealmTests {
     public void distinct_unknownFieldThrows() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
         thrown.expect(IllegalArgumentException.class);
+
         realm.distinct(AnnotationIndexTypes.class, "doesNotExist");
     }
 
@@ -2184,12 +2316,166 @@ public class RealmTests {
     public void distinct_invalidTypeThrows() {
         populateTestRealm();
 
-        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+        for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
             try {
                 realm.distinct(AllTypes.class, field);
                 fail(field);
-            } catch (UnsupportedOperationException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        RealmResults<AnnotationIndexTypes> distinctMulti = realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.INDEX_FIELDS);
+        assertEquals(numberOfBlocks, distinctMulti.size());
+    }
+
+    @Test
+    public void distinctMultiArgs_switchedFieldsOrder() {
+        final long numberOfBlocks = 25;
+        TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
+
+        // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples
+        RealmResults<AnnotationIndexTypes> distinctStringLong = realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG);
+        RealmResults<AnnotationIndexTypes> distinctLongString = realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING);
+        assertEquals(4, distinctStringLong.size());
+        assertEquals(4, distinctLongString.size());
+        assertEquals(distinctStringLong.size(), distinctLongString.size());
+    }
+
+    @Test
+    public void distinctMultiArgs_emptyFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        // an empty string field in the middle
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // an empty string field at the end
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "");
+        } catch (IllegalArgumentException ignored) {
+        }
+        // a null string field in the middle
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null, AnnotationIndexTypes.FIELD_INDEX_INT);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // a null string field at the end
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // (String)null makes varargs a null array.
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // Two (String)null for first and varargs fields
+        try {
+            realm.distinct(AnnotationIndexTypes.class, (String)null, (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // "" & (String)null combination
+        try {
+            realm.distinct(AnnotationIndexTypes.class, "", (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // "" & (String)null combination
+        try {
+            realm.distinct(AnnotationIndexTypes.class, (String)null, "");
+        } catch (IllegalArgumentException ignored) {
+        }
+        // Two empty fields tests
+        try {
+            realm.distinct(AnnotationIndexTypes.class, "", "");
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_withNullValues() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        RealmResults<AnnotationIndexTypes> distinctMulti = realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING);
+        assertEquals(1, distinctMulti.size());
+    }
+
+    @Test
+    public void distinctMultiArgs_notIndexedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING, AnnotationIndexTypes.NOT_INDEX_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_doesNotExistField() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.FIELD_INDEX_INT, AnnotationIndexTypes.NONEXISTANT_MIX_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_invalidTypesFields() {
+        populateTestRealm();
+
+        try {
+            realm.distinct(AllTypes.class, AllTypes.FIELD_REALMOBJECT, AllTypes.INVALID_TYPES_FIELDS_FOR_DISTINCT);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_indexedLinkedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_notIndexedLinkedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.class, AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_invalidTypesLinkedFields() {
+        populateForDistinctInvalidTypesLinked(realm);
+
+        try {
+            realm.distinct(AllJavaTypes.class, AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -2353,7 +2639,7 @@ public class RealmTests {
     public void copyFromRealm_invalidObjectThrows() {
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
-        obj.removeFromRealm();
+        obj.deleteFromRealm();
         realm.commitTransaction();
 
         try {
@@ -2496,7 +2782,7 @@ public class RealmTests {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
         List<AllTypes> list = new RealmList<AllTypes>(object);
-        object.removeFromRealm();
+        object.deleteFromRealm();
         realm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
@@ -2551,7 +2837,7 @@ public class RealmTests {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> dynamicList = dynamicRealm.createObject(AllTypes.CLASS_NAME).getList(AllTypes.FIELD_REALMLIST);
-        DynamicRealmObject dObj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        DynamicRealmObject dObj = dynamicRealm.createObject(Dog.CLASS_NAME);
         dynamicList.add(dObj);
         dynamicRealm.commitTransaction();
         try {
@@ -2782,7 +3068,7 @@ public class RealmTests {
     }
 
     @Test
-    public void clear_all() {
+    public void deleteAll() {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.createObject(Owner.class).setCat(realm.createObject(Cat.class));
@@ -2793,7 +3079,7 @@ public class RealmTests {
         assertEquals(1, realm.where(Cat.class).count());
 
         realm.beginTransaction();
-        realm.clear();
+        realm.deleteAll();
         realm.commitTransaction();
 
         assertEquals(0, realm.where(AllTypes.class).count());

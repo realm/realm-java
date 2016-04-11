@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
@@ -8,6 +10,7 @@ targetCompatibility = '1.6'
 dependencies {
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
     compile "io.realm:realm-annotations:${version}"
+
     testCompile files('../realm-library/build/intermediates/bundles/release/classes.jar') // Java projects cannot depend on AAR files
     testCompile files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it
     testCompile group:'junit', name:'junit', version:'4.11'
@@ -37,20 +40,73 @@ sourceSets {
 compileJava.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assemble'
 
-// Generates the Jar for Eclipse
-shadowJar {
-    from zipTree('../realm-library/build/intermediates/bundles/release/classes.jar')
-    relocate 'com.squareup.javawriter', 'io.realm.processor.javawriter'
-    baseName = 'realm-android'
-    classifier = ''
+def commonPom = {
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    issueManagement {
+        system 'github'
+        url 'https://github.com/realm/realm-java/issues'
+    }
+    scm {
+        url 'scm:https://github.com/realm/realm-java'
+        connection 'scm:git@github.com:realm/realm-java.git'
+        developerConnection 'scm:git@github.com:realm/realm-java.git'
+    }
 }
 
-shadowJar.dependsOn ':realm-library:assemble'
-
-uploadShadow {
-  repositories {
-    mavenDeployer {
-      repository(url: mavenLocal().url)
+publishing {
+    publications {
+        realmPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-annotations-processor'
+            from components.java
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-gradle-plugin')
+                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
     }
-  }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = false
+    publish = false
+
+    publications = ['realmPublication']
+    pkg {
+        repo = 'maven'
+        name = 'realm-annotations-processor'
+        desc = 'Realm for Android'
+        websiteUrl = 'http://realm.io'
+        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
+        vcsUrl = 'https://github.com/realm/realm-java.git'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'realm']
+        publicDownloadNumbers = false
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications ('realmPublication')
+        }
+    }
 }

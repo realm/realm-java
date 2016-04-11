@@ -76,6 +76,7 @@ public class Migration implements RealmMigration {
                 class Pet                   // add a new model class
                     @Required
                     String name;
+                    @Required
                     String type;
 
                 class Person

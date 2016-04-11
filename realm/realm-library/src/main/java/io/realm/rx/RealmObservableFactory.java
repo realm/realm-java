@@ -16,15 +16,20 @@
 
 package io.realm.rx;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
+import io.realm.RealmConfiguration;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.internal.RealmObjectProxy;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -41,88 +46,97 @@ import rx.subscriptions.Subscriptions;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
-    private boolean rxJavaAvailble;
-
-    public RealmObservableFactory() {
-        try {
-            Class.forName("rx.Observable");
-            rxJavaAvailble = true;
-        } catch (ClassNotFoundException ignore) {
-            rxJavaAvailble = false;
+    // Maps for storing strong references to RealmResults while they are subscribed to.
+    // This is needed if users create Observables without manually maintaining a reference to them.
+    // In that case RealmObjects/RealmResults might be GC'ed too early.
+    ThreadLocal<StrongReferenceCounter<RealmResults>> resultsRefs = new ThreadLocal<StrongReferenceCounter<RealmResults>>() {
+        @Override
+        protected StrongReferenceCounter<RealmResults> initialValue() {
+            return new StrongReferenceCounter<RealmResults>();
         }
-    }
+    };
+    ThreadLocal<StrongReferenceCounter<RealmModel>> objectRefs = new ThreadLocal<StrongReferenceCounter<RealmModel>>() {
+        @Override
+        protected StrongReferenceCounter<RealmModel> initialValue() {
+            return new StrongReferenceCounter<RealmModel>();
+        }
+    };
 
     @Override
-    public Observable<Realm> from(final Realm realm) {
-        checkRxJavaAvailable();
+    public Observable<Realm> from(Realm realm) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<Realm>() {
             @Override
             public void call(final Subscriber<? super Realm> subscriber) {
+                // Get instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
                         if (!subscriber.isUnsubscribed()) {
-                            subscriber.onNext(realm);
+                            subscriber.onNext(observableRealm);
                         }
                     }
                 };
-                realm.addChangeListener(listener);
+                observableRealm.addChangeListener(listener);
                 subscriber.add(Subscriptions.create(new Action0() {
                     @Override
                     public void call() {
-                        realm.removeChangeListener(listener);
+                        observableRealm.removeChangeListener(listener);
+                        observableRealm.close();
                     }
                 }));
-                subscriber.onNext(realm);
+                subscriber.onNext(observableRealm);
             }
         });
     }
 
     @Override
-    public Observable<DynamicRealm> from(final DynamicRealm realm) {
-        checkRxJavaAvailable();
+    public Observable<DynamicRealm> from(DynamicRealm realm) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<DynamicRealm>() {
             @Override
             public void call(final Subscriber<? super DynamicRealm> subscriber) {
+                // Get instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
                         if (!subscriber.isUnsubscribed()) {
-                            subscriber.onNext(realm);
+                            subscriber.onNext(observableRealm);
                         }
                     }
                 };
-                realm.addChangeListener(listener);
+                observableRealm.addChangeListener(listener);
                 subscriber.add(Subscriptions.create(new Action0() {
                     @Override
                     public void call() {
-                        realm.removeChangeListener(listener);
+                        observableRealm.removeChangeListener(listener);
+                        observableRealm.close();
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
+                    // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
-                subscriber.onNext(realm);
+                subscriber.onNext(observableRealm);
             }
         });
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
-        checkRxJavaAvailable();
-        return getRealmResultsObservable(results);
-    }
+    public <E extends RealmModel> Observable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
 
-    @Override
-    public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
-        checkRxJavaAvailable();
-        return getRealmResultsObservable(results);
-    }
-
-    private <E extends RealmModel> Observable<RealmResults<E>> getRealmResultsObservable(final RealmResults<E> results) {
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
+                // Get instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
+                resultsRefs.get().acquireReference(results);
+
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
@@ -136,10 +150,48 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void call() {
                         results.removeChangeListener(listener);
+                        observableRealm.close();
+                        resultsRefs.get().releaseReference(results);
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
+                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // value.
+                subscriber.onNext(results);
+            }
+        });
+    }
+
+    @Override
+    public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, final RealmResults<DynamicRealmObject> results) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new Observable.OnSubscribe<RealmResults<DynamicRealmObject>>() {
+            @Override
+            public void call(final Subscriber<? super RealmResults<DynamicRealmObject>> subscriber) {
+                // Get instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                resultsRefs.get().acquireReference(results);
+
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (!subscriber.isUnsubscribed()) {
+                            subscriber.onNext(results);
+                        }
+                    }
+                };
+                results.addChangeListener(listener);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        results.removeChangeListener(listener);
+                        observableRealm.close();
+                        resultsRefs.get().releaseReference(results);
+                    }
+                }));
+
+                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(results);
             }
@@ -148,13 +200,11 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
-        checkRxJavaAvailable();
         return getRealmListObservable();
     }
 
     @Override
     public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
-        checkRxJavaAvailable();
         return getRealmListObservable();
     }
 
@@ -163,21 +213,16 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<E> from(Realm realm, final E object) {
-        checkRxJavaAvailable();
-        return getObjectObservable(object);
-    }
-
-    @Override
-    public Observable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
-        checkRxJavaAvailable();
-        return getObjectObservable(object);
-    }
-
-    private <E extends RealmModel> Observable<E> getObjectObservable(final E object) {
+    public <E extends RealmModel> Observable<E> from(final Realm realm, final E object) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<E>() {
             @Override
             public void call(final Subscriber<? super E> subscriber) {
+                // Get instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final Realm observableRealm = Realm.getInstance(realmConfig);
+                objectRefs.get().acquireReference(object);
+
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
@@ -191,10 +236,12 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void call() {
                         RealmObject.removeChangeListener(object, listener);
+                        observableRealm.close();
+                        objectRefs.get().releaseReference(object);
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
+                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(object);
             }
@@ -202,20 +249,49 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmQuery<E>> from(final Realm realm, final RealmQuery<E> query) {
+    public Observable<DynamicRealmObject> from(DynamicRealm realm, final DynamicRealmObject object) {
+        final RealmConfiguration realmConfig = realm.getConfiguration();
+        return Observable.create(new Observable.OnSubscribe<DynamicRealmObject>() {
+            @Override
+            public void call(final Subscriber<? super DynamicRealmObject> subscriber) {
+                // Get instance to make sure that the Realm is open for as long as the
+                // Observable is subscribed to it.
+                final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                objectRefs.get().acquireReference(object);
+
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (!subscriber.isUnsubscribed()) {
+                            subscriber.onNext(object);
+                        }
+                    }
+                };
+                RealmObject.addChangeListener(object, listener);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        RealmObject.removeChangeListener(object, listener);
+                        observableRealm.close();
+                        objectRefs.get().releaseReference(object);
+                    }
+                }));
+
+                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // value.
+                subscriber.onNext(object);
+            }
+        });
+    }
+
+    @Override
+    public <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
     }
 
     @Override
-    public Observable<RealmQuery<DynamicRealmObject>> from(final DynamicRealm realm, final RealmQuery<DynamicRealmObject> query) {
+    public Observable<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
-    }
-
-    private void checkRxJavaAvailable() {
-        if (!rxJavaAvailble) {
-            throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
-                    "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
-        }
     }
 
     @Override
@@ -228,4 +304,30 @@ public class RealmObservableFactory implements RxObservableFactory {
         return 37;
     }
 
+
+    // Helper class for keeping track of strong references to objects.
+    private static class StrongReferenceCounter<K> {
+
+        private final Map<K, Integer> references = new IdentityHashMap<K, Integer>();
+
+        public void acquireReference(K object) {
+            Integer count = references.get(object);
+            if (count == null) {
+                references.put(object, 1);
+            } else {
+                references.put(object, count + 1);
+            }
+        }
+
+        public void releaseReference(K object) {
+            Integer count = references.get(object);
+            if (count == null) {
+                throw new IllegalStateException("Object does not have any references: " + object);
+            } else if (count > 0) {
+                references.put(object, count - 1);
+            } else {
+                references.remove(object);
+            }
+        }
+    }
 }

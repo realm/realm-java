@@ -17,6 +17,7 @@ package io.realm;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -272,14 +273,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = getRow().getColumnIndex(fieldName);
         LinkView linkView = getRow().getLinkList(columnIndex);
-        String className = linkView.getTable().getLinkTarget(columnIndex).getName().substring(Table.TABLE_PREFIX.length());
+        String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
         return new RealmList<DynamicRealmObject>(className, linkView, getRealm());
     }
 
     /**
      * Checks if the value of a given field is {@code null}.
      *
-     * @param fieldName name of field.
      * @param fieldName the name of the field.
      * @return {@code true} if field value is null, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
@@ -536,8 +536,8 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value object to link to.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, or the type
-     * of DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, the type
+     * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
     public void setObject(String fieldName, DynamicRealmObject value) {
         long columnIndex = getRow().getColumnIndex(fieldName);
@@ -547,8 +547,8 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
             if (value.getRealm() == null || value.getRow() == null) {
                 throw new IllegalArgumentException("Cannot link to objects that are not part of the Realm.");
             }
-            if (!getRealm().getConfiguration().equals(value.getRealm().getConfiguration())) {
-                throw new IllegalArgumentException("Cannot add an object from another Realm");
+            if (getRealm() != value.getRealm()) {
+                throw new IllegalArgumentException("Cannot add an object from another Realm instance.");
             }
             Table table = getRow().getTable().getLinkTarget(columnIndex);
             Table inputTable = value.getRow().getTable();
@@ -565,8 +565,9 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param list list of references.
-     * @throws IllegalArgumentException if field name doesn't exists, it is not a list field or the type
-     * of the object represented by the DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exist, it is not a list field, the type
+     * of the object represented by the DynamicRealmObject doesn't match or any element in the list belongs to a
+     * different Realm.
      */
     public void setList(String fieldName, RealmList<? extends RealmModel> list) {
         if (list == null) {
@@ -591,14 +592,16 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         long columnIndex = getRow().getColumnIndex(fieldName);
         LinkView links = getRow().getLinkList(columnIndex);
         links.clear();
+        Table linkTargetTable = links.getTargetTable();
         for (int i = 0; i < list.size(); i++) {
             RealmObjectProxy obj = (RealmObjectProxy) list.get(i);
-            if (!typeValidated) {
-                String elementType = obj.getRow().getTable().getName();
-                if (!tableName.equals(elementType)) {
-                    throw new IllegalArgumentException(String.format("Element at index %d is not the proper type. " +
-                            "Was %s expected %s.", i, elementType, tableName));
-                }
+            if (obj.getRealm() != getRealm()) {
+                throw new IllegalArgumentException("Each element in 'list' must belong to the same Realm instance.");
+            }
+            if (!typeValidated && !linkTargetTable.hasSameSchema(obj.getRow().getTable())) {
+                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        "Element at index %d is not the proper type. " +
+                                "Was '%s' expected '%s'.", i, obj.getRow().getTable().getName(), linkTargetTable.getName()));
             }
             links.add(obj.getRow().getIndex());
         }
@@ -627,7 +630,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @return this objects type.
      */
     public String getType() {
-        return getRow().getTable().getName().substring(Table.TABLE_PREFIX.length());
+        return RealmSchema.getSchemaForTable(getRow().getTable());
     }
 
     /**
@@ -684,35 +687,52 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         if (getRealm() == null || !getRow().isAttached()) {
             return "Invalid object";
         }
-        StringBuilder sb = new StringBuilder(getRow().getTable().getName() + " = [");
+
+        final String className = Table.tableNameToClassName(getRow().getTable().getName());
+        StringBuilder sb = new StringBuilder(className + " = [");
         String[] fields = getFieldNames();
         for (String field : fields) {
             long columnIndex = getRow().getColumnIndex(field);
             RealmFieldType type = getRow().getColumnType(columnIndex);
             sb.append("{");
+            sb.append(field).append(":");
             switch (type) {
-                case BOOLEAN: sb.append(field).append(": ").append(getRow().getBoolean(columnIndex)); break;
-                case INTEGER: sb.append(field).append(": ").append(getRow().getLong(columnIndex)); break;
-                case FLOAT: sb.append(field).append(": ").append(getRow().getFloat(columnIndex)); break;
-                case DOUBLE: sb.append(field).append(": ").append(getRow().getDouble(columnIndex)); break;
-                case STRING: sb.append(field).append(": ").append(getRow().getString(columnIndex)); break;
-                case BINARY: sb.append(field).append(": ").append(Arrays.toString(getRow().getBinaryByteArray(columnIndex))); break;
-                case DATE: sb.append(field).append(": ").append(getRow().getDate(columnIndex)); break;
+                case BOOLEAN:
+                    sb.append(getRow().isNull(columnIndex) ? "null" : getRow().getBoolean(columnIndex));
+                    break;
+                case INTEGER:
+                    sb.append(getRow().isNull(columnIndex) ? "null" : getRow().getLong(columnIndex));
+                    break;
+                case FLOAT:
+                    sb.append(getRow().isNull(columnIndex) ? "null" : getRow().getFloat(columnIndex));
+                    break;
+                case DOUBLE:
+                    sb.append(getRow().isNull(columnIndex) ? "null" : getRow().getDouble(columnIndex));
+                    break;
+                case STRING:
+                    sb.append(getRow().getString(columnIndex));
+                    break;
+                case BINARY:
+                    sb.append(Arrays.toString(getRow().getBinaryByteArray(columnIndex)));
+                    break;
+                case DATE:
+                    sb.append(getRow().isNull(columnIndex) ? "null" : getRow().getDate(columnIndex));
+                    break;
                 case OBJECT:
-                    if (getRow().isNullLink(columnIndex)) {
-                        sb.append("null");
-                    } else {
-                        sb.append(field).append(": ").append(getRow().getTable().getLinkTarget(columnIndex).getName());
-                    }
+                    sb.append(getRow().isNullLink(columnIndex)
+                            ? "null"
+                            : Table.tableNameToClassName(getRow().getTable().getLinkTarget(columnIndex).getName()));
                     break;
                 case LIST:
-                    String targetType = getRow().getTable().getLinkTarget(columnIndex).getName();
-                    sb.append(String.format("%s: RealmList<%s>[%s]", field, targetType, getRow().getLinkList(columnIndex).size()));
+                    final String tableName = getRow().getTable().getLinkTarget(columnIndex).getName();
+                    String targetType = Table.tableNameToClassName(tableName);
+                    sb.append(String.format("RealmList<%s>[%s]", targetType, getRow().getLinkList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
                 default:
-                    sb.append(field).append(": ?");
+                    sb.append("?");
+                    break;
             }
             sb.append("}, ");
         }

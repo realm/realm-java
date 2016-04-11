@@ -20,6 +20,7 @@ import com.android.SdkConstants
 import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
+import com.google.common.io.Files
 import groovy.io.FileType
 import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory
 
 import java.lang.reflect.Modifier
 import java.util.jar.JarFile
+import java.util.regex.Pattern
 
 import static com.android.build.api.transform.QualifiedContent.*
 
@@ -58,7 +60,8 @@ class RealmTransformer extends Transform {
 
     @Override
     Set<Scope> getReferencedScopes() {
-        return Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.TESTED_CODE)
+        return Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.PROJECT_LOCAL_DEPS,
+                Scope.SUB_PROJECTS, Scope.SUB_PROJECTS_LOCAL_DEPS, Scope.TESTED_CODE)
     }
 
     @Override
@@ -74,53 +77,70 @@ class RealmTransformer extends Transform {
         def tic = System.currentTimeMillis()
 
         // Find all the class names
-        def classNames = getClassNames(inputs)
+        def inputClassNames = getClassNames(inputs)
+        def referencedClassNames = getClassNames(referencedInputs)
+        def allClassNames = merge(inputClassNames, referencedClassNames);
+
         // Create and populate the Javassist class pool
         ClassPool classPool = createClassPool(inputs, referencedInputs)
 
         logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
+        // mark as transformed
+        def baseProxyMediator = classPool.get('io.realm.internal.RealmProxyMediator')
+        def mediatorPattern = Pattern.compile('^io\\.realm\\.[^.]+Mediator$')
+        def proxyMediatorClasses = inputClassNames
+                .findAll { it.matches(mediatorPattern) }
+                .collect { classPool.getCtClass(it) }
+                .findAll { it.superclass?.equals(baseProxyMediator) }
+        logger.info "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
+        proxyMediatorClasses.each {
+            BytecodeModifier.overrideTransformedMarker(it);
+        }
+
         // Find the model classes
-        def modelClasses = classNames
+        def allModelClasses = allClassNames
                 .findAll { it.endsWith('RealmProxy') }
                 .collect { classPool.getCtClass(it).superclass }
                 .findAll { it.hasAnnotation(RealmClass.class) || it.superclass.hasAnnotation(RealmClass.class) }
-
-        logger.info "Model Classes: ${modelClasses*.name}"
+        def inputModelClasses = allModelClasses.findAll {
+            inputClassNames.contains(it.name)
+        }
+        logger.info "Model Classes: ${allModelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation
-        def managedFields = []
-        modelClasses.each {
-            managedFields.addAll(it.declaredFields.findAll {
-                it.getAnnotations()
-                it.getAnnotation(Ignore.class) == null && !Modifier.isStatic(it.getModifiers())
+        def allManagedFields = []
+        allModelClasses.each {
+            allManagedFields.addAll(it.declaredFields.findAll {
+                !it.hasAnnotation(Ignore.class) && !Modifier.isStatic(it.getModifiers())
             })
         }
-        logger.info "Managed Fields: ${managedFields*.name}"
+        logger.info "Managed Fields: ${allManagedFields*.name}"
 
-        // Add accessors to the model classes
-        modelClasses.each {
+        // Add accessors to the model classes in the target project
+        inputModelClasses.each {
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
         }
 
         // Use accessors instead of direct field access
-        classNames.each {
+        inputClassNames.each {
             logger.info "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
-            BytecodeModifier.useRealmAccessors(ctClass, managedFields, modelClasses)
-            ctClass.writeFile(outputProvider.getContentLocation(
-                    'realm', getInputTypes(), getScopes(), Format.DIRECTORY).canonicalPath)
+            BytecodeModifier.useRealmAccessors(ctClass, allManagedFields, allModelClasses)
+            ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
         }
+
+        copyResourceFiles(inputs, outputProvider)
 
         def toc = System.currentTimeMillis()
         logger.info "Realm Transform time: ${toc-tic} milliseconds"
     }
 
     /**
-     * Create and populate the Javassist class pool.
+     * Creates and populates the Javassist class pool.
      *
-     * @param inputs The inputs provided by the Transform API
+     * @param inputs the inputs provided by the Transform API
      * @param referencedInputs the referencedInputs provided by the Transform API
      * @return the populated ClassPool instance
      */
@@ -174,16 +194,51 @@ class RealmTransformer extends Transform {
 
             it.jarInputs.each {
                 def jarFile = new JarFile(it.file)
-                jarFile
-                        .findAll() { it.name.endsWith(SdkConstants.DOT_CLASS) }
-                        .each { classNames.add(
-                        it.name
-                                .substring(0, it.name.length() - SdkConstants.DOT_CLASS.length())
-                                .replace(File.separatorChar, '.' as char)) }
+                jarFile.entries().findAll {
+                    !it.directory && it.name.endsWith(SdkConstants.DOT_CLASS)
+                }.each {
+                    def path = it.name
+                    // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
+                    // `/`. It depends on how the jar file was created.
+                    // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
+                    def className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
+                            .replace('/' as char , '.' as char)
+                            .replace('\\' as char , '.' as char)
+                    classNames.add(className)
+                }
             }
         }
-
         return classNames
     }
 
+    private copyResourceFiles(Collection<TransformInput> inputs, TransformOutputProvider outputProvider) {
+        inputs.each {
+            it.directoryInputs.each {
+                def dirPath = it.file.absolutePath
+                it.file.eachFileRecurse(FileType.FILES) {
+                    if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
+                        logger.info "  Copying resource ${it}"
+                        def dest = new File(getOutputFile(outputProvider),
+                                it.absolutePath.substring(dirPath.length()))
+                        dest.parentFile.mkdirs()
+                        Files.copy(it, dest)
+                    }
+                }
+            }
+
+            // no need to implement the code for `it.jarInputs.each` since PROJECT SCOPE does not use jar input.
+        }
+    }
+
+    private File getOutputFile(TransformOutputProvider outputProvider) {
+        return outputProvider.getContentLocation(
+                'realm', getInputTypes(), getScopes(), Format.DIRECTORY)
+    }
+
+    private static Set<String> merge(Set<String> set1, Set<String> set2) {
+        Set<String> merged = new HashSet<String>()
+        merged.addAll(set1)
+        merged.addAll(set2)
+        return merged;
+    }
 }

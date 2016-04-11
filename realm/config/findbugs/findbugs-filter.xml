@@ -5,6 +5,10 @@
         <Class name="~.*\.R\$.*"/>
     </Match>
     <Match>
+        <!-- ignore all issues in ReLinker -->
+        <Class name="io.realm.internal.android.ReLinker"/>
+    </Match>
+    <Match>
         <Class name="~.*\.Manifest\$.*"/>
     </Match>
     <Match>

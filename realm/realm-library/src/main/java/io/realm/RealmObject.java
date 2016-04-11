@@ -28,16 +28,7 @@ import rx.Observable;
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
  * create your objects within a Realm, and use your custom subclasses instead of using the RealmObject class directly.
  * <p>
- * An annotation processor will create a proxy class for your RealmObject subclass. The getters and setters should not
- * contain any custom code of logic as they are overridden as part of the annotation process.
- * <p>
- * A RealmObject is currently limited to the following:
- *
- * <ul>
- *   <li>Private fields.</li>
- *   <li>Getter and setters for these fields.</li>
- *   <li>Static methods.</li>
- * </ul>
+ * An annotation processor will create a proxy class for your RealmObject subclass.
  * <p>
  * The following field data types are supported:
  * <ul>
@@ -57,10 +48,8 @@ import rx.Observable;
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code> when storing
  * within a Realm.
  * <p>
- * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if the field name is {@code XXX}. Getters
- * for fields of type boolean can be called {@code isXXX} as well. Fields with a m-prefix must have getters and setters
- * named setmXXX and getmXXX which is the default behavior when Android Studio automatically generates the getters and
- * setters.
+ * The only restriction a RealmObject has is that fields are not allowed to be final, transient' or volatile.
+ * Any method as well as public fields are allowed.
  * <p>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and don't require either a
  * getter or setter.
@@ -77,19 +66,23 @@ import rx.Observable;
 @RealmClass
 public abstract class RealmObject implements RealmModel {
     /**
+     * DEPRECATED: Use {@link #deleteFromRealm()} instead.
+     *
      * Removes the object from the Realm it is currently associated to.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
-     * fail with an IllegalStateException.
+     * fail with an IllegalStateException
      *
-     * @throws IllegalArgumentException if the object is not managed by Realm.
-     * @throws IllegalStateException if the Realm is closed or accessed from the wrong thread.
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
+    @Deprecated
     public final void removeFromRealm() {
-        RealmObject.removeFromRealm(this);
+        deleteFromRealm();
     }
 
     /**
+     * DEPRECATED: Use {@link #deleteFromRealm()} instead.
+     * 
      * Removes the object from the Realm it is currently associated to.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
@@ -99,13 +92,47 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if the object is not managed by Realm.
      * @throws IllegalStateException if the Realm is closed or accessed from the wrong thread.
      */
+    @Deprecated
     public static <E extends RealmModel> void removeFromRealm(E object) {
+        deleteFromRealm(object);
+    }
+    
+    /**
+     * Deletes the object from the Realm it is currently associated to.
+     * <p>
+     * After this method is called the object will be invalid and any operation (read or write) performed on it will
+     * fail with an IllegalStateException.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @see #isValid()
+     */
+    public void deleteFromRealm() {
+        deleteFromRealm(this);
+    }
+    
+    /**
+     * Deletes the object from the Realm it is currently associated to.
+     * <p>
+     * After this method is called the object will be invalid and any operation (read or write) performed on it will
+     * fail with an IllegalStateException.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @see #isValid()
+     */
+    public static <E extends RealmModel> void deleteFromRealm(E object) {
         if (!(object instanceof RealmObjectProxy)) {
             // TODO What type of exception IllegalArgument/IllegalState?
             throw new IllegalArgumentException("Object not managed by Realm, so it cannot be removed.");
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) object;
+        if (proxy.getRow() == null) {
+            throw new IllegalStateException("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        if (proxy.getRealm() == null) {
+            throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+
         proxy.getRealm().checkIfValid();
         Row row = proxy.getRow();
         row.getTable().moveLastOver(row.getIndex());
@@ -313,10 +340,11 @@ public abstract class RealmObject implements RealmModel {
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public <E extends RealmModel> Observable<E> asObservable() {
+    public <E extends RealmObject> Observable<E> asObservable() {
         return (Observable<E>) RealmObject.asObservable(this);
     }
 
@@ -358,7 +386,8 @@ public abstract class RealmObject implements RealmModel {
                 Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
                 return observable;
             } else {
-                throw new UnsupportedOperationException(realm.getClass() + " not supported");
+                throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
+                        " See https://realm.io/docs/java/latest/#rxjava for more details.");
             }
         } else {
             // TODO Is this true? Should we just return Observable.just(object) ?

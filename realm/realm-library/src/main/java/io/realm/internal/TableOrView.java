@@ -353,6 +353,8 @@ public interface TableOrView {
 
     long count(long columnIndex, String value);
 
+    void removeFirst();
+
     enum PivotType {
         COUNT(0),
         SUM(1),

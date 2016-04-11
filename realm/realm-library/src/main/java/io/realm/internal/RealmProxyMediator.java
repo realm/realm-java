@@ -139,6 +139,17 @@ public abstract class RealmProxyMediator {
      */
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
+    /**
+     * Returns whether Realm transformer has been applied or not. Subclasses of this class are
+     * created by the annotation processor and the Realm transformer will add an override of
+     * this method that always return {@code true} if the transform was successful.
+     *
+     * @return {@code true} if Realm transformer was applied, {@code false} otherwise.
+     */
+    public boolean transformerApplied() {
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof RealmProxyMediator)) {
