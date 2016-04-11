@@ -113,7 +113,7 @@ public class Repository implements Closeable {
                 if (persistedStory != null) {
                     persistedStory.setRead(read);
                 } else {
-                    Timber.e("Trying to update a story that no longer exists: " + storyId);
+                    Timber.e("Trying to update a story that no longer exists: %1$s", storyId);
                 }
             }
         }, new Realm.Transaction.OnError() {
