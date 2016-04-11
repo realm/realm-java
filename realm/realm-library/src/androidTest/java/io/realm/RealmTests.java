@@ -1325,105 +1325,57 @@ public class RealmTests {
 
     @Test
     public void copyToRealm_stringPrimaryKeyIsNull() {
-        // null primary key object
-        PrimaryKeyAsString nullPrimaryKeyObj = new PrimaryKeyAsString();
-        nullPrimaryKeyObj.setId(2);
-        realm.beginTransaction();
-        realm.copyToRealm(nullPrimaryKeyObj);
-        realm.commitTransaction();
+        final long SECONDARY_FIELD_VALUE = 34992142L;
+        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_VALUE);
 
-        // iterative null primary key check between query and result.
         RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
         assertEquals(1, results.size());
-        // null primary key result
-        RealmResults<PrimaryKeyAsString> nullNameResult = results.where().equalTo(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY, (String) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(null, nullNameResult.first().getName());
-        assertEquals(2L, nullNameResult.first().getId());
+        assertEquals(null, results.first().getName());
+        assertEquals(SECONDARY_FIELD_VALUE, results.first().getId());
     }
 
     @Test
     public void copyToRealm_boxedBytePrimaryKeyIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullBytePrimaryKeyObj";
+        final String SECONDARY_FIELD_VALUE = "nullBytePrimaryKeyObj";
+        TestHelper.populateTestRealmForBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_VALUE);
 
-        // null primary key object
-        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = new PrimaryKeyAsBoxedByte();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealm(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key check between query and result.
         RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
         assertEquals(1, results.size());
-        // null primary key result
-        RealmResults<PrimaryKeyAsBoxedByte> nullNameResult = results.where().equalTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY, (Byte) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(null, results.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
     }
 
     @Test
     public void copyToRealm_boxedShortPrimaryKeyIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullShortPrimaryKeyObj";
+        final String SECONDARY_FIELD_VALUE = "nullShortPrimaryKeyObj";
+        TestHelper.populateTestRealmForShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_VALUE);
 
-        // null primary key object
-        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = new PrimaryKeyAsBoxedShort();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealm(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key check between query and result.
         RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
         assertEquals(1, results.size());
-        // null primary key result
-        RealmResults<PrimaryKeyAsBoxedShort> nullNameResult = results.where().equalTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY, (Short) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(null, results.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
     }
 
     @Test
     public void copyToRealm_boxedIntegerPrimaryKeyIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullIntegerPrimaryKeyObj";
+        final String SECONDARY_FIELD_VALUE = "nullIntegerPrimaryKeyObj";
+        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_VALUE);
 
-        // null primary key object
-        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = new PrimaryKeyAsBoxedInteger();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealm(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key check between query and result.
         RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
         assertEquals(1, results.size());
-        // null primary key result
-        RealmResults<PrimaryKeyAsBoxedInteger> nullNameResult = results.where().equalTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY, (Integer) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(null, results.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
     }
 
     @Test
     public void copyToRealm_boxedLongPrimaryKeyIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullLongPrimaryKeyObj";
+        final String SECONDARY_FIELD_VALUE = "nullLongPrimaryKeyObj";
+        TestHelper.populateTestRealmForLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_VALUE);
 
-        // null primary key object
-        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = new PrimaryKeyAsBoxedLong();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealm(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key check between query and result.
         RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
         assertEquals(1, results.size());
-        // null primary key result
-        RealmResults<PrimaryKeyAsBoxedLong> nullNameResult = results.where().equalTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY, (Long) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(null, results.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
     }
 
     @Test
@@ -1502,140 +1454,102 @@ public class RealmTests {
 
     @Test
     public void copyToRealmOrUpdate_stringPrimaryKeyFieldIsNull() {
-        PrimaryKeyAsString nullPrimaryKeyObj = new PrimaryKeyAsString();
-        nullPrimaryKeyObj.setName((String) null);
-        nullPrimaryKeyObj.setId(2);
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
-        realm.commitTransaction();
+        final long SECONDARY_FIELD_VALUE = 2192841L;
+        final long SECONDARY_FIELD_UPDATED = 44887612L;
+        PrimaryKeyAsString nullPrimaryKeyObj = TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_VALUE);
 
-        // iterative null primary key object acquisition between query and result.
         RealmResults<PrimaryKeyAsString> result = realm.allObjects(PrimaryKeyAsString.class);
         assertEquals(1, result.size());
-        RealmResults<PrimaryKeyAsString> nullNameResult = result.where().equalTo(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY, (String) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(null, nullNameResult.first().getName());
-        assertEquals(2L, nullNameResult.first().getId());
+        assertEquals(null, result.first().getName());
+        assertEquals(SECONDARY_FIELD_VALUE, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setId(44);
+        nullPrimaryKeyObj.setId(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(44L, realm.where(PrimaryKeyAsString.class).equalTo(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY, (String) null).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_UPDATED, realm.allObjects(PrimaryKeyAsString.class).first().getId());
     }
 
     @Test
     public void copyToRealmOrUpdate_boxedBytePrimaryKeyFieldIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullBytePrimaryKeyObj";
-        final String NULL_PRIMARYKEY_UPDATED = "nullBytePrimaryKeyObjUpdated";
+        final String SECONDARY_FIELD_VALUE = "nullBytePrimaryKeyObj";
+        final String SECONDARY_FIELD_UPDATED = "nullBytePrimaryKeyObjUpdated";
+        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = TestHelper.populateTestRealmForBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_VALUE);
 
-        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = new PrimaryKeyAsBoxedByte();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key object acquisition between query and result.
         RealmResults<PrimaryKeyAsBoxedByte> result = realm.allObjects(PrimaryKeyAsBoxedByte.class);
         assertEquals(1, result.size());
-        RealmResults<PrimaryKeyAsBoxedByte> nullNameResult = result.where().equalTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY, (Byte) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
+        assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_UPDATED);
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(NULL_PRIMARYKEY_UPDATED, realm.where(PrimaryKeyAsBoxedByte.class).equalTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY, (Byte) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_UPDATED, realm.allObjects(PrimaryKeyAsBoxedByte.class).first().getName());
     }
 
     @Test
     public void copyToRealmOrUpdate_boxedShortPrimaryKeyFieldIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullShortPrimaryKeyObj";
-        final String NULL_PRIMARYKEY_UPDATED = "nullShortPrimaryKeyObjUpdated";
+        final String SECONDARY_FIELD_VALUE = "nullShortPrimaryKeyObj";
+        final String SECONDARY_FIELD_UPDATED = "nullShortPrimaryKeyObjUpdated";
+        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = TestHelper.populateTestRealmForShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_VALUE);
 
-        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = new PrimaryKeyAsBoxedShort();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key object acquisition between query and result.
         RealmResults<PrimaryKeyAsBoxedShort> result = realm.allObjects(PrimaryKeyAsBoxedShort.class);
         assertEquals(1, result.size());
-        RealmResults<PrimaryKeyAsBoxedShort> nullNameResult = result.where().equalTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY, (Short) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
+        assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_UPDATED);
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(NULL_PRIMARYKEY_UPDATED, realm.where(PrimaryKeyAsBoxedShort.class).equalTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY, (Short) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_UPDATED, realm.allObjects(PrimaryKeyAsBoxedShort.class).first().getName());
     }
 
     @Test
     public void copyToRealmOrUpdate_boxedIntegerPrimaryKeyFieldIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullIntegerPrimaryKeyObj";
-        final String NULL_PRIMARYKEY_UPDATED = "nullIntegerPrimaryKeyObjUpdated";
+        final String SECONDARY_FIELD_VALUE = "nullIntegerPrimaryKeyObj";
+        final String SECONDARY_FIELD_UPDATED = "nullIntegerPrimaryKeyObjUpdated";
+        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_VALUE);
 
-        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = new PrimaryKeyAsBoxedInteger();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key object acquisition between query and result.
         RealmResults<PrimaryKeyAsBoxedInteger> result = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
         assertEquals(1, result.size());
-        RealmResults<PrimaryKeyAsBoxedInteger> nullNameResult = result.where().equalTo(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY, (Integer) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
+        assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_UPDATED);
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(NULL_PRIMARYKEY_UPDATED, realm.where(PrimaryKeyAsBoxedInteger.class).equalTo(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY, (Integer) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_UPDATED, realm.allObjects(PrimaryKeyAsBoxedInteger.class).first().getName());
     }
 
     @Test
     public void copyToRealmOrUpdate_boxedLongPrimaryKeyFieldIsNull() {
-        final String NULL_PRIMARYKEY_OBJECT = "nullLongPrimaryKeyObj";
-        final String NULL_PRIMARYKEY_UPDATED = "nullLongPrimaryKeyObjUpdated";
+        final String SECONDARY_FIELD_VALUE = "nullLongPrimaryKeyObj";
+        final String SECONDARY_FIELD_UPDATED = "nullLongPrimaryKeyObjUpdated";
+        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = TestHelper.populateTestRealmForLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_VALUE);
 
-        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = new PrimaryKeyAsBoxedLong();
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_OBJECT);
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
-        realm.commitTransaction();
-
-        // iterative null primary key object acquisition between query and result.
         RealmResults<PrimaryKeyAsBoxedLong> result = realm.allObjects(PrimaryKeyAsBoxedLong.class);
         assertEquals(1, result.size());
-        RealmResults<PrimaryKeyAsBoxedLong> nullNameResult = result.where().equalTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY, (Long) null).findAll();
-        assertEquals(1, nullNameResult.size());
-        assertEquals(NULL_PRIMARYKEY_OBJECT, nullNameResult.first().getName());
-        assertEquals(null, nullNameResult.first().getId());
+        assertEquals(SECONDARY_FIELD_VALUE, result.first().getName());
+        assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(NULL_PRIMARYKEY_UPDATED);
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(NULL_PRIMARYKEY_UPDATED, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY, (Long) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_UPDATED, realm.allObjects(PrimaryKeyAsBoxedLong.class).first().getName());
     }
 
     @Test

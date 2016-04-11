@@ -22,7 +22,7 @@ import io.realm.annotations.PrimaryKey;
 public class PrimaryKeyAsBoxedLong extends RealmObject {
 
     public static final String CLASS_NAME = "PrimaryKeyAsBoxedLong";
-    public static final String NULLABLE_PRIMARY_KEY = "id";
+    public static final String NULLABLE_PRIMARY_KEY_FIELD = "id";
 
     @PrimaryKey
     private Long id;

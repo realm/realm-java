@@ -46,6 +46,11 @@ import java.util.concurrent.TimeUnit;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
+import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
+import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -106,22 +111,6 @@ public class TestHelper {
         t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
         t.addColumn(RealmFieldType.STRING, "string");
         t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");
-
-        return t;
-    }
-
-    /**
-     * Creates an empty table with 1 column of all nullable primary key type
-     * @return Table with Nullable PrimaryKey types
-     */
-    public static Table getTableWithNullablePrimaryKeyTypes(){
-        Table t = new Table();
-
-        t.addColumn(RealmFieldType.STRING, "String", Table.NULLABLE);
-        t.addColumn(RealmFieldType.INTEGER, "Byte", Table.NULLABLE);
-        t.addColumn(RealmFieldType.INTEGER, "Short", Table.NULLABLE);
-        t.addColumn(RealmFieldType.INTEGER, "Integer", Table.NULLABLE);
-        t.addColumn(RealmFieldType.INTEGER, "Long", Table.NULLABLE);
 
         return t;
     }
@@ -399,6 +388,71 @@ public class TestHelper {
         }
 
         return config.build();
+    }
+
+    /**
+     * Creates a realm table with null value for String type PrimaryKey field.
+     */
+    public static PrimaryKeyAsString populateTestRealmForStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsString obj = new PrimaryKeyAsString();
+        obj.setName(primaryFieldValue);
+        obj.setId(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Creates a realm table with null value for Byte type PrimaryKey field.
+     */
+    public static PrimaryKeyAsBoxedByte populateTestRealmForBytePrimaryKey(Realm testRealm,  Byte primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Creates a realm table with null value for Short type PrimaryKey field.
+     */
+    public static PrimaryKeyAsBoxedShort populateTestRealmForShortPrimaryKey(Realm testRealm,  Short primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Creates a realm table with null value for Integer type PrimaryKey field.
+     */
+    public static PrimaryKeyAsBoxedInteger populateTestRealmForIntegerPrimaryKey(Realm testRealm,  Integer primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Creates a realm table with null value for Long type PrimaryKey field.
+     */
+    public static PrimaryKeyAsBoxedLong populateTestRealmForLongPrimaryKey(Realm testRealm,  Long primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
     }
 
     public static void populateTestRealmForNullTests(Realm testRealm) {

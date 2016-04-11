@@ -196,7 +196,7 @@ public class DynamicRealmTests {
 
         RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsString.CLASS_NAME);
         assertEquals(1, results.size());
-        assertEquals(null, results.first().getString(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY));
+        assertEquals(null, results.first().getString(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD));
     }
 
     @Test
@@ -207,7 +207,7 @@ public class DynamicRealmTests {
 
         RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedByte.CLASS_NAME);
         assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY));
+        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD));
     }
 
     @Test
@@ -218,7 +218,7 @@ public class DynamicRealmTests {
 
         RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedShort.CLASS_NAME);
         assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY));
+        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD));
     }
 
     @Test
@@ -229,7 +229,7 @@ public class DynamicRealmTests {
 
         RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedInteger.CLASS_NAME);
         assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY));
+        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD));
     }
 
     @Test
@@ -240,7 +240,7 @@ public class DynamicRealmTests {
 
         RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedLong.CLASS_NAME);
         assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY));
+        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD));
     }
 
     @Test(expected = IllegalArgumentException.class)
