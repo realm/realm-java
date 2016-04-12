@@ -12,8 +12,25 @@
     tools:context="realm.io.storeencryptionpassword.MainActivity"
     tools:showIn="@layout/activity_main">
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="Unlock"
+        android:id="@+id/btnUnLock"
+        android:enabled="false"/>
+
+    <Button
+        android:layout_below="@id/btnUnLock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="Lock"
+        android:id="@+id/btnLock"
+        android:enabled="false"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="" />
 </RelativeLayout>

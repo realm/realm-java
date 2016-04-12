@@ -1,33 +1,89 @@
 package realm.io.storeencryptionpassword;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.Toast;
+
+import io.realm.RealmConfiguration;
+import io.realm.Realm;
 
 public class MainActivity extends AppCompatActivity {
-
+    private Button mBtnUnlock;
+    private Button mBtnLock;
+    private SharedPreferences defaultSharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mBtnUnlock = (Button) findViewById(R.id.btnUnLock);
+        mBtnLock = (Button) findViewById(R.id.btnLock);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        if (!TextUtils.isEmpty(defaultSharedPreferences.getString("key", null))) {
+            mBtnUnlock.setEnabled(true);
+        } else {
+            //TODO no key, open KeyStore to unlock it or generate one
+            SharedPreferences.Editor edit = defaultSharedPreferences.edit();
+            String aesKey = "123456";
+            edit.putString("key", aesKey);
+            edit.apply();
+            goToList();
+        }
+
+        mBtnUnlock.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onClick(View v) {
+                mBtnUnlock.setEnabled(false);
+                // TODO try to unlock the keystore
+                // Check if the AES key is already in the default SharedPref
+                // if yes use it to create a RealmConfiguration otherwise
+                // try to unlock the keystore to find one, of there is none
+                // Generate one then encrypted using the private key stored
+                // in the Keystore
+
+                Toast.makeText(MainActivity.this, "Unlocking ...", Toast.LENGTH_SHORT).show();
+                goToList();
+            }
+        });
+
+        mBtnLock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBtnLock.setEnabled(false);
+                Toast.makeText(MainActivity.this, "Locking ...", Toast.LENGTH_SHORT).show();
+                SharedPreferences.Editor edit = defaultSharedPreferences.edit();
+                edit.remove("key");
+                edit.apply();
+                mBtnUnlock.setEnabled(true);
             }
         });
     }
 
+
+    private void goToList () {
+        //TODO use this one RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).encryptionKey(aesKey.getBytes()).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(MainActivity.this).build();
+        Realm.setDefaultConfiguration(realmConfig);
+        mBtnLock.setEnabled(true);
+
+        //start Todo list
+        Intent intent = new Intent(MainActivity.this, SecretTodoList.class);
+        startActivity(intent);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

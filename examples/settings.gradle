@@ -1,4 +1,4 @@
-include ':StoreEncryptionPassword'
+include 'StoreEncryptionPassword'
 include 'adapterExample'
 include 'encryptionExample'
 include 'gridViewExample'
