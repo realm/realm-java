@@ -26,14 +26,14 @@ import io.realm.OrderedRealmCollection;
 import io.realm.RealmBaseAdapter;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
-public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
+class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
 
     private static class ViewHolder {
         TextView timestamp;
     }
 
-    public MyAdapter(Context context, int resId, OrderedRealmCollection<TimeStamp> realmResults, boolean automaticUpdate) {
-        super(context, realmResults, automaticUpdate);
+    public MyAdapter(Context context, OrderedRealmCollection<TimeStamp> realmResults) {
+        super(context, realmResults, true);
     }
 
     @Override

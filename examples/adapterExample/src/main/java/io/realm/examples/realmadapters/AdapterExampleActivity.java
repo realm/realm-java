@@ -48,7 +48,7 @@ public class AdapterExampleActivity extends Activity {
         realm = Realm.getDefaultInstance();
 
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
-        final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
+        final MyAdapter adapter = new MyAdapter(this, timeStamps);
         ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
