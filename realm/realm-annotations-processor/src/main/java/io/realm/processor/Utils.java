@@ -30,7 +30,6 @@ public class Utils {
     private static TypeMirror realmObject;
     private static TypeMirror object;
 
-
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
@@ -40,7 +39,6 @@ public class Utils {
         markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
         object = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("java.lang.Object"));
     }
-
 
     /**
      * @return true if the given element is the default public no arg constructor for a class.

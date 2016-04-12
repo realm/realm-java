@@ -29,7 +29,6 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.internal.RealmObjectProxy;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
