@@ -584,15 +584,14 @@ public class RealmMigrationTests {
 
     // Omit setting the existing @PrimaryKey field nullable to see if migration fails
     @Test
-    public void notSettingNullableToStringPrimaryKeyThrows() throws IOException {
-        configFactory.copyRealmFromAssets(context, "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+    public void notSettingNullableToPrimaryKeyThrows() throws IOException {
+        configFactory.copyRealmFromAssets(context, "default-notnullable-primarykey.realm", Realm.DEFAULT_REALM_NAME);
         final Class[] classes = {PrimaryKeyAsBoxedByte.class, PrimaryKeyAsBoxedShort.class, PrimaryKeyAsBoxedInteger.class, PrimaryKeyAsBoxedLong.class, PrimaryKeyAsString.class};
         for (final Class clazz : classes) {
-            configFactory.copyRealmFromAssets(context, "default-notnullable-primarykey.realm", Realm.DEFAULT_REALM_NAME);
             try {
                 RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                         .schemaVersion(0)
-                        .schema(PrimaryKeyAsString.class)
+                        .schema(clazz)
                         .migration(new RealmMigration() {
                             @Override
                             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
@@ -604,8 +603,13 @@ public class RealmMigrationTests {
                 realm.close();
                 fail();
             } catch (RealmMigrationNeededException expected) {
+                if (clazz == PrimaryKeyAsString.class) {
                     assertEquals("@PrimaryKey field 'name' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable().",
                             expected.getMessage());
+                } else {
+                    assertEquals("@PrimaryKey field 'id' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable().",
+                            expected.getMessage());
+                }
             }
         }
     }
