@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         adapter = null;
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 presenter.listItemSelected(position);
             }
         });
-        listView.setEmptyView(getLayoutInflater().inflate(R.layout.common_emptylist, null, false));
+        listView.setEmptyView(getLayoutInflater().inflate(R.layout.common_emptylist, listView, false));
 
         refreshView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override

@@ -20,7 +20,7 @@
             android:gravity="center_horizontal"
             android:textStyle="italic"
             android:paddingBottom="16dp"
-            android:text="Use the Source, Luke!"
+            android:text="@string/default_message"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
     </LinearLayout>
 </ScrollView>
