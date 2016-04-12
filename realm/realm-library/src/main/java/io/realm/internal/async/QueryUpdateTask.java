@@ -32,7 +32,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
 
 /**
- * Manages the update of async queries.
+ * Manage the update of async queries.
  */
 public class QueryUpdateTask implements Runnable {
     // true if updating RealmResults, false if updating RealmObject, can't mix both

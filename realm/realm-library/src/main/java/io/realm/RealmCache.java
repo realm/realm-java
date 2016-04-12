@@ -208,7 +208,7 @@ class RealmCache {
     }
 
     /**
-     * Makes sure that the new configuration doesn't clash with any cached configurations for the
+     * Make sure that the new configuration doesn't clash with any cached configurations for the
      * Realm.
      *
      * @throws IllegalArgumentException if the new configuration isn't valid.

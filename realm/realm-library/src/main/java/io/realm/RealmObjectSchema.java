@@ -423,7 +423,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Returns all fields in this class.
+     * Return all fields in this class.
      *
      * @return a list of all the fields in this class.
      */
