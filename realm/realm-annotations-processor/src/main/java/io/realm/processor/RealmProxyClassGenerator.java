@@ -449,8 +449,7 @@ public class RealmProxyClassGenerator {
                                 fieldIndexVariableReference(field), fieldName, fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                 "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
-                                "Migrate using RealmObjectSchema.setNullable()." +
-                                "\")",
+                                "Migrate using RealmObjectSchema.setNullable().\")",
                                 fieldName);
                         writer.endControlFlow();
                     // rest of nullability checks
@@ -460,14 +459,12 @@ public class RealmProxyClassGenerator {
                             writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                     "\"Field '%s' does not support null values in the existing Realm file. " +
                                     "Either set @Required, use the primitive type for field '%s' " +
-                                    "or migrate using RealmObjectSchema.setNullable()." +
-                                    "\")",
+                                    "or migrate using RealmObjectSchema.setNullable().\")",
                                     fieldName, fieldName);
                         } else {
                             writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                     " \"Field '%s' is required. Either set @Required to field '%s' " +
-                                    "or migrate using RealmObjectSchema.setNullable()." +
-                                    "\")",
+                                    "or migrate using RealmObjectSchema.setNullable().\")",
                                     fieldName, fieldName);
                         }
                         writer.endControlFlow();

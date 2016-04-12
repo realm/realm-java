@@ -866,12 +866,11 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void between_nullPrimaryKeysIsNotIncluded() {
-        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
+    public void between_nullPrimaryKeysIsNotZero() {
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    (String) null);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   (String) null);
+        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, (String) null);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    (String) null);
 
         // Boxed Byte
         assertEquals(0, realm.where(PrimaryKeyAsBoxedByte.class).between(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       -1, 1).count());
@@ -884,12 +883,11 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void greaterThan_nullPrimaryKeysIsNotIncluded() {
-        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
+    public void greaterThan_nullPrimaryKeysIsNotZero() {
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    (String) null);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   (String) null);
+        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, (String) null);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    (String) null);
 
         // Boxed Byte
         assertEquals(0, realm.where(PrimaryKeyAsBoxedByte.class).greaterThan(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       -1).count());
@@ -902,12 +900,11 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void greaterThanOrEqualTo_nullPrimaryKeysIsNotIncluded() {
-        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
+    public void greaterThanOrEqualTo_nullPrimaryKeysIsNotZero() {
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    (String) null);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   (String) null);
+        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, (String) null);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    (String) null);
 
         // Boxed Byte
         assertEquals(0, realm.where(PrimaryKeyAsBoxedByte.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       -1).count());
@@ -920,12 +917,11 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void lessThan_nullPrimaryKeysIsNotIncluded() {
-        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
+    public void lessThan_nullPrimaryKeysIsNotZero() {
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    (String) null);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   (String) null);
+        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, (String) null);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    (String) null);
 
         // Boxed Byte
         assertEquals(0, realm.where(PrimaryKeyAsBoxedByte.class).lessThan(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       1).count());
@@ -938,12 +934,11 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void lessThanOrEqualTo_nullPrimaryKeysIsNotIncluded() {
-        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
+    public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    (String) null);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   (String) null);
+        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, (String) null);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    (String) null);
 
         // Boxed Byte
         assertEquals(0, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       1).count());
