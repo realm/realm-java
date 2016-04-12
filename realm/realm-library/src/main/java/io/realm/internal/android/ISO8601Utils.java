@@ -53,7 +53,7 @@ public class ISO8601Utils {
     private static final TimeZone TIMEZONE_Z = TIMEZONE_UTC;
 
     /**
-     * Parses a date from ISO-8601 formatted string. It expects a format
+     * Parse a date from ISO-8601 formatted string. It expects a format
      * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh:mm]]
      *
      * @param date ISO string to parse in the appropriate format.
@@ -216,7 +216,7 @@ public class ISO8601Utils {
 
 
     /**
-     * Checks if the expected character exist at the given offset in the value.
+     * Check if the expected character exist at the given offset in the value.
      *
      * @param value the string to check at the specified offset
      * @param offset the offset to look for the expected character
@@ -228,7 +228,7 @@ public class ISO8601Utils {
     }
 
     /**
-     * Parses an integer located between 2 given offsets in a string
+     * Parse an integer located between 2 given offsets in a string
      *
      * @param value the string to parse
      * @param beginIndex the start index for the integer in the string
