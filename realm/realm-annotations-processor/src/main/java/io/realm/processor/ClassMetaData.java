@@ -329,8 +329,13 @@ public class ClassMetaData {
         return getGetter(primaryKey.getSimpleName().toString());
     }
 
+    /**
+     * Check if a VariableElement is nullable. In case of PrimaryKey field, such field can be
+     * nullable only if its type could be found in Constants#JAVA_TO_NULLABLE_PRIMARYKEY_TYPES.
+     *
+     * @return {@code true} if a VariableElement is nullable type, {@code false} otherwise.
+     */
     public boolean isNullable(VariableElement variableElement) {
-        // a primary key can be nullable only if its type could be found in JAVA_TO_NULLABLE_PRIMARYKEY_TYPES
         if (hasPrimaryKey() && variableElement.equals(getPrimaryKey())) {
             return Utils.isNullablePrimaryKeyType(variableElement);
         }
