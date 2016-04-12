@@ -293,10 +293,10 @@ public class HandlerController implements Handler.Callback {
                 iterator.remove();
 
             } else {
-                if (realmObject.getRow().isAttached()) {
+                if (realmObject.getRow$realm().isAttached()) {
                     // It should be legal to modify realmObjects in the listener
                     objectsToBeNotified.add(realmObject);
-                } else if (realmObject.getRow() != Row.EMPTY_ROW) {
+                } else if (realmObject.getRow$realm() != Row.EMPTY_ROW) {
                     iterator.remove();
                 }
             }
@@ -304,7 +304,7 @@ public class HandlerController implements Handler.Callback {
 
         for (Iterator<RealmObjectProxy> it = objectsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
             RealmObjectProxy realmObject = it.next();
-            realmObject.notifyChangeListeners();
+            realmObject.notifyChangeListeners$realm();
         }
     }
 
@@ -524,8 +524,8 @@ public class HandlerController implements Handler.Callback {
                         emptyAsyncRealmObject.remove(realmObjectWeakReference);
                         realmObjects.put(realmObjectWeakReference, null);
                     }
-                    proxy.onCompleted(rowPointer);
-                    proxy.notifyChangeListeners();
+                    proxy.onCompleted$realm(rowPointer);
+                    proxy.notifyChangeListeners$realm();
 
                 } else if (compare > 0) {
                     // the caller has advanced we need to
@@ -533,7 +533,7 @@ public class HandlerController implements Handler.Callback {
                     if (RealmObject.isValid(proxy)) { // already completed & has a valid pointer no need to re-run
                         RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ proxy + "] , realm:" + HandlerController.this
                                 + " RealmObject is already loaded, just notify it.");
-                        proxy.notifyChangeListeners();
+                        proxy.notifyChangeListeners$realm();
 
                     } else {
                         RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ proxy + "] , realm:" + HandlerController.this

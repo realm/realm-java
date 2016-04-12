@@ -54,44 +54,44 @@ public final class ProxyState implements RealmObjectProxy {
      *
      * @param pendingQuery pending query.
      */
-    public void setPendingQuery(Future<Long> pendingQuery) {
+    public void setPendingQuery$realm(Future<Long> pendingQuery) {
         this.pendingQuery = pendingQuery;
         if (isLoaded()) {
             // the query completed before RealmQuery
             // had a chance to call setPendingQuery to register the pendingQuery (used btw
             // to determine isLoaded behaviour)
-            onCompleted();
+            onCompleted$realm();
 
         } // else, it will be handled by the Realm#handler
     }
 
     @Override
-    public BaseRealm getRealm() {
+    public BaseRealm getRealm$realm() {
         return realm;
     }
 
     @Override
-    public void setRealm(BaseRealm realm) {
+    public void setRealm$realm(BaseRealm realm) {
         this.realm = realm;
     }
 
     @Override
-    public Row getRow() {
+    public Row getRow$realm() {
         return row;
     }
 
     @Override
-    public void setRow(Row row) {
+    public void setRow$realm(Row row) {
         this.row = row;
     }
 
     @Override
-    public Object getPendingQuery() {
+    public Object getPendingQuery$realm() {
         return pendingQuery;
     }
 
     @Override
-    public boolean isCompleted() {
+    public boolean isCompleted$realm() {
         return isCompleted;
     }
 
@@ -101,7 +101,7 @@ public final class ProxyState implements RealmObjectProxy {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     @Override
-    public boolean onCompleted() {
+    public boolean onCompleted$realm() {
         try {
             Long handoverResult = pendingQuery.get();// make the query blocking
             if (handoverResult != 0) {
@@ -109,8 +109,8 @@ public final class ProxyState implements RealmObjectProxy {
                 // are not in sync (same shared_group version).
                 // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
                 // this should handle more complex use cases like retry, ignore etc
-                onCompleted(handoverResult);
-                notifyChangeListeners();
+                onCompleted$realm(handoverResult);
+                notifyChangeListeners$realm();
             } else {
                 isCompleted = true;
             }
@@ -122,12 +122,12 @@ public final class ProxyState implements RealmObjectProxy {
     }
 
     @Override
-    public List<RealmChangeListener> getListeners() {
+    public List<RealmChangeListener> getListeners$realm() {
         return listeners;
     }
 
     @Override
-    public void onCompleted(long handoverRowPointer) {
+    public void onCompleted$realm(long handoverRowPointer) {
         if (handoverRowPointer == 0) {
             // we'll retry later to update the row pointer, but we consider
             // the query done
@@ -145,7 +145,7 @@ public final class ProxyState implements RealmObjectProxy {
      * Notifies all registered listeners.
      */
     @Override
-    public void notifyChangeListeners() {
+    public void notifyChangeListeners$realm() {
         if (listeners != null && !listeners.isEmpty()) {
             boolean notify = false;
 
@@ -173,7 +173,7 @@ public final class ProxyState implements RealmObjectProxy {
     }
 
     @Override
-    public void setTableVersion() {
+    public void setTableVersion$realm() {
         if (row.getTable() != null) {
             currentTableVersion = row.getTable().version();
         }
@@ -185,13 +185,13 @@ public final class ProxyState implements RealmObjectProxy {
 
     private Table getTable () {
         if (className != null) {
-            return getRealm().schema.getTable(className);
+            return getRealm$realm().schema.getTable(className);
         }
-        return getRealm().schema.getTable(clazzName);
+        return getRealm$realm().schema.getTable(clazzName);
     }
 
     private boolean isLoaded() {
         realm.checkIfValid();
-        return getPendingQuery() == null || isCompleted();
+        return getPendingQuery$realm() == null || isCompleted$realm();
     }
 }

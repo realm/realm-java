@@ -93,7 +93,7 @@ public class RealmObjectTests {
     public void row_isValid() {
         realm.beginTransaction();
         RealmObjectProxy realmObject = (RealmObjectProxy) realm.createObject(AllTypes.class);
-        Row row = realmObject.getRow();
+        Row row = realmObject.getRow$realm();
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);

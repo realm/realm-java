@@ -155,7 +155,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                 throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
             }
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
-            view.insert(location, proxy.getRow().getIndex());
+            view.insert(location, proxy.getRow$realm().getIndex());
         } else {
             nonManagedList.add(location, object);
         }
@@ -183,7 +183,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (managedMode) {
             checkValidView();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
-            view.add(proxy.getRow().getIndex());
+            view.add(proxy.getRow$realm().getIndex());
         } else {
             nonManagedList.add(object);
         }
@@ -214,7 +214,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             checkValidView();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             E oldObject = get(location);
-            view.set(location, proxy.getRow().getIndex());
+            view.set(location, proxy.getRow$realm().getIndex());
             return oldObject;
         } else {
             return nonManagedList.set(location, object);
@@ -229,7 +229,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             if (proxy instanceof DynamicRealmObject) {
                 String listClassName = RealmSchema.getSchemaForTable(view.getTargetTable());
                 String objectClassName = ((DynamicRealmObject) object).getType();
-                if (proxy.getRealm() == realm) {
+                if (proxy.getRealm$realm() == realm) {
                     if (listClassName.equals(objectClassName)) {
                         // Same Realm instance and same target table
                         return object;
@@ -238,7 +238,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                         throw new IllegalArgumentException(String.format("The object has a different type from list's." +
                                 " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
                     }
-                } else if (realm.threadId == proxy.getRealm().threadId) {
+                } else if (realm.threadId == proxy.getRealm$realm().threadId) {
                     // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
                     // you have to run a full schema validation for each object.
                     // And copying from another Realm instance pointed to the same Realm file is not supported as well.
@@ -248,8 +248,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                 }
             } else {
                 // Object is already in this realm
-                if (proxy.getRow() != null && proxy.getRealm().getPath().equals(realm.getPath())) {
-                    if (realm != proxy.getRealm()) {
+                if (proxy.getRow$realm() != null && proxy.getRealm$realm().getPath().equals(realm.getPath())) {
+                    if (realm != proxy.getRealm$realm()) {
                         throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
                     }
                     return object;
@@ -677,8 +677,8 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             realm.checkIfValid();
             if (object instanceof RealmObjectProxy) {
                 RealmObjectProxy proxy = (RealmObjectProxy) object;
-                if (proxy.getRow() != null && realm.getPath().equals(proxy.getRealm().getPath()) && proxy.getRow() != InvalidRow.INSTANCE) {
-                    contains = view.contains(proxy.getRow().getIndex());
+                if (proxy.getRow$realm() != null && realm.getPath().equals(proxy.getRealm$realm().getPath()) && proxy.getRow$realm() != InvalidRow.INSTANCE) {
+                    contains = view.contains(proxy.getRow$realm().getIndex());
                 }
             }
         } else {
@@ -717,7 +717,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         } else {
             for (int i = 0; i < size(); i++) {
                 if (managedMode) {
-                    sb.append(((RealmObjectProxy) get(i)).getRow().getIndex());
+                    sb.append(((RealmObjectProxy) get(i)).getRow$realm().getIndex());
                 } else {
                     sb.append(System.identityHashCode(get(i)));
                 }

@@ -1939,8 +1939,8 @@ public class RealmQuery<E extends RealmModel> {
 
         RealmObjectProxy proxy = (RealmObjectProxy) result;
         final WeakReference<RealmObjectProxy> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
-        proxy.setRealm(realm);
-        proxy.setRow(Row.EMPTY_ROW);
+        proxy.setRealm$realm(realm);
+        proxy.setRow$realm(Row.EMPTY_ROW);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1987,7 +1987,7 @@ public class RealmQuery<E extends RealmModel> {
                 return INVALID_NATIVE_POINTER;
             }
         });
-        proxy.setPendingQuery(pendingQuery);
+        proxy.setPendingQuery$realm(pendingQuery);
 
         return result;
     }

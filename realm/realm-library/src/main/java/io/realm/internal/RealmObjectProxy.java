@@ -30,18 +30,18 @@ import io.realm.RealmModel;
  */
 public interface RealmObjectProxy extends RealmModel {
 
-    BaseRealm getRealm();
-    void setRealm(BaseRealm realm);
-    Row getRow();
-    void setRow(Row row);
-    Object getPendingQuery();
-    boolean isCompleted();
-    boolean onCompleted();
-    void onCompleted(long rowPointer);
-    List<RealmChangeListener> getListeners();
-    void setTableVersion();
-    void notifyChangeListeners();
-    void setPendingQuery(Future<Long> pendingQuery);
+    BaseRealm getRealm$realm();
+    void setRealm$realm(BaseRealm realm);
+    Row getRow$realm();
+    void setRow$realm(Row row);
+    Object getPendingQuery$realm();
+    boolean isCompleted$realm();
+    boolean onCompleted$realm();
+    void onCompleted$realm(long rowPointer);
+    List<RealmChangeListener> getListeners$realm();
+    void setTableVersion$realm();
+    void notifyChangeListeners$realm();
+    void setPendingQuery$realm(Future<Long> pendingQuery);
 
     /**
      * Tuple class for saving meta data about a cached RealmObject.
