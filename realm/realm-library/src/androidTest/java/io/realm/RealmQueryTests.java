@@ -801,11 +801,11 @@ public class RealmQueryTests {
     public void isNull_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null,   SECONDARY_FIELD_NUMBER);
-        TestHelper.populateTestRealmForBytePrimaryKey(realm, (Byte) null,       SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm, (Short) null,     SECONDARY_FIELD_STRING);
+        TestHelper.populateTestRealmForStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER);
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
         TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm, (Long) null,       SECONDARY_FIELD_STRING);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
 
         // String
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).isNull(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD).findAll().first().getId());
@@ -823,11 +823,11 @@ public class RealmQueryTests {
     public void notEqualTo_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null,   SECONDARY_FIELD_NUMBER);
-        TestHelper.populateTestRealmForBytePrimaryKey(realm, (Byte) null,       SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForShortPrimaryKey(realm, (Short) null,     SECONDARY_FIELD_STRING);
+        TestHelper.populateTestRealmForStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER);
+        TestHelper.populateTestRealmForBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING);
+        TestHelper.populateTestRealmForShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING);
         TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING);
-        TestHelper.populateTestRealmForLongPrimaryKey(realm, (Long) null,       SECONDARY_FIELD_STRING);
+        TestHelper.populateTestRealmForLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING);
 
         // String
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).notEqualTo(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD,             "Horseradish").findAll().first().getId());
