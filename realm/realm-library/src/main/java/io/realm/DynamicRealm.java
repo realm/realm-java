@@ -167,7 +167,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Get all objects of a specific class name.
+     * Gets all objects of a specific class name.
      *
      * @param className the Class to get objects of.
      * @return a {@link RealmResults} list containing the objects. If no results where found, an empty list
@@ -179,8 +179,9 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Get all objects of a specific class name sorted by a field. If no objects exist, the returned
-     * {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of objects instead.
+     * Gets all objects of a specific class name sorted by a field. If no objects exist, the returned
+     * {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of objects
+     * instead.
      *
      * @param className the class to get all objects from.
      * @param fieldName the field name to sort by.
@@ -202,9 +203,9 @@ public final class DynamicRealm extends BaseRealm {
 
 
     /**
-     * Get all objects of a specific class name sorted by two specific field names.  If no objects exist,
-     * the returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of
-     * objects instead.
+     * Gets all objects of a specific class name sorted by two specific field names.  If no objects exist,
+     * the returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number
+     * of objects instead.
      *
      * @param className the class to get all objects from.
      * @param fieldName1 the first field name to sort by.
@@ -223,7 +224,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Get all objects of a specific class name sorted by multiple fields.  If no objects exist, the
+     * Gets all objects of a specific class name sorted by multiple fields.  If no objects exist, the
      * returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of
      * objects instead.
      *
@@ -254,7 +255,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * Returns a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
      * returned in case of multiple occurrences.
      *
      * @param className the Class to get objects of.
@@ -272,7 +273,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * Returns a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
      * returned in case of multiple occurrences.
      * This method is only available from a Looper thread.
      *

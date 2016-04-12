@@ -23,7 +23,7 @@ import rx.Observable;
 /**
  * GitHub API definition
  */
-public interface GithubApi {
+interface GithubApi {
     /**
      * See https://developer.github.com/v3/users/
      */

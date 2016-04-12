@@ -237,7 +237,7 @@ public class Group implements Closeable {
     }
 
     /*
-     * Check if the Group contains any objects. It only checks for "class_" tables or non-metadata tables, e.g. this
+     * Checks if the Group contains any objects. It only checks for "class_" tables or non-metadata tables, e.g. this
      * return true if the "pk" table contained information.
      *
      * @return {@code true} if empty, @{code false} otherwise.

@@ -19,7 +19,7 @@
             />
         <TextView
             android:gravity="center_horizontal"
-            android:text="Status Output..."
+            android:text="@string/label"
             android:textStyle="bold"
             android:textSize="18sp"
             android:layout_width="match_parent"
