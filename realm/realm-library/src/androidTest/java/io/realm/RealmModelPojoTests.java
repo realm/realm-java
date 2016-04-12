@@ -73,7 +73,7 @@ public class RealmModelPojoTests {
 
     private void populateTestRealm(Realm realm, int objects) {
         realm.beginTransaction();
-        realm.allObjects(AllTypesPojo.class).clear();
+        realm.allObjects(AllTypesPojo.class).deleteAllFromRealm();
         for (int i = 0; i < objects; ++i) {
             AllTypesPojo allTypes = new AllTypesPojo();
             allTypes.columnLong = i;
@@ -124,7 +124,7 @@ public class RealmModelPojoTests {
         assertEquals(realmObject.columnDouble, standaloneObject.columnDouble, 0.00000000001);
         assertEquals(realmObject.columnBoolean, standaloneObject.columnBoolean);
         assertEquals(realmObject.columnDate, standaloneObject.columnDate);
-//        assertEquals(realmObject.hashCode(), standaloneObject.hashCode());
+        assertEquals(realmObject.hashCode(), standaloneObject.hashCode());
 
     }
 
@@ -229,7 +229,7 @@ public class RealmModelPojoTests {
         assertEquals(1, allAsync.size());
 
         dynamicRealm.beginTransaction();
-        allAsync.clear();
+        allAsync.deleteAllFromRealm();
         dynamicRealm.commitTransaction();
 
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypesPojo.CLASS_NAME).findAll();
