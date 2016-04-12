@@ -142,7 +142,7 @@ public class RealmAnalytics {
     }
 
     /**
-     * Compute an anonymous user id from the hashed MAC address of the first network interface
+     * Computes an anonymous user id from the hashed MAC address of the first network interface
      * @return the anonymous user id
      * @throws NoSuchAlgorithmException
      * @throws SocketException
@@ -161,7 +161,7 @@ public class RealmAnalytics {
     }
 
     /**
-     * Compute an anonymous app/library id from the packages containing RealmObject classes
+     * Computes an anonymous app/library id from the packages containing RealmObject classes
      * @return the anonymous app/library id
      * @throws NoSuchAlgorithmException
      */

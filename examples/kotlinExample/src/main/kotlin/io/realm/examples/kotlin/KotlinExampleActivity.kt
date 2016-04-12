@@ -32,10 +32,10 @@ import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
 
 
-public class KotlinExampleActivity : Activity() {
+class KotlinExampleActivity : Activity() {
 
     companion object {
-        public val TAG: String = KotlinExampleActivity::class.qualifiedName as String
+        val TAG: String = KotlinExampleActivity::class.qualifiedName as String
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
@@ -90,7 +90,7 @@ public class KotlinExampleActivity : Activity() {
     private fun showStatus(txt: String) {
         Log.i(TAG, txt)
         val tv = TextView(this)
-        tv.setText(txt)
+        tv.text = txt
         rootLayout.addView(tv)
     }
 
@@ -175,15 +175,15 @@ public class KotlinExampleActivity : Activity() {
         status += "\nNumber of persons: ${realm.allObjects(Person::class.java).size}"
 
         // Iterate over all objects
-        for (pers in realm.allObjects(Person::class.java)) {
-            val dogName: String = pers?.dog?.name ?: "None"
+        for (person in realm.allObjects(Person::class.java)) {
+            val dogName: String = person?.dog?.name ?: "None"
 
-            status += "\n${pers.name}: ${pers.age} : $dogName : ${pers.cats.size}"
+            status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
 
             // The field tempReference is annotated with @Ignore
             // Though we initially set its value to 42, it has
             // not been saved as part of the Person RealmObject:
-            check(pers.tempReference == 0)
+            check(person.tempReference == 0)
         }
 
         // Sorting

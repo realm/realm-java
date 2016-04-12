@@ -279,7 +279,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Check if RxJava is can be loaded.
+     * Checks if RxJava is can be loaded.
      *
      * @return true if RxJava dependency exist.
      */
