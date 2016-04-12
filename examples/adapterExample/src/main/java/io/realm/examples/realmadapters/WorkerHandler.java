@@ -22,7 +22,7 @@ import android.os.Message;
 import io.realm.Realm;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
-public class WorkerHandler extends Handler {
+class WorkerHandler extends Handler {
 
     public static final int ADD_TIMESTAMP = 1;
     public static final int REMOVE_TIMESTAMP = 2;
@@ -30,7 +30,7 @@ public class WorkerHandler extends Handler {
     public static final String ACTION = "action";
     public static final String TIMESTAMP = "timestamp";
 
-    private Realm realm;
+    private final Realm realm;
 
     public WorkerHandler(Realm realm) {
         this.realm = realm;

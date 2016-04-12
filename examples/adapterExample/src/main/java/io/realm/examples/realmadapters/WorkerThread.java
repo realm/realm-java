@@ -19,11 +19,10 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.Realm;
 
-public class WorkerThread extends Thread {
+class WorkerThread extends Thread {
 
     public Handler workerHandler;
     private CountDownLatch realmOpen;

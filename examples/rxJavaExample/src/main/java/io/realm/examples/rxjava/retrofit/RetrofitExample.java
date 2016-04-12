@@ -21,6 +21,8 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.Locale;
+
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
@@ -92,7 +94,7 @@ public class RetrofitExample extends Activity {
                     public void call(UserViewModel user) {
                         // Print user info.
                         TextView userView = new TextView(RetrofitExample.this);
-                        userView.setText(String.format("%s : %d/%d",
+                        userView.setText(String.format(Locale.US, "%s : %d/%d",
                                 user.getUsername(), user.getPublicRepos(), user.getPublicGists()));
                         container.addView(userView);
                     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.processor;
+package io.realm.transformer;
 
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -68,6 +68,7 @@ public class RealmAnalytics {
             + "      \"Anonymized MAC Address\": \"%USER_ID%\",\n"
             + "      \"Anonymized Bundle ID\": \"%APP_ID%\",\n"
             + "      \"Binding\": \"java\",\n"
+            + "      \"Language\": \"%LANGUAGE%\",\n"
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
             + "      \"Host OS Type\": \"%OS_TYPE%\",\n"
             + "      \"Host OS Version\": \"%OS_VERSION%\",\n"
@@ -78,13 +79,16 @@ public class RealmAnalytics {
     // The list of packages the model classes reside in
     private Set<String> packages;
 
-    private RealmAnalytics(Set<String> packages) {
+    private boolean usesKotlin;
+
+    private RealmAnalytics(Set<String> packages, boolean usesKotlin) {
         this.packages = packages;
+        this.usesKotlin = usesKotlin;
     }
 
-    public static RealmAnalytics getInstance(Set<String> packages) {
+    public static RealmAnalytics getInstance(Set<String> packages, boolean usesKotlin) {
         if (instance == null) {
-            instance = new RealmAnalytics(packages);
+            instance = new RealmAnalytics(packages, usesKotlin);
         }
         return instance;
     }
@@ -131,13 +135,14 @@ public class RealmAnalytics {
                 .replaceAll("%TOKEN%", TOKEN)
                 .replaceAll("%USER_ID%", getAnonymousUserId())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
+                .replaceAll("%LANGUAGE%", usesKotlin?"kotlin":"java")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
                 .replaceAll("%OS_TYPE%", System.getProperty("os.name"))
                 .replaceAll("%OS_VERSION%", System.getProperty("os.version"));
     }
 
     /**
-     * Compute an anonymous user id from the hashed MAC address of the first network interface
+     * Computes an anonymous user id from the hashed MAC address of the first network interface
      * @return the anonymous user id
      * @throws NoSuchAlgorithmException
      * @throws SocketException
@@ -156,7 +161,7 @@ public class RealmAnalytics {
     }
 
     /**
-     * Compute an anonymous app/library id from the packages containing RealmObject classes
+     * Computes an anonymous app/library id from the packages containing RealmObject classes
      * @return the anonymous app/library id
      * @throws NoSuchAlgorithmException
      */

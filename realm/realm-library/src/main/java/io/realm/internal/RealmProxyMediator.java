@@ -93,8 +93,8 @@ public abstract class RealmProxyMediator {
     public abstract Set<Class<? extends RealmModel>> getModelClasses();
 
     /**
-     * Copy a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied any
-     * changes to the original object will not be persisted.
+     * Copies a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
+     * any changes to the original object will not be persisted.
      *
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,

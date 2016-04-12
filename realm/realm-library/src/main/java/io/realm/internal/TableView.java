@@ -597,7 +597,7 @@ public class TableView implements TableOrView, Closeable {
     //
 
     /**
-     * Calculate the sum of the values in a particular column of this tableview.
+     * Calculates the sum of the values in a particular column of this tableview.
      *
      * Note: the type of the column marked by the columnIndex has to be of type RealmFieldType.INTEGER.
      *
