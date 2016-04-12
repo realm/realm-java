@@ -17,7 +17,7 @@ ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty
 // The location of core archive.
 ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 
-def commonCflags = [ '-Os', '-std=c++11' ]
+def commonCflags = [ '-Os', '-std=c++14' ]
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
     commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -289,7 +289,7 @@ targets.each { target ->
             "-l${Runtime.getRuntime().availableProcessors()}",
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
+            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include -Iobject-store/src -Iobject-store/impl/android -Iobject-store/impl",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
             "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",

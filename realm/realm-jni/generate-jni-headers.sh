@@ -8,11 +8,11 @@
 # 3. rebuild project using Android Studio (or gradle)
 
 # Setting up
-CLASSDIR="$(pwd)/../realm/build/intermediates/classes/release/"
+CLASSDIR="$(pwd)/../realm-library/build/intermediates/classes/debug/"
 JNIDIR="$(pwd)/src"
 
 # Generate the headers
-(cd "$CLASSDIR" && javah -jni -classpath "$CLASSDIR" -d "$JNIDIR" io.realm.internal.Group io.realm.internal.LinkView io.realm.internal.Row io.realm.internal.SharedGroup io.realm.internal.SubtableSchema io.realm.internal.Table io.realm.internal.TableQuery io.realm.internal.TableView io.realm.internal.Util io.realm.internal.Version)
+(cd "$CLASSDIR" && javah -jni -classpath "$CLASSDIR" -d "$JNIDIR" io.realm.RealmConfiguration io.realm.internal.Group io.realm.internal.LinkView io.realm.internal.Row io.realm.internal.SharedGroup io.realm.internal.SubtableSchema io.realm.internal.Table io.realm.internal.TableQuery io.realm.internal.TableView io.realm.internal.Util io.realm.internal.Version)
 
 # Remove "empty" header files (they have 13 lines)
 wc -l "$JNIDIR"/*.h | grep " 13 " | awk '{print $2}' | xargs rm -f

@@ -78,10 +78,10 @@ public class RealmConfiguration {
         }
     }
 
+    private long nativeConfigurationPointer;
+
     private final File realmFolder;
-    private final String realmFileName;
     private final String canonicalPath;
-    private final byte[] key;
     private final long schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
@@ -91,31 +91,41 @@ public class RealmConfiguration {
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
-        this.realmFileName = builder.fileName;
-        this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
-        this.key = builder.key;
+        this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, builder.fileName));
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
         this.migration = builder.migration;
         this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
+
+        nativeConfigurationPointer = createConfigurationPointer();
+        nativeSetPath(nativeConfigurationPointer, builder.folder + "/" + builder.fileName);
+        if (builder.key != null  && builder.key.length > 0) {
+            nativeSetEncryptionKey(nativeConfigurationPointer, builder.key);
+        }
+        nativeSetSchemaVersion(nativeConfigurationPointer, builder.schemaVersion);
     }
 
     public File getRealmFolder() {
-        return realmFolder;
+        String fullPath = getPath();
+        int lastIndex = fullPath.lastIndexOf('/');
+        File folder = new File(fullPath.substring(0, lastIndex));
+        return folder;
     }
 
     public String getRealmFileName() {
-        return realmFileName;
+        String fullPath = getPath();
+        int lastIndex = fullPath.lastIndexOf('/');
+        return fullPath.substring(lastIndex + 1);
     }
 
     public byte[] getEncryptionKey() {
-        return key == null ? null : Arrays.copyOf(key, key.length);
+        return nativeGetEncryptionKey(nativeConfigurationPointer);
     }
 
     public long getSchemaVersion() {
-        return schemaVersion;
+        return nativeGetSchemaVersion(nativeConfigurationPointer)   ;
     }
 
     public RealmMigration getMigration() {
@@ -149,7 +159,7 @@ public class RealmConfiguration {
     }
 
     public String getPath() {
-        return canonicalPath;
+        return nativeGetPath(nativeConfigurationPointer);
     }
 
     /**
@@ -178,9 +188,9 @@ public class RealmConfiguration {
         if (schemaVersion != that.schemaVersion) return false;
         if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) return false;
         if (!realmFolder.equals(that.realmFolder)) return false;
-        if (!realmFileName.equals(that.realmFileName)) return false;
+        if (!getRealmFileName().equals(that.getRealmFileName())) return false;
         if (!canonicalPath.equals(that.canonicalPath)) return false;
-        if (!Arrays.equals(key, that.key)) return false;
+        if (!Arrays.equals(getEncryptionKey(), that.getEncryptionKey())) return false;
         if (!durability.equals(that.durability)) return false;
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
         //noinspection SimplifiableIfStatement
@@ -191,9 +201,9 @@ public class RealmConfiguration {
     @Override
     public int hashCode() {
         int result = realmFolder.hashCode();
-        result = 31 * result + realmFileName.hashCode();
+        result = 31 * result + getRealmFileName().hashCode();
         result = 31 * result + canonicalPath.hashCode();
-        result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
+        result = 31 * result + (getEncryptionKey() != null ? Arrays.hashCode(getEncryptionKey()) : 0);
         result = 31 * result + (int)schemaVersion;
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
@@ -259,11 +269,12 @@ public class RealmConfiguration {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("realmFolder: ").append(realmFolder.toString());
         stringBuilder.append("\n");
-        stringBuilder.append("realmFileName : ").append(realmFileName);
+        stringBuilder.append("realmFileName : ").append(getRealmFileName());
         stringBuilder.append("\n");
         stringBuilder.append("canonicalPath: ").append(canonicalPath);
         stringBuilder.append("\n");
-        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : KEY_LENGTH).append("]");
+        stringBuilder.append("key: ");
+        stringBuilder.append("[length: " + Integer.toString(getEncryptionKey() == null ? 0 : KEY_LENGTH) + "]");
         stringBuilder.append("\n");
         stringBuilder.append("schemaVersion: ").append(Long.toString(schemaVersion));
         stringBuilder.append("\n");
@@ -526,4 +537,12 @@ public class RealmConfiguration {
             }
         }
     }
+
+    private native long createConfigurationPointer();
+    private native void nativeSetPath(long nativeConfigurationPointer, String path);
+    private native String nativeGetPath(long nativeConfigurationPointer);
+    private native void nativeSetEncryptionKey(long nativeConfigurationPointer, byte[] encryptionKey);
+    private native byte[] nativeGetEncryptionKey(long nativeConfigurationPointer);
+    private native long nativeGetSchemaVersion(long nativeConfigurationPointer);
+    private native void nativeSetSchemaVersion(long nativeConfigurationPointer, long schemaVersion);
 }
