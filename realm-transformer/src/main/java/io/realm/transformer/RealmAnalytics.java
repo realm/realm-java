@@ -68,7 +68,7 @@ public class RealmAnalytics {
             + "      \"Anonymized MAC Address\": \"%USER_ID%\",\n"
             + "      \"Anonymized Bundle ID\": \"%APP_ID%\",\n"
             + "      \"Binding\": \"java\",\n"
-            + "      \"Uses Kotlin\": \"%USES_KOTLIN%\",\n"
+            + "      \"Language\": \"%LANGUAGE%\",\n"
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
             + "      \"Host OS Type\": \"%OS_TYPE%\",\n"
             + "      \"Host OS Version\": \"%OS_VERSION%\",\n"
@@ -135,7 +135,7 @@ public class RealmAnalytics {
                 .replaceAll("%TOKEN%", TOKEN)
                 .replaceAll("%USER_ID%", getAnonymousUserId())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
-                .replaceAll("%USES_KOTLIN%", usesKotlin?"TRUE":"FALSE")
+                .replaceAll("%LANGUAGE%", usesKotlin?"kotlin":"java")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
                 .replaceAll("%OS_TYPE%", System.getProperty("os.name"))
                 .replaceAll("%OS_VERSION%", System.getProperty("os.version"));
