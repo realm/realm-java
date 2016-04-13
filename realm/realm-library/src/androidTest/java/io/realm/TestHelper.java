@@ -406,16 +406,17 @@ public class TestHelper {
     /**
      * Populate a realm with String type Primarykey objects
      */
-    public static void populateTestRealmWithStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue, long numberOfPopulation) {
+    public static void populateTestRealmWithStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsString userObj = new PrimaryKeyAsString();
         userObj.setName(primaryFieldValue);
         userObj.setId(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        for (long i = (-numberOfPopulation / 2); i < numberOfPopulation - 1; ++i) {
+        long idValue = (long)iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsString obj = new PrimaryKeyAsString();
-            obj.setName(String.valueOf(i));
-            obj.setId(i);
+            obj.setName(String.valueOf(idValue));
+            obj.setId(idValue);
             testRealm.copyToRealm(obj);
         }
         testRealm.commitTransaction();
@@ -437,16 +438,17 @@ public class TestHelper {
     /**
      * Populate a realm with Byte type Primarykey objects.
      */
-    public static void populateTestRealmWithBytePrimaryKey(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+    public static void populateTestRealmWithBytePrimaryKey(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedByte userObj = new PrimaryKeyAsBoxedByte();
         userObj.setId(primaryFieldValue);
         userObj.setName(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        for (byte i = (byte)(-numberOfPopulation / 2); i < (byte)(numberOfPopulation - 1); ++i) {
+        byte idValue = (byte)iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
-            obj.setId(Byte.valueOf(i));
-            obj.setName(String.valueOf(i));
+            obj.setId(new Byte(idValue));
+            obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
         testRealm.commitTransaction();
@@ -468,16 +470,17 @@ public class TestHelper {
     /**
      * Populate a realm with Short type Primarykey objects.
      */
-    public static void populateTestRealmWithShortPrimaryKey(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+    public static void populateTestRealmWithShortPrimaryKey(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedShort userObj = new PrimaryKeyAsBoxedShort();
         userObj.setId(primaryFieldValue);
         userObj.setName(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        for (short i = (short)(-numberOfPopulation / 2); i < (short)(numberOfPopulation - 1); ++i) {
+        short idValue = (short)iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
-            obj.setId(Short.valueOf(i));
-            obj.setName(String.valueOf(i));
+            obj.setId(new Short(idValue));
+            obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
         testRealm.commitTransaction();
@@ -499,16 +502,17 @@ public class TestHelper {
     /**
      * Populate a realm with Integer type Primarykey objects.
      */
-    public static void populateTestRealmWithIntegerPrimaryKey(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+    public static void populateTestRealmWithIntegerPrimaryKey(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedInteger userObj = new PrimaryKeyAsBoxedInteger();
         userObj.setId(primaryFieldValue);
         userObj.setName(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        for (int i = (-numberOfPopulation / 2); i < numberOfPopulation - 1; ++i) {
+        int idValue = iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
-            obj.setId(Integer.valueOf(i));
-            obj.setName(String.valueOf(i));
+            obj.setId(new Integer(idValue));
+            obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
         testRealm.commitTransaction();
@@ -530,16 +534,17 @@ public class TestHelper {
     /**
      * Populate a realm with Long type Primarykey objects.
      */
-    public static void populateTestRealmWithLongPrimaryKey(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+    public static void populateTestRealmWithLongPrimaryKey(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue, long numberOfPopulation, long iteratorBeginValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedLong userObj = new PrimaryKeyAsBoxedLong();
         userObj.setId(primaryFieldValue);
         userObj.setName(secondaryFieldValue);
         testRealm.copyToRealm(userObj);
-        for (long i = (long)(-numberOfPopulation / 2); i < (long)(numberOfPopulation - 1); ++i) {
+        long idValue = iteratorBeginValue;
+        for (long i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
-            obj.setId(Long.valueOf(i));
-            obj.setName(String.valueOf(i));
+            obj.setId(new Long(idValue));
+            obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
         testRealm.commitTransaction();
