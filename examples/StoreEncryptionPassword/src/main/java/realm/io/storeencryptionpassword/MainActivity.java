@@ -1,64 +1,27 @@
 package realm.io.storeencryptionpassword;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import io.realm.RealmConfiguration;
+import java.util.Arrays;
+
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class MainActivity extends AppCompatActivity {
+    public static final int REQ_UNLOCK = 1;
+
     private Button mBtnUnlock;
     private Button mBtnLock;
-    private SharedPreferences defaultSharedPreferences;
 
-    //TODO init Store (or get from Factory)
-    // maybe a singelton since initialising encryption API could be expenses
-    Store store = new Store() {
-        @Override
-        public boolean isKeystorePresent() {
-            return false;
-        }
-
-        @Override
-        public void generateKeystore() {
-
-        }
-
-        @Override
-        public void unlockKeyStore() {
-
-        }
-
-        @Override
-        public byte[] generateAesKey() {
-            return new byte[0];
-        }
-
-        @Override
-        public void encryptAndSaveAESKey(byte[] aes) {
-
-        }
-
-        @Override
-        public byte[] decryptAesKey() {
-            return new byte[0];
-        }
-
-        @Override
-        public byte[] getRealmKey() {
-            return new byte[0];
-        }
-    };
+    private final Store store = new Store(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,47 +31,15 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         mBtnUnlock = (Button) findViewById(R.id.btnUnLock);
         mBtnLock = (Button) findViewById(R.id.btnLock);
-        defaultSharedPreferences  = PreferenceManager.getDefaultSharedPreferences(this);
-
-        byte[] encryptedRealmKey = store.getRealmKey();
-        byte[] realmKey;
-        if (encryptedRealmKey == null) {
-            if (!store.isKeystorePresent()) {
-                store.generateKeystore();
-            }
-            // generate an AES key
-            realmKey = store.generateAesKey(); // key
-            store.encryptAndSaveAESKey(realmKey);
-
-        } else {
-            // decrypt the key
-            store.unlockKeyStore();
-            realmKey = store.decryptAesKey();
-        }
 
         //TODO use this one RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).encryptionKey(realmKey).build();
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(MainActivity.this).build();
         Realm.setDefaultConfiguration(realmConfig);
 
-        goToList();
-
         mBtnUnlock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Unlocking ...", Toast.LENGTH_SHORT).show();
-                mBtnUnlock.setEnabled(false);
-                // TODO try to unlock the keystore
-                // Check if the AES key is already in the default SharedPref
-                // if yes use it to create a RealmConfiguration otherwise
-                // try to unlock the keystore to find one, of there is none
-                // Generate one then encrypted using the private key stored
-                // in the Keystore
-                store.unlockKeyStore();
-                byte[] realmKey = store.decryptAesKey();
-                RealmConfiguration realmConfig = new RealmConfiguration.Builder(MainActivity.this).build();
-                Realm.setDefaultConfiguration(realmConfig);
-
-                goToList();
+                store.unlockKeyStore(REQ_UNLOCK);
             }
         });
 
@@ -117,15 +48,47 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mBtnLock.setEnabled(false);
                 Toast.makeText(MainActivity.this, "Locking ...", Toast.LENGTH_SHORT).show();
-                SharedPreferences.Editor edit = defaultSharedPreferences.edit();
-                edit.remove("key");
-                edit.apply();
-                Realm.setDefaultConfiguration(null);
+                Realm.setDefaultConfiguration(new RealmConfiguration.Builder(MainActivity.this).build());
                 mBtnUnlock.setEnabled(true);
             }
         });
+
+        mBtnUnlock.setEnabled(true);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQ_UNLOCK:
+                if (store.onUnlockKeyStoreResult(resultCode, data)) {
+                    onKeystoreUnlocked();
+                }
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+                break;
+        }
+    }
+
+    private void onKeystoreUnlocked() {
+        byte[] encryptedRealmKey = store.getEncryptedRealmKey();
+        if (encryptedRealmKey == null || !store.containsEncryptionKey()) {
+            final byte[] realmKey = store.generateKeyForRealm();
+            store.generateKeyInKeystore();
+            encryptedRealmKey = store.encryptAndSaveKeyForRealm(realmKey);
+            Arrays.fill(realmKey, (byte) 0);
+        }
+
+        Toast.makeText(MainActivity.this, "Unlocking ...", Toast.LENGTH_SHORT).show();
+        mBtnUnlock.setEnabled(false);
+
+        final byte[] realmKey = store.decryptKeyForRealm(encryptedRealmKey);
+
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(MainActivity.this).encryptionKey(realmKey).build();
+        Realm.setDefaultConfiguration(realmConfig);
+
+        goToList();
+    }
 
     private void goToList () {
 
