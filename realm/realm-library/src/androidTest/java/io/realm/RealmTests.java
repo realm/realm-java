@@ -1326,7 +1326,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_stringPrimaryKeyIsNull() {
         final long SECONDARY_FIELD_VALUE = 34992142L;
-        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_VALUE);
+        TestHelper.addStringPrimaryKeyObjectToTestRealm(realm, (String) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
         assertEquals(1, results.size());
@@ -1337,7 +1337,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_boxedBytePrimaryKeyIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullBytePrimaryKeyObj";
-        TestHelper.populateTestRealmForBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_VALUE);
+        TestHelper.addBytePrimaryKeyObjectToTestRealm(realm, (Byte) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
         assertEquals(1, results.size());
@@ -1348,7 +1348,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_boxedShortPrimaryKeyIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullShortPrimaryKeyObj";
-        TestHelper.populateTestRealmForShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_VALUE);
+        TestHelper.addShortPrimaryKeyObjectToTestRealm(realm, (Short) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
         assertEquals(1, results.size());
@@ -1359,7 +1359,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_boxedIntegerPrimaryKeyIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullIntegerPrimaryKeyObj";
-        TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_VALUE);
+        TestHelper.addIntegerPrimaryKeyObjectToTestRealm(realm, (Integer) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
         assertEquals(1, results.size());
@@ -1370,7 +1370,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_boxedLongPrimaryKeyIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullLongPrimaryKeyObj";
-        TestHelper.populateTestRealmForLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_VALUE);
+        TestHelper.addLongPrimaryKeyObjectToTestRealm(realm, (Long) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
         assertEquals(1, results.size());
@@ -1456,7 +1456,7 @@ public class RealmTests {
     public void copyToRealmOrUpdate_stringPrimaryKeyFieldIsNull() {
         final long SECONDARY_FIELD_VALUE = 2192841L;
         final long SECONDARY_FIELD_UPDATED = 44887612L;
-        PrimaryKeyAsString nullPrimaryKeyObj = TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_VALUE);
+        PrimaryKeyAsString nullPrimaryKeyObj = TestHelper.addStringPrimaryKeyObjectToTestRealm(realm, (String) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsString> result = realm.allObjects(PrimaryKeyAsString.class);
         assertEquals(1, result.size());
@@ -1476,7 +1476,7 @@ public class RealmTests {
     public void copyToRealmOrUpdate_boxedBytePrimaryKeyFieldIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullBytePrimaryKeyObj";
         final String SECONDARY_FIELD_UPDATED = "nullBytePrimaryKeyObjUpdated";
-        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = TestHelper.populateTestRealmForBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_VALUE);
+        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = TestHelper.addBytePrimaryKeyObjectToTestRealm(realm, (Byte) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedByte> result = realm.allObjects(PrimaryKeyAsBoxedByte.class);
         assertEquals(1, result.size());
@@ -1496,7 +1496,7 @@ public class RealmTests {
     public void copyToRealmOrUpdate_boxedShortPrimaryKeyFieldIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullShortPrimaryKeyObj";
         final String SECONDARY_FIELD_UPDATED = "nullShortPrimaryKeyObjUpdated";
-        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = TestHelper.populateTestRealmForShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_VALUE);
+        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = TestHelper.addShortPrimaryKeyObjectToTestRealm(realm, (Short) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedShort> result = realm.allObjects(PrimaryKeyAsBoxedShort.class);
         assertEquals(1, result.size());
@@ -1516,7 +1516,7 @@ public class RealmTests {
     public void copyToRealmOrUpdate_boxedIntegerPrimaryKeyFieldIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullIntegerPrimaryKeyObj";
         final String SECONDARY_FIELD_UPDATED = "nullIntegerPrimaryKeyObjUpdated";
-        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = TestHelper.populateTestRealmForIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_VALUE);
+        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = TestHelper.addIntegerPrimaryKeyObjectToTestRealm(realm, (Integer) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedInteger> result = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
         assertEquals(1, result.size());
@@ -1536,7 +1536,7 @@ public class RealmTests {
     public void copyToRealmOrUpdate_boxedLongPrimaryKeyFieldIsNull() {
         final String SECONDARY_FIELD_VALUE = "nullLongPrimaryKeyObj";
         final String SECONDARY_FIELD_UPDATED = "nullLongPrimaryKeyObjUpdated";
-        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = TestHelper.populateTestRealmForLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_VALUE);
+        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = TestHelper.addLongPrimaryKeyObjectToTestRealm(realm, (Long) null, SECONDARY_FIELD_VALUE);
 
         RealmResults<PrimaryKeyAsBoxedLong> result = realm.allObjects(PrimaryKeyAsBoxedLong.class);
         assertEquals(1, result.size());

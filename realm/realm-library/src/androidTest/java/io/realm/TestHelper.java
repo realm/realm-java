@@ -391,9 +391,9 @@ public class TestHelper {
     }
 
     /**
-     * Creates a realm table with null value for String type PrimaryKey field.
+     * Add a String type PrimaryKey object to a realm.
      */
-    public static PrimaryKeyAsString populateTestRealmForStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue) {
+    public static PrimaryKeyAsString addStringPrimaryKeyObjectToTestRealm(Realm testRealm, String primaryFieldValue, long secondaryFieldValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsString obj = new PrimaryKeyAsString();
         obj.setName(primaryFieldValue);
@@ -404,9 +404,27 @@ public class TestHelper {
     }
 
     /**
-     * Creates a realm table with null value for Byte type PrimaryKey field.
+     * Populate a realm with String type Primarykey objects
      */
-    public static PrimaryKeyAsBoxedByte populateTestRealmForBytePrimaryKey(Realm testRealm,  Byte primaryFieldValue, String secondaryFieldValue) {
+    public static void populateTestRealmWithStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue, long numberOfPopulation) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsString userObj = new PrimaryKeyAsString();
+        userObj.setName(primaryFieldValue);
+        userObj.setId(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        for (long i = (-numberOfPopulation / 2); i < numberOfPopulation - 1; ++i) {
+            PrimaryKeyAsString obj = new PrimaryKeyAsString();
+            obj.setName(String.valueOf(i));
+            obj.setId(i);
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Add a Byte type PrimaryKey object to a realm.
+     */
+    public static PrimaryKeyAsBoxedByte addBytePrimaryKeyObjectToTestRealm(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
         obj.setId(primaryFieldValue);
@@ -417,9 +435,27 @@ public class TestHelper {
     }
 
     /**
-     * Creates a realm table with null value for Short type PrimaryKey field.
+     * Populate a realm with Byte type Primarykey objects.
      */
-    public static PrimaryKeyAsBoxedShort populateTestRealmForShortPrimaryKey(Realm testRealm,  Short primaryFieldValue, String secondaryFieldValue) {
+    public static void populateTestRealmWithBytePrimaryKey(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedByte userObj = new PrimaryKeyAsBoxedByte();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        for (byte i = (byte)(-numberOfPopulation / 2); i < (byte)(numberOfPopulation - 1); ++i) {
+            PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
+            obj.setId(Byte.valueOf(i));
+            obj.setName(String.valueOf(i));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Add a Short type PrimaryKey object to a realm.
+     */
+    public static PrimaryKeyAsBoxedShort addShortPrimaryKeyObjectToTestRealm(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
         obj.setId(primaryFieldValue);
@@ -430,9 +466,27 @@ public class TestHelper {
     }
 
     /**
-     * Creates a realm table with null value for Integer type PrimaryKey field.
+     * Populate a realm with Short type Primarykey objects.
      */
-    public static PrimaryKeyAsBoxedInteger populateTestRealmForIntegerPrimaryKey(Realm testRealm,  Integer primaryFieldValue, String secondaryFieldValue) {
+    public static void populateTestRealmWithShortPrimaryKey(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedShort userObj = new PrimaryKeyAsBoxedShort();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        for (short i = (short)(-numberOfPopulation / 2); i < (short)(numberOfPopulation - 1); ++i) {
+            PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
+            obj.setId(Short.valueOf(i));
+            obj.setName(String.valueOf(i));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Add a Integer type PrimaryKey object to a realm.
+     */
+    public static PrimaryKeyAsBoxedInteger addIntegerPrimaryKeyObjectToTestRealm(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
         obj.setId(primaryFieldValue);
@@ -443,9 +497,27 @@ public class TestHelper {
     }
 
     /**
-     * Creates a realm table with null value for Long type PrimaryKey field.
+     * Populate a realm with Integer type Primarykey objects.
      */
-    public static PrimaryKeyAsBoxedLong populateTestRealmForLongPrimaryKey(Realm testRealm,  Long primaryFieldValue, String secondaryFieldValue) {
+    public static void populateTestRealmWithIntegerPrimaryKey(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedInteger userObj = new PrimaryKeyAsBoxedInteger();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        for (int i = (-numberOfPopulation / 2); i < numberOfPopulation - 1; ++i) {
+            PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
+            obj.setId(Integer.valueOf(i));
+            obj.setName(String.valueOf(i));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Add a Long type PrimaryKey object to a realm.
+     */
+    public static PrimaryKeyAsBoxedLong addLongPrimaryKeyObjectToTestRealm(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
         PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
         obj.setId(primaryFieldValue);
@@ -453,6 +525,24 @@ public class TestHelper {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
         return obj;
+    }
+
+    /**
+     * Populate a realm with Long type Primarykey objects.
+     */
+    public static void populateTestRealmWithLongPrimaryKey(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue, int numberOfPopulation) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedLong userObj = new PrimaryKeyAsBoxedLong();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        for (long i = (long)(-numberOfPopulation / 2); i < (long)(numberOfPopulation - 1); ++i) {
+            PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
+            obj.setId(Long.valueOf(i));
+            obj.setName(String.valueOf(i));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
     }
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
