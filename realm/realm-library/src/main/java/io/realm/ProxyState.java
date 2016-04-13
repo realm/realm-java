@@ -27,7 +27,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
 
 /**
- * This implements {@link RealmObjectProxy} interface, to eliminate copying logic between
+ * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
  */
 public final class ProxyState implements RealmObjectProxy {
