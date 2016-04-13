@@ -9,6 +9,7 @@ import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import java.util.Random;
 
@@ -16,9 +17,6 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import realm.io.storeencryptionpassword.model.TodoItem;
 
-/**
- * Created by Nabil on 12/04/2016.
- */
 public class SecretTodoList extends ListActivity {
 
     private Realm realm;
@@ -27,9 +25,13 @@ public class SecretTodoList extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        random = new Random(System.currentTimeMillis());
+        random = new Random();
 
-        realm = Realm.getDefaultInstance();
+        realm = getRealm();
+        if (realm == null) {
+            finish();
+            return;
+        }
         RealmResults<TodoItem> todos = realm.where(TodoItem.class).findAll();
         setContentView(R.layout.secret_todo);
         final MyAdapter adapter = new MyAdapter(this, todos);
@@ -58,9 +60,20 @@ public class SecretTodoList extends ListActivity {
         setListAdapter(adapter);
     }
 
+    private Realm getRealm() {
+        try {
+            return Realm.getDefaultInstance();
+        } catch (IllegalArgumentException e) {
+            Toast.makeText(this, "Please unlock Realm first.", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        realm.close();
+        if (realm != null) {
+            realm.close();
+        }
     }
 }

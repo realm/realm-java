@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -20,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mBtnUnlock;
     private Button mBtnLock;
+    private View mBtnOpen;
 
     private final Store store = new Store(this);
 
@@ -27,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mBtnUnlock = (Button) findViewById(R.id.btnUnLock);
@@ -53,6 +53,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //noinspection ConstantConditions
+        mBtnOpen = findViewById(R.id.btnOpenList);
+        mBtnOpen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToList();
+            }
+        });
+
+        mBtnOpen.setEnabled(store.getEncryptedRealmKey() != null && store.containsEncryptionKey());
+
         mBtnUnlock.setEnabled(true);
     }
 
@@ -76,7 +87,17 @@ public class MainActivity extends AppCompatActivity {
             final byte[] realmKey = store.generateKeyForRealm();
             store.generateKeyInKeystore();
             encryptedRealmKey = store.encryptAndSaveKeyForRealm(realmKey);
+
+            final RealmConfiguration realmConfig = new RealmConfiguration.Builder(MainActivity.this)
+                    .encryptionKey(realmKey)
+                    .build();
             Arrays.fill(realmKey, (byte) 0);
+
+            // create encrypted Realm
+            Realm.deleteRealm(realmConfig);
+            Realm.getInstance(realmConfig).close();
+
+            mBtnOpen.setEnabled(true);
         }
 
         Toast.makeText(MainActivity.this, "Unlocking ...", Toast.LENGTH_SHORT).show();
@@ -87,36 +108,12 @@ public class MainActivity extends AppCompatActivity {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(MainActivity.this).encryptionKey(realmKey).build();
         Realm.setDefaultConfiguration(realmConfig);
 
-        goToList();
+        mBtnLock.setEnabled(true);
     }
 
     private void goToList () {
-
-        mBtnLock.setEnabled(true);
-
         //start Todo list
         Intent intent = new Intent(MainActivity.this, SecretTodoList.class);
         startActivity(intent);
-    }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }

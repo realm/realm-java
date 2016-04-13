@@ -29,8 +29,12 @@
         android:id="@+id/btnLock"
         android:enabled="false"/>
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Button
+        android:layout_below="@id/btnLock"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="" />
+        android:layout_margin="8dp"
+        android:text="Open List"
+        android:id="@+id/btnOpenList"/>
+
 </RelativeLayout>
