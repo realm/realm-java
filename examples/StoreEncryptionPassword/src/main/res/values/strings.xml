@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">StoreEncryptionPassword</string>
-    <string name="action_settings">Settings</string>
+    <string name="no_data">No data</string>
+    <string name="unlock">Unlock</string>
+    <string name="lock">Lock</string>
+    <string name="open_list">Open List</string>
 </resources>

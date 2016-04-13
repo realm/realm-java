@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:text="Unlock"
+        android:text="@string/unlock"
         android:id="@+id/btnUnLock"
         android:enabled="false"/>
 
@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:text="Lock"
+        android:text="@string/lock"
         android:id="@+id/btnLock"
         android:enabled="false"/>
 
@@ -34,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:text="Open List"
+        android:text="@string/open_list"
         android:id="@+id/btnOpenList"/>
 
 </RelativeLayout>
