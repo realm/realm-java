@@ -17,10 +17,7 @@
 package io.realm.transformer
 
 import io.realm.annotations.Ignore
-import javassist.ClassPool
-import javassist.CtClass
-import javassist.CtField
-import javassist.CtNewMethod
+import javassist.*
 import javassist.bytecode.AnnotationsAttribute
 import javassist.bytecode.CodeIterator
 import javassist.bytecode.ConstPool
@@ -106,6 +103,43 @@ class BytecodeModifierTest extends Specification {
             int index = ci.next();
             int op = ci.byteAt(index);
             if (op == Opcode.GETFIELD) {
+                fieldIsUsed = true
+            }
+        }
+        !fieldIsUsed
+    }
+
+    def "UseRealmAccessorsInNonDefaultConstructor"() {
+        setup: 'generate an empty class'
+        def classPool = ClassPool.getDefault()
+        def ctClass = classPool.makeClass('TestClass')
+
+        and: 'add a field'
+        def ctField = new CtField(CtClass.intType, 'age', ctClass)
+        ctClass.addField(ctField)
+
+        and: 'add a method that sets such field'
+        def ctMethod = CtNewMethod.make('private void setupAge(int age) { this.age = age; }', ctClass)
+        ctClass.addMethod(ctMethod)
+
+        and: 'add a constructor that uses the method'
+        def ctConstructor = CtNewConstructor.make('public TestClass(int age) { setupAge(age); }', ctClass)
+        ctClass.addConstructor(ctConstructor)
+
+        and: 'realm accessors are added'
+        BytecodeModifier.addRealmAccessors(ctClass)
+
+        when: 'the field use is replaced by the accessor'
+        BytecodeModifier.useRealmAccessors(ctClass, [ctField], [])
+
+        then: 'the field is not used in the method anymore'
+        def methodInfo = ctMethod.getMethodInfo()
+        def codeAttribute = methodInfo.getCodeAttribute()
+        def fieldIsUsed = false
+        for (CodeIterator ci = codeAttribute.iterator(); ci.hasNext();) {
+            int index = ci.next();
+            int op = ci.byteAt(index);
+            if (op == Opcode.PUTFIELD) {
                 fieldIsUsed = true
             }
         }
