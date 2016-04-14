@@ -22,8 +22,8 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
-import rx.Observable;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
