@@ -22,7 +22,7 @@ import io.realm.annotations.PrimaryKey;
 public class PrimaryKeyAsString extends RealmObject {
 
     public static final String CLASS_NAME = "PrimaryKeyAsString";
-    public static final String NULLABLE_PRIMARY_KEY_FIELD = "name";
+    public static final String FIELD_PRIMARY_KEY = "name";
 
     @PrimaryKey
     private String name;

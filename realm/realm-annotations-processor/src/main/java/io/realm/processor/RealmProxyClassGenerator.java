@@ -956,7 +956,7 @@ public class RealmProxyClassGenerator {
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
         } else {
-            // Indentation for emitStatement, beginControlFlow, and endControlFlow is made to follow
+            // Indentations for emitStatement, beginControlFlow, and endControlFlow is made to follow
             // what would actually be generated.
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer

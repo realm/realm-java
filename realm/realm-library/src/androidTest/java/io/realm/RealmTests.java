@@ -1464,8 +1464,8 @@ public class RealmTests {
         assertEquals(SECONDARY_FIELD_VALUE, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setId(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
+        nullPrimaryKeyObj.setId(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
@@ -1484,8 +1484,8 @@ public class RealmTests {
         assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
@@ -1504,8 +1504,8 @@ public class RealmTests {
         assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
@@ -1524,8 +1524,8 @@ public class RealmTests {
         assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 
@@ -1544,8 +1544,8 @@ public class RealmTests {
         assertEquals(null, result.first().getId());
 
         // update objects
-        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.beginTransaction();
+        nullPrimaryKeyObj.setName(SECONDARY_FIELD_UPDATED);
         realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
         realm.commitTransaction();
 

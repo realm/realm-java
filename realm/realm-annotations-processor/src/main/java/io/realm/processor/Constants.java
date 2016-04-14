@@ -102,11 +102,11 @@ public class Constants {
     static final List<String> JAVA_TO_NULLABLE_PRIMARYKEY_TYPES;
     static {
         List<String> typeList = new ArrayList<String>();
+        typeList.add("java.lang.String");
         typeList.add("java.lang.Byte");
         typeList.add("java.lang.Short");
         typeList.add("java.lang.Integer");
         typeList.add("java.lang.Long");
-        typeList.add("java.lang.String");
         JAVA_TO_NULLABLE_PRIMARYKEY_TYPES = Collections.unmodifiableList(typeList);
     }
 }

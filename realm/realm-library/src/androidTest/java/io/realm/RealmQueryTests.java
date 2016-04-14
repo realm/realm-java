@@ -786,15 +786,15 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 10, -5);
 
         // String
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).equalTo(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD,             (String) null).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).equalTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY,             (String) null).findAll().first().getId());
         // Boxed Byte
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).equalTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       (Byte) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).equalTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       (Byte) null).findAll().first().getName());
         // Boxed Short
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).equalTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     (Short) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).equalTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     (Short) null).findAll().first().getName());
         // Boxed Integer
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).equalTo(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, (Integer) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).equalTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, (Integer) null).findAll().first().getName());
         // Boxed Long
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       (Long) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       (Long) null).findAll().first().getName());
     }
 
     @Test
@@ -808,15 +808,15 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 10, -5);
 
         // String
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).isNull(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).isNull(PrimaryKeyAsString.FIELD_PRIMARY_KEY).findAll().first().getId());
         // Boxed Byte
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).isNull(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).isNull(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY).findAll().first().getName());
         // Boxed Short
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).isNull(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).isNull(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY).findAll().first().getName());
         // Boxed Integer
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).isNull(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).isNull(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY).findAll().first().getName());
         // Boxed Long
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).isNull(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).isNull(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY).findAll().first().getName());
     }
 
     @Test
@@ -830,15 +830,15 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 2, -1);
 
         // String
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).notEqualTo(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD,             "-1").findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).notEqualTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY,             "-1").findAll().first().getId());
         // Boxed Byte
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).notEqualTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       Byte.valueOf((byte)-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).notEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       Byte.valueOf((byte)-1)).findAll().first().getName());
         // Boxed Short
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).notEqualTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     Short.valueOf((short)-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).notEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     Short.valueOf((short)-1)).findAll().first().getName());
         // Boxed Integer
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).notEqualTo(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, Integer.valueOf(-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).notEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, Integer.valueOf(-1)).findAll().first().getName());
         // Boxed Long
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       Long.valueOf((long)-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       Long.valueOf((long)-1)).findAll().first().getName());
     }
 
     @Test
@@ -846,7 +846,7 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD, null).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
     }
 
     @Test
@@ -854,7 +854,7 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD, null).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
     }
 
     @Test
@@ -862,7 +862,7 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD, null).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
     }
 
     @Test
@@ -873,13 +873,13 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedByte.class).between(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedByte.class).between(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1, 1).count());
         // Boxed Short
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedShort.class).between(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedShort.class).between(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1, 1).count());
         // Boxed Integer
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedInteger.class).between(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedInteger.class).between(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1, 1).count());
         // Boxed Long
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1, 1).count());
     }
 
     @Test
@@ -890,13 +890,13 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedByte.class).greaterThan(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedByte.class).greaterThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1).count());
         // Boxed Short
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedShort.class).greaterThan(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedShort.class).greaterThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1).count());
         // Boxed Integer
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThan(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThan(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Long
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
     }
 
     @Test
@@ -907,13 +907,13 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedByte.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedByte.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1).count());
         // Boxed Short
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedShort.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedShort.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1).count());
         // Boxed Integer
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Long
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
     }
 
     @Test
@@ -924,13 +924,13 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedByte.class).lessThan(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedByte.class).lessThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
         // Boxed Short
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedShort.class).lessThan(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedShort.class).lessThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     1).count());
         // Boxed Integer
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedInteger.class).lessThan(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, 1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedInteger.class).lessThan(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Long
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
     }
 
     @Test
@@ -941,13 +941,13 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.NULLABLE_PRIMARY_KEY_FIELD,       1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
         // Boxed Short
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedShort.class).lessThanOrEqualTo(PrimaryKeyAsBoxedShort.NULLABLE_PRIMARY_KEY_FIELD,     1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedShort.class).lessThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     1).count());
         // Boxed Integer
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedInteger.class).lessThanOrEqualTo(PrimaryKeyAsBoxedInteger.NULLABLE_PRIMARY_KEY_FIELD, 1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedInteger.class).lessThanOrEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Long
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedLong.class).lessThanOrEqualTo(PrimaryKeyAsBoxedLong.NULLABLE_PRIMARY_KEY_FIELD,       1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedLong.class).lessThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
     }
 
     // Querying nullable fields, querying with equalTo null
