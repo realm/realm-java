@@ -317,9 +317,11 @@ public final class Realm extends BaseRealm {
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
 
-            final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
-            if (transaction != null) {
-                transaction.execute(realm);
+            if (version == UNVERSIONED) {
+                final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
+                if (transaction != null) {
+                    transaction.execute(realm);
+                }
             }
         } finally {
             if (commitNeeded) {

@@ -144,7 +144,7 @@ public class RealmConfiguration {
     /**
      * Returns the transaction instance with initial data.
      *
-     * @return the initial data transaction
+     * @return the initial data transaction.
      */
     Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
