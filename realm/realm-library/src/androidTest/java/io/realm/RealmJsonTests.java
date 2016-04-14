@@ -1264,6 +1264,7 @@ public class RealmJsonTests {
         assertEquals(42, results.first().getId());
     }
 
+    // Nullable PrimaryKey tests for PrimaryKeyAsBoxedByte
     @Test
     public void createObjectFromJson_bytePrimaryKeyFieldIsNullFromJsonObject() throws JSONException {
         createNullablePrimaryKeyObjectFromJson(realm, PrimaryKeyAsBoxedByte.class, "{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }");

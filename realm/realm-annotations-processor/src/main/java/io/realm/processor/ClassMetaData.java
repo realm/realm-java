@@ -331,7 +331,7 @@ public class ClassMetaData {
 
     /**
      * Checks if a VariableElement is nullable. In case of PrimaryKey field, such field can be
-     * nullable only if its type could be found in Constants#JAVA_TO_NULLABLE_PRIMARYKEY_TYPES.
+     * nullable only if its type could be found in {@link Constants#JAVA_TO_NULLABLE_PRIMARYKEY_TYPES}.
      *
      * @return {@code true} if a VariableElement is nullable type, {@code false} otherwise.
      */

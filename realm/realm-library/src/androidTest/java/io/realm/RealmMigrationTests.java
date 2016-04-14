@@ -574,7 +574,7 @@ public class RealmMigrationTests {
             assertEquals(SCHEMA_VERSION, realm.getVersion());
             assertTrue(didMigrate.get());
             if (clazz == PrimaryKeyAsString.class) {
-                assertEquals(true, schema.isNullable("name"));
+                assertEquals(true, schema.isNullable(PrimaryKeyAsString.FIELD_PRIMARY_KEY));
             } else {
                 assertEquals(true, schema.isNullable("id"));
             }
@@ -595,7 +595,7 @@ public class RealmMigrationTests {
                         .migration(new RealmMigration() {
                             @Override
                             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                                // intentionally left empty to preserve not-nullablility of old schema
+                                // intentionally left empty to preserve not-nullablility of PrimaryKey on old schema.
                             }
                         })
                         .build();
