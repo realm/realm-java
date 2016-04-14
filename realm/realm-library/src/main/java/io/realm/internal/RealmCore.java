@@ -18,11 +18,11 @@ package io.realm.internal;
 
 import android.content.Context;
 
+import com.getkeepsafe.relinker.ReLinker;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Locale;
-
-import io.realm.internal.android.ReLinker;
 
 /**
  * Utility methods for Realm Core.
