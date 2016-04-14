@@ -116,7 +116,7 @@ public class IntroExampleActivity extends Activity {
 
         // Delete all persons
         realm.beginTransaction();
-        realm.allObjects(Person.class).deleteAllFromRealm();
+        realm.allObjects(Person.class).clear(); //As of realm java 0.88.3, there is no deleteAllFromRealm() method
         realm.commitTransaction();
     }
 
