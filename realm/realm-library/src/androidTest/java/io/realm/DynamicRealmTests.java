@@ -193,9 +193,7 @@ public class DynamicRealmTests {
         realm.createObject(PrimaryKeyAsString.CLASS_NAME, (String) null);
         realm.commitTransaction();
 
-        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsString.CLASS_NAME);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getString(PrimaryKeyAsString.FIELD_PRIMARY_KEY));
+        assertEquals(1, realm.where(PrimaryKeyAsString.CLASS_NAME).equalTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).count());
     }
 
     @Test
@@ -204,9 +202,7 @@ public class DynamicRealmTests {
         realm.createObject(PrimaryKeyAsBoxedByte.CLASS_NAME, (Byte) null);
         realm.commitTransaction();
 
-        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedByte.CLASS_NAME);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY));
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedByte.CLASS_NAME).equalTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, (Byte) null).count());
     }
 
     @Test
@@ -215,9 +211,7 @@ public class DynamicRealmTests {
         realm.createObject(PrimaryKeyAsBoxedShort.CLASS_NAME, (Short) null);
         realm.commitTransaction();
 
-        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedShort.CLASS_NAME);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY));
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedShort.CLASS_NAME).equalTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, (Short) null).count());
     }
 
     @Test
@@ -226,9 +220,7 @@ public class DynamicRealmTests {
         realm.createObject(PrimaryKeyAsBoxedInteger.CLASS_NAME, (Integer) null);
         realm.commitTransaction();
 
-        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedInteger.CLASS_NAME);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY));
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedInteger.CLASS_NAME).equalTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, (Integer) null).count());
     }
 
     @Test
@@ -237,9 +229,7 @@ public class DynamicRealmTests {
         realm.createObject(PrimaryKeyAsBoxedLong.CLASS_NAME, (Long) null);
         realm.commitTransaction();
 
-        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedLong.CLASS_NAME);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getObject(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY));
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedLong.CLASS_NAME).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, (Long) null).count());
     }
 
     @Test(expected = IllegalArgumentException.class)
