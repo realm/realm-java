@@ -166,7 +166,7 @@ task checkstyle(type: Checkstyle) {
 // http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
 task connectedBenchmarks(type: GradleBuild) {
     description =  'Run all benchmarks on connected devices'
-    group = 'Test'
+    group = 'Verification'
     buildFile = file("${projectDir}/build.gradle")
     startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
     tasks = ['connectedCheck']
@@ -174,7 +174,7 @@ task connectedBenchmarks(type: GradleBuild) {
 
 task connectedUnitTests(type: GradleBuild) {
     description =  'Run all unit tests on connected devices'
-    group = 'Test'
+    group = 'Verification'
     buildFile = file("${projectDir}/build.gradle")
     startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
     tasks = ['connectedAndroidTest']
