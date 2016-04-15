@@ -16,6 +16,12 @@
 * RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
 * RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
 * RealmObjectSchema.isPrimaryKey(String) (#2440)
+* RealmConfiguration.initialData() can now be used to populate a Realm file before it is used for the first time.
+
+### Credits
+
+* Thanks to @thesurix for adding RealmConfiguration.initialData().
+
 
 ### Bug fixes
 
