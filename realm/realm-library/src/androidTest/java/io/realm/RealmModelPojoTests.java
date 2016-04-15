@@ -90,7 +90,7 @@ public class RealmModelPojoTests {
     }
 
     @Test
-    public void create() {
+    public void createObject() {
         for (int i = 1; i < 43; i++) { // using i = 0 as PK will crash subsequent createObject
                                        // since createObject uses default values
             realm.beginTransaction();
@@ -104,7 +104,7 @@ public class RealmModelPojoTests {
     }
 
     @Test
-    public void copy() {
+    public void copyToRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypesPojo> resultList = realm.allObjects(AllTypesPojo.class);
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
@@ -215,7 +215,7 @@ public class RealmModelPojoTests {
     @RunTestInLooperThread
     public void dynamicRealm() {
         populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
-        final DynamicRealm dynamicRealm = DynamicRealm.createInstance(looperThread.realm.configuration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
 
         dynamicRealm.beginTransaction();
         DynamicRealmObject dog = dynamicRealm.createObject(AllTypesPojo.CLASS_NAME, 42);
@@ -223,7 +223,7 @@ public class RealmModelPojoTests {
         dynamicRealm.commitTransaction();
 
 
-        RealmResults<DynamicRealmObject> allAsync = dynamicRealm.where(AllTypesPojo.CLASS_NAME).equalTo(AllTypesPojo.FIELD_LONG, 42).findAllAsync();
+        RealmResults<DynamicRealmObject> allAsync = dynamicRealm.where(AllTypesPojo.CLASS_NAME).equalTo(AllTypesPojo.FIELD_LONG, 42).findAll();
         allAsync.load();
         assertTrue(allAsync.isLoaded());
         assertEquals(1, allAsync.size());

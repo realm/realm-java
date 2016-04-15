@@ -49,6 +49,7 @@ public class RealmProcessorTest {
     private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
     private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
     private JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
+    private JavaFileObject invalidRealmModelModel = JavaFileObjects.forResource("some/test/InvalidModelPojo.java");
 
     @Test
     public void compileSimpleFile() {
@@ -383,6 +384,14 @@ public class RealmProcessorTest {
     public void failOnVolatileFields() throws Exception {
         ASSERT.about(javaSource())
                 .that(volatileModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void failOnInvalidRealmModel() throws Exception {
+        ASSERT.about(javaSource())
+                .that(invalidRealmModelModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

@@ -4,12 +4,12 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
-import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -20,13 +20,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.NullTypes;
 
 public class NullTypesRealmProxy extends NullTypes
-    implements RealmObjectProxy, NullTypesRealmProxyInterface {
+        implements RealmObjectProxy, NullTypesRealmProxyInterface {
 
     static final class NullTypesColumnInfo extends ColumnInfo {
 
@@ -122,6 +123,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     private final NullTypesColumnInfo columnInfo;
+    private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -151,343 +153,344 @@ public class NullTypesRealmProxy extends NullTypes
 
     NullTypesRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (NullTypesColumnInfo) columnInfo;
+        this.proxyState = new ProxyState(NullTypes.class);
     }
 
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (java.lang.String) ((RealmObject) this).row.getString(columnInfo.fieldStringNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNotNullIndex);
     }
 
     public void realmSet$fieldStringNotNull(String value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldStringNotNull to null.");
         }
-        ((RealmObject) this).row.setString(columnInfo.fieldStringNotNullIndex, value);
+        proxyState.getRow$realm().setString(columnInfo.fieldStringNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (java.lang.String) ((RealmObject) this).row.getString(columnInfo.fieldStringNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNullIndex);
     }
 
     public void realmSet$fieldStringNull(String value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldStringNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldStringNullIndex);
             return;
         }
-        ((RealmObject) this).row.setString(columnInfo.fieldStringNullIndex, value);
+        proxyState.getRow$realm().setString(columnInfo.fieldStringNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (boolean) ((RealmObject) this).row.getBoolean(columnInfo.fieldBooleanNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.fieldBooleanNotNullIndex);
     }
 
     public void realmSet$fieldBooleanNotNull(Boolean value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBooleanNotNull to null.");
         }
-        ((RealmObject) this).row.setBoolean(columnInfo.fieldBooleanNotNullIndex, value);
+        proxyState.getRow$realm().setBoolean(columnInfo.fieldBooleanNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldBooleanNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldBooleanNullIndex)) {
             return null;
         }
-        return (boolean) ((RealmObject) this).row.getBoolean(columnInfo.fieldBooleanNullIndex);
+        return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.fieldBooleanNullIndex);
     }
 
     public void realmSet$fieldBooleanNull(Boolean value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldBooleanNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldBooleanNullIndex);
             return;
         }
-        ((RealmObject) this).row.setBoolean(columnInfo.fieldBooleanNullIndex, value);
+        proxyState.getRow$realm().setBoolean(columnInfo.fieldBooleanNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (byte[]) ((RealmObject) this).row.getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
     }
 
     public void realmSet$fieldBytesNotNull(byte[] value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBytesNotNull to null.");
         }
-        ((RealmObject) this).row.setBinaryByteArray(columnInfo.fieldBytesNotNullIndex, value);
+        proxyState.getRow$realm().setBinaryByteArray(columnInfo.fieldBytesNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (byte[]) ((RealmObject) this).row.getBinaryByteArray(columnInfo.fieldBytesNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNullIndex);
     }
 
     public void realmSet$fieldBytesNull(byte[] value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldBytesNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldBytesNullIndex);
             return;
         }
-        ((RealmObject) this).row.setBinaryByteArray(columnInfo.fieldBytesNullIndex, value);
+        proxyState.getRow$realm().setBinaryByteArray(columnInfo.fieldBytesNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (byte) ((RealmObject) this).row.getLong(columnInfo.fieldByteNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (byte) proxyState.getRow$realm().getLong(columnInfo.fieldByteNotNullIndex);
     }
 
     public void realmSet$fieldByteNotNull(Byte value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldByteNotNull to null.");
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldByteNotNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldByteNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldByteNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldByteNullIndex)) {
             return null;
         }
-        return (byte) ((RealmObject) this).row.getLong(columnInfo.fieldByteNullIndex);
+        return (byte) proxyState.getRow$realm().getLong(columnInfo.fieldByteNullIndex);
     }
 
     public void realmSet$fieldByteNull(Byte value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldByteNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldByteNullIndex);
             return;
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldByteNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldByteNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (short) ((RealmObject) this).row.getLong(columnInfo.fieldShortNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (short) proxyState.getRow$realm().getLong(columnInfo.fieldShortNotNullIndex);
     }
 
     public void realmSet$fieldShortNotNull(Short value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldShortNotNull to null.");
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldShortNotNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldShortNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldShortNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldShortNullIndex)) {
             return null;
         }
-        return (short) ((RealmObject) this).row.getLong(columnInfo.fieldShortNullIndex);
+        return (short) proxyState.getRow$realm().getLong(columnInfo.fieldShortNullIndex);
     }
 
     public void realmSet$fieldShortNull(Short value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldShortNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldShortNullIndex);
             return;
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldShortNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldShortNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (int) ((RealmObject) this).row.getLong(columnInfo.fieldIntegerNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (int) proxyState.getRow$realm().getLong(columnInfo.fieldIntegerNotNullIndex);
     }
 
     public void realmSet$fieldIntegerNotNull(Integer value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldIntegerNotNull to null.");
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldIntegerNotNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldIntegerNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldIntegerNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldIntegerNullIndex)) {
             return null;
         }
-        return (int) ((RealmObject) this).row.getLong(columnInfo.fieldIntegerNullIndex);
+        return (int) proxyState.getRow$realm().getLong(columnInfo.fieldIntegerNullIndex);
     }
 
     public void realmSet$fieldIntegerNull(Integer value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldIntegerNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldIntegerNullIndex);
             return;
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldIntegerNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldIntegerNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (long) ((RealmObject) this).row.getLong(columnInfo.fieldLongNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (long) proxyState.getRow$realm().getLong(columnInfo.fieldLongNotNullIndex);
     }
 
     public void realmSet$fieldLongNotNull(Long value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldLongNotNull to null.");
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldLongNotNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldLongNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldLongNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldLongNullIndex)) {
             return null;
         }
-        return (long) ((RealmObject) this).row.getLong(columnInfo.fieldLongNullIndex);
+        return (long) proxyState.getRow$realm().getLong(columnInfo.fieldLongNullIndex);
     }
 
     public void realmSet$fieldLongNull(Long value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldLongNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldLongNullIndex);
             return;
         }
-        ((RealmObject) this).row.setLong(columnInfo.fieldLongNullIndex, value);
+        proxyState.getRow$realm().setLong(columnInfo.fieldLongNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (float) ((RealmObject) this).row.getFloat(columnInfo.fieldFloatNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (float) proxyState.getRow$realm().getFloat(columnInfo.fieldFloatNotNullIndex);
     }
 
     public void realmSet$fieldFloatNotNull(Float value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldFloatNotNull to null.");
         }
-        ((RealmObject) this).row.setFloat(columnInfo.fieldFloatNotNullIndex, value);
+        proxyState.getRow$realm().setFloat(columnInfo.fieldFloatNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldFloatNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldFloatNullIndex)) {
             return null;
         }
-        return (float) ((RealmObject) this).row.getFloat(columnInfo.fieldFloatNullIndex);
+        return (float) proxyState.getRow$realm().getFloat(columnInfo.fieldFloatNullIndex);
     }
 
     public void realmSet$fieldFloatNull(Float value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldFloatNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldFloatNullIndex);
             return;
         }
-        ((RealmObject) this).row.setFloat(columnInfo.fieldFloatNullIndex, value);
+        proxyState.getRow$realm().setFloat(columnInfo.fieldFloatNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (double) ((RealmObject) this).row.getDouble(columnInfo.fieldDoubleNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (double) proxyState.getRow$realm().getDouble(columnInfo.fieldDoubleNotNullIndex);
     }
 
     public void realmSet$fieldDoubleNotNull(Double value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldDoubleNotNull to null.");
         }
-        ((RealmObject) this).row.setDouble(columnInfo.fieldDoubleNotNullIndex, value);
+        proxyState.getRow$realm().setDouble(columnInfo.fieldDoubleNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldDoubleNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldDoubleNullIndex)) {
             return null;
         }
-        return (double) ((RealmObject) this).row.getDouble(columnInfo.fieldDoubleNullIndex);
+        return (double) proxyState.getRow$realm().getDouble(columnInfo.fieldDoubleNullIndex);
     }
 
     public void realmSet$fieldDoubleNull(Double value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldDoubleNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldDoubleNullIndex);
             return;
         }
-        ((RealmObject) this).row.setDouble(columnInfo.fieldDoubleNullIndex, value);
+        proxyState.getRow$realm().setDouble(columnInfo.fieldDoubleNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNotNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (java.util.Date) ((RealmObject) this).row.getDate(columnInfo.fieldDateNotNullIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.fieldDateNotNullIndex);
     }
 
     public void realmSet$fieldDateNotNull(Date value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldDateNotNull to null.");
         }
-        ((RealmObject) this).row.setDate(columnInfo.fieldDateNotNullIndex, value);
+        proxyState.getRow$realm().setDate(columnInfo.fieldDateNotNullIndex, value);
     }
 
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNull(columnInfo.fieldDateNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNull(columnInfo.fieldDateNullIndex)) {
             return null;
         }
-        return (java.util.Date) ((RealmObject) this).row.getDate(columnInfo.fieldDateNullIndex);
+        return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.fieldDateNullIndex);
     }
 
     public void realmSet$fieldDateNull(Date value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.fieldDateNullIndex);
+            proxyState.getRow$realm().setNull(columnInfo.fieldDateNullIndex);
             return;
         }
-        ((RealmObject) this).row.setDate(columnInfo.fieldDateNullIndex, value);
+        proxyState.getRow$realm().setDate(columnInfo.fieldDateNullIndex, value);
     }
 
     public NullTypes realmGet$fieldObjectNull() {
-        ((RealmObject) this).realm.checkIfValid();
-        if (((RealmObject) this).row.isNullLink(columnInfo.fieldObjectNullIndex)) {
+        proxyState.getRealm$realm().checkIfValid();
+        if (proxyState.getRow$realm().isNullLink(columnInfo.fieldObjectNullIndex)) {
             return null;
         }
-        return ((RealmObject) this).realm.get(some.test.NullTypes.class, ((RealmObject) this).row.getLink(columnInfo.fieldObjectNullIndex));
+        return proxyState.getRealm$realm().get(some.test.NullTypes.class, proxyState.getRow$realm().getLink(columnInfo.fieldObjectNullIndex));
     }
 
     public void realmSet$fieldObjectNull(NullTypes value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.nullifyLink(columnInfo.fieldObjectNullIndex);
+            proxyState.getRow$realm().nullifyLink(columnInfo.fieldObjectNullIndex);
             return;
         }
         if (!value.isValid()) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
-        if (value.realm != this.realm) {
+        if (((RealmObjectProxy)value).getRealm$realm() != proxyState.getRealm$realm()) {
             throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
-        ((RealmObject) this).row.setLink(columnInfo.fieldObjectNullIndex, ((RealmObject) value).row.getIndex());
+        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).getRow$realm().getIndex());
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -1081,12 +1084,11 @@ public class NullTypesRealmProxy extends NullTypes
         return obj;
     }
 
-    public static NullTypes copyOrUpdate(Realm realm, NullTypes object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId) {
-            throw new IllegalArgumentException(
-                    "Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+    public static NullTypes copyOrUpdate(Realm realm, NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm$realm() != null && ((RealmObjectProxy) object).getRealm$realm().threadId != realm.threadId) {
+            throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
-        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm$realm() != null && ((RealmObjectProxy)object).getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -1130,11 +1132,11 @@ public class NullTypesRealmProxy extends NullTypes
         return realmObject;
     }
 
-    public static NullTypes createDetachedCopy(NullTypes realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
+    public static NullTypes createDetachedCopy(NullTypes realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
-        CacheData<RealmObject> cachedObject = cache.get(realmObject);
+        CacheData<RealmModel> cachedObject = cache.get(realmObject);
         NullTypes standaloneObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
@@ -1146,7 +1148,7 @@ public class NullTypesRealmProxy extends NullTypes
             }
         } else {
             standaloneObject = new NullTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject));
         }
         ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
         ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());
@@ -1176,7 +1178,7 @@ public class NullTypesRealmProxy extends NullTypes
 
     @Override
     public String toString() {
-        if (!isValid()) {
+        if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
         StringBuilder stringBuilder = new StringBuilder("NullTypes = [");
@@ -1268,10 +1270,70 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @Override
+    public BaseRealm getRealm$realm() {
+        return proxyState.getRealm$realm();
+    }
+
+    @Override
+    public void setRealm$realm(BaseRealm realm) {
+        proxyState.setRealm$realm(realm);
+    }
+
+    @Override
+    public Row getRow$realm() {
+        return proxyState.getRow$realm();
+    }
+
+    @Override
+    public void setRow$realm(Row row) {
+        proxyState.setRow$realm(row);
+    }
+
+    @Override
+    public Object getPendingQuery$realm() {
+        return proxyState.getPendingQuery$realm();
+    }
+
+    @Override
+    public void setPendingQuery$realm(Future<Long> pendingQuery) {
+        proxyState.setPendingQuery$realm(pendingQuery);
+    }
+
+    @Override
+    public boolean isCompleted$realm() {
+        return proxyState.isCompleted$realm();
+    }
+
+    @Override
+    public boolean onCompleted$realm() {
+        return proxyState.onCompleted$realm();
+    }
+
+    @Override
+    public void onCompleted$realm(long rowPointer) {
+        proxyState.onCompleted$realm(rowPointer);
+    }
+
+    @Override
+    public List<RealmChangeListener> getListeners$realm() {
+        return proxyState.getListeners$realm();
+    }
+
+    @Override
+    public void setTableVersion$realm() {
+        proxyState.setTableVersion$realm();
+    }
+
+    @Override
+    public void notifyChangeListeners$realm() {
+        proxyState.notifyChangeListeners$realm();
+    }
+
+    @Override
     public int hashCode() {
-        String realmName = ((RealmObject) this).realm.getPath();
-        String tableName = ((RealmObject) this).row.getTable().getName();
-        long rowIndex = ((RealmObject) this).row.getIndex();
+        String realmName = proxyState.getRealm$realm().getPath();
+        String tableName = proxyState.getRow$realm().getTable().getName();
+        long rowIndex = proxyState.getRow$realm().getIndex();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
@@ -1286,15 +1348,15 @@ public class NullTypesRealmProxy extends NullTypes
         if (o == null || getClass() != o.getClass()) return false;
         NullTypesRealmProxy aNullTypes = (NullTypesRealmProxy)o;
 
-        String path = ((RealmObject) this).realm.getPath();
-        String otherPath = ((RealmObject) aNullTypes).realm.getPath();
+        String path = proxyState.getRealm$realm().getPath();
+        String otherPath = aNullTypes.proxyState.getRealm$realm().getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
 
-        String tableName = ((RealmObject) this).row.getTable().getName();
-        String otherTableName = ((RealmObject) aNullTypes).row.getTable().getName();
+        String tableName = proxyState.getRow$realm().getTable().getName();
+        String otherTableName = aNullTypes.proxyState.getRow$realm().getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
-        if (((RealmObject) this).row.getIndex() != ((RealmObject) aNullTypes).row.getIndex()) return false;
+        if (proxyState.getRow$realm().getIndex() != aNullTypes.proxyState.getRow$realm().getIndex()) return false;
 
         return true;
     }

@@ -9,6 +9,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -19,13 +20,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple
-    implements RealmObjectProxy, SimpleRealmProxyInterface {
+        implements RealmObjectProxy, SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
 
@@ -45,6 +47,7 @@ public class SimpleRealmProxy extends Simple
     }
 
     private final SimpleColumnInfo columnInfo;
+    private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -55,32 +58,33 @@ public class SimpleRealmProxy extends Simple
 
     SimpleRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (SimpleColumnInfo) columnInfo;
+        this.proxyState = new ProxyState(Simple.class);
     }
 
     @SuppressWarnings("cast")
     public String realmGet$name() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (java.lang.String) ((RealmObject) this).row.getString(columnInfo.nameIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.nameIndex);
     }
 
     public void realmSet$name(String value) {
-        ((RealmObject) this).realm.checkIfValid();
+        proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
-            ((RealmObject) this).row.setNull(columnInfo.nameIndex);
+            proxyState.getRow$realm().setNull(columnInfo.nameIndex);
             return;
         }
-        ((RealmObject) this).row.setString(columnInfo.nameIndex, value);
+        proxyState.getRow$realm().setString(columnInfo.nameIndex, value);
     }
 
     @SuppressWarnings("cast")
     public int realmGet$age() {
-        ((RealmObject) this).realm.checkIfValid();
-        return (int) ((RealmObject) this).row.getLong(columnInfo.ageIndex);
+        proxyState.getRealm$realm().checkIfValid();
+        return (int) proxyState.getRow$realm().getLong(columnInfo.ageIndex);
     }
 
     public void realmSet$age(int value) {
-        ((RealmObject) this).realm.checkIfValid();
-        ((RealmObject) this).row.setLong(columnInfo.ageIndex, value);
+        proxyState.getRealm$realm().checkIfValid();
+        proxyState.getRow$realm().setLong(columnInfo.ageIndex, value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -189,18 +193,17 @@ public class SimpleRealmProxy extends Simple
         return obj;
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId) {
-            throw new IllegalArgumentException(
-                    "Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm$realm() != null && ((RealmObjectProxy) object).getRealm$realm().threadId != realm.threadId) {
+            throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
-        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm$realm() != null && ((RealmObjectProxy)object).getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
         ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
@@ -208,11 +211,11 @@ public class SimpleRealmProxy extends Simple
         return realmObject;
     }
 
-    public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
+    public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
-        CacheData<RealmObject> cachedObject = cache.get(realmObject);
+        CacheData<RealmModel> cachedObject = cache.get(realmObject);
         Simple standaloneObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
@@ -224,10 +227,70 @@ public class SimpleRealmProxy extends Simple
             }
         } else {
             standaloneObject = new Simple();
-            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject));
         }
         ((SimpleRealmProxyInterface) standaloneObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
         ((SimpleRealmProxyInterface) standaloneObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());
         return standaloneObject;
+    }
+
+    @Override
+    public BaseRealm getRealm$realm() {
+        return proxyState.getRealm$realm();
+    }
+
+    @Override
+    public void setRealm$realm(BaseRealm realm) {
+        proxyState.setRealm$realm(realm);
+    }
+
+    @Override
+    public Row getRow$realm() {
+        return proxyState.getRow$realm();
+    }
+
+    @Override
+    public void setRow$realm(Row row) {
+        proxyState.setRow$realm(row);
+    }
+
+    @Override
+    public Object getPendingQuery$realm() {
+        return proxyState.getPendingQuery$realm();
+    }
+
+    @Override
+    public void setPendingQuery$realm(Future<Long> pendingQuery) {
+        proxyState.setPendingQuery$realm(pendingQuery);
+    }
+
+    @Override
+    public boolean isCompleted$realm() {
+        return proxyState.isCompleted$realm();
+    }
+
+    @Override
+    public boolean onCompleted$realm() {
+        return proxyState.onCompleted$realm();
+    }
+
+    @Override
+    public void onCompleted$realm(long rowPointer) {
+        proxyState.onCompleted$realm(rowPointer);
+    }
+
+    @Override
+    public List<RealmChangeListener> getListeners$realm() {
+        return proxyState.getListeners$realm();
+    }
+
+    @Override
+    public void setTableVersion$realm() {
+        proxyState.setTableVersion$realm();
+    }
+
+    @Override
+    public void notifyChangeListeners$realm() {
+        proxyState.notifyChangeListeners$realm();
     }
 }
