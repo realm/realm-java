@@ -61,25 +61,38 @@ Prerequisites:
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
  * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
- * Or you can use [Hombrew](https://github.com/Homebrew/homebrew) to install Android NDK for Mac:
+ * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
 
     ```
-    brew install android-ndk
+    brew tap homebrew/versions
+    brew install android-ndk-r10e
     ```
 
  * Add two environment variables to your profile:
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export NDK_HOME=/usr/local/Cellar/android-ndk/r10e
+    export NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
     ```
 
- * If you are using OS X, you'd be better to add following lines to `~/.profile` in order for Android Studio to see those environment variables.
+ * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
     launchctl setenv NDK_HOME "$NDK_HOME"
     ```
+
+ * And if you'd like to specify the location to store the archives of Realm's core, set `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep core's archive when executing `git clean -xfd`.
+
+   ```
+   export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
+   ```
+
+   OS X users should also add following line to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see this environment variable..
+
+   ```
+   launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
+   ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
@@ -100,14 +113,17 @@ That command will generate:
  * `./gradlew javadoc` will generate the Javadocs
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
  * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
+ * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This saves recompilation time a lot.
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 
 ### Gotchas
 
-The repository is organized in four Gradle projects:
+The repository is organized in six Gradle projects:
 
- * `realm`: it contains the actual library (including the JNI layer), the annotations and the annotations processor.
+ * `realm`: it contains the actual library (including the JNI layer) and the annotations processor.
+ * `realm-annotations`: it contains the annotations defined by Realm.
+ * `realm-transformer`: it contains the bytecode transformer.
  * `gradle-plugin`: it contains the Gradle plugin.
  * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
  * The root folder is another Gradle project and all it does is orchestrating the other jobs

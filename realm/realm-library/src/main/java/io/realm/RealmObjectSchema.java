@@ -132,7 +132,7 @@ public final class RealmObjectSchema {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
-                throw new IllegalArgumentException("Use addLinkField() instead to add fields that link to other RealmObjects: " + fieldName);
+                throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
             } else {
                 throw new IllegalArgumentException(String.format("Realm doesn't support this field type: %s(%s)",
                         fieldName, fieldType));
@@ -192,7 +192,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field name to remove.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @throws IllegalArgumentException if field name doesn't exist.
      */
     public RealmObjectSchema removeField(String fieldName) {
         checkLegalName(fieldName);
@@ -213,7 +213,7 @@ public final class RealmObjectSchema {
      * @param currentFieldName field name to rename.
      * @param newFieldName     the new field name.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or if the new field name already exists.
+     * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
      */
     public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
         checkLegalName(currentFieldName);
@@ -241,7 +241,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to add index to.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
+     * @throws IllegalArgumentException if field name doesn't exist, the field cannot be indexed or it already has a
      * index defined.
      */
     public RealmObjectSchema addIndex(String fieldName) {
@@ -260,6 +260,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName existing field name to check.
      * @return {@code true} if field is indexed, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see io.realm.annotations.Index
      */
     public boolean hasIndex(String fieldName) {
@@ -274,7 +275,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to remove index from.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field doesn't have an index.
+     * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
         checkLegalName(fieldName);
@@ -293,7 +294,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to set as primary key.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
+     * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
      */
     public RealmObjectSchema addPrimaryKey(String fieldName) {
@@ -328,7 +329,7 @@ public final class RealmObjectSchema {
      * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if the field name doesn't exists, cannot have the {@link Required} annotation or
+     * @throws IllegalArgumentException if the field name doesn't exist, cannot have the {@link Required} annotation or
      *                                  the field already have been set as required.
      * @see Required
      */
@@ -365,7 +366,7 @@ public final class RealmObjectSchema {
      * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if the field name doesn't exists, or cannot be set as nullable.
+     * @throws IllegalArgumentException if the field name doesn't exist, or cannot be set as nullable.
      */
     public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
         setRequired(fieldName, !nullable);
@@ -376,12 +377,12 @@ public final class RealmObjectSchema {
      * Checks if a given field is required, i.e. is not allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it is requied, {@code false} otherwise.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @return {@code true} if it is required, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return !table.isColumnNullable(columnIndex);
     }
 
@@ -389,13 +390,26 @@ public final class RealmObjectSchema {
      * Checks if a given field is nullable, i.e. is allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it is requied, {@code false} otherwise.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @return {@code true} if it is required, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return table.isColumnNullable(columnIndex);
+    }
+
+    /**
+     * Checks if a given field is the primary key field.
+     *
+     * @param fieldName field to check.
+     * @return {@code true} if it is the primary key field, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
+     * @see #addPrimaryKey(String)
+     */
+    public boolean isPrimaryKey(String fieldName) {
+        long columnIndex = getColumnIndex(fieldName);
+        return columnIndex == table.getPrimaryKey();
     }
 
     /**
@@ -409,7 +423,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Return all fields in this class.
+     * Returns all fields in this class.
      *
      * @return a list of all the fields in this class.
      */
@@ -593,13 +607,27 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the column index in the underlying table for the given field name.
-     * INVARIANT: fieldName should be present.
      *
      * @param fieldName field name to find index for.
-     * @return column index
+     * @return column index or null if it doesn't exists.
      */
     Long getFieldIndex(String fieldName) {
         return columnIndices.get(fieldName);
+    }
+
+    /**
+     * Returns the column index in the underlying table for the given field name.
+     *
+     * @param fieldName field name to find index for.
+     * @return column index.
+     * @throws IllegalArgumentException if the field does not exists.
+     */
+    long getAndCheckFieldIndex(String fieldName) {
+        Long index = columnIndices.get(fieldName);
+        if (index == null) {
+            throw new IllegalArgumentException("Field does not exist: " + fieldName);
+        }
+        return index;
     }
 
     /**

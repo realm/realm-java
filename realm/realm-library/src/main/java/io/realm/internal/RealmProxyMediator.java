@@ -92,8 +92,8 @@ public abstract class RealmProxyMediator {
     public abstract Set<Class<? extends RealmObject>> getModelClasses();
 
     /**
-     * Copy a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied any
-     * changes to the original object will not be persisted.
+     * Copies a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
+     * any changes to the original object will not be persisted.
      *
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
@@ -137,6 +137,17 @@ public abstract class RealmProxyMediator {
      * @return a standalone copy of the given object.
      */
     public abstract <E extends RealmObject> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> cache);
+
+    /**
+     * Returns whether Realm transformer has been applied or not. Subclasses of this class are
+     * created by the annotation processor and the Realm transformer will add an override of
+     * this method that always return {@code true} if the transform was successful.
+     *
+     * @return {@code true} if Realm transformer was applied, {@code false} otherwise.
+     */
+    public boolean transformerApplied() {
+        return false;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.0.0-beta-1038'
+    ext.kotlin_version = '1.0.1-2'
     repositories {
         jcenter()
     }
@@ -12,13 +12,17 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'android-command'
+apply plugin: 'realm-android'
 
 android {
+    //noinspection GroovyAssignabilityCheck
     compileSdkVersion rootProject.sdkVersion
+    //noinspection GroovyAssignabilityCheck
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId 'io.realm.examples.kotlin'
+        //noinspection GroovyAssignabilityCheck
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
         versionCode 1
@@ -48,9 +52,5 @@ android {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
     compile "org.jetbrains.kotlin:kotlin-reflect:${kotlin_version}"
-    compile 'org.jetbrains.anko:anko-sdk15:0.7.2'
-    compile "io.realm:realm-android-library:${version}@aar"
-    compile "io.realm:realm-annotations:${version}"
-    kapt "io.realm:realm-annotations:${version}"
-    kapt "io.realm:realm-annotations-processor:${version}"
+    compile 'org.jetbrains.anko:anko-sdk15:0.8.2'
 }

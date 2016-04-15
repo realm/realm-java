@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -30,10 +31,12 @@ import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
 
@@ -1092,149 +1095,47 @@ public class RealmQuery<E extends RealmObject> {
         return this;
     }
 
-    // Aggregates
-
-    // Sum
-
     /**
-     * Calculates the sum of a given field.
-     *
-     * @param fieldName the field to sum. Only number fields are supported.
-     * @return the sum if no objects exist or they all have {@code null} as the value for the given field, {@code 0}
-     * will be returned. When computing the sum, objects with {@code null} values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     */
-    public Number sum(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return query.sumInt(columnIndex);
-            case FLOAT:
-                return query.sumFloat(columnIndex);
-            case DOUBLE:
-                return query.sumDouble(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-        }
-    }
-
-    // Average
-
-    /**
-     * Returns the average of a given field.
-     *
-     * @param fieldName the field to calculate average on. Only number fields are supported.
-     * @return the average for the given field amongst objects in query results. This will be of type double for all
-     * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
-     * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     */
-    public double average(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return query.averageInt(columnIndex);
-            case DOUBLE:
-                return query.averageDouble(columnIndex);
-            case FLOAT:
-                return query.averageFloat(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-        }
-    }
-
-    // Min
-
-    /**
-     * Finds the minimum value of a field.
-     *
-     * @param fieldName the field to look for a minimum on. Only number fields are supported.
-     * @return if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
-     * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
-     * values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     */
-    public Number min(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return this.query.minimumInt(columnIndex);
-            case FLOAT:
-                return this.query.minimumFloat(columnIndex);
-            case DOUBLE:
-                return this.query.minimumDouble(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-        }
-    }
-
-    /**
-     * Finds the minimum value of a field.
-     *
-     * @param fieldName the field name
-     * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
-     * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
-     * {@code null} values are ignored.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     */
-    public Date minimumDate(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.minimumDate(columnIndex);
-    }
-
-    // Max
-
-    /**
-     * Finds the maximum value of a field.
-     *
-     * @param fieldName the field to look for a maximum on. Only number fields are supported.
-     * @return  if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
-     * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
-     * values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     */
-    public Number max(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return this.query.maximumInt(columnIndex);
-            case FLOAT:
-                return this.query.maximumFloat(columnIndex);
-            case DOUBLE:
-                return this.query.maximumDouble(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-        }
-    }
-
-    /**
-     * Finds the maximum value of a field.
+     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
+     * object will be returned in case of multiple occurrences, otherwise it is undefined which
+     * object is returned.
      *
      * @param fieldName the field name.
-     * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
-     * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
-     * {@code null} values are ignored.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
-    public Date maximumDate(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.maximumDate(columnIndex);
+    public RealmResults<E> distinct(String fieldName) {
+        checkQueryIsNotReused();
+        long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
+        TableView tableView = this.query.findAll();
+        tableView.distinct(columnIndex);
+
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
+        return realmResults;
     }
 
     /**
-     * Counts the number of objects that fulfill the query conditions.
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
      *
-     * @return the number of matching objects.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
-    public long count() {
-        return this.query.count();
-    }
-
-    RealmResults<E> distinctAsync(final long columnIndex) {
+    public RealmResults<E> distinctAsync(String fieldName) {
         checkQueryIsNotReused();
+        final long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
@@ -1307,6 +1208,213 @@ public class RealmQuery<E extends RealmObject> {
         return realmResults;
     }
 
+    // Find and validate the column index for the field name used to create a distinctive TableView.
+    static long getAndValidateDistinctColumnIndex(String fieldName, Table table) {
+        // Check empty field name
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty field name must be provided.");
+        }
+        long columnIndex = table.getColumnIndex(fieldName);
+        // Check if field exists
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+        // Check linked fields
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Distinct operation on linked properties is not supported: " + fieldName);
+        }
+        // check if the field is indexed
+        if (!table.hasSearchIndex(columnIndex)) {
+            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
+        }
+        return columnIndex;
+    }
+
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        checkQueryIsNotReused();
+        List<Long> columnIndexes = getValidatedColumIndexes(this.table.getTable(), firstFieldName, remainingFieldNames);
+        TableView tableView = this.query.findAll();
+        tableView.distinct(columnIndexes);
+
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
+        return realmResults;
+    }
+
+    // find and validate the column indices of fields for building a distinctive TableView with multi-args
+    static List<Long> getValidatedColumIndexes(Table table, String firstFieldName, String... remainingFieldNames) {
+        List<Long> columnIndexes = new ArrayList<Long>();
+        // find the first index
+        long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
+        columnIndexes.add(firstIndex);
+        // add remaining of indexes
+        if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
+            for (String field : remainingFieldNames) {
+                long index = getAndValidateDistinctColumnIndex(field, table);
+                columnIndexes.add(index);
+            }
+        }
+        return columnIndexes;
+    }
+
+    // Aggregates
+
+    // Sum
+
+    /**
+     * Calculates the sum of a given field.
+     *
+     * @param fieldName the field to sum. Only number fields are supported.
+     * @return the sum if no objects exist or they all have {@code null} as the value for the given field, {@code 0}
+     * will be returned. When computing the sum, objects with {@code null} values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     */
+    public Number sum(String fieldName) {
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return query.sumInt(columnIndex);
+            case FLOAT:
+                return query.sumFloat(columnIndex);
+            case DOUBLE:
+                return query.sumDouble(columnIndex);
+            default:
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        }
+    }
+
+    // Average
+
+    /**
+     * Returns the average of a given field.
+     *
+     * @param fieldName the field to calculate average on. Only number fields are supported.
+     * @return the average for the given field amongst objects in query results. This will be of type double for all
+     * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
+     * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     */
+    public double average(String fieldName) {
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return query.averageInt(columnIndex);
+            case DOUBLE:
+                return query.averageDouble(columnIndex);
+            case FLOAT:
+                return query.averageFloat(columnIndex);
+            default:
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        }
+    }
+
+    // Min
+
+    /**
+     * Finds the minimum value of a field.
+     *
+     * @param fieldName the field to look for a minimum on. Only number fields are supported.
+     * @return if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
+     * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
+     * values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     */
+    public Number min(String fieldName) {
+        realm.checkIfValid();
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return this.query.minimumInt(columnIndex);
+            case FLOAT:
+                return this.query.minimumFloat(columnIndex);
+            case DOUBLE:
+                return this.query.minimumDouble(columnIndex);
+            default:
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        }
+    }
+
+    /**
+     * Finds the minimum value of a field.
+     *
+     * @param fieldName the field name
+     * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
+     * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
+     * {@code null} values are ignored.
+     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     */
+    public Date minimumDate(String fieldName) {
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        return this.query.minimumDate(columnIndex);
+    }
+
+    // Max
+
+    /**
+     * Finds the maximum value of a field.
+     *
+     * @param fieldName the field to look for a maximum on. Only number fields are supported.
+     * @return  if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
+     * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
+     * values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     */
+    public Number max(String fieldName) {
+        realm.checkIfValid();
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return this.query.maximumInt(columnIndex);
+            case FLOAT:
+                return this.query.maximumFloat(columnIndex);
+            case DOUBLE:
+                return this.query.maximumDouble(columnIndex);
+            default:
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        }
+    }
+
+    /**
+     * Finds the maximum value of a field.
+     *
+     * @param fieldName the field name.
+     * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
+     * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
+     * {@code null} values are ignored.
+     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     */
+    public Date maximumDate(String fieldName) {
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        return this.query.maximumDate(columnIndex);
+    }
+
+    /**
+     * Counts the number of objects that fulfill the query conditions.
+     *
+     * @return the number of matching objects.
+     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     */
+    public long count() {
+        return this.query.count();
+    }
+
     /**
      * Finds all objects that fulfill the query conditions.
      *
@@ -1322,9 +1430,6 @@ public class RealmQuery<E extends RealmObject> {
             realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
-        }
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
         }
         return realmResults;
     }
@@ -1388,6 +1493,11 @@ public class RealmQuery<E extends RealmObject> {
 
                         return handoverTableViewPointer;
 
+                    } catch (BadVersionException e) {
+                        // In some rare race conditions, this can happen. In that case, just ignore the error.
+                        RealmLog.d("findAllAsync handover could not complete due to a BadVersionException. " +
+                                "Retry is scheduled by a REALM_CHANGED event.");
+
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
@@ -1420,16 +1530,14 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrder how to sort the results.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         checkQueryIsNotReused();
         TableView tableView = query.findAll();
-        Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        long columnIndex = getColumnIndexForSort(fieldName);
         tableView.sort(columnIndex, sortOrder);
 
         RealmResults<E> realmResults;
@@ -1437,9 +1545,6 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-        }
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
         }
         return realmResults;
     }
@@ -1450,14 +1555,12 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
-    public RealmResults<E> findAllSortedAsync(String fieldName, final Sort sortOrder) {
+    public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
         checkQueryIsNotReused();
-        final Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        long columnIndex = getColumnIndexForSort(fieldName);
 
         // capture the query arguments for future retries & update
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
@@ -1480,7 +1583,8 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults =
+                realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1494,6 +1598,8 @@ public class RealmQuery<E extends RealmObject> {
                                 realmConfiguration.getDurability(),
                                 realmConfiguration.getEncryptionKey());
 
+                        long columnIndex = getColumnIndexForSort(fieldName);
+
                         // run the query & handover the table view for the caller thread
                         long handoverTableViewPointer = query.findAllSortedWithHandover(sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(), handoverQueryPointer, columnIndex, sortOrder);
@@ -1505,6 +1611,11 @@ public class RealmQuery<E extends RealmObject> {
                                 weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
+                    } catch (BadVersionException e) {
+                        // In some rare race conditions, this can happen. In that case, just ignore the error.
+                        RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                                "Retry is scheduled by a REALM_CHANGED event.");
+
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
@@ -1564,7 +1675,8 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrders how to sort the field names.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero 
      *         objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
@@ -1575,12 +1687,10 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             TableView tableView = query.findAll();
             List<Long> columnIndices = new ArrayList<Long>();
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
-                Long columnIndex = schema.getFieldIndex(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
+                long columnIndex = getColumnIndexForSort(fieldName);
                 columnIndices.add(columnIndex);
             }
             tableView.sort(columnIndices, sortOrders);
@@ -1590,9 +1700,6 @@ public class RealmQuery<E extends RealmObject> {
                 realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
                 realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-            }
-            if (realm.handlerController != null) {
-                realm.handlerController.addToRealmResults(realmResults);
             }
             return realmResults;
         }
@@ -1610,6 +1717,8 @@ public class RealmQuery<E extends RealmObject> {
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
         checkQueryIsNotReused();
@@ -1630,10 +1739,7 @@ public class RealmQuery<E extends RealmObject> {
             final long indices[] = new long[fieldNames.length];
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
-                Long columnIndex = schema.getFieldIndex(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
+                long columnIndex = getColumnIndexForSort(fieldName);
                 indices[i] = columnIndex;
             }
 
@@ -1676,6 +1782,11 @@ public class RealmQuery<E extends RealmObject> {
                                     weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                             return handoverTableViewPointer;
+                        } catch (BadVersionException e) {
+                            // In some rare race conditions, this can happen. In that case, just ignore the error.
+                            RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                                    "Retry is scheduled by a REALM_CHANGED event.");
+
                         } catch (Exception e) {
                             RealmLog.e(e.getMessage(), e);
                             closeSharedGroupAndSendMessageToHandler(sharedGroup,
@@ -1800,7 +1911,9 @@ public class RealmQuery<E extends RealmObject> {
      * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
      * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
      * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
-     * to be notified when the query completes.
+     * to be notified when the query completes. If no RealmObject was found after the query completed, the returned
+     * RealmObject will have {@link RealmObject#isLoaded()} set to {@code true} and {@link RealmObject#isValid()} set to
+     * {@code false}.
      */
     public E findFirstAsync() {
         checkQueryIsNotReused();
@@ -1886,7 +1999,9 @@ public class RealmQuery<E extends RealmObject> {
         } else if (fieldNames.length == 0) {
             throw new IllegalArgumentException("At least one field name must be specified.");
         } else if (fieldNames.length != sortOrders.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortOrders.length));
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "Number of field names (%d) and sort orders (%d) does not match.",
+                    fieldNames.length, sortOrders.length));
         }
     }
 
@@ -1932,6 +2047,24 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             return rowIndex;
         }
+    }
+
+    // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
+    // or it belongs to the child object.
+    private long getColumnIndexForSort(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty fieldname required.");
+        }
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
+        }
+
+        Long columnIndex = schema.getFieldIndex(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        return columnIndex;
     }
 
     public ArgumentsHolder getArgument() {

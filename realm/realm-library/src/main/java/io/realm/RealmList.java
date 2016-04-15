@@ -18,10 +18,11 @@ package io.realm;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
-import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 
@@ -37,14 +38,17 @@ import io.realm.internal.LinkView;
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
  * Non-managed elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
  * <p>
+ * {@link RealmList} can contain more elements than {@code Integer.MAX_VALUE}.
+ * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
  *
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E extends RealmObject> extends AbstractList<E> {
+public class RealmList<E extends RealmObject> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
+    public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
 
     private final boolean managedMode;
     protected Class<E> clazz;
@@ -105,17 +109,16 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Checks if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm} instance hasn't
-     * been closed.
+     * Checks if the {@link RealmList} is managed by Realm and contains valid data i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
      *
-     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a standalone object.
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it's an un-managed list.
      */
     public boolean isValid() {
         //noinspection SimplifiableIfStatement
-        if (!managedMode) {
+        if (realm == null || realm.isClosed()) {
             return false;
         }
-
         return isAttached();
     }
 
@@ -147,6 +150,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
+            if (location < 0 || location > size()) {
+                throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
+            }
             object = copyToRealmIfNeeded(object);
             view.insert(location, object.row.getIndex());
         } else {
@@ -216,15 +222,34 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
-        // Object is already in this realm
-        if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
-            return object;
-        }
-
-        // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as you
-        // have to run a full schema validation for each object.
         if (object instanceof DynamicRealmObject) {
-            throw new IllegalArgumentException("Automatically copying DynamicRealmObjects from other Realms are not supported");
+            String listClassName = RealmSchema.getSchemaForTable(view.getTargetTable());
+            String objectClassName = ((DynamicRealmObject) object).getType();
+            if (object.realm == realm) {
+                if (listClassName.equals(objectClassName)) {
+                    // Same Realm instance and same target table
+                    return object;
+                } else {
+                    // Different target table
+                    throw new IllegalArgumentException(String.format("The object has a different type from list's." +
+                            " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
+                }
+            } else if (realm.threadId == object.realm.threadId) {
+                // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+                // you have to run a full schema validation for each object.
+                // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+                throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+            } else {
+                throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+            }
+        } else {
+            // Object is already in this realm
+            if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
+                if (realm != object.realm) {
+                    throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                }
+                return object;
+            }
         }
 
         // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
@@ -268,7 +293,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see List#isEmpty
      * @see List#size
-     * @see #removeAllFromRealm()
+     * @see #deleteAllFromRealm()
      */
     @Override
     public void clear() {
@@ -301,22 +326,85 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Removes all elements from this list and delete them from the corresponding Realm. This method can be called on a
-     * non-managed {@link RealmList} if all of the RealmObjects in the list are managed by Realm.
+     * Removes one instance of the specified object from this {@code Collection} if one
+     * is contained . This implementation iterates over this
+     * {@code Collection} and tests for each element {@code e} returned by the iterator,
+     * whether {@code e} is equal to the given object. If {@code object != null}
+     * then this test is performed using {@code object.equals(e)}, otherwise
+     * using {@code object == null}. If an element equal to the given object is
+     * found, then the {@code remove} method is called on the iterator and
+     * {@code true} is returned, {@code false} otherwise. If the iterator does
+     * not support removing elements, an {@code UnsupportedOperationException}
+     * is thrown.
      *
-     * @throws IllegalStateException if the Realm instance has been closed, the parent object has been removed, the
-     * method is called in a wrong thread or any RealmObject in the list is not managed by Realm.
-     * @see #clear()
+     * @param object the object to remove.
+     * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
+     * @throws ClassCastException if the object passed is not of the correct type.
+     * @throws NullPointerException  if {@code object} is {@code null}.
      */
-    public void removeAllFromRealm() {
+    @Override
+    public boolean remove(Object object) {
+        if (managedMode && !realm.isInTransaction()) {
+            throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
+        }
+        return super.remove(object);
+    }
+
+    /**
+     * Removes all occurrences in this {@code Collection} of each object in the
+     * specified {@code Collection}. After this method returns none of the
+     * elements in the passed {@code Collection} can be found in this {@code Collection}
+     * anymore.
+     * <p>
+     * This implementation iterates over this {@code Collection} and tests for each
+     * element {@code e} returned by the iterator, whether it is contained in
+     * the specified {@code Collection}. If this test is positive, then the {@code
+     * remove} method is called on the iterator.
+     *
+     * @param collection the collection of objects to remove.
+     * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
+     * @throws ClassCastException if one or more elements of {@code collection} isn't of the correct type.
+     * @throws NullPointerException if {@code collection} is {@code null}.
+     */
+    @Override
+    public boolean removeAll(Collection<?> collection) {
+        if (managedMode && !realm.isInTransaction()) {
+            throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
+        }
+        return super.removeAll(collection);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean deleteFirstFromRealm() {
         if (managedMode) {
-            checkValidView();
-            view.removeAllTargetRows();
-        } else {
-            for (RealmObject object : nonManagedList) {
-                object.removeFromRealm();
+            if (size() > 0) {
+                deleteFromRealm(0);
+                return true;
+            } else {
+                return false;
             }
-            nonManagedList.clear();
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean deleteLastFromRealm() {
+        if (managedMode) {
+            if (size() > 0) {
+                deleteFromRealm(size() - 1);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -348,11 +436,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public E first() {
         if (managedMode) {
             checkValidView();
-            return view.isEmpty() ? null : get(0);
+            if (!view.isEmpty()) {
+                return get(0);
+            }
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(0);
         }
-        return null;
+        throw new IndexOutOfBoundsException("The list is empty.");
     }
 
     /**
@@ -364,11 +454,66 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public E last() {
         if (managedMode) {
             checkValidView();
-            return view.isEmpty() ? null : get((int) view.size() - 1);
+            if (!view.isEmpty()) {
+                return get((int) view.size() - 1);
+            }
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(nonManagedList.size() - 1);
         }
-        return null;
+        throw new IndexOutOfBoundsException("The list is empty.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmResults<E> sort(String fieldName) {
+        return this.sort(fieldName, Sort.ASCENDING);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmResults<E> sort(String fieldName, Sort sortOrder) {
+        if (managedMode) {
+            return this.where().findAllSorted(fieldName, sortOrder);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
+        if (managedMode) {
+            return where().findAllSorted(fieldNames, sortOrders);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteFromRealm(int location) {
+        if (managedMode) {
+            checkValidView();
+            view.removeTargetRow(location);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
     }
 
     /**
@@ -400,8 +545,114 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
             checkValidView();
             return RealmQuery.createQueryFromList(this);
         } else {
-            throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Number min(String fieldName) {
+        if (managedMode) {
+            return this.where().min(fieldName);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Number max(String fieldName) {
+        if (managedMode) {
+            return this.where().max(fieldName);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Number sum(String fieldName) {
+        if (managedMode) {
+            return this.where().sum(fieldName);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double average(String fieldName) {
+        if (managedMode) {
+            return this.where().average(fieldName);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Date maxDate(String fieldName) {
+        if (managedMode) {
+            return this.where().maximumDate(fieldName);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Date minDate(String fieldName) {
+        if (managedMode) {
+            return this.where().minimumDate(fieldName);
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean deleteAllFromRealm() {
+        if (managedMode) {
+            checkValidView();
+            if (size() > 0) {
+                view.removeAllTargetRows();
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isLoaded() {
+        return true; // Managed RealmLists are always loaded, Un-managed RealmLists return true pr. the contract.
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean load() {
+        return true; // Managed RealmLists are always loaded, Un-managed RealmLists return true pr. the contract.
     }
 
     /**
@@ -418,6 +669,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public boolean contains(Object object) {
         boolean contains = false;
         if (managedMode) {
+            realm.checkIfValid();
             if (object instanceof RealmObject) {
                 RealmObject realmObject = (RealmObject) object;
                 if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
@@ -446,7 +698,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     private void checkValidView() {
         realm.checkIfValid();
         if (view == null || !view.isAttached()) {
-            throw new IllegalStateException("Realm instance has been closed or parent object has been removed.");
+            throw new IllegalStateException("Realm instance has been closed or this object or its parent has been deleted.");
         }
     }
 

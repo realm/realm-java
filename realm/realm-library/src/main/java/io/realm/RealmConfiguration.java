@@ -61,11 +61,18 @@ public class RealmConfiguration {
 
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+    private static Boolean rxJavaAvailable;
 
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
         if (DEFAULT_MODULE != null) {
-            DEFAULT_MODULE_MEDIATOR = getModuleMediator(DEFAULT_MODULE.getClass().getCanonicalName());
+            final RealmProxyMediator mediator = getModuleMediator(DEFAULT_MODULE.getClass().getCanonicalName());
+            if (!mediator.transformerApplied()) {
+                throw new ExceptionInInitializerError("RealmTransformer doesn't seem to be applied." +
+                        " Please update the project configuration to use the Realm Gradle plugin." +
+                        " See https://realm.io/news/android-installation-change/");
+            }
+            DEFAULT_MODULE_MEDIATOR = mediator;
         } else {
             DEFAULT_MODULE_MEDIATOR = null;
         }
@@ -81,6 +88,7 @@ public class RealmConfiguration {
     private final SharedGroup.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
+    private final Realm.Transaction initialDataTransaction;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -93,6 +101,7 @@ public class RealmConfiguration {
         this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
+        this.initialDataTransaction = builder.initialDataTransaction;
     }
 
     public File getRealmFolder() {
@@ -125,14 +134,20 @@ public class RealmConfiguration {
 
     /**
      * Returns the mediator instance of schema which is defined by this configuration.
-     * This method is left public by mistake and will be removed.
      *
      * @return the mediator of the schema.
-     * @deprecated use {@link #getRealmObjectClasses()} instead if you need to access to the set of model classes.
      */
-    @Deprecated
-    public RealmProxyMediator getSchemaMediator() {
+    RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
+    }
+
+    /**
+     * Returns the transaction instance with initial data.
+     *
+     * @return the initial data transaction.
+     */
+    Realm.Transaction getInitialDataTransaction() {
+        return initialDataTransaction;
     }
 
     /**
@@ -151,9 +166,16 @@ public class RealmConfiguration {
     /**
      * Returns the {@link RxObservableFactory} that is used to create Rx Observables from Realm objects.
      *
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @return the factory instance used to create Rx Observables.
      */
     public RxObservableFactory getRxFactory() {
+        // Since RxJava doesn't exist, rxObservableFactory is not initialized.
+        if (rxObservableFactory == null) {
+            throw new UnsupportedOperationException("RxJava seems to be missing from the classpath. " +
+                    "Remember to add it as a compile dependency." +
+                    " See https://realm.io/docs/java/latest/#rxjava for more details.");
+        }
         return rxObservableFactory;
     }
 
@@ -172,7 +194,9 @@ public class RealmConfiguration {
         if (!Arrays.equals(key, that.key)) return false;
         if (!durability.equals(that.durability)) return false;
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
-        if (!rxObservableFactory.equals(that.rxObservableFactory)) return false;
+        //noinspection SimplifiableIfStatement
+        if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
+        if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) return false;
         return schemaMediator.equals(that.schemaMediator);
     }
 
@@ -187,6 +211,8 @@ public class RealmConfiguration {
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + durability.hashCode();
+        result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
+        result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
 
         return result;
     }
@@ -223,6 +249,7 @@ public class RealmConfiguration {
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
         String mediatorName = String.format("io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
+        //noinspection TryWithIdenticalCatches
         try {
             clazz = Class.forName(mediatorName);
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
@@ -241,27 +268,44 @@ public class RealmConfiguration {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
-        stringBuilder.append("realmFolder: "); stringBuilder.append(realmFolder.toString());
+        //noinspection StringBufferReplaceableByString
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("realmFolder: ").append(realmFolder.toString());
         stringBuilder.append("\n");
-        stringBuilder.append("realmFileName : "); stringBuilder.append(realmFileName);
+        stringBuilder.append("realmFileName : ").append(realmFileName);
         stringBuilder.append("\n");
-        stringBuilder.append("canonicalPath: "); stringBuilder.append(canonicalPath);
+        stringBuilder.append("canonicalPath: ").append(canonicalPath);
         stringBuilder.append("\n");
-        stringBuilder.append("key: ");
-        stringBuilder.append("[length: " + Integer.toString(key == null ? 0 : KEY_LENGTH) + "]");
+        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : KEY_LENGTH).append("]");
         stringBuilder.append("\n");
-        stringBuilder.append("schemaVersion: "); stringBuilder.append(Long.toString(schemaVersion));
+        stringBuilder.append("schemaVersion: ").append(Long.toString(schemaVersion));
         stringBuilder.append("\n");
-        stringBuilder.append("migration: "); stringBuilder.append(migration);
+        stringBuilder.append("migration: ").append(migration);
         stringBuilder.append("\n");
-        stringBuilder.append("deleteRealmIfMigrationNeeded: "); stringBuilder.append(deleteRealmIfMigrationNeeded);
+        stringBuilder.append("deleteRealmIfMigrationNeeded: ").append(deleteRealmIfMigrationNeeded);
         stringBuilder.append("\n");
-        stringBuilder.append("durability: "); stringBuilder.append(durability);
+        stringBuilder.append("durability: ").append(durability);
         stringBuilder.append("\n");
-        stringBuilder.append("schemaMediator: "); stringBuilder.append(schemaMediator);
+        stringBuilder.append("schemaMediator: ").append(schemaMediator);
 
         return stringBuilder.toString();
+    }
+
+    /**
+     * Checks if RxJava is can be loaded.
+     *
+     * @return true if RxJava dependency exist.
+     */
+    private static synchronized boolean isRxJavaAvailable() {
+        if (rxJavaAvailable == null) {
+            try {
+                Class.forName("rx.Observable");
+                rxJavaAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                rxJavaAvailable = false;
+            }
+        }
+        return rxJavaAvailable;
     }
 
     /**
@@ -277,7 +321,8 @@ public class RealmConfiguration {
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
-        private RxObservableFactory rxFactory = new RealmObservableFactory();
+        private RxObservableFactory rxFactory;
+        private Realm.Transaction initialDataTransaction;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -450,6 +495,17 @@ public class RealmConfiguration {
             return this;
         }
 
+        /**
+         * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only for the first time
+         * when database file is created or while migrating the data when {@link Builder#deleteRealmIfMigrationNeeded()} is set.
+         *
+         * @param transaction transaction to execute.
+         */
+        public Builder initialData(Realm.Transaction transaction) {
+            initialDataTransaction = transaction;
+            return this;
+        }
+
         private void addModule(Object module) {
             if (module != null) {
                 checkModule(module);
@@ -482,6 +538,9 @@ public class RealmConfiguration {
          * @return the created {@link RealmConfiguration}.
          */
         public RealmConfiguration build() {
+            if (rxFactory == null && isRxJavaAvailable()) {
+                rxFactory = new RealmObservableFactory();
+            }
             return new RealmConfiguration(this);
         }
 

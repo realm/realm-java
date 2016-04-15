@@ -121,10 +121,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind
 
 /*
  * Class:     io_realm_internal_LinkView
+ * Method:    nativeRemoveTargetRow
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveTargetRow
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_LinkView
  * Method:    nativeRemoveAllTargetRows
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveAllTargetRows
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_LinkView
+ * Method:    nativeGetTargetTable
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetTable
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

@@ -15,34 +15,41 @@
  */
 package io.realm.examples.realmadapters;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.util.concurrent.CountDownLatch;
+
 import io.realm.Realm;
 
-public class WorkerThread extends Thread {
+class WorkerThread extends Thread {
 
     public Handler workerHandler;
-
-    private Context context;
-
-    public WorkerThread(Context context) {
-        this.context = context;
-    }
+    private CountDownLatch realmOpen;
 
     @Override
     public void run() {
         Realm realm = null;
         try {
             Looper.prepare();
-            realm = Realm.getInstance(context);
+            realm = Realm.getDefaultInstance();
+            realmOpen = new CountDownLatch(1);
             workerHandler = new WorkerHandler(realm);
             Looper.loop();
         } finally {
             if (realm != null) {
                 realm.close();
+                realmOpen.countDown();
             }
+        }
+    }
+
+    public void quit() {
+        workerHandler.getLooper().quit();
+        try {
+            realmOpen.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

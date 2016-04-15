@@ -39,21 +39,22 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     private ReentrantLock pauseLock = new ReentrantLock();
     private Condition unpaused = pauseLock.newCondition();
 
-    private static volatile RealmThreadPoolExecutor instance;
-
-    public static RealmThreadPoolExecutor getInstance() {
-           if (instance == null) {
-               synchronized (RealmThreadPoolExecutor.class) {
-                   if (instance == null) {
-                       instance = new RealmThreadPoolExecutor();
-                   }
-               }
-           }
-        return instance;
+    /**
+     * Creates a default RealmThreadPool that is bounded by the number of available cores.
+     */
+    public static RealmThreadPoolExecutor newDefaultExecutor() {
+        return new RealmThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE);
     }
 
-    private RealmThreadPoolExecutor() {
-        super(CORE_POOL_SIZE, CORE_POOL_SIZE,
+    /**
+     * Creates a RealmThreadPool with only 1 thread. This is primarily useful for testing.
+     */
+    public static RealmThreadPoolExecutor newSingleThreadExecutor() {
+        return new RealmThreadPoolExecutor(1, 1);
+    }
+
+    private RealmThreadPoolExecutor(int corePoolSize, int maxPoolSize) {
+        super(corePoolSize, maxPoolSize,
                 0L, TimeUnit.MILLISECONDS, //terminated idle thread
                 new ArrayBlockingQueue<Runnable>(QUEUE_SIZE));
     }
@@ -81,6 +82,9 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         }
     }
 
+    /**
+     * Pauses the executor. Pausing means the executor will stop starting new tasks (but complete current ones).
+     */
     public void pause() {
         pauseLock.lock();
         try {

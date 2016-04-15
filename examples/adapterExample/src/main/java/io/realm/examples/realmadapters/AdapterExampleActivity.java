@@ -43,16 +43,18 @@ public class AdapterExampleActivity extends Activity {
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
         Realm.deleteRealm(realmConfig);
-        realm = Realm.getInstance(realmConfig);
+        // Set the default Realm configuration at the beginning.
+        Realm.setDefaultConfiguration(realmConfig);
+        realm = Realm.getDefaultInstance();
 
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
-        final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
+        final MyAdapter adapter = new MyAdapter(this, timeStamps);
         ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TimeStamp timeStamp = adapter.getRealmResults().get(i);
+                TimeStamp timeStamp = adapter.getAdapterData().get(i);
                 Message message = buildMessage(WorkerHandler.REMOVE_TIMESTAMP, timeStamp.getTimeStamp());
 
                 workerThread.workerHandler.sendMessage(message);
@@ -64,13 +66,13 @@ public class AdapterExampleActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        workerThread.workerHandler.getLooper().quit();
+        workerThread.quit();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        workerThread = new WorkerThread(this);
+        workerThread = new WorkerThread();
         workerThread.start();
     }
 

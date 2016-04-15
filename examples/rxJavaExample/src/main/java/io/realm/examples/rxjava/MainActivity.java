@@ -34,7 +34,7 @@ import io.realm.examples.rxjava.throttle.ThrottleSearchActivity;
 public class MainActivity extends Activity {
 
     private ViewGroup container;
-    private TreeMap<String, Class<? extends Activity>> buttons = new TreeMap<String, Class<? extends Activity>>() {{
+    private final TreeMap<String, Class<? extends Activity>> buttons = new TreeMap<String, Class<? extends Activity>>() {{
         put("Animation", AnimationActivity.class);
         put("Throttle search", ThrottleSearchActivity.class);
         put("Network", RetrofitExample.class);

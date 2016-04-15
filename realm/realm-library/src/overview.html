@@ -1,0 +1,49 @@
+<body>
+<h2>Quick start</h2>
+
+<img src="./realm-java-overview.png" alt="Overview of Realm" style="display: block; margin: 0 auto;" width="35%"/>
+
+<ul>
+    <li><b>{@link io.realm.Realm}</b><br/> The Realm database. The storage and transactional manager of your object
+        persistent store. It is in charge of creating and removing instances of your RealmObjects, querying, and
+        performing transactions.
+        <a href="https://realm.io/docs/java/latest/#realms">Read more</a>.
+        <p />
+    </li>
+
+    <li><b>{@link io.realm.RealmConfiguration}</b><br/>
+        A configuration object that is used to setup a specific Realm instance.
+        <a href="https://realm.io/docs/java/latest/#configuring-a-realm">Read more</a>.
+        <p />
+    </li>
+
+    <li><b>{@link io.realm.RealmObject}</b><br/>
+        The super class of all objects (models) that are to be stored in Realm. A Java object must extend
+        {@link io.realm.RealmObject} in order to be considered a <i>RealmObject</i>.
+        <a href="https://realm.io/docs/java/latest/#models">Read more</a>.
+        <p />
+    </li>
+
+    <li><b>{@link io.realm.RealmList}</b><br/>
+        A <a href="https://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a> that is used in
+        <i>RealmObject</i>s to model one-to-many relationships with other <i>RealmObject</i>s.
+        <a href="https://realm.io/docs/java/latest/#many-to-many">Read more</a>.
+        <p />
+    </li>
+
+    <li><b>{@link io.realm.RealmQuery}</b><br/>
+        An object that encapsulates a query as defined through Realms fluent query interface. Queries are executed
+        using either the {@link io.realm.RealmQuery#findAll}, {@link io.realm.RealmQuery#findFirst} or their variants.
+        <a href="https://realm.io/docs/java/latest/#queries">Read more</a>.
+        <p />
+    </li>
+
+    <li><b>{@link io.realm.RealmResults}</b><br/>
+        The result set of an executed <i>RealmQuery</i> for a given Realm. <i>RealmResults</i> are live,
+        <a href="https://realm.io/docs/java/latest/#auto-updating-results">auto-updating</a> views into the underlying
+        data, which means results never have to be re-fetched.
+        <a href="https://realm.io/docs/java/latest/#queries">Read more</a>.
+        <p />
+    </li>
+</ul>
+</body>

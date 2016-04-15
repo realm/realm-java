@@ -32,14 +32,15 @@ import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
 
 
-public class KotlinExampleActivity : Activity() {
+class KotlinExampleActivity : Activity() {
 
     companion object {
-        public val TAG: String = KotlinExampleActivity::class.qualifiedName as String
+        val TAG: String = KotlinExampleActivity::class.qualifiedName as String
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
     private var realm: Realm by Delegates.notNull()
+    private var realmConfig: RealmConfiguration by Delegates.notNull()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,11 +52,11 @@ public class KotlinExampleActivity : Activity() {
         // we can generally safely run them on the UI thread.
 
         // Create configuration and reset Realm.
-        val config = RealmConfiguration.Builder(this).build()
-        Realm.deleteRealm(config)
+        realmConfig = RealmConfiguration.Builder(this).build()
+        Realm.deleteRealm(realmConfig)
 
-        // Open the default realm for the UI thread.
-        realm = Realm.getInstance(this)
+        // Open the realm for the UI thread.
+        realm = Realm.getInstance(realmConfig)
 
         basicCRUD(realm)
         basicQuery(realm)
@@ -65,12 +66,12 @@ public class KotlinExampleActivity : Activity() {
         // Using executeTransaction with a lambda reduces code size and makes it impossible
         // to forget to commit the transaction.
         realm.executeTransaction {
-            realm.allObjects(Person::class.java).clear()
+            realm.allObjects(Person::class.java).deleteAllFromRealm()
         }
 
         // More complex operations can be executed on another thread, for example using
         // Anko's async extension method.
-        async {
+        async() {
             var info: String
             info = complexReadWrite()
             info += complexQuery()
@@ -89,7 +90,7 @@ public class KotlinExampleActivity : Activity() {
     private fun showStatus(txt: String) {
         Log.i(TAG, txt)
         val tv = TextView(this)
-        tv.setText(txt)
+        tv.text = txt
         rootLayout.addView(tv)
     }
 
@@ -143,7 +144,7 @@ public class KotlinExampleActivity : Activity() {
 
         // Open the default realm. All threads must use it's own reference to the realm.
         // Those can not be transferred across threads.
-        val realm = Realm.getInstance(this)
+        val realm = Realm.getInstance(realmConfig)
 
         // Add ten persons in one transaction
         realm.beginTransaction()
@@ -174,15 +175,15 @@ public class KotlinExampleActivity : Activity() {
         status += "\nNumber of persons: ${realm.allObjects(Person::class.java).size}"
 
         // Iterate over all objects
-        for (pers in realm.allObjects(Person::class.java)) {
-            val dogName: String = pers?.dog?.name ?: "None"
+        for (person in realm.allObjects(Person::class.java)) {
+            val dogName: String = person?.dog?.name ?: "None"
 
-            status += "\n${pers.name}: ${pers.age} : $dogName : ${pers.cats.size}"
+            status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
 
             // The field tempReference is annotated with @Ignore
             // Though we initially set its value to 42, it has
             // not been saved as part of the Person RealmObject:
-            check(pers.tempReference == 0)
+            check(person.tempReference == 0)
         }
 
         // Sorting
@@ -200,7 +201,7 @@ public class KotlinExampleActivity : Activity() {
 
         // Realm implements the Closable interface, therefore we can make use of Kotlin's built-in
         // extension method 'use' (pun intended).
-        Realm.getInstance(this).use {
+        Realm.getInstance(realmConfig).use {
             // 'it' is the implicit lambda parameter of type Realm
             status += "\nNumber of persons: ${it.allObjects(Person::class.java).size}"
 

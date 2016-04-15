@@ -339,6 +339,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        checkImmutable();
+        remove(0);
+    }
+
+    @Override
     public void removeLast() {
         checkImmutable();
         nativeRemoveLast(nativePtr);
@@ -579,11 +585,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 return NO_PRIMARY_KEY; // Free table = No primary key
             }
 
-            String tableName = getName();
-            if (tableName.startsWith(TABLE_PREFIX)) {
-                tableName = tableName.substring(TABLE_PREFIX.length());
-            }
-            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, tableName);
+            String className = tableNameToClassName(getName());
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
@@ -929,7 +932,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Define a primary key for this table. This needs to be called manually before inserting data into the table.
+     * Defines a primary key for this table. This needs to be called manually before inserting data into the table.
      *
      * @param columnName the name of the field that will function primary key. "" or {@code null} will remove any
      *                   previous set magic key.
@@ -1301,7 +1304,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Return the table name as it is in the associated group.
+     * Returns the table name as it is in the associated group.
      *
      * @return Name of the the table or null if it not part of a group.
      */
@@ -1366,7 +1369,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Report the current versioning counter for the table. The versioning counter is guaranteed to
+     * Reports the current versioning counter for the table. The versioning counter is guaranteed to
      * change when the contents of the table changes after advance_read() or promote_to_write(), or
      * immediately after calls to methods which change the table.
      *
@@ -1374,6 +1377,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
      */
     public long version() {
         return nativeVersion(nativePtr);
+    }
+
+    public static String tableNameToClassName(String tableName) {
+        if (!tableName.startsWith(Table.TABLE_PREFIX)) {
+            return tableName;
+        }
+        return tableName.substring(Table.TABLE_PREFIX.length());
     }
 
     protected native long createNative();

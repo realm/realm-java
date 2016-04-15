@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,6 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.examples.realmmigrationexample.model.Migration;
 import io.realm.examples.realmmigrationexample.model.Person;
-import io.realm.exceptions.RealmMigrationNeededException;
 
 /*
 ** This example demonstrates how you can migrate your data through different updates
@@ -47,7 +47,7 @@ public class MigrationExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_basic_example);
+        setContentView(R.layout.activity_realm_migration_example);
 
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
@@ -65,7 +65,11 @@ public class MigrationExampleActivity extends Activity {
                 .build();
 
         // You can then manually call Realm.migrateRealm().
-        Realm.migrateRealm(config0, new Migration());
+        try {
+            Realm.migrateRealm(config0, new Migration());
+        } catch (FileNotFoundException ignored) {
+            // If the Realm file doesn't exist, just ignore.
+        }
         realm = Realm.getInstance(config0);
         showStatus("Default0");
         showStatus(realm);
