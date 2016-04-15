@@ -23,21 +23,21 @@ package io.realm;
  */
 public enum FieldAttribute {
     /**
-     * Mark a field as indexed.
+     * Marks a field as indexed.
      *
      * @see io.realm.annotations.Index
      */
     INDEXED,
 
     /**
-     * Mark a field as a primary key. This also implicitly mark it as {@link #INDEXED} and {@link #REQUIRED}.
+     * Marks a field as a primary key. This also implicitly mark it as {@link #INDEXED} and {@link #REQUIRED}.
      *
      * @see io.realm.annotations.PrimaryKey
      */
     PRIMARY_KEY,
 
     /**
-     * Mark a field as explicitly not allowing null values. The default behavior for allowing {@code
+     * Marks a field as explicitly not allowing null values. The default behavior for allowing {@code
      * null} depends on the type of the field.
      *
      * @see io.realm.annotations.Required

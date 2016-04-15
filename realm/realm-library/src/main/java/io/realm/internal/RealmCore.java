@@ -18,7 +18,7 @@ package io.realm.internal;
 
 import android.content.Context;
 
-import io.realm.internal.android.ReLinker;
+import com.getkeepsafe.relinker.ReLinker;
 
 import java.io.File;
 import java.lang.reflect.Field;

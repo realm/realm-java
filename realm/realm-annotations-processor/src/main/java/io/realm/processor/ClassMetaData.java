@@ -88,7 +88,7 @@ public class ClassMetaData {
     }
 
     /**
-     * Build the meta data structures for this class. Any errors or messages will be
+     * Builds the meta data structures for this class. Any errors or messages will be
      * posted on the provided Messager.
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.

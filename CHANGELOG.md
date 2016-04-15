@@ -4,6 +4,7 @@
 
 * RealmResults.clear() now throws UnsupportedOperationException. Use RealmResults.deleteAllFromRealm() instead.
 * RealmResults.remove(int) now throws UnsupportedOperationException. Use RealmResults.deleteFromRealm() instead.
+* Removed deprecated methods Realm.getTable() from public API.
 
 ### Deprecated
 
