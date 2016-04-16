@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import java.lang.ref.ReferenceQueue;
-
 import io.realm.RealmFieldType;
 
 /**

@@ -34,7 +34,6 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 /**

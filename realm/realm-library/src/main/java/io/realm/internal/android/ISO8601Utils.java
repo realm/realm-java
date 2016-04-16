@@ -19,7 +19,10 @@ package io.realm.internal.android;
 
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Utilities methods for manipulating dates in iso8601 format. This is much much faster and GC friendly than using SimpleDateFormat so

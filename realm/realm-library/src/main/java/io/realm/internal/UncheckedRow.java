@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import java.lang.ref.ReferenceQueue;
 import java.util.Date;
 
 import io.realm.RealmFieldType;

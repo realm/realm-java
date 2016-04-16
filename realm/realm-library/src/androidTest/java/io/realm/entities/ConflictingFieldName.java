@@ -18,9 +18,6 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 
-
-import io.realm.RealmObject;
-
 public class ConflictingFieldName extends RealmObject {
     private String realm;
     private String row;

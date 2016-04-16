@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.MoreAsserts;
 
@@ -52,8 +54,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmConfigurationTests {
@@ -672,5 +679,104 @@ public class RealmConfigurationTests {
                 .build();
         assertNotNull(configuration2.getRxFactory());
         assertFalse(configuration2.getRxFactory() == dummyFactory);
+    }
+
+    @Test
+    public void initialDataTransactionEqual() {
+        final Realm.Transaction transaction = new Realm.Transaction() {
+            @Override
+            public void execute(final Realm realm) {
+            }
+        };
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(transaction)
+                .build();
+
+        assertEquals(transaction, configuration.getInitialDataTransaction());
+    }
+
+    @Test
+    public void initialDataTransactionNull() {
+        assertNull(defaultConfig.getInitialDataTransaction());
+
+        realm = Realm.getInstance(defaultConfig);
+        assertTrue(realm.isEmpty());
+    }
+
+    @Test
+    public void initialDataTransactionNotNull() {
+        // Remove default instance
+        Realm.deleteRealm(defaultConfig);
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(final Realm realm) {
+                        realm.createObject(AllTypes.class);
+                        realm.createObject(Owner.class).setCat(realm.createObject(Cat.class));
+                    }
+                }).build();
+
+        realm = Realm.getInstance(configuration);
+
+        // First time check for initial data
+        assertEquals(1, realm.where(AllTypes.class).count());
+        assertEquals(1, realm.where(Owner.class).count());
+        assertEquals(1, realm.where(Cat.class).count());
+
+        realm.beginTransaction();
+        realm.delete(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(AllTypes.class).count());
+
+        realm.close();
+        realm = Realm.getInstance(configuration);
+        // Check if there is still the same data
+        assertEquals(0, realm.where(AllTypes.class).count());
+        assertEquals(1, realm.where(Owner.class).count());
+        assertEquals(1, realm.where(Cat.class).count());
+    }
+
+    @Test
+    public void initialDataTransactionExecutionCount() {
+        // Remove default instance
+        Realm.deleteRealm(defaultConfig);
+
+        Realm.Transaction transaction = mock(Realm.Transaction.class);
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(transaction)
+                .build();
+
+        realm = Realm.getInstance(configuration);
+        realm.close();
+        verify(transaction, times(1)).execute(realm);
+
+        realm = Realm.getInstance(configuration);
+        realm.close();
+        verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void initialDataTransactionAssetFile() throws IOException {
+        // Remove default instance
+        Realm.deleteRealm(defaultConfig);
+
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        configFactory.copyRealmFromAssets(context, "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        assertTrue(new File(configFactory.getRoot(), Realm.DEFAULT_REALM_NAME).exists());
+
+        Realm.Transaction transaction = mock(Realm.Transaction.class);
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                // Just reuse existing file and set right schema
+                .schemaVersion(0)
+                .schema(AllTypes.class)
+                .initialData(transaction)
+                .build();
+
+        realm = Realm.getInstance(configuration);
+        realm.close();
+        verify(transaction, never()).execute(realm);
     }
 }
