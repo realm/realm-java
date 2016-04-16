@@ -21,6 +21,7 @@ import android.content.Context;
 import com.getkeepsafe.relinker.ReLinker;
 
 import java.io.File;
+import java.lang.Throwable;
 import java.lang.reflect.Field;
 import java.util.Locale;
 
@@ -37,8 +38,13 @@ public class RealmCore {
     private static volatile boolean libraryIsLoaded = false;
 
     public static boolean osIsWindows() {
-        String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+        String os = System.getProperty("os.name").toLowerCase(Locale.US);
         return (os.contains("win"));
+    }
+
+    public static boolean osIsDarwin() {
+        String os = System.getProperty("os.name").toLowerCase(Locale.US);
+        return (os.contains("mac"));
     }
 
     /**
@@ -56,17 +62,11 @@ public class RealmCore {
 
         if (osIsWindows()) {
             loadLibraryWindows();
-        }
-        else {
-            String jnilib;
-            String debug = System.getenv("REALM_JAVA_DEBUG");
-            if (debug == null || debug.isEmpty()) {
-                jnilib = "realm-jni";
-            }
-            else {
-                jnilib = "realm-jni-dbg";
-            }
-            System.loadLibrary(jnilib);
+        } else if (osIsDarwin()) {
+            resetLibraryPath();
+            loadLibrary("realm-jni-darwin", "realm-jni-darwin-dbg");
+        } else {
+            loadLibrary("realm-jni", "realm-jni-dbg");
         }
         libraryIsLoaded = true;
 
@@ -86,7 +86,12 @@ public class RealmCore {
         if (libraryIsLoaded) {
             return;
         }
-        ReLinker.loadLibrary(context, "realm-jni");
+        if (osIsDarwin()) {
+            resetLibraryPath();
+            loadLibrary("realm-jni-darwin", "realm-jni-darwin");
+        } else {
+            ReLinker.loadLibrary(context, "realm-jni");
+        }
         libraryIsLoaded = true;
     }
 
@@ -114,6 +119,26 @@ public class RealmCore {
             }
         }
         return jnilib;
+    }
+
+    /**
+     * Loads the release / debug .so file depending on REALM_JAVA_DEBUG.
+     */
+    private static void loadLibrary(String releaseJniLib, String debugJniLib) {
+        String jnilib;
+        String debug = System.getenv("REALM_JAVA_DEBUG");
+        if (debug == null || debug.isEmpty()) {
+            jnilib = releaseJniLib;
+        } else {
+            jnilib = debugJniLib;
+        }
+        try {
+            System.loadLibrary(jnilib);
+        } catch (Throwable e) {
+            System.err.println("error: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private static String loadCorrectLibrary(String... libraryCandidateNames) {

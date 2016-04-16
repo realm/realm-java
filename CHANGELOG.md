@@ -16,6 +16,7 @@
 * RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
 * RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
 * RealmObjectSchema.isPrimaryKey(String) (#2440)
+* Added support for Robolectric on Max OS X (#1867).
 
 ### Bug fixes
 

@@ -54,9 +54,11 @@ class Realm implements Plugin<Project> {
         if (isKotlinProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("kaptTest", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
             project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("testApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
     }
 

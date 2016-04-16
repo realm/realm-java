@@ -104,6 +104,20 @@ task installRealmJava(type:Task) {
     description = 'Install the Realm library and Gradle plugin into mavenLocal()'
 }
 
+task installRobolectric(type:GradleBuild) {
+    description = 'Install the Robolectric library into example'
+    group = 'Install'
+    buildFile = file('realm/build.gradle')
+    tasks = ['installRobolectric']
+}
+
+task assembleRobolectric(type:GradleBuild) {
+    description = 'Assemble the Robolectric support'
+    group = 'Build'
+    buildFile = file('realm/build.gradle')
+    tasks = ['assembleRobolectric']
+}
+
 task assembleExamples(type:GradleBuild) {
     dependsOn installGradlePlugin
     dependsOn installRealm
@@ -174,6 +188,16 @@ task distributionPackage(type:Zip) {
     }
 }
 
+task createRobolectricDistributionPackages(type:Zip) {
+    description = 'Create the Robolectric distribution package'
+    dependsOn assembleRobolectric
+
+    archiveName = "realm-robolectric-darwin-${currentVersion}.zip"
+    destinationDir = file("${buildDir}/outputs/distribution")
+
+    from('realm/realm-jni/build/librealm-jni-darwin.dylib')
+}
+
 task cleanRealm(type:GradleBuild) {
     description = 'Clean the Realm project'
     group = 'Clean'
@@ -218,6 +242,12 @@ task uploadDistributionPackage(type: Exec) {
     description = 'Upload the distribution package to S3'
     dependsOn distributionPackage
     commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+}
+
+task uploadRobolectricDistributionPackage(type: Exec) {
+    description = 'Upload the Robolectric distribution package to S3'
+    dependsOn createRobolectricDistributionPackages
+    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-robolectric-darwin-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
 }
 
 task createEmptyFile(type: Exec) {

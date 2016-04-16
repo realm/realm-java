@@ -133,7 +133,10 @@ ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore {
+    group = 'build setup'
+    description = 'Download the latest version of realm core'
+
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -191,7 +194,10 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     }
 }
 
-task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
+task compileCore {
+    group = 'build setup'
+    description = 'Compile the core library from source code'
+
     // Build the library from core source code
     doFirst {
         if (!coreSourcePath) {
@@ -217,7 +223,10 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
     }
 }
 
-task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
+task deployCore {
+    group = 'build setup'
+    description = 'Deploy the latest version of realm core'
+
     dependsOn {
         coreSourcePath ? compileCore : downloadCore
     }
@@ -254,6 +263,112 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
                 ]
             }
         }
+    }
+}
+
+task compileCoreLibForHost {
+    group = 'build setup'
+    description = 'Compile the core library for host from source code'
+
+    doLast {
+        if (!coreSourcePath) {
+            throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_HOME is needed.")
+        }
+        exec {
+            workingDir = coreSourcePath
+            environment 'REALM_ENABLE_ENCRYPTION', 'yes'
+            commandLine = [
+                    "bash",
+                    "build.sh",
+                    "clean",
+                    "config",
+                    "build"
+            ]
+        }
+        copy {
+            from "$coreSourcePath/src/realm/librealm.a"
+            into "${projectDir}/../realm-library/src"
+        }
+    }
+}
+
+task prepareCoreLibForHost {
+    group = 'build setup'
+    description = 'Prepare the core library for host'
+
+    def staticLibHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
+
+    doFirst {
+        if (file("${staticLibHome}/lib/librealm.a").exists() == false) {
+            if (!coreSourcePath) {
+                throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_HOME is needed.")
+            }
+        }
+    }
+
+    doLast {
+        copy {
+            from "$staticLibHome/lib/librealm.a"
+            into "${projectDir}/../realm-library/src"
+        }
+    }
+}
+
+task assembleRobolectric {
+    group = 'build'
+    description = "Build the Robolectric shared library for Darwin"
+    dependsOn coreSourcePath ? compileCoreLibForHost : prepareCoreLibForHost
+
+    def realmCoreHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
+    def coreHeader = coreSourcePath ? "-I$coreSourcePath/src/" : "-I$realmCoreHome/include/realm/"
+
+    doLast {
+        exec {
+            environment CC: "${clang ? 'clang' : 'gcc'}"
+            environment STRIP: "/usr/bin/strip -o librealm-jni-darwin-stripped.dylib"
+            commandLine = [
+                    'make',
+                    "-j${Runtime.getRuntime().availableProcessors() * 2}",
+                    "-l${Runtime.getRuntime().availableProcessors()}",
+                    '-C', "${projectDir}/src",
+                    "CC_IS=${clang ? 'clang' : 'gcc'}",
+                    "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC $coreHeader -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
+                    "CFLAGS_ARCH=${commonCflags.join(' ')}",
+                    "BASE_DENOM=darwin",
+                    "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
+                    'LIB_SUFFIX_SHARED=.dylib',
+                    "REALM_ROBOLECTRIC=true",
+                    "librealm-jni-darwin${getDebugExt()}.dylib"
+            ]
+        }
+
+        copy {
+            from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib"
+            into "${projectDir}/build"
+            rename "librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib", 'librealm-jni-darwin.dylib'
+        }
+
+        // Store the unstripped version
+        copy {
+            from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}.dylib"
+            into "${projectDir}/../build/output/jniLibs-unstripped/robolectric"
+            rename "librealm-jni-darwin${getDebugExt()}.dylib", 'librealm-jni-darwin.dylib'
+        }
+
+        delete fileTree(dir: "${projectDir}/../realm-library/src", include: '**/librealm.a')
+    }
+}
+
+task installRobolectric {
+    group = 'Install'
+    description = "Install native library to support Robolectric."
+    dependsOn {
+        assembleRobolectric
+    }
+
+    copy {
+        from "${projectDir}/build/librealm-jni-darwin.dylib"
+        into "${projectDir}/../../examples/robolectricExample/src/test/libs"
     }
 }
 
@@ -314,7 +429,10 @@ targets.each { target ->
     }
 }
 
-task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms') {
+task buildAndroidJni {
+    group = 'build'
+    description = 'Build the Android JNI shared library for all the supported platforms'
+
     targets.each { target ->
         dependsOn "copyAndroidJni${target.name.capitalize()}"
     }
@@ -329,7 +447,11 @@ task clean(type: Delete) {
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
+    delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/robolectric", include: '**/librealm-jni*.dylib')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
+    delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.dylib')
+    delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*.dylib')
+    delete fileTree(dir: "${projectDir}/../realm-library/src", include: '**/librealm.a')
 
     doLast {
         targets.each { target ->

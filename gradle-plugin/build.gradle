@@ -47,6 +47,7 @@ dependencies {
     compile localGroovy()
     compile "io.realm:realm-transformer:${version}"
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    compile 'de.undercouch:gradle-download-task:2.0.0'
     provided 'com.android.tools.build:gradle:1.5.0'
 
     testCompile gradleTestKit()

@@ -26,6 +26,7 @@ realm_version_check.timestamp
 
 # Build artifacts
 *.so
+*.dylib
 *.d
 *.o
 
