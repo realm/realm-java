@@ -226,7 +226,7 @@ public class RealmObjectTests {
         try {
             dog.deleteFromRealm();
             fail("Failed on deleting a RealmObject from null Row.");
-        } catch (IllegalStateException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
