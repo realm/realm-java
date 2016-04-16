@@ -391,7 +391,7 @@ public class TestHelper {
     }
 
     /**
-     * Adds a String type PrimaryKey object to a realm.
+     * Adds a String type PrimaryKey object to a realm with values for name field (PrimaryKey) and id field
      */
     public static PrimaryKeyAsString addStringPrimaryKeyObjectToTestRealm(Realm testRealm, String primaryFieldValue, long secondaryFieldValue) {
         testRealm.beginTransaction();
@@ -404,7 +404,8 @@ public class TestHelper {
     }
 
     /**
-     * Populates a realm with String type Primarykey objects.
+     * Populates a realm with String type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
      */
     public static void populateTestRealmWithStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
@@ -423,7 +424,7 @@ public class TestHelper {
     }
 
     /**
-     * Adds a Byte type PrimaryKey object to a realm.
+     * Adds a Byte type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
      */
     public static PrimaryKeyAsBoxedByte addBytePrimaryKeyObjectToTestRealm(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
@@ -436,7 +437,8 @@ public class TestHelper {
     }
 
     /**
-     * Populates a realm with Byte type Primarykey objects.
+     * Populates a realm with Byte type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
      */
     public static void populateTestRealmWithBytePrimaryKey(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
@@ -455,7 +457,7 @@ public class TestHelper {
     }
 
     /**
-     * Adds a Short type PrimaryKey object to a realm.
+     * Adds a Short type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
      */
     public static PrimaryKeyAsBoxedShort addShortPrimaryKeyObjectToTestRealm(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
@@ -468,7 +470,8 @@ public class TestHelper {
     }
 
     /**
-     * Populates a realm with Short type Primarykey objects.
+     * Populates a realm with Short type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
      */
     public static void populateTestRealmWithShortPrimaryKey(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
@@ -487,7 +490,7 @@ public class TestHelper {
     }
 
     /**
-     * Adds a Integer type PrimaryKey object to a realm.
+     * Adds a Integer type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
      */
     public static PrimaryKeyAsBoxedInteger addIntegerPrimaryKeyObjectToTestRealm(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
@@ -500,7 +503,8 @@ public class TestHelper {
     }
 
     /**
-     * Populates a realm with Integer type Primarykey objects.
+     * Populates a realm with Integer type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
      */
     public static void populateTestRealmWithIntegerPrimaryKey(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
         testRealm.beginTransaction();
@@ -519,7 +523,7 @@ public class TestHelper {
     }
 
     /**
-     * Adds a Long type PrimaryKey object to a realm.
+     * Adds a Long type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
      */
     public static PrimaryKeyAsBoxedLong addLongPrimaryKeyObjectToTestRealm(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue) {
         testRealm.beginTransaction();
@@ -532,7 +536,8 @@ public class TestHelper {
     }
 
     /**
-     * Populates a realm with Long type Primarykey objects.
+     * Populates a realm with Long type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
      */
     public static void populateTestRealmWithLongPrimaryKey(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue, long numberOfPopulation, long iteratorBeginValue) {
         testRealm.beginTransaction();

@@ -889,6 +889,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
+    /**
+     * Set a String value to a cell of Table, pointed by column and row index.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     * @param rowIndex 0 based index value of the cell row.
+     * @param value a String value to set in the cell.
+     */
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
