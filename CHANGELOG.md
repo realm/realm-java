@@ -18,7 +18,7 @@
 * RealmObjectSchema.isPrimaryKey(String) (#2440)
 * RealmConfiguration.initialData() can now be used to populate a Realm file before it is used for the first time.
 
-### Credits
+#### Credits
 
 * Thanks to @thesurix for adding RealmConfiguration.initialData().
 
@@ -112,7 +112,7 @@
 * Setting a null value to trigger RealmChangeListener (#2366).
 * Preventing throwing BadVersionException (#2391).
 
-### Credits
+#### Credits
 
 * Thanks to Bill Best (@wmbest2) for snapshot testing.
 * Thanks to Graham Smith (@grahamsmith) for a detailed bug report (#2200).
