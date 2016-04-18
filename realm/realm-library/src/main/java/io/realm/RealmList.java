@@ -833,10 +833,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
 
         final void checkConcurrentModification() {
             // A Realm ListView is backed by the original Table and not a TableView, this means
-            // that all changes are reflected immediately. It is therefor not possible to use
-            // the same version pinning trick we use for RealmResults (avoiding calling sync-if-needed)
+            // that all changes are reflected immediately. It is therefore not possible to use
+            // the same version pinning trick we use for RealmResults (avoiding calling sync_if_needed)
             // Fortunately a LinkView does not change unless manually altered (unlike RealmResults)
-            // So therefor it should be acceptable to use the same heuristic as a normal AbstractList
+            // So therefore it should be acceptable to use the same heuristic as a normal AbstractList
             // when detecting concurrent modifications.
             if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
@@ -850,7 +850,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             if (index >= 0 && index <= size()) {
                 cursor = index;
             } else {
-                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + index);
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Index was " + index);
             }
         }
 

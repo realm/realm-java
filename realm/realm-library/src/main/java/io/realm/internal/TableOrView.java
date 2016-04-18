@@ -382,13 +382,13 @@ public interface TableOrView {
     Table pivot(long stringCol, long intCol, PivotType pivotType);
 
     /**
-     * Syncs the tableview with the underlying table data. This is effectively the same as rerunning the query, so it
+     * Syncs the TableView with the underlying table data. This is effectively the same as rerunning the query, so it
      * should not be called on TableViews created by an async query.
      *
-     * This method gets automatically called when calling {@link Realm#refresh()} or when another threads updates
-     * the Realm, but it will _not_ be called the same thread commits a transaction.
+     * This method gets automatically called when calling {@link Realm#refresh()} or when another thread updates
+     * the Realm, but it will _not_ be called if the same thread commits a transaction.
      *
-     * @return the version number for the updated tableview.
+     * @return the version number for the updated TableView.
      */
     long syncIfNeeded();
 }

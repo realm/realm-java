@@ -83,7 +83,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean asyncQueryCompleted = false;
-    // Keep track of changes to the RealmResult. Is updated after a call `syncIfNeeded. Calling notifyListeners will
+    // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
 
@@ -762,8 +762,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
 
         protected void checkRealmIsStable() {
             long version = table.getVersion();
-            // All changes inside a write transaction will continuously update the table version, and we can
-            // thus not depend on the tableVersion heuristic in that case .
+            // Any change within a write transaction will immediately update the table version. This means that we
+            // cannot depend on the tableVersion heuristic in that case.
             // You could argue that in that case it is not really a "ConcurrentModification", but this interpretation
             // is still more lax than what the standard Java Collection API gives.
             // TODO: Try to come up with a better scheme
@@ -793,7 +793,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         @Override
         @Deprecated
         public void add(E object) {
-            throw new UnsupportedOperationException("Adding elements is not supported. Use Realm.createObject() instead.");
+            throw new UnsupportedOperationException("Adding an element is not supported. Use Realm.createObject() instead.");
         }
 
         /**
@@ -844,7 +844,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         @Override
         @Deprecated
         public void set(E object) {
-            throw new UnsupportedOperationException("Replacing elements not supported.");
+            throw new UnsupportedOperationException("Replacing and element is not supported.");
         }
     }
 
@@ -874,7 +874,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         this.pendingQuery = pendingQuery;
         if (isLoaded()) {
             // the query completed before RealmQuery
-            // had a chance to call setPendingQuery to register the pendingQuery (used btw
+            // had a chance to call setPendingQuery to register the pendingQuery (used
             // to determine isLoaded behaviour)
             onAsyncQueryCompleted();
         } // else, it will be handled by the {@link BaseRealm#handlerController#handleMessage}
@@ -906,7 +906,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         if (isLoaded()) {
             return true;
         } else {
-            // doesn't guarantee to import correctly the result (because the user may have advanced)
+            // doesn't guarantee to correctly import the result (because the user may have advanced)
             // in this case the Realm#handler will be responsible of retrying
             return onAsyncQueryCompleted();
         }
