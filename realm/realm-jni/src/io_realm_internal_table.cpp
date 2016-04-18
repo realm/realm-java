@@ -834,7 +834,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
     if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
         return;
     try {
-        return pTable->set_null(S(columnIndex), S(rowIndex));
+        pTable->set_null(S(columnIndex), S(rowIndex));
     } CATCH_STD()
 }
 
@@ -1227,13 +1227,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(
 {
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
-        return 0;
+        return jlong(-1);
     if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
-        return 0;
+        return jlong(-1);
     try {
         return to_jlong_or_not_found( pTable->find_first_null( S(columnIndex) ) );
     } CATCH_STD()
-    return 0;
+    return jlong(-1);
 }
 
 // FindAll

@@ -18,8 +18,9 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.objectid.NullPrimaryKey;
 
-public class PrimaryKeyAsBoxedShort extends RealmObject {
+public class PrimaryKeyAsBoxedShort extends RealmObject implements NullPrimaryKey {
 
     public static final String CLASS_NAME = "PrimaryKeyAsBoxedShort";
     public static final String FIELD_PRIMARY_KEY = "id";
@@ -43,5 +44,15 @@ public class PrimaryKeyAsBoxedShort extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public Short getPrimaryKeyValue() {
+        return id;
+    }
+
+    @Override
+    public String getSecondaryFieldValue() {
+        return name;
     }
 }

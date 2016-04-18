@@ -542,7 +542,7 @@ public class RealmMigrationTests {
         }
     }
 
-    // Setting the existing @PrimaryKey field nullable to migrate
+    // Testing older Realms for setting Boxed type primary keys fields nullable in migration process to support Realm Version 0.89+
     @Test
     public void settingNullableToPrimaryKey() throws IOException {
         final long SCHEMA_VERSION = 67;
@@ -582,7 +582,7 @@ public class RealmMigrationTests {
         }
     }
 
-    // Omit setting the existing @PrimaryKey field nullable to see if migration fails
+    // Not-setting older boxed type PrimaryKey field nullable to see if migration fails in order to support Realm Version 0.89+
     @Test
     public void notSettingNullableToPrimaryKeyThrows() throws IOException {
         configFactory.copyRealmFromAssets(context, "default-notnullable-primarykey.realm", Realm.DEFAULT_REALM_NAME);
