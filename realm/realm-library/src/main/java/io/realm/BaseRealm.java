@@ -587,9 +587,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Removes all objects from this Realm.
+     * Deletes all objects from this Realm.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
+     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();

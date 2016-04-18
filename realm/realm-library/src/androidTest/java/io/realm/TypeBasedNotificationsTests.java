@@ -1786,7 +1786,7 @@ public class TypeBasedNotificationsTests {
 
         // Trigger the listener at the first time.
         realm.beginTransaction();
-        allTypes.removeFromRealm();
+        allTypes.deleteFromRealm();
         realm.commitTransaction();
 
         // Try to trigger the listener second time.

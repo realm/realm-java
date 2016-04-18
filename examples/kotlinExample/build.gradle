@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.0.0'
+    ext.kotlin_version = '1.0.1-2'
     repositories {
         jcenter()
     }
@@ -15,11 +15,14 @@ apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
+    //noinspection GroovyAssignabilityCheck
     compileSdkVersion rootProject.sdkVersion
+    //noinspection GroovyAssignabilityCheck
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId 'io.realm.examples.kotlin'
+        //noinspection GroovyAssignabilityCheck
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
         versionCode 1

@@ -88,6 +88,7 @@ public class RealmConfiguration {
     private final SharedGroup.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
+    private final Realm.Transaction initialDataTransaction;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -100,6 +101,7 @@ public class RealmConfiguration {
         this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
+        this.initialDataTransaction = builder.initialDataTransaction;
     }
 
     public File getRealmFolder() {
@@ -137,6 +139,15 @@ public class RealmConfiguration {
      */
     RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
+    }
+
+    /**
+     * Returns the transaction instance with initial data.
+     *
+     * @return the initial data transaction.
+     */
+    Realm.Transaction getInitialDataTransaction() {
+        return initialDataTransaction;
     }
 
     /**
@@ -185,6 +196,7 @@ public class RealmConfiguration {
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
         //noinspection SimplifiableIfStatement
         if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
+        if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) return false;
         return schemaMediator.equals(that.schemaMediator);
     }
 
@@ -200,6 +212,7 @@ public class RealmConfiguration {
         result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + durability.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
+        result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
 
         return result;
     }
@@ -279,7 +292,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Check if RxJava is can be loaded.
+     * Checks if RxJava is can be loaded.
      *
      * @return true if RxJava dependency exist.
      */
@@ -309,6 +322,7 @@ public class RealmConfiguration {
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
         private RxObservableFactory rxFactory;
+        private Realm.Transaction initialDataTransaction;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -478,6 +492,17 @@ public class RealmConfiguration {
          */
         public Builder rxFactory(RxObservableFactory factory) {
             rxFactory = factory;
+            return this;
+        }
+
+        /**
+         * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only for the first time
+         * when database file is created or while migrating the data when {@link Builder#deleteRealmIfMigrationNeeded()} is set.
+         *
+         * @param transaction transaction to execute.
+         */
+        public Builder initialData(Realm.Transaction transaction) {
+            initialDataTransaction = transaction;
             return this;
         }
 

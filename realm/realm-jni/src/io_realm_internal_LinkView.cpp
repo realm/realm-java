@@ -214,3 +214,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetTable
     return reinterpret_cast<jlong>(pTable);
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveTargetRow
+  (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
+{
+    TR_ENTER_PTR(nativeLinkViewPtr)
+    LinkView *lv = LV(nativeLinkViewPtr);
+    if (!ROW_INDEX_VALID(env, lv, pos)) {
+        return;
+    }
+    try {
+        return lv->remove_target_row( S(pos) );
+    } CATCH_STD()
+}

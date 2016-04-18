@@ -9,6 +9,7 @@ buildscript {
 }
 
 apply plugin: 'groovy'
+apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -30,9 +31,13 @@ configurations {
     compile.extendsFrom provided
 }
 
+// Include the generated Version file
 sourceSets {
     main {
         compileClasspath += configurations.provided
+        java {
+            srcDir 'build/generated-src/main/java'
+        }
     }
 }
 
@@ -47,6 +52,18 @@ dependencies {
         exclude module: 'groovy-all'
     }
 }
+
+// for Ant filter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task generateVersionClass(type: Copy) {
+    from 'src/main/templates/Version.java'
+    into 'build/generated-src/main/java/io/realm/transformer'
+    filter(ReplaceTokens, tokens: [version: version])
+    outputs.upToDateWhen { false }
+}
+
+compileJava.dependsOn generateVersionClass
 
 def commonPom = {
     licenses {

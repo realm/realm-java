@@ -24,6 +24,7 @@ import com.google.common.io.Files
 import groovy.io.FileType
 import io.realm.annotations.Ignore
 import javassist.ClassPool
+import javassist.CtClass
 import javassist.LoaderClassPath
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -135,6 +136,41 @@ class RealmTransformer extends Transform {
 
         def toc = System.currentTimeMillis()
         logger.info "Realm Transform time: ${toc-tic} milliseconds"
+
+        sendAnalytics(inputs, inputModelClasses)
+    }
+
+    /**
+     * Sends the analytics
+     * @param inputs the inputs provided by the Transform API
+     * @param inputModelClasses a list of ctClasses describing the Realm models
+     */
+    private static sendAnalytics(Collection<TransformInput> inputs, List<CtClass> inputModelClasses) {
+        def containsKotlin = false
+        inputs.each {
+            it.directoryInputs.each {
+                def path = it.file.absolutePath
+                def index = path.indexOf('build' + File.separator + 'intermediates' + File.separator + 'classes')
+                if (index != -1) {
+                    def projectPath = path.substring(0, index)
+                    def buildFile = new File(projectPath + 'build.gradle')
+                    if (buildFile.exists() && buildFile.text.contains('kotlin')) {
+                        containsKotlin = true
+                    }
+                }
+            }
+        }
+
+        def packages = inputModelClasses.collect {
+            it.getPackageName()
+        }
+
+        def env = System.getenv()
+        def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
+        if (disableAnalytics == null || disableAnalytics != "true") {
+            def analytics = RealmAnalytics.getInstance(packages as Set, containsKotlin)
+            analytics.execute()
+        }
     }
 
     /**
@@ -198,8 +234,12 @@ class RealmTransformer extends Transform {
                     !it.directory && it.name.endsWith(SdkConstants.DOT_CLASS)
                 }.each {
                     def path = it.name
+                    // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
+                    // `/`. It depends on how the jar file was created.
+                    // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
                     def className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
-                            .replace(File.separatorChar, '.' as char)
+                            .replace('/' as char , '.' as char)
+                            .replace('\\' as char , '.' as char)
                     classNames.add(className)
                 }
             }
@@ -237,4 +277,5 @@ class RealmTransformer extends Transform {
         merged.addAll(set2)
         return merged;
     }
+
 }

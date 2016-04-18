@@ -454,6 +454,14 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        if (parent.isImmutable()) throwImmutable();
+        if (!isEmpty()) {
+            nativeRemoveRow(nativePtr, 0);
+        }
+    }
+
+    @Override
     public void removeLast() {
         if (parent.isImmutable()) throwImmutable();
         if (!isEmpty()) {
@@ -589,7 +597,7 @@ public class TableView implements TableOrView, Closeable {
     //
 
     /**
-     * Calculate the sum of the values in a particular column of this tableview.
+     * Calculates the sum of the values in a particular column of this tableview.
      *
      * Note: the type of the column marked by the columnIndex has to be of type RealmFieldType.INTEGER.
      *
@@ -765,7 +773,7 @@ public class TableView implements TableOrView, Closeable {
 
 
     private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
+        throw new IllegalStateException("Realm data can only be changed inside a write transaction.");
     }
 
     protected long nativePtr;

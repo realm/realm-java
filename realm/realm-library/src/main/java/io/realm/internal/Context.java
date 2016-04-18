@@ -16,13 +16,41 @@
 
 package io.realm.internal;
 
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Context {
+
+    // Pool to hold the phantom references.
+    // The size of array for storing phantom references will never decrease. Instead, we use another array to hold the
+    // index of the free slot. When adding the reference, pick the last index from freeIndexList and put the reference
+    // to the corresponding slot. When removing the reference, simply add the index to the end of freeIndexList without
+    // setting the corresponding slot to null for efficiency reasons. The reference will be freed finally when the slot
+    // gets overwritten or the whole context gets freed.
+    private static class ReferencesPool {
+        ArrayList<NativeObjectReference> pool = new ArrayList<NativeObjectReference>();
+        ArrayList<Integer> freeIndexList = new ArrayList<Integer>();
+
+        void add(NativeObjectReference ref) {
+            if (pool.size() <= ref.refIndex) {
+                pool.add(ref);
+            } else {
+                pool.set(ref.refIndex, ref);
+            }
+        }
+
+        Integer getFreeIndex() {
+            Integer index;
+            int freeIndexListSize = freeIndexList.size();
+            if (freeIndexListSize == 0) {
+                index = pool.size();
+            } else {
+                index = freeIndexList.remove(freeIndexListSize - 1);
+            }
+            return index;
+        }
+    }
 
     // Each group of related Realm objects will have a Context object in the root.
     // The root can be a table, a group, or a shared group.
@@ -30,47 +58,50 @@ public class Context {
     // whose disposal need to be handed over from the garbage 
     // collection thread to the users thread.
 
-    // Reserved to be used only as a placeholder by native references Map to avoid autoboxing allocations
-    static final Integer NATIVE_REFERENCES_VALUE = 0;
-
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
 
-    HashMap<Reference<?>, Integer> rowReferences = new HashMap<Reference<?>, Integer>();
-    ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
+    private ReferencesPool referencesPool = new ReferencesPool();
+    private ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
     private boolean isFinalized = false;
 
-    public void executeDelayedDisposal() {
-        synchronized (this) {
-            for (int i = 0; i < abandonedTables.size(); i++) {
-                long nativePointer = abandonedTables.get(i);
-                Table.nativeClose(nativePointer);
-            }
-            abandonedTables.clear();
-
-            for (int i = 0; i < abandonedTableViews.size(); i++) {
-                long nativePointer = abandonedTableViews.get(i);
-                TableView.nativeClose(nativePointer);
-            }
-            abandonedTableViews.clear();
-
-            for (int i = 0; i < abandonedQueries.size(); i++) {
-                long nativePointer = abandonedQueries.get(i);
-                TableQuery.nativeClose(nativePointer);
-            }
-            abandonedQueries.clear();
-
-            cleanNativeReferences();
-        }
+    public synchronized void addReference(int type, NativeObject referent) {
+        referencesPool.add(new NativeObjectReference(type, referent, referenceQueue, referencesPool.getFreeIndex()));
     }
 
-    public void cleanNativeReferences() {
+    public synchronized void executeDelayedDisposal() {
+        for (int i = 0; i < abandonedTables.size(); i++) {
+            long nativePointer = abandonedTables.get(i);
+            Table.nativeClose(nativePointer);
+        }
+        abandonedTables.clear();
+
+        for (int i = 0; i < abandonedTableViews.size(); i++) {
+            long nativePointer = abandonedTableViews.get(i);
+            TableView.nativeClose(nativePointer);
+        }
+        abandonedTableViews.clear();
+
+        for (int i = 0; i < abandonedQueries.size(); i++) {
+            long nativePointer = abandonedQueries.get(i);
+            TableQuery.nativeClose(nativePointer);
+        }
+        abandonedQueries.clear();
+
+        cleanNativeReferences();
+    }
+
+    private void cleanNativeReferences() {
         NativeObjectReference reference = (NativeObjectReference) referenceQueue.poll();
         while (reference != null) {
-            reference.clear();
-            rowReferences.remove(reference);
+            // Dealloc the native resources
+            reference.cleanup();
+            // Inline referencesPool.remove() to make it faster.
+            // referencesPool.pool.set(index, null); is not really needed. Make it faster by not
+            // setting the slot to null.
+            referencesPool.freeIndexList.add(reference.refIndex);
             reference = (NativeObjectReference) referenceQueue.poll();
         }
     }
@@ -110,10 +141,11 @@ public class Context {
         SharedGroup.nativeClose(nativePointer);
     }
 
-    protected void finalize() {
+    protected void finalize() throws Throwable {
         synchronized (this) {
             isFinalized = true;
         }
         executeDelayedDisposal();
+        super.finalize();
     }
 }

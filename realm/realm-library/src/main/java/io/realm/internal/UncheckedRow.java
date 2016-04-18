@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import java.lang.ref.ReferenceQueue;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
@@ -32,18 +31,6 @@ import io.realm.RealmFieldType;
  */
 public class UncheckedRow extends NativeObject implements Row {
 
-    protected static class UncheckedRowNativeObjectReference extends NativeObjectReference {
-        public UncheckedRowNativeObjectReference(NativeObject referent,
-                                                 ReferenceQueue<? super NativeObject> referenceQueue) {
-            super(referent, referenceQueue);
-        }
-
-        @Override
-        protected void cleanup() {
-            nativeClose(nativePointer);
-        }
-    }
-
     final Context context; // This is only kept because for now it's needed by the constructor of LinkView
     final Table parent;
 
@@ -52,7 +39,7 @@ public class UncheckedRow extends NativeObject implements Row {
         this.parent = parent;
         this.nativePointer = nativePtr;
 
-        context.cleanNativeReferences();
+        context.executeDelayedDisposal();
     }
 
     /**
@@ -66,8 +53,7 @@ public class UncheckedRow extends NativeObject implements Row {
     public static UncheckedRow getByRowIndex(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
-                Context.NATIVE_REFERENCES_VALUE);
+        context.addReference(NativeObjectReference.TYPE_ROW, row);
         return row;
     }
 
@@ -81,8 +67,7 @@ public class UncheckedRow extends NativeObject implements Row {
      */
     public static UncheckedRow getByRowPointer(Context context, Table table, long nativeRowPointer) {
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
-                Context.NATIVE_REFERENCES_VALUE);
+        context.addReference(NativeObjectReference.TYPE_ROW, row);
         return row;
     }
 
@@ -98,8 +83,7 @@ public class UncheckedRow extends NativeObject implements Row {
         long nativeRowPointer = linkView.nativeGetRow(linkView.nativePointer, index);
         UncheckedRow row = new UncheckedRow(context, linkView.getTargetTable(),
                 nativeRowPointer);
-        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
-                Context.NATIVE_REFERENCES_VALUE);
+        context.addReference(NativeObjectReference.TYPE_ROW, row);
         return row;
     }
 
@@ -327,7 +311,7 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
-    private static native void nativeClose(long nativeRowPtr);
+    static native void nativeClose(long nativeRowPtr);
     protected native boolean nativeIsAttached(long nativeRowPtr);
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);

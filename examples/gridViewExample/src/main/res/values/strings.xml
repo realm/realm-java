@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">Gridview example</string>
-    <string name="action_reset">Reset</string>
+    <string name="my_favortie_city">My Favorite City</string>
+    <string name="add_vote">Click to Add A Vote</string>
 
 </resources>

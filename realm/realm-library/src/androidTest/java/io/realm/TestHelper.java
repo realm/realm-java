@@ -33,7 +33,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,8 +42,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
@@ -499,6 +499,10 @@ public class TestHelper {
     }
 
     public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+        // Id values are [1, 2, 3]
+        // IntegerNull values are [3, null, 4]
+        // FloatNull values are [4F, null, 5F]
+        // DoubleNull values are [5D, null, 6F]
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -627,7 +631,7 @@ public class TestHelper {
 
     public static void populateForMultiSort(DynamicRealm realm) {
         realm.beginTransaction();
-        realm.clear(AllTypes.CLASS_NAME);
+        realm.delete(AllTypes.CLASS_NAME);
         DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
         object1.setLong(AllTypes.FIELD_LONG, 5);
         object1.setString(AllTypes.FIELD_STRING, "Adam");
@@ -639,6 +643,15 @@ public class TestHelper {
         DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
         object3.setLong(AllTypes.FIELD_LONG, 4);
         object3.setString(AllTypes.FIELD_STRING, "Adam");
+        realm.commitTransaction();
+    }
+
+    public static void populateSimpleAllTypesPrimaryKey(Realm realm) {
+        realm.beginTransaction();
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        obj.setColumnLong(1);
+        obj.setColumnString("Foo");
+        realm.copyToRealm(obj);
         realm.commitTransaction();
     }
 

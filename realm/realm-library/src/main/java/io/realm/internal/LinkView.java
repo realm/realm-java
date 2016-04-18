@@ -17,24 +17,11 @@
 package io.realm.internal;
 
 import io.realm.RealmFieldType;
-import java.lang.ref.ReferenceQueue;
 
 /**
  * The LinkView class represents a core {@link RealmFieldType#LIST}.
  */
 public class LinkView extends NativeObject {
-
-    private static class LinkViewReference extends NativeObjectReference {
-
-        public LinkViewReference(NativeObject referent, ReferenceQueue<? super NativeObject> referenceQueue) {
-            super(referent, referenceQueue);
-        }
-
-        @Override
-        protected void cleanup() {
-            nativeClose(nativePointer);
-        }
-    }
 
     private final Context context;
     final Table parent;
@@ -46,8 +33,8 @@ public class LinkView extends NativeObject {
         this.columnIndexInParent = columnIndexInParent;
         this.nativePointer = nativeLinkViewPtr;
 
-        context.cleanNativeReferences();
-        context.rowReferences.put(new LinkViewReference(this, context.referenceQueue), Context.NATIVE_REFERENCES_VALUE);
+        context.executeDelayedDisposal();
+        context.addReference(NativeObjectReference.TYPE_LINK_VIEW, this);
     }
 
     /**
@@ -153,6 +140,14 @@ public class LinkView extends NativeObject {
         nativeRemoveAllTargetRows(nativePointer);
     }
 
+    /**
+     * Removes target row from both the Realm and the LinkView.
+     */
+    public void removeTargetRow(int index) {
+        checkImmutable();
+        nativeRemoveTargetRow(nativePointer, index);
+    }
+
     public Table getTargetTable() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
@@ -168,11 +163,11 @@ public class LinkView extends NativeObject {
 
     private void checkImmutable() {
         if (parent.isImmutable()) {
-            throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+            throw new IllegalStateException("Changing Realm data can only be done from inside a write transaction.");
         }
     }
 
-    private static native void nativeClose(long nativeLinkViewPtr);
+    static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
     private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
@@ -186,6 +181,7 @@ public class LinkView extends NativeObject {
     protected native long nativeWhere(long nativeLinkViewPtr);
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
+    private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
     private native long nativeGetTargetTable(long nativeLinkViewPtr);
 }
