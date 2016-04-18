@@ -21,7 +21,7 @@
 
 ### Bug fixes
 
-* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the give field name doesn't exist.
+* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the given field name doesn't exist.
 
 ### Credits
 
