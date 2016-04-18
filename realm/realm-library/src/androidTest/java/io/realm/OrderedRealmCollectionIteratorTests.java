@@ -844,7 +844,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -862,7 +862,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -880,7 +880,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -900,7 +900,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -920,7 +920,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -939,7 +939,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -958,7 +958,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements where modified
+        // Verify that all elements were modified
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 }
