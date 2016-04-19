@@ -350,7 +350,7 @@ public final class Realm extends BaseRealm {
         for (int i = 0; i < json.length(); i++) {
             try {
                 configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), false);
-            } catch (Exception e) {
+            } catch (JSONException e) {
                 throw new RealmException("Could not map Json", e);
             }
         }
@@ -378,7 +378,7 @@ public final class Realm extends BaseRealm {
         for (int i = 0; i < json.length(); i++) {
             try {
                 configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
-            } catch (Exception e) {
+            } catch (JSONException e) {
                 throw new RealmException("Could not map Json", e);
             }
         }
@@ -402,7 +402,7 @@ public final class Realm extends BaseRealm {
         JSONArray arr;
         try {
             arr = new JSONArray(json);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not create JSON array from string", e);
         }
 
@@ -526,7 +526,7 @@ public final class Realm extends BaseRealm {
 
         try {
             return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
     }
@@ -580,7 +580,7 @@ public final class Realm extends BaseRealm {
         JSONObject obj;
         try {
             obj = new JSONObject(json);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not create Json object from string", e);
         }
 
@@ -611,7 +611,7 @@ public final class Realm extends BaseRealm {
         JSONObject obj;
         try {
             obj = new JSONObject(json);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not create Json object from string", e);
         }
 
@@ -1529,7 +1529,7 @@ public final class Realm extends BaseRealm {
         try {
             return realmFile.getCanonicalPath();
         } catch (IOException e) {
-            throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
+            throw new RealmIOException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
         }
     }
 
