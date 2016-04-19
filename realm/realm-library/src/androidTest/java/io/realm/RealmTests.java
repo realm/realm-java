@@ -2077,7 +2077,7 @@ public class RealmTests {
     public void createObjectWithPrimaryKey_wrongValueType() {
         realm.beginTransaction();
         try {
-            realm.createObject(AllTypes.class, "fortyTwo");
+            realm.createObject(AllJavaTypes.class, "fortyTwo");
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -2086,7 +2086,7 @@ public class RealmTests {
     @Test
     public void createObjectWithPrimaryKey_valueAlreadyExists() {
         realm.beginTransaction();
-        realm.createObject(AllTypes.class, 42);
+        realm.createObject(AllJavaTypes.class, 42);
         try {
             realm.createObject(AllTypes.class, 42);
             fail();
