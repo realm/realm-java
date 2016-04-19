@@ -1,3 +1,9 @@
+## 0.90.0
+
+### Breaking changes
+
+* All Realm.*Json methods now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
+
 ## 0.89.0
 
 ### Breaking changes
