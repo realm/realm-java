@@ -34,12 +34,13 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
             ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
             return false;
         }
+        // depends_on_deleted_linklist() will only return true if the current TableView was created from a
+        // query on a RealmList and that RealmList was then deleted (as a result of the object being deleted).
         if (!TV(nativeViewPtr)->is_in_sync() && TV(nativeViewPtr)->depends_on_deleted_linklist()) {
             // This table view is no longer valid. By calling sync_if_needed we ensure it behaves
             // properly as a 0-size TableView.
             TV(nativeViewPtr)->sync_if_needed();
         }
-
     }
     return valid;
 }
