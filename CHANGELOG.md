@@ -13,14 +13,20 @@
 * DynamicRealm.clear(Class) in place of DynamicRealm.delete(Class).
 
 ### Enhancements
+
 * Added a RealmModel interface that can be used instead of extending RealmObject.
 * RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
 * RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
 * RealmObjectSchema.isPrimaryKey(String) (#2440)
+* RealmConfiguration.initialData() can now be used to populate a Realm file before it is used for the first time.
 
 ### Bug fixes
 
-* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the give field name doesn't exist.
+* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the given field name doesn't exist.
+
+### Credits
+
+* Thanks to @thesurix for adding RealmConfiguration.initialData().
 
 ## 0.88.3
 
