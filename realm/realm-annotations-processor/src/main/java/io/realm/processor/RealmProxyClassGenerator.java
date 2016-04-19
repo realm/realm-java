@@ -449,7 +449,7 @@ public class RealmProxyClassGenerator {
                                 fieldIndexVariableReference(field), fieldName, fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                 "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
-                                "Migrate using RealmObjectSchema.setNullable().\")",
+                                "Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.\")",
                                 fieldName);
                         writer.endControlFlow();
                     // rest of nullability checks
@@ -956,8 +956,6 @@ public class RealmProxyClassGenerator {
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
         } else {
-            // Indentations for emitStatement, beginControlFlow, and endControlFlow is made to follow
-            // what would actually be generated.
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer
                 .emitStatement("%s obj = null", className)

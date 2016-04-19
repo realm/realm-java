@@ -604,10 +604,10 @@ public class RealmMigrationTests {
                 fail();
             } catch (RealmMigrationNeededException expected) {
                 if (clazz == PrimaryKeyAsString.class) {
-                    assertEquals("@PrimaryKey field 'name' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable().",
+                    assertEquals("@PrimaryKey field 'name' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.",
                             expected.getMessage());
                 } else {
-                    assertEquals("@PrimaryKey field 'id' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable().",
+                    assertEquals("@PrimaryKey field 'id' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.",
                             expected.getMessage());
                 }
             }

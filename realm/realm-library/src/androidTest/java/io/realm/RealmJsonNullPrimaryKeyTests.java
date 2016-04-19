@@ -112,7 +112,7 @@ public class RealmJsonNullPrimaryKeyTests {
 
     // Testing null or absent primary key value for createOrUpdateObjectFromJson()
     @Test
-    public void createOrUpdateObjectFromJson_numberPrimaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
+    public void createOrUpdateObjectFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
         realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
         realm.commitTransaction();
@@ -135,7 +135,7 @@ public class RealmJsonNullPrimaryKeyTests {
 
     // Testing null or absent primary key value for createObject() -> createOrUpdateObjectFromJson()
     @Test
-    public void createOrUpdateObjectFromJson_numberPrimaryKey_isNullOrAbsent_updateFromJsonObject() throws JSONException {
+    public void createOrUpdateObjectFromJson_primaryKey_isNullOrAbsent_updateFromJsonObject() throws JSONException {
         realm.beginTransaction();
         realm.createObject(clazz); // name = null, id = 0
         realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
