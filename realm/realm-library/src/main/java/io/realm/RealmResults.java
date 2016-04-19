@@ -561,7 +561,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Not supported by RealmResults.
      *
-     * @throws UnsupportedOperationException always.
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     @Override
@@ -572,7 +572,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Not supported by RealmResults.
      *
-     * @throws UnsupportedOperationException always.
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     @Override
@@ -583,7 +583,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Not supported by RealmResults.
      *
-     * @throws UnsupportedOperationException always.
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     @Override
@@ -594,7 +594,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Not supported by RealmResults.
      *
-     * @throws UnsupportedOperationException always.
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     @Override
@@ -607,7 +607,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Not supported by RealmResults.
      *
-     * @throws UnsupportedOperationException always.
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     @Override
@@ -753,7 +753,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         /**
          * Not supported by RealmResults iterators.
          *
-         * @throws {@link UnsupportedOperationException} always
+         * @throws UnsupportedOperationException
          */
         @Deprecated
         public void remove() {
@@ -788,7 +788,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         /**
          * Unsupported by RealmResults iterators.
          *
-         * @throws UnsupportedOperationException, always.
+         * @throws UnsupportedOperationException
          */
         @Override
         @Deprecated
@@ -839,7 +839,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         /**
          * Unsupported by RealmResults iterators.
          *
-         * @throws UnsupportedOperationException, always.
+         * @throws UnsupportedOperationException
          */
         @Override
         @Deprecated
