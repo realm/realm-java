@@ -108,7 +108,7 @@ public class CheckedRow extends UncheckedRow {
     public void setNull(long columnIndex) {
         RealmFieldType columnType = getColumnType(columnIndex);
         if (columnType == RealmFieldType.STRING) {
-            super.setString(columnIndex, null);
+            super.setNull(columnIndex);
         }
         else if (columnType == RealmFieldType.BINARY) {
             super.setBinaryByteArray(columnIndex, null);
