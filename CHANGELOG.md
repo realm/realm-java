@@ -1,3 +1,12 @@
+## 0.90.0
+
+### Deprecated
+
+* `RealmObject.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmObject.allObjectsSorted(field[], sort[])`` instead.
+* `RealmQuery.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.allObjectsSorted(field[], sort[])`` instead.
+* `RealmQuery.allObjectsSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.allObjectsSortedAsync(field[], sort[])`` instead.
+
+
 ## 0.89.0
 
 ### Breaking changes

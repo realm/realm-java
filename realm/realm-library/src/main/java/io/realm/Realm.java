@@ -1008,19 +1008,9 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the class ti get objects of.
-     * @param fieldName1 first field name to sort by.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name to sort by.
-     * @param sortOrder2 sort order for second field.
-     * @param fieldName3 third field name to sort by.
-     * @param sortOrder3 sort order for third field.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@link #allObjectsSorted(Class, String[], Sort[])} instead.
      */
+    @Deprecated
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     Sort sortOrder1,
                                                                     String fieldName2, Sort sortOrder2,
