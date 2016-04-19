@@ -1,3 +1,12 @@
+## 0.90.0
+
+### Deprecated
+
+* `Realm.allObjects*()`. Use `Realm.where(clazz).findAll*()` instead.
+* `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
+* `DynamicRealm.allObjects*()`. Use `Realm.where(className).findAll*()` instead.
+* `DynamicRealm.distinct*()`. Use `Realm.where(className).distinct*()` instead.
+
 ## 0.89.0
 
 ### Breaking changes
