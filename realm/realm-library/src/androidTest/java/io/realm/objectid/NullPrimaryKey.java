@@ -16,9 +16,9 @@
 
 package io.realm.objectid;
 
-public interface NullPrimaryKey {
+public interface NullPrimaryKey<P, S> {
 
-    public Object getPrimaryKeyValue();
+    public P getId();
 
-    public Object getSecondaryFieldValue();
+    public S getName();
 }

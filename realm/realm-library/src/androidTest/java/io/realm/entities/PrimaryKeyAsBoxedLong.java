@@ -20,7 +20,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.objectid.NullPrimaryKey;
 
-public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey {
+public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey<Long, String> {
 
     public static final String CLASS_NAME = "PrimaryKeyAsBoxedLong";
     public static final String FIELD_PRIMARY_KEY = "id";
@@ -30,6 +30,7 @@ public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey
 
     private String name;
 
+    @Override
     public Long getId() {
         return id;
     }
@@ -38,21 +39,12 @@ public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey
         this.id = id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    @Override
-    public Long getPrimaryKeyValue() {
-        return id;
-    }
-
-    @Override
-    public String getSecondaryFieldValue() {
-        return name;
     }
 }
