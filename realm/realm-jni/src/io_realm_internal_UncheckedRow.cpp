@@ -399,6 +399,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
         return;
+    if (!TBL_AND_COL_NULLABLE(env, ROW(nativeRowPtr)->get_table(), columnIndex))
+        return;
     try {
         ROW(nativeRowPtr)->set_null(columnIndex);
     } CATCH_STD()
