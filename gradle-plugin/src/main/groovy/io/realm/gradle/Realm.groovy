@@ -39,10 +39,7 @@ class Realm implements Plugin<Project> {
             throw new GradleException('Realm gradle plugin only supports android gradle plugin 1.5.0 or later.')
         }
 
-        def hasKotlinPlugin = project.plugins.find {
-            it.getClass().name == 'org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper'
-        }
-
+        def hasKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
 
         def isKaptProject = hasKotlinPlugin && !usesAptPlugin
