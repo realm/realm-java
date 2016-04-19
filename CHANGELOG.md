@@ -1,3 +1,9 @@
+## 0.90.0
+
+### Enhancements
+
+* `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+
 ## 0.89.0
 
 ### Breaking changes

@@ -2055,6 +2055,45 @@ public class RealmTests {
         }
     }
 
+    @Test
+    public void createObjectWithPrimaryKey() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 42);
+        assertEquals(1, realm.where(AllJavaTypes.class).count());
+        assertEquals(42, obj.getFieldLong());
+    }
+
+    @Test
+    public void createObjectWithPrimaryKey_noPrimaryKeyField() {
+        realm.beginTransaction();
+        try {
+            realm.createObject(AllTypes.class, 42);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void createObjectWithPrimaryKey_wrongValueType() {
+        realm.beginTransaction();
+        try {
+            realm.createObject(AllTypes.class, "fortyTwo");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void createObjectWithPrimaryKey_valueAlreadyExists() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class, 42);
+        try {
+            realm.createObject(AllTypes.class, 42);
+            fail();
+        } catch (RealmException ignored) {
+        }
+    }
+
     // Test close Realm in another thread different from where it is created.
     @Test
     public void close_differentThread() throws InterruptedException {

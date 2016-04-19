@@ -728,9 +728,12 @@ public final class Realm extends BaseRealm {
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
-     * @throws RealmException if object could not be created.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException If the model clazz does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     *                                  expectd value.
      */
-    <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
+    public <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex);
