@@ -1,3 +1,9 @@
+## 0.90.0
+
+### Deprecated
+
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+
 ## 0.89.0
 
 ### Breaking changes
