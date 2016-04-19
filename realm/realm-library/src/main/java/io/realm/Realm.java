@@ -953,7 +953,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAll()` instead.
+     * DEPRECATED: Use {@code realm.where(clazz).findAll()} instead.
      */
     @Deprecated
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
@@ -961,7 +961,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName, sortOrder)` instead.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName, sortOrder)} instead.
      */
     @Deprecated
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
@@ -979,7 +979,7 @@ public final class Realm extends BaseRealm {
 
 
     /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2)` instead.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
      */
     @Deprecated
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
@@ -990,7 +990,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2, fieldName3, sortOrder3)`
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2, fieldName3, sortOrder3)}
      * instead.
      */
     @Deprecated
@@ -1003,7 +1003,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldNames[], sortOrders[])` instead.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldNames[], sortOrders[])} instead.
      */
     @Deprecated
     @SuppressWarnings("unchecked")
@@ -1038,7 +1038,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(clazz).distinct(firstFieldName, reaminingFieldNames)} instead.
+     * DEPRECATED: Use {@code realm.where(clazz).distinct(firstFieldName, remainingFieldNames)} instead.
      */
     @Deprecated
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String firstFieldName, String... remainingFieldNames) {
