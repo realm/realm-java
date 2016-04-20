@@ -41,7 +41,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-public class HandlerController implements Handler.Callback {
+class HandlerController implements Handler.Callback {
     // Keep a strong reference to the registered RealmChangeListener
     // user should unregister those listeners
     protected final CopyOnWriteArrayList<RealmChangeListener> changeListeners =

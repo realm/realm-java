@@ -1,3 +1,9 @@
+## 0.90.0
+
+### Breaking changes
+
+* Removed `HandlerController` from the public API.
+
 ## 0.89.0
 
 ### Breaking changes
