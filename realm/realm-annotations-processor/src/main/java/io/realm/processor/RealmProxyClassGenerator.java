@@ -441,48 +441,51 @@ public class RealmProxyClassGenerator {
 
                 // make sure that nullability matches
                 if (metadata.isNullable(field)) {
+                    writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
                     // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
-                    if (field.equals(metadata.getPrimaryKey()) && Utils.isNullablePrimaryKeyType(field)) {
-                        writer.beginControlFlow("if (!table.isColumnNullable(%s)" +
-                                " && table.getPrimaryKey() == table.getColumnIndex(\"%s\")" +
-                                " && columnTypes.get(\"%s\").equals(%s))",
-                                fieldIndexVariableReference(field), fieldName, fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
+                    if (field.equals(metadata.getPrimaryKey())) {
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                 "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
                                 "Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.\")",
                                 fieldName);
-                        writer.endControlFlow();
-                    // rest of nullability checks
+                    // nullability check for boxed types
+                    } else if (Utils.isBoxedType(fieldTypeCanonicalName)) {
+                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                "\"Field '%s' does not support null values in the existing Realm file. " +
+                                "Either set @Required, use the primitive type for field '%s' " +
+                                "or migrate using RealmObjectSchema.setNullable().\")",
+                                fieldName, fieldName);
                     } else {
-                        writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-                        if (Utils.isBoxedType(fieldTypeCanonicalName)) {
+                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                " \"Field '%s' is required. Either set @Required to field '%s' " +
+                                "or migrate using RealmObjectSchema.setNullable().\")",
+                                fieldName, fieldName);
+                    }
+                    writer.endControlFlow();
+                } else {
+                    // check if old Realm has nullable PrimaryKey field and a null value in the field.
+                    if (field.equals(metadata.getPrimaryKey())) {
+                        writer
+                            .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != TableOrView.NO_MATCH)",
+                                    fieldIndexVariableReference(field), fieldIndexVariableReference(field))
+                            .emitStatement("throw new IllegalStateException(\"Field '%s' contains null value. Cannot convert objects with a null primary key value.\")",
+                                    fieldName)
+                            .endControlFlow();
+                    } else {
+                        writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
+                        if (Utils.isPrimitiveType(fieldTypeCanonicalName)) {
                             writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
-                                    "\"Field '%s' does not support null values in the existing Realm file. " +
-                                    "Either set @Required, use the primitive type for field '%s' " +
-                                    "or migrate using RealmObjectSchema.setNullable().\")",
+                                    " \"Field '%s' does support null values in the existing Realm file. " +
+                                    "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
                                     fieldName, fieldName);
                         } else {
                             writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
-                                    " \"Field '%s' is required. Either set @Required to field '%s' " +
-                                    "or migrate using RealmObjectSchema.setNullable().\")",
+                                    " \"Field '%s' does support null values in the existing Realm file. " +
+                                    "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
                                     fieldName, fieldName);
                         }
                         writer.endControlFlow();
                     }
-                } else {
-                    writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-                    if (Utils.isPrimitiveType(fieldTypeCanonicalName)) {
-                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
-                                " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                                fieldName, fieldName);
-                    } else {
-                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
-                                " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
-                                fieldName, fieldName);
-                    }
-                    writer.endControlFlow();
                 }
 
                 // Validate @PrimaryKey

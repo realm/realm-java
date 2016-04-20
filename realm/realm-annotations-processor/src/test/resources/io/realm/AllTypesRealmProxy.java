@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import some.test.AllTypes;
 
 public class AllTypesRealmProxy extends AllTypes
-    implements RealmObjectProxy, AllTypesRealmProxyInterface {
+        implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
     static final class AllTypesColumnInfo extends ColumnInfo {
 
@@ -277,8 +277,8 @@ public class AllTypesRealmProxy extends AllTypes
             if (columnTypes.get("columnString") != RealmFieldType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'columnString' in existing Realm file.");
             }
-            if (!table.isColumnNullable(columnInfo.columnStringIndex) && table.getPrimaryKey() == table.getColumnIndex("columnString") && columnTypes.get("columnString").equals(RealmFieldType.STRING)) {
-                throw new RealmMigrationNeededException(transaction.getPath(),"@PrimaryKey field 'columnString' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable().");
+            if (!table.isColumnNullable(columnInfo.columnStringIndex)) {
+                throw new RealmMigrationNeededException(transaction.getPath(),"@PrimaryKey field 'columnString' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.");
             }
             if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. Add @PrimaryKey.");
@@ -382,7 +382,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     @SuppressWarnings("cast")
     public static AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         AllTypes obj = null;
         if (update) {
             Table table = realm.getTable(AllTypes.class);
@@ -489,7 +489,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     @SuppressWarnings("cast")
     public static AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         AllTypes obj = realm.createObject(AllTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {
