@@ -521,9 +521,9 @@ public abstract class BaseRealm implements Closeable {
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
         RealmObjectProxy proxy = (RealmObjectProxy) result;
-        proxy.setRow$realm(row);
-        proxy.setRealm$realm(this);
-        proxy.setTableVersion$realm();
+        proxy.realmGet$proxyState().setRow$realm(row);
+        proxy.realmGet$proxyState().setRealm$realm(this);
+        proxy.realmGet$proxyState().setTableVersion$realm();
 
         if (handlerController != null) {
             handlerController.addToRealmObjects(result);
@@ -547,9 +547,9 @@ public abstract class BaseRealm implements Closeable {
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) result;
-        proxy.setRow$realm(table.getUncheckedRow(rowIndex));
-        proxy.setRealm$realm(this);
-        proxy.setTableVersion$realm();
+        proxy.realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex));
+        proxy.realmGet$proxyState().setRealm$realm(this);
+        proxy.realmGet$proxyState().setTableVersion$realm();
 
         if (handlerController != null) {
             handlerController.addToRealmObjects(result);

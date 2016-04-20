@@ -200,10 +200,10 @@ public class AllTypesRealmProxy extends AllTypes
         if (!value.isValid()) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
-        if (((RealmObjectProxy)value).getRealm$realm() != proxyState.getRealm$realm()) {
+        if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
             throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
-        proxyState.getRow$realm().setLink(columnInfo.columnObjectIndex, ((RealmObjectProxy)value).getRow$realm().getIndex());
+        proxyState.getRow$realm().setLink(columnInfo.columnObjectIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
     public RealmList<AllTypes> realmGet$columnRealmList() {
@@ -229,10 +229,10 @@ public class AllTypesRealmProxy extends AllTypes
             if (!RealmObject.isValid(linkedObject)) {
                 throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
             }
-            if (((RealmObjectProxy)linkedObject).getRealm$realm() != proxyState.getRealm$realm()) {
+            if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
                 throw new IllegalArgumentException("Each element of 'value' must belong to the same Realm.");
             }
-            links.add(((RealmObjectProxy)linkedObject).getRow$realm().getIndex());
+            links.add(((RealmObjectProxy)linkedObject).realmGet$proxyState().getRow$realm().getIndex());
         }
     }
 
@@ -394,8 +394,8 @@ public class AllTypesRealmProxy extends AllTypes
                 long rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
                 if (rowIndex != TableOrView.NO_MATCH) {
                     obj = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
-                    ((RealmObjectProxy)obj).setRealm$realm(realm);
-                    ((RealmObjectProxy)obj).setRow$realm(table.getUncheckedRow(rowIndex));
+                    ((RealmObjectProxy)obj).realmGet$proxyState().setRealm$realm(realm);
+                    ((RealmObjectProxy)obj).realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex));
                 }
             }
         }
@@ -577,10 +577,10 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm$realm() != null && ((RealmObjectProxy) object).getRealm$realm().threadId != realm.threadId) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
             throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm$realm() != null && ((RealmObjectProxy)object).getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
         AllTypes realmObject = null;
@@ -594,8 +594,8 @@ public class AllTypesRealmProxy extends AllTypes
             long rowIndex = table.findFirstString(pkColumnIndex, ((AllTypesRealmProxyInterface) object).realmGet$columnString());
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
-                ((RealmObjectProxy)realmObject).setRealm$realm(realm);
-                ((RealmObjectProxy)realmObject).setRow$realm(table.getUncheckedRow(rowIndex));
+                ((RealmObjectProxy)realmObject).realmGet$proxyState().setRealm$realm(realm);
+                ((RealmObjectProxy)realmObject).realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex));
                 cache.put(object, (RealmObjectProxy) realmObject);
             } else {
                 canUpdate = false;
@@ -776,63 +776,8 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     @Override
-    public BaseRealm getRealm$realm() {
-        return proxyState.getRealm$realm();
-    }
-
-    @Override
-    public void setRealm$realm(BaseRealm realm) {
-        proxyState.setRealm$realm(realm);
-    }
-
-    @Override
-    public Row getRow$realm() {
-        return proxyState.getRow$realm();
-    }
-
-    @Override
-    public void setRow$realm(Row row) {
-        proxyState.setRow$realm(row);
-    }
-
-    @Override
-    public Object getPendingQuery$realm() {
-        return proxyState.getPendingQuery$realm();
-    }
-
-    @Override
-    public void setPendingQuery$realm(Future<Long> pendingQuery) {
-        proxyState.setPendingQuery$realm(pendingQuery);
-    }
-
-    @Override
-    public boolean isCompleted$realm() {
-        return proxyState.isCompleted$realm();
-    }
-
-    @Override
-    public boolean onCompleted$realm() {
-        return proxyState.onCompleted$realm();
-    }
-
-    @Override
-    public void onCompleted$realm(long rowPointer) {
-        proxyState.onCompleted$realm(rowPointer);
-    }
-
-    @Override
-    public List<RealmChangeListener> getListeners$realm() {
-        return proxyState.getListeners$realm();
-    }
-
-    @Override
-    public void setTableVersion$realm() {
-        proxyState.setTableVersion$realm();
-    }
-
-    @Override
-    public void notifyChangeListeners$realm() {
-        proxyState.notifyChangeListeners$realm();
+    public ProxyState realmGet$proxyState() {
+        return proxyState;
     }
 
     @Override
@@ -866,5 +811,4 @@ public class AllTypesRealmProxy extends AllTypes
 
         return true;
     }
-
 }

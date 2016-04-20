@@ -183,8 +183,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         boolean contains = false;
         if (isLoaded() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            if (realm.getPath().equals(proxy.getRealm$realm().getPath()) && proxy.getRow$realm() != InvalidRow.INSTANCE) {
-                contains = (table.sourceRowIndex(proxy.getRow$realm().getIndex()) != TableOrView.NO_MATCH);
+            if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
+                contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
             }
         }
         return contains;

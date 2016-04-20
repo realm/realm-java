@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -30,7 +29,7 @@ import io.realm.internal.log.RealmLog;
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
  */
-public final class ProxyState implements RealmObjectProxy {
+public final class ProxyState {
     private String className;
     private Class<? extends RealmModel> clazzName;
 
@@ -65,32 +64,26 @@ public final class ProxyState implements RealmObjectProxy {
         } // else, it will be handled by the Realm#handler
     }
 
-    @Override
     public BaseRealm getRealm$realm() {
         return realm;
     }
 
-    @Override
     public void setRealm$realm(BaseRealm realm) {
         this.realm = realm;
     }
 
-    @Override
     public Row getRow$realm() {
         return row;
     }
 
-    @Override
     public void setRow$realm(Row row) {
         this.row = row;
     }
 
-    @Override
     public Object getPendingQuery$realm() {
         return pendingQuery;
     }
 
-    @Override
     public boolean isCompleted$realm() {
         return isCompleted;
     }
@@ -100,7 +93,6 @@ public final class ProxyState implements RealmObjectProxy {
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
-    @Override
     public boolean onCompleted$realm() {
         try {
             Long handoverResult = pendingQuery.get();// make the query blocking
@@ -121,12 +113,10 @@ public final class ProxyState implements RealmObjectProxy {
         return true;
     }
 
-    @Override
     public List<RealmChangeListener> getListeners$realm() {
         return listeners;
     }
 
-    @Override
     public void onCompleted$realm(long handoverRowPointer) {
         if (handoverRowPointer == 0) {
             // we'll retry later to update the row pointer, but we consider
@@ -144,7 +134,6 @@ public final class ProxyState implements RealmObjectProxy {
     /**
      * Notifies all registered listeners.
      */
-    @Override
     public void notifyChangeListeners$realm() {
         if (listeners != null && !listeners.isEmpty()) {
             boolean notify = false;
@@ -172,7 +161,6 @@ public final class ProxyState implements RealmObjectProxy {
         }
     }
 
-    @Override
     public void setTableVersion$realm() {
         if (row.getTable() != null) {
             currentTableVersion = row.getTable().version();

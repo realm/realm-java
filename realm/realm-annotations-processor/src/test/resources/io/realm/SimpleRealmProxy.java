@@ -194,10 +194,10 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm$realm() != null && ((RealmObjectProxy) object).getRealm$realm().threadId != realm.threadId) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
             throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm$realm() != null && ((RealmObjectProxy)object).getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -235,62 +235,7 @@ public class SimpleRealmProxy extends Simple
     }
 
     @Override
-    public BaseRealm getRealm$realm() {
-        return proxyState.getRealm$realm();
-    }
-
-    @Override
-    public void setRealm$realm(BaseRealm realm) {
-        proxyState.setRealm$realm(realm);
-    }
-
-    @Override
-    public Row getRow$realm() {
-        return proxyState.getRow$realm();
-    }
-
-    @Override
-    public void setRow$realm(Row row) {
-        proxyState.setRow$realm(row);
-    }
-
-    @Override
-    public Object getPendingQuery$realm() {
-        return proxyState.getPendingQuery$realm();
-    }
-
-    @Override
-    public void setPendingQuery$realm(Future<Long> pendingQuery) {
-        proxyState.setPendingQuery$realm(pendingQuery);
-    }
-
-    @Override
-    public boolean isCompleted$realm() {
-        return proxyState.isCompleted$realm();
-    }
-
-    @Override
-    public boolean onCompleted$realm() {
-        return proxyState.onCompleted$realm();
-    }
-
-    @Override
-    public void onCompleted$realm(long rowPointer) {
-        proxyState.onCompleted$realm(rowPointer);
-    }
-
-    @Override
-    public List<RealmChangeListener> getListeners$realm() {
-        return proxyState.getListeners$realm();
-    }
-
-    @Override
-    public void setTableVersion$realm() {
-        proxyState.setTableVersion$realm();
-    }
-
-    @Override
-    public void notifyChangeListeners$realm() {
-        proxyState.notifyChangeListeners$realm();
+    public ProxyState realmGet$proxyState() {
+        return proxyState;
     }
 }

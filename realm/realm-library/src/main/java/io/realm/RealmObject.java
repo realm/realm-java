@@ -126,17 +126,17 @@ public abstract class RealmObject implements RealmModel {
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) object;
-        if (proxy.getRow$realm() == null) {
+        if (proxy.realmGet$proxyState().getRow$realm() == null) {
             throw new IllegalStateException("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
-        if (proxy.getRealm$realm() == null) {
+        if (proxy.realmGet$proxyState().getRealm$realm() == null) {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
 
-        proxy.getRealm$realm().checkIfValid();
-        Row row = proxy.getRow$realm();
+        proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
+        Row row = proxy.realmGet$proxyState().getRow$realm();
         row.getTable().moveLastOver(row.getIndex());
-        proxy.setRow$realm(InvalidRow.INSTANCE);
+        proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
     }
 
 
@@ -160,7 +160,7 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> boolean isValid(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            Row row = proxy.getRow$realm();
+            Row row = proxy.realmGet$proxyState().getRow$realm();
             return row != null && row.isAttached();
         } else {
             return false;
@@ -191,8 +191,8 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> boolean isLoaded(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.getRealm$realm().checkIfValid();
-            return proxy.getPendingQuery$realm() == null || proxy.isCompleted$realm();
+            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
+            return proxy.realmGet$proxyState().getPendingQuery$realm() == null || proxy.realmGet$proxyState().isCompleted$realm();
         } else {
             return true;
         }
@@ -222,7 +222,7 @@ public abstract class RealmObject implements RealmModel {
             if (object instanceof RealmObjectProxy) {
                 // doesn't guarantee to import correctly the result (because the user may have advanced)
                 // in this case the Realm#handler will be responsible of retrying
-                return ((RealmObjectProxy) object).onCompleted$realm();
+                return ((RealmObjectProxy) object).realmGet$proxyState().onCompleted$realm();
             } else {
                 return false;
             }
@@ -252,12 +252,12 @@ public abstract class RealmObject implements RealmModel {
         }
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            BaseRealm realm = proxy.getRealm$realm();
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
             if (realm.handler == null) {
                 throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
             }
-            List<RealmChangeListener> listeners = proxy.getListeners$realm();
+            List<RealmChangeListener> listeners = proxy.realmGet$proxyState().getListeners$realm();
             if (!listeners.contains(listener)) {
                 listeners.add(listener);
             }
@@ -288,8 +288,8 @@ public abstract class RealmObject implements RealmModel {
         }
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.getRealm$realm().checkIfValid();
-            proxy.getListeners$realm().remove(listener);
+            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
+            proxy.realmGet$proxyState().getListeners$realm().remove(listener);
         } else {
             throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
         }
@@ -311,8 +311,8 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> void removeChangeListeners(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.getRealm$realm().checkIfValid();
-            proxy.getListeners$realm().clear();
+            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
+            proxy.realmGet$proxyState().getListeners$realm().clear();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this un-managed RealmObject (created outside of Realm)");
         }
@@ -376,7 +376,7 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> Observable<E> asObservable(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            BaseRealm realm = proxy.getRealm$realm();
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             if (realm instanceof Realm) {
                 return realm.configuration.getRxFactory().from((Realm) realm, object);
             } else if (realm instanceof DynamicRealm) {

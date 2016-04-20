@@ -487,10 +487,10 @@ public class NullTypesRealmProxy extends NullTypes
         if (!value.isValid()) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
-        if (((RealmObjectProxy)value).getRealm$realm() != proxyState.getRealm$realm()) {
+        if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
             throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
-        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).getRow$realm().getIndex());
+        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -1085,10 +1085,10 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     public static NullTypes copyOrUpdate(Realm realm, NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm$realm() != null && ((RealmObjectProxy) object).getRealm$realm().threadId != realm.threadId) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
             throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm$realm() != null && ((RealmObjectProxy)object).getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -1270,63 +1270,8 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @Override
-    public BaseRealm getRealm$realm() {
-        return proxyState.getRealm$realm();
-    }
-
-    @Override
-    public void setRealm$realm(BaseRealm realm) {
-        proxyState.setRealm$realm(realm);
-    }
-
-    @Override
-    public Row getRow$realm() {
-        return proxyState.getRow$realm();
-    }
-
-    @Override
-    public void setRow$realm(Row row) {
-        proxyState.setRow$realm(row);
-    }
-
-    @Override
-    public Object getPendingQuery$realm() {
-        return proxyState.getPendingQuery$realm();
-    }
-
-    @Override
-    public void setPendingQuery$realm(Future<Long> pendingQuery) {
-        proxyState.setPendingQuery$realm(pendingQuery);
-    }
-
-    @Override
-    public boolean isCompleted$realm() {
-        return proxyState.isCompleted$realm();
-    }
-
-    @Override
-    public boolean onCompleted$realm() {
-        return proxyState.onCompleted$realm();
-    }
-
-    @Override
-    public void onCompleted$realm(long rowPointer) {
-        proxyState.onCompleted$realm(rowPointer);
-    }
-
-    @Override
-    public List<RealmChangeListener> getListeners$realm() {
-        return proxyState.getListeners$realm();
-    }
-
-    @Override
-    public void setTableVersion$realm() {
-        proxyState.setTableVersion$realm();
-    }
-
-    @Override
-    public void notifyChangeListeners$realm() {
-        proxyState.notifyChangeListeners$realm();
+    public ProxyState realmGet$proxyState() {
+        return proxyState;
     }
 
     @Override
@@ -1360,5 +1305,4 @@ public class NullTypesRealmProxy extends NullTypes
 
         return true;
     }
-
 }

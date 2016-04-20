@@ -16,11 +16,7 @@
 
 package io.realm.internal;
 
-import java.util.List;
-import java.util.concurrent.Future;
-
-import io.realm.BaseRealm;
-import io.realm.RealmChangeListener;
+import io.realm.ProxyState;
 import io.realm.RealmModel;
 
 /**
@@ -28,21 +24,8 @@ import io.realm.RealmModel;
  *
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
- interface RealmObjectProxy extends RealmModel {
-
-    BaseRealm getRealm$realm();
-    void setRealm$realm(BaseRealm realm);
-    Row getRow$realm();
-    void setRow$realm(Row row);
-    Object getPendingQuery$realm();
-    boolean isCompleted$realm();
-    boolean onCompleted$realm();
-    void onCompleted$realm(long rowPointer);
-    List<RealmChangeListener> getListeners$realm();
-    void setTableVersion$realm();
-    void notifyChangeListeners$realm();
-    void setPendingQuery$realm(Future<Long> pendingQuery);
-
+ public interface RealmObjectProxy extends RealmModel {
+    ProxyState realmGet$proxyState();
     /**
      * Tuple class for saving meta data about a cached RealmObject.
      */

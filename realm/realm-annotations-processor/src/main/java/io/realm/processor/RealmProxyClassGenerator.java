@@ -285,10 +285,10 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (!value.isValid())");
                     writer.emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")");
                 writer.endControlFlow();
-                writer.beginControlFlow("if (((RealmObjectProxy)value).getRealm$realm() != proxyState.getRealm$realm())");
+                writer.beginControlFlow("if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
                     writer.emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")");
                 writer.endControlFlow();
-                writer.emitStatement("proxyState.getRow$realm().setLink(%s, ((RealmObjectProxy)value).getRow$realm().getIndex())", fieldIndexVariableReference(field));
+                writer.emitStatement("proxyState.getRow$realm().setLink(%s, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex())", fieldIndexVariableReference(field));
                 writer.endMethod();
             } else if (Utils.isRealmList(field)) {
                 /**
@@ -324,10 +324,10 @@ public class RealmProxyClassGenerator {
                     writer.beginControlFlow("if (!RealmObject.isValid(linkedObject))");
                         writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")");
                     writer.endControlFlow();
-                    writer.beginControlFlow("if (((RealmObjectProxy)linkedObject).getRealm$realm() != proxyState.getRealm$realm())");
+                    writer.beginControlFlow("if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
                         writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must belong to the same Realm.\")");
                     writer.endControlFlow();
-                    writer.emitStatement("links.add(((RealmObjectProxy)linkedObject).getRow$realm().getIndex())");
+                    writer.emitStatement("links.add(((RealmObjectProxy)linkedObject).realmGet$proxyState().getRow$realm().getIndex())");
                 writer.endControlFlow();
                 writer.endMethod();
             } else {
@@ -340,74 +340,8 @@ public class RealmProxyClassGenerator {
 
     private void emitRealmObjectProxyImplementation(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
-        writer.beginMethod("BaseRealm", "getRealm$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("return proxyState.getRealm$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("void", "setRealm$realm", EnumSet.of(Modifier.PUBLIC), "BaseRealm", "realm");
-        writer.emitStatement("proxyState.setRealm$realm(realm)");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("Row", "getRow$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("return proxyState.getRow$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("void", "setRow$realm", EnumSet.of(Modifier.PUBLIC), "Row", "row");
-        writer.emitStatement("proxyState.setRow$realm(row)");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("Object", "getPendingQuery$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("return proxyState.getPendingQuery$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("void", "setPendingQuery$realm", EnumSet.of(Modifier.PUBLIC), "Future<Long>", "pendingQuery");
-        writer.emitStatement("proxyState.setPendingQuery$realm(pendingQuery)");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("boolean", "isCompleted$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("return proxyState.isCompleted$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("boolean", "onCompleted$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("return proxyState.onCompleted$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("void", "onCompleted$realm", EnumSet.of(Modifier.PUBLIC), "long", "rowPointer");
-        writer.emitStatement("proxyState.onCompleted$realm(rowPointer)");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("List<RealmChangeListener>", "getListeners$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("return proxyState.getListeners$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("void", "setTableVersion$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("proxyState.setTableVersion$realm()");
-        writer.endMethod();
-        writer.emitEmptyLine();
-
-        writer.emitAnnotation("Override");
-        writer.beginMethod("void", "notifyChangeListeners$realm", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("proxyState.notifyChangeListeners$realm()");
+        writer.beginMethod("ProxyState", "realmGet$proxyState", EnumSet.of(Modifier.PUBLIC));
+        writer.emitStatement("return proxyState");
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -645,14 +579,14 @@ public class RealmProxyClassGenerator {
         );
 
         writer
-            .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm$realm() != null && ((RealmObjectProxy) object).getRealm$realm().threadId != realm.threadId)")
+            .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId)")
                 .emitStatement("throw new IllegalArgumentException(\"Objects which belong to Realm instances in other" +
                         " threads cannot be copied into this Realm instance.\")")
             .endControlFlow();
 
         // If object is already in the Realm there is nothing to update
         writer
-            .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).getRealm$realm() != null && ((RealmObjectProxy)object).getRealm$realm().getPath().equals(realm.getPath()))")
+            .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
                 .emitStatement("return object")
             .endControlFlow();
 
@@ -684,8 +618,8 @@ public class RealmProxyClassGenerator {
                     .emitStatement("realmObject = new %s(realm.schema.getColumnInfo(%s.class))",
                             Utils.getProxyClassName(className),
                             className)
-                    .emitStatement("((RealmObjectProxy)realmObject).setRealm$realm(realm)")
-                    .emitStatement("((RealmObjectProxy)realmObject).setRow$realm(table.getUncheckedRow(rowIndex))")
+                    .emitStatement("((RealmObjectProxy)realmObject).realmGet$proxyState().setRealm$realm(realm)")
+                    .emitStatement("((RealmObjectProxy)realmObject).realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex))")
                     .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                 .nextControlFlow("else")
                     .emitStatement("canUpdate = false")
@@ -1033,8 +967,8 @@ public class RealmProxyClassGenerator {
                             .emitStatement("obj = new %s(realm.schema.getColumnInfo(%s.class))",
                                     Utils.getProxyClassName(className),
                                     className)
-                            .emitStatement("((RealmObjectProxy)obj).setRealm$realm(realm)")
-                            .emitStatement("((RealmObjectProxy)obj).setRow$realm(table.getUncheckedRow(rowIndex))")
+                            .emitStatement("((RealmObjectProxy)obj).realmGet$proxyState().setRealm$realm(realm)")
+                            .emitStatement("((RealmObjectProxy)obj).realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex))")
                         .endControlFlow()
                     .endControlFlow()
                 .endControlFlow();
