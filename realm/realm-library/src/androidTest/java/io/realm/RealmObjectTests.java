@@ -260,7 +260,7 @@ public class RealmObjectTests {
         realm.close();
     }
 
-    private void removeOneByOne(boolean atFirst) {
+    private void removeOneByOne(boolean removeFromFront) {
         // Create test data
         realm.beginTransaction();
         realm.delete(Dog.class);
@@ -276,13 +276,12 @@ public class RealmObjectTests {
         // Check that calling deleteFromRealm doesn't remove the object from the RealmResult
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            if (atFirst) {
-                dogs.get(i).deleteFromRealm();
-                assertFalse("Dog " + i + " should be deleted", dogs.get(i).isValid());
-                assertEquals("Size() failed at Dog " + i, TEST_SIZE, dogs.size());
-            }
+            dogs.get(removeFromFront ? i : Math.abs(i - TEST_SIZE + 1)).deleteFromRealm();
         }
         realm.commitTransaction();
+
+        assertEquals(TEST_SIZE, dogs.size());
+        assertEquals(0, realm.where(Dog.class).count());
     }
 
     // Tests calling deleteFromRealm on a RealmResults instead of RealmResults.remove()

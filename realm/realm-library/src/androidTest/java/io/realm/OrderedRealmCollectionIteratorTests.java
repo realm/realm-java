@@ -141,6 +141,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
      * @return {@code true} if the unit test should be aborted, {@code false} if it should continue.
      */
     private boolean skipTest(CollectionClass... unsupportedTypes) {
+        //noinspection ForLoopReplaceableByForEach
         for (int i = 0; i < unsupportedTypes.length; i++) {
             if (unsupportedTypes[i].equals(collectionClass)) {
                 return true;
@@ -175,6 +176,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     public void iterator_oneElement() {
         collection = createCollection(realm, collectionClass, 1);
         Iterator<AllJavaTypes> it = collection.iterator();
+        //noinspection WhileLoopReplaceableByForEach
         while (it.hasNext()) {
             AllJavaTypes item = it.next();
             assertEquals(0, item.getFieldLong());
@@ -292,7 +294,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
-    public void iterator_removedCalledTwice() {
+    public void iterator_removeCalledTwice() {
         if (skipTest(CollectionClass.REALMRESULTS)) {
             return; // remove() not supported by RealmResults
         }
@@ -711,7 +713,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         it.next();
         AllJavaTypes types = it.next(); // Iterator can still access the deleted object
 
-        assertFalse(collectionClass == CollectionClass.MANAGED_REALMLIST ? !types.isValid() : types.isValid());
+        //noinspection SimplifiableConditionalExpression
+        assertTrue(collectionClass == CollectionClass.MANAGED_REALMLIST ? types.isValid() : !types.isValid());
     }
 
     @Test

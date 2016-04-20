@@ -292,7 +292,7 @@ public final class HandlerController implements Handler.Callback {
 
         for (Iterator<RealmResults<? extends RealmObject>> it = resultsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
             RealmResults<? extends RealmObject> realmResults = it.next();
-            realmResults.notifyChangeListeners(true);
+            realmResults.notifyChangeListeners();
         }
     }
 
@@ -399,7 +399,7 @@ public final class HandlerController implements Handler.Callback {
                         // swap pointer
                         realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
                         // notify callbacks
-                        realmResults.notifyChangeListeners(true);
+                        realmResults.notifyChangeListeners();
                     } else {
                         RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] , realm:"+ HandlerController.this + " ignoring result the RealmResults (is already loaded)");
                     }
@@ -497,7 +497,7 @@ public final class HandlerController implements Handler.Callback {
             }
 
             for (RealmResults<? extends RealmObject> query : callbacksToNotify) {
-                query.notifyChangeListeners(true);
+                query.notifyChangeListeners();
             }
 
             // We need to notify the rest of listeners, since the original REALM_CHANGE

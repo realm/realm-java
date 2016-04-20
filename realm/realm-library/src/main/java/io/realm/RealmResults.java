@@ -1013,11 +1013,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Notifies all registered listeners.
      */
-    void notifyChangeListeners(boolean syncBeforeNotifying) {
-        notifyChangeListeners(syncBeforeNotifying, false);
+    void notifyChangeListeners() {
+        notifyChangeListeners(true, false);
     }
 
-    void notifyChangeListeners(boolean syncBeforeNotifying, boolean forceNotify) {
+    private void notifyChangeListeners(boolean syncBeforeNotifying, boolean forceNotify) {
         if (syncBeforeNotifying) {
             syncIfNeeded();
         }
