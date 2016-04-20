@@ -105,7 +105,8 @@
 
 ### Bug fixes
 
-* Error occurring during test and 2025.
+* Error occurring during test and (#2025).
+* Error occurring during test and connectedCheck of unit test example (#1934).
 * Bug in jsonExample (#2092).
 * Multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * Calling DynamicRealmObject.setList() with RealmList<DynamicRealmObject> (#2368).
