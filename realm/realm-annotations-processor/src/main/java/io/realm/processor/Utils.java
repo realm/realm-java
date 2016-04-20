@@ -1,8 +1,5 @@
 package io.realm.processor;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import javax.annotation.processing.Messager;
@@ -16,7 +13,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * Utility methods working with the Realm processor.
@@ -28,7 +24,6 @@ public class Utils {
     private static DeclaredType realmList;
     private static DeclaredType markerInterface;
     private static TypeMirror realmObject;
-    private static TypeMirror object;
 
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
@@ -37,7 +32,6 @@ public class Utils {
                 typeUtils.getWildcardType(null, null));
         realmObject = env.getElementUtils().getTypeElement("io.realm.RealmObject").asType();
         markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
-        object = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("java.lang.Object"));
     }
 
     /**
@@ -161,19 +155,6 @@ public class Utils {
         return typeUtils.isAssignable(field.asType(), realmObject);
     }
 
-    /**
-     * @return {@code true} if a given type is {@code RealmObject}, {@code false} otherwise.
-     */
-    public static boolean isRealmObject(Element classElement) {
-        return typeUtils.isAssignable(classElement.asType(), realmObject);
-    }
-
-    /**
-     * @return {@code true} if a given type is {@code java.lang.Object}, {@code false} otherwise.
-     */
-    public static boolean isJavaLangObject(Element classElement) {
-        return typeUtils.isAssignable(object, classElement.asType());
-    }
 
     /**
      * @return the simple type name for a field.

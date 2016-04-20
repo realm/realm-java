@@ -16,11 +16,8 @@
 
 package some.test;
 
-import io.realm.RealmModel;
-import io.realm.annotations.RealmClass;
+import io.realm.RealmObject;
 
-// Invalid POJO, this uses the annotation but doesn't implements the RealmModel interface
-@RealmClass
-public class InvalidModelPojo_1 {
-    public String id;
+public class UseExtendRealmList extends RealmObject {
+    private ExtendRealmList<UseExtendRealmList> extendRealmList;
 }

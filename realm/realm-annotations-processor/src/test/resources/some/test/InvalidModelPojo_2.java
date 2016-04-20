@@ -18,9 +18,7 @@ package some.test;
 
 import io.realm.RealmModel;
 import io.realm.annotations.RealmClass;
-
-// Invalid POJO, this uses the annotation but doesn't implements the RealmModel interface
-@RealmClass
-public class InvalidModelPojo_1 {
+// it's not allowed to extend from another RealmObject
+public class InvalidModelPojo_2 extends Booleans {
     public String id;
 }

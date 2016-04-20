@@ -102,10 +102,8 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> CLASSTYPE " + classType + " parentElement " + parentElement + " isJavaLangObject " + Utils.isJavaLangObject(parentElement) + " Utils.isRealmObject " + Utils.isRealmObject(parentElement));
-        // Realm model classes must either extend RealmObject or implement RealmModel to be considered a valid model class
-        if (!Utils.isJavaLangObject(parentElement) && !Utils.isRealmObject(parentElement)) {
-                Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
+        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject")) {
+                Utils.error("Realm model classes must either extend RealmObject or implement RealmModel to be considered a valid model class", classType);
                 return false;
         }
 
