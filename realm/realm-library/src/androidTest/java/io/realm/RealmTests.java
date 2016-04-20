@@ -2088,7 +2088,7 @@ public class RealmTests {
         realm.beginTransaction();
         realm.createObject(AllJavaTypes.class, 42);
         try {
-            realm.createObject(AllTypes.class, 42);
+            realm.createObject(AllJavaTypes.class, 42);
             fail();
         } catch (RealmException ignored) {
         }
