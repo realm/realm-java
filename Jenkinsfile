@@ -53,19 +53,31 @@ node('FastLinux') {
    stash includes: 'java.zip', name: 'java'
 
    stage 'JVM tests'
-   sh 'chmod +x gradlew && ./gradlew assemble check --stacktrace'
+   sh 'chmod +x gradlew && ./gradlew assemble check javadoc --stacktrace'
    storeJunitResults('realm/realm-annotations-processor/build/test-results/TEST-*.xml')
-   collectAarMetrics()
+   if (env.BRANCH_NAME == 'master') {
+       collectAarMetrics()
+   }
    stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples'
 
    dir('examples') {
-      sh 'chmod +x gradlew && ./gradlew check'
+      sh 'chmod +x gradlew && ./gradlew check --stacktrace'
       storeJunitResults('unitTestExample/build/test-results/**/TEST-*.xml')
+   }
+
+   stage 'static code analysis'
+   try {
+        dir('realm') {
+           sh 'chmod +x gradlew && ./gradlew findbugs pmd checkstyle --stacktrace'
+        }
+   } finally {
+        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
    }
 
    stage 'build instrumented tests'
    dir('realm') {
-       sh 'chmod +x gradlew && ./gradlew assembleDebugAndroidTest'
+       sh 'chmod +x gradlew && ./gradlew assembleDebugAndroidTest --stacktrace'
        dir('realm-library/build/outputs/apk') {
           stash name: 'test-apk', includes: 'realm-android-library-debug-androidTest-unaligned.apk'
        }
