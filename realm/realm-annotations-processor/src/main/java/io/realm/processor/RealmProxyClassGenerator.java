@@ -602,7 +602,7 @@ public class RealmProxyClassGenerator {
 
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             VariableElement primaryKeyElement = metadata.getPrimaryKey();
-            if (Utils.isNullablePrimaryKeyType(primaryKeyElement)) {
+            if (metadata.isNullable(primaryKeyElement)) {
                 if (Utils.isString(primaryKeyElement)) {
                     writer
                         .emitStatement("String value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
@@ -966,7 +966,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("Table table = realm.getTable(%s.class)", className)
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
                     .emitStatement("long rowIndex = TableOrView.NO_MATCH");
-            if (Utils.isNullablePrimaryKeyType(metadata.getPrimaryKey())) {
+            if (metadata.isNullable(metadata.getPrimaryKey())) {
                 writer
                     .beginControlFlow("if (json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
                         .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
