@@ -30,8 +30,12 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.Date;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.pojo.AllTypesPojo;
 import io.realm.entities.pojo.InvalidModelPojo;
+import io.realm.entities.pojo.PojoWithRealmListOfPojo;
+import io.realm.entities.pojo.PojoWithRealmListOfRealmObject;
+import io.realm.entities.pojo.RealmObjectWithRealmListOfPojo;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -47,7 +51,6 @@ public class RealmModelPojoTests {
 
     private Context context;
     private Realm realm;
-    private RealmConfiguration realmConfig;
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -60,7 +63,7 @@ public class RealmModelPojoTests {
         // Injecting the Instrumentation instance is required
         // for your test to run with AndroidJUnitRunner.
         context = InstrumentationRegistry.getInstrumentation().getContext();
-        realmConfig = configFactory.createConfiguration();
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
 
@@ -251,4 +254,92 @@ public class RealmModelPojoTests {
         realm.createObject(InvalidModelPojo.class);
         realm.commitTransaction();
     }
+
+    // Test the behaviour of a RealmModel, containing a RealmList
+    // of other RealmModel, in managed and un-managed mode
+    @Test
+    public void pojoWithRealmListOfPojo() {
+        RealmList<AllTypesPojo> allTypesPojos = new RealmList<AllTypesPojo>();
+        AllTypesPojo allTypePojo;
+        for (int i = 0; i < 10; i++) {
+            allTypePojo = new AllTypesPojo();
+            allTypePojo.columnLong = i;
+            allTypesPojos.add(allTypePojo);
+        }
+        AllTypesPojo pojo1 = allTypesPojos.get(1);
+        assertEquals(1, pojo1.columnLong);
+        allTypesPojos.move(1, 0);
+        assertEquals(0, allTypesPojos.indexOf(pojo1));
+
+        PojoWithRealmListOfPojo model = new PojoWithRealmListOfPojo();
+        model.setColumnRealmList(allTypesPojos);
+
+        realm.beginTransaction();
+        realm.copyToRealm(model);
+        realm.commitTransaction();
+
+        RealmResults<PojoWithRealmListOfPojo> all = realm.where(PojoWithRealmListOfPojo.class).findAll();
+        assertEquals(1, all.size());
+        assertEquals(10, all.first().getColumnRealmList().size());
+        assertEquals(1, all.first().getColumnRealmList().first().columnLong);
+    }
+
+    // Test the behaviour of a RealmModel, containing a RealmList
+    // of RealmObject, in managed and un-managed mode
+    @Test
+    public void pojoWithRealmListOfRealmObject() {
+        RealmList<AllTypes> allTypes = new RealmList<AllTypes>();
+        AllTypes allType;
+        for (int i = 0; i < 10; i++) {
+            allType = new AllTypes();
+            allType.setColumnLong(i);
+            allTypes.add(allType);
+        }
+        AllTypes pojo1 = allTypes.get(1);
+        assertEquals(1, pojo1.getColumnLong());
+        allTypes.move(1, 0);
+        assertEquals(0, allTypes.indexOf(pojo1));
+
+        PojoWithRealmListOfRealmObject model = new PojoWithRealmListOfRealmObject();
+        model.setColumnRealmList(allTypes);
+
+        realm.beginTransaction();
+        realm.copyToRealm(model);
+        realm.commitTransaction();
+
+        RealmResults<PojoWithRealmListOfRealmObject> all = realm.where(PojoWithRealmListOfRealmObject.class).findAll();
+        assertEquals(1, all.size());
+        assertEquals(10, all.first().getColumnRealmList().size());
+        assertEquals(1, all.first().getColumnRealmList().first().getColumnLong());
+    }
+
+    // Test the behaviour of a RealmObject, containing a RealmList
+    // of RealmModel, in managed and un-managed mode
+    @Test
+    public void realmObjectWithRealmListOfPojo() {
+        RealmList<AllTypesPojo> allTypesPojo = new RealmList<AllTypesPojo>();
+        AllTypesPojo allTypePojo;
+        for (int i = 0; i < 10; i++) {
+            allTypePojo = new AllTypesPojo();
+            allTypePojo.columnLong = i;
+            allTypesPojo.add(allTypePojo);
+        }
+        AllTypesPojo pojo1 = allTypesPojo.get(1);
+        assertEquals(1, pojo1.columnLong);
+        allTypesPojo.move(1, 0);
+        assertEquals(0, allTypesPojo.indexOf(pojo1));
+
+        RealmObjectWithRealmListOfPojo model = new RealmObjectWithRealmListOfPojo();
+        model.setColumnRealmList(allTypesPojo);
+
+        realm.beginTransaction();
+        realm.copyToRealm(model);
+        realm.commitTransaction();
+
+        RealmResults<RealmObjectWithRealmListOfPojo> all = realm.where(RealmObjectWithRealmListOfPojo.class).findAll();
+        assertEquals(1, all.size());
+        assertEquals(10, all.first().getColumnRealmList().size());
+        assertEquals(1, all.first().getColumnRealmList().first().columnLong);
+    }
 }
+
