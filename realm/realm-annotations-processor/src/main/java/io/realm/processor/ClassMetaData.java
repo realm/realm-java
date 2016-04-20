@@ -94,7 +94,6 @@ public class ClassMetaData {
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
     public boolean generate() {
-
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
         if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
@@ -103,8 +102,8 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        // The only allowed derived class is RealmObject, POJO implementing RealmModel
-        // (instead of deriving from RealmObject) must not derive from any other super class.
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> CLASSTYPE " + classType + " parentElement " + parentElement + " isJavaLangObject " + Utils.isJavaLangObject(parentElement) + " Utils.isRealmObject " + Utils.isRealmObject(parentElement));
+        // Realm model classes must either extend RealmObject or implement RealmModel to be considered a valid model class
         if (!Utils.isJavaLangObject(parentElement) && !Utils.isRealmObject(parentElement)) {
                 Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
                 return false;

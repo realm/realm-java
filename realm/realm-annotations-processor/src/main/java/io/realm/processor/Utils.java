@@ -141,35 +141,35 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given type implement "RealmModel", {@code false} otherwise.
+     * @return {@code true} if a given type implement {@code RealmModel}, {@code false} otherwise.
      */
     public static boolean isImplementingMarkerInterface(Element classElement) {
         return typeUtils.isAssignable(classElement.asType(), markerInterface);
     }
 
     /**
-     * @return {@code true} if a given field type is "RealmList", {@code false} otherwise.
+     * @return {@code true} if a given field type is {@code RealmList}, {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmList);
     }
 
     /**
-     * @return {@code true} if a given field type is "RealmObject", {@code false} otherwise.
+     * @return {@code true} if a given field type is {@code RealmObject}, {@code false} otherwise.
      */
     public static boolean isRealmObject(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmObject);
     }
 
     /**
-     * @return {@code true} if a given type is "RealmObject", {@code false} otherwise.
+     * @return {@code true} if a given type is {@code RealmObject}, {@code false} otherwise.
      */
     public static boolean isRealmObject(Element classElement) {
         return typeUtils.isAssignable(classElement.asType(), realmObject);
     }
 
     /**
-     * @return {@code true} if a given type is "java.lang.Object", {@code false} otherwise.
+     * @return {@code true} if a given type is {@code java.lang.Object}, {@code false} otherwise.
      */
     public static boolean isJavaLangObject(Element classElement) {
         return typeUtils.isAssignable(object, classElement.asType());

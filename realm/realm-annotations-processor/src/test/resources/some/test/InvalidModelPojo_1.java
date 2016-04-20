@@ -20,6 +20,6 @@ import io.realm.RealmModel;
 import io.realm.annotations.RealmClass;
 
 @RealmClass
-public class InvalidModelPojo {
+public class InvalidModelPojo_1 {
     public String id;
 }

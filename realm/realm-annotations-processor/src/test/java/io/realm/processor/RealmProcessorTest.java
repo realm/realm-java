@@ -19,10 +19,11 @@ package io.realm.processor;
 import com.google.testing.compile.JavaFileObjects;
 
 import org.junit.Test;
-
+import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.util.Arrays;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -49,7 +50,8 @@ public class RealmProcessorTest {
     private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
     private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
     private JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
-    private JavaFileObject invalidRealmModelModel = JavaFileObjects.forResource("some/test/InvalidModelPojo.java");
+    private JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelPojo_1.java");
+    private JavaFileObject invalidRealmModelModel_2 = JavaFileObjects.forResource("some/test/InvalidModelPojo_2.java");
 
     @Test
     public void compileSimpleFile() {
@@ -388,11 +390,42 @@ public class RealmProcessorTest {
                 .failsToCompile();
     }
 
+    // annotation without implementing RealmModel interface
     @Test
-    public void failOnInvalidRealmModel() throws Exception {
+    public void failOnInvalidRealmModel_1() throws Exception {
         ASSERT.about(javaSource())
-                .that(invalidRealmModelModel)
+                .that(invalidRealmModelModel_1)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
+
+    // it's not allowed to extend from another RealmObject
+    @Test
+    public void failOnInvalidRealmModel() throws Exception {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/UseExtendRealmList.java"))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+//                .failsToCompile();
+    }
+
+//    @Test
+//    public void testUtil () {
+//        // apply annotation to get an instance of ProcessingEnvironment we
+//        // need for test
+//        RealmProcessor realmProcessor = new RealmProcessor();
+//
+//        ASSERT.about(javaSource())
+//                .that(simpleModel)
+//                .processedWith(realmProcessor)
+//                .compilesWithoutError();
+//
+//        ProcessingEnvironment processingEnvironment = realmProcessor.getProcessingEnvironment();
+//        processingEnvironment.
+//        assertNotNull(processingEnvironment);
+//        Utils.initialize(processingEnvironment);
+//
+//
+////                .compilesWithoutError();
+//    }
 }
