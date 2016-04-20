@@ -26,12 +26,16 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.google.common.collect.ImmutableSet
 import io.realm.annotations.internal.OptionalAPI
+import io.realm.transformer.util.appendThisToClassNames
+import io.realm.transformer.util.appendThisToClassPool
+import io.realm.transformer.util.createClassPool
 import org.slf4j.LoggerFactory
 import java.util.HashSet
 
 class RealmOptionalAPITransformer : Transform() {
 
     private val logger = LoggerFactory.getLogger("realm-logger")
+    private val transformerName = "realm-optional-api"
 
     override fun getName(): String? = "RealmOptionalAPITransformer"
 
@@ -51,11 +55,11 @@ class RealmOptionalAPITransformer : Transform() {
                            isIncremental: Boolean) {
 
         val classNames = HashSet<String>()
-        inputs!!.appendAllToClassNames(classNames)
+        inputs!!.appendThisToClassNames(classNames)
         val refClassNames = HashSet<String>()
-        referencedInputs!!.appendAllToClassNames(refClassNames)
+        referencedInputs!!.appendThisToClassNames(refClassNames)
         val classPool = createClassPool()
-        inputs.appendAllToClassPool(classPool)
+        inputs.appendThisToClassPool(classPool)
 
         classNames.filter { it.startsWith("io.realm.") }.forEach {
             classPool.get(it).declaredMethods.forEach {
@@ -63,17 +67,17 @@ class RealmOptionalAPITransformer : Transform() {
                 val dependenciesList = optionalAPIAnnotation?.dependencies?.toList()
 
                 if (optionalAPIAnnotation == null) {
-                    logger.info("${it.declaringClass.name} ${it.name} doesn't have @OptionalAPI annotation.")
+                    logger.debug("${it.declaringClass.name} ${it.name} doesn't have @OptionalAPI annotation.")
                 } else if (dependenciesList == null || dependenciesList.size == 0) {
                     throw IllegalArgumentException("${it.name} doesn't have proper dependencies: " +
                             "${optionalAPIAnnotation.dependencies}.")
                 } else if (!refClassNames.containsAll(dependenciesList)) {
                     // Doesn't have enough dependencies, remove the API
-                    logger.info("${it.declaringClass.name} ${it.name} will be removed since some of the dependencies " +
+                    logger.debug("${it.declaringClass.name} ${it.name} will be removed since some of the dependencies " +
                             "in $dependenciesList don't exist.")
                     it.declaringClass.removeMethod(it)
                 } else {
-                    logger.info("${it.declaringClass.name} ${it.name} has all dependencies in $dependenciesList.")
+                    logger.debug("${it.declaringClass.name} ${it.name} has all dependencies in $dependenciesList.")
                 }
             }
         }
@@ -81,8 +85,8 @@ class RealmOptionalAPITransformer : Transform() {
         // Create outputs
         classNames.forEach {
             val ctClass = classPool.getCtClass(it)
-            ctClass.writeFile(outputProvider!!.getContentLocation(
-                    "realm-optional-api", inputTypes, scopes, Format.DIRECTORY).canonicalPath)
+            ctClass.writeFile(
+                    outputProvider!!.getContentLocation(transformerName, inputTypes, scopes, Format.DIRECTORY).canonicalPath)
         }
     }
 }

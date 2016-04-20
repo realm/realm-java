@@ -16,7 +16,7 @@
 * RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
 * RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
 * RealmObjectSchema.isPrimaryKey(String) (#2440)
-* Removes rxjava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
 
 ### Bug fixes
 
