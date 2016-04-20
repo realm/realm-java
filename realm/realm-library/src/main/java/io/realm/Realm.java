@@ -169,8 +169,8 @@ public final class Realm extends BaseRealm {
      * @param context a non-null Android {@link android.content.Context}
      * @return an instance of the Realm class.
      * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
-     * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm and it must be
-     * migrated.
+     * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm and it must
+     *         be migrated.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @deprecated use {@link #getDefaultInstance()} or {@link #getInstance(RealmConfiguration)} instead.
      */
@@ -187,7 +187,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class.
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
-     * RealmObject classes or version has has changed so a migration is required.
+     *         RealmObject classes or version has has changed so a migration is required.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
@@ -203,7 +203,7 @@ public final class Realm extends BaseRealm {
      * @param configuration {@link RealmConfiguration} used to open the Realm
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
-     * classes or version has has changed so a migration is required.
+     *         classes or version has has changed so a migration is required.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
@@ -241,8 +241,9 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#schema#columnIndices} will be initialized
-     *                      to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from the Realm file.
+     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#schema#columnIndices} will be
+     *                      initialized to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from
+     *                      the Realm file.
      * @return a {@link Realm} instance.
      */
     static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
@@ -317,6 +318,13 @@ public final class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+
+            if (version == UNVERSIONED) {
+                final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
+                if (transaction != null) {
+                    transaction.execute(realm);
+                }
+            }
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction(false, null);
@@ -353,14 +361,14 @@ public final class Realm extends BaseRealm {
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
-     * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a
-     * new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the default
-     * value for the field type.
+     * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If
+     * a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
+     * default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json array with object data.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *         {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if unable to map JSON.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
@@ -381,7 +389,8 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
-     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will be set to the default value for that type.
+     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field
+     * will be set to the default value for that type.
      *
      * @param clazz type of Realm objects to create.
      * @param json the JSON array as a String where each object can map to the specified class.
@@ -412,7 +421,7 @@ public final class Realm extends BaseRealm {
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with an array of JSON objects.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *         {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if unable to create a JSON array from the json string.
      * @see #createAllFromJson(Class, String)
      */
@@ -471,7 +480,7 @@ public final class Realm extends BaseRealm {
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *         {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if unable to read JSON.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
@@ -534,7 +543,7 @@ public final class Realm extends BaseRealm {
      * @param json {@link org.json.JSONObject} with object data.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *         {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if JSON data cannot be mapped.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
@@ -582,15 +591,16 @@ public final class Realm extends BaseRealm {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a {@link RealmObject}
-     * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
-     * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
+     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a
+     * {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a new
+     * {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
+     * default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with object data in JSON format.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *         {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if JSON object cannot be mapped from the string parameter.
      * @see #createObjectFromJson(Class, String)
      */
@@ -658,15 +668,16 @@ public final class Realm extends BaseRealm {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a {@link RealmObject}
-     * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
-     * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
+     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a
+     * {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a new
+     * {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
+     * default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the {@link InputStream} with object data in JSON format.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *         {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if failure to read JSON.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
@@ -760,7 +771,7 @@ public final class Realm extends BaseRealm {
      * @param object {@link io.realm.RealmObject} to copy or update.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
      * @throws java.lang.IllegalArgumentException if the object is {@code null} or it belongs to a Realm instance
-     * in a different thread.
+     *         in a different thread.
      * @see #copyToRealm(RealmObject)
      */
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
@@ -855,7 +866,8 @@ public final class Realm extends BaseRealm {
      * changes made by other threads.
      *
      * @param realmObjects RealmObjects to copy.
-     * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
+     * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is
+     *                 {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the RealmObjects.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
@@ -885,9 +897,9 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      *
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmObject)},
-     * but all fields will be overridden, not just those that were changed. This includes references to other objects,
-     * and can potentially override changes made by other threads.
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(RealmObject)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects, and can potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy
      * @param <E> type of object.
@@ -906,13 +918,14 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      *
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmObject)},
-     * but all fields will be overridden, not just those that were changed. This includes references to other objects
-     * even though they might be {@code null} due to {@code maxDepth} being reached. This can also potentially override
-     * changes made by other threads.
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(RealmObject)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
+     * reached. This can also potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy
-     * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
+     * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is
+     * {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
@@ -1065,10 +1078,10 @@ public final class Realm extends BaseRealm {
      * @param clazz the Class to get objects of.
      * @param fieldName the field name.
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     * query completes.
+     *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     *         query completes.
      * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     *         is not indexed, or points to linked fields.
      */
     public <E extends RealmObject> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
         checkIfValid();
@@ -1086,7 +1099,7 @@ public final class Realm extends BaseRealm {
      * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
      * @return a non-null {@link RealmResults} containing the distinct objects.
      * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     * is an unsupported type, or points to a linked field.
+     *         is an unsupported type, or points to a linked field.
      */
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String firstFieldName, String... remainingFieldNames) {
         checkIfValid();
@@ -1126,8 +1139,12 @@ public final class Realm extends BaseRealm {
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param callback optional, to receive the result of this query.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
-     * @deprecated replaced by {@link #executeTransactionAsync(Transaction)}, {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess)}, {@link #executeTransactionAsync(Transaction, io.realm.Realm.Transaction.OnError)} and {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess, Transaction.OnError)}.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     *         another thread.
+     * @deprecated replaced by {@link #executeTransactionAsync(Transaction)},
+     * {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess)},
+     * {@link #executeTransactionAsync(Transaction, io.realm.Realm.Transaction.OnError)} and
+     * {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess, Transaction.OnError)}.
      */
     @Deprecated
     public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
@@ -1219,7 +1236,8 @@ public final class Realm extends BaseRealm {
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     *                                  another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {
         return executeTransactionAsync(transaction, null, null);
@@ -1231,7 +1249,8 @@ public final class Realm extends BaseRealm {
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param onSuccess callback invoked when the transaction succeeds.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     *                                  another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess) {
         if (onSuccess == null) {
@@ -1247,7 +1266,8 @@ public final class Realm extends BaseRealm {
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param onError callback invoked when the transaction failed.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     *                                  another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnError onError) {
         if (onError == null) {
@@ -1264,7 +1284,8 @@ public final class Realm extends BaseRealm {
      * @param onSuccess callback invoked when the transaction succeeds.
      * @param onError callback invoked when the transaction failed.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     *                                  another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess, final Realm.Transaction.OnError onError) {
         checkIfValid();
@@ -1449,7 +1470,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the latest
+     * Manually triggers the migration associated with a given RealmConfiguration. If Realm is already at the latest
      * version, nothing will happen.
      *
      * @param configuration {@link RealmConfiguration}
@@ -1460,7 +1481,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Manually trigger a migration on a RealmMigration.
+     * Manually triggers a migration on a RealmMigration.
      *
      * @param configuration the{@link RealmConfiguration}.
      * @param migration the {@link RealmMigration} to run on the Realm. This will override any migration set on the
@@ -1499,7 +1520,7 @@ public final class Realm extends BaseRealm {
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
      * @throws IllegalArgumentException if the realm file is encrypted. Compacting an encrypted Realm file is not
-     * supported yet.
+     *                                  supported yet.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);

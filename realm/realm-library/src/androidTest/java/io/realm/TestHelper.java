@@ -33,7 +33,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,8 +42,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
@@ -643,6 +643,15 @@ public class TestHelper {
         DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
         object3.setLong(AllTypes.FIELD_LONG, 4);
         object3.setString(AllTypes.FIELD_STRING, "Adam");
+        realm.commitTransaction();
+    }
+
+    public static void populateSimpleAllTypesPrimaryKey(Realm realm) {
+        realm.beginTransaction();
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        obj.setColumnLong(1);
+        obj.setColumnString("Foo");
+        realm.copyToRealm(obj);
         realm.commitTransaction();
     }
 

@@ -18,6 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:textColor="@android:color/darker_gray"/>
 
@@ -26,8 +27,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:textColor="@android:color/holo_green_dark"/>
+        android:textColor="@android:color/holo_green_dark"
+        tools:ignore="RelativeOverlap"/>
 
     <TextView
         android:id="@+id/details_text"
