@@ -41,7 +41,10 @@ import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsByte;
+import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -582,11 +585,11 @@ public class RealmMigrationTests {
         }
     }
 
-    // Not-setting older boxed type PrimaryKey field nullable to see if migration fails in order to support Realm Version 0.89+
+    // Not-setting older boxed type PrimaryKey field nullable to see if migration fails in order to support Realm version 0.89+
     @Test
     public void notSettingNullableToPrimaryKeyThrows() throws IOException {
         configFactory.copyRealmFromAssets(context, "default-notnullable-primarykey.realm", Realm.DEFAULT_REALM_NAME);
-        final Class[] classes = {PrimaryKeyAsBoxedByte.class, PrimaryKeyAsBoxedShort.class, PrimaryKeyAsBoxedInteger.class, PrimaryKeyAsBoxedLong.class, PrimaryKeyAsString.class};
+        final Class[] classes = {PrimaryKeyAsString.class, PrimaryKeyAsBoxedByte.class, PrimaryKeyAsBoxedShort.class, PrimaryKeyAsBoxedInteger.class, PrimaryKeyAsBoxedLong.class};
         for (final Class clazz : classes) {
             try {
                 RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
@@ -610,6 +613,33 @@ public class RealmMigrationTests {
                     assertEquals("@PrimaryKey field 'id' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.",
                             expected.getMessage());
                 }
+            }
+        }
+    }
+
+    // Migrate a nullable field containing null value to non-nullable PrimaryKey field throws Realm version 0.89+
+    @Test
+    public void migrating_nullableField_toward_notNullable_PrimaryKeyThrows() throws IOException {
+        configFactory.copyRealmFromAssets(context, "default-nullable-primarykey.realm", Realm.DEFAULT_REALM_NAME);
+        final Class[] classes = {PrimaryKeyAsByte.class, PrimaryKeyAsShort.class, PrimaryKeyAsInteger.class, PrimaryKeyAsLong.class};
+        for (final Class clazz : classes) {
+            try {
+                RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                        .schemaVersion(0)
+                        .schema(clazz)
+                        .migration(new RealmMigration() {
+                            @Override
+                            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                                // intentionally left empty to demonstrate incompatibilities between nullable/not-nullable PrimaryKeys.
+                            }
+                        })
+                        .build();
+                Realm realm = Realm.getInstance(realmConfig);
+                realm.close();
+                fail();
+            } catch (IllegalStateException expected) {
+                assertEquals("Field 'id' contains null value. Cannot convert objects with a null primary key value.",
+                        expected.getMessage());
             }
         }
     }
