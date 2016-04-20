@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.entities.pojo;
+package some.test;
 
 import io.realm.RealmModel;
+import io.realm.RealmObject;
+import io.realm.annotations.RealmClass;
 
-public class InvalidModelPojo implements RealmModel {
+// This is valid, although weird, you should either use composition or inheritance
+@RealmClass
+public class ValidModelRealmModel_ExtendingRealmObject extends RealmObject implements RealmModel {
     public String id;
 }

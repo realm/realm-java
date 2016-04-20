@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package some.test;
+package io.realm.entities.pojo;
 
+import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.annotations.RealmClass;
 
-// Invalid POJO, this uses the annotation but doesn't implements the RealmModel interface
 @RealmClass
-public class InvalidModelPojo_1 {
-    public String id;
+public class RealmModelWithRealmListOfRealmModel implements RealmModel {
+    private RealmList<AllTypesRealmModel> columnRealmList;
+
+    public RealmList<AllTypesRealmModel> getColumnRealmList() {
+        return columnRealmList;
+    }
+
+    public void setColumnRealmList(RealmList<AllTypesRealmModel> columnRealmList) {
+        this.columnRealmList = columnRealmList;
+    }
 }

@@ -28,7 +28,7 @@ import io.realm.RealmModel;
  *
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
-public interface RealmObjectProxy extends RealmModel {
+ interface RealmObjectProxy extends RealmModel {
 
     BaseRealm getRealm$realm();
     void setRealm$realm(BaseRealm realm);

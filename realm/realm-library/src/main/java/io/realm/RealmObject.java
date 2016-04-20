@@ -83,7 +83,7 @@ public abstract class RealmObject implements RealmModel {
     /**
      * DEPRECATED: Use {@link #deleteFromRealm()} instead.
      * 
-     * Removes the object from the Realm it is currently associated to.
+     * Removes the object from the Realm it is currently associated with.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
      * fail with an IllegalStateException.
@@ -111,7 +111,7 @@ public abstract class RealmObject implements RealmModel {
     }
     
     /**
-     * Deletes the object from the Realm it is currently associated to.
+     * Deletes the object from the Realm it is currently associated with.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
      * fail with an IllegalStateException.
@@ -350,14 +350,14 @@ public abstract class RealmObject implements RealmModel {
 
     /**
      * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
-     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
+     * subscribed to. Object updates will continuously be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
      *
      * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      *
      * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
-     * only emit only the first item by using the {@code first()} operator:
+     * emit only the first item by using the {@code first()} operator:
      *
      * <pre>
      * {@code

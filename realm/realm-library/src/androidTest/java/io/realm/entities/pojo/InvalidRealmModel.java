@@ -16,17 +16,8 @@
 
 package io.realm.entities.pojo;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 
-public class RealmObjectWithRealmListOfPojo extends RealmObject {
-    private RealmList<AllTypesPojo> columnRealmList;
-
-    public RealmList<AllTypesPojo> getColumnRealmList() {
-        return columnRealmList;
-    }
-
-    public void setColumnRealmList(RealmList<AllTypesPojo> columnRealmList) {
-        this.columnRealmList = columnRealmList;
-    }
+public class InvalidRealmModel implements RealmModel {
+    public String id;
 }

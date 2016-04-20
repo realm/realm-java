@@ -31,11 +31,11 @@ import java.io.IOException;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.pojo.AllTypesPojo;
-import io.realm.entities.pojo.InvalidModelPojo;
-import io.realm.entities.pojo.PojoWithRealmListOfPojo;
+import io.realm.entities.pojo.AllTypesRealmModel;
+import io.realm.entities.pojo.InvalidRealmModel;
+import io.realm.entities.pojo.RealmModelWithRealmListOfRealmModel;
 import io.realm.entities.pojo.PojoWithRealmListOfRealmObject;
-import io.realm.entities.pojo.RealmObjectWithRealmListOfPojo;
+import io.realm.entities.pojo.RealmObjectWithRealmListOfRealmModel;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -45,8 +45,10 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+// tests API methods when using a model class implementing RealmModel instead
+// of extending RealmObject.
 @RunWith(AndroidJUnit4.class)
-public class RealmModelPojoTests {
+public class RealmModelTests {
     private final static int TEST_DATA_SIZE = 10;
 
     private Context context;
@@ -76,9 +78,9 @@ public class RealmModelPojoTests {
 
     private void populateTestRealm(Realm realm, int objects) {
         realm.beginTransaction();
-        realm.allObjects(AllTypesPojo.class).deleteAllFromRealm();
+        realm.delete(AllTypesRealmModel.class);
         for (int i = 0; i < objects; ++i) {
-            AllTypesPojo allTypes = new AllTypesPojo();
+            AllTypesRealmModel allTypes = new AllTypesRealmModel();
             allTypes.columnLong = i;
             allTypes.columnBoolean = (i % 3) == 0;
             allTypes.columnBinary = new byte[]{1, 2, 3};
@@ -97,19 +99,19 @@ public class RealmModelPojoTests {
         for (int i = 1; i < 43; i++) { // using i = 0 as PK will crash subsequent createObject
                                        // since createObject uses default values
             realm.beginTransaction();
-            AllTypesPojo allTypesPojo = realm.createObject(AllTypesPojo.class);
-            allTypesPojo.columnLong = i;
+            AllTypesRealmModel allTypesRealmModel = realm.createObject(AllTypesRealmModel.class);
+            allTypesRealmModel.columnLong = i;
             realm.commitTransaction();
         }
 
-        RealmResults<AllTypesPojo> resultList = realm.allObjects(AllTypesPojo.class);
+        RealmResults<AllTypesRealmModel> resultList = realm.allObjects(AllTypesRealmModel.class);
         assertEquals("Realm.get is returning wrong result set", 42, resultList.size());
     }
 
     @Test
     public void copyToRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
-        RealmResults<AllTypesPojo> resultList = realm.allObjects(AllTypesPojo.class);
+        RealmResults<AllTypesRealmModel> resultList = realm.allObjects(AllTypesRealmModel.class);
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
@@ -118,8 +120,8 @@ public class RealmModelPojoTests {
     public void copyFromRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        AllTypesPojo realmObject = realm.where(AllTypesPojo.class).findAllSorted(AllTypesPojo.FIELD_LONG).first();
-        AllTypesPojo standaloneObject = realm.copyFromRealm(realmObject);
+        AllTypesRealmModel realmObject = realm.where(AllTypesRealmModel.class).findAllSorted(AllTypesRealmModel.FIELD_LONG).first();
+        AllTypesRealmModel standaloneObject = realm.copyFromRealm(realmObject);
         assertArrayEquals(realmObject.columnBinary, standaloneObject.columnBinary);
         assertEquals(realmObject.columnString, standaloneObject.columnString);
         assertEquals(realmObject.columnLong, standaloneObject.columnLong);
@@ -136,31 +138,31 @@ public class RealmModelPojoTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                AllTypesPojo obj = new AllTypesPojo();
+                AllTypesRealmModel obj = new AllTypesRealmModel();
                 obj.columnLong = 1;
                 realm.copyToRealm(obj);
 
-                AllTypesPojo obj2 = new AllTypesPojo();
+                AllTypesRealmModel obj2 = new AllTypesRealmModel();
                 obj2.columnLong = 1;
                 obj2.columnString = "Foo";
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
 
-        assertEquals(1, realm.allObjects(AllTypesPojo.class).size());
+        assertEquals(1, realm.allObjects(AllTypesRealmModel.class).size());
 
-        AllTypesPojo obj = realm.allObjects(AllTypesPojo.class).first();
+        AllTypesRealmModel obj = realm.allObjects(AllTypesRealmModel.class).first();
         assertEquals("Foo", obj.columnString);
     }
 
     @Test
     public void createOrUpdateAllFromJson() throws IOException {
         realm.beginTransaction();
-        realm.createOrUpdateAllFromJson(AllTypesPojo.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
+        realm.createOrUpdateAllFromJson(AllTypesRealmModel.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
         realm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(AllTypesPojo.class).size());
-        AllTypesPojo obj = realm.allObjects(AllTypesPojo.class).first();
+        assertEquals(1, realm.allObjects(AllTypesRealmModel.class).size());
+        AllTypesRealmModel obj = realm.allObjects(AllTypesRealmModel.class).first();
         assertEquals("Bar", obj.columnString);
         assertEquals(2.23F, obj.columnFloat, 0.000000001);
         assertEquals(2.234D, obj.columnDouble, 0.000000001);
@@ -177,7 +179,7 @@ public class RealmModelPojoTests {
     public void query() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        assertEquals(5, realm.where(AllTypesPojo.class).greaterThanOrEqualTo(AllTypesPojo.FIELD_DOUBLE, 8.1415).count());
+        assertEquals(5, realm.where(AllTypesRealmModel.class).greaterThanOrEqualTo(AllTypesRealmModel.FIELD_DOUBLE, 8.1415).count());
     }
 
     // async where with filed selection
@@ -186,11 +188,11 @@ public class RealmModelPojoTests {
     public void async_query() {
         populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
 
-        final RealmResults<AllTypesPojo> allTypesPojos = looperThread.realm.distinctAsync(AllTypesPojo.class, AllTypesPojo.FIELD_STRING);
-        allTypesPojos.addChangeListener(new RealmChangeListener() {
+        final RealmResults<AllTypesRealmModel> allTypesRealmModels = looperThread.realm.distinctAsync(AllTypesRealmModel.class, AllTypesRealmModel.FIELD_STRING);
+        allTypesRealmModels.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(1, allTypesPojos.size());
+                assertEquals(1, allTypesRealmModels.size());
                 looperThread.testComplete();
             }
         });
@@ -200,16 +202,16 @@ public class RealmModelPojoTests {
     public void dynamicObject() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        AllTypesPojo typedObj = realm.allObjects(AllTypesPojo.class).first();
+        AllTypesRealmModel typedObj = realm.allObjects(AllTypesRealmModel.class).first();
         DynamicRealmObject dObj = new DynamicRealmObject(typedObj);
 
         realm.beginTransaction();
-        dObj.setLong(AllTypesPojo.FIELD_LONG, 42L);
-        assertEquals(42, dObj.getLong(AllTypesPojo.FIELD_LONG));
+        dObj.setLong(AllTypesRealmModel.FIELD_LONG, 42L);
+        assertEquals(42, dObj.getLong(AllTypesRealmModel.FIELD_LONG));
         assertEquals(42, typedObj.columnLong);
 
-        dObj.setBlob(AllTypesPojo.FIELD_BINARY, new byte[]{1, 2, 3});
-        Assert.assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBlob(AllTypesPojo.FIELD_BINARY));
+        dObj.setBlob(AllTypesRealmModel.FIELD_BINARY, new byte[]{1, 2, 3});
+        Assert.assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBlob(AllTypesRealmModel.FIELD_BINARY));
         Assert.assertArrayEquals(new byte[]{1, 2, 3}, typedObj.columnBinary);
         realm.cancelTransaction();
     }
@@ -221,12 +223,11 @@ public class RealmModelPojoTests {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
 
         dynamicRealm.beginTransaction();
-        DynamicRealmObject dog = dynamicRealm.createObject(AllTypesPojo.CLASS_NAME, 42);
-        assertEquals(42, dog.getLong(AllTypesPojo.FIELD_LONG));
+        DynamicRealmObject dog = dynamicRealm.createObject(AllTypesRealmModel.CLASS_NAME, 42);
+        assertEquals(42, dog.getLong(AllTypesRealmModel.FIELD_LONG));
         dynamicRealm.commitTransaction();
 
-
-        RealmResults<DynamicRealmObject> allAsync = dynamicRealm.where(AllTypesPojo.CLASS_NAME).equalTo(AllTypesPojo.FIELD_LONG, 42).findAll();
+        RealmResults<DynamicRealmObject> allAsync = dynamicRealm.where(AllTypesRealmModel.CLASS_NAME).equalTo(AllTypesRealmModel.FIELD_LONG, 42).findAll();
         allAsync.load();
         assertTrue(allAsync.isLoaded());
         assertEquals(1, allAsync.size());
@@ -235,11 +236,11 @@ public class RealmModelPojoTests {
         allAsync.deleteAllFromRealm();
         dynamicRealm.commitTransaction();
 
-        RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypesPojo.CLASS_NAME).findAll();
+        RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypesRealmModel.CLASS_NAME).findAll();
         assertEquals(TEST_DATA_SIZE, results.size());
         for (int i = 0; i < TEST_DATA_SIZE; i++) {
-            assertEquals(3.1415 + i, results.get(i).getDouble(AllTypesPojo.FIELD_DOUBLE), 0.0000001);
-            assertEquals((i % 3) == 0, results.get(i).getBoolean(AllTypesPojo.FIELD_BOOLEAN));
+            assertEquals(3.1415 + i, results.get(i).getDouble(AllTypesRealmModel.FIELD_DOUBLE), 0.0000001);
+            assertEquals((i % 3) == 0, results.get(i).getBoolean(AllTypesRealmModel.FIELD_BOOLEAN));
         }
         dynamicRealm.close();
         looperThread.testComplete();
@@ -247,11 +248,11 @@ public class RealmModelPojoTests {
 
     // exception expected when using in schema model not annotated
     // a valid model need to implement the interface RealmModel and annotate the class with @RealmClass
-    // we expect in this test a runtime exception 'InvalidModelPojo is not part of the schema for this Realm.'
+    // we expect in this test a runtime exception 'InvalidRealmModel is not part of the schema for this Realm.'
     @Test(expected = RealmException.class)
     public void invalidModelDefinition() {
         realm.beginTransaction();
-        realm.createObject(InvalidModelPojo.class);
+        realm.createObject(InvalidRealmModel.class);
         realm.commitTransaction();
     }
 
@@ -259,26 +260,26 @@ public class RealmModelPojoTests {
     // of other RealmModel, in managed and un-managed mode
     @Test
     public void pojoWithRealmListOfPojo() {
-        RealmList<AllTypesPojo> allTypesPojos = new RealmList<AllTypesPojo>();
-        AllTypesPojo allTypePojo;
+        RealmList<AllTypesRealmModel> allTypesRealmModels = new RealmList<AllTypesRealmModel>();
+        AllTypesRealmModel allTypePojo;
         for (int i = 0; i < 10; i++) {
-            allTypePojo = new AllTypesPojo();
+            allTypePojo = new AllTypesRealmModel();
             allTypePojo.columnLong = i;
-            allTypesPojos.add(allTypePojo);
+            allTypesRealmModels.add(allTypePojo);
         }
-        AllTypesPojo pojo1 = allTypesPojos.get(1);
+        AllTypesRealmModel pojo1 = allTypesRealmModels.get(1);
         assertEquals(1, pojo1.columnLong);
-        allTypesPojos.move(1, 0);
-        assertEquals(0, allTypesPojos.indexOf(pojo1));
+        allTypesRealmModels.move(1, 0);
+        assertEquals(0, allTypesRealmModels.indexOf(pojo1));
 
-        PojoWithRealmListOfPojo model = new PojoWithRealmListOfPojo();
-        model.setColumnRealmList(allTypesPojos);
+        RealmModelWithRealmListOfRealmModel model = new RealmModelWithRealmListOfRealmModel();
+        model.setColumnRealmList(allTypesRealmModels);
 
         realm.beginTransaction();
         realm.copyToRealm(model);
         realm.commitTransaction();
 
-        RealmResults<PojoWithRealmListOfPojo> all = realm.where(PojoWithRealmListOfPojo.class).findAll();
+        RealmResults<RealmModelWithRealmListOfRealmModel> all = realm.where(RealmModelWithRealmListOfRealmModel.class).findAll();
         assertEquals(1, all.size());
         assertEquals(10, all.first().getColumnRealmList().size());
         assertEquals(1, all.first().getColumnRealmList().first().columnLong);
@@ -317,26 +318,26 @@ public class RealmModelPojoTests {
     // of RealmModel, in managed and un-managed mode
     @Test
     public void realmObjectWithRealmListOfPojo() {
-        RealmList<AllTypesPojo> allTypesPojo = new RealmList<AllTypesPojo>();
-        AllTypesPojo allTypePojo;
+        RealmList<AllTypesRealmModel> allTypesRealmModel = new RealmList<AllTypesRealmModel>();
+        AllTypesRealmModel allTypePojo;
         for (int i = 0; i < 10; i++) {
-            allTypePojo = new AllTypesPojo();
+            allTypePojo = new AllTypesRealmModel();
             allTypePojo.columnLong = i;
-            allTypesPojo.add(allTypePojo);
+            allTypesRealmModel.add(allTypePojo);
         }
-        AllTypesPojo pojo1 = allTypesPojo.get(1);
+        AllTypesRealmModel pojo1 = allTypesRealmModel.get(1);
         assertEquals(1, pojo1.columnLong);
-        allTypesPojo.move(1, 0);
-        assertEquals(0, allTypesPojo.indexOf(pojo1));
+        allTypesRealmModel.move(1, 0);
+        assertEquals(0, allTypesRealmModel.indexOf(pojo1));
 
-        RealmObjectWithRealmListOfPojo model = new RealmObjectWithRealmListOfPojo();
-        model.setColumnRealmList(allTypesPojo);
+        RealmObjectWithRealmListOfRealmModel model = new RealmObjectWithRealmListOfRealmModel();
+        model.setColumnRealmList(allTypesRealmModel);
 
         realm.beginTransaction();
         realm.copyToRealm(model);
         realm.commitTransaction();
 
-        RealmResults<RealmObjectWithRealmListOfPojo> all = realm.where(RealmObjectWithRealmListOfPojo.class).findAll();
+        RealmResults<RealmObjectWithRealmListOfRealmModel> all = realm.where(RealmObjectWithRealmListOfRealmModel.class).findAll();
         assertEquals(1, all.size());
         assertEquals(10, all.first().getColumnRealmList().size());
         assertEquals(1, all.first().getColumnRealmList().first().columnLong);

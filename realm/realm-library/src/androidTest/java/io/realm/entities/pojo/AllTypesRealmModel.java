@@ -26,8 +26,8 @@ import io.realm.annotations.RealmClass;
 import io.realm.entities.Dog;
 
 @RealmClass
-public class AllTypesPojo implements RealmModel {
-    public static final String CLASS_NAME = "AllTypesPojo";
+public class AllTypesRealmModel implements RealmModel {
+    public static final String CLASS_NAME = "AllTypesRealmModel";
     public static final String FIELD_LONG = "columnLong";
     public static final String FIELD_DOUBLE = "columnDouble";
     public static final String FIELD_STRING = "columnString";

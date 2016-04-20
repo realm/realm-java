@@ -19,6 +19,6 @@ package some.test;
 import io.realm.RealmModel;
 import io.realm.annotations.RealmClass;
 // it's not allowed to extend from another RealmObject
-public class InvalidModelPojo_2 extends Booleans {
+public class InvalidModelRealmModel_2 extends Booleans {
     public String id;
 }

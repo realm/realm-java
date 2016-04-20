@@ -36,7 +36,7 @@ import io.realm.annotations.RealmClass;
  * }
  * </pre>
  *
- * Note: Object implementing this interface need also to be annotated with {@link RealmClass}, so the annotation
+ * Note: Object implementing this interface needs also to be annotated with {@link RealmClass}, so the annotation
  * processor can generate the underlining proxy class.
  *
  * @see RealmObject

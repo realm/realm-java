@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package some.test;
+package io.realm.entities.pojo;
 
-import io.realm.RealmModel;
+import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
 
-// This is valid, although weird, you should either use composition or inheritance
-@RealmClass
-public class ValidModelPojo_ExtendingRealmObject extends RealmObject implements RealmModel {
-    public String id;
+public class RealmObjectWithRealmListOfRealmModel extends RealmObject {
+    private RealmList<AllTypesRealmModel> columnRealmList;
+
+    public RealmList<AllTypesRealmModel> getColumnRealmList() {
+        return columnRealmList;
+    }
+
+    public void setColumnRealmList(RealmList<AllTypesRealmModel> columnRealmList) {
+        this.columnRealmList = columnRealmList;
+    }
 }

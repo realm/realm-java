@@ -49,10 +49,10 @@ public class RealmProcessorTest {
     private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
     private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
     private JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
-    private JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelPojo_1.java");
-    private JavaFileObject invalidRealmModelModel_2 = JavaFileObjects.forResource("some/test/InvalidModelPojo_2.java");
-    private JavaFileObject invalidRealmModelModel_3 = JavaFileObjects.forResource("some/test/InvalidModelPojo_3.java");
-    private JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelPojo_ExtendingRealmObject.java");
+    private JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_1.java");
+    private JavaFileObject invalidRealmModelModel_2 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_2.java");
+    private JavaFileObject invalidRealmModelModel_3 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_3.java");
+    private JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelRealmModel_ExtendingRealmObject.java");
     private JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
 
     @Test
