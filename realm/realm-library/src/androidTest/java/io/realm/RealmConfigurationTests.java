@@ -258,23 +258,23 @@ public class RealmConfigurationTests {
     public void setModules_nonRealmModulesThrows() {
         // Test first argument
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).setModules(new Object());
+            new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Test second argument
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).setModules(Realm.getDefaultModule(), new Object());
+            new RealmConfiguration.Builder(configFactory.getRoot()).modules(Realm.getDefaultModule(), new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void setModules() {
+    public void modules() {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(Realm.getDefaultModule(), (Object) null).build();
+                .modules(Realm.getDefaultModule(), (Object) null).build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
     }
@@ -381,11 +381,11 @@ public class RealmConfigurationTests {
     @Test
     public void equals_withCustomModules() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule(), new AnimalModule())
+                .modules(new HumanModule(), new AnimalModule())
                 .build();
 
         RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new AnimalModule(), new HumanModule())
+                .modules(new AnimalModule(), new HumanModule())
                 .build();
 
         assertTrue(config1.equals(config2));
@@ -394,10 +394,10 @@ public class RealmConfigurationTests {
     @Test
     public void hashCode_withCustomModules() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule(), new AnimalModule())
+                .modules(new HumanModule(), new AnimalModule())
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new AnimalModule(), new HumanModule())
+                .modules(new AnimalModule(), new HumanModule())
                 .build();
 
         assertEquals(config1.hashCode(), config2.hashCode());
@@ -558,7 +558,7 @@ public class RealmConfigurationTests {
     @Test
     public void modelClasses_forGeneratedMediator() throws Exception {
         final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule()).build();
+                .modules(new HumanModule()).build();
         assertTrue(config.getSchemaMediator() instanceof HumanModuleMediator);
 
         final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
@@ -578,7 +578,7 @@ public class RealmConfigurationTests {
     @Test
     public void modelClasses_forCompositeMediator() throws Exception {
         final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule(), new AnimalModule()).build();
+                .modules(new HumanModule(), new AnimalModule()).build();
         assertTrue(config.getSchemaMediator() instanceof CompositeMediator);
 
         final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();

@@ -2,6 +2,7 @@
 
 ### Deprecated
 
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 * `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
 
 ### Enhancements
