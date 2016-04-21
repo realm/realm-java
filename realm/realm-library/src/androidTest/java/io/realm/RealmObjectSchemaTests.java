@@ -318,7 +318,17 @@ public class RealmObjectSchemaTests {
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.isPrimaryKey(fieldName));
-            assertFalse(schema.isNullable(fieldName));
+            switch (fieldType) {
+                case BYTE:
+                case SHORT:
+                case INT:
+                case LONG:
+                case STRING:
+                    assertTrue(schema.isNullable(fieldName));
+                    break;
+                default:
+                    assertFalse(schema.isNullable(fieldName));
+            }
             schema.removeField(fieldName);
         }
     }
