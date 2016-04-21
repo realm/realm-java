@@ -14,6 +14,7 @@
 
 ### Enhancements
 
+* Added a RealmModel interface that can be used instead of extending RealmObject.
 * RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
 * RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
 * RealmObjectSchema.isPrimaryKey(String) (#2440)
@@ -21,7 +22,7 @@
 
 ### Bug fixes
 
-* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the give field name doesn't exist.
+* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the given field name doesn't exist.
 
 ### Credits
 
@@ -104,6 +105,7 @@
 
 ### Bug fixes
 
+* Error occurring during test and (#2025).
 * Error occurring during test and connectedCheck of unit test example (#1934).
 * Bug in jsonExample (#2092).
 * Multiple calls of RealmResults.distinct() causes to return wrong results (#2198).

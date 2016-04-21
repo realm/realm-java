@@ -54,6 +54,9 @@ task assembleRealm(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['assemble', 'javadocJar', 'sourcesJar']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task check(type:GradleBuild) {
@@ -61,6 +64,9 @@ task check(type:GradleBuild) {
     description = 'Run the JVM tests and checks Realm project'
     buildFile = file('realm/build.gradle')
     tasks = ['check']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task connectedCheck(type:GradleBuild) {
@@ -69,6 +75,9 @@ task connectedCheck(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['connectedCheck']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task installRealm(type:GradleBuild) {
@@ -77,6 +86,9 @@ task installRealm(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['install']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task assembleGradlePlugin(type:GradleBuild) {
@@ -127,6 +139,9 @@ task javadoc(type:GradleBuild) {
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['javadocJar']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task sourcesJar(type:GradleBuild) {
@@ -134,6 +149,9 @@ task sourcesJar(type:GradleBuild) {
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['sourcesJar']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task assemble {
@@ -179,8 +197,11 @@ task cleanRealm(type:GradleBuild) {
     group = 'Clean'
     buildFile = file('realm/build.gradle')
     tasks = ['clean']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
     if (project.hasProperty('dontCleanJniFiles')) {
-        startParameter.projectProperties = [dontCleanJniFiles: ""]
+        startParameter.projectProperties += [dontCleanJniFiles: project.getProperty('dontCleanJniFiles')]
     }
 }
 
@@ -256,6 +277,9 @@ task bintrayRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['bintrayUpload']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task bintrayAnnotations(type: GradleBuild) {
@@ -293,6 +317,9 @@ task ojoRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['artifactoryPublish']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task ojoAnnotations(type: GradleBuild) {

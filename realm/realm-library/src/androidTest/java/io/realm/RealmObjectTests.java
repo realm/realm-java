@@ -44,6 +44,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.Thread;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
@@ -100,8 +101,8 @@ public class RealmObjectTests {
     @Test
     public void row_isValid() {
         realm.beginTransaction();
-        RealmObject realmObject = realm.createObject(AllTypes.class);
-        Row row = realmObject.row;
+        RealmObjectProxy realmObject = (RealmObjectProxy) realm.createObject(AllTypes.class);
+        Row row = realmObject.realmGet$proxyState().getRow$realm();
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
@@ -223,7 +224,7 @@ public class RealmObjectTests {
         try {
             dog.deleteFromRealm();
             fail("Failed on deleting a RealmObject from null Row.");
-        } catch (IllegalStateException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

@@ -155,7 +155,7 @@ public class RealmConfiguration {
      *
      * @return unmodifiable {@link Set} of model classes.
      */
-    public Set<Class<? extends RealmObject>> getRealmObjectClasses() {
+    public Set<Class<? extends RealmModel>> getRealmObjectClasses() {
         return schemaMediator.getModelClasses();
     }
 
@@ -221,7 +221,7 @@ public class RealmConfiguration {
     private RealmProxyMediator createSchemaMediator(Builder builder) {
 
         Set<Object> modules = builder.modules;
-        Set<Class<? extends RealmObject>> debugSchema = builder.debugSchema;
+        Set<Class<? extends RealmModel>> debugSchema = builder.debugSchema;
 
         // If using debug schema, use special mediator
         if (debugSchema.size() > 0) {
@@ -320,7 +320,7 @@ public class RealmConfiguration {
         private boolean deleteRealmIfMigrationNeeded;
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
-        private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
+        private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -518,7 +518,7 @@ public class RealmConfiguration {
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
          */
-        Builder schema(Class<? extends RealmObject> firstClass, Class<? extends RealmObject>... additionalClasses) {
+        Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
             if (firstClass == null) {
                 throw new IllegalArgumentException("A non-null class must be provided");
             }

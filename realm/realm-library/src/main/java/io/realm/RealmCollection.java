@@ -31,7 +31,7 @@ import java.util.Collections;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmObject> extends Collection<E> {
+public interface RealmCollection<E extends RealmModel> extends Collection<E> {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.

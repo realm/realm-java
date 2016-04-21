@@ -36,6 +36,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -656,10 +657,10 @@ public class RealmListTests extends CollectionTests {
     public void toString_managedMode() {
         StringBuilder sb = new StringBuilder("Dog@[");
         for (int i = 0; i < collection.size() - 1; i++) {
-            sb.append(collection.get(i).row.getIndex());
+            sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getIndex());
             sb.append(",");
         }
-        sb.append(collection.get(TEST_SIZE - 1).row.getIndex());
+        sb.append(((RealmObjectProxy)collection.get(TEST_SIZE - 1)).realmGet$proxyState().getRow$realm().getIndex());
         sb.append("]");
 
         assertEquals(sb.toString(), collection.toString());
