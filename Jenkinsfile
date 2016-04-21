@@ -61,6 +61,7 @@ def collectAarMetrics() {
 { ->
     try {
         node('FastLinux') {
+           sh 'rm -rf *'
            unstash 'java'
 
            stage 'JVM tests'
