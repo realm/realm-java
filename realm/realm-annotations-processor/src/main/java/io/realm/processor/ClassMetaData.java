@@ -94,7 +94,6 @@ public class ClassMetaData {
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
     public boolean generate() {
-
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
         if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
@@ -103,9 +102,9 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        if (!parentElement.toString().endsWith(".RealmObject")) {
-            Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
-            return false;
+        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject")) {
+                Utils.error("Realm model classes must either extend RealmObject or implement RealmModel to be considered a valid model class", classType);
+                return false;
         }
 
         PackageElement packageElement = (PackageElement) enclosingElement;

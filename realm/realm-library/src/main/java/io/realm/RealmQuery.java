@@ -29,6 +29,7 @@ import java.util.concurrent.Future;
 
 import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
@@ -58,7 +59,7 @@ import io.realm.internal.log.RealmLog;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmObject> {
+public class RealmQuery<E extends RealmModel> {
 
     private BaseRealm realm;
     private Class<E> clazz;
@@ -80,7 +81,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmObject> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
+    public static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
         return new RealmQuery<E>(realm, clazz);
     }
 
@@ -92,7 +93,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmObject> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
+    public static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
         return new RealmQuery<E>(realm, className);
     }
 
@@ -105,7 +106,7 @@ public class RealmQuery<E extends RealmObject> {
      */
 
     @SuppressWarnings("unchecked")
-    public static <E extends RealmObject> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
+    public static <E extends RealmModel> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
         if (queryResults.classSpec != null) {
             return new RealmQuery<E>(queryResults, queryResults.classSpec);
         } else {
@@ -121,7 +122,7 @@ public class RealmQuery<E extends RealmObject> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends RealmObject> RealmQuery<E> createQueryFromList(RealmList<E> list) {
+    public static <E extends RealmModel> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         if (list.clazz != null) {
             return new RealmQuery(list.realm, list.view, list.clazz);
         } else {
@@ -1159,7 +1160,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+        final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1466,7 +1467,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+        final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1583,7 +1584,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults =
+        final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults =
                 realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
@@ -1757,7 +1758,7 @@ public class RealmQuery<E extends RealmObject> {
                 realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
             }
 
-            final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+            final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
             final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
                 @Override
@@ -1894,8 +1895,7 @@ public class RealmQuery<E extends RealmObject> {
         if (sourceRowIndex >= 0) {
             E realmObject = realm.get(clazz, className, sourceRowIndex);
             if (realm.handlerController != null) { // non Looper Thread doesn't have a handlerController
-                WeakReference<RealmObject> realmObjectWeakReference
-                        = new WeakReference<RealmObject>(realmObject, realm.handlerController.referenceQueueRealmObject);
+                WeakReference<RealmObjectProxy> realmObjectWeakReference = new WeakReference<RealmObjectProxy>((RealmObjectProxy) realmObject, realm.handlerController.referenceQueueRealmObject);
                 realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
             }
             return realmObject;
@@ -1937,9 +1937,10 @@ public class RealmQuery<E extends RealmObject> {
             result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getSchema().getColumnInfo(clazz));
         }
 
-        final WeakReference<RealmObject> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(result, this);
-        result.realm = realm;
-        result.row = Row.EMPTY_ROW;
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        final WeakReference<RealmObjectProxy> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
+        proxy.realmGet$proxyState().setRealm$realm(realm);
+        proxy.realmGet$proxyState().setRow$realm(Row.EMPTY_ROW);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1986,7 +1987,7 @@ public class RealmQuery<E extends RealmObject> {
                 return INVALID_NATIVE_POINTER;
             }
         });
-        result.setPendingQuery(pendingQuery);
+        proxy.realmGet$proxyState().setPendingQuery$realm(pendingQuery);
 
         return result;
     }
