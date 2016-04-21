@@ -162,7 +162,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *
      * @param type the column type.
      * @param name the field/column name.
-     * @param isNullable {@code true} if column can contain null values, {@ code false}e otherwise.
+     * @param isNullable {@code true} if column can contain null values, {@code false} otherwise.
      * @return the index of the new column.
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
@@ -365,7 +365,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
                         throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
                     }
                     break;
-
                 default:
                     throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
             }
@@ -384,38 +383,55 @@ public class Table implements TableOrView, TableSchema, Closeable {
         UncheckedRow row;
 
         // Add with primary key initially set
-        switch (type) {
-            case STRING:
-                if (!(primaryKeyValue instanceof String)) {
-                    throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
-                }
-                if (findFirstString(primaryKeyColumnIndex, (String)primaryKeyValue) != NO_MATCH) {
-                    throwDuplicatePrimaryKeyException(primaryKeyValue);
-                }
-                rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
-                row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
-                break;
+        if (primaryKeyValue == null) {
+            switch (type) {
+                case STRING:
+                case INTEGER:
+                    if (findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyException("null");
+                    }
+                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                    row = getUncheckedRow(rowIndex);
+                    row.setNull(primaryKeyColumnIndex);
+                    break;
 
-            case INTEGER:
-                long pkValue;
-                try {
-                    pkValue = Long.parseLong(primaryKeyValue.toString());
-                } catch (RuntimeException e) {
-                    throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
-                }
-                if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
-                    throwDuplicatePrimaryKeyException(pkValue);
-                }
-                rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
-                row.setLong(primaryKeyColumnIndex, pkValue);
-                break;
+                default:
+                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+            }
 
-            default:
-                throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+        } else {
+            switch (type) {
+                case STRING:
+                    if (!(primaryKeyValue instanceof String)) {
+                        throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
+                    }
+                    if (findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyException(primaryKeyValue);
+                    }
+                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                    row = getUncheckedRow(rowIndex);
+                    row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                    break;
+
+                case INTEGER:
+                    long pkValue;
+                    try {
+                        pkValue = Long.parseLong(primaryKeyValue.toString());
+                    } catch (RuntimeException e) {
+                        throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
+                    }
+                    if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyException(pkValue);
+                    }
+                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                    row = getUncheckedRow(rowIndex);
+                    row.setLong(primaryKeyColumnIndex, pkValue);
+                    break;
+
+                default:
+                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+            }
         }
-
         return rowIndex;
     }
 
@@ -479,9 +495,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeSetBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
             case INTEGER:
-                long intValue = ((Number) value).longValue();
-                checkIntValueIsLegal(columnIndex, rowIndex, intValue);
-                nativeSetLong(nativePtr, columnIndex, rowIndex, intValue);
+                if (value == null) {
+                    checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+                    nativeSetNull(nativePtr, columnIndex, rowIndex);
+                } else {
+                    long intValue = ((Number) value).longValue();
+                    checkIntValueIsLegal(columnIndex, rowIndex, intValue);
+                    nativeSetLong(nativePtr, columnIndex, rowIndex, intValue);
+                }
                 break;
             case FLOAT:
                 nativeSetFloat(nativePtr, columnIndex, rowIndex, (Float) value);
@@ -490,9 +511,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeSetDouble(nativePtr, columnIndex, rowIndex, (Double) value);
                 break;
             case STRING:
-                String stringValue = (String) value;
-                checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
-                nativeSetString(nativePtr, columnIndex, rowIndex, (String) value);
+                if (value == null) {
+                    checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+                    nativeSetNull(nativePtr, columnIndex, rowIndex);
+                } else {
+                    String stringValue = (String) value;
+                    checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
+                    nativeSetString(nativePtr, columnIndex, rowIndex, (String) value);
+                }
                 break;
             case DATE:
                 if (value == null)
@@ -625,6 +651,25 @@ public class Table implements TableOrView, TableSchema, Closeable {
             long rowIndex = findFirstLong(columnIndex, value);
             if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
                 throwDuplicatePrimaryKeyException(value);
+            }
+        }
+    }
+
+    // check if it is ok to use null value for given row and column.
+    void checkDuplicatedNullForPrimaryKeyValue(long columnIndex, long rowToUpdate) {
+        if (isPrimaryKeyColumn(columnIndex)) {
+            RealmFieldType type = getColumnType(columnIndex);
+            switch (type) {
+                case STRING:
+                case INTEGER:
+                    long rowIndex = findFirstNull(columnIndex);
+                    if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+                        throwDuplicatePrimaryKeyException("null");
+                    }
+                    break;
+                default:
+                    // Since it is sufficient to check the existance of duplicated null values
+                    // on PrimaryKey in supported types only, this part is left empty.
             }
         }
     }
@@ -844,11 +889,23 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
+    /**
+     * Set a String value to a cell of Table, pointed by column and row index.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     * @param rowIndex 0 based index value of the cell row.
+     * @param value a String value to set in the cell.
+     */
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
-        checkStringValueIsLegal(columnIndex, rowIndex, value);
-        nativeSetString(nativePtr, columnIndex, rowIndex, value);
+        if (value == null) {
+            checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+            nativeSetNull(nativePtr, columnIndex, rowIndex);
+        } else {
+            checkStringValueIsLegal(columnIndex, rowIndex, value);
+            nativeSetString(nativePtr, columnIndex, rowIndex, value);
+        }
     }
 
     /**
@@ -1185,6 +1242,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeFindFirstString(nativePtr, columnIndex, value);
     }
 
+    /**
+     * Searches for first occurrence of null. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex the column to search in.
+     * @return the row index for the first match found or {@link #NO_MATCH}.
+     */
+    public long findFirstNull(long columnIndex) {
+        return nativeFindFirstNull(nativePtr, columnIndex);
+    }
+
     @Override
     public TableView findAllLong(long columnIndex, long value) {
         context.executeDelayedDisposal();
@@ -1427,6 +1494,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
     private native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
     private native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    private native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     private native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
     private native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
@@ -1462,6 +1530,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
     private native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
     private native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
+    private native long nativeFindFirstNull(long nativePtr, long columnIndex);
     private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);

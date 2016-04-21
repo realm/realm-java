@@ -329,13 +329,12 @@ public class ClassMetaData {
         return getGetter(primaryKey.getSimpleName().toString());
     }
 
+    /**
+     * Checks if a VariableElement is nullable.
+     *
+     * @return {@code true} if a VariableElement is nullable type, {@code false} otherwise.
+     */
     public boolean isNullable(VariableElement variableElement) {
-        // primary keys cannot be nullable
-        if (hasPrimaryKey()) {
-            if (variableElement.equals(getPrimaryKey())) {
-                return false;
-            }
-        }
         return nullableFields.contains(variableElement);
     }
 

@@ -63,7 +63,7 @@ public class JNITransactions {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
         Table t = trans.getTable("TestTable");
-        t.addColumn(RealmFieldType.STRING, "colName");
+        t.addColumn(RealmFieldType.STRING, "colName", true);
         t.setPrimaryKey("colName");
         return t;
     }
@@ -365,13 +365,10 @@ public class JNITransactions {
     }
 
     @Test
-    public void addEmptyRowWithPrimaryKeyNullStringThrows() {
+    public void addEmptyRowWithPrimaryKeyNullString() {
         Table t = getTableWithStringPrimaryKey();
-        try {
-            t.addEmptyRowWithPrimaryKey(null);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        t.addEmptyRowWithPrimaryKey(null);
+        assertEquals(1, t.size());
     }
 
     @Test
