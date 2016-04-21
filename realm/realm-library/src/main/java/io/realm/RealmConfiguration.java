@@ -458,6 +458,15 @@ public class RealmConfiguration {
         }
 
         /**
+         * DEPRECATED: Use {@link #modules(Object, Object...)} instead.
+         */
+        @Deprecated
+        public Builder setModules(Object baseModule, Object... additionalModules) {
+            modules(baseModule, additionalModules);
+            return this;
+        }
+
+        /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
          *
@@ -465,14 +474,14 @@ public class RealmConfiguration {
          * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
          * dependency is thus done using the following code:
          *
-         * {@code builder.setModules(Realm.getDefaultMode(), new MyLibraryModule()); }
+         * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
          *
          * @param baseModule the first Realm module (required).
          * @param additionalModules the additional Realm modules
          * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */
-        public Builder setModules(Object baseModule, Object... additionalModules) {
+        public Builder modules(Object baseModule, Object... additionalModules) {
             modules.clear();
             addModule(baseModule);
             if (additionalModules != null) {

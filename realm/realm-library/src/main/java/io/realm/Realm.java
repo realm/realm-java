@@ -1547,7 +1547,7 @@ public final class Realm extends BaseRealm {
      *
      * @return the default Realm module or null if no default module exists.
      * @throws RealmException if unable to create an instance of the module.
-     * @see io.realm.RealmConfiguration.Builder#setModules(Object, Object...)
+     * @see io.realm.RealmConfiguration.Builder#modules(Object, Object...)
      */
     public static Object getDefaultModule() {
         String moduleName = "io.realm.DefaultRealmModule";
