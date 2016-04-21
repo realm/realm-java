@@ -61,10 +61,7 @@ def collectAarMetrics() {
 { ->
     try {
         node('FastLinux') {
-           stage 'SCM'
-           checkout scm
-           sh 'git archive --format=zip -o java.zip HEAD'
-           stash includes: 'java.zip', name: 'java'
+           unstash 'java'
 
            stage 'JVM tests'
            sh 'chmod +x gradlew && ./gradlew assemble check javadoc --stacktrace'
