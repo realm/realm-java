@@ -162,6 +162,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         } else {
             nonManagedList.add(location, object);
         }
+        modCount++;
     }
 
     /**
@@ -190,6 +191,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         } else {
             nonManagedList.add(object);
         }
+        modCount++;
         return true;
     }
 
@@ -213,15 +215,17 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     @Override
     public E set(int location, E object) {
         checkValidObject(object);
+        E oldObject;
         if (managedMode) {
             checkValidView();
             object = copyToRealmIfNeeded(object);
-            E oldObject = get(location);
+            oldObject = get(location);
             view.set(location, object.row.getIndex());
             return oldObject;
         } else {
-            return nonManagedList.set(location, object);
+            oldObject = nonManagedList.set(location, object);
         }
+        return oldObject;
     }
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
@@ -307,6 +311,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         } else {
             nonManagedList.clear();
         }
+        modCount++;
     }
 
     /**
@@ -319,14 +324,16 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      */
     @Override
     public E remove(int location) {
+        E removedItem;
         if (managedMode) {
             checkValidView();
-            E removedItem = get(location);
+            removedItem = get(location);
             view.remove(location);
-            return removedItem;
         } else {
-            return nonManagedList.remove(location);
+            removedItem = nonManagedList.remove(location);
         }
+        modCount++;
+        return removedItem;
     }
 
     /**
@@ -351,7 +358,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-        return super.remove(object);
+        boolean success = super.remove(object);
+        if (success) {
+            modCount++;
+        }
+        return success;
     }
 
     /**
@@ -375,7 +386,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-        return super.removeAll(collection);
+        boolean success = super.removeAll(collection);
+        if (success) {
+            modCount++;
+        }
+        return success;
     }
 
     /**
@@ -386,6 +401,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             if (size() > 0) {
                 deleteFromRealm(0);
+                modCount++;
                 return true;
             } else {
                 return false;
@@ -403,6 +419,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             if (size() > 0) {
                 deleteFromRealm(size() - 1);
+                modCount++;
                 return true;
             } else {
                 return false;
@@ -515,6 +532,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             checkValidView();
             view.removeTargetRow(location);
+            modCount++;
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
@@ -634,6 +652,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             checkValidView();
             if (size() > 0) {
                 view.removeAllTargetRows();
+                modCount++;
                 return true;
             } else {
                 return false;

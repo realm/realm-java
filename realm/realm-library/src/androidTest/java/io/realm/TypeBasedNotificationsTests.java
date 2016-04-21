@@ -1396,7 +1396,7 @@ public class TypeBasedNotificationsTests {
         }.start();
         TestHelper.awaitOrFail(signalTestFinished);
     }
-    
+
     // Test modifying realmObjects in RealmObject's change listener
     @Test
     @RunTestInLooperThread

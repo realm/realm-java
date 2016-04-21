@@ -19,6 +19,8 @@ package io.realm;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 
+import junit.framework.AssertionFailedError;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +30,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -810,6 +814,115 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             assertEquals(CollectionClass.REALMRESULTS, collectionClass);
         } catch (IllegalStateException e) {
             assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+    }
+
+    @Test
+    public void iterator_outsideChangeToSizeThrowsConcurrentModification() {
+        if (skipTest(CollectionClass.REALMRESULTS)) {
+            return;
+        }
+
+        // Test all standard collection methods
+        for (CollectionMethod method : CollectionMethod.values()) {
+            collection = createCollection(realm, collectionClass, TEST_SIZE);
+            realm.beginTransaction();
+            Iterator<AllJavaTypes> it = collection.iterator();
+            switch (method) {
+                case ADD_OBJECT: collection.add(new AllJavaTypes(TEST_SIZE)); break;
+                case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes(TEST_SIZE))); break;
+                case CLEAR: collection.clear(); break;
+                case REMOVE_OBJECT: collection.remove(collection.get(0)); break;
+                case REMOVE_ALL: collection.removeAll(Collections.singletonList(collection.get(0))); break;
+                case RETAIN_ALL: collection.retainAll(Collections.singletonList(collection.get(0))); break;
+
+                // Does not impact size, so does not trigger ConcurrentModificationException
+                case CONTAINS:
+                case CONTAINS_ALL:
+                case EQUALS:
+                case HASHCODE:
+                case IS_EMPTY:
+                case ITERATOR:
+                case SIZE:
+                case TO_ARRAY:
+                case TO_ARRAY_INPUT:
+                    realm.cancelTransaction();
+                    continue;
+                default:
+                    fail("Unknown method: " + method);
+            }
+            checkIteratorThrowsConcurrentModification(realm, method.toString(), it);
+        }
+    }
+
+    @Test
+    public void iterator_outsideChangeToSizeThrowsConcurrentModification_managedCollection() {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        // Test all RealmCollection methods
+        for (RealmCollectionMethod method : RealmCollectionMethod.values()) {
+            collection = createCollection(realm, collectionClass, TEST_SIZE);
+            realm.beginTransaction();
+            collection.remove(0); // Remove object creating circular dependency which will crash deleteAll.
+            Iterator<AllJavaTypes> it = collection.iterator();
+            switch (method) {
+                case DELETE_ALL_FROM_REALM:
+                    collection.deleteAllFromRealm(); break;
+
+                // Does not impact size, so does not trigger ConcurrentModificationException
+                case WHERE:
+                case MIN:
+                case MAX:
+                case SUM:
+                case AVERAGE:
+                case MIN_DATE:
+                case MAX_DATE:
+                case IS_VALID:
+                    realm.cancelTransaction();
+                    continue;
+                default:
+                    fail("Unknown method: " + method);
+            }
+            checkIteratorThrowsConcurrentModification(realm, method.toString(), it);
+        }
+
+        // Test all OrderedRealmCollection methods
+        for (OrderedRealmCollectionMethod method : OrderedRealmCollectionMethod.values()) {
+            collection = createCollection(realm, collectionClass, TEST_SIZE);
+            realm.beginTransaction();
+            Iterator<AllJavaTypes> it = collection.iterator();
+            switch (method) {
+                case DELETE_INDEX: collection.deleteFromRealm(0); break;
+                case DELETE_FIRST: collection.deleteFirstFromRealm(); break;
+                case DELETE_LAST: collection.deleteLastFromRealm(); break;
+
+                // Does not impact size, so does not trigger ConcurrentModificationException
+                case SORT:
+                case SORT_FIELD:
+                case SORT_2FIELDS:
+                case SORT_MULTI:
+                    realm.cancelTransaction();
+                    continue;
+                default:
+                    fail("Unknown method: " + method);
+
+            }
+            checkIteratorThrowsConcurrentModification(realm, method.toString(), it);
+        }
+    }
+
+
+    private void checkIteratorThrowsConcurrentModification(Realm realm, String method, Iterator<AllJavaTypes> it) {
+        try {
+            it.next();
+            fail("Method should have thrown: " + method);
+        } catch (ConcurrentModificationException ignored) {
+        } catch (Exception e) {
+            throw new RuntimeException("Method failed: " + method, e);
+        } finally {
+            realm.cancelTransaction();
         }
     }
 
