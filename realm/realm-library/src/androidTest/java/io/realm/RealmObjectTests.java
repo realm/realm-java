@@ -276,7 +276,7 @@ public class RealmObjectTests {
         // Check that calling deleteFromRealm doesn't remove the object from the RealmResult
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            dogs.get(removeFromFront ? i : Math.abs(i - TEST_SIZE + 1)).deleteFromRealm();
+            dogs.get(removeFromFront ? i : TEST_SIZE - 1 - i).deleteFromRealm();
         }
         realm.commitTransaction();
 
