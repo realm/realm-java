@@ -358,11 +358,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-        boolean success = super.remove(object);
-        if (success) {
-            modCount++;
-        }
-        return success;
+        return super.remove(object);
     }
 
     /**
@@ -386,11 +382,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
-        boolean success = super.removeAll(collection);
-        if (success) {
-            modCount++;
-        }
-        return success;
+        return super.removeAll(collection);
     }
 
     /**

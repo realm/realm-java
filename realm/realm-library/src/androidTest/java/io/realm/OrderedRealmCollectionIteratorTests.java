@@ -19,8 +19,6 @@ package io.realm;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 
-import junit.framework.AssertionFailedError;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,7 +37,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.AllTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -850,6 +847,34 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case TO_ARRAY_INPUT:
                     realm.cancelTransaction();
                     continue;
+                default:
+                    fail("Unknown method: " + method);
+            }
+            checkIteratorThrowsConcurrentModification(realm, method.toString(), it);
+        }
+
+        for (ListMethod method : ListMethod.values()) {
+            collection = createCollection(realm, collectionClass, TEST_SIZE);
+            realm.beginTransaction();
+            Iterator<AllJavaTypes> it = collection.iterator();
+            switch (method) {
+                case ADD_INDEX: collection.add(0, new AllJavaTypes(TEST_SIZE)); break;
+                case ADD_ALL_INDEX: collection.addAll(0, Collections.singleton(new AllJavaTypes(TEST_SIZE))); break;
+                case REMOVE_INDEX: collection.remove(0); break;
+
+                // Does not impact size, so does not trigger ConcurrentModificationException
+                case FIRST:
+                case LAST:
+                case GET_INDEX:
+                case INDEX_OF:
+                case LAST_INDEX_OF:
+                case LIST_ITERATOR:
+                case LIST_ITERATOR_INDEX:
+                case SET:
+                case SUBLIST:
+                    realm.cancelTransaction();
+                    continue;
+
                 default:
                     fail("Unknown method: " + method);
             }
