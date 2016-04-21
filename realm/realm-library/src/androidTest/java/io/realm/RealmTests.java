@@ -81,7 +81,9 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.log.RealmLog;
+import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1335,47 +1337,61 @@ public class RealmTests {
     }
 
     @Test
-    public void copyToRealm_boxedBytePrimaryKeyIsNull() {
-        final String SECONDARY_FIELD_VALUE = "nullBytePrimaryKeyObj";
-        TestHelper.addBytePrimaryKeyObjectToTestRealm(realm, (Byte) null, SECONDARY_FIELD_VALUE);
+    public void copyToRealm_boxedNumberPrimaryKeyIsNull() {
+        final String SECONDARY_FIELD_VALUE = "nullNumberPrimaryKeyObj";
+        final Class[] CLASSES = {PrimaryKeyAsBoxedByte.class, PrimaryKeyAsBoxedShort.class, PrimaryKeyAsBoxedInteger.class, PrimaryKeyAsBoxedLong.class};
 
-        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getId());
-        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
-    }
-
-    @Test
-    public void copyToRealm_boxedShortPrimaryKeyIsNull() {
-        final String SECONDARY_FIELD_VALUE = "nullShortPrimaryKeyObj";
-        TestHelper.addShortPrimaryKeyObjectToTestRealm(realm, (Short) null, SECONDARY_FIELD_VALUE);
-
-        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getId());
-        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
-    }
-
-    @Test
-    public void copyToRealm_boxedIntegerPrimaryKeyIsNull() {
-        final String SECONDARY_FIELD_VALUE = "nullIntegerPrimaryKeyObj";
+        TestHelper.addBytePrimaryKeyObjectToTestRealm(realm,    (Byte) null,    SECONDARY_FIELD_VALUE);
+        TestHelper.addShortPrimaryKeyObjectToTestRealm(realm,   (Short) null,   SECONDARY_FIELD_VALUE);
         TestHelper.addIntegerPrimaryKeyObjectToTestRealm(realm, (Integer) null, SECONDARY_FIELD_VALUE);
+        TestHelper.addLongPrimaryKeyObjectToTestRealm(realm,    (Long) null,    SECONDARY_FIELD_VALUE);
 
-        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getId());
-        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+        for (Class clazz : CLASSES) {
+            RealmResults results = realm.allObjects(clazz);
+            assertEquals(1, results.size());
+            assertEquals(null, ((NullPrimaryKey)results.first()).getId());
+            assertEquals(SECONDARY_FIELD_VALUE, ((NullPrimaryKey)results.first()).getName());
+        }
     }
 
     @Test
-    public void copyToRealm_boxedLongPrimaryKeyIsNull() {
-        final String SECONDARY_FIELD_VALUE = "nullLongPrimaryKeyObj";
-        TestHelper.addLongPrimaryKeyObjectToTestRealm(realm, (Long) null, SECONDARY_FIELD_VALUE);
+    public void copyToRealm_duplicatedNullPrimaryKeyThrows() {
+        final String[] PRIMARY_KEY_TYPES = {"String", "BoxedByte", "BoxedShort", "BoxedInteger", "BoxedLong"};
 
-        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getId());
-        assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+        TestHelper.addStringPrimaryKeyObjectToTestRealm(realm,  (String) null,  0);
+        TestHelper.addBytePrimaryKeyObjectToTestRealm(realm,    (Byte) null,    (String) null);
+        TestHelper.addShortPrimaryKeyObjectToTestRealm(realm,   (Short) null,   (String) null);
+        TestHelper.addIntegerPrimaryKeyObjectToTestRealm(realm, (Integer) null, (String) null);
+        TestHelper.addLongPrimaryKeyObjectToTestRealm(realm,    (Long) null,    (String) null);
+
+        for (String className : PRIMARY_KEY_TYPES) {
+            try {
+                realm.beginTransaction();
+                switch (className) {
+                    case "String":
+                        realm.copyToRealm(new PrimaryKeyAsString());
+                        break;
+                    case "BoxedByte":
+                        realm.copyToRealm(new PrimaryKeyAsBoxedByte());
+                        break;
+                    case "BoxedShort":
+                        realm.copyToRealm(new PrimaryKeyAsBoxedShort());
+                        break;
+                    case "BoxedInteger":
+                        realm.copyToRealm(new PrimaryKeyAsBoxedInteger());
+                        break;
+                    case "BoxedLong":
+                        realm.copyToRealm(new PrimaryKeyAsBoxedLong());
+                        break;
+                    default:
+                }
+                fail("Null value as primary key already exists.");
+            } catch (RealmPrimaryKeyConstraintException expected) {
+                assertEquals("Value already exists: null", expected.getMessage());
+            } finally {
+                realm.cancelTransaction();
+            }
+        }
     }
 
     @Test

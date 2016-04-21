@@ -2,7 +2,7 @@
 
 ### Breaking changes
 
-* @PrimaryKey field value can be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable() (#2515).
+* @PrimaryKey field value can be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
 
 ### Enhancements
 

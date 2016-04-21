@@ -638,7 +638,7 @@ public class RealmMigrationTests {
                 realm.close();
                 fail();
             } catch (IllegalStateException expected) {
-                assertEquals("Field 'id' contains null value. Cannot convert objects with a null primary key value.",
+                assertEquals("Cannot migrate an object with null value in field 'id'. Either maintain the same type for primary key field 'id', or remove the object with null value before migration.",
                         expected.getMessage());
             }
         }
