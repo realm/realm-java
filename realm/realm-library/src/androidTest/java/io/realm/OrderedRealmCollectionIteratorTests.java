@@ -39,6 +39,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -141,6 +142,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     /**
      * Helper method for checking if the unit test isn't supported for the current collectionClass.
+     *
      * @param unsupportedTypes list of unsupported test types
      * @return {@code true} if the unit test should be aborted, {@code false} if it should continue.
      */
@@ -923,6 +925,26 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             throw new RuntimeException("Method failed: " + method, e);
         } finally {
             realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void iterator_realmResultsThrowConcurrentModification() {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        // Verify that ConcurrentModification is correctly detected on non-looper threads
+        Iterator<AllJavaTypes> it = collection.iterator();
+        realm.beginTransaction();
+        realm.createObject(AllJavaTypes.class, TEST_SIZE);
+        realm.commitTransaction();
+        realm.refresh();
+
+        try {
+            it.next();
+            fail();
+        } catch (ConcurrentModificationException ignored) {
         }
     }
 
