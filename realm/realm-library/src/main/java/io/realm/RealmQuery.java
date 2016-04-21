@@ -1894,10 +1894,9 @@ public class RealmQuery<E extends RealmModel> {
         long sourceRowIndex = getSourceRowIndexForFirstObject();
         if (sourceRowIndex >= 0) {
             E realmObject = realm.get(clazz, className, sourceRowIndex);
-            if (realm.handlerController != null) { // non Looper Thread doesn't have a handlerController
-                WeakReference<RealmObjectProxy> realmObjectWeakReference = new WeakReference<RealmObjectProxy>((RealmObjectProxy) realmObject, realm.handlerController.referenceQueueRealmObject);
-                realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
-            }
+            WeakReference<RealmObjectProxy> realmObjectWeakReference
+                    = new WeakReference<RealmObjectProxy>((RealmObjectProxy) realmObject, realm.handlerController.referenceQueueRealmObject);
+            realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
             return realmObject;
         } else {
             return null;

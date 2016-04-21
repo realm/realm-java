@@ -28,8 +28,6 @@ import org.junit.runner.RunWith;
 import java.io.FileNotFoundException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -263,49 +261,31 @@ public class RealmObjectTests {
         realm.close();
     }
 
-    private void removeOneByOne(boolean atFirst) {
-        Set<Long> ages = new HashSet<Long>();
+    private void removeOneByOne(boolean removeFromFront) {
+        // Create test data
         realm.beginTransaction();
         realm.delete(Dog.class);
         for (int i = 0; i < TEST_SIZE; i++) {
-            Dog dog = realm.createObject(Dog.class);
-            dog.setAge(i);
-            ages.add((long) i);
+            realm.createObject(Dog.class);
         }
         realm.commitTransaction();
 
-        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
-
+        // Check initial size
         RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+        assertEquals(TEST_SIZE, dogs.size());
+
+        // Check that calling deleteFromRealm doesn't remove the object from the RealmResult
+        realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            realm.beginTransaction();
-            Dog dogToRemove;
-            if (atFirst) {
-                dogToRemove = dogs.first();
-            } else {
-                dogToRemove = dogs.last();
-            }
-            ages.remove(dogToRemove.getAge());
-            dogToRemove.deleteFromRealm();
-
-            // object is no longer valid
-            try {
-                dogToRemove.getAge();
-                fail();
-            }
-            catch (IllegalStateException ignored) {}
-
-            realm.commitTransaction();
-
-            // and removed from realm and remaining objects are place correctly
-            RealmResults<Dog> remainingDogs = realm.allObjects(Dog.class);
-            assertEquals(TEST_SIZE - i - 1, remainingDogs.size());
-            for (Dog dog : remainingDogs) {
-                assertTrue(ages.contains(dog.getAge()));
-            }
+            dogs.get(removeFromFront ? i : TEST_SIZE - 1 - i).deleteFromRealm();
         }
+        realm.commitTransaction();
+
+        assertEquals(TEST_SIZE, dogs.size());
+        assertEquals(0, realm.where(Dog.class).count());
     }
 
+    // Tests calling deleteFromRealm on a RealmResults instead of RealmResults.remove()
     @Test
     public void deleteFromRealm_atPosition() {
         removeOneByOne(REMOVE_FIRST);
@@ -343,8 +323,7 @@ public class RealmObjectTests {
             }
         });
 
-        Boolean result = future.get();
-        return result;
+        return future.get();
     }
 
     @Test

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.InvalidRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -134,8 +135,8 @@ public final class ProxyState {
     /**
      * Notifies all registered listeners.
      */
-    public void notifyChangeListeners$realm() {
-        if (listeners != null && !listeners.isEmpty()) {
+    void notifyChangeListeners$realm() {
+        if (!listeners.isEmpty()) {
             boolean notify = false;
 
             Table table = row.getTable();
@@ -146,7 +147,7 @@ public final class ProxyState {
                 // should trigger a RealmChangeListener.
                 notify = true;
             } else {
-                long version = table.version();
+                long version = table.getVersion();
                 if (currentTableVersion != version) {
                     currentTableVersion = version;
                     notify = true;
@@ -163,7 +164,7 @@ public final class ProxyState {
 
     public void setTableVersion$realm() {
         if (row.getTable() != null) {
-            currentTableVersion = row.getTable().version();
+            currentTableVersion = row.getTable().getVersion();
         }
     }
 

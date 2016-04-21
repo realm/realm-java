@@ -971,4 +971,5 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.cancelTransaction();
         dynamicRealm.close();
     }
+
 }

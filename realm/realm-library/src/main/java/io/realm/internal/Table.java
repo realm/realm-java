@@ -1407,7 +1407,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
-    public long sync() {
+    public long syncIfNeeded() {
         throw new RuntimeException("Not supported for tables");
     }
 
@@ -1442,7 +1442,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *
      * @return version_counter for the table.
      */
-    public long version() {
+    public long getVersion() {
         return nativeVersion(nativePtr);
     }
 
