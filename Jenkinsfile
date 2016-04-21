@@ -82,8 +82,8 @@ def collectAarMetrics() {
            if (env.BRANCH_NAME == 'master') {
                collectAarMetrics()
            }
-           /* TODO: add support for running monkey on the example apps
-           stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples' */
+           // TODO: add support for running monkey on the example apps
+           //stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples'
 
            dir('examples') {
               sh 'chmod +x gradlew && ./gradlew check --stacktrace'
@@ -116,10 +116,10 @@ def collectAarMetrics() {
             sh 'adb devices | grep -v List | grep -v ^$ | awk \'{print $1}\' | parallel \'adb -s {} uninstall io.realm.test; adb -s {} install realm-android-library-debug-androidTest-unaligned.apk; adb -s {} shell am instrument -w -r io.realm.test/android.support.test.runner.AndroidJUnitRunner > test_result_{}.txt; java -jar /opt/log-converter.jar test_result_{}.txt\''
             step([$class: 'JUnitResultArchiver', testResults: 'test_result_*.xml'])
 
-            /* TODO: add support for running monkey on the example apps
-            stage 'monkey examples'
-            sh 'rm -rf *'
-            unstash 'examples' */
+            // TODO: add support for running monkey on the example apps
+            // stage 'monkey examples'
+            // sh 'rm -rf *'
+            // unstash 'examples'
         }
 
         if (env.BRANCH_NAME == 'master') {
