@@ -45,11 +45,11 @@ import io.realm.internal.log.RealmLog;
  */
 public final class HandlerController implements Handler.Callback {
 
-    public static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    public static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;
-    public static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
-    public static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
-    public static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
+    static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;
+    static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
+    static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
+    static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
 
     // Keep a strong reference to the registered RealmChangeListener
     // user should unregister those listeners
@@ -660,9 +660,11 @@ public final class HandlerController implements Handler.Callback {
      * Refreshes all synchronous RealmResults by calling `sync_if_needed` on them. This will cause any backing queries
      * to be rerun and any deleted objects will be removed from the TableView.
      *
+     * WARNING: This will _NOT_ refresh TableViews created from async queries.
+     *
      * Note this will _not_ notify any registered listeners.
      */
-    public void refreshTableViews() {
+    public void refreshSynchronousTableViews() {
         Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();

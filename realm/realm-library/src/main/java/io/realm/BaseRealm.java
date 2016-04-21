@@ -275,7 +275,7 @@ public abstract class BaseRealm implements Closeable {
             // non Looper Thread, just advance the Realm
             // registering listeners is not allowed, hence nothing to notify
             sharedGroupManager.advanceRead();
-            handlerController.refreshTableViews();
+            handlerController.refreshSynchronousTableViews();
         } else {
             handlerController.notifyCurrentThreadRealmChanged();
         }
