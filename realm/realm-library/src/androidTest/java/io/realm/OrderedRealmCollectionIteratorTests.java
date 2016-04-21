@@ -163,15 +163,14 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             i++;
         }
         assertEquals(TEST_SIZE, collection.size());
+        assertEquals(TEST_SIZE, i);
     }
 
     @Test
     public void iterator_empty() {
         collection = createCollection(realm, collectionClass, 0);
         Iterator<AllJavaTypes> it = collection.iterator();
-        while (it.hasNext()) {
-            fail();
-        }
+        assertFalse(it.hasNext());
         assertEquals(0, collection.size());
     }
 
@@ -180,11 +179,14 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         collection = createCollection(realm, collectionClass, 1);
         Iterator<AllJavaTypes> it = collection.iterator();
         //noinspection WhileLoopReplaceableByForEach
+        int i = 0;
         while (it.hasNext()) {
             AllJavaTypes item = it.next();
             assertEquals(0, item.getFieldLong());
+            i++;
         }
         assertEquals(1, collection.size());
+        assertEquals(1, i);
     }
 
     @Test
@@ -701,7 +703,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         it.next();
         it.next().deleteFromRealm();
         realm.commitTransaction();
-
 
         switch (collectionClass) {
             case MANAGED_REALMLIST:
