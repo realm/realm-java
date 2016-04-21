@@ -131,6 +131,7 @@ def collectAarMetrics() {
         }
         currentBuild.rawBuild.setResult(Result.SUCCESS)
     } catch (Exception e) {
+        echo e.getMessage()
         currentBuild.rawBuild.setResult(Result.FAILURE)
     } finally {
         if (isPullRequest()) {
