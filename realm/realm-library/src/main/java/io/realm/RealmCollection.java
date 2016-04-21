@@ -17,8 +17,9 @@
 package io.realm;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
+
+import java.util.Collections;
 
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
@@ -30,7 +31,7 @@ import java.util.Date;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmObject> extends Collection<E> {
+public interface RealmCollection<E extends RealmModel> extends Collection<E> {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
