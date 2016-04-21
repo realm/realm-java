@@ -16,8 +16,18 @@
 
 package some.test;
 
+import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.RealmList;
 
 public class UseExtendRealmList extends RealmObject {
     private ExtendRealmList<UseExtendRealmList> extendRealmList;
+
+    public ExtendRealmList<UseExtendRealmList> extendRealmList() {
+        return extendRealmList;
+    }
+
+    public void realmSet$extendRealmList(ExtendRealmList<UseExtendRealmList> extendRealmList) {
+        this.extendRealmList = extendRealmList;
+    }
 }

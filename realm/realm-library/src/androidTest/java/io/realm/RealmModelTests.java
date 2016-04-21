@@ -259,7 +259,7 @@ public class RealmModelTests {
     // Test the behaviour of a RealmModel, containing a RealmList
     // of other RealmModel, in managed and un-managed mode
     @Test
-    public void pojoWithRealmListOfPojo() {
+    public void realmModelWithRealmListOfRealmModel() {
         RealmList<AllTypesRealmModel> allTypesRealmModels = new RealmList<AllTypesRealmModel>();
         AllTypesRealmModel allTypePojo;
         for (int i = 0; i < 10; i++) {
@@ -288,7 +288,7 @@ public class RealmModelTests {
     // Test the behaviour of a RealmModel, containing a RealmList
     // of RealmObject, in managed and un-managed mode
     @Test
-    public void pojoWithRealmListOfRealmObject() {
+    public void realmModelWithRealmListOfRealmObject() {
         RealmList<AllTypes> allTypes = new RealmList<AllTypes>();
         AllTypes allType;
         for (int i = 0; i < 10; i++) {
@@ -317,7 +317,7 @@ public class RealmModelTests {
     // Test the behaviour of a RealmObject, containing a RealmList
     // of RealmModel, in managed and un-managed mode
     @Test
-    public void realmObjectWithRealmListOfPojo() {
+    public void realmObjectWithRealmListOfRealmModel() {
         RealmList<AllTypesRealmModel> allTypesRealmModel = new RealmList<AllTypesRealmModel>();
         AllTypesRealmModel allTypePojo;
         for (int i = 0; i < 10; i++) {

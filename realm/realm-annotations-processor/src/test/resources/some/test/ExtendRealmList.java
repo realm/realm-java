@@ -16,7 +16,9 @@
 
 package some.test;
 
+import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.RealmList;
 
-public class ExtendRealmList<T extends RealmObject> extends RealmList<T> {
+public class ExtendRealmList<E extends RealmModel> extends RealmList<E> {
 }
