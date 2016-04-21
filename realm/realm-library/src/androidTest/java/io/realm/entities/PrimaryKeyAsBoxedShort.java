@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +18,33 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.objectid.NullPrimaryKey;
 
-public class PrimaryKeyAsString extends RealmObject {
+public class PrimaryKeyAsBoxedShort extends RealmObject implements NullPrimaryKey<Short, String> {
 
-    public static final String CLASS_NAME = "PrimaryKeyAsString";
-    public static final String FIELD_PRIMARY_KEY = "name";
+    public static final String CLASS_NAME = "PrimaryKeyAsBoxedShort";
+    public static final String FIELD_PRIMARY_KEY = "id";
 
     @PrimaryKey
+    private Short id;
+
     private String name;
 
-    private long id;
-
-    public PrimaryKeyAsString() {
+    @Override
+    public Short getId() {
+        return id;
     }
 
-    public PrimaryKeyAsString(String name) {
-        this.name = name;
+    public void setId(Short id) {
+        this.id = id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }

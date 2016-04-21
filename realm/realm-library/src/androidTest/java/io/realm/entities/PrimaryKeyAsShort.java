@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,19 @@ package io.realm.entities;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
-public class PrimaryKeyAsString extends RealmObject {
-
-    public static final String CLASS_NAME = "PrimaryKeyAsString";
-    public static final String FIELD_PRIMARY_KEY = "name";
+public class PrimaryKeyAsShort extends RealmObject {
 
     @PrimaryKey
+    private short id;
+
     private String name;
 
-    private long id;
-
-    public PrimaryKeyAsString() {
+    public short getId() {
+        return id;
     }
 
-    public PrimaryKeyAsString(String name) {
-        this.name = name;
+    public void setId(short id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -42,13 +40,5 @@ public class PrimaryKeyAsString extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }
