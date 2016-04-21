@@ -61,8 +61,20 @@ def collectAarMetrics() {
 { ->
     try {
         node('FastLinux') {
-           sh 'rm -rf *'
-           unstash 'java'
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: "origin/pull/${GITHUB_PR_NUMBER}/head"]],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CleanCheckout']],
+                gitTool: 'native git',
+                submoduleCfg: [],
+                userRemoteConfigs: [[
+                    credentialsId: '1642fb1a-1a82-4b10-a25e-f9e95f43c93f',
+                    name: 'origin',
+                    refspec: "+refs/heads/master:refs/remotes/origin/master +refs/pull/${GITHUB_PR_NUMBER}/head:refs/remotes/origin/pull/${GITHUB_PR_NUMBER}/head",
+                    url: 'https://github.com/realm/realm-java.git'
+                ]]
+            ])
 
            stage 'JVM tests'
            sh 'chmod +x gradlew && ./gradlew assemble check javadoc --stacktrace'
