@@ -56,6 +56,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.Logger;
+import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.fail;

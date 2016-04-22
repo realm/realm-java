@@ -78,6 +78,11 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyMix;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedByte;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
+import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -1565,6 +1570,114 @@ public class RealmTests {
         realm.commitTransaction();
 
         assertEquals(SECONDARY_FIELD_UPDATED, realm.allObjects(PrimaryKeyAsBoxedLong.class).first().getName());
+    }
+
+    // @PrimaryKey + @Required annotation accept not-null value properly as a primary key value for Realm version 0.89.1+
+    @Test
+    public void copyToRealmOrUpdate_primaryKeyRequiredFieldItNotNull() {
+        final String PRIMARY_KEY_STRING_VALUE = "primaryKeyStringValue";
+        final long PRIMARY_KEY_NUMBER_VALUE = 67;
+        final String SECONDARY_FIELD_VALUE = "secondaryFieldValue";
+        final String[] PRIMARY_KEY_TYPES = {"String", "BoxedByte", "BoxedShort", "BoxedInteger", "BoxedLong"};
+
+        for (String typeName : PRIMARY_KEY_TYPES) {
+            switch (typeName) {
+                case "String": {
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsString(PRIMARY_KEY_STRING_VALUE, SECONDARY_FIELD_VALUE));
+                    realm.commitTransaction();
+
+                    RealmResults<PrimaryKeyRequiredAsString> results = realm.allObjects(PrimaryKeyRequiredAsString.class);
+                    assertEquals(1, results.size());
+                    assertEquals(PRIMARY_KEY_STRING_VALUE, results.first().getId());
+                    assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+                    break;
+                }
+                case "BoxedByte": {
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedByte(Byte.valueOf((byte) PRIMARY_KEY_NUMBER_VALUE), SECONDARY_FIELD_VALUE));
+                    realm.commitTransaction();
+
+                    RealmResults<PrimaryKeyRequiredAsBoxedByte> results = realm.allObjects(PrimaryKeyRequiredAsBoxedByte.class);
+                    assertEquals(1, results.size());
+                    assertEquals((byte)PRIMARY_KEY_NUMBER_VALUE, results.first().getId().byteValue());
+                    assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+                    break;
+                }
+                case "BoxedShort": {
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedShort(Short.valueOf((short) PRIMARY_KEY_NUMBER_VALUE), SECONDARY_FIELD_VALUE));
+                    realm.commitTransaction();
+
+                    RealmResults<PrimaryKeyRequiredAsBoxedShort> results = realm.allObjects(PrimaryKeyRequiredAsBoxedShort.class);
+                    assertEquals(1, results.size());
+                    assertEquals((short)PRIMARY_KEY_NUMBER_VALUE, results.first().getId().shortValue());
+                    assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+                    break;
+                }
+                case "BoxedInteger": {
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedInteger(Integer.valueOf((int) PRIMARY_KEY_NUMBER_VALUE), SECONDARY_FIELD_VALUE));
+                    realm.commitTransaction();
+
+                    RealmResults<PrimaryKeyRequiredAsBoxedInteger> results = realm.allObjects(PrimaryKeyRequiredAsBoxedInteger.class);
+                    assertEquals(1, results.size());
+                    assertEquals((int)PRIMARY_KEY_NUMBER_VALUE, results.first().getId().shortValue());
+                    assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+                    break;
+                }
+                case "BoxedLong":
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedLong(Long.valueOf(PRIMARY_KEY_NUMBER_VALUE), SECONDARY_FIELD_VALUE));
+                    realm.commitTransaction();
+
+                    RealmResults<PrimaryKeyRequiredAsBoxedLong> results = realm.allObjects(PrimaryKeyRequiredAsBoxedLong.class);
+                    assertEquals(1, results.size());
+                    assertEquals(PRIMARY_KEY_NUMBER_VALUE, results.first().getId().longValue());
+                    assertEquals(SECONDARY_FIELD_VALUE, results.first().getName());
+                    break;
+                default:
+            }
+        }
+    }
+
+    // @PrimaryKey + @Required annotation does accept null as a primary key value for Realm version 0.89.1+
+    @Test
+    public void copyToRealmOrUpdate_primaryKeyRequiredFieldIsNullThrows() {
+        final String[] PRIMARY_KEY_TYPES = {"String", "BoxedByte", "BoxedShort", "BoxedInteger", "BoxedLong"};
+
+        for (String keyType : PRIMARY_KEY_TYPES) {
+            try {
+                realm.beginTransaction();
+                switch (keyType) {
+                    case "String":
+                        realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsString(null, null));
+                        break;
+                    case "BoxedByte":
+                        realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedByte(null, null));
+                        break;
+                    case "BoxedShort":
+                        realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedShort(null, null));
+                        break;
+                    case "BoxedInteger":
+                        realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedInteger(null, null));
+                        break;
+                    case "BoxedLong":
+                        realm.copyToRealmOrUpdate(new PrimaryKeyRequiredAsBoxedLong(null, null));
+                        break;
+                }
+                fail("@PrimaryKey + @Required field cannot be null");
+            } catch (RuntimeException expected) {
+                if (keyType.equals("String")) {
+                    assertTrue(expected instanceof IllegalArgumentException);
+                } else {
+                    assertTrue(expected instanceof NullPointerException);
+                }
+
+            } finally {
+                realm.cancelTransaction();
+            }
+        }
     }
 
     @Test
