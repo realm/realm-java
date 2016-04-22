@@ -419,7 +419,7 @@ public final class RealmObjectSchema {
      * Returns the name of the primary key field.
      *
      * @return the name of the primary key field.
-     * @throws IllegalArgumentException if the class doesn't have a primary key defined.
+     * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public String getPrimaryKey() {
         if (!table.hasPrimaryKey()) {
