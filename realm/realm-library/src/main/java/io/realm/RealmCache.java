@@ -15,12 +15,21 @@
  */
 package io.realm;
 
+import android.util.Log;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.SharedGroup;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -109,7 +118,15 @@ final class RealmCache {
             // Create a new local Realm instance
             BaseRealm realm;
 
+
             if (realmClass == Realm.class) {
+                if (configuration.getDurability() != SharedGroup.Durability.MEM_ONLY) {
+                    try {
+                        copyAssetFile(configuration);
+                    } catch (IOException e) {
+                        throw new RealmIOException("Could not resolve the path to the Realm asset file.");
+                    }
+                }
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(configuration, cache.typedColumnIndices);
             } else if (realmClass == DynamicRealm.class) {
@@ -247,5 +264,29 @@ final class RealmCache {
             totalRefCount += cache.refAndCountMap.get(type).globalCount;
         }
         callback.onResult(totalRefCount);
+    }
+
+    /**
+     * Copies Realm database file from Android asset directory to the directory given in the {@link RealmConfiguration}.
+     * Copy is performed only at the first time when there is no Realm database file.
+     *
+     * @param configuration configuration object for Realm instance.
+     * @throws IOException if the asset file is not valid.
+     */
+    private static void copyAssetFile(RealmConfiguration configuration) throws IOException {
+        File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
+        if (!realmFile.exists()) {
+            InputStream is = configuration.getAssetFile();
+            if (is != null) {
+                FileOutputStream outputStream = new FileOutputStream(realmFile);
+                byte[] buf = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = is.read(buf)) > -1) {
+                    outputStream.write(buf, 0, bytesRead);
+                }
+                outputStream.close();
+                is.close();
+            }
+        }
     }
 }

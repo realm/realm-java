@@ -41,6 +41,8 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
@@ -764,19 +766,77 @@ public class RealmConfigurationTests {
         Realm.deleteRealm(defaultConfig);
 
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
-        configFactory.copyRealmFromAssets(context, "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        configFactory.copyRealmFromAssets(context, "asset_file.realm", Realm.DEFAULT_REALM_NAME);
         assertTrue(new File(configFactory.getRoot(), Realm.DEFAULT_REALM_NAME).exists());
 
         Realm.Transaction transaction = mock(Realm.Transaction.class);
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                // Just reuse existing file and set right schema
-                .schemaVersion(0)
-                .schema(AllTypes.class)
                 .initialData(transaction)
                 .build();
 
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void assetFileNullAndEmptyFileName() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        try {
+            new RealmConfiguration.Builder(context, null).build();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            new RealmConfiguration.Builder(context, "").build();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileFakeFile() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context, "no_file").build();
+        Realm.deleteRealm(configuration);
+        try {
+            Realm.getInstance(configuration);
+            fail();
+        } catch (RealmIOException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileValidFile() throws IOException {
+        // Remove default instance
+        Realm.deleteRealm(defaultConfig);
+
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context, "asset_file.realm")
+                .build();
+        Realm.deleteRealm(configuration);
+
+        realm = Realm.getInstance(configuration);
+
+        File realmFile = new File(configuration.getPath());
+        assertTrue(realmFile.exists());
+
+        // Asset file has 10 Owners and 10 Cats, check if data is present
+        assertEquals(10, realm.where(Owner.class).count());
+        assertEquals(10, realm.where(Cat.class).count());
+
+        realm.close();
+
+        // Copy original file to another location
+        configFactory.copyRealmFromAssets(context, "asset_file.realm", "asset_file_copy.realm");
+        File copyFromAsset = new File(configFactory.getRoot(), "asset_file_copy.realm");
+        assertTrue(copyFromAsset.exists());
+
+        // Check file size of the copied by Realm and the original one
+        assertEquals(realmFile.length(), copyFromAsset.length());
+
+        Realm.deleteRealm(configuration);
+        assertFalse(realmFile.exists());
     }
 }

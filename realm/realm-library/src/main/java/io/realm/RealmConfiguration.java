@@ -17,8 +17,12 @@
 package io.realm;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -81,6 +85,7 @@ public final class RealmConfiguration {
     private final File realmFolder;
     private final String realmFileName;
     private final String canonicalPath;
+    private final String assetFilePath;
     private final byte[] key;
     private final long schemaVersion;
     private final RealmMigration migration;
@@ -89,11 +94,13 @@ public final class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
+    private final WeakReference<Context> contextWeakRef;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
         this.realmFileName = builder.fileName;
         this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
+        this.assetFilePath = builder.assetFilePath;
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
@@ -102,6 +109,7 @@ public final class RealmConfiguration {
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
         this.initialDataTransaction = builder.initialDataTransaction;
+        this.contextWeakRef = builder.contextWeakRef;
     }
 
     public File getRealmFolder() {
@@ -148,6 +156,23 @@ public final class RealmConfiguration {
      */
     Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
+    }
+
+    /**
+     * Returns input stream object to the Realm asset file.
+     *
+     * @return input stream to the asset file.
+     * @throws IOException if the asset file is not valid.
+     */
+    InputStream getAssetFile() throws IOException {
+        if (contextWeakRef != null) {
+            Context context = contextWeakRef.get();
+            if (context != null) {
+                return context.getAssets().open(assetFilePath);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -314,6 +339,7 @@ public final class RealmConfiguration {
     public static final class Builder {
         private File folder;
         private String fileName;
+        private String assetFilePath;
         private byte[] key;
         private long schemaVersion;
         private RealmMigration migration;
@@ -321,6 +347,7 @@ public final class RealmConfiguration {
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -351,6 +378,27 @@ public final class RealmConfiguration {
             }
             RealmCore.loadLibrary(context);
             initializeBuilder(context.getFilesDir());
+        }
+
+        /**
+         * Creates an instance of the Builder for the RealmConfiguration.
+         *
+         * This will use the apps own internal directory for storing the Realm file. This does not require any
+         * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
+         * change depending on vendor implementations of Android.
+         *
+         * Initial dataset will be imported from the provided Realm asset file.
+         *
+         * @param context Android context.
+         * @param assetFile path to the asset database file.
+         */
+        public Builder(Context context, final String assetFile) {
+            this(context);
+            if (TextUtils.isEmpty(assetFile)) {
+                throw new IllegalArgumentException("A non-empty asset file path must be provided");
+            }
+            this.contextWeakRef = new WeakReference<>(context);
+            this.assetFilePath = assetFile;
         }
 
         // Setup builder in its initial state
