@@ -21,7 +21,13 @@ import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
