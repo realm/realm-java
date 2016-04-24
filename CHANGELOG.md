@@ -4,6 +4,10 @@
 
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 
+### Enhancements
+
+* `RealmObjectSchema.getPrimaryKey()` (#2636)
+
 ## 0.89.0
 
 ### Breaking changes
