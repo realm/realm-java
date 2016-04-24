@@ -92,7 +92,7 @@ public class RealmPrimaryKeyTests {
         realm.copyToRealmOrUpdate(obj);
         realm.commitTransaction();
 
-        RealmResults results = realm.allObjects(testClazz);
+        RealmResults results = realm.where(testClazz).findAll();
         assertEquals(1, results.size());
         assertEquals(primaryKeyFieldValue, ((NullPrimaryKey)results.first()).getId());
         assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
@@ -102,8 +102,8 @@ public class RealmPrimaryKeyTests {
     @Test
     public void copyToRealmOrUpdate_requiredPrimaryKeyThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         try {
-            realm.beginTransaction();
             RealmObject obj = (RealmObject)testClazz.getConstructor(primaryKeyFieldType, secondaryFieldType).newInstance(null, null);
+            realm.beginTransaction();
             realm.copyToRealmOrUpdate(obj);
             fail("@PrimaryKey + @Required field cannot be null");
         } catch (RuntimeException expected) {
