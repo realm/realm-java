@@ -39,7 +39,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
-public class RealmNullPrimaryKeyTests {
+public class RealmPrimaryKeyTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -62,11 +62,11 @@ public class RealmNullPrimaryKeyTests {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                 {PrimaryKeyRequiredAsString.class,       String.class,  "424123",              String.class, "secondaryFieldValue"}
-                ,{PrimaryKeyRequiredAsBoxedByte.class,    Byte.class,    Byte.valueOf("67"),    String.class, "secondaryFieldValue"}
-                ,{PrimaryKeyRequiredAsBoxedShort.class,   Short.class,   Short.valueOf("1729"), String.class, "secondaryFieldValue"}
-                ,{PrimaryKeyRequiredAsBoxedInteger.class, Integer.class, Integer.valueOf("19"), String.class, "secondaryFieldValue"}
-                ,{PrimaryKeyRequiredAsBoxedLong.class,    Long.class,    Long.valueOf("62914"), String.class, "secondaryFieldValue"}
+                 {PrimaryKeyRequiredAsString.class,       String.class,  "424123",              String.class, "SomeSecondaryValue"}
+                ,{PrimaryKeyRequiredAsBoxedByte.class,    Byte.class,    Byte.valueOf("67"),    String.class, "This-Is-Second-One"}
+                ,{PrimaryKeyRequiredAsBoxedShort.class,   Short.class,   Short.valueOf("1729"), String.class, "AnyValueIsAccepted"}
+                ,{PrimaryKeyRequiredAsBoxedInteger.class, Integer.class, Integer.valueOf("19"), String.class, "PlayWithSeondFied!"}
+                ,{PrimaryKeyRequiredAsBoxedLong.class,    Long.class,    Long.valueOf("62914"), String.class, "Let's name a value"}
         });
     }
 
@@ -76,7 +76,7 @@ public class RealmNullPrimaryKeyTests {
     final private Class secondaryFieldType;
     final private Object secondaryFieldValue;
 
-    public RealmNullPrimaryKeyTests(Class<? extends RealmObject> testClazz, Class primaryKeyFieldType, Object primaryKeyFieldValue, Class secondaryFieldType, Object secondaryFieldValue) {
+    public RealmPrimaryKeyTests(Class<? extends RealmObject> testClazz, Class primaryKeyFieldType, Object primaryKeyFieldValue, Class secondaryFieldType, Object secondaryFieldValue) {
         this.testClazz = testClazz;
         this.primaryKeyFieldType = primaryKeyFieldType;
         this.primaryKeyFieldValue = primaryKeyFieldValue;
