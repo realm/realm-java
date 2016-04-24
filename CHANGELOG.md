@@ -1,3 +1,9 @@
+## 0.89.1
+
+### Buf fixes
+
+* @PrimaryKey + @Required doesn't create inappropriate type cast when a primary key field type is `String` (#2644).
+
 ## 0.89.0
 
 ### Breaking changes

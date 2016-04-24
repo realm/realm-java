@@ -639,8 +639,9 @@ public class RealmProxyClassGenerator {
                         .endControlFlow();
                 }
             } else {
-                writer.emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())",
-                        interfaceName, primaryKeyGetter);
+                String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
+                writer.emitStatement("long rowIndex = table.findFirst%s(pkColumnIndex, ((%s) object).%s())",
+                        pkType, interfaceName, primaryKeyGetter);
             }
 
             writer
