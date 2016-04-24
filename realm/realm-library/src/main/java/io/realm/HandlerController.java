@@ -38,7 +38,7 @@ import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
-import io.realm.internal.log.RealmLog;s
+import io.realm.internal.log.RealmLog;
 
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
