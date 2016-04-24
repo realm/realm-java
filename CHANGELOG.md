@@ -1,3 +1,9 @@
+## 0.89.1
+
+### Bug fixes
+
+* @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
+
 ## 0.89.0
 
 ### Breaking changes
