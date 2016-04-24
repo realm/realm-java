@@ -1437,6 +1437,7 @@ public class RealmAsyncQueryTests {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final long[] latestLongValue = new long[1];
         final float[] latestFloatValue = new float[1];
+
         // start a background thread that pushes a commit every 16ms
         final Thread backgroundThread = new Thread() {
             @Override

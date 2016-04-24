@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -128,7 +129,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -783,3 +784,4 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
 }
+

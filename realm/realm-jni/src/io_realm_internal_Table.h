@@ -407,6 +407,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeSetNull
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeSetMixed
  * Signature: (JJJLio/realm/internal/Mixed;)V
  */
@@ -676,6 +684,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDate
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString
   (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeFindFirstNull
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table

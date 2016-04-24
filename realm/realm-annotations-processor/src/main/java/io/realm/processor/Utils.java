@@ -1,8 +1,5 @@
 package io.realm.processor;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import javax.annotation.processing.Messager;
@@ -16,7 +13,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * Utility methods working with the Realm processor.
@@ -26,6 +22,7 @@ public class Utils {
     public static Types typeUtils;
     private static Messager messager;
     private static DeclaredType realmList;
+    private static DeclaredType markerInterface;
     private static TypeMirror realmObject;
 
     public static void initialize(ProcessingEnvironment env) {
@@ -34,6 +31,7 @@ public class Utils {
         realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
                 typeUtils.getWildcardType(null, null));
         realmObject = env.getElementUtils().getTypeElement("io.realm.RealmObject").asType();
+        markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
     }
 
     /**
@@ -137,18 +135,26 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is "RealmList", {@code false} otherwise.
+     * @return {@code true} if a given type implement {@code RealmModel}, {@code false} otherwise.
+     */
+    public static boolean isImplementingMarkerInterface(Element classElement) {
+        return typeUtils.isAssignable(classElement.asType(), markerInterface);
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList}, {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmList);
     }
 
     /**
-     * @return {@code true} if a given field type is "RealmObject", {@code false} otherwise.
+     * @return {@code true} if a given field type is {@code RealmObject}, {@code false} otherwise.
      */
     public static boolean isRealmObject(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmObject);
     }
+
 
     /**
      * @return the simple type name for a field.

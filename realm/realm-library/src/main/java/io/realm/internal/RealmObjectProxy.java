@@ -16,19 +16,20 @@
 
 package io.realm.internal;
 
-import io.realm.RealmObject;
+import io.realm.ProxyState;
+import io.realm.RealmModel;
 
 /**
- * Empty interface making it easy to determine if an object is the generated RealmProxy class or the original class.
+ * Interface making it easy to determine if an object is the generated RealmProxy class or the original class.
  *
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
-public interface RealmObjectProxy {
-
+ public interface RealmObjectProxy extends RealmModel {
+    ProxyState realmGet$proxyState();
     /**
      * Tuple class for saving meta data about a cached RealmObject.
      */
-    class CacheData<E extends RealmObject> {
+    class CacheData<E extends RealmModel> {
         public int minDepth;
         public final E object;
 
