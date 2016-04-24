@@ -8,6 +8,10 @@
 
 * `RealmObjectSchema.getPrimaryKey()` (#2636)
 
+### Credits
+
+* Thanks to Brenden Kromhout (@bkromhout) for adding `RealmObjectSchema.getPrimaryKey()`.
+
 ## 0.89.0
 
 ### Breaking changes
