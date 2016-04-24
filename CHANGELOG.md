@@ -1,8 +1,8 @@
 ## 0.89.1
 
-### Buf fixes
+### Bug fixes
 
-* @PrimaryKey + @Required doesn't create inappropriate type cast when a primary key field type is `String` (#2644).
+* @PrimaryKey + @Required doesn't create inappropriate type cast when a primary key field type is `String` (#2653).
 
 ## 0.89.0
 
