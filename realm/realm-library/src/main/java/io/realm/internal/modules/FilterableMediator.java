@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.Realm;
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
@@ -45,7 +45,7 @@ import io.realm.internal.Util;
 public class FilterableMediator extends RealmProxyMediator {
 
     private final RealmProxyMediator originalMediator;
-    private final Set<Class<? extends RealmObject>> allowedClasses;
+    private final Set<Class<? extends RealmModel>> allowedClasses;
 
     /**
      * Creates a filterable {@link RealmProxyMediator}.
@@ -53,13 +53,13 @@ public class FilterableMediator extends RealmProxyMediator {
      * @param originalMediator the original auto generated mediator.
      * @param allowedClasses the subset of classes from original mediator to allow.
      */
-    public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
+    public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmModel>> allowedClasses) {
         this.originalMediator = originalMediator;
 
-        Set<Class<? extends RealmObject>> tempAllowedClasses = new HashSet<Class<? extends RealmObject>>();
+        Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<Class<? extends RealmModel>>();
         if (originalMediator != null) {
-            Set<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
-            for (Class<? extends RealmObject> clazz : allowedClasses) {
+            Set<Class<? extends RealmModel>> originalClasses = originalMediator.getModelClasses();
+            for (Class<? extends RealmModel> clazz : allowedClasses) {
                 if (originalClasses.contains(clazz)) {
                     tempAllowedClasses.add(clazz);
                 }
@@ -73,60 +73,60 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
+    public Table createTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction) {
         checkSchemaHasClass(clazz);
         return originalMediator.createTable(clazz, transaction);
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction) {
         checkSchemaHasClass(clazz);
         return originalMediator.validateTable(clazz, transaction);
     }
 
     @Override
-    public List<String> getFieldNames(Class<? extends RealmObject> clazz) {
+    public List<String> getFieldNames(Class<? extends RealmModel> clazz) {
         checkSchemaHasClass(clazz);
         return originalMediator.getFieldNames(clazz);
     }
 
     @Override
-    public String getTableName(Class<? extends RealmObject> clazz) {
+    public String getTableName(Class<? extends RealmModel> clazz) {
         checkSchemaHasClass(clazz);
         return originalMediator.getTableName(clazz);
     }
 
     @Override
-    public <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
         checkSchemaHasClass(clazz);
         return originalMediator.newInstance(clazz, columnInfo);
     }
 
     @Override
-    public Set<Class<? extends RealmObject>> getModelClasses() {
+    public Set<Class<? extends RealmModel>> getModelClasses() {
         return allowedClasses;
     }
 
     @Override
-    public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
         return originalMediator.copyOrUpdate(realm, object, update, cache);
     }
 
     @Override
-    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
+    public <E extends RealmModel> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
         checkSchemaHasClass(clazz);
         return originalMediator.createOrUpdateUsingJsonObject(clazz, realm, json, update);
     }
 
     @Override
-    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws IOException {
+    public <E extends RealmModel> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws IOException {
         checkSchemaHasClass(clazz);
         return originalMediator.createUsingJsonStream(clazz, realm, reader);
     }
 
     @Override
-    public <E extends RealmObject> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> cache) {
+    public <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(realmObject.getClass()));
         return originalMediator.createDetachedCopy(realmObject, maxDepth, cache);
     }
@@ -141,7 +141,7 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     // Validate if a model class (not RealmProxy) is part of this Schema.
-    private void checkSchemaHasClass(Class<? extends RealmObject> clazz) {
+    private void checkSchemaHasClass(Class<? extends RealmModel> clazz) {
         if (!allowedClasses.contains(clazz)) {
             throw new IllegalArgumentException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }

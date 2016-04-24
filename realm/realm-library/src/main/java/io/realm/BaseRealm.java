@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.InvalidRow;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
@@ -46,7 +48,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-abstract class BaseRealm implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -62,7 +64,6 @@ abstract class BaseRealm implements Closeable {
     final long threadId;
     protected RealmConfiguration configuration;
     protected SharedGroupManager sharedGroupManager;
-    protected boolean autoRefresh;
     RealmSchema schema;
     Handler handler;
     HandlerController handlerController;
@@ -76,6 +77,7 @@ abstract class BaseRealm implements Closeable {
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
+        this.handlerController = new HandlerController(this);
         setAutoRefresh(autoRefresh);
     }
 
@@ -96,14 +98,13 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
 
-        if (autoRefresh && !this.autoRefresh) { // Switch it on
-            handlerController = new HandlerController(this);
+        if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
-        } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
+        } else if (!autoRefresh && handlerController.isAutoRefreshEnabled() && handler != null) { // Switch it off
             removeHandler();
         }
-        this.autoRefresh = autoRefresh;
+        handlerController.setAutoRefresh(autoRefresh);
     }
 
     /**
@@ -112,7 +113,7 @@ abstract class BaseRealm implements Closeable {
      * @return the auto-refresh status.
      */
     public boolean isAutoRefresh() {
-        return autoRefresh;
+        return handlerController.isAutoRefreshEnabled();
     }
 
     /**
@@ -146,7 +147,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        if (handlerController == null) {
+        if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
         }
         handlerController.addChangeListener(listener);
@@ -162,7 +163,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        if (handlerController == null) {
+        if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
         }
         handlerController.removeChangeListener(listener);
@@ -198,7 +199,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void removeAllChangeListeners() {
         checkIfValid();
-        if (handlerController == null) {
+        if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove listeners from a non-Looper thread ");
         }
         handlerController.removeAllChangeListeners();
@@ -272,13 +273,13 @@ abstract class BaseRealm implements Closeable {
         if (isInTransaction()) {
             throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
         }
-        sharedGroupManager.advanceRead();
-        if (handlerController != null) {
-            handlerController.notifyAllListeners();
-            // if we have empty async RealmObject then rerun
-            if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                handlerController.updateAsyncEmptyRealmObject();
-            }
+        if (!handlerController.isAutoRefreshEnabled()) {
+            // non Looper Thread, just advance the Realm
+            // registering listeners is not allowed, hence nothing to notify
+            sharedGroupManager.advanceRead();
+            handlerController.refreshSynchronousTableViews();
+        } else {
+            handlerController.notifyCurrentThreadRealmChanged();
         }
     }
 
@@ -339,9 +340,9 @@ abstract class BaseRealm implements Closeable {
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
             if (
-                    realmPath.equals(configuration.getPath())            // It's the right realm
-                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
-                            && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                    realmPath.equals(configuration.getPath())                           // It's the right realm
+                            && !handler.hasMessages(HandlerController.REALM_CHANGED)    // The right message
+                            && handler.getLooper().getThread().isAlive()                // The receiving thread is alive
                             && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
                 RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                         "to prevent this.");
@@ -517,13 +518,15 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+    <E extends RealmModel> E get(Class<E> clazz, long rowIndex) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
-        result.row = row;
-        result.realm = this;
-        result.setTableVersion();
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        proxy.realmGet$proxyState().setRow$realm(row);
+        proxy.realmGet$proxyState().setRealm$realm(this);
+        proxy.realmGet$proxyState().setTableVersion$realm();
+
         if (handlerController != null) {
             handlerController.addToRealmObjects(result);
         }
@@ -532,7 +535,7 @@ abstract class BaseRealm implements Closeable {
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
-    <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
+    <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         Table table;
         E result;
         if (dynamicClassName != null) {
@@ -544,13 +547,17 @@ abstract class BaseRealm implements Closeable {
             table = schema.getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
         }
-        result.row = table.getUncheckedRow(rowIndex);
-        result.realm = this;
-        result.setTableVersion();
 
-        if (handlerController != null) {
-            handlerController.addToRealmObjects(result);
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        proxy.realmGet$proxyState().setRealm$realm(this);
+        if (rowIndex != Table.NO_MATCH) {
+            proxy.realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex));
+            proxy.realmGet$proxyState().setTableVersion$realm();
+        } else {
+            proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
         }
+
+        handlerController.addToRealmObjects(result);
         return result;
     }
 

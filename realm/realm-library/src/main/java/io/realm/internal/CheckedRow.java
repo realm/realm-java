@@ -96,19 +96,18 @@ public class CheckedRow extends UncheckedRow {
         return super.isNull(columnIndex);
     }
 
+    /**
+     * Set null to a row pointer with checking if a column is nullable, except when the column type
+     * is binary.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     */
     @Override
     public void setNull(long columnIndex) {
         RealmFieldType columnType = getColumnType(columnIndex);
-        if (columnType == RealmFieldType.STRING) {
-            super.setString(columnIndex, null);
-        }
-        else if (columnType == RealmFieldType.BINARY) {
+        if (columnType == RealmFieldType.BINARY) {
             super.setBinaryByteArray(columnIndex, null);
-        }
-        else {
-            if (!this.getTable().isColumnNullable(columnIndex)) {
-                throw new IllegalArgumentException("field is not nullable");
-            }
+        } else {
             super.setNull(columnIndex);
         }
     }

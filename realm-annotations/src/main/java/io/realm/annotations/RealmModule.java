@@ -47,7 +47,7 @@ import java.lang.annotation.Target;
  * Library authors are responsible for avoiding this conflict by using explicit modules where {@code library = true} is
  * set. This disables the generation of the DefaultRealmModule for the library project and allows the library to be
  * included in the app project that also uses Realm. This means that library projects that uses Realm internally are
- * required to specify a specific module using {@code RealmConfiguration.setModules()}.
+ * required to specify a specific module using {@code RealmConfiguration.modules()}.
  * <p>
  * App developers are not required to specify any modules, as they implicitly use the {@code DefaultRealmModule}, but
  * they now has the option of adding the library project classes to their schema using

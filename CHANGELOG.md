@@ -1,32 +1,44 @@
+## 0.90.0
+
+### Deprecated
+
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+
+### Enhancements
+
+* `RealmObjectSchema.getPrimaryKey()` (#2636)
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+
 ## 0.89.0
 
 ### Breaking changes
 
-* RealmResults.clear() now throws UnsupportedOperationException. Use RealmResults.deleteAllFromRealm() instead.
-* RealmResults.remove(int) now throws UnsupportedOperationException. Use RealmResults.deleteFromRealm() instead.
-* Removed deprecated methods Realm.getTable() from public API.
+* @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
+* `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
+* `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
+* Removed deprecated method `Realm.getTable()` from public API.
 
 ### Deprecated
 
-* RealmObject.removeFromRealm() in place of RealmObject.deleteFromRealm()
-* Realm.clear(Class) in favour of Realm.delete(Class).
-* DynamicRealm.clear(Class) in place of DynamicRealm.delete(Class).
+* `RealmObject.removeFromRealm()` in place of `RealmObject.deleteFromRealm()`
+* `Realm.clear(Class)` in favour of `Realm.delete(Class)`.
+* `DynamicRealm.clear(Class)` in place of `DynamicRealm.delete(Class)`.
 
 ### Enhancements
 
-* RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
-* RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
-* RealmObjectSchema.isPrimaryKey(String) (#2440)
-* RealmConfiguration.initialData() can now be used to populate a Realm file before it is used for the first time.
-* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+* Added a `RealmModel` interface that can be used instead of extending `RealmObject`.
+* `RealmCollection` and `OrderedRealmCollection` interfaces have been added. `RealmList` and `RealmResults` both implement these.
+* `RealmBaseAdapter` now accept an `OrderedRealmCollection` instead of only `RealmResults`.
+* `RealmObjectSchema.isPrimaryKey(String)` (#2440)
+* `RealmConfiguration.initialData(Realm.Transaction)` can now be used to populate a Realm file before it is used for the first time.
 
 ### Bug fixes
 
-* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the given field name doesn't exist.
+* `RealmObjectSchema.isRequired(String)` and `RealmObjectSchema.isNullable(String)` don't throw when the given field name doesn't exist.
 
 ### Credits
 
-* Thanks to @thesurix for adding RealmConfiguration.initialData().
+* Thanks to @thesurix for adding `RealmConfiguration.initialData()`.
 
 ## 0.88.3
 
@@ -105,6 +117,7 @@
 
 ### Bug fixes
 
+* Error occurring during test and (#2025).
 * Error occurring during test and connectedCheck of unit test example (#1934).
 * Bug in jsonExample (#2092).
 * Multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
