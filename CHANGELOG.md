@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* @PrimaryKey + @Required creates appropriate type cast when a primary key field type is `String` (#2653).
+* @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
 
 ## 0.89.0
 

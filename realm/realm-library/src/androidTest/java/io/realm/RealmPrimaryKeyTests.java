@@ -58,15 +58,21 @@ public class RealmPrimaryKeyTests {
         }
     }
 
-    // parameters for testing null/non-null primary key value. PrimaryKey field is explicitly null or absent.
+    /**
+     * Base parameters for testing null/not-null primary key value. The parameters are aligned in an
+     * order of 1) a test target class, 2) a primary key field class, 3) a primary Key value, 4) a
+     * secondary field class, and 5) a secondary field value, accommodating {@interface NullPrimaryKey}
+     * to condense unit tests.
+     */
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                 {PrimaryKeyRequiredAsString.class,       String.class,  "424123",              String.class, "SomeSecondaryValue"}
-                ,{PrimaryKeyRequiredAsBoxedByte.class,    Byte.class,    Byte.valueOf("67"),    String.class, "This-Is-Second-One"}
-                ,{PrimaryKeyRequiredAsBoxedShort.class,   Short.class,   Short.valueOf("1729"), String.class, "AnyValueIsAccepted"}
-                ,{PrimaryKeyRequiredAsBoxedInteger.class, Integer.class, Integer.valueOf("19"), String.class, "PlayWithSeondFied!"}
-                ,{PrimaryKeyRequiredAsBoxedLong.class,    Long.class,    Long.valueOf("62914"), String.class, "Let's name a value"}
+                // 1) Test target class                  2) PK Class    3) PK value            4) 2nd Class  5) 2nd field value
+                {PrimaryKeyRequiredAsString.class,       String.class,  "424123",              String.class, "SomeSecondaryValue"},
+                {PrimaryKeyRequiredAsBoxedByte.class,    Byte.class,    Byte.valueOf("67"),    String.class, "This-Is-Second-One"},
+                {PrimaryKeyRequiredAsBoxedShort.class,   Short.class,   Short.valueOf("1729"), String.class, "AnyValueIsAccepted"},
+                {PrimaryKeyRequiredAsBoxedInteger.class, Integer.class, Integer.valueOf("19"), String.class, "PlayWithSeondFied!"},
+                {PrimaryKeyRequiredAsBoxedLong.class,    Long.class,    Long.valueOf("62914"), String.class, "Let's name a value"}
         });
     }
 
