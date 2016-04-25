@@ -78,6 +78,11 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyMix;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedByte;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
+import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
+import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -2251,8 +2256,135 @@ public class RealmTests {
         try {
             realm.createObject(AllJavaTypes.class, 42);
             fail();
-        } catch (RealmException ignored) {
+        } catch (RealmPrimaryKeyConstraintException ignored) {
         }
+    }
+
+    @Test
+    public void createObjectWithPrimaryKey_null() {
+        // Byte
+        realm.beginTransaction();
+        PrimaryKeyAsBoxedByte primaryKeyAsBoxedByte= realm.createObject(PrimaryKeyAsBoxedByte.class, null);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedByte.class).count());
+        assertNull(primaryKeyAsBoxedByte.getId());
+
+        // Short
+        realm.beginTransaction();
+        PrimaryKeyAsBoxedShort primaryKeyAsBoxedShort = realm.createObject(PrimaryKeyAsBoxedShort.class, null);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedShort.class).count());
+        assertNull(primaryKeyAsBoxedShort.getId());
+
+        // Integer
+        realm.beginTransaction();
+        PrimaryKeyAsBoxedInteger primaryKeyAsBoxedInteger = realm.createObject(PrimaryKeyAsBoxedInteger.class, null);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedInteger.class).count());
+        assertNull(primaryKeyAsBoxedInteger.getId());
+
+        // Long
+        realm.beginTransaction();
+        PrimaryKeyAsBoxedLong primaryKeyAsBoxedLong = realm.createObject(PrimaryKeyAsBoxedLong.class, null);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedLong.class).count());
+        assertNull(primaryKeyAsBoxedLong.getId());
+
+        // String
+        realm.beginTransaction();
+        PrimaryKeyAsString primaryKeyAsString = realm.createObject(PrimaryKeyAsString.class, null);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(PrimaryKeyAsString.class).count());
+        assertNull(primaryKeyAsString.getName());
+    }
+
+    @Test
+    public void createObjectWithPrimaryKey_nullOnRequired() {
+        realm.beginTransaction();
+
+        // Byte
+        try {
+            realm.createObject(PrimaryKeyRequiredAsBoxedByte.class, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Short
+        try {
+            realm.createObject(PrimaryKeyRequiredAsBoxedShort.class, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Integer
+        try {
+            realm.createObject(PrimaryKeyRequiredAsBoxedInteger.class, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Long
+        try {
+            realm.createObject(PrimaryKeyRequiredAsBoxedLong.class, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // String
+        try {
+            realm.createObject(PrimaryKeyRequiredAsString.class, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        realm.cancelTransaction();
+    }
+
+    @Test
+    public void createObjectWithPrimaryKey_nullDuplicated() {
+        realm.beginTransaction();
+
+        // Byte
+        realm.createObject(PrimaryKeyAsBoxedByte.class, null);
+        try {
+            realm.createObject(PrimaryKeyAsBoxedByte.class, null);
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+
+        // Short
+        realm.createObject(PrimaryKeyAsBoxedShort.class, null);
+        try {
+            realm.createObject(PrimaryKeyAsBoxedShort.class, null);
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+
+        // Integer
+        realm.createObject(PrimaryKeyAsBoxedInteger.class, null);
+        try {
+            realm.createObject(PrimaryKeyAsBoxedInteger.class, null);
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+
+        // Long
+        realm.createObject(PrimaryKeyAsBoxedLong.class, null);
+        try {
+            realm.createObject(PrimaryKeyAsBoxedLong.class, null);
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+
+        // String
+        realm.createObject(PrimaryKeyAsString.class, null);
+        try {
+            realm.createObject(PrimaryKeyAsString.class, null);
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+
+        realm.cancelTransaction();
     }
 
     // Test close Realm in another thread different from where it is created.
