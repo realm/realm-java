@@ -4,6 +4,7 @@
 
 * @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
 * Primary key is cleared/changed when calling RealmSchema.remove()/RealmSchema.rename() (#2555).
+* Objects implementing RealmModel can be used as a field of RealmModel/RealmObject (#2654).
 
 ## 0.89.0
 
