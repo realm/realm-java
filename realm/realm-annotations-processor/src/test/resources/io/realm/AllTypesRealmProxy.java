@@ -198,7 +198,7 @@ public class AllTypesRealmProxy extends AllTypes
             proxyState.getRow$realm().nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
-        if (!value.isValid()) {
+        if (!RealmObject.isValid(value)) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
         if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {

@@ -54,6 +54,7 @@ public class RealmProcessorTest {
     private JavaFileObject invalidRealmModelModel_3 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_3.java");
     private JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelRealmModel_ExtendingRealmObject.java");
     private JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
+    private JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
 
     @Test
     public void compileSimpleFile() {
@@ -433,5 +434,13 @@ public class RealmProcessorTest {
                 .that(UseExtendRealmList)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
+    }
+
+    @Test
+    public void compileWithRealmModelFieldInReamlModel() {
+        ASSERT.about(javaSource())
+                .that(SimpleRealmModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
     }
 }
