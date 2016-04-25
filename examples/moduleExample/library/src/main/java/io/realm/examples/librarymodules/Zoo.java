@@ -35,7 +35,7 @@ public class Zoo {
     public Zoo(Context context) {
         realmConfig = new RealmConfiguration.Builder(context) // Beware this is the app context
                 .name("library.zoo.realm")                    // So always use a unique name
-                .setModules(new AllAnimalsModule())           // Always use explicit modules in library projects
+                .modules(new AllAnimalsModule())           // Always use explicit modules in library projects
                 .build();
 
         // Reset Realm

@@ -97,9 +97,7 @@ public final class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
-        if (handlerController != null) {
-            handlerController.addToRealmObjects(dynamicRealmObject);
-        }
+        handlerController.addToRealmObjects(dynamicRealmObject);
         return dynamicRealmObject;
     }
 

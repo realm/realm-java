@@ -34,7 +34,13 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
             ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
             return false;
         }
-        TV(nativeViewPtr)->sync_if_needed();
+        // depends_on_deleted_linklist() will return true if and only if the current TableView was created from a
+        // query on a RealmList and that RealmList was then deleted (as a result of the object being deleted).
+        if (!TV(nativeViewPtr)->is_in_sync() && TV(nativeViewPtr)->depends_on_deleted_linklist()) {
+            // This table view is no longer valid. By calling sync_if_needed we ensure it behaves
+            // properly as a 0-size TableView.
+            TV(nativeViewPtr)->sync_if_needed();
+        }
     }
     return valid;
 }
@@ -165,9 +171,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSourceRowIndex
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-            return npos;
+            return to_jlong_or_not_found(-1);
         if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
-            return npos;
+            return to_jlong_or_not_found(-1);
+        if (!TV(nativeViewPtr)->is_row_attached(rowIndex))
+            return to_jlong_or_not_found(-1);
     } CATCH_STD()
     return TV(nativeViewPtr)->get_source_ndx(S(rowIndex));   // noexcept
 }
@@ -1059,7 +1067,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
     bool valid = (TV(nativeViewPtr) != NULL);

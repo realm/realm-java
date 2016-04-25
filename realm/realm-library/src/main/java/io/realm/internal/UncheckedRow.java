@@ -221,11 +221,22 @@ public class UncheckedRow extends NativeObject implements Row {
         nativeSetDate(nativePointer, columnIndex, timestamp);
     }
 
+    /**
+     * Set a string value to a row pointer.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     * @param value the value to to a row
+     */
     @Override
     public void setString(long columnIndex, String value) {
         parent.checkImmutable();
-        getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetString(nativePointer, columnIndex, value);
+        if (value == null) {
+            getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
+            nativeSetNull(nativePointer, columnIndex);
+        } else {
+            getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
+            nativeSetString(nativePointer, columnIndex, value);
+        }
     }
 
     @Override
@@ -260,8 +271,15 @@ public class UncheckedRow extends NativeObject implements Row {
         return nativeIsNull(nativePointer, columnIndex);
     }
 
+    /**
+     * Set null to a row pointer.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     */
     @Override
     public void setNull(long columnIndex) {
+        parent.checkImmutable();
+        getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
         nativeSetNull(nativePointer, columnIndex);
     }
 
