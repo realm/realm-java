@@ -2056,21 +2056,20 @@ public class RealmAsyncQueryTests {
             }
         });
         looperThread.keepStrongReference.add(results);
-
-        looperThread.realm.executeTransaction(new Realm.Transaction() {
+        looperThread.realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(AllTypes.class);
             }
-        }, new Realm.Transaction.Callback() {
+        }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
                 assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
                 looperThread.testComplete();
             }
-
+        }, new Realm.Transaction.OnError() {
             @Override
-            public void onError(Exception e) {
+            public void onError(Throwable error) {
                 fail();
             }
         });
