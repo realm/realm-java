@@ -221,6 +221,9 @@ public final class RealmObjectSchema {
         checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(currentFieldName);
         table.renameColumn(columnIndex, newFieldName);
+
+        // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
+
         return this;
     }
 
