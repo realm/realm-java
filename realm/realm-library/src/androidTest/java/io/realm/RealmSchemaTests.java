@@ -30,6 +30,8 @@ import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
+import io.realm.entities.PrimaryKeyAsString;
+import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -51,7 +53,7 @@ public class RealmSchemaTests {
     @Before
     public void setUp() {
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schema(AllJavaTypes.class, Owner.class)
+                .schema(AllJavaTypes.class, Owner.class, PrimaryKeyAsString.class)
                 .build();
         Realm.getInstance(realmConfig).close(); // create Schema
         realm = DynamicRealm.getInstance(realmConfig);
@@ -68,9 +70,10 @@ public class RealmSchemaTests {
     @Test
     public void getAll() {
         Set<RealmObjectSchema> objectSchemas = realmSchema.getAll();
-        assertEquals(5, objectSchemas.size());
+        assertEquals(6, objectSchemas.size());
 
-        List<String> expectedTables = Arrays.asList(AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey");
+        List<String> expectedTables = Arrays.asList(
+                AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey", "PrimaryKeyAsString");
         for (RealmObjectSchema objectSchema : objectSchemas) {
             if (!expectedTables.contains(objectSchema.getClassName())) {
                 fail(objectSchema.getClassName() + " was not found");
@@ -140,6 +143,42 @@ public class RealmSchemaTests {
     }
 
     @Test
+    public void rename_shouldChangeInfoInPKTable() {
+        final String NEW_NAME = "NewPrimaryKeyAsString";
+        assertTrue(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
+        realmSchema.rename(PrimaryKeyAsString.CLASS_NAME, NEW_NAME);
+        assertFalse(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
+        assertTrue(realmSchema.contains(NEW_NAME));
+        RealmObjectSchema objectSchema = realmSchema.getSchemaForClass(NEW_NAME);
+
+        // TODO: Use this after merge to master
+        //assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,
+                objectSchema.table.getColumnName(objectSchema.table.getPrimaryKey()));
+
+        // Create an object with the old name, and the PK should not exist after created.
+        RealmObjectSchema oldObjectSchema = realmSchema.create(PrimaryKeyAsString.CLASS_NAME);
+        oldObjectSchema.addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
+
+        // TODO: Use this after merge to master
+        /*
+        try {
+            // It should not have primary key anymore at this point
+            oldObjectSchema.getPrimaryKey();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+        */
+        assertEquals(-2, oldObjectSchema.table.getPrimaryKey());
+
+        oldObjectSchema.addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
+        // TODO: Use this after merge to master
+        //assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,oldObjectSchema.getPrimaryKey());
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,
+                oldObjectSchema.table.getColumnName(oldObjectSchema.table.getPrimaryKey()));
+    }
+
+    @Test
     public void remove() {
         realmSchema.remove(AllJavaTypes.CLASS_NAME);
         assertFalse(realmSchema.contains(AllJavaTypes.CLASS_NAME));
@@ -177,5 +216,32 @@ public class RealmSchemaTests {
         catSchema.removeField("owner");
         realmSchema.remove("Cat");
         assertFalse(realmSchema.contains("Cat"));
+    }
+
+    @Test
+    public void remove_shouldRemoveInfoFromPKTable() {
+        assertTrue(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
+        realmSchema.remove(PrimaryKeyAsString.CLASS_NAME);
+        assertFalse(realmSchema.contains(PrimaryKeyAsString.CLASS_NAME));
+
+        RealmObjectSchema objectSchema = realmSchema.create(PrimaryKeyAsString.CLASS_NAME);
+        objectSchema.addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
+
+        // TODO: Use this after merge to master
+        /*
+        try {
+            // It should not have primary key anymore at this point
+            objectSchema.getPrimaryKey();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+        */
+        assertEquals(-2, objectSchema.table.getPrimaryKey());
+
+        objectSchema.addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
+        // TODO: Use this after merge to master
+        //assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,
+                objectSchema.table.getColumnName(objectSchema.table.getPrimaryKey()));
     }
 }

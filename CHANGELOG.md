@@ -17,6 +17,7 @@
 ### Bug fixes
 
 * @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
+* Primary key is cleared/changed when calling RealmSchema.remove()/RealmSchema.rename() (#2555).
 
 ## 0.89.0
 
