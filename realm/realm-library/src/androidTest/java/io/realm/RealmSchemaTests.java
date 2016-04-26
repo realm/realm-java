@@ -151,31 +151,21 @@ public class RealmSchemaTests {
         assertTrue(realmSchema.contains(NEW_NAME));
         RealmObjectSchema objectSchema = realmSchema.getSchemaForClass(NEW_NAME);
 
-        // TODO: Use this after merge to master
-        //assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
-        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,
-                objectSchema.table.getColumnName(objectSchema.table.getPrimaryKey()));
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
 
         // Create an object with the old name, and the PK should not exist after created.
         RealmObjectSchema oldObjectSchema = realmSchema.create(PrimaryKeyAsString.CLASS_NAME);
         oldObjectSchema.addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
 
-        // TODO: Use this after merge to master
-        /*
         try {
             // It should not have primary key anymore at this point
             oldObjectSchema.getPrimaryKey();
             fail();
         } catch (IllegalStateException ignored) {
         }
-        */
-        assertEquals(-2, oldObjectSchema.table.getPrimaryKey());
 
         oldObjectSchema.addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
-        // TODO: Use this after merge to master
-        //assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,oldObjectSchema.getPrimaryKey());
-        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,
-                oldObjectSchema.table.getColumnName(oldObjectSchema.table.getPrimaryKey()));
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, oldObjectSchema.getPrimaryKey());
     }
 
     @Test
@@ -227,21 +217,14 @@ public class RealmSchemaTests {
         RealmObjectSchema objectSchema = realmSchema.create(PrimaryKeyAsString.CLASS_NAME);
         objectSchema.addField(PrimaryKeyAsString.FIELD_PRIMARY_KEY, String.class);
 
-        // TODO: Use this after merge to master
-        /*
         try {
             // It should not have primary key anymore at this point
             objectSchema.getPrimaryKey();
             fail();
         } catch (IllegalStateException ignored) {
         }
-        */
-        assertEquals(-2, objectSchema.table.getPrimaryKey());
 
         objectSchema.addPrimaryKey(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
-        // TODO: Use this after merge to master
-        //assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
-        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY,
-                objectSchema.table.getColumnName(objectSchema.table.getPrimaryKey()));
+        assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
     }
 }

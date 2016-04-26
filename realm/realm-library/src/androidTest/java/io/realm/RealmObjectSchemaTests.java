@@ -619,9 +619,7 @@ public class RealmObjectSchemaTests {
         schema.renameField(fieldName, "bar");
         assertTrue(schema.hasPrimaryKey());
 
-        // TODO: Use this after merge to master
-        //assertEquals("bar", schema.getPrimaryKey());
-        assertEquals("bar", schema.table.getColumnName(schema.table.getPrimaryKey()));
+        assertEquals("bar", schema.getPrimaryKey());
     }
 
     @Test
