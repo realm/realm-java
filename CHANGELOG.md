@@ -1,5 +1,9 @@
 ## 0.90.0
 
+### Breaking changes
+
+* Removed `HandlerController` from the public API.
+
 ### Deprecated
 
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
