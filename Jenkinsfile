@@ -131,7 +131,7 @@ def gradle(String commands) {
             sh 'rm -rf *'
             unstash 'test-apk'
 
-            def devices = 'adb devices'
+            def devices = '/usr/bin/adb devices'
                             .execute()
                             .text
                             .split('\n')
