@@ -54,7 +54,7 @@ import io.realm.rx.RxObservableFactory;
  * - It is saved in Context.getFilesDir()
  * - It has its schema version set to 0.
  */
-public class RealmConfiguration {
+public final class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
     public static final int KEY_LENGTH = 64;
@@ -311,7 +311,7 @@ public class RealmConfiguration {
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
-    public static class Builder {
+    public static final class Builder {
         private File folder;
         private String fileName;
         private byte[] key;

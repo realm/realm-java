@@ -4,6 +4,7 @@
 
 * All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
 * Removed `HandlerController` from the public API.
+* Marked all methods on `RealmObject` and all public classes final (#1594).
 
 ### Deprecated
 

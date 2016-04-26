@@ -30,7 +30,7 @@ import io.realm.internal.log.RealmLog;
  * One {@link RealmCache} is created for each {@link RealmConfiguration}, and it caches all the {@link Realm} and
  * {@link DynamicRealm} instances which are created from the same {@link RealmConfiguration}.
  */
-class RealmCache {
+final class RealmCache {
 
     interface Callback {
         void onResult(int count);

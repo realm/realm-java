@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
  * case of a configuration change for example (to avoid memory leak, as the transaction will post the result to the
  * caller's thread callback).
  */
-public class RealmAsyncTask {
+public final class RealmAsyncTask {
     private final Future<?> pendingQuery;
     private volatile boolean isCancelled = false;
 

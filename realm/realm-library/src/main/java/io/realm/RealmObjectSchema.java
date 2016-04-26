@@ -675,7 +675,7 @@ public final class RealmObjectSchema {
         }
     }
 
-    static class DynamicColumnMap implements Map<String, Long> {
+    static final class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
         public DynamicColumnMap(Table table) {
