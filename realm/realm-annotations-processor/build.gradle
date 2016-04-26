@@ -13,7 +13,7 @@ dependencies {
 
     testCompile files('../realm-library/build/intermediates/bundles/release/classes.jar') // Java projects cannot depend on AAR files
     testCompile files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it
-    testCompile group:'junit', name:'junit', version:'4.11'
+    testCompile group:'junit', name:'junit', version:'4.12'
     testCompile group:'com.google.testing.compile', name:'compile-testing', version:'0.6'
     testCompile files(file("${System.env.ANDROID_HOME}/platforms/android-21/android.jar"))
 }
