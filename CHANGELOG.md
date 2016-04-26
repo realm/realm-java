@@ -3,6 +3,7 @@
 ### Breaking changes
 
 * Removed `HandlerController` from the public API.
+* Marked all methods on `RealmObject` and all public classes final (#1594).
 
 ### Deprecated
 
