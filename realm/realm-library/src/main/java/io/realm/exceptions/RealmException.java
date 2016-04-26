@@ -22,7 +22,7 @@ import io.realm.internal.Keep;
  * RealmException is Realm specific exceptions.
  */
 @Keep
-public class RealmException extends RuntimeException {
+public final class RealmException extends RuntimeException {
 
     public RealmException(String detailMessage) {
         super(detailMessage);

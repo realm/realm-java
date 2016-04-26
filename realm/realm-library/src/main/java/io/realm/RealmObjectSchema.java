@@ -221,6 +221,9 @@ public final class RealmObjectSchema {
         checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(currentFieldName);
         table.renameColumn(columnIndex, newFieldName);
+
+        // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
+
         return this;
     }
 
@@ -672,7 +675,7 @@ public final class RealmObjectSchema {
         }
     }
 
-    static class DynamicColumnMap implements Map<String, Long> {
+    static final class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
         public DynamicColumnMap(Table table) {

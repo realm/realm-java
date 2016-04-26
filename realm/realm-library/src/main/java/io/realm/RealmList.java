@@ -927,9 +927,9 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
 
         /**
          * Adding a new object to the RealmList. If the object is not already manage by Realm it will be transparently
-         * copied using {@link Realm#copyToRealmOrUpdate(RealmObject)}
+         * copied using {@link Realm#copyToRealmOrUpdate(RealmModel)}
          *
-         * @see #add(RealmObject)
+         * @see #add(RealmModel)
          */
         public void add(E e) {
             realm.checkIfValid();

@@ -1,8 +1,15 @@
 ## 0.90.0
 
+### Breaking changes
+
+* All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
+* Removed `HandlerController` from the public API.
+* Marked all methods on `RealmObject` and all public classes final (#1594).
+* Removed constructor of `RealmAsyncTask` from the public API8 (#1594).
+
 ### Deprecated
 
-* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` insteasd.
 
 ### Enhancements
 
@@ -18,6 +25,8 @@
 ### Bug fixes
 
 * @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
+* Primary key is cleared/changed when calling RealmSchema.remove()/RealmSchema.rename() (#2555).
+* Objects implementing RealmModel can be used as a field of RealmModel/RealmObject (#2654).
 
 ## 0.89.0
 
@@ -26,6 +35,7 @@
 * @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
 * `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
 * `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
+* `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
 * Removed deprecated method `Realm.getTable()` from public API.
 
 ### Deprecated

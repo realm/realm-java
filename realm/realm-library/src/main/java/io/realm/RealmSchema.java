@@ -130,6 +130,10 @@ public final class RealmSchema {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
+        Table table = getTable(className);
+        if (table.hasPrimaryKey()) {
+            table.setPrimaryKey(null);
+        }
         transaction.removeTable(internalTableName);
     }
 
@@ -149,8 +153,23 @@ public final class RealmSchema {
         if (transaction.hasTable(newInternalName)) {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
+
+        // Check if there is a primary key defined for the old class.
+        Table oldTable = getTable(oldClassName);
+        String pkField = null;
+        if (oldTable.hasPrimaryKey()) {
+            pkField = oldTable.getColumnName(oldTable.getPrimaryKey());
+            oldTable.setPrimaryKey(null);
+        }
+
         transaction.renameTable(oldInternalName, newInternalName);
         Table table = transaction.getTable(newInternalName);
+
+        // Set the primary key for the new class if necessary
+        if (pkField != null) {
+            table.setPrimaryKey(pkField);
+        }
+
         RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
         return new RealmObjectSchema(realm, table, columnIndices);
     }
