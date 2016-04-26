@@ -9,7 +9,10 @@
 
 ### Deprecated
 
-* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` insteasd.
+* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 
 ### Enhancements
 
