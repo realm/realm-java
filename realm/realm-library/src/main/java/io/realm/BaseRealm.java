@@ -296,10 +296,10 @@ public abstract class BaseRealm implements Closeable {
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
         }
-        if (handlerController != null) {
+        if (Looper.myLooper() != null) {
             throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
         }
-        boolean hasChanged = sharedGroupManager.waitForChange();
+        boolean hasChanged = sharedGroupManager.getSharedGroup().waitForChange();
         if (hasChanged) {
             sharedGroupManager.advanceRead();
         }
@@ -312,7 +312,7 @@ public abstract class BaseRealm implements Closeable {
      * Calling {@code #stopWaitForChange()} on a Realm that is not waiting for changes has no effect.
      */
     public void stopWaitForChange() {
-        sharedGroupManager.stopWaitForChange();
+        sharedGroupManager.getSharedGroup().stopWaitForChange();
     }
 
     /**
