@@ -19,7 +19,7 @@
 * @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
 * `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
 * `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
-* `RealmResults.sort()` and `RealmList.sort()` now returns the sorted result instead of sorting in-place.
+* `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
 * Removed deprecated method `Realm.getTable()` from public API.
 
 ### Deprecated
