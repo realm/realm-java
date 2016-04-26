@@ -145,6 +145,11 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         collection = createCollection(collectionClass);
     }
 
+    @After
+    public void tearDown() {
+        realm.close();
+    }
+
     OrderedRealmCollection<AllJavaTypes> createCollection(ManagedCollection collectionClass) {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -176,12 +181,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         throw new AssertionError("Unknown collection: " + collectionClass);
     }
 
-    @After
-    public void tearDown() {
-        realm.close();
-    }
-
-    @Test
+   @Test
     public void sort_twoFields() {
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
         AllJavaTypes obj = sortedList.first();
@@ -240,7 +240,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         sortedList = sortedList.sort(AllJavaTypes.FIELD_DOUBLE, Sort.DESCENDING);
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_SIZE, sortedList.size());
-            assertEquals(resultList.first().getFieldDouble(), sortedList.last().getFieldDouble(), 0D);
+        assertEquals(resultList.first().getFieldDouble(), sortedList.last().getFieldDouble(), 0D);
 
         RealmResults<AllJavaTypes> reverseList = sortedList.sort(AllJavaTypes.FIELD_DOUBLE, Sort.ASCENDING);
         assertEquals(TEST_SIZE, reverseList.size());

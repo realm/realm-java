@@ -132,6 +132,11 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         collection = createCollection(realm, collectionClass);
     }
 
+    @After
+    public void tearDown() {
+        realm.close();
+    }
+
     private OrderedRealmCollection<AllJavaTypes> createCollection(Realm realm, CollectionClass collectionClass) {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -198,11 +203,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
-    }
-
-    @After
-    public void tearDown() {
-        realm.close();
     }
 
     @Test
@@ -365,4 +365,5 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             }
         }
     }
+
 }

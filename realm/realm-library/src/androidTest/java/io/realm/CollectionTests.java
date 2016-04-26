@@ -84,20 +84,22 @@ public abstract class CollectionTests {
         realm.beginTransaction();
         realm.delete(AllJavaTypes.class);
         realm.delete(NonLatinFieldNames.class);
-        for (int i = 0; i < objects; i++) {
-            AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
-            fillObject(i, objects, obj);
-            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
-            nonLatinFieldNames.set델타(i);
-            nonLatinFieldNames.setΔέλτα(i);
-        }
+        if (objects > 0) {
+            for (int i = 0; i < objects; i++) {
+                AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
+                fillObject(i, objects, obj);
+                NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
+                nonLatinFieldNames.set델타(i);
+                nonLatinFieldNames.setΔέλτα(i);
+            }
 
-        // Add all items to the RealmList on the first object
-        AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst();
-        RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
-        RealmList<AllJavaTypes> list = firstObj.getFieldList();
-        for (int i = 0; i < listData.size(); i++) {
-            list.add(listData.get(i));
+            // Add all items to the RealmList on the first object
+            AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst();
+            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+            RealmList<AllJavaTypes> list = firstObj.getFieldList();
+            for (int i = 0; i < listData.size(); i++) {
+                list.add(listData.get(i));
+            }
         }
         realm.commitTransaction();
     }

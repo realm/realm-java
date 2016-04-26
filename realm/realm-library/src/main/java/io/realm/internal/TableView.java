@@ -37,6 +37,7 @@ public class TableView implements TableOrView, Closeable {
     // Core requests TableView to hold the Query reference.
     @SuppressWarnings({"unused"})
     private final TableQuery query; // the query which created this TableView
+    private long version; // Last seen version number. Call refresh() to update this.
 
     /**
      * Creates a TableView. This constructor is used if the TableView is created from a table.
@@ -787,6 +788,11 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    public long getVersion() {
+        return version;
+    }
+
+    @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
         if (! this.getColumnType(stringCol).equals(RealmFieldType.STRING ))
             throw new UnsupportedOperationException("Group by column must be of type String");
@@ -832,8 +838,9 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
-    public long sync() {
-        return nativeSync(nativePtr);
+    public long syncIfNeeded() {
+        version = nativeSyncIfNeeded(nativePtr);
+        return version;
     }
 
     static native void nativeClose(long nativeViewPtr);
@@ -905,6 +912,7 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
     private native long nativeDistinct(long nativeViewPtr, long columnIndex);
+    private native long nativeSyncIfNeeded(long nativeTablePtr);
     private native long nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
 }
