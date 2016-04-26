@@ -59,7 +59,7 @@ import io.realm.internal.log.RealmLog;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmModel> {
+public final class RealmQuery<E extends RealmModel> {
 
     private BaseRealm realm;
     private Class<E> clazz;

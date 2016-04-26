@@ -43,7 +43,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-public final class HandlerController implements Handler.Callback {
+final class HandlerController implements Handler.Callback {
 
     static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;

@@ -225,7 +225,7 @@ public class ClassMetaData {
                     } else if (Utils.isRealmList(variableElement)) {
                         Utils.error("@Required is invalid for field " + element +
                                 " with the type " + element.asType());
-                    } else if (Utils.isRealmObject(variableElement)) {
+                    } else if (Utils.isRealmModel(variableElement)) {
                         Utils.error("@Required is invalid for field " + element +
                                 " with the type " + element.asType());
                     } else {

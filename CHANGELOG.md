@@ -1,5 +1,11 @@
 ## 0.90.0
 
+### Breaking changes
+
+* All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
+* Removed `HandlerController` from the public API.
+* Marked all methods on `RealmObject` and all public classes final (#1594).
+
 ### Deprecated
 
 * `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
@@ -20,6 +26,8 @@
 ### Bug fixes
 
 * @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
+* Primary key is cleared/changed when calling RealmSchema.remove()/RealmSchema.rename() (#2555).
+* Objects implementing RealmModel can be used as a field of RealmModel/RealmObject (#2654).
 
 ## 0.89.0
 
