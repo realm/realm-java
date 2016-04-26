@@ -29,7 +29,7 @@ public final class RealmAsyncTask {
     private final Future<?> pendingQuery;
     private volatile boolean isCancelled = false;
 
-    public RealmAsyncTask(Future<?> pendingQuery) {
+    RealmAsyncTask(Future<?> pendingQuery) {
         this.pendingQuery = pendingQuery;
     }
 
