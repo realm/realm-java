@@ -167,7 +167,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).findAll()} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll()} instead.
      */
     @Deprecated
     public RealmResults<DynamicRealmObject> allObjects(String className) {
@@ -175,7 +175,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).findAll(fieldName, sortOrder)} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll(fieldName, sortOrder)} instead.
      */
     @Deprecated
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
@@ -192,7 +192,7 @@ public final class DynamicRealm extends BaseRealm {
 
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).findAll(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
      */
     @Deprecated
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName1,
@@ -203,7 +203,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).findAll(fieldNames[], sortOrders[])} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll(fieldNames[], sortOrders[])} instead.
      */
     @Deprecated
     @SuppressWarnings("unchecked")
@@ -226,7 +226,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).distinct(fieldName)} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).distinct(fieldName)} instead.
      */
     @Deprecated
     public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
@@ -238,7 +238,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).distinctAsync(fieldName)} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).distinctAsync(fieldName)} instead.
      */
     @Deprecated
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
@@ -247,7 +247,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code realm.where(className).distinct(firstFieldName, remainingFieldNames)} instead.
+     * DEPRECATED: Use {@code dynamicRealm.where(className).distinct(firstFieldName, remainingFieldNames)} instead.
      */
     @Deprecated
     public RealmResults<DynamicRealmObject> distinct(String className, String firstFieldName, String... remainingFieldNames) {
