@@ -719,7 +719,8 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Creates a new object inside the Realm with the Primary key value initially set.
+     * Instantiates and adds a new object to the Realm with the primary key value already set.
+     *
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
      *
@@ -729,7 +730,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException If the model clazz does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
-     *                                  expectd value.
+     *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
