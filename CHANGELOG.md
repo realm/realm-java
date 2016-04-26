@@ -13,7 +13,8 @@
 
 ### Enhancements
 
-* `RealmObjectSchema.getPrimaryKey()` (#2636)
+* `RealmObjectSchema.getPrimaryKey()`. (#2636)
+* `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
 
 ### Credits
 
