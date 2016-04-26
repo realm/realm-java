@@ -17,7 +17,8 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
-
+import io.realm.entities.AllJavaTypes;
+import io.realm.rule.TestRealmConfigurationFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,9 +28,6 @@ import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.Set;
-
-import io.realm.entities.AllJavaTypes;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -318,6 +316,7 @@ public class RealmObjectSchemaTests {
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.isPrimaryKey(fieldName));
+            assertEquals(fieldName, schema.getPrimaryKey());
             switch (fieldType) {
                 case BYTE:
                 case SHORT:
@@ -610,6 +609,20 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    public void renameField_withPrimaryKey() {
+        String fieldName = "foo";
+        schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
+        assertTrue(schema.hasField(fieldName));
+        assertTrue(schema.hasPrimaryKey());
+        assertTrue(schema.isPrimaryKey(fieldName));
+
+        schema.renameField(fieldName, "bar");
+        assertTrue(schema.hasPrimaryKey());
+
+        assertEquals("bar", schema.getPrimaryKey());
+    }
+
+    @Test
     public void setGetClassName() {
         assertEquals("Dog", DOG_SCHEMA.getClassName());
         String newClassName = "Darby";
@@ -706,6 +719,11 @@ public class RealmObjectSchemaTests {
     @Test(expected = IllegalArgumentException.class)
     public void isPrimaryKey_nonExistFieldThrows() {
         schema.isPrimaryKey("I don't exist");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getPrimaryKey_nonExistFieldThrows() {
+        schema.getPrimaryKey();
     }
 
     private interface FieldRunnable {

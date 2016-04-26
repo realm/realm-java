@@ -1171,71 +1171,90 @@ public class RealmJsonTests {
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(0));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 2 Bytes
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(1));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 3 Boolean
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(2));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 4 Byte
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(3));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 5 Short
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(4));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 6 Integer
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(5));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 7 Long
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(6));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 8 Float
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(7));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 9 Double
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(8));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 10 Date
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(9));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
 
         realm.cancelTransaction();

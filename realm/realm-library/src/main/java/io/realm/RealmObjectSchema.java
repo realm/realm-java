@@ -16,6 +16,11 @@
 
 package io.realm;
 
+import io.realm.annotations.Required;
+import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -23,11 +28,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import io.realm.annotations.Required;
-import io.realm.internal.ImplicitTransaction;
-import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -221,6 +221,9 @@ public final class RealmObjectSchema {
         checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(currentFieldName);
         table.renameColumn(columnIndex, newFieldName);
+
+        // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
+
         return this;
     }
 
@@ -419,6 +422,19 @@ public final class RealmObjectSchema {
      */
     public boolean hasPrimaryKey() {
         return table.hasPrimaryKey();
+    }
+
+    /**
+     * Returns the name of the primary key field.
+     *
+     * @return the name of the primary key field.
+     * @throws IllegalStateException if the class doesn't have a primary key defined.
+     */
+    public String getPrimaryKey() {
+        if (!table.hasPrimaryKey()) {
+            throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
+        }
+        return table.getColumnName(table.getPrimaryKey());
     }
 
     /**
@@ -659,7 +675,7 @@ public final class RealmObjectSchema {
         }
     }
 
-    static class DynamicColumnMap implements Map<String, Long> {
+    static final class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
         public DynamicColumnMap(Table table) {
