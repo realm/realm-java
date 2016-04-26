@@ -1950,13 +1950,8 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void testAsyncTransactionWorksWithAsyncQuery() {
-        RealmResults<AllTypes> results = looperThread.realm.where(AllTypes.class).findAllAsync();
-        results.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                //assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
-            }
-        });
+        Realm realm = looperThread.realm;
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         looperThread.keepStrongReference.add(results);
         looperThread.realm.executeTransactionAsync(new Realm.Transaction() {
             @Override

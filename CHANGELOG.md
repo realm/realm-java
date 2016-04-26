@@ -19,6 +19,10 @@
 * `RealmObjectSchema.getPrimaryKey()`. (#2636)
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
 
+### Bug fixes
+
+* Fixed a bug where onSuccess might not be called with the right Realm version for async transaction (#1893).
+
 ### Credits
 
 * Thanks to Brenden Kromhout (@bkromhout) for adding `RealmObjectSchema.getPrimaryKey()`.
