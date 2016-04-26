@@ -146,7 +146,7 @@ def gradle(String commands) {
             try {
                 def futures = devices.collect { device ->
                     threadPool.submit { ->
-                        def modelName = "adb -s ${device} shell getprop ro.product.device".execute().text
+                        def modelName = "/usr/bin/adb -s ${device} shell getprop ro.product.device".execute().text
 
                         "/usr/bin/adb -s ${device} uninstall io.realm.test".execute().waitFor()
                         "/usr/bin/adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk".execute().waitFor()
