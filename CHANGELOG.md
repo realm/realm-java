@@ -2,11 +2,12 @@
 
 ### Breaking changes
 
+* All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
 * Removed `HandlerController` from the public API.
 
 ### Deprecated
 
-* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` insteasd.
 
 ### Enhancements
 
