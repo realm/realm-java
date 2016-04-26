@@ -148,9 +148,9 @@ def gradle(String commands) {
                     threadPool.submit { ->
                         def modelName = "adb -s ${device} shell getprop ro.product.device".execute().text
 
-                        "adb -s ${device} uninstall io.realm.test".execute().waitFor()
-                        "adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk".execute().waitFor()
-                        ["sh", "-c", "adb -s ${device} shell am instrument -w -r io.realm.test/android.support.test.runner.AndroidJUnitRunner > test_result_${modelName}_${device}.txt"].execute().waitFor()
+                        "/usr/bin/adb -s ${device} uninstall io.realm.test".execute().waitFor()
+                        "/usr/bin/adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk".execute().waitFor()
+                        ["sh", "-c", "/usr/bin/adb -s ${device} shell am instrument -w -r io.realm.test/android.support.test.runner.AndroidJUnitRunner > test_result_${modelName}_${device}.txt"].execute().waitFor()
                         "java -jar /opt/log-converter.jar test_result_${modelName}_${device}.txt".execute().waitFor()
                     } as Callable
                 }
