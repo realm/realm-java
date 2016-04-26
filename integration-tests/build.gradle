@@ -1,0 +1,34 @@
+project.ext.sdkVersion = 23
+project.ext.buildTools = '23.0.0'
+
+// Don't cache SNAPSHOT (changing) dependencies.
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+allprojects {
+    def currentVersion = file("${rootDir}/../version.txt").text.trim()
+
+    buildscript {
+        repositories {
+            mavenLocal()
+            jcenter()
+        }
+        dependencies {
+            classpath 'com.android.tools.build:gradle:1.5.0'
+            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+            classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+            classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
+            classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+            classpath "io.realm:realm-gradle-plugin:${currentVersion}"
+        }
+    }
+
+    group = 'io.realm'
+    version = currentVersion
+
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+}

@@ -11,6 +11,7 @@
 ### Enhancements
 
 * `RealmObjectSchema.getPrimaryKey()` (#2636)
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
 
 ### Credits
 
