@@ -609,6 +609,20 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    public void renameField_withPrimaryKey() {
+        String fieldName = "foo";
+        schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
+        assertTrue(schema.hasField(fieldName));
+        assertTrue(schema.hasPrimaryKey());
+        assertTrue(schema.isPrimaryKey(fieldName));
+
+        schema.renameField(fieldName, "bar");
+        assertTrue(schema.hasPrimaryKey());
+
+        assertEquals("bar", schema.getPrimaryKey());
+    }
+
+    @Test
     public void setGetClassName() {
         assertEquals("Dog", DOG_SCHEMA.getClassName());
         String newClassName = "Darby";

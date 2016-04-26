@@ -86,7 +86,7 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement field : metadata.getFields()) {
             String fieldTypeName = "";
-            if (Utils.isRealmObject(field)) { // Links
+            if (Utils.isRealmModel(field)) { // Links
                 fieldTypeName = field.asType().toString();
             } else if (Utils.isRealmList(field)) { // LinkLists
                 fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
@@ -259,7 +259,7 @@ public class RealmProxyClassGenerator {
                         "proxyState.getRow$realm().set%s(%s, value)",
                         realmType, fieldIndexVariableReference(field));
                 writer.endMethod();
-            } else if (Utils.isRealmObject(field)) {
+            } else if (Utils.isRealmModel(field)) {
                 /**
                  * Links
                  */
@@ -282,7 +282,7 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field));
                     writer.emitStatement("return");
                 writer.endControlFlow();
-                writer.beginControlFlow("if (!value.isValid())");
+                writer.beginControlFlow("if (!RealmObject.isValid(value))");
                     writer.emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")");
                 writer.endControlFlow();
                 writer.beginControlFlow("if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
@@ -372,7 +372,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("table.addColumn(%s, \"%s\", %s)",
                         Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
                         fieldName, nullableFlag);
-            } else if (Utils.isRealmObject(field)) {
+            } else if (Utils.isRealmModel(field)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
                 writer.emitStatement("%s%s.initTable(transaction)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
@@ -519,7 +519,7 @@ public class RealmProxyClassGenerator {
                     writer.endControlFlow();
                 }
 
-            } else if (Utils.isRealmObject(field)) { // Links
+            } else if (Utils.isRealmModel(field)) { // Links
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s' in existing Realm file. " +
                         "Either remove field or migrate using io.realm.internal.Table.addColumn().\")", fieldName);
@@ -691,7 +691,7 @@ public class RealmProxyClassGenerator {
             String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
 
-            if (Utils.isRealmObject(field)) {
+            if (Utils.isRealmModel(field)) {
                 writer
                     .emitEmptyLine()
                     .emitStatement("%s %sObj = ((%s) newObject).%s()", fieldType, fieldName, interfaceName, getter)
@@ -771,7 +771,7 @@ public class RealmProxyClassGenerator {
             String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
 
-            if (Utils.isRealmObject(field)) {
+            if (Utils.isRealmModel(field)) {
                 writer
                     .emitEmptyLine()
                     .emitSingleLineComment("Deep copy of %s", fieldName)
@@ -822,7 +822,7 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
-            if (Utils.isRealmObject(field)) {
+            if (Utils.isRealmModel(field)) {
                 writer
                     .emitStatement("%s %sObj = ((%s) newObject).%s()",
                             Utils.getFieldTypeSimpleName(field), fieldName, interfaceName, getter)
@@ -892,7 +892,7 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
 
             writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
-            if (Utils.isRealmObject(field)) {
+            if (Utils.isRealmModel(field)) {
                 String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
                 writer.emitStatement(
                         "stringBuilder.append(%s() != null ? \"%s\" : \"null\")",
@@ -1026,7 +1026,7 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
-            if (Utils.isRealmObject(field)) {
+            if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
                         interfaceName,
                         metadata.getSetter(fieldName),
@@ -1087,7 +1087,7 @@ public class RealmProxyClassGenerator {
             } else {
                 writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
             }
-            if (Utils.isRealmObject(field)) {
+            if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
                         interfaceName,
                         metadata.getSetter(fieldName),

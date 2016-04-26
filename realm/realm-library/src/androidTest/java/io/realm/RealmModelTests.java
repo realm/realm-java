@@ -35,7 +35,9 @@ import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.entities.pojo.InvalidRealmModel;
 import io.realm.entities.pojo.RealmModelWithRealmListOfRealmModel;
 import io.realm.entities.pojo.PojoWithRealmListOfRealmObject;
+import io.realm.entities.pojo.RealmModelWithRealmModelField;
 import io.realm.entities.pojo.RealmObjectWithRealmListOfRealmModel;
+import io.realm.entities.pojo.RealmObjectWithRealmModelField;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -341,6 +343,40 @@ public class RealmModelTests {
         assertEquals(1, all.size());
         assertEquals(10, all.first().getColumnRealmList().size());
         assertEquals(1, all.first().getColumnRealmList().first().columnLong);
+    }
+
+    // Test the behaviour of a RealmModel, containing a RealmModel field
+    @Test
+    public void realmModelWithRealmModelField() {
+        RealmModelWithRealmModelField realmModelWithRealmModelField = new RealmModelWithRealmModelField();
+        AllTypesRealmModel allTypePojo = new AllTypesRealmModel();
+        allTypePojo.columnLong = 42;
+        realmModelWithRealmModelField.setAllTypesRealmModel(allTypePojo);
+
+        realm.beginTransaction();
+        realm.copyToRealm(realmModelWithRealmModelField);
+        realm.commitTransaction();
+
+        RealmResults<RealmModelWithRealmModelField> all = realm.where(RealmModelWithRealmModelField.class).findAll();
+        assertEquals(1, all.size());
+        assertEquals(42, all.first().getAllTypesRealmModel().columnLong);
+    }
+
+    // Test the behaviour of a RealmObject, containing a RealmModel field
+    @Test
+    public void realmObjectWithRealmModelField() {
+        RealmObjectWithRealmModelField realmObjectWithRealmModelField = new RealmObjectWithRealmModelField();
+        AllTypesRealmModel allTypePojo = new AllTypesRealmModel();
+        allTypePojo.columnLong = 42;
+        realmObjectWithRealmModelField.setAllTypesRealmModel(allTypePojo);
+
+        realm.beginTransaction();
+        realm.copyToRealm(realmObjectWithRealmModelField);
+        realm.commitTransaction();
+
+        RealmResults<RealmObjectWithRealmModelField> all = realm.where(RealmObjectWithRealmModelField.class).findAll();
+        assertEquals(1, all.size());
+        assertEquals(42, all.first().getAllTypesRealmModel().columnLong);
     }
 }
 
