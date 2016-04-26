@@ -6,6 +6,8 @@
 * Removed `HandlerController` from the public API.
 * Marked all methods on `RealmObject` and all public classes final (#1594).
 * Removed constructor of `RealmAsyncTask` from the public API8 (#1594).
+* `RealmBaseAdapter` has been moved to it's own GitHub repository: https://github.com/realm/realm-android-adapters
+  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
 
 ### Deprecated
 
