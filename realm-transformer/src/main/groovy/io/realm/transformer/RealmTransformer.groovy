@@ -23,6 +23,7 @@ import com.google.common.collect.Sets
 import com.google.common.io.Files
 import groovy.io.FileType
 import io.realm.annotations.Ignore
+import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
 import javassist.LoaderClassPath
@@ -99,11 +100,10 @@ class RealmTransformer extends Transform {
         }
 
         // Find the model classes
-        def realmObject = classPool.get('io.realm.RealmObject')
         def allModelClasses = allClassNames
                 .findAll { it.endsWith('RealmProxy') }
                 .collect { classPool.getCtClass(it).superclass }
-                .findAll { it.superclass?.equals(realmObject) }
+                .findAll { it.hasAnnotation(RealmClass.class) || it.superclass.hasAnnotation(RealmClass.class) }
         def inputModelClasses = allModelClasses.findAll {
             inputClassNames.contains(it.name)
         }

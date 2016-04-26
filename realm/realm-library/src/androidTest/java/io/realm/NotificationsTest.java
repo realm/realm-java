@@ -246,8 +246,9 @@ public class NotificationsTest {
         RealmCache.invokeWithGlobalRefCount(realmConfig, new TestHelper.ExpectedCountCallback(0));
     }
 
-    @Test
-    public void autoUpdateRealmResults() throws InterruptedException, ExecutionException {
+    // @Test
+    // FIXME: This test is being replaced by https://github.com/realm/realm-java/pull/2319/files
+    public void realmResultsStableDuringLooperEvent() throws InterruptedException, ExecutionException {
         final int TEST_SIZE = 10;
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);

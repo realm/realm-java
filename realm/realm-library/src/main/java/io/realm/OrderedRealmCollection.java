@@ -24,7 +24,7 @@ import java.util.List;
  * index, with the first index being zero. Normally, {@code OrderedRealmCollection}s allow duplicate
  * elements, as compared to Sets, where elements have to be unique.
  */
-public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, RealmCollection<E> {
+public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, RealmCollection<E> {
 
     /**
      * Gets the first object from the collection.

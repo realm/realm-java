@@ -24,8 +24,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.RealmResults;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -204,8 +205,8 @@ public class QueryUpdateTask implements Runnable {
 
     // result of the async query
     public static class Result {
-        public IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, Long> updatedTableViews;
-        public IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow;
+        public IdentityHashMap<WeakReference<RealmResults<? extends RealmModel>>, Long> updatedTableViews;
+        public IdentityHashMap<WeakReference<RealmObjectProxy>, Long> updatedRow;
         public SharedGroup.VersionID versionID;
 
         public static Result newRealmResultsResponse() {
@@ -216,7 +217,7 @@ public class QueryUpdateTask implements Runnable {
 
         public static Result newRealmObjectResponse() {
             Result result = new Result();
-            result.updatedRow = new IdentityHashMap<WeakReference<RealmObject>, Long>(1);
+            result.updatedRow = new IdentityHashMap<WeakReference<RealmObjectProxy>, Long>(1);
             return result;
         }
     }
@@ -249,16 +250,16 @@ public class QueryUpdateTask implements Runnable {
         }
 
         public interface UpdateQueryStep {
-            RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmObject>> weakReference,
+            RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmModel>> weakReference,
                                           long handoverQueryPointer,
                                           ArgumentsHolder queryArguments);
-            HandlerStep addObject(WeakReference<? extends RealmObject> weakReference,
+            HandlerStep addObject(WeakReference<? extends RealmModel> weakReference,
                                   long handoverQueryPointer,
                                   ArgumentsHolder queryArguments);// can only update 1 element
         }
 
         public interface RealmResultsQueryStep {
-            RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmObject>> weakReference,
+            RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmModel>> weakReference,
                                           long handoverQueryPointer,
                                           ArgumentsHolder queryArguments);
             BuilderStep sendToHandler(Handler handler, int message);
@@ -297,7 +298,7 @@ public class QueryUpdateTask implements Runnable {
             }
 
             @Override
-            public HandlerStep addObject(WeakReference<? extends RealmObject> weakReference,
+            public HandlerStep addObject(WeakReference<? extends RealmModel> weakReference,
                                          long handoverQueryPointer,
                                          ArgumentsHolder queryArguments) {
                 realmObjectEntry =

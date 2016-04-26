@@ -16,7 +16,6 @@
 
 package io.realm;
 
-
 import android.os.Handler;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -38,8 +37,12 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
+import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
+import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.log.RealmLog;
-import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -181,6 +184,51 @@ public class DynamicRealmTests {
         DynamicRealmObject dog = realm.createObject(DogPrimaryKey.CLASS_NAME, 42);
         assertEquals(42, dog.getLong("id"));
         realm.cancelTransaction();
+    }
+
+    @Test
+    public void createObject_withNullStringPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsString.CLASS_NAME, (String) null);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsString.CLASS_NAME).equalTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).count());
+    }
+
+    @Test
+    public void createObject_withNullBytePrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedByte.CLASS_NAME, (Byte) null);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedByte.CLASS_NAME).equalTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, (Byte) null).count());
+    }
+
+    @Test
+    public void createObject_withNullShortPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedShort.CLASS_NAME, (Short) null);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedShort.CLASS_NAME).equalTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, (Short) null).count());
+    }
+
+    @Test
+    public void createObject_withNullIntegerPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedInteger.CLASS_NAME, (Integer) null);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedInteger.CLASS_NAME).equalTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, (Integer) null).count());
+    }
+
+    @Test
+    public void createObject_withNullLongPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedLong.CLASS_NAME, (Long) null);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsBoxedLong.CLASS_NAME).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, (Long) null).count());
     }
 
     @Test(expected = IllegalArgumentException.class)

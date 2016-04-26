@@ -43,9 +43,9 @@ public final class RealmSchema {
     // Caches Dynamic Class objects given as Strings (both model classes and proxy classes) to Realm Tables
     private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmObject>, Table> classToTable = new HashMap<Class<? extends RealmObject>, Table>();
+    private final Map<Class<? extends RealmModel>, Table> classToTable = new HashMap<Class<? extends RealmModel>, Table>();
     // Caches Class objects (both model classes and proxy classes) to their Schema object
-    private final Map<Class<? extends RealmObject>, RealmObjectSchema> classToSchema = new HashMap<Class<? extends RealmObject>, RealmObjectSchema>();
+    private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<Class<? extends RealmModel>, RealmObjectSchema>();
     // Caches Class Strings (both model classes and proxy classes) to their Schema object
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<String, RealmObjectSchema>();
 
@@ -130,6 +130,10 @@ public final class RealmSchema {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
+        Table table = getTable(className);
+        if (table.hasPrimaryKey()) {
+            table.setPrimaryKey(null);
+        }
         transaction.removeTable(internalTableName);
     }
 
@@ -149,8 +153,23 @@ public final class RealmSchema {
         if (transaction.hasTable(newInternalName)) {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
+
+        // Check if there is a primary key defined for the old class.
+        Table oldTable = getTable(oldClassName);
+        String pkField = null;
+        if (oldTable.hasPrimaryKey()) {
+            pkField = oldTable.getColumnName(oldTable.getPrimaryKey());
+            oldTable.setPrimaryKey(null);
+        }
+
         transaction.renameTable(oldInternalName, newInternalName);
         Table table = transaction.getTable(newInternalName);
+
+        // Set the primary key for the new class if necessary
+        if (pkField != null) {
+            table.setPrimaryKey(pkField);
+        }
+
         RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
         return new RealmObjectSchema(realm, table, columnIndices);
     }
@@ -178,7 +197,7 @@ public final class RealmSchema {
         }
     }
 
-    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
+    ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
         final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
         if (columnInfo == null) {
             throw new IllegalStateException("No validated schema information found for " + realm.configuration.getSchemaMediator().getTableName(clazz));
@@ -199,7 +218,7 @@ public final class RealmSchema {
         return table;
     }
 
-    Table getTable(Class<? extends RealmObject> clazz) {
+    Table getTable(Class<? extends RealmModel> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
@@ -209,7 +228,7 @@ public final class RealmSchema {
         return table;
     }
 
-    RealmObjectSchema getSchemaForClass(Class<? extends RealmObject> clazz) {
+    RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
         RealmObjectSchema classSchema = classToSchema.get(clazz);
         if (classSchema == null) {
             clazz = Util.getOriginalModelClass(clazz);
