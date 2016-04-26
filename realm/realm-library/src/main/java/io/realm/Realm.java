@@ -351,7 +351,7 @@ public final class Realm extends BaseRealm {
             try {
                 configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), false);
             } catch (JSONException e) {
-                throw new RealmException("Could not map Json", e);
+                throw new RealmException("Could not map JSON", e);
             }
         }
     }
@@ -379,7 +379,7 @@ public final class Realm extends BaseRealm {
             try {
                 configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
             } catch (JSONException e) {
-                throw new RealmException("Could not map Json", e);
+                throw new RealmException("Could not map JSON", e);
             }
         }
     }
@@ -527,7 +527,7 @@ public final class Realm extends BaseRealm {
         try {
             return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
         } catch (JSONException e) {
-            throw new RealmException("Could not map Json", e);
+            throw new RealmException("Could not map JSON", e);
         }
     }
 
@@ -555,7 +555,7 @@ public final class Realm extends BaseRealm {
             handlerController.addToRealmObjects(realmObject);
             return realmObject;
         } catch (JSONException e) {
-            throw new RealmException("Could not map Json", e);
+            throw new RealmException("Could not map JSON", e);
         }
     }
 
