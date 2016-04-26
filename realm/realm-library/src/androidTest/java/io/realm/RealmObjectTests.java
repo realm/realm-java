@@ -560,10 +560,8 @@ public class RealmObjectTests {
 
     @Test
     public void dateType() {
-        long testDatesValid[] = {-1000, 0, 1000};
-        long testDatesLoosePrecision[] = {Long.MIN_VALUE, 1, 1001, Long.MAX_VALUE};
+        long testDatesValid[] = {-1001, -1000, -1, 0, 1, 1000, 1001};
 
-        // test valid dates
         realm.beginTransaction();
         for (long value : testDatesValid) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
@@ -574,22 +572,6 @@ public class RealmObjectTests {
         int i = 0;
         for (AllTypes allTypes : realm.allObjects(AllTypes.class)) {
             assertEquals("Item " + i, new Date(testDatesValid[i]), allTypes.getColumnDate());
-            i++;
-        }
-
-        // test valid dates but with precision lost
-        realm.beginTransaction();
-        realm.delete(AllTypes.class);
-        for (long value : testDatesLoosePrecision) {
-            AllTypes allTypes = realm.createObject(AllTypes.class);
-            allTypes.setColumnDate(new Date(value));
-        }
-        realm.commitTransaction();
-
-        i = 0;
-        for (AllTypes allTypes : realm.allObjects(AllTypes.class)) {
-            assertFalse("Item " + i, new Date(testDatesLoosePrecision[i]) == allTypes.getColumnDate());
-            assertEquals("Item " + i, new Date(1000*(testDatesLoosePrecision[i]/1000)), allTypes.getColumnDate());
             i++;
         }
     }

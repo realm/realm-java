@@ -217,7 +217,7 @@ public class UncheckedRow extends NativeObject implements Row {
         if (date == null) {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
-        long timestamp = date.getTime() / 1000;
+        long timestamp = date.getTime();
         nativeSetTimestamp(nativePointer, columnIndex, timestamp);
     }
 

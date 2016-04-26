@@ -37,7 +37,7 @@ public enum RealmFieldType {
     BINARY(4),
     UNSUPPORTED_TABLE(5),
     UNSUPPORTED_MIXED(6),
-    DATE(7),
+    DATE(8),
     FLOAT(9),
     DOUBLE(10),
     OBJECT(12),

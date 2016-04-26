@@ -71,10 +71,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
             case type_Bool:
             case type_Int:
             case type_String:
+            case type_Timestamp:
                 TV(nativeViewPtr)->distinct(S(columnIndex));
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, byte, short, int, long and their boxed variants are supported.");
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
                 break;
         }
     } CATCH_STD()
@@ -101,6 +102,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
                 case type_Bool:
                 case type_Int:
                 case type_String:
+                case type_Timestamp:
                     columns.push_back(S(indexes[i]));
                     break;
                 default:
@@ -946,10 +948,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
             case type_Float:
             case type_Double:
             case type_String:
+            case type_Timestamp:
                 TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Sort is not supported on binary data, dates, object references and RealmList.");
+                ThrowException(env, IllegalArgument, "Sort is not supported on binary data, object references and RealmList.");
                 return;
         }
     } CATCH_STD()
@@ -994,11 +997,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                 case type_Float:
                 case type_Double:
                 case type_String:
+                case type_Timestamp:
                     indices.push_back( S(long_arr[i]) );
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:
-                    ThrowException(env, IllegalArgument, "Sort is not supported on binary data, dates, object references and RealmList.");
+                    ThrowException(env, IllegalArgument, "Sort is not supported on binary data, object references and RealmList.");
                     return;
             }
         }

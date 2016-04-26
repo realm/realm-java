@@ -277,6 +277,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetTimestamp
         return;
 
     try {
+        TR("value = %ld", int64_t(value))
         ROW(nativeRowPtr)->set_timestamp( S(columnIndex), from_milliseconds(value));
     } CATCH_STD()
 }

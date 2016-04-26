@@ -682,15 +682,19 @@ inline realm::Timestamp from_milliseconds(jlong t)
 {
     // FIXME: find more efficient way to convert msecs -> (secs, nsecs)
     // FIXME: guard against overflows
+    int64_t ms = long(t);
     int64_t seconds;
     uint32_t nanoseconds;
-    if (t >= 0) {
-        seconds = int64_t(double(t)*0.001);
-        nanoseconds = 1000000*(int64_t(t)-1000*seconds);
+    if (ms >= 0) {
+        seconds = int64_t(double(ms)*0.001);
+        nanoseconds = 1000000*(ms-1000*seconds);
     }
     else {
-        seconds = int64_t(double(t)*0.001) - 1;
-        nanoseconds = 1000000*(int64_t(t)-1000*(seconds+1));
+        seconds = int64_t(double(ms)*0.001) - 1;
+        nanoseconds = -1000000*(1000*seconds-ms);
+        if (nanoseconds == 0) {
+            seconds++;
+        }
     }
     TR("from_milliseconds %ld %ld %ld", long(t), long(seconds), long(nanoseconds))
     return realm::Timestamp(seconds, nanoseconds);

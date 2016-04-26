@@ -607,6 +607,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp(
     try {
         return to_milliseconds(TBL(nativeTablePtr)->get_timestamp( S(columnIndex), S(rowIndex)));
     } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(
@@ -1372,13 +1373,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
         case type_Bool:
         case type_Int:
         case type_String:
+        case type_Timestamp:
             try {
                 TableView* pTableView = new TableView( pTable->get_distinct_view(S(columnIndex)) );
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
             break;
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
             return 0;
         break;
     }
@@ -1399,12 +1401,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
         case type_String:
         case type_Double:
         case type_Float:
+        case type_Timestamp:
             try {
                 TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
             return 0;
     }
     return 0;
@@ -1447,11 +1450,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_String:
             case type_Double:
             case type_Float:
+            case type_Timestamp:
                 indices[i] = S(long_arr[i]);
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
                 return 0;
         }
     }

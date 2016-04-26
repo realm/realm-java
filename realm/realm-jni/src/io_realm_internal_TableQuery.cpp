@@ -111,6 +111,7 @@ static jlong getDistinctViewWithHandover
         switch (table->get_column_type(S(columnIndex))) {
             case type_Bool:
             case type_Int:
+            case type_Timestamp:
             case type_String: {
                 TableView tableView(table->get_distinct_view(S(columnIndex)) );
 
@@ -120,7 +121,7 @@ static jlong getDistinctViewWithHandover
                 return reinterpret_cast<jlong>(handover.release());
             }
             default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
                 return 0;
         }
     return 0;
@@ -150,6 +151,7 @@ static jlong findAllSortedWithHandover
             case type_Float:
             case type_Double:
             case type_String:
+            case type_Timestamp:
                 tableView.sort( S(columnIndex), ascending != 0);
                 break;
             default:
@@ -207,6 +209,7 @@ static jlong findAllMultiSortedWithHandover
                 case type_Float:
                 case type_Double:
                 case type_String:
+                case type_Timestamp:
                     indices.push_back( S(long_arr[i]) );
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
