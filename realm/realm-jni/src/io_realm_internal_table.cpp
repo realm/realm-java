@@ -823,6 +823,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return;
+    if (!TBL_AND_ROW_INDEX_VALID(env, pTable, rowIndex))
+        return;
+    if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
+        return;
+    try {
+        pTable->set_null(S(columnIndex), S(rowIndex));
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClearSubtable(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
@@ -1205,6 +1220,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(
         return to_jlong_or_not_found( TBL(nativeTablePtr)->find_first_string( S(columnIndex), value2) );
     } CATCH_STD()
     return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return jlong(-1);
+    if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
+        return jlong(-1);
+    try {
+        return to_jlong_or_not_found( pTable->find_first_null( S(columnIndex) ) );
+    } CATCH_STD()
+    return jlong(-1);
 }
 
 // FindAll

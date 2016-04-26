@@ -73,7 +73,7 @@ public class RealmResultsTests extends CollectionTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         populateTestRealm();
-        collection = realm.allObjects(AllTypes.class);
+        collection = realm.allObjectsSorted(AllTypes.class, AllTypes.FIELD_LONG, Sort.ASCENDING);
     }
 
     @After
@@ -81,30 +81,6 @@ public class RealmResultsTests extends CollectionTests {
         if (realm != null) {
             realm.close();
         }
-    }
-
-    private void populateTestRealm(int objects) {
-        realm.beginTransaction();
-        realm.deleteAll();
-
-        for (int i = 0; i < objects; ++i) {
-            AllTypes allTypes = realm.createObject(AllTypes.class);
-            allTypes.setColumnBoolean((i % 2) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
-            allTypes.setColumnDouble(3.1415 + i);
-            allTypes.setColumnFloat(1.234567f + i);
-            allTypes.setColumnString("test data " + i);
-            allTypes.setColumnLong(i);
-            Dog d = realm.createObject(Dog.class);
-            d.setName("Foo " + i);
-            allTypes.setColumnRealmObject(d);
-            allTypes.getColumnRealmList().add(d);
-            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
-            nonLatinFieldNames.set델타(i);
-            nonLatinFieldNames.setΔέλτα(i);
-        }
-        realm.commitTransaction();
     }
 
     private void populateTestRealm() {
@@ -362,11 +338,61 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void changeListener_syncIfNeeded_updatedFromOtherThread() {
+        final Realm realm = Realm.getInstance(looperThread.createConfiguration("Foo"));
+        populateTestRealm(realm, 10);
+
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
+        assertEquals(10, results.size());
+
+        // 1. Delete first object from another thread.
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+               realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+            }
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+                // 2. RealmResults are refreshed before onSuccess is called
+                assertEquals(9, results.size());
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+    }
+
     // distinctAsync
+    private void populateTestRealm(int objects) {
+        realm.beginTransaction();
+        realm.deleteAll();
+        for (int i = 0; i < objects; ++i) {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnBoolean((i % 2) == 0);
+            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
+            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnString("test data " + i);
+            allTypes.setColumnLong(i);
+            Dog d = realm.createObject(Dog.class);
+            d.setName("Foo " + i);
+            allTypes.setColumnRealmObject(d);
+            allTypes.getColumnRealmList().add(d);
+            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
+        }
+        realm.commitTransaction();
+    }
+
+
     private void populateTestRealm(Realm testRealm, int objects) {
         testRealm.beginTransaction();
         testRealm.deleteAll();
-        for (int i = 0; i < objects; ++i) {
+        for (int i = 0; i < objects; i++) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
@@ -750,7 +776,7 @@ public class RealmResultsTests extends CollectionTests {
         return dogs;
     }
 
-    // It will still be treated as valid table view in core, just alays be empty.
+    // It will still be treated as valid table view in core, just always be empty.
     @Test
     public void isValid_resultsBuiltOnDeletedLinkView() {
         assertEquals(true, populateRealmResultsOnDeletedLinkView().isValid());

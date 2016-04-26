@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -113,7 +114,6 @@ public class RealmProcessor extends AbstractProcessor {
         if (hasProcessedModules) {
             return true;
         }
-
         RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
 
@@ -124,10 +124,17 @@ public class RealmProcessor extends AbstractProcessor {
         // Create all proxy classes
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 
+            // The class must either extend RealmObject or implement RealmModel
+            if (!Utils.isImplementingMarkerInterface(classElement)) {
+                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject", classElement);
+            }
+
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
                 Utils.error("The RealmClass annotation can only be applied to classes", classElement);
+                return true; // Abort processing by claiming all annotations
             }
+
             ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
             if (!metadata.isModelClass()) {
                 continue;
@@ -135,7 +142,7 @@ public class RealmProcessor extends AbstractProcessor {
             Utils.note("Processing class " + metadata.getSimpleClassName());
             boolean success = metadata.generate();
             if (!success) {
-                return true; // Abort processing by claiming all annotations
+                return true;
             }
             classesToValidate.add(metadata);
             packages.add(metadata.getPackageName());

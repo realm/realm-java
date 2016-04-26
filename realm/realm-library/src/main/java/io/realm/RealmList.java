@@ -20,11 +20,16 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -44,7 +49,7 @@ import io.realm.internal.LinkView;
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E extends RealmObject> extends AbstractList<E> implements OrderedRealmCollection<E> {
+public final class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
@@ -133,11 +138,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
      *
      * @param location the index at which to insert.
@@ -153,11 +158,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             if (location < 0 || location > size()) {
                 throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size());
             }
-            object = copyToRealmIfNeeded(object);
-            view.insert(location, object.row.getIndex());
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            view.insert(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             nonManagedList.add(location, object);
         }
+        modCount++;
     }
 
     /**
@@ -165,11 +171,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
      *
      * @param object the object to add.
@@ -181,11 +187,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
-            object = copyToRealmIfNeeded(object);
-            view.add(object.row.getIndex());
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            view.add(proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
             nonManagedList.add(object);
         }
+        modCount++;
         return true;
     }
 
@@ -194,11 +201,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
-     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)} or
-     * {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
      * @param location the index at which to put the specified object.
      * @param object the object to add.
@@ -209,46 +216,52 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     @Override
     public E set(int location, E object) {
         checkValidObject(object);
+        E oldObject;
         if (managedMode) {
             checkValidView();
-            object = copyToRealmIfNeeded(object);
-            E oldObject = get(location);
-            view.set(location, object.row.getIndex());
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            oldObject = get(location);
+            view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
             return oldObject;
         } else {
-            return nonManagedList.set(location, object);
+            oldObject = nonManagedList.set(location, object);
         }
+        return oldObject;
     }
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
-        if (object instanceof DynamicRealmObject) {
-            String listClassName = RealmSchema.getSchemaForTable(view.getTargetTable());
-            String objectClassName = ((DynamicRealmObject) object).getType();
-            if (object.realm == realm) {
-                if (listClassName.equals(objectClassName)) {
-                    // Same Realm instance and same target table
-                    return object;
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+
+            if (proxy instanceof DynamicRealmObject) {
+                String listClassName = RealmSchema.getSchemaForTable(view.getTargetTable());
+                String objectClassName = ((DynamicRealmObject) object).getType();
+                if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+                    if (listClassName.equals(objectClassName)) {
+                        // Same Realm instance and same target table
+                        return object;
+                    } else {
+                        // Different target table
+                        throw new IllegalArgumentException(String.format("The object has a different type from list's." +
+                                " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
+                    }
+                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
+                    // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+                    // you have to run a full schema validation for each object.
+                    // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
                 } else {
-                    // Different target table
-                    throw new IllegalArgumentException(String.format("The object has a different type from list's." +
-                            " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
+                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
                 }
-            } else if (realm.threadId == object.realm.threadId) {
-                // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
-                // you have to run a full schema validation for each object.
-                // And copying from another Realm instance pointed to the same Realm file is not supported as well.
-                throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
             } else {
-                throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
-            }
-        } else {
-            // Object is already in this realm
-            if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
-                if (realm != object.realm) {
-                    throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                // Object is already in this realm
+                if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
+                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                    }
+                    return object;
                 }
-                return object;
             }
         }
 
@@ -303,6 +316,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         } else {
             nonManagedList.clear();
         }
+        modCount++;
     }
 
     /**
@@ -315,14 +329,16 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      */
     @Override
     public E remove(int location) {
+        E removedItem;
         if (managedMode) {
             checkValidView();
-            E removedItem = get(location);
+            removedItem = get(location);
             view.remove(location);
-            return removedItem;
         } else {
-            return nonManagedList.remove(location);
+            removedItem = nonManagedList.remove(location);
         }
+        modCount++;
+        return removedItem;
     }
 
     /**
@@ -382,6 +398,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             if (size() > 0) {
                 deleteFromRealm(0);
+                modCount++;
                 return true;
             } else {
                 return false;
@@ -399,6 +416,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             if (size() > 0) {
                 deleteFromRealm(size() - 1);
+                modCount++;
                 return true;
             } else {
                 return false;
@@ -511,6 +529,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             checkValidView();
             view.removeTargetRow(location);
+            modCount++;
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
@@ -630,6 +649,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             checkValidView();
             if (size() > 0) {
                 view.removeAllTargetRows();
+                modCount++;
                 return true;
             } else {
                 return false;
@@ -670,16 +690,48 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         boolean contains = false;
         if (managedMode) {
             realm.checkIfValid();
-            if (object instanceof RealmObject) {
-                RealmObject realmObject = (RealmObject) object;
-                if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
-                    contains = view.contains(realmObject.row.getIndex());
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy.realmGet$proxyState().getRow$realm() != null && realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
+                    contains = view.contains(proxy.realmGet$proxyState().getRow$realm().getIndex());
                 }
             }
         } else {
             contains = nonManagedList.contains(object);
         }
         return contains;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<E> iterator() {
+        if (managedMode) {
+            return new RealmItr();
+        } else {
+            return super.iterator();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ListIterator<E> listIterator() {
+        return listIterator(0);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ListIterator<E> listIterator(int location) {
+        if (managedMode) {
+            return new RealmListItr(location);
+        } else {
+            return super.listIterator(location);
+        }
     }
 
     private void checkValidObject(E object) {
@@ -712,7 +764,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         } else {
             for (int i = 0; i < size(); i++) {
                 if (managedMode) {
-                    sb.append(get(i).row.getIndex());
+                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getIndex());
                 } else {
                     sb.append(System.identityHashCode(get(i)));
                 }
@@ -724,4 +776,174 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         sb.append("]");
         return sb.toString();
     }
+
+    // Custom RealmList iterator.
+    private class RealmItr implements Iterator<E> {
+        /**
+         * Index of element to be returned by subsequent call to next.
+         */
+        int cursor = 0;
+
+        /**
+         * Index of element returned by most recent call to next or
+         * previous.  Reset to -1 if this element is deleted by a call
+         * to remove.
+         */
+        int lastRet = -1;
+
+        /**
+         * The modCount value that the iterator believes that the backing
+         * List should have.  If this expectation is violated, the iterator
+         * has detected concurrent modification.
+         */
+        int expectedModCount = modCount;
+
+        /**
+         * {@inheritDoc}
+         */
+        public boolean hasNext() {
+            realm.checkIfValid();
+            checkConcurrentModification();
+            return cursor != size();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public E next() {
+            realm.checkIfValid();
+            checkConcurrentModification();
+            int i = cursor;
+            try {
+                E next = get(i);
+                lastRet = i;
+                cursor = i + 1;
+                return next;
+            } catch (IndexOutOfBoundsException e) {
+                checkConcurrentModification();
+                throw new NoSuchElementException("Cannot access index " + i + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void remove() {
+            realm.checkIfValid();
+            if (lastRet < 0) {
+                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
+            }
+            checkConcurrentModification();
+
+            try {
+                RealmList.this.remove(lastRet);
+                if (lastRet < cursor) {
+                    cursor--;
+                }
+                lastRet = -1;
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException e) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        final void checkConcurrentModification() {
+            // A Realm ListView is backed by the original Table and not a TableView, this means
+            // that all changes are reflected immediately. It is therefore not possible to use
+            // the same version pinning trick we use for RealmResults (avoiding calling sync_if_needed)
+            // Fortunately a LinkView does not change unless manually altered (unlike RealmResults)
+            // So therefore it should be acceptable to use the same heuristic as a normal AbstractList
+            // when detecting concurrent modifications.
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }
+        }
+    }
+
+    private class RealmListItr extends RealmItr implements ListIterator<E> {
+
+        RealmListItr(int index) {
+            if (index >= 0 && index <= size()) {
+                cursor = index;
+            } else {
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Index was " + index);
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public boolean hasPrevious() {
+            return cursor != 0;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public E previous() {
+            checkConcurrentModification();
+            int i = cursor - 1;
+            try {
+                E previous = get(i);
+                lastRet = cursor = i;
+                return previous;
+            } catch (IndexOutOfBoundsException e) {
+                checkConcurrentModification();
+                throw new NoSuchElementException("Cannot access index less than zero. This was " + i + ". Remember to check hasPrevious() before using previous().");
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public int nextIndex() {
+            return cursor;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public int previousIndex() {
+            return cursor - 1;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void set(E e) {
+            realm.checkIfValid();
+            if (lastRet < 0) {
+                throw new IllegalStateException();
+            }
+            checkConcurrentModification();
+
+            try {
+                RealmList.this.set(lastRet, e);
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        /**
+         * Adding a new object to the RealmList. If the object is not already manage by Realm it will be transparently
+         * copied using {@link Realm#copyToRealmOrUpdate(RealmModel)}
+         *
+         * @see #add(RealmModel)
+         */
+        public void add(E e) {
+            realm.checkIfValid();
+            checkConcurrentModification();
+            try {
+                int i = cursor;
+                RealmList.this.add(i, e);
+                lastRet = -1;
+                cursor = i + 1;
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+    }
+
 }

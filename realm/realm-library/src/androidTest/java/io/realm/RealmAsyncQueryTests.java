@@ -43,7 +43,6 @@ import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
-import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1438,6 +1437,7 @@ public class RealmAsyncQueryTests {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final long[] latestLongValue = new long[1];
         final float[] latestFloatValue = new float[1];
+
         // start a background thread that pushes a commit every 16ms
         final Thread backgroundThread = new Thread() {
             @Override

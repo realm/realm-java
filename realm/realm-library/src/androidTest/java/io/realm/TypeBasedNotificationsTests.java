@@ -43,7 +43,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
-import io.realm.proxy.HandlerProxy;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -836,7 +836,6 @@ public class TypeBasedNotificationsTests {
                                 looperThread.testComplete();
                             }
                         });
-
                 }
             }
         });
@@ -899,7 +898,6 @@ public class TypeBasedNotificationsTests {
                                 looperThread.testComplete();
                             }
                         });
-
                 }
             }
         });
@@ -1400,286 +1398,6 @@ public class TypeBasedNotificationsTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // ****************************************************************************************** //
-    // UC 5.
-    // Callback should be notified if we call refresh (even without getting the REALM_CHANGE yet)
-    // ***************************************************************************************** //
-    @Test
-    @RunTestInLooperThread
-    public void refresh_should_notify_callbacks_realmobject_sync() {
-        final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
-
-        realm.beginTransaction();
-        realm.createObject(Dog.class);
-        realm.commitTransaction();
-
-        final Dog dog = realm.where(Dog.class).findFirst();
-        assertNull(dog.getName());
-
-        dog.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                assertEquals("Akamaru", dog.getName());
-                looperThread.testComplete();
-            }
-        });
-
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
-                bgRealm.beginTransaction();
-                bgRealm.where(Dog.class).findFirst().setName("Akamaru");
-                bgRealm.commitTransaction();
-                bgRealm.close();
-            }
-        };
-        thread.start();
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        }
-
-        realm.refresh();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void refresh_should_notify_callbacks_realmobject_async() {
-        final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
-
-        final Dog dog = realm.where(Dog.class).findFirstAsync();
-        assertTrue(dog.load());
-
-        dog.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                assertEquals("Akamaru", dog.getName());
-                looperThread.testComplete();
-            }
-        });
-
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
-                bgRealm.beginTransaction();
-                Dog akamaru = bgRealm.createObject(Dog.class);
-                akamaru.setName("Akamaru");
-                bgRealm.commitTransaction();
-                bgRealm.close();
-            }
-        };
-        thread.start();
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        }
-
-        realm.refresh();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void refresh_should_notify_callbacks_realmresults_sync() {
-        final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
-
-        final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-
-        dogs.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                assertEquals("Akamaru", dogs.get(0).getName());
-                looperThread.testComplete();
-            }
-        });
-
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
-                bgRealm.beginTransaction();
-                Dog akamaru = bgRealm.createObject(Dog.class);
-                akamaru.setName("Akamaru");
-                bgRealm.commitTransaction();
-                bgRealm.close();
-            }
-        };
-        thread.start();
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        }
-
-        realm.refresh();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void refresh_should_notify_callbacks_realmresults_async() {
-        final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
-
-        final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
-        assertTrue(dogs.load());
-
-        dogs.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                assertEquals("Akamaru", dogs.get(0).getName());
-                looperThread.testComplete();
-            }
-        });
-
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
-                bgRealm.beginTransaction();
-                Dog akamaru = bgRealm.createObject(Dog.class);
-                akamaru.setName("Akamaru");
-                bgRealm.commitTransaction();
-                bgRealm.close();
-            }
-        };
-        thread.start();
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        }
-
-        realm.refresh();
-    }
-
-    // mixed async RealmObject & RealmResults
-    @Test
-    @RunTestInLooperThread
-    public void refresh_should_notify_callbacks_mixed() {
-        final CountDownLatch listenerWasCalledOnRealmObject = new CountDownLatch(1);
-        final CountDownLatch listenerWasCalledOnRealmResults = new CountDownLatch(1);
-
-        final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of an explicit refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
-
-        Dog dog = realm.where(Dog.class).findFirstAsync();
-        RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
-
-        assertTrue(dog.load());
-        assertTrue(dogs.load());
-
-        dog.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                listenerWasCalledOnRealmObject.countDown();
-                if (listenerWasCalledOnRealmObject.getCount() == 0 && listenerWasCalledOnRealmResults.getCount() == 0) {
-                    looperThread.testComplete();
-                }
-            }
-        });
-
-        dogs.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                listenerWasCalledOnRealmResults.countDown();
-                if (listenerWasCalledOnRealmObject.getCount() == 0 && listenerWasCalledOnRealmResults.getCount() == 0) {
-                    looperThread.testComplete();
-                }
-            }
-        });
-
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
-                bgRealm.beginTransaction();
-                Dog akamaru = bgRealm.createObject(Dog.class);
-                akamaru.setName("Akamaru");
-                bgRealm.commitTransaction();
-                bgRealm.close();
-            }
-        };
-        thread.start();
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        }
-
-        realm.refresh();
-    }
-
     // Test modifying realmObjects in RealmObject's change listener
     @Test
     @RunTestInLooperThread
@@ -1698,7 +1416,7 @@ public class TypeBasedNotificationsTests {
                 Cat cat = owner.getCat();
                 boolean foundKey = false;
                 // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
-                for (WeakReference<RealmObject> weakReference : realm.handlerController.realmObjects.keySet()) {
+                for (WeakReference<RealmObjectProxy> weakReference : realm.handlerController.realmObjects.keySet()) {
                     if (weakReference.get() == cat) {
                         foundKey = true;
                         break;
@@ -1735,7 +1453,7 @@ public class TypeBasedNotificationsTests {
                 boolean foundKey = false;
                 // Check if the results has been added to the syncRealmResults in case of the behaviour of
                 // allObjects changes
-                for (WeakReference<RealmResults<? extends RealmObject>> weakReference :
+                for (WeakReference<RealmResults<? extends RealmModel>> weakReference :
                         realm.handlerController.syncRealmResults.keySet()) {
                     if (weakReference.get() == results) {
                         foundKey = true;

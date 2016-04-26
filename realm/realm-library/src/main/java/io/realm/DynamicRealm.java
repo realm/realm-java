@@ -88,16 +88,16 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @return the new object. All fields will have default values for their type, except for the
      * primary key field which will have the provided value.
-     * @throws IllegalArgumentException if the primary key value is of the wrong type.
-     * @throws IllegalStateException if the class doesn't have a primary key defined.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException If the model clazz does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     *                                  expectd value.
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
-        if (handlerController != null) {
-            handlerController.addToRealmObjects(dynamicRealmObject);
-        }
+        handlerController.addToRealmObjects(dynamicRealmObject);
         return dynamicRealmObject;
     }
 
