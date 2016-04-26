@@ -111,7 +111,6 @@ static jlong getDistinctViewWithHandover
         switch (table->get_column_type(S(columnIndex))) {
             case type_Bool:
             case type_Int:
-            case type_DateTime:
             case type_String: {
                 TableView tableView(table->get_distinct_view(S(columnIndex)) );
 
@@ -121,7 +120,7 @@ static jlong getDistinctViewWithHandover
                 return reinterpret_cast<jlong>(handover.release());
             }
             default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
                 return 0;
         }
     return 0;
@@ -148,7 +147,6 @@ static jlong findAllSortedWithHandover
         switch (colType) {
             case type_Bool:
             case type_Int:
-            case type_DateTime:
             case type_Float:
             case type_Double:
             case type_String:
@@ -206,7 +204,6 @@ static jlong findAllMultiSortedWithHandover
             switch (colType) {
                 case type_Bool:
                 case type_Int:
-                case type_DateTime:
                 case type_Float:
                 case type_Double:
                 case type_String:
@@ -662,120 +659,118 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(
 }
 
 
-// DateTime
+// Timestamp
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDateTime(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->equal_datetime(S(arr[0]), DateTime(value));
+            Q(nativeQueryPtr)->equal(S(arr[0]), from_milliseconds(value));
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
-            Q(nativeQueryPtr)->and_query(
-                    numeric_link_equal<DateTime, DateTime, jlong>(table_ref, arr[arr_len-1], value));
+            Q(nativeQueryPtr)->and_query(numeric_link_equal<Timestamp, Timestamp, Timestamp>(table_ref, arr[arr_len-1], from_milliseconds(value)));
         }
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDateTime(
+JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->not_equal_datetime(S(arr[0]), DateTime(value));
+            Q(nativeQueryPtr)->not_equal(S(arr[0]), from_milliseconds(value));
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
-            Q(nativeQueryPtr)->and_query(
-                    numeric_link_notequal<DateTime, DateTime, jlong>(table_ref, arr[arr_len-1], value));
+            Q(nativeQueryPtr)->and_query(numeric_link_notequal<Timestamp, Timestamp, Timestamp>(table_ref, arr[arr_len-1], from_milliseconds(value)));
         }
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDateTime(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->greater_datetime(S(arr[0]), DateTime(value));
+            Q(nativeQueryPtr)->greater(S(arr[0]), from_milliseconds(value));
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
-            Q(nativeQueryPtr)->and_query(numeric_link_greater<DateTime, DateTime, jlong>(table_ref, arr[arr_len-1], value));
+            Q(nativeQueryPtr)->and_query(numeric_link_greater<Timestamp, Timestamp, Timestamp>(table_ref, arr[arr_len-1], from_milliseconds(value)));
         }
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDateTime(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->greater_equal_datetime(S(arr[0]), DateTime(value));
+            Q(nativeQueryPtr)->greater_equal(S(arr[0]), from_milliseconds(value));
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
-            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<DateTime, DateTime, jlong>(table_ref, arr[arr_len-1], value));
+            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<Timestamp, Timestamp, Timestamp>(table_ref, arr[arr_len-1], from_milliseconds(value)));
         }
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDateTime(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->less_datetime(S(arr[0]), DateTime(value));
+            Q(nativeQueryPtr)->less(S(arr[0]), from_milliseconds(value));
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
-            Q(nativeQueryPtr)->and_query(numeric_link_less<DateTime, DateTime, jlong>(table_ref, arr[arr_len-1], value));
+            Q(nativeQueryPtr)->and_query(numeric_link_less<Timestamp, Timestamp, Timestamp>(table_ref, arr[arr_len-1], from_milliseconds(value)));
         }
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDateTime(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->less_equal_datetime(S(arr[0]), DateTime(value));
+            Q(nativeQueryPtr)->less_equal(S(arr[0]), from_milliseconds(value));
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
-            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<DateTime, DateTime, jlong>(table_ref, arr[arr_len-1], value));
+            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<Timestamp, Timestamp, Timestamp>(table_ref, arr[arr_len-1], from_milliseconds(value)));
         }
     } CATCH_STD()
 }
@@ -787,10 +782,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime(
     jsize arr_len = arr.len();
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime)) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Timestamp)) {
                 return;
             }
-            Q(nativeQueryPtr)->between_datetime(S(arr[0]), DateTime(value1), DateTime(value2));
+            Q(nativeQueryPtr)->greater_equal(S(arr[0]), from_milliseconds(value1)).less_equal(S(arr[0]), from_milliseconds(value2));
         }
         else {
             ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
@@ -1523,7 +1518,8 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
 
 
 // date aggregates
-
+// FIXME: currently not implemented: https://github.com/realm/realm-core/issues/1720
+/*
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
@@ -1563,7 +1559,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate(
     } CATCH_STD()
     return NULL;
 }
-
+*/
 // Count, Remove
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(
@@ -1629,7 +1625,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                 case type_Int:
                 case type_Float:
                 case type_Double:
-                case type_DateTime:
+                case type_Timestamp:
                     Q(nativeQueryPtr)->equal(S(column_idx), realm::null());
                     break;
                 default:
@@ -1664,8 +1660,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                 case type_Double:
                     pQuery->and_query(src_table_ref->column<Double>(S(column_idx)) == realm::null());
                     break;
-                case type_DateTime:
-                    pQuery->and_query(src_table_ref->column<DateTime>(S(column_idx)) == realm::null());
+                case type_Timestamp:
+                    pQuery->and_query(src_table_ref->column<Timestamp>(S(column_idx)) == realm::null());
                     break;
                 default:
                     // this point is unreachable
@@ -1770,7 +1766,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                 case type_Int:
                 case type_Float:
                 case type_Double:
-                case type_DateTime:
+                case type_Timestamp:
                     pQuery->not_equal(S(column_idx), realm::null());
                     break;
                 default:
@@ -1806,8 +1802,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                 case type_Double:
                     pQuery->and_query(src_table_ref->column<Double>(S(column_idx)) != realm::null());
                     break;
-                case type_DateTime:
-                    pQuery->and_query(src_table_ref->column<DateTime>(S(column_idx)) != realm::null());
+                case type_Timestamp:
+                    pQuery->and_query(src_table_ref->column<Timestamp>(S(column_idx)) != realm::null());
                     break;
                 default:
                     // this point is unreachable
@@ -1847,7 +1843,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
                 case type_Int:
                 case type_Float:
                 case type_Double:
-                case type_DateTime:
+                case type_Timestamp:
                 default:
                     ThrowException(env, IllegalArgument, "isEmpty() only works on String, byte[] and RealmList.");
                     return;
@@ -1870,7 +1866,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
                 case type_Int:
                 case type_Float:
                 case type_Double:
-                case type_DateTime:
+                case type_Timestamp:
                 default:
                     ThrowException(env, IllegalArgument, "isEmpty() only works on String, byte[] and RealmList across links.");
                     return;

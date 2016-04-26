@@ -73,10 +73,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_CheckedRow_nativeGetDouble
 
 /*
  * Class:     io_realm_internal_CheckedRow
- * Method:    nativeGetDateTime
+ * Method:    nativeGetTimestamp
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetTimestamp
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

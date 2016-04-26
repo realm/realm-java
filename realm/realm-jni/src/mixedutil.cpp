@@ -90,9 +90,9 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
         if (consId)
             return env->NewObject(jMixedClass, consId, mixed.get_bool());
     }
-    case type_DateTime:
+    case type_Timestamp:
         {
-            int_fast64_t timeValue = mixed.get_datetime().get_datetime();
+            Timestamp timeValue = mixed.get_timestamp();
             jclass jDateClass = env->FindClass("java/util/Date");
             if (jDateClass == NULL) {
                 ThrowException(env, ClassNotFound, "Date");
@@ -103,7 +103,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
                 ThrowException(env, NoSuchMethod, "Date", "<init>");
                 return NULL;
             }
-            jobject jDate = env->NewObject(jDateClass, jDateConsId, static_cast<jlong>(timeValue));
+            jobject jDate = env->NewObject(jDateClass, jDateConsId, to_milliseconds(timeValue));
             jmethodID consId = GetMixedMethodID(env, "<init>", "(Ljava/util/Date;)V");
             if (consId)
                 return env->NewObject(jMixedClass, consId, jDate);
@@ -132,6 +132,9 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
     case type_Link:
         break;
     case type_LinkList:
+        break;
+    case type_OldDateTime:
+        // not used anymore
         break;
     }
 

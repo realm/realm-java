@@ -33,7 +33,8 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
     if (!(column_type == type_String ||
                 column_type == type_Int ||
                 column_type == type_Bool ||
-                column_type == type_DateTime)) {
+                column_type == type_Timestamp ||
+                column_type == type_OldDateTime)) {
         ThrowException(env, IllegalArgument,
                 "This field cannot be indexed - "
                 "Only String/byte/short/int/long/boolean/Date fields are supported.");
@@ -239,8 +240,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                 case type_Bool:
                     table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
                     break;
-                case type_DateTime:
-                    table->set_datetime(column_index, i, table->get_datetime(column_index + 1, i));
+                case type_Timestamp:
+                    table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
                     break;
                 case type_Float:
                     table->set_float(column_index, i, table->get_float(column_index + 1, i));
@@ -253,6 +254,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                 case type_Mixed:
                 case type_Table:
                     // checked previously
+                    break;
+                case type_OldDateTime:
+                    // not used
                     break;
             }
         }
@@ -344,12 +348,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                         table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
                     }
                     break;
-                case type_DateTime:
+                case type_Timestamp:
                     if (table->is_null(column_index + 1, i)) {
-                        table->set_datetime(column_index, i, static_cast<time_t>(0));
+                        table->set_timestamp(column_index, i, Timestamp(0, 0));
                     }
                     else {
-                        table->set_datetime(column_index, i, table->get_datetime(column_index + 1, i));
+                        table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
                     }
                     break;
                 case type_Float:
@@ -373,6 +377,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                 case type_Mixed:
                 case type_Table:
                     // checked previously
+                    break;
+                case type_OldDateTime:
+                    // not used
                     break;
             }
         }
@@ -592,12 +599,14 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeGetDouble(
     return TBL(nativeTablePtr)->get_double( S(columnIndex), S(rowIndex));  // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDateTime(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_DateTime))
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Timestamp))
         return 0;
-    return TBL(nativeTablePtr)->get_datetime( S(columnIndex), S(rowIndex)).get_datetime();  // noexcept
+    try {
+        return to_milliseconds(TBL(nativeTablePtr)->get_timestamp( S(columnIndex), S(rowIndex)));
+    } CATCH_STD()
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(
@@ -783,13 +792,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDate(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong dateTimeValue)
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong timestampValue)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_DateTime))
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Timestamp))
         return;
     try {
-        TBL(nativeTablePtr)->set_datetime( S(columnIndex), S(rowIndex), dateTimeValue);
+        // FIXME: find more accurate and efficient way to convert msec to (sec, nsec)
+        int64_t seconds = int64_t(timestampValue/1000);
+        uint32_t nanoseconds = uint32_t(1000000*(timestampValue-1000*seconds));
+        TBL(nativeTablePtr)->set_timestamp( S(columnIndex), S(rowIndex), Timestamp(seconds, nanoseconds));
     } CATCH_STD()
 }
 
@@ -1065,26 +1077,24 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageDouble(
 
 //--------------------- Aggregate methods for date
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        // This exploits the fact that dates are stored as int in core
-        return TBL(nativeTablePtr)->maximum_int( S(columnIndex));
+        return to_milliseconds(TBL(nativeTablePtr)->maximum_timestamp( S(columnIndex)));
     } CATCH_STD()
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        // This exploits the fact that dates are stored as int in core
-        return TBL(nativeTablePtr)->minimum_int( S(columnIndex));
+        return to_milliseconds(TBL(nativeTablePtr)->minimum_timestamp( S(columnIndex)));
     } CATCH_STD()
     return 0;
 }
@@ -1197,14 +1207,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        size_t res = TBL(nativeTablePtr)->find_first_datetime( S(columnIndex), DateTime(dateTimeValue));
-        return to_jlong_or_not_found( res );
+        size_t res = TBL(nativeTablePtr)->find_first_timestamp( S(columnIndex), from_milliseconds(dateTimeValue));
+        return to_jlong_or_not_found(res);
     } CATCH_STD()
     return 0;
 }
@@ -1285,6 +1295,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllBool(
     return reinterpret_cast<jlong>(pTableView);
 }
 
+// FIXME: find_all_timestamp() isn't implemented
+/*
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
@@ -1297,6 +1309,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate(
     } CATCH_STD()
     return 0;
 }
+*/
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllString(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring value)
@@ -1358,7 +1371,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
     switch (pTable->get_column_type(S(columnIndex))) {
         case type_Bool:
         case type_Int:
-        case type_DateTime:
         case type_String:
             try {
                 TableView* pTableView = new TableView( pTable->get_distinct_view(S(columnIndex)) );
@@ -1366,7 +1378,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
             } CATCH_STD()
             break;
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
             return 0;
         break;
     }
@@ -1384,7 +1396,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
     switch (colType) {
         case type_Int:
         case type_Bool:
-        case type_DateTime:
         case type_String:
         case type_Double:
         case type_Float:
@@ -1393,7 +1404,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
         default:
-            ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
             return 0;
     }
     return 0;
@@ -1433,7 +1444,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         switch (colType) {
             case type_Int:
             case type_Bool:
-            case type_DateTime:
             case type_String:
             case type_Double:
             case type_Float:
@@ -1441,7 +1451,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, boolean, short, int, long and their boxed variants are supported.");
                 return 0;
         }
     }

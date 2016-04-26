@@ -31,6 +31,7 @@
 #include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
 #include <realm/lang_bind_helper.hpp>
+#include <realm/timestamp.hpp>
 
 #include "io_realm_internal_Util.h"
 
@@ -654,6 +655,7 @@ extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
 
+
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {
     return env->NewObject(java_lang_long, java_lang_long_init, value);
@@ -667,6 +669,31 @@ inline jobject NewDouble(JNIEnv* env, double value)
 inline jobject NewFloat(JNIEnv* env, float value)
 {
     return env->NewObject(java_lang_float, java_lang_float_init, value);
+}
+
+
+inline jlong to_milliseconds(realm::Timestamp ts)
+{
+    // FIXME: check for overflow
+    return 1000*ts.get_seconds() + ts.get_nanoseconds()/1000000;
+}
+
+inline realm::Timestamp from_milliseconds(jlong t)
+{
+    // FIXME: find more efficient way to convert msecs -> (secs, nsecs)
+    // FIXME: guard against overflows
+    int64_t seconds;
+    uint32_t nanoseconds;
+    if (t >= 0) {
+        seconds = int64_t(double(t)*0.001);
+        nanoseconds = 1000000*(int64_t(t)-1000*seconds);
+    }
+    else {
+        seconds = int64_t(double(t)*0.001) - 1;
+        nanoseconds = 1000000*(int64_t(t)-1000*(seconds+1));
+    }
+    TR("from_milliseconds %ld %ld %ld", long(t), long(seconds), long(nanoseconds))
+    return realm::Timestamp(seconds, nanoseconds);
 }
 
 extern const char* const TABLE_PREFIX;

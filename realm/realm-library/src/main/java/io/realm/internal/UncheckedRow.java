@@ -145,7 +145,7 @@ public class UncheckedRow extends NativeObject implements Row {
 
     @Override
     public Date getDate(long columnIndex) {
-        return new Date(nativeGetDateTime(nativePointer, columnIndex)*1000);
+        return new Date(nativeGetTimestamp(nativePointer, columnIndex));
     }
 
     @Override
@@ -218,7 +218,7 @@ public class UncheckedRow extends NativeObject implements Row {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
         long timestamp = date.getTime() / 1000;
-        nativeSetDate(nativePointer, columnIndex, timestamp);
+        nativeSetTimestamp(nativePointer, columnIndex, timestamp);
     }
 
     /**
@@ -311,7 +311,7 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
@@ -323,7 +323,7 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
-    protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
+    protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);

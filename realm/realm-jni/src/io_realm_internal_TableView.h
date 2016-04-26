@@ -97,10 +97,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeGetDouble
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeGetDateTimeValue
+ * Method:    nativeGetTimestamp
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetDateTimeValue
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
