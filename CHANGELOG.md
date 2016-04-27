@@ -40,6 +40,7 @@
 * `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
 * `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
 * `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
+* `RealmList.first()` and `RealmList.last()` now throw `ArrayIndexOutOfBoundsException` if `RealmList` is empty.
 * Removed deprecated method `Realm.getTable()` from public API.
 
 ### Deprecated
