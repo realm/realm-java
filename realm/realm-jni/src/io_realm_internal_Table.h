@@ -383,10 +383,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeSetDate
+ * Method:    nativeSetTimestamp
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -583,7 +583,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeMaximumDate
+ * Method:    nativeMaximumTimestamp
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumTimestamp
@@ -591,7 +591,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumTimestamp
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeMinimumDate
+ * Method:    nativeMinimumTimestamp
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumTimestamp

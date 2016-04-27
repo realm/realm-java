@@ -1308,7 +1308,7 @@ public class RealmQueryTests {
         assertEquals(4, query.max(NullTypes.FIELD_INTEGER_NULL).intValue());
         assertEquals(5f, query.max(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
         assertEquals(6d, query.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
-        assertEquals(12000, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
+        assertEquals(12345, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
     }
 
     // Test max on columns with partial null rows
@@ -1320,7 +1320,7 @@ public class RealmQueryTests {
         assertEquals(4, query.max(NullTypes.FIELD_INTEGER_NULL).intValue());
         assertEquals(5f, query.max(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
         assertEquals(6d, query.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
-        assertEquals(12000, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
+        assertEquals(12345, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
     }
 
     // Test average on empty columns
@@ -1827,6 +1827,7 @@ public class RealmQueryTests {
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        list.remove(RealmFieldType.UNSUPPORTED_DATE);
         NOT_SUPPORTED_IS_EMPTY_TYPES = list;
     }
 
@@ -1949,6 +1950,7 @@ public class RealmQueryTests {
         list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        list.remove(RealmFieldType.UNSUPPORTED_DATE);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
     }
 

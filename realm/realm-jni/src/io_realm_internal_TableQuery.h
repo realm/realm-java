@@ -529,18 +529,18 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeMaximumDate
+ * Method:    nativeMaximumTimestamp
  * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeMinimumDate
+ * Method:    nativeMinimumTimestamp
  * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*

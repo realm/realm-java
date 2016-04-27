@@ -167,7 +167,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
 }
 
 
-// General comments about the implementation of 
+// General comments about the implementation of
 // Java_io_realm_internal_Table_nativeConvertColumnToNullable and Java_io_realm_internal_Table_nativeConvertColumnToNotNullable
 //
 // 1. converting a (not-)nullable column is idempotent (and is implemented as a no-op)
@@ -283,7 +283,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         size_t column_index = S(columnIndex);
         if (!table->is_nullable(column_index)) {
             return; // column is already not nullable
-        } 
+        }
 
         std::string column_name = table->get_column_name(column_index);
         DataType column_type = table->get_column_type(column_index);
@@ -799,10 +799,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Timestamp))
         return;
     try {
-        // FIXME: find more accurate and efficient way to convert msec to (sec, nsec)
-        int64_t seconds = int64_t(timestampValue/1000);
-        uint32_t nanoseconds = uint32_t(1000000*(timestampValue-1000*seconds));
-        TBL(nativeTablePtr)->set_timestamp( S(columnIndex), S(rowIndex), Timestamp(seconds, nanoseconds));
+        TBL(nativeTablePtr)->set_timestamp( S(columnIndex), S(rowIndex), from_milliseconds(timestampValue));
     } CATCH_STD()
 }
 

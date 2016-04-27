@@ -672,31 +672,21 @@ inline jobject NewFloat(JNIEnv* env, float value)
 }
 
 
-inline jlong to_milliseconds(realm::Timestamp ts)
+inline jlong to_milliseconds(const realm::Timestamp& ts)
 {
+    // From core's reference implementation aka unit test
     // FIXME: check for overflow
-    return 1000*ts.get_seconds() + ts.get_nanoseconds()/1000000;
+    const int64_t seconds = ts.get_seconds();
+    const int32_t nanoseconds = ts.get_nanoseconds();
+    const int64_t milliseconds = seconds * 1000 + nanoseconds / 1000000; // This may overflow
+    return milliseconds;
 }
 
-inline realm::Timestamp from_milliseconds(jlong t)
+inline realm::Timestamp from_milliseconds(jlong milliseconds)
 {
-    // FIXME: find more efficient way to convert msecs -> (secs, nsecs)
-    // FIXME: guard against overflows
-    int64_t ms = long(t);
-    int64_t seconds;
-    uint32_t nanoseconds;
-    if (ms >= 0) {
-        seconds = int64_t(double(ms)*0.001);
-        nanoseconds = 1000000*(ms-1000*seconds);
-    }
-    else {
-        seconds = int64_t(double(ms)*0.001) - 1;
-        nanoseconds = -1000000*(1000*seconds-ms);
-        if (nanoseconds == 0) {
-            seconds++;
-        }
-    }
-    TR("from_milliseconds %ld %ld %ld", long(t), long(seconds), long(nanoseconds))
+    // From core's reference implementation aka unit test
+    int64_t seconds = milliseconds / 1000;
+    int32_t nanoseconds = (milliseconds % 1000) * 1000000;
     return realm::Timestamp(seconds, nanoseconds);
 }
 

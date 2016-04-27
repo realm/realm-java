@@ -778,7 +778,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualTimestam
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value1, jlong value2)
 {
     JniLongArray arr(env, columnIndexes);
@@ -1521,48 +1521,49 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
 
 
 // date aggregates
-// FIXME: currently not implemented: https://github.com/realm/realm-core/issues/1720
-/*
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate(
+// FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1720 to be solved
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) ||
-        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_DateTime) ||
+        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Timestamp) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
         size_t return_ndx;
-        DateTime result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
-        if (return_ndx != npos) {
-            return NewLong(env, result.get_datetime());
+        // FIXME: use Query::maximum_timestamp()
+        Timestamp result = pQuery->find_all().maximum_timestamp(S(columnIndex), &return_ndx);
+        if (return_ndx != npos && !result.is_null()) {
+            return NewLong(env, to_milliseconds(result));
         }
     } CATCH_STD()
     return NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = pQuery->get_table().get();
     if (!QUERY_VALID(env, pQuery) ||
-        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_DateTime) ||
+        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Timestamp) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
         size_t return_ndx;
-        DateTime result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
-        if (return_ndx != npos) {
-            return NewLong(env, result.get_datetime());
+        // FIXME: use Query::minimum_timestamp()
+        Timestamp result = pQuery->find_all().minimum_timestamp(S(columnIndex), &return_ndx);
+        if (return_ndx != npos && !result.is_null()) {
+            return NewLong(env, to_milliseconds(result));
         }
     } CATCH_STD()
     return NULL;
 }
-*/
+
 // Count, Remove
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(

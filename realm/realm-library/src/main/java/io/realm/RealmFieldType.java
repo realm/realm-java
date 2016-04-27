@@ -37,6 +37,7 @@ public enum RealmFieldType {
     BINARY(4),
     UNSUPPORTED_TABLE(5),
     UNSUPPORTED_MIXED(6),
+    UNSUPPORTED_DATE(7),
     DATE(8),
     FLOAT(9),
     DOUBLE(10),
@@ -89,7 +90,8 @@ public enum RealmFieldType {
                     obj instanceof byte[] || obj instanceof ByteBuffer ||
                     obj == null || obj instanceof Object[][] ||
                     obj instanceof java.util.Date);
-            case 7: return (obj instanceof java.util.Date);
+            case 7: return (obj instanceof java.util.Date); // the unused DateTime
+            case 8: return (obj instanceof java.util.Date);
             case 9: return (obj instanceof Float);
             case 10: return (obj instanceof Double);
             case 12: return false;

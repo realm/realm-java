@@ -246,10 +246,10 @@ public class RealmJsonTests {
         Calendar cal = GregorianCalendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("Australia/West"));
         cal.set(2015, Calendar.OCTOBER, 03, 14, 45, 33);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.MILLISECOND, 376);
         Date convDate = obj.getColumnDate();
 
-        assertEquals(convDate.getTime(), cal.getTime().getTime());
+        assertEquals(convDate.getTime(), cal.getTimeInMillis());
     }
 
     @Test
@@ -532,12 +532,10 @@ public class RealmJsonTests {
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
         cal.set(Calendar.MILLISECOND, 789);
         Date date = cal.getTime();
-        cal.set(Calendar.MILLISECOND, 0);
-        Date dateZeroMillis = cal.getTime();
 
         // Check that all primitive types are imported correctly
         AllTypes obj = realm.allObjects(AllTypes.class).first();
-        assertEquals(dateZeroMillis, obj.getColumnDate());
+        assertEquals(date, obj.getColumnDate());
     }
 
     @Test

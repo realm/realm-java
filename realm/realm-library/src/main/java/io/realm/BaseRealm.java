@@ -575,6 +575,7 @@ public abstract class BaseRealm implements Closeable {
      * Deletes the Realm file defined by the given configuration.
      */
     static boolean deleteRealm(final RealmConfiguration configuration) {
+        final String management = ".management";
         final AtomicBoolean realmDeleted = new AtomicBoolean(true);
 
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
@@ -600,6 +601,28 @@ public abstract class BaseRealm implements Closeable {
                             realmDeleted.set(false);
                             RealmLog.w("Could not delete the file " + fileToDelete);
                         }
+                    }
+                }
+                File managementFolder = new File(realmFolder, realmFileName + management);
+                if (managementFolder.exists()) {
+                    filesToDelete = Arrays.asList(
+                            new File(managementFolder, realmFileName + ".lock"),
+                            new File(managementFolder, realmFileName + ".log_a"),
+                            new File(managementFolder, realmFileName + ".log_b"),
+                            new File(managementFolder, realmFileName + ".log"));
+                    for (File fileToDelete : filesToDelete) {
+                        if (fileToDelete.exists()) {
+                            boolean deleteResult = fileToDelete.delete();
+                            if (!deleteResult) {
+                                realmDeleted.set(false);
+                                RealmLog.w("Could not delete the file " + fileToDelete);
+                            }
+                        }
+                    }
+                    boolean deleteResult = managementFolder.delete();
+                    if (!deleteResult) {
+                        realmDeleted.set(false);
+                        RealmLog.w("Could not delete the folder " + managementFolder);
                     }
                 }
             }

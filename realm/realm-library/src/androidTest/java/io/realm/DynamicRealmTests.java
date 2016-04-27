@@ -527,7 +527,7 @@ public class DynamicRealmTests {
     }
 
     // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
-    //@Test
+    @Test
     public void distinct() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
@@ -906,8 +906,8 @@ public class DynamicRealmTests {
         });
     }
 
-    //@Test
-    //@RunTestInLooperThread
+    @Test
+    @RunTestInLooperThread
     public void distinctAsync() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
         final long numberOfBlocks = 25;

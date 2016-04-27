@@ -897,7 +897,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDouble(
 
 // date aggregates
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumTimestamp(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     try {
@@ -914,7 +914,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDate(
     return NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumTimestamp(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     try {
