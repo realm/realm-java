@@ -1844,22 +1844,9 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
-     *
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldName1 first field name
-     * @param sortOrder1 sort order for first field
-     * @param fieldName2 second field name
-     * @param sortOrder2 sort order for second field
-     * @param fieldName3 third field names
-     * @param sortOrder3 sort order for third field
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@link #findAllSorted(String[], Sort[])}  instead.
      */
+    @Deprecated
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
                                    String fieldName2, Sort sortOrder2,
                                    String fieldName3, Sort sortOrder3) {
@@ -1868,14 +1855,9 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort, String, Sort, String, Sort)} but
-     * runs asynchronously on a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@link #findAllSortedAsync(String[], Sort[])}  instead.
      */
+    @Deprecated
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
                                               String fieldName2, Sort sortOrder2,
                                               String fieldName3, Sort sortOrder3) {

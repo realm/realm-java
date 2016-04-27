@@ -3,8 +3,9 @@
 ### Breaking changes
 
 * All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
-* Removed `HandlerController` from the public API.
 * Marked all methods on `RealmObject` and all public classes final (#1594).
+* Removed `BaseRealm` from the public API.
+* Removed `HandlerController` from the public API.
 * Removed constructor of `RealmAsyncTask` from the public API8 (#1594).
 
 ### Deprecated
@@ -15,7 +16,14 @@
 ### Enhancements
 
 * `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
-* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` insteasd.
+* `Realm.allObjects*()`. Use `Realm.where(clazz).findAll*()` instead.
+* `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
+* `DynamicRealm.allObjects*()`. Use `DynamicRealm.where(className).findAll*()` instead.
+* `DynamicRealm.distinct*()`. Use `DynamicRealm.where(className).distinct*()` instead.
+* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 
 ### Enhancements
 
@@ -42,6 +50,7 @@
 * `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
 * `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
 * `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
+* `RealmList.first()` and `RealmList.last()` now throw `ArrayIndexOutOfBoundsException` if `RealmList` is empty.
 * Removed deprecated method `Realm.getTable()` from public API.
 
 ### Deprecated
