@@ -3151,10 +3151,6 @@ public class RealmTests {
         }).start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // it is necessary to give a time window for the background realm to wait on change.
-        // if we're to use wait/notify pair, we might actually miss notification from background and
-        // the foreground thread might wait indefinitely.
-        Thread.sleep(200);
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertFalse(bgRealmResult.get());
@@ -3188,8 +3184,6 @@ public class RealmTests {
         }).start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // it is necessary to give a time window for the background realm to wait on change.
-        Thread.sleep(200);
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmStopped);
         assertFalse(bgRealmStoppedResult.get());
@@ -3238,8 +3232,6 @@ public class RealmTests {
         thread2.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // it is necessary to give a time window for the background realm to wait on change.
-        Thread.sleep(200);
         bgRealm.get().stopWaitForChange();
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmClosed);

@@ -10,12 +10,6 @@
 
 ### Deprecated
 
-* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
-* `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
-
-### Enhancements
-
-* `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
 * `Realm.allObjects*()`. Use `Realm.where(clazz).findAll*()` instead.
 * `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
 * `DynamicRealm.allObjects*()`. Use `DynamicRealm.where(className).findAll*()` instead.
@@ -24,11 +18,13 @@
 * `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
 * `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+* `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
 
 ### Enhancements
 
 * `RealmObjectSchema.getPrimaryKey()`. (#2636)
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+* `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
 
 ### Credits
 
