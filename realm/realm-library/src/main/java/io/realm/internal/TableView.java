@@ -698,7 +698,7 @@ public class TableView implements TableOrView, Closeable {
         if (result == null) {
             return null;
         }
-        return new Date(result * 1000);
+        return new Date(result);
     }
 
     @Override
@@ -707,7 +707,7 @@ public class TableView implements TableOrView, Closeable {
         if (result == null) {
             return null;
         }
-        return new Date(result * 1000);
+        return new Date(result);
     }
 
     // Sorting
