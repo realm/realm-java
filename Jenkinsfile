@@ -72,7 +72,7 @@ def transformIntoStep(device) {
     // that explicitly, or use { -> } syntax.
     return {
         sh "adb -s ${device} shell getprop ro.product.model | tee model-name.txt"
-        def modelName = readFile 'model-name.txt'
+        def modelName = readFile('model-name.txt').replaceAll(' ', '_')
 
         sh "adb -s ${device} uninstall io.realm.test"
         sh "adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk"
