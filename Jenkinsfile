@@ -57,6 +57,30 @@ def gradle(String commands) {
     sh "chmod +x gradlew && ./gradlew ${commands} --stacktrace"
 }
 
+@NonCPS
+def getDeviceNames(String commandOutput) {
+    return commandOutput
+        .split('\n')
+        .findAll { it.contains('\t') }
+        .collect { it.split('\t')[0] }
+}
+
+def transformIntoStep(device) {
+    // We need to wrap what we return in a Groovy closure, or else it's invoked
+    // when this method is called, not when we pass it to parallel.
+    // To do this, you need to wrap the code below in { }, and either return
+    // that explicitly, or use { -> } syntax.
+    return {
+        sh "adb -s ${device} shell getprop ro.product.model | tee model-name.txt"
+        def modelName = readFile 'model-name.txt'
+
+        sh "adb -s ${device} uninstall io.realm.test"
+        sh "adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk"
+        sh "adb -s ${device} shell am instrument -w -r io.realm.test/android.support.test.runner.AndroidJUnitRunner > test_result_${modelName}_${device}.txt"
+        sh "java -jar /opt/log-converter.jar test_result_${modelName}_${device}.txt"
+    }
+}
+
 { ->
     try {
         node('FastLinux') {
@@ -131,33 +155,20 @@ def gradle(String commands) {
             sh 'rm -rf *'
             unstash 'test-apk'
 
-            def devices = '/usr/bin/adb devices'
-                            .execute()
-                            .text
-                            .split('\n')
-                            .findAll { it.contains('\t') }
-                            .collect { it.split('\t')[0] }
+            sh 'adb devices | tee devices.txt'
+            def adbDevices = readFile('devices.txt')
+            def devices = getDeviceNames(adbDevices)
 
             if (!devices) {
                 throw new IllegalStateException('No devices were found')
             }
 
-            def threadPool = Executors.newFixedThreadPool(devices.size())
-            try {
-                def futures = devices.collect { device ->
-                    threadPool.submit { ->
-                        def modelName = "/usr/bin/adb -s ${device} shell getprop ro.product.device".execute().text
-
-                        "/usr/bin/adb -s ${device} uninstall io.realm.test".execute().waitFor()
-                        "/usr/bin/adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk".execute().waitFor()
-                        ["sh", "-c", "/usr/bin/adb -s ${device} shell am instrument -w -r io.realm.test/android.support.test.runner.AndroidJUnitRunner > test_result_${modelName}_${device}.txt"].execute().waitFor()
-                        "java -jar /opt/log-converter.jar test_result_${modelName}_${device}.txt".execute().waitFor()
-                    } as Callable
-                }
-                futures.each { it.get() }
-            } finally {
-                threadPool.shutdown()
+            def parallelSteps = [:]
+            devices.each { device ->
+                parallelSteps[device] = transformIntoStep(device)
             }
+
+            parallel parallelSteps
             storeJunitResults 'test_result_*.xml'
 
             // TODO: add support for running monkey on the example apps
