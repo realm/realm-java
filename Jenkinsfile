@@ -1,5 +1,4 @@
 #!groovy
-import java.util.concurrent.Callable
 
 def isPullRequest() {
     return binding.variables.containsKey('GITHUB_PR_NUMBER')
