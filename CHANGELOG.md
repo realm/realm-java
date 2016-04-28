@@ -7,6 +7,8 @@
 * Removed `BaseRealm` from the public API.
 * Removed `HandlerController` from the public API.
 * Removed constructor of `RealmAsyncTask` from the public API8 (#1594).
+* `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
+  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
 
 ### Deprecated
 
@@ -23,6 +25,7 @@
 
 * `RealmObjectSchema.getPrimaryKey()`. (#2636)
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+* Unit tests in Android library projects now detect Realm model classes.
 
 ### Credits
 
