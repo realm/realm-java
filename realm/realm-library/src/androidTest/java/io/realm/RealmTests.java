@@ -3131,6 +3131,41 @@ public class RealmTests {
     }
 
     @Test
+    public void waitForChange_syncBackgroundRealmResults() throws InterruptedException {
+        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        final AtomicBoolean bgRealmResult = new AtomicBoolean(false);
+        final AtomicLong bgReamCount = new AtomicLong(0);
+
+        // wait in background
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+                // first make sure the results is empty
+                bgReamCount.set(results.size());
+                bgRealmOpened.countDown();
+                bgRealmResult.set(realm.waitForChange());
+                bgReamCount.set(results.size());
+                realm.close();
+                bgRealmClosed.countDown();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmOpened);
+        // background result should be empty
+        assertEquals(0, bgReamCount.get());
+        populateTestRealm();
+        TestHelper.awaitOrFail(bgRealmClosed);
+        assertTrue(bgRealmResult.get());
+        // Once RealmResults are synchronized after waitForChange, the result size should be what we expect
+        assertEquals(TEST_DATA_SIZE, bgReamCount.get());
+    }
+
+    @Test
     public void stopWaitForChange() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
