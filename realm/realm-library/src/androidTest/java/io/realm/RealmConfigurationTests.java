@@ -817,9 +817,10 @@ public class RealmConfigurationTests {
                 .build();
         Realm.deleteRealm(configuration);
 
-        realm = Realm.getInstance(configuration);
-
         File realmFile = new File(configuration.getPath());
+        assertFalse(realmFile.exists());
+
+        realm = Realm.getInstance(configuration);
         assertTrue(realmFile.exists());
 
         // Asset file has 10 Owners and 10 Cats, check if data is present

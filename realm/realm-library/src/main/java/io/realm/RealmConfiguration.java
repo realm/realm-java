@@ -162,7 +162,7 @@ public final class RealmConfiguration {
      * Returns input stream object to the Realm asset file.
      *
      * @return input stream to the asset file.
-     * @throws IOException if the asset file is not valid.
+     * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
         if (contextWeakRef != null) {
@@ -366,7 +366,7 @@ public final class RealmConfiguration {
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
          *
-         * This will use the apps own internal directory for storing the Realm file. This does not require any
+         * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
@@ -383,7 +383,7 @@ public final class RealmConfiguration {
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
          *
-         * This will use the apps own internal directory for storing the Realm file. This does not require any
+         * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *

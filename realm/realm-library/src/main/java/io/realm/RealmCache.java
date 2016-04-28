@@ -121,11 +121,7 @@ final class RealmCache {
 
             if (realmClass == Realm.class) {
                 if (configuration.getDurability() != SharedGroup.Durability.MEM_ONLY) {
-                    try {
-                        copyAssetFile(configuration);
-                    } catch (IOException e) {
-                        throw new RealmIOException("Could not resolve the path to the Realm asset file.");
-                    }
+                    copyAssetFile(configuration);
                 }
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(configuration, cache.typedColumnIndices);
@@ -271,21 +267,42 @@ final class RealmCache {
      * Copy is performed only at the first time when there is no Realm database file.
      *
      * @param configuration configuration object for Realm instance.
-     * @throws IOException if the asset file is not valid.
+     * @throws IOException if copying the file fails.
      */
-    private static void copyAssetFile(RealmConfiguration configuration) throws IOException {
+    private static void copyAssetFile(RealmConfiguration configuration) {
         File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
         if (!realmFile.exists()) {
-            InputStream is = configuration.getAssetFile();
-            if (is != null) {
-                FileOutputStream outputStream = new FileOutputStream(realmFile);
-                byte[] buf = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = is.read(buf)) > -1) {
-                    outputStream.write(buf, 0, bytesRead);
+            InputStream inputStream = null;
+            FileOutputStream outputStream = null;
+            try {
+                inputStream = configuration.getAssetFile();
+                if (inputStream != null) {
+                    outputStream = new FileOutputStream(realmFile);
+                    byte[] buf = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buf)) > -1) {
+                        outputStream.write(buf, 0, bytesRead);
+                    }
+                    outputStream.close();
+                    inputStream.close();
                 }
-                outputStream.close();
-                is.close();
+            } catch (IOException e) {
+                throw new RealmIOException("Could not resolve the path to the Realm asset file.");
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        // Ignore this exception because any significant errors should already have been handled
+                    }
+                }
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        // Ignore this exception because any significant errors should already have been handled
+                    }
+                }
             }
         }
     }
