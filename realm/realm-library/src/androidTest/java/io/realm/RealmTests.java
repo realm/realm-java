@@ -3278,4 +3278,29 @@ public class RealmTests {
             realm.cancelTransaction();
         }
     }
+
+    @Test
+    public void waitForChange_stopWaitingOnClosedRealmThrows() throws InterruptedException {
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealm.set(realm);
+                realm.close();
+                bgRealmClosed.countDown();
+
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
+        try {
+            bgRealm.get().stopWaitForChange();
+            fail("Cannot stop a closed Realm from waiting");
+        } catch (IllegalStateException expected) {
+        }
+    }
 }

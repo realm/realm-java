@@ -301,7 +301,9 @@ abstract class BaseRealm implements Closeable {
         }
         boolean hasChanged = sharedGroupManager.getSharedGroup().waitForChange();
         if (hasChanged) {
+            // Since this Realm instance has been waiting for change, advance realm & refresh realm.
             sharedGroupManager.advanceRead();
+            handlerController.refreshSynchronousTableViews();
         }
         return hasChanged;
     }
@@ -312,6 +314,10 @@ abstract class BaseRealm implements Closeable {
      * Calling {@code #stopWaitForChange()} on a Realm that is not waiting for changes has no effect.
      */
     public void stopWaitForChange() {
+        // Check if the Realm instance has been closed
+        if (sharedGroupManager == null || !sharedGroupManager.isOpen()) {
+            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        }
         sharedGroupManager.getSharedGroup().stopWaitForChange();
     }
 

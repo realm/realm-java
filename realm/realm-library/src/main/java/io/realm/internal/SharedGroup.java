@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
@@ -41,7 +42,7 @@ public class SharedGroup implements Closeable {
 
     // Default value is {@code false} indicating that {@link #waitForChange()} ends without user
     // interruption. {@code true} means {@link #waitForChange()} is stopped by user.
-    private boolean isStoppedWaitingByUser = false;
+    private volatile boolean isStoppedWaitingByUser = false;
 
     public enum Durability {
         FULL(0),
