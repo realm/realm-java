@@ -23,7 +23,7 @@ import io.realm.internal.Keep;
  * RealmError should never be caught or ignored. By doing so, the Realm could possibly get corrupted.
  */
 @Keep
-public class RealmError extends Error {
+public final class RealmError extends Error {
     public RealmError(String detailMessage) {
         super(detailMessage);
     }

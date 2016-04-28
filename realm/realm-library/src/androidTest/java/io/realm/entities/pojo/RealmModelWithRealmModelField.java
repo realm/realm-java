@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package io.realm.exceptions;
+package io.realm.entities.pojo;
 
-import io.realm.internal.Keep;
+import io.realm.RealmModel;
+import io.realm.annotations.RealmClass;
 
-/**
- * Class for reporting problems when the primary key constraint is being broken.
- *
- * @see io.realm.annotations.PrimaryKey
- */
-@Keep
-public final class RealmPrimaryKeyConstraintException extends RuntimeException {
-    public RealmPrimaryKeyConstraintException(String message) {
-        super(message);
+@RealmClass
+public class RealmModelWithRealmModelField implements RealmModel {
+    private AllTypesRealmModel allTypesRealmModel;
+
+    public AllTypesRealmModel getAllTypesRealmModel() {
+        return allTypesRealmModel;
+    }
+
+    public void setAllTypesRealmModel(AllTypesRealmModel allTypesRealmModel) {
+        this.allTypesRealmModel = allTypesRealmModel;
     }
 }

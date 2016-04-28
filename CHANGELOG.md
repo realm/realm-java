@@ -1,16 +1,41 @@
 ## 0.90.0
 
+### Breaking changes
+
+* All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
+* Marked all methods on `RealmObject` and all public classes final (#1594).
+* Removed `BaseRealm` from the public API.
+* Removed `HandlerController` from the public API.
+* Removed constructor of `RealmAsyncTask` from the public API8 (#1594).
+
 ### Deprecated
 
+* `Realm.allObjects*()`. Use `Realm.where(clazz).findAll*()` instead.
+* `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
+* `DynamicRealm.allObjects*()`. Use `DynamicRealm.where(className).findAll*()` instead.
+* `DynamicRealm.distinct*()`. Use `DynamicRealm.where(className).distinct*()` instead.
+* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 
 ### Enhancements
 
-* `RealmObjectSchema.getPrimaryKey()` (#2636)
+* `RealmObjectSchema.getPrimaryKey()`. (#2636)
+* `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+* Unit tests in Android library projects now detect Realm model classes.
 
 ### Credits
 
 * Thanks to Brenden Kromhout (@bkromhout) for adding `RealmObjectSchema.getPrimaryKey()`.
+
+## 0.89.1
+
+### Bug fixes
+
+* @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
+* Primary key is cleared/changed when calling RealmSchema.remove()/RealmSchema.rename() (#2555).
+* Objects implementing RealmModel can be used as a field of RealmModel/RealmObject (#2654).
 
 ## 0.89.0
 
@@ -19,6 +44,8 @@
 * @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
 * `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
 * `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
+* `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
+* `RealmList.first()` and `RealmList.last()` now throw `ArrayIndexOutOfBoundsException` if `RealmList` is empty.
 * Removed deprecated method `Realm.getTable()` from public API.
 
 ### Deprecated

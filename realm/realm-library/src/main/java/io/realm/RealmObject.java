@@ -89,7 +89,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @see #isValid()
      */
-    public void deleteFromRealm() {
+    public final void deleteFromRealm() {
         deleteFromRealm(this);
     }
     
@@ -327,7 +327,7 @@ public abstract class RealmObject implements RealmModel {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public <E extends RealmObject> Observable<E> asObservable() {
+    public final <E extends RealmObject> Observable<E> asObservable() {
         return (Observable<E>) RealmObject.asObservable(this);
     }
 
