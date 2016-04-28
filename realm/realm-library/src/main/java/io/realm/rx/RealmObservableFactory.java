@@ -70,9 +70,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Get instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(Realm realm) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(observableRealm);
                         }
@@ -100,9 +100,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Get instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<DynamicRealm> listener = new RealmChangeListener<DynamicRealm>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(DynamicRealm realm) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(observableRealm);
                         }
@@ -136,9 +136,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final Realm observableRealm = Realm.getInstance(realmConfig);
                 resultsRefs.get().acquireReference(results);
 
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<RealmResults<E>> listener = new RealmChangeListener<RealmResults<E>>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(RealmResults<E> object) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(results);
                         }
@@ -172,9 +172,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 resultsRefs.get().acquireReference(results);
 
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<RealmResults<DynamicRealmObject>> listener = new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(RealmResults<DynamicRealmObject> object) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(results);
                         }
@@ -222,9 +222,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final Realm observableRealm = Realm.getInstance(realmConfig);
                 objectRefs.get().acquireReference(object);
 
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<E> listener = new RealmChangeListener<E>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(E result) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(object);
                         }
@@ -258,9 +258,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 objectRefs.get().acquireReference(object);
 
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<DynamicRealmObject> listener = new RealmChangeListener<DynamicRealmObject>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(DynamicRealmObject result) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(object);
                         }

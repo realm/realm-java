@@ -29,7 +29,7 @@ package io.realm;
  * for that background thread.
  * <p>
  * All {@link io.realm.RealmObject} and {@link io.realm.RealmResults} will automatically contain their new values when
- * the {@link #onChange()} method is called. Normally this means that it isn't necessary to query again for those
+ * the {@link #onChange(Object)} method is called. Normally this means that it isn't necessary to query again for those
  * objects, but just invalidate any UI elements that are using them. If there is a chance that a object has been been
  * deleted, it can be verified by using {@link RealmObject#isValid()}.
  *
@@ -37,11 +37,11 @@ package io.realm;
  * @see Realm#removeAllChangeListeners()
  * @see Realm#removeChangeListener(RealmChangeListener)
  */
-public interface RealmChangeListener {
+public interface RealmChangeListener<T> {
 
     /**
      * Called when a transaction is committed.
      */
-    void onChange();
+     void onChange(T object);
 
 }
