@@ -4,3 +4,5 @@
 -keep @io.realm.internal.Keep class * { *; }
 -dontwarn javax.**
 -dontwarn io.realm.**
+-keep class io.realm.RealmCollection
+-keep class io.realm.OrderedRealmCollection
