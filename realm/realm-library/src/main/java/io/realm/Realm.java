@@ -719,16 +719,20 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Creates a new object inside the Realm with the Primary key value initially set.
+     * Instantiates and adds a new object to the Realm with the primary key value already set.
+     *
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
      *
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
-     * @throws RealmException if object could not be created.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException If the model clazz does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     *                                  expected value.
      */
-    <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+    public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex);
@@ -951,27 +955,17 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific Class. If no objects exist, the returned RealmResults will not be {@code null}.
-     * The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the Class to get objects of.
-     * @return a RealmResult list containing the objects.
-     * @see io.realm.RealmResults
+     * DEPRECATED: Use {@code realm.where(clazz).findAll()} instead.
      */
+    @Deprecated
     public <E extends RealmModel> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
     }
 
     /**
-     * Get all objects of a specific Class sorted by a field. If no objects exist, the returned {@link RealmResults}
-     * will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the Class to get objects of.
-     * @param fieldName the field name to sort by.
-     * @param sortOrder how to sort the results.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName, sortOrder)} instead.
      */
+    @Deprecated
     public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
                                                                     Sort sortOrder) {
         checkIfValid();
@@ -987,17 +981,9 @@ public final class Realm extends BaseRealm {
 
 
     /**
-     * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the class ti get objects of.
-     * @param fieldName1 first field name to sort by.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name to sort by.
-     * @param sortOrder2 sort order for second field.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
      */
+    @Deprecated
     public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     Sort sortOrder1, String fieldName2,
                                                                     Sort sortOrder2) {
@@ -1006,19 +992,10 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the class ti get objects of.
-     * @param fieldName1 first field name to sort by.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name to sort by.
-     * @param sortOrder2 sort order for second field.
-     * @param fieldName3 third field name to sort by.
-     * @param sortOrder3 sort order for third field.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2, fieldName3, sortOrder3)}
+     * instead.
      */
+    @Deprecated
     public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     Sort sortOrder1,
                                                                     String fieldName2, Sort sortOrder2,
@@ -1028,16 +1005,9 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific Class sorted by multiple fields. If no objects exist, the returned
-     * {@link RealmResults} will not be null. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the Class to get objects of.
-     * @param sortOrders sort ascending if Sort.ASCENDING, sort descending if Sort.DESCENDING.
-     * @param fieldNames an array of field names to sort objects by. The objects are first sorted by fieldNames[0], then
-     *                   by fieldNames[1] and so forth.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldNames[], sortOrders[])} instead.
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                     Sort sortOrders[]) {
@@ -1049,15 +1019,9 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Returns a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in case of multiple occurrences.
-     *
-     * @param clazz the Class to get objects of.
-     * @param fieldName the field name.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * DEPRECATED: Use {@code realm.where(clazz).distinct(fieldName)} instead.
      */
+    @Deprecated
     public <E extends RealmModel> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
         checkIfValid();
         Table table = schema.getTable(clazz);
@@ -1067,36 +1031,18 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Returns a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in case of multiple occurrences.
-     * This method is only available from a Looper thread.
-     *
-     * @param clazz the Class to get objects of.
-     * @param fieldName the field name.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     *         query completes.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
-     *         is not indexed, or points to linked fields.
+     * DEPRECATED: Use {@code realm.where(clazz).distinctAsync(fieldName)} instead.
      */
+    @Deprecated
     public <E extends RealmModel> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
         checkIfValid();
         return where(clazz).distinctAsync(fieldName);
     }
 
     /**
-     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
-     * given, all unique combinations of values in the fields will be returned. In case of multiple
-     * matches, it is undefined which object is returned. Unless the result is sorted, then the
-     * first object will be returned.
-     *
-     * @param clazz the Class to get objects of.
-     * @param firstFieldName first field name to use when finding distinct objects.
-     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     *         is an unsupported type, or points to a linked field.
+     * DEPRECATED: Use {@code realm.where(clazz).distinct(firstFieldName, remainingFieldNames)} instead.
      */
+    @Deprecated
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String firstFieldName, String... remainingFieldNames) {
         checkIfValid();
         return where(clazz).distinct(firstFieldName, remainingFieldNames);
