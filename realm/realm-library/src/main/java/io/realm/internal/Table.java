@@ -1237,7 +1237,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (date == null) {
             throw new IllegalArgumentException("null is not supported");
         }
-        return nativeFindFirstTimestamp(nativePtr, columnIndex, date.getTime() / 1000);
+        return nativeFindFirstTimestamp(nativePtr, columnIndex, date.getTime());
     }
 
     @Override
@@ -1301,19 +1301,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
-    }
-
-    @Override
-    public TableView findAllDate(long columnIndex, Date date) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000);
         try {
             return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
@@ -1541,7 +1528,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
-    private native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindAllTimestamp(long nativePtr, long columnIndex, long dateTimeValue);
     private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
     private native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     private native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);

@@ -560,7 +560,7 @@ public class RealmObjectTests {
 
     @Test
     public void dateType() {
-        long testDatesValid[] = {-1001, -1000, -1, 0, 1, 1000, 1001};
+        long testDatesValid[] = {Long.MIN_VALUE, -1001, -1000, -1, 0, 1, 1000, 1001, Long.MAX_VALUE};
 
         realm.beginTransaction();
         for (long value : testDatesValid) {

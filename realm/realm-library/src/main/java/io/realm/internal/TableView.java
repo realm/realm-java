@@ -370,7 +370,7 @@ public class TableView implements TableOrView, Closeable {
     @Override
     public void setDate(long columnIndex, long rowIndex, Date value){
         if (parent.isImmutable()) throwImmutable();
-        nativeSetTimestampValue(nativePtr, columnIndex, rowIndex, value.getTime()/1000);
+        nativeSetTimestampValue(nativePtr, columnIndex, rowIndex, value.getTime());
     }
 
     /**
@@ -561,19 +561,6 @@ public class TableView implements TableOrView, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
-    }
-
-    @Override
-    public TableView findAllDate(long columnIndex, Date date) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
         try {
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {

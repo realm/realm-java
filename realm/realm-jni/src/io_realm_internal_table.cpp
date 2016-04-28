@@ -1293,16 +1293,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllBool(
     return reinterpret_cast<jlong>(pTableView);
 }
 
-// FIXME: find_all_timestamp() isn't implemented
+// FIXME: reenable when find_first_timestamp() is implemented
 /*
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_datetime( S(columnIndex),
-                                            DateTime(dateTimeValue)) );
+        TableView* pTableView = new TableView(TBL(nativeTablePtr)->find_all_timestamp(S(columnIndex), from_milliseconds(dateTimeValue)));
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
@@ -1377,7 +1376,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
             } CATCH_STD()
             break;
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
             return 0;
         break;
     }
@@ -1404,7 +1403,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
             return 0;
     }
     return 0;
@@ -1452,7 +1451,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, byte, boolean, short, int, long and their boxed variants are supported.");
                 return 0;
         }
     }
