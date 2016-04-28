@@ -39,6 +39,10 @@ public class SharedGroup implements Closeable {
     private boolean activeTransaction;
     private final Context context;
 
+    // Default value is {@code false} indicating that {@link #waitForChange()} ends without user
+    // interruption. {@code true} means {@link #waitForChange()} is stopped by user.
+    private boolean isStoppedWaitingByUser = false;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -293,11 +297,26 @@ public class SharedGroup implements Closeable {
         }
     }
 
+    /**
+     * Waits for change committed by {@link SharedGroup} in other Thread.
+     *
+     * @return {@code true} if successfully detects change, {@code false} no change has detected otherwise.
+     */
     public boolean waitForChange() {
-        return nativeWaitForChange(nativePtr);
+        if (isStoppedWaitingByUser) {
+            isStoppedWaitingByUser = false;
+            return false;
+        }
+        boolean changeStatus = nativeWaitForChange(nativePtr);
+        isStoppedWaitingByUser = false;
+        return changeStatus;
     }
 
+    /**
+     * Stops waiting for change.
+     */
     public void stopWaitForChange() {
+        isStoppedWaitingByUser = true;
         nativeStopWaitForChange(nativePtr);
     }
 
