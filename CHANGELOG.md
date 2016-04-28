@@ -23,6 +23,7 @@
 
 * `RealmObjectSchema.getPrimaryKey()`. (#2636)
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+* Unit tests in Android library projects now detect Realm model classes.
 
 ### Credits
 
