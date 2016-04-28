@@ -62,7 +62,7 @@ def getDeviceNames(String commandOutput) {
     return commandOutput
         .split('\n')
         .findAll { it.contains('\t') }
-        .collect { it.split('\t')[0] }
+        .collect { it.split('\t')[0].trim() }
 }
 
 def transformIntoStep(device) {
@@ -72,7 +72,7 @@ def transformIntoStep(device) {
     // that explicitly, or use { -> } syntax.
     return {
         sh "adb -s ${device} shell getprop ro.product.model | tee model-name.txt"
-        def modelName = readFile('model-name.txt').replaceAll(' ', '_')
+        def modelName = readFile('model-name.txt').trim().replaceAll(' ', '_')
 
         sh "adb -s ${device} uninstall io.realm.test"
         sh "adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk"
