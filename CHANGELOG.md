@@ -16,7 +16,7 @@
 * `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
 * `RealmList.first()` and `RealmList.last()` now throw `ArrayIndexOutOfBoundsException` if `RealmList` is empty.
 * Removed deprecated method `Realm.getTable()` from public API.
-* `Realm.refresh()` and `DynamicRealm.refresh()` on Looper thread now make no effect. `RealmObject` and `RealmResults` are always updated on the next event loop.
+* `Realm.refresh()` and `DynamicRealm.refresh()` on a Looper no longer have any effect. `RealmObject` and `RealmResults` are always updated on the next event loop.
 
 ### Deprecated
 
