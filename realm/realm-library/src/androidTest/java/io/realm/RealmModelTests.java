@@ -191,9 +191,9 @@ public class RealmModelTests {
         populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
 
         final RealmResults<AllTypesRealmModel> allTypesRealmModels = looperThread.realm.distinctAsync(AllTypesRealmModel.class, AllTypesRealmModel.FIELD_STRING);
-        allTypesRealmModels.addChangeListener(new RealmChangeListener() {
+        allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypesRealmModel> object) {
                 assertEquals(1, allTypesRealmModels.size());
                 looperThread.testComplete();
             }

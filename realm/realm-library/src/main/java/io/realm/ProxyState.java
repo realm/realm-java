@@ -30,22 +30,28 @@ import io.realm.internal.log.RealmLog;
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
  */
-public final class ProxyState {
+public final class ProxyState<E extends RealmModel> {
+    private E model;
     private String className;
     private Class<? extends RealmModel> clazzName;
 
     private Row row;
     private BaseRealm realm;
 
-    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    private final List<RealmChangeListener<E>> listeners = new CopyOnWriteArrayList<RealmChangeListener<E>>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
     protected long currentTableVersion = -1;
 
     public ProxyState() {}
 
-    public ProxyState(Class<? extends RealmModel> clazzName) {
+    public ProxyState(E model) {
+        this.model = model;
+    }
+
+    public ProxyState(Class<? extends RealmModel> clazzName, E model) {
         this.clazzName = clazzName;
+        this.model = model;
     }
 
     /**
@@ -114,7 +120,7 @@ public final class ProxyState {
         return true;
     }
 
-    public List<RealmChangeListener> getListeners$realm() {
+    public List<RealmChangeListener<E>> getListeners$realm() {
         return listeners;
     }
 
@@ -156,7 +162,7 @@ public final class ProxyState {
 
             if (notify) {
                 for (RealmChangeListener listener : listeners) {
-                    listener.onChange();
+                    listener.onChange(model);
                 }
             }
         }

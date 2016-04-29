@@ -153,7 +153,7 @@ public class NullTypesRealmProxy extends NullTypes
 
     NullTypesRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (NullTypesColumnInfo) columnInfo;
-        this.proxyState = new ProxyState(NullTypes.class);
+        this.proxyState = new ProxyState(NullTypes.class, this);
     }
 
     @SuppressWarnings("cast")

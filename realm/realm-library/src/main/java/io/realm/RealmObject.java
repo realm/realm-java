@@ -218,8 +218,8 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
-    public final void addChangeListener(RealmChangeListener listener) {
-        RealmObject.addChangeListener(this, listener);
+    public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
+        RealmObject.addChangeListener((E) this, listener);
     }
 
     /**
@@ -229,7 +229,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
-    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener listener) {
+    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }

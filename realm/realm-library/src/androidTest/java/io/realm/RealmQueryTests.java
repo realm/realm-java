@@ -2309,33 +2309,33 @@ public class RealmQueryTests {
             }
         };
 
-        distinctBool.addChangeListener(new RealmChangeListener() {
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(2, distinctBool.size());
                 endTest.run();
             }
         });
 
-        distinctLong.addChangeListener(new RealmChangeListener() {
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctLong.size());
                 endTest.run();
             }
         });
 
-        distinctDate.addChangeListener(new RealmChangeListener() {
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctDate.size());
                 endTest.run();
             }
         });
 
-        distinctString.addChangeListener(new RealmChangeListener() {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctString.size());
                 endTest.run();
             }
@@ -2376,17 +2376,17 @@ public class RealmQueryTests {
 
                     Realm.asyncQueryExecutor.resume();
 
-                    distinctDate.addChangeListener(new RealmChangeListener() {
+                    distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
                             assertEquals(1, distinctDate.size());
                             signalCallbackFinished.countDown();
                         }
                     });
 
-                    distinctString.addChangeListener(new RealmChangeListener() {
+                    distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
                             assertEquals(1, distinctString.size());
                             signalCallbackFinished.countDown();
                         }
