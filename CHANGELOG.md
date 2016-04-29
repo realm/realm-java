@@ -2,7 +2,7 @@
 
 ### Breaking changes
 
-* RealmChangeListener provide the changed object/realm/collection as well (#1594)
+* RealmChangeListener provides the changed object/Realm/collection as well (#1594).
 * All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
 * Marked all methods on `RealmObject` and all public classes final (#1594).
 * Removed `BaseRealm` from the public API.
