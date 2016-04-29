@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
