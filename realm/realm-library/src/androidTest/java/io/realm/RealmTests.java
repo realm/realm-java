@@ -3075,8 +3075,8 @@ public class RealmTests {
     public void waitForChange_emptyDataChange() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final AtomicBoolean bgRealmResult = new AtomicBoolean(false);
-        final AtomicLong bgReamCount = new AtomicLong(0);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
+        final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
 
         // wait in background
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
@@ -3085,8 +3085,8 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealmOpened.countDown();
-                bgRealmResult.set(realm.waitForChange());
-                bgReamCount.set(realm.where(AllTypes.class).count());
+                bgRealmChangeResult.set(realm.waitForChange());
+                bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3097,16 +3097,16 @@ public class RealmTests {
         realm.beginTransaction();
         realm.commitTransaction();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertTrue(bgRealmResult.get());
-        assertEquals(0, bgReamCount.get());
+        assertTrue(bgRealmChangeResult.get());
+        assertEquals(0, bgRealmWaitForChangeResult.get());
     }
 
     @Test
     public void waitForChange_withDataChange() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final AtomicBoolean bgRealmResult = new AtomicBoolean(false);
-        final AtomicLong bgReamCount = new AtomicLong(0);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
+        final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
 
         // wait in background
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
@@ -3115,8 +3115,8 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealmOpened.countDown();
-                bgRealmResult.set(realm.waitForChange());
-                bgReamCount.set(realm.where(AllTypes.class).count());
+                bgRealmChangeResult.set(realm.waitForChange());
+                bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3126,16 +3126,16 @@ public class RealmTests {
         TestHelper.awaitOrFail(bgRealmOpened);
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertTrue(bgRealmResult.get());
-        assertEquals(TEST_DATA_SIZE, bgReamCount.get());
+        assertTrue(bgRealmChangeResult.get());
+        assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
     }
 
     @Test
     public void waitForChange_syncBackgroundRealmResults() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final AtomicBoolean bgRealmResult = new AtomicBoolean(false);
-        final AtomicLong bgReamCount = new AtomicLong(0);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
+        final AtomicLong bgRealmResultSize = new AtomicLong(0);
 
         // wait in background
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
@@ -3145,10 +3145,10 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
                 // first make sure the results is empty
-                bgReamCount.set(results.size());
+                bgRealmResultSize.set(results.size());
                 bgRealmOpened.countDown();
-                bgRealmResult.set(realm.waitForChange());
-                bgReamCount.set(results.size());
+                bgRealmChangeResult.set(realm.waitForChange());
+                bgRealmResultSize.set(results.size());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3157,19 +3157,19 @@ public class RealmTests {
 
         TestHelper.awaitOrFail(bgRealmOpened);
         // background result should be empty
-        assertEquals(0, bgReamCount.get());
+        assertEquals(0, bgRealmResultSize.get());
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertTrue(bgRealmResult.get());
+        assertTrue(bgRealmChangeResult.get());
         // Once RealmResults are synchronized after waitForChange, the result size should be what we expect
-        assertEquals(TEST_DATA_SIZE, bgReamCount.get());
+        assertEquals(TEST_DATA_SIZE, bgRealmResultSize.get());
     }
 
     @Test
     public void stopWaitForChange() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final AtomicBoolean bgRealmResult = new AtomicBoolean(true);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(true);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         // wait in background
@@ -3179,7 +3179,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealm.set(realm);
                 bgRealmOpened.countDown();
-                bgRealmResult.set(realm.waitForChange());
+                bgRealmChangeResult.set(realm.waitForChange());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3188,7 +3188,7 @@ public class RealmTests {
         TestHelper.awaitOrFail(bgRealmOpened);
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertFalse(bgRealmResult.get());
+        assertFalse(bgRealmChangeResult.get());
     }
 
     // Test if waitForChange still blocks if stopWaitForChange has been called before.
@@ -3199,7 +3199,7 @@ public class RealmTests {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final AtomicBoolean bgRealmStoppedResult = new AtomicBoolean(true);
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
-        final AtomicLong bgReamCount = new AtomicLong(0);
+        final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         // wait in background
@@ -3212,7 +3212,7 @@ public class RealmTests {
                 bgRealmStoppedResult.set(realm.waitForChange());
                 bgRealmStopped.countDown();
                 bgRealmChangeResult.set(realm.waitForChange());
-                bgReamCount.set(realm.where(AllTypes.class).count());
+                bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3226,7 +3226,7 @@ public class RealmTests {
         realm.commitTransaction();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertTrue(bgRealmChangeResult.get());
-        assertEquals(0, bgReamCount.get());
+        assertEquals(0, bgRealmWaitForChangeResult.get());
     }
 
     // Test if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
@@ -3236,7 +3236,7 @@ public class RealmTests {
         final CountDownLatch bgRealmClosed = new CountDownLatch(2);
         final AtomicBoolean bgRealmStoppedResult = new AtomicBoolean(true);
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
-        final AtomicLong bgReamCount = new AtomicLong(0);
+        final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         // wait in background
@@ -3258,7 +3258,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealmOpened.countDown();
                 bgRealmChangeResult.set(realm.waitForChange());
-                bgReamCount.set(realm.where(AllTypes.class).count());
+                bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3272,7 +3272,7 @@ public class RealmTests {
         TestHelper.awaitOrFail(bgRealmClosed);
         assertFalse(bgRealmStoppedResult.get());
         assertTrue(bgRealmChangeResult.get());
-        assertEquals(TEST_DATA_SIZE, bgReamCount.get());
+        assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
     }
 
     @Test
