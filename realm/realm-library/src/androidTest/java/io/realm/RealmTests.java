@@ -25,6 +25,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import junit.framework.AssertionFailedError;
 
@@ -3067,5 +3068,40 @@ public class RealmTests {
         assertEquals(0, realm.where(Owner.class).count());
         assertEquals(0, realm.where(Cat.class).count());
         assertTrue(realm.isEmpty());
+    }
+
+    @Test
+    public void finalizer_benchmark() throws InterruptedException {
+        int rowsCreated = 0;
+        long timeCreatingRows = 0;
+
+        realm.beginTransaction();
+        for (int i = 0; i < 100000; i++) {
+            long startTime = System.nanoTime();
+            realm.createObject(Dog.class);
+            rowsCreated++;
+            long endTime = System.nanoTime();
+            timeCreatingRows += endTime - startTime;
+        }
+        realm.commitTransaction();
+
+        RealmResults<Dog> results = realm.where(Dog.class).findAll();
+        while (true) {
+            for (Dog dog : results) {
+                long startTime = System.nanoTime();
+                dog.getAge();
+                rowsCreated++;
+                long endTime = System.nanoTime();
+                timeCreatingRows += endTime - startTime;
+            }
+            if (io.realm.internal.Context.totalCount == 0) continue;
+            Log.e("TTT", "Creating " + rowsCreated + " rows takes " +
+                    timeCreatingRows / 1000 / 1000 + "ms." + " In average creating 10000 rows takes ++ " +
+                    (timeCreatingRows * 10000) / rowsCreated / 1000 / 1000 + "ms. ++");
+            Log.e("TTT", "Deleting " + io.realm.internal.Context.totalCount + " rows takes " +
+                    io.realm.internal.Context.totalTime / 1000 / 1000 + "ms." + " In average deleting 10000 rows takes -- " +
+                    (io.realm.internal.Context.totalTime * 10000) / io.realm.internal.Context.totalCount / 1000 / 1000 +
+                    "ms. --");
+        }
     }
 }
