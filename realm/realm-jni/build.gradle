@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.97.3'
+ext.coreVersion = '0.100.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '2835ae5c51ec83c38fb3f968af6cacd5fce6393b3602ddad4a8f48aaa9e62781'
+ext.coreSha256Hash = 'f3bb8564a8bab7eca8dc85f1c508a35e125b93a104f964105558739bd1032d98'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -201,7 +201,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
                     throw new GradleException("Invalid checksum for file '" +
                             "${project.coreArchiveFile.getName()}'. Expected " +
                             "${project.coreSha256Hash.toLowerCase()} but got " +
-                            "${calculatedHash.toLowerCase()}.");
+                                "${calculatedHash.toLowerCase()}.");
                 }
             } else {
                 println 'Skipping hash check(empty \'coreSha256Hash\').'

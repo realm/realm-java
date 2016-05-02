@@ -16,6 +16,8 @@
 
 #include <jni.h>
 
+#include <realm/string_data.hpp>
+
 #include "util.hpp"
 #include "mem_usage.hpp"
 #include "io_realm_internal_Util.h"
@@ -78,7 +80,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, j
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(
     JNIEnv* env, jclass)
 {
-    return to_jstring(env, string(TABLE_PREFIX));
+    string table_prefix(TABLE_PREFIX);
+    realm::StringData sd(table_prefix);
+    return to_jstring(env, sd);
 }
 
 // -------------------------- Testcases for exception handling

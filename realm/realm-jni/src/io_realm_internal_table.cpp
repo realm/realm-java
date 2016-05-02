@@ -213,8 +213,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         while (true) {
             std::ostringstream ss;
             ss << std::string("__TMP__") << j;
-            if (table->get_column_index(ss.str()) == realm::not_found) {
-                table->insert_column(column_index, column_type, ss.str(), true);
+            std::string str = ss.str();
+            StringData sd(str);
+            if (table->get_column_index(sd) == realm::not_found) {
+                table->insert_column(column_index, column_type, sd, true);
                 tmp_column_name = ss.str();
                 break;
             }
@@ -223,10 +225,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 
         for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) {
-                case type_String:
+               case type_String: {
                     // Payload copy is needed
-                    table->set_string(column_index, i, std::string(table->get_string(column_index + 1, i)));
+                    StringData sd(table->get_string(column_index + 1, i));
+                    table->set_string(column_index, i, sd);
                     break;
+                }
                 case type_Binary: {
                     // Payload copy is needed
                     BinaryData bd = table->get_binary(column_index + 1, i);
@@ -299,8 +303,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         while (true) {
             std::ostringstream ss;
             ss << std::string("__TMP__") << j;
-            if (table->get_column_index(ss.str()) == realm::not_found) {
-                table->insert_column(column_index, column_type, ss.str(), false);
+            std::string str = ss.str();
+            StringData sd(str);
+            if (table->get_column_index(sd) == realm::not_found) {
+                table->insert_column(column_index, column_type, sd, false);
                 tmp_column_name = ss.str();
                 break;
             }
@@ -316,7 +322,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                     }
                     else {
                         // Payload copy is needed
-                        table->set_string(column_index, i, std::string(sd));
+                        table->set_string(column_index, i, sd);
                     }
                     break;
                 }
@@ -1692,6 +1698,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
     const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
 
+    const string table_prefix(TABLE_PREFIX);
+
     Group* group = G(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
 
@@ -1707,7 +1715,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
             size_t col_ndx = static_cast<size_t>(pk_table->get_int(FIELD_COLUMN_INDEX, row_ndx));
             StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
             // Make a copy of the string
-            pk_table->set_string(tmp_col_ndx, row_ndx, std::string(col_name));
+            pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
         }
 
         // Delete old int column, and rename tmp column to same name
@@ -1720,9 +1728,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     size_t number_of_rows = pk_table->size();
     for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
         StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
-        if (table_name.begins_with(TABLE_PREFIX)) {
+        if (table_name.begins_with(table_prefix)) {
             // New string copy is needed, since the original memory will be changed.
-            pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, std::string(table_name.substr(strlen(TABLE_PREFIX))));
+            std::string str(table_name.substr(strlen(TABLE_PREFIX)));
+            StringData sd(str);
+            pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, sd);
         }
     }
 }

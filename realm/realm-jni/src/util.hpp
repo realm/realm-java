@@ -97,7 +97,7 @@ std::string num_to_string(T pNumber)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<realm::Table*>(x)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)
-#define LV(x)   reinterpret_cast<realm::LinkView*>(x)
+#define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
@@ -293,7 +293,7 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
+inline bool RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset=false)
 {
     if (rowIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
@@ -655,7 +655,6 @@ extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
 
-
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {
     return env->NewObject(java_lang_long, java_lang_long_init, value);
@@ -670,7 +669,6 @@ inline jobject NewFloat(JNIEnv* env, float value)
 {
     return env->NewObject(java_lang_float, java_lang_float_init, value);
 }
-
 
 inline jlong to_milliseconds(const realm::Timestamp& ts)
 {

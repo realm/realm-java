@@ -55,7 +55,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
 (JNIEnv *env, jobject, jlong nativeQueryPtr)
 {
     try {
-        return to_jstring(env, Q(nativeQueryPtr)->validate());
+        const std::string str = Q(nativeQueryPtr)->validate();
+        StringData sd(str);
+        return to_jstring(env, sd);
     } CATCH_STD();
     return NULL;
 }

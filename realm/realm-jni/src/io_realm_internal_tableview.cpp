@@ -204,10 +204,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeGetColumnName
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetColumnIndex
    (JNIEnv *env, jobject, jlong nativeViewPtr, jstring columnName)
 {
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+    if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
         return 0;
-
+    try {
         JStringAccessor columnName2(env, columnName); // throws
         return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
     } CATCH_STD()
@@ -276,7 +275,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetTimestamp(
             !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Timestamp))
             return 0;
     } CATCH_STD()
-    return to_milliseconds(TV(nativeViewPtr)->get_timestamp( S(columnIndex), S(rowIndex)));  // noexcept
+    return to_milliseconds(TV(nativeViewPtr)->get_timestamp( S(columnIndex), S(rowIndex)));
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeGetString(

@@ -217,7 +217,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
         return 0;
 
-    LinkView* link_view_ptr = LangBindHelper::get_linklist_ptr( *ROW( nativeRowPtr ), S( columnIndex) );
+    LinkViewRef* link_view_ptr = const_cast<LinkViewRef*>(&(LangBindHelper::get_linklist_ptr(*ROW(nativeRowPtr), S(columnIndex))));
     return reinterpret_cast<jlong>(link_view_ptr);
 }
 
