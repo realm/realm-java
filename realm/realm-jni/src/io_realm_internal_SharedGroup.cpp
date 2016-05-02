@@ -330,7 +330,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeWaitForChang
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        return static_cast<jboolean>( SG(native_ptr)->wait_for_change() );
+        return static_cast<jboolean>(SG(native_ptr)->wait_for_change());
     } CATCH_STD()
     return false;
 }

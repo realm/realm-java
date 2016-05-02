@@ -31,13 +31,13 @@ public class RealmThread extends Thread {
     private Realm realm;
 
     public RealmThread(RealmConfiguration realmConfig, RealmRunnable task) {
-        // ideally, you can create a realm instance with default configuration
         this.realmConfig = realmConfig;
         this.task = task;
     }
 
     @Override
     public void run() {
+        // you can create a realm instance with the default configuration
         final Realm realm = Realm.getInstance(this.realmConfig);
         this.realm = realm;
         if (task != null) {
@@ -51,10 +51,10 @@ public class RealmThread extends Thread {
 
     public void end() {
         if (!this.isAlive()) {
-            throw new IllegalStateException("RealmThread is not running.");
+            return;
         }
         if (this.realm == null) {
-            throw new IllegalStateException("A Realm assigned to this Thread is closed.");
+            return;
         }
         this.realm.stopWaitForChange();
     }
