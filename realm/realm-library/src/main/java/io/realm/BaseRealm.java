@@ -310,10 +310,10 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Makes any current {@link #waitForChange()} return {@code false} immediately. If a Realm is not
-     * waiting, all future calls to waitForChange will immediately return false as well.
+     * Makes any current {@link #waitForChange()} return {@code false} immediately. Once this is called,
+     * all future calls to waitForChange will immediately return {@code false}.
      * <p>
-     * This method is threadsafe and should _only_ be called from another thread than the one that
+     * This method is thread-safe and should _only_ be called from another thread than the one that
      * called waitForChange.
      */
     public void stopWaitForChange() {
