@@ -159,20 +159,27 @@ public final class RealmConfiguration {
     }
 
     /**
+     * Indicates if there is available asset file for copy action.
+     *
+     * @return true if there is asset file, false otherwise.
+     */
+    boolean hasAssetFile() {
+        return !TextUtils.isEmpty(assetFilePath);
+    }
+
+    /**
      * Returns input stream object to the Realm asset file.
      *
      * @return input stream to the asset file.
      * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
-        if (contextWeakRef != null) {
-            Context context = contextWeakRef.get();
-            if (context != null) {
-                return context.getAssets().open(assetFilePath);
-            }
+        Context context = contextWeakRef.get();
+        if (context != null) {
+            return context.getAssets().open(assetFilePath);
+        } else {
+            throw new IllegalArgumentException("Context can not be null. Use application context instead.");
         }
-
-        return null;
     }
 
     /**
@@ -387,9 +394,11 @@ public final class RealmConfiguration {
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
-         * Initial dataset will be imported from the provided Realm asset file.
+         * When opening the Realm for the first time, instead of creating an empty file,
+         * the Realm file will be copied from the provided assets file and used instead.
+         * WARNING: This could potentially be a lengthy operation so should ideally be done on a background thread.
          *
-         * @param context Android context.
+         * @param context Android application context.
          * @param assetFile path to the asset database file.
          */
         public Builder(Context context, final String assetFile) {
@@ -397,6 +406,10 @@ public final class RealmConfiguration {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
+            if (new File(folder, fileName).exists()) {
+                throw new RealmException("Asset file can not be used if Realm file exists.");
+            }
+
             this.contextWeakRef = new WeakReference<>(context);
             this.assetFilePath = assetFile;
         }
@@ -501,7 +514,12 @@ public final class RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
+            if (!TextUtils.isEmpty(assetFilePath)) {
+                throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
+            }
+
             this.durability = SharedGroup.Durability.MEM_ONLY;
+
             return this;
         }
 

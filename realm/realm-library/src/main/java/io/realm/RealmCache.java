@@ -107,6 +107,8 @@ final class RealmCache {
             cache = new RealmCache(configuration);
             // The new cache should be added to the map later.
             isCacheInMap = false;
+
+            copyAssetFileIfNeeded(configuration);
         } else {
             // Throw the exception if validation failed.
             cache.validateConfiguration(configuration);
@@ -120,9 +122,6 @@ final class RealmCache {
 
 
             if (realmClass == Realm.class) {
-                if (configuration.getDurability() != SharedGroup.Durability.MEM_ONLY) {
-                    copyAssetFile(configuration);
-                }
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(configuration, cache.typedColumnIndices);
             } else if (realmClass == DynamicRealm.class) {
@@ -269,25 +268,25 @@ final class RealmCache {
      * @param configuration configuration object for Realm instance.
      * @throws IOException if copying the file fails.
      */
-    private static void copyAssetFile(RealmConfiguration configuration) {
-        File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
-        if (!realmFile.exists()) {
+    private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
+        if (configuration.hasAssetFile()) {
+            File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
             InputStream inputStream = null;
             FileOutputStream outputStream = null;
             try {
                 inputStream = configuration.getAssetFile();
-                if (inputStream != null) {
-                    outputStream = new FileOutputStream(realmFile);
-                    byte[] buf = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buf)) > -1) {
-                        outputStream.write(buf, 0, bytesRead);
-                    }
-                    outputStream.close();
-                    inputStream.close();
+                if (inputStream == null) {
+                    throw new RealmIOException("Invalid input stream to asset file.");
+                }
+
+                outputStream = new FileOutputStream(realmFile);
+                byte[] buf = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buf)) > -1) {
+                    outputStream.write(buf, 0, bytesRead);
                 }
             } catch (IOException e) {
-                throw new RealmIOException("Could not resolve the path to the Realm asset file.");
+                throw new RealmIOException("Could not resolve the path to the Realm asset file.", e);
             } finally {
                 if (inputStream != null) {
                     try {

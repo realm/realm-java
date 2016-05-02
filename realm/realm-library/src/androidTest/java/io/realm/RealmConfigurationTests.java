@@ -796,10 +796,44 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void assetFileRealmFileExists() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).build();
+        Realm realm = Realm.getInstance(configuration);
+        realm.close();
+
+        assertTrue(new File(configuration.getPath()).exists());
+
+        try {
+            new RealmConfiguration.Builder(context, "asset_file.realm").build();
+            fail();
+        } catch (RealmException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileWithInMemoryConfig() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        try {
+            new RealmConfiguration.Builder(context, "asset_file.realm").inMemory().build();
+            fail();
+        } catch (RealmException ignored) {
+        }
+    }
+
+    @Test
     public void assetFileFakeFile() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
         RealmConfiguration configuration = new RealmConfiguration.Builder(context, "no_file").build();
-        Realm.deleteRealm(configuration);
         try {
             Realm.getInstance(configuration);
             fail();
@@ -809,10 +843,11 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileValidFile() throws IOException {
-        // Remove default instance
-        Realm.deleteRealm(defaultConfig);
-
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
         RealmConfiguration configuration = new RealmConfiguration.Builder(context, "asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
