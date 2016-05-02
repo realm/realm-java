@@ -1523,7 +1523,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
 
 
 // date aggregates
-// FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1720 to be solved
+// FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1745 to be solved
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
