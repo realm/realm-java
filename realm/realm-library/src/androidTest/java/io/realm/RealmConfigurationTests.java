@@ -779,4 +779,27 @@ public class RealmConfigurationTests {
         realm.close();
         verify(transaction, never()).execute(realm);
     }
+
+    private static class MigrationWithNoEquals implements RealmMigration {
+        @Override
+        public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+            // Do nothing
+        }
+    }
+
+    @Test
+    public void detectMissingEqualsInCustomMigration() {
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+
+        Realm realm = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("The most likely cause are that equals() and hashCode() are not overridden"));
+        } finally {
+            realm.close();
+        }
+    }
 }
