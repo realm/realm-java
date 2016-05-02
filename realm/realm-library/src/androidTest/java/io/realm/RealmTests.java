@@ -3270,6 +3270,38 @@ public class RealmTests {
         assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
     }
 
+    // Check if waitForChange response to Thread.interrupt().
+    @Test
+    public void waitForChange_interruptingThread() {
+        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        final AtomicBoolean bgRealmWaitResult = new AtomicBoolean(true);
+        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
+
+        // wait in background
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealm.set(realm);
+                bgRealmOpened.countDown();
+                bgRealmWaitResult.set(realm.waitForChange());
+                realm.close();
+                bgRealmClosed.countDown();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmOpened);
+        // interrupting thread should neither cause any side effect, nor termination of thread.
+        thread.interrupt();
+        assertTrue(bgRealmWaitResult.get());
+        // now we'll stop realm from waiting
+        bgRealm.get().stopWaitForChange();
+        TestHelper.awaitOrFail(bgRealmClosed);
+        assertFalse(bgRealmWaitResult.get());
+    }
+
     @Test
     public void waitForChange_onLooperThread() throws InterruptedException {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
