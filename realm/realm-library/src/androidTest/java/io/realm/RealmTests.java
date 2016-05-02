@@ -3293,7 +3293,7 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // interrupting thread should neither cause any side effect, nor termination of thread.
+        // interrupting thread should neither cause any side effect nor terminate of thread.
         thread.interrupt();
         assertTrue(bgRealmWaitResult.get());
         // now we'll stop realm from waiting
