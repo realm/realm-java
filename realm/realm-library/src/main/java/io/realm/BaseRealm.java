@@ -47,7 +47,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-public abstract class BaseRealm implements Closeable {
+abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -144,7 +144,7 @@ public abstract class BaseRealm implements Closeable {
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
      */
-    public void addChangeListener(RealmChangeListener listener) {
+    public void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
@@ -160,7 +160,7 @@ public abstract class BaseRealm implements Closeable {
      * @see io.realm.RealmChangeListener
      * @see #addChangeListener(RealmChangeListener)
      */
-    public void removeChangeListener(RealmChangeListener listener) {
+    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");

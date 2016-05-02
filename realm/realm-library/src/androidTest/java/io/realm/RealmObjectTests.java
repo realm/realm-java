@@ -1569,9 +1569,9 @@ public class RealmObjectTests {
         Dog dog = new Dog();
 
         try {
-            dog.addChangeListener(new RealmChangeListener() {
+            dog.addChangeListener(new RealmChangeListener<Dog>() {
                 @Override
-                public void onChange() {
+                public void onChange(Dog object) {
                 }
             });
             fail("Failed on adding listener on null realm.");
@@ -1605,9 +1605,9 @@ public class RealmObjectTests {
         Dog dog = realm.createObject(Dog.class);
         dog.setAge(13);
         realm.commitTransaction();
-        dog.addChangeListener(new RealmChangeListener() {
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 assertTrue(false);
             }
         });
@@ -1624,9 +1624,9 @@ public class RealmObjectTests {
     @RunTestInLooperThread
     public void removeChangeListener_throwOnUnmanagedObject() {
         Dog dog = new Dog();
-        RealmChangeListener listener = new RealmChangeListener() {
+        RealmChangeListener listener = new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
             }
         };
 

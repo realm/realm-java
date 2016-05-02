@@ -133,31 +133,12 @@ public class RealmAnalytics {
         return JSON_TEMPLATE
                 .replaceAll("%EVENT%", EVENT_NAME)
                 .replaceAll("%TOKEN%", TOKEN)
-                .replaceAll("%USER_ID%", getAnonymousUserId())
+                .replaceAll("%USER_ID%", ComputerIdentifierGenerator.get())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
                 .replaceAll("%LANGUAGE%", usesKotlin?"kotlin":"java")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
                 .replaceAll("%OS_TYPE%", System.getProperty("os.name"))
                 .replaceAll("%OS_VERSION%", System.getProperty("os.version"));
-    }
-
-    /**
-     * Computes an anonymous user id from the hashed MAC address of the first network interface
-     * @return the anonymous user id
-     * @throws NoSuchAlgorithmException
-     * @throws SocketException
-     */
-    public static String getAnonymousUserId() throws NoSuchAlgorithmException, SocketException {
-        Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-
-        if (!networkInterfaces.hasMoreElements()) {
-            throw new IllegalStateException("No network interfaces detected");
-        }
-
-        NetworkInterface networkInterface = networkInterfaces.nextElement();
-        byte[] hardwareAddress = networkInterface.getHardwareAddress(); // Normally this is the MAC address
-
-        return Utils.hexStringify(Utils.sha256Hash(hardwareAddress));
     }
 
     /**

@@ -43,7 +43,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-public final class HandlerController implements Handler.Callback {
+final class HandlerController implements Handler.Callback {
 
     static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;
@@ -53,12 +53,12 @@ public final class HandlerController implements Handler.Callback {
 
     // Keep a strong reference to the registered RealmChangeListener
     // user should unregister those listeners
-    final CopyOnWriteArrayList<RealmChangeListener> changeListeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    final CopyOnWriteArrayList<RealmChangeListener<? extends BaseRealm>> changeListeners = new CopyOnWriteArrayList<RealmChangeListener<? extends BaseRealm>>();
 
     // Keep a weak reference to the registered RealmChangeListener those are Weak since
     // for some UC (ex: RealmBaseAdapter) we don't know when it's the best time to unregister the listener
-    final List<WeakReference<RealmChangeListener>> weakChangeListeners =
-            new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
+    final List<WeakReference<RealmChangeListener<? extends BaseRealm>>> weakChangeListeners =
+            new CopyOnWriteArrayList<WeakReference<RealmChangeListener<? extends BaseRealm>>>();
 
     final BaseRealm realm;
     private boolean autoRefresh; // Requires a Looper thread to be true.
@@ -137,7 +137,7 @@ public final class HandlerController implements Handler.Callback {
         return true;
     }
 
-    void addChangeListener(RealmChangeListener listener) {
+    void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         changeListeners.addIfAbsent(listener);
     }
 
@@ -148,18 +148,18 @@ public final class HandlerController implements Handler.Callback {
      *
      * @param listener the change listener.
      */
-    void addChangeListenerAsWeakReference(RealmChangeListener listener) {
-        Iterator<WeakReference<RealmChangeListener>> iterator = weakChangeListeners.iterator();
-        List<WeakReference<RealmChangeListener>> toRemoveList = null;
+    void addChangeListenerAsWeakReference(RealmChangeListener<? extends BaseRealm> listener) {
+        Iterator<WeakReference<RealmChangeListener<? extends BaseRealm>>> iterator = weakChangeListeners.iterator();
+        List<WeakReference<RealmChangeListener<? extends BaseRealm>>> toRemoveList = null;
         boolean addListener = true;
         while (iterator.hasNext()) {
-            WeakReference<RealmChangeListener> weakRef = iterator.next();
-            RealmChangeListener weakListener = weakRef.get();
+            WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef = iterator.next();
+            RealmChangeListener<? extends BaseRealm> weakListener = weakRef.get();
 
             // Collect all listeners that are GC'ed
             if (weakListener == null) {
                 if (toRemoveList == null) {
-                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(weakChangeListeners.size());
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener<? extends BaseRealm>>>(weakChangeListeners.size());
                 }
                 toRemoveList.add(weakRef);
             }
@@ -173,20 +173,20 @@ public final class HandlerController implements Handler.Callback {
             weakChangeListeners.removeAll(toRemoveList);
         }
         if (addListener) {
-            weakChangeListeners.add(new WeakReference<RealmChangeListener>(listener));
+            weakChangeListeners.add(new WeakReference<RealmChangeListener<? extends BaseRealm>>(listener));
         }
     }
 
-    void removeWeakChangeListener(RealmChangeListener listener) {
-        List<WeakReference<RealmChangeListener>> toRemoveList = null;
+    void removeWeakChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+        List<WeakReference<RealmChangeListener<? extends BaseRealm>>> toRemoveList = null;
         for (int i = 0; i < weakChangeListeners.size(); i++) {
-            WeakReference<RealmChangeListener> weakRef = weakChangeListeners.get(i);
-            RealmChangeListener weakListener = weakRef.get();
+            WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef = weakChangeListeners.get(i);
+            RealmChangeListener<? extends BaseRealm> weakListener = weakRef.get();
 
             // Collect all listeners that are GC'ed or we need to remove
             if (weakListener == null || weakListener == listener) {
                 if (toRemoveList == null) {
-                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(weakChangeListeners.size());
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener<? extends BaseRealm>>>(weakChangeListeners.size());
                 }
                 toRemoveList.add(weakRef);
             }
@@ -195,7 +195,7 @@ public final class HandlerController implements Handler.Callback {
         weakChangeListeners.removeAll(toRemoveList);
     }
 
-    void removeChangeListener(RealmChangeListener listener) {
+    void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         changeListeners.remove(listener);
     }
 
@@ -205,24 +205,24 @@ public final class HandlerController implements Handler.Callback {
 
     private void notifyGlobalListeners() {
         // notify strong reference listener
-        Iterator<RealmChangeListener> iteratorStrongListeners = changeListeners.iterator();
+        Iterator<RealmChangeListener<? extends BaseRealm>> iteratorStrongListeners = changeListeners.iterator();
         while (iteratorStrongListeners.hasNext() && !realm.isClosed()) { // every callback could close the realm
             RealmChangeListener listener = iteratorStrongListeners.next();
-            listener.onChange();
+            listener.onChange(realm);
         }
         // notify weak reference listener (internals)
-        Iterator<WeakReference<RealmChangeListener>> iteratorWeakListeners = weakChangeListeners.iterator();
-        List<WeakReference<RealmChangeListener>> toRemoveList = null;
+        Iterator<WeakReference<RealmChangeListener<? extends BaseRealm>>> iteratorWeakListeners = weakChangeListeners.iterator();
+        List<WeakReference<RealmChangeListener<? extends BaseRealm>>> toRemoveList = null;
         while (iteratorWeakListeners.hasNext() && !realm.isClosed()) {
-            WeakReference<RealmChangeListener> weakRef = iteratorWeakListeners.next();
+            WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef = iteratorWeakListeners.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
                 if (toRemoveList == null) {
-                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(weakChangeListeners.size());
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener<? extends BaseRealm>>>(weakChangeListeners.size());
                 }
                 toRemoveList.add(weakRef);
             } else {
-                listener.onChange();
+                listener.onChange(realm);
             }
         }
         if (toRemoveList != null) {

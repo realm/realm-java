@@ -43,7 +43,6 @@ import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
-import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -156,9 +155,9 @@ public class RealmAsyncQueryTests {
                 owner.setName("Owner");
             }
         });
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 assertEquals("Owner", realm.where(Owner.class).findFirst().getName());
                 looperThread.testComplete();
             }
@@ -297,9 +296,9 @@ public class RealmAsyncQueryTests {
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
 
-        results.addChangeListener(new RealmChangeListener() {
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(results.isLoaded());
                 assertEquals(5, results.size());
                 assertTrue(results.get(0).isValid());
@@ -381,9 +380,9 @@ public class RealmAsyncQueryTests {
                 .between("columnLong", 0, 4)
                 .findAllAsync();
 
-        results.addChangeListener(new RealmChangeListener() {
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(results.isLoaded());
                 assertEquals(5, results.size());
                 assertTrue(results.get(4).isValid());
@@ -407,9 +406,9 @@ public class RealmAsyncQueryTests {
                 .findAllAsync();
 
         // notification should be called as well
-        realmResults.addChangeListener(new RealmChangeListener() {
+        realmResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(realmResults.isLoaded());
                 assertEquals(5, realmResults.size());
                 looperThread.testComplete();
@@ -481,9 +480,9 @@ public class RealmAsyncQueryTests {
         assertEquals(0, realmResults.size());
 
         // 6. Callback triggered after retry has completed
-        realmResults.addChangeListener(new RealmChangeListener() {
+        realmResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertEquals(3, numberOfIntercept.get());
                 assertEquals(1, numberOfInvocation.incrementAndGet());
                 assertTrue(realmResults.isLoaded());
@@ -563,9 +562,9 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        realmResults1.addChangeListener(new RealmChangeListener() {
+        realmResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (numberOfNotificationsQuery1.incrementAndGet()) {
                     case 1: // first callback invocation
                         assertTrue(realmResults1.isLoaded());
@@ -584,9 +583,9 @@ public class RealmAsyncQueryTests {
         });
 
 
-        realmResults2.addChangeListener(new RealmChangeListener() {
+        realmResults2.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (numberOfNotificationsQuery2.incrementAndGet()) {
                     case 1: // first callback invocation
                         assertTrue(realmResults2.isLoaded());
@@ -645,9 +644,9 @@ public class RealmAsyncQueryTests {
         assertEquals(0, realmResults.size());
 
         // Add change listener that should only be called once
-        realmResults.addChangeListener(new RealmChangeListener() {
+        realmResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertEquals(3, numberOfIntercept.get());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(6, realmResults.size());
@@ -741,9 +740,9 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        realmResults1.addChangeListener(new RealmChangeListener() {
+        realmResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(maxNumberOfNotificationsQuery1.getAndDecrement() > 0);
                 assertTrue(realmResults1.isLoaded());
                 assertEquals(12, realmResults1.size());
@@ -752,9 +751,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        realmResults2.addChangeListener(new RealmChangeListener() {
+        realmResults2.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(maxNumberOfNotificationsQuery2.getAndDecrement() > 0);
                 assertTrue(realmResults2.isLoaded());
                 assertEquals(7, realmResults2.size());// the 2 add rows has columnLong == 0
@@ -779,9 +778,9 @@ public class RealmAsyncQueryTests {
         assertFalse(asyncObj.isValid());
         assertFalse(asyncObj.isLoaded());
 
-        asyncObj.addChangeListener(new RealmChangeListener() {
+        asyncObj.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
                 assertTrue(asyncObj.isLoaded());
                 assertTrue(asyncObj.isValid());
                 looperThread.testComplete();
@@ -794,9 +793,9 @@ public class RealmAsyncQueryTests {
     public void findFirstAsync_initalEmptyRow() throws Throwable {
         Realm realm = looperThread.realm;
         final AllTypes firstAsync = realm.where(AllTypes.class).findFirstAsync();
-        firstAsync.addChangeListener(new RealmChangeListener() {
+        firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
                 assertTrue(firstAsync.load());
                 assertTrue(firstAsync.isLoaded());
                 assertTrue(firstAsync.isValid());
@@ -828,9 +827,9 @@ public class RealmAsyncQueryTests {
         assertEquals(0, firstAsync.getColumnLong());
         assertEquals("test data 0", firstAsync.getColumnString());
 
-        firstAsync.addChangeListener(new RealmChangeListener() {
+        firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
                 assertEquals("Galacticon", firstAsync.getColumnString());
                 looperThread.testComplete();
             }
@@ -852,9 +851,9 @@ public class RealmAsyncQueryTests {
                 .between("columnLong", 4, 9)
                 .findFirstAsync();
 
-        realmResults.addChangeListener(new RealmChangeListener() {
+        realmResults.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
                 assertTrue(realmResults.isLoaded());
                 assertTrue(realmResults.isValid());
                 assertEquals("test data 4", realmResults.getColumnString());
@@ -945,9 +944,9 @@ public class RealmAsyncQueryTests {
         }
 
         // Add change listener that should only be called once after the retry completed.
-        realmResults.addChangeListener(new RealmChangeListener() {
+        realmResults.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
                 assertEquals(3, numberOfIntercept.get());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(5, realmResults.getColumnLong());
@@ -975,9 +974,9 @@ public class RealmAsyncQueryTests {
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
 
-        results.addChangeListener(new RealmChangeListener() {
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(results.isLoaded());
                 assertEquals(5, results.size());
                 for (int i = 0; i < 5; i++) {
@@ -1037,9 +1036,9 @@ public class RealmAsyncQueryTests {
         // 4. Intercepting the query completed event the first time will
         // cause a commit that should cause the findAllSortedAsync to be re-run.
         // This change listener should only be called with the final result.
-        realmResults.addChangeListener(new RealmChangeListener() {
+        realmResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertEquals(3, numberOfIntercept.get());
                 looperThread.testComplete();
             }
@@ -1130,9 +1129,9 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        realmResults1.addChangeListener(new RealmChangeListener() {
+        realmResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (numberOfNotificationsQuery1.incrementAndGet()) {
                     case 1: { // first callback invocation
                         assertTrue(realmResults1.isLoaded());
@@ -1151,9 +1150,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        realmResults2.addChangeListener(new RealmChangeListener() {
+        realmResults2.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (numberOfNotificationsQuery2.incrementAndGet()) {
                     case 1: { // first callback invocation
                         assertTrue(realmResults2.isLoaded());
@@ -1271,9 +1270,9 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        realmResults1.addChangeListener(new RealmChangeListener() {
+        realmResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (numberOfNotificationsQuery1.incrementAndGet()) {
                     case 1: // first callback invocation
                         assertTrue(realmResults1.isLoaded());
@@ -1320,9 +1319,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        realmResults2.addChangeListener(new RealmChangeListener() {
+        realmResults2.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (numberOfNotificationsQuery2.incrementAndGet()) {
                     case 1: // first callback invocation
                         assertTrue(realmResults2.isLoaded());
@@ -1417,9 +1416,9 @@ public class RealmAsyncQueryTests {
 
         assertEquals(0, allTypesAsync.size());
         assertEquals(6, allTypesSync.size());
-        allTypesAsync.addChangeListener(new RealmChangeListener() {
+        allTypesAsync.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertEquals(4, allTypesAsync.size());
                 assertEquals(6, allTypesSync.size());
                 looperThread.testComplete();
@@ -1463,9 +1462,9 @@ public class RealmAsyncQueryTests {
         };
 
         final RealmResults<AllTypes> allAsync = looperThread.realm.where(AllTypes.class).findAllAsync();
-        allAsync.addChangeListener(new RealmChangeListener() {
+        allAsync.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 assertTrue(allAsync.isLoaded());
                 if (allAsync.size() == NUMBER_OF_COMMITS) {
                     AllTypes lastInserted = looperThread.realm.where(AllTypes.class)
@@ -1527,33 +1526,33 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        distinctBool.addChangeListener(new RealmChangeListener() {
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(2, distinctBool.size());
                 changeListenerDone.run();
             }
         });
 
-        distinctLong.addChangeListener(new RealmChangeListener() {
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctLong.size());
                 changeListenerDone.run();
             }
         });
 
-        distinctDate.addChangeListener(new RealmChangeListener() {
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctDate.size());
                 changeListenerDone.run();
             }
         });
 
-        distinctString.addChangeListener(new RealmChangeListener() {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctString.size());
                 changeListenerDone.run();
             }
@@ -1631,9 +1630,9 @@ public class RealmAsyncQueryTests {
         final AtomicInteger findAllSortedMultiInvocation = new AtomicInteger(0);
         final AtomicInteger findDistinctInvocation = new AtomicInteger(0);
 
-        findAllAsync.addChangeListener(new RealmChangeListener() {
+        findAllAsync.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (findAllAsyncInvocation.incrementAndGet()) {
                     case 1: {
                         queriesCompleted.countDown();
@@ -1649,9 +1648,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        findAllSorted.addChangeListener(new RealmChangeListener() {
+        findAllSorted.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (findAllSortedInvocation.incrementAndGet()) {
                     case 1: {
                         queriesCompleted.countDown();
@@ -1667,9 +1666,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        findAllSortedMulti.addChangeListener(new RealmChangeListener() {
+        findAllSortedMulti.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 switch (findAllSortedMultiInvocation.incrementAndGet()) {
                     case 1: {
                         queriesCompleted.countDown();
@@ -1685,9 +1684,9 @@ public class RealmAsyncQueryTests {
             }
         });
 
-        findDistinct.addChangeListener(new RealmChangeListener() {
+        findDistinct.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 switch (findDistinctInvocation.incrementAndGet()) {
                     case 1: {
                         queriesCompleted.countDown();
@@ -1734,9 +1733,9 @@ public class RealmAsyncQueryTests {
         final Realm realm = looperThread.realm;
 
         final RealmResults<Dog> allAsync = realm.where(Dog.class).equalTo("owner.name", "kiba").findAllAsync();
-        allAsync.addChangeListener(new RealmChangeListener() {
+        allAsync.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<Dog> object) {
                 switch (numberOfInvocations.incrementAndGet()) {
                     case 1:
                         assertEquals(0, allAsync.size());
@@ -1793,9 +1792,9 @@ public class RealmAsyncQueryTests {
         Realm.asyncQueryExecutor.pause();
 
         final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
-        firstAsync.addChangeListener(new RealmChangeListener() {
+        firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
                 assertNotNull(firstAsync);
                 assertEquals("test data 0", firstAsync.getColumnString());
                 looperThread.testComplete(signalClosedRealm);
@@ -1926,9 +1925,9 @@ public class RealmAsyncQueryTests {
 
         // 1. Make sure that async query is not started
         final RealmResults<AllTypes> result = realm.where(AllTypes.class).findAllSortedAsync(AllTypes.FIELD_STRING);
-        result.addChangeListener(new RealmChangeListener() {
+        result.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 // 4. The commit in #2, should result in a refresh being triggered, which means this callback will
                 // be notified once the updated async queries has run.
                 // with the correct

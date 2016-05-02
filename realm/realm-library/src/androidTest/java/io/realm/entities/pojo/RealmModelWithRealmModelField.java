@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.realmadapters.models;
 
-import io.realm.RealmObject;
+package io.realm.entities.pojo;
 
-public class TimeStamp extends RealmObject {
-    private String timeStamp;
+import io.realm.RealmModel;
+import io.realm.annotations.RealmClass;
 
-    public String getTimeStamp() {
-        return timeStamp;
+@RealmClass
+public class RealmModelWithRealmModelField implements RealmModel {
+    private AllTypesRealmModel allTypesRealmModel;
+
+    public AllTypesRealmModel getAllTypesRealmModel() {
+        return allTypesRealmModel;
     }
 
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
+    public void setAllTypesRealmModel(AllTypesRealmModel allTypesRealmModel) {
+        this.allTypesRealmModel = allTypesRealmModel;
     }
 }

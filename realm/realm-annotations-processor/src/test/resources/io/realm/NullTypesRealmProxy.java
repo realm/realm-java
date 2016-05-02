@@ -153,7 +153,7 @@ public class NullTypesRealmProxy extends NullTypes
 
     NullTypesRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (NullTypesColumnInfo) columnInfo;
-        this.proxyState = new ProxyState(NullTypes.class);
+        this.proxyState = new ProxyState(NullTypes.class, this);
     }
 
     @SuppressWarnings("cast")
@@ -484,7 +484,7 @@ public class NullTypesRealmProxy extends NullTypes
             proxyState.getRow$realm().nullifyLink(columnInfo.fieldObjectNullIndex);
             return;
         }
-        if (!value.isValid()) {
+        if (!RealmObject.isValid(value)) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
         if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {

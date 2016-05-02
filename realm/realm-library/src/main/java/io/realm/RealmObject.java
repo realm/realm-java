@@ -89,7 +89,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @see #isValid()
      */
-    public void deleteFromRealm() {
+    public final void deleteFromRealm() {
         deleteFromRealm(this);
     }
     
@@ -218,8 +218,8 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
-    public final void addChangeListener(RealmChangeListener listener) {
-        RealmObject.addChangeListener(this, listener);
+    public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
+        RealmObject.addChangeListener((E) this, listener);
     }
 
     /**
@@ -229,7 +229,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
-    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener listener) {
+    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -327,7 +327,7 @@ public abstract class RealmObject implements RealmModel {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public <E extends RealmObject> Observable<E> asObservable() {
+    public final <E extends RealmObject> Observable<E> asObservable() {
         return (Observable<E>) RealmObject.asObservable(this);
     }
 
