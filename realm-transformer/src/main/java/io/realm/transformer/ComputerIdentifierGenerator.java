@@ -94,7 +94,7 @@ public class ComputerIdentifierGenerator {
 
     private static String getWindowsIdentifier() throws IOException, NoSuchAlgorithmException {
         Runtime runtime = Runtime.getRuntime();
-        Process process = runtime.exec(new String[] { "wmic", "bios", "get", "serialnumber" });
+        Process process = runtime.exec(new String[] { "wmic", "csproduct", "get", "UUID" });
 
         String result = null;
         InputStream is = process.getInputStream();
@@ -102,7 +102,7 @@ public class ComputerIdentifierGenerator {
         try {
             while (sc.hasNext()) {
                 String next = sc.next();
-                if ("SerialNumber".equals(next)) {
+                if (next.contains("UUID")) {
                     result = sc.next().trim();
                     break;
                 }
