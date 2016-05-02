@@ -93,6 +93,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.ExceptionHolder;
+import io.realm.util.RealmThread;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -3358,5 +3359,53 @@ public class RealmTests {
             fail("Cannot stop a closed Realm from waiting");
         } catch (IllegalStateException expected) {
         }
+    }
+
+    @Test
+    public void waitForChange_runWithRealmThread() throws InterruptedException {
+        final CountDownLatch bgRealmStarted = new CountDownLatch(1);
+        final CountDownLatch bgRealmFished = new CountDownLatch(1);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
+        final AtomicLong bgRealmResultSize = new AtomicLong(0);
+
+        RealmThread thread = new RealmThread(realmConfig, new RealmThread.RealmRunnable() {
+            @Override
+            public void run(Realm realm) {
+                bgRealmStarted.countDown();
+                bgRealmChangeResult.set(realm.waitForChange());
+                bgRealmResultSize.set(realm.where(AllTypes.class).count());
+                bgRealmFished.countDown();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmStarted);
+        populateTestRealm();
+        TestHelper.awaitOrFail(bgRealmFished);
+        assertTrue(bgRealmChangeResult.get());
+        assertEquals(TEST_DATA_SIZE, bgRealmResultSize.get());
+    }
+
+    @Test
+    public void waitForChange_endRealmThread() throws InterruptedException {
+        final CountDownLatch bgRealmStarted = new CountDownLatch(1);
+        final CountDownLatch bgRealmFished = new CountDownLatch(1);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(true);
+        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
+
+        RealmThread thread = new RealmThread(realmConfig, new RealmThread.RealmRunnable() {
+            @Override
+            public void run(Realm realm) {
+                bgRealmStarted.countDown();
+                bgRealmChangeResult.set(realm.waitForChange());
+                bgRealmFished.countDown();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmStarted);
+        thread.end();
+        TestHelper.awaitOrFail(bgRealmFished);
+        assertFalse(bgRealmChangeResult.get());
     }
 }
