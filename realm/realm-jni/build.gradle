@@ -201,7 +201,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
                     throw new GradleException("Invalid checksum for file '" +
                             "${project.coreArchiveFile.getName()}'. Expected " +
                             "${project.coreSha256Hash.toLowerCase()} but got " +
-                                "${calculatedHash.toLowerCase()}.");
+                            "${calculatedHash.toLowerCase()}.");
                 }
             } else {
                 println 'Skipping hash check(empty \'coreSha256Hash\').'

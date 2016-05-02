@@ -1536,7 +1536,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
         return NULL;
     try {
         size_t return_ndx;
-        // FIXME: use Query::maximum_timestamp()
         Timestamp result = pQuery->find_all().maximum_timestamp(S(columnIndex), &return_ndx);
         if (return_ndx != npos && !result.is_null()) {
             return NewLong(env, to_milliseconds(result));
@@ -1557,7 +1556,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
         return NULL;
     try {
         size_t return_ndx;
-        // FIXME: use Query::minimum_timestamp()
         Timestamp result = pQuery->find_all().minimum_timestamp(S(columnIndex), &return_ndx);
         if (return_ndx != npos && !result.is_null()) {
             return NewLong(env, to_milliseconds(result));
