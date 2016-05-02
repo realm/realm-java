@@ -196,7 +196,7 @@ public class RealmProxyClassGenerator {
         // FooRealmProxy(ColumnInfo)
         writer.beginConstructor(EnumSet.noneOf(Modifier.class), "ColumnInfo", "columnInfo");
         writer.emitStatement("this.columnInfo = (%s) columnInfo", columnInfoClassName());
-        writer.emitStatement("this.proxyState = new ProxyState(%s.class)", className);
+        writer.emitStatement("this.proxyState = new ProxyState(%s.class, this)", className);
         writer.endConstructor();
         writer.emitEmptyLine();
     }

@@ -1,4 +1,3 @@
-include 'adapterExample'
 include 'encryptionExample'
 include 'gridViewExample'
 include 'introExample'

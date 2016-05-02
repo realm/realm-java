@@ -2414,16 +2414,16 @@ public class RealmTests {
                 Realm bgRealm = Realm.getInstance(realmConfig);
                 RealmResults<Dog> dogs = bgRealm.where(Dog.class).findAll();
                 try {
-                    bgRealm.addChangeListener(new RealmChangeListener() {
+                    bgRealm.addChangeListener(new RealmChangeListener<Realm>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(Realm object) {
                             listenerWasCalled.set(true);
                             bgClosedLatch.countDown();
                         }
                     });
-                    dogs.addChangeListener(new RealmChangeListener() {
+                    dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(RealmResults<Dog> object) {
                             typeListenerWasCalled.set(true);
                             bgClosedLatch.countDown();
                         }
@@ -2844,9 +2844,9 @@ public class RealmTests {
             @Override
             public void run() {
                 final Realm realm = Realm.getInstance(realmConfig);
-                final RealmChangeListener listener = new RealmChangeListener() {
+                final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
                     @Override
-                    public void onChange() {
+                    public void onChange(Realm object) {
                         if (realm.where(AllTypes.class).count() == 1) {
                             realm.removeChangeListener(this);
                             realm.close();
@@ -2873,16 +2873,16 @@ public class RealmTests {
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnEmptyObject() {
         final Realm realm = Realm.getInstance(looperThread.createConfiguration());
-        final RealmChangeListener dummyListener = new RealmChangeListener() {
+        final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
             }
         };
 
         // Change listener on Realm
-        final RealmChangeListener listener = new RealmChangeListener() {
+        final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (realm.where(AllTypes.class).count() == 1) {
                     realm.removeChangeListener(this);
                     realm.close();
@@ -2914,14 +2914,14 @@ public class RealmTests {
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnObject() {
         final Realm realm = Realm.getInstance(looperThread.createConfiguration());
-        final RealmChangeListener dummyListener = new RealmChangeListener() {
+        final RealmChangeListener<AllTypes> dummyListener = new RealmChangeListener<AllTypes>() {
             @Override
-            public void onChange() {
+            public void onChange(AllTypes object) {
             }
         };
-        final RealmChangeListener listener = new RealmChangeListener() {
+        final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (realm.where(AllTypes.class).count() == 2) {
                     realm.removeChangeListener(this);
                     realm.close();
@@ -2959,14 +2959,14 @@ public class RealmTests {
     @RunTestInLooperThread
     public void closeRealmInChangeListenerWhenThereIsListenerOnResults() {
         final Realm realm = Realm.getInstance(looperThread.createConfiguration());
-        final RealmChangeListener dummyListener = new RealmChangeListener() {
+        final RealmChangeListener<RealmResults<AllTypes>> dummyListener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
             }
         };
-        final RealmChangeListener listener = new RealmChangeListener() {
+        final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (realm.where(AllTypes.class).count() == 1) {
                     realm.removeChangeListener(this);
                     realm.close();
@@ -3002,9 +3002,9 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 try {
-                    realm.removeChangeListener(new RealmChangeListener() {
+                    realm.removeChangeListener(new RealmChangeListener<Realm>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(Realm object) {
                         }
                     });
                     fail("Should not be able to invoke removeChangeListener");

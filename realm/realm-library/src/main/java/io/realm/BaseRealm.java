@@ -144,7 +144,7 @@ abstract class BaseRealm implements Closeable {
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
      */
-    public void addChangeListener(RealmChangeListener listener) {
+    public void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
@@ -160,7 +160,7 @@ abstract class BaseRealm implements Closeable {
      * @see io.realm.RealmChangeListener
      * @see #addChangeListener(RealmChangeListener)
      */
-    public void removeChangeListener(RealmChangeListener listener) {
+    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");

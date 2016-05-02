@@ -449,33 +449,33 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        distinctBool.addChangeListener(new RealmChangeListener() {
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(2, distinctBool.size());
                 endTest.run();
             }
         });
 
-        distinctLong.addChangeListener(new RealmChangeListener() {
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctLong.size());
                 endTest.run();
             }
         });
 
-        distinctDate.addChangeListener(new RealmChangeListener() {
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctDate.size());
                 endTest.run();
             }
         });
 
-        distinctString.addChangeListener(new RealmChangeListener() {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctString.size());
                 endTest.run();
             }
@@ -511,17 +511,17 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
-        distinctDate.addChangeListener(new RealmChangeListener() {
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals("distinctDate", 1, distinctDate.size());
                 endTest.run();
             }
         });
 
-        distinctString.addChangeListener(new RealmChangeListener() {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals("distinctString", 1, distinctString.size());
                 endTest.run();
             }
@@ -855,9 +855,9 @@ public class RealmResultsTests extends CollectionTests {
         Realm realm = looperThread.realm;
         RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
 
-        collection.addChangeListener(new RealmChangeListener() {
+        collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 looperThread.testComplete();
             }
         });
@@ -874,16 +874,16 @@ public class RealmResultsTests extends CollectionTests {
         final Realm realm = looperThread.realm;
         RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
 
-        RealmChangeListener listener = new RealmChangeListener() {
+        RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 listenersTriggered.incrementAndGet();
             }
         };
 
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 listenersTriggered.incrementAndGet();
                 looperThread.postRunnable(new Runnable() {
                     @Override
@@ -925,9 +925,9 @@ public class RealmResultsTests extends CollectionTests {
         final Realm realm = looperThread.realm;
         RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
 
-        RealmChangeListener listener = new RealmChangeListener() {
+        RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 listenersTriggered.incrementAndGet();
             }
         };
@@ -969,15 +969,15 @@ public class RealmResultsTests extends CollectionTests {
         final Realm realm = looperThread.realm;
         RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
 
-        RealmChangeListener listenerA = new RealmChangeListener() {
+        RealmChangeListener<RealmResults<AllTypes>> listenerA = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 listenersTriggered.incrementAndGet();
             }
         };
-        RealmChangeListener listenerB = new RealmChangeListener() {
+        RealmChangeListener<RealmResults<AllTypes>> listenerB = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypes> object) {
                 listenersTriggered.incrementAndGet();
             }
         };

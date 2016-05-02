@@ -81,7 +81,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
     private final TableQuery query;
-    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    private final List<RealmChangeListener<RealmResults<E>>> listeners = new CopyOnWriteArrayList<RealmChangeListener<RealmResults<E>>>();
     private Future<Long> pendingQuery;
     private boolean asyncQueryCompleted = false;
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
@@ -940,7 +940,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      *
      * @param listener the change listener to be notified.
      */
-    public void addChangeListener(RealmChangeListener listener) {
+    public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -1029,7 +1029,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             if (!viewUpdated && !forceNotify) return;
             viewUpdated = false;
             for (RealmChangeListener listener : listeners) {
-                listener.onChange();
+                listener.onChange(this);
             }
         }
     }

@@ -44,9 +44,9 @@ public class ThreadFragment extends Fragment {
     private DotsView dotsView;
 
     // Realm change listener that refreshes the UI when there is changes to Realm.
-    private RealmChangeListener realmListener = new RealmChangeListener() {
+    private RealmChangeListener<Realm> realmListener = new RealmChangeListener<Realm>() {
         @Override
-        public void onChange() {
+        public void onChange(Realm realm) {
             dotsView.invalidate();
         }
     };
