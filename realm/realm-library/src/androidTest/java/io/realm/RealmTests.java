@@ -3391,7 +3391,6 @@ public class RealmTests {
         final CountDownLatch bgRealmStarted = new CountDownLatch(1);
         final CountDownLatch bgRealmFished = new CountDownLatch(1);
         final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(true);
-        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         RealmThread thread = new RealmThread(realmConfig, new RealmThread.RealmRunnable() {
             @Override
