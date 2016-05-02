@@ -3191,15 +3191,14 @@ public class RealmTests {
         assertFalse(bgRealmChangeResult.get());
     }
 
-    // Test if waitForChange still blocks if stopWaitForChange has been called before.
+    // Test if waitForChange doesn't blocks once stopWaitForChange has been called before.
     @Test
-    public void waitForChange_againAfterStop() throws InterruptedException {
+    public void waitForChange_stopWaitForChangeDisablesWaiting() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmStopped = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final AtomicBoolean bgRealmFirstWaitResult = new AtomicBoolean(true);
         final AtomicBoolean bgRealmSecondWaitResult = new AtomicBoolean(false);
-        final AtomicLong bgRealmWaitForChangeResult = new AtomicLong(0);
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         // wait in background
@@ -3212,7 +3211,6 @@ public class RealmTests {
                 bgRealmFirstWaitResult.set(realm.waitForChange());
                 bgRealmStopped.countDown();
                 bgRealmSecondWaitResult.set(realm.waitForChange());
-                bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3222,11 +3220,8 @@ public class RealmTests {
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmStopped);
         assertFalse(bgRealmFirstWaitResult.get());
-        realm.beginTransaction();
-        realm.commitTransaction();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertTrue(bgRealmSecondWaitResult.get());
-        assertEquals(0, bgRealmWaitForChangeResult.get());
+        assertFalse(bgRealmSecondWaitResult.get());
     }
 
     // Test if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
@@ -3302,16 +3297,11 @@ public class RealmTests {
         assertEquals(IllegalStateException.class, bgError.getException().getClass());
     }
 
-    @Test
+    // Cannot wait inside of a transaction
+    @Test(expected= IllegalStateException.class)
     public void waitForChange_illegalWaitInsideTransaction() {
         realm.beginTransaction();
-        try {
-            realm.waitForChange();
-            fail("Cannot wait inside of a transaction");
-        } catch (IllegalStateException ignored) {
-        } finally {
-            realm.cancelTransaction();
-        }
+        realm.waitForChange();
     }
 
     @Test
@@ -3326,7 +3316,6 @@ public class RealmTests {
                 bgRealm.set(realm);
                 realm.close();
                 bgRealmClosed.countDown();
-
             }
         });
         thread.start();

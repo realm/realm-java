@@ -285,10 +285,11 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange}
-     * is called from another thread.
+     * is called from another thread. Once stopped waiting by calling {@link #stopWaitForChange},
+     * the Realm will <b>never</b> wait again for changes.
      *
      * @return {@code true} If the Realm was updated to the latest version, {@code false} if it was
-     * cancelled by calling {@link #stopWaitForChange}.
+     * cancelled by calling {@link #stopWaitForChange} once.
      * @throws IllegalStateException if attempting to wait within a transaction or a Looper thread.
      */
     public boolean waitForChange() {
@@ -311,7 +312,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Makes {@link #waitForChange()} return {@code false} immediately. This method is threadsafe
      * and should be called from another thread than the one that called {@link #waitForChange}.
-     * Calling {@code #stopWaitForChange()} on a Realm that is not waiting for changes has no effect.
+     * Calling {@code #stopWaitForChange()} on a Realm that is not waiting for changes disables the
+     * Realm from waiting.
      */
     public void stopWaitForChange() {
         // Check if the Realm instance has been closed

@@ -329,10 +329,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeWaitForChang
   (JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
-    SharedGroup* sharedGroup = SG(native_ptr);
     try {
-        sharedGroup->enable_wait_for_change();
-        return sharedGroup->wait_for_change();
+        return static_cast<jboolean>( SG(native_ptr)->wait_for_change() );
     } CATCH_STD()
     return false;
 }
