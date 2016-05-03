@@ -797,7 +797,7 @@ public class RealmConfigurationTests {
             Realm.getInstance(config2);
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("The most likely cause are that equals() and hashCode() are not overridden"));
+            assertTrue(e.getMessage().contains("The most likely cause is that equals() and hashCode() are not overridden"));
         } finally {
             realm.close();
         }
