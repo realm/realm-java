@@ -285,7 +285,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange()}
-     * is called from another thread. Once stopWaitForChange is called, all future calls to this will
+     * is called from another thread. Once stopWaitForChange is called, all future calls to this method will
      * return false immediately.
      *
      * @return {@code true} if the Realm was updated to the latest version, {@code false} if it was
@@ -317,11 +317,16 @@ abstract class BaseRealm implements Closeable {
      * called waitForChange.
      */
     public void stopWaitForChange() {
-        // Check if the Realm instance has been closed
-        if (sharedGroupManager == null || !sharedGroupManager.isOpen()) {
-            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
-        }
-        sharedGroupManager.getSharedGroup().stopWaitForChange();
+        RealmCache.invokeWithLock(new RealmCache.Callback0() {
+            @Override
+            public void onCall() {
+                // Check if the Realm instance has been closed
+                if (sharedGroupManager == null || !sharedGroupManager.isOpen() || sharedGroupManager.getSharedGroup().isClosed()) {
+                    throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+                }
+                sharedGroupManager.getSharedGroup().stopWaitForChange();
+            }
+        });
     }
 
     /**

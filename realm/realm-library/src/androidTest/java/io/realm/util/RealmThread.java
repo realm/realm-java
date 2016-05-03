@@ -44,25 +44,23 @@ public final class RealmThread extends Thread {
 
     @Override
     public void run() {
-        // you can create a realm instance with the default configuration
-        final Realm realm = Realm.getInstance(this.realmConfig);
-        this.realm = realm;
+        realm = Realm.getInstance(this.realmConfig);
         if (task != null) {
             task.run(realm);
         }
         if (!realm.isClosed()) {
             realm.close();
         }
-        this.realm = null;
+        realm = null;
     }
 
     public void end() {
         if (!this.isAlive()) {
             return;
         }
-        if (this.realm == null) {
+        if (realm == null) {
             return;
         }
-        this.realm.stopWaitForChange();
+        realm.stopWaitForChange();
     }
 }
