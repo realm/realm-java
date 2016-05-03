@@ -16,13 +16,30 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.entities.AllTypes;
 import io.realm.internal.TableView;
+import io.realm.rule.TestRealmConfigurationFactory;
 
+@RunWith(AndroidJUnit4.class)
 public class SortTest extends AndroidTestCase {
-    private Realm testRealm = null;
+    private Realm realm;
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    private Context context;
+    private RealmConfiguration realmConfig;
 
     private final static String FIELD_STRING = "columnString";
     private final static String FIELD_LONG = "columnLong";
@@ -33,44 +50,47 @@ public class SortTest extends AndroidTestCase {
     private final static Sort[] ORDER_ASC_ASC = {Sort.ASCENDING, Sort.ASCENDING};
     private final static Sort[] ORDER_ASC_DES = {Sort.ASCENDING, Sort.DESCENDING};
 
-    @Override
+    @Before
     public void setUp() {
         // Creates a Realm with the following objects:
         // 0: (5, "Adam")
         // 1: (4, "Brian")
         // 2: (4, "Adam")
         // 3: (5, "Adam")
-        RealmConfiguration config = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(config);
-        testRealm = Realm.getInstance(config);
+        // Injecting the Instrumentation instance is required
+        // for your test to run with AndroidJUnitRunner.
+        context = InstrumentationRegistry.getInstrumentation().getContext();
+        realmConfig = configFactory.createConfiguration();
+        realm = Realm.getInstance(realmConfig);
 
-        testRealm.beginTransaction();
-        testRealm.delete(AllTypes.class);
-        AllTypes object1 = testRealm.createObject(AllTypes.class);
+        realm.beginTransaction();
+        realm.delete(AllTypes.class);
+        AllTypes object1 = realm.createObject(AllTypes.class);
         object1.setColumnLong(5);
         object1.setColumnString("Adam");
 
-        AllTypes object2 = testRealm.createObject(AllTypes.class);
+        AllTypes object2 = realm.createObject(AllTypes.class);
         object2.setColumnLong(4);
         object2.setColumnString("Brian");
 
-        AllTypes object3 = testRealm.createObject(AllTypes.class);
+        AllTypes object3 = realm.createObject(AllTypes.class);
         object3.setColumnLong(4);
         object3.setColumnString("Adam");
 
-        AllTypes object4 = testRealm.createObject(AllTypes.class);
+        AllTypes object4 = realm.createObject(AllTypes.class);
         object4.setColumnLong(5);
         object4.setColumnString("Adam");
-        testRealm.commitTransaction();
+        realm.commitTransaction();
     }
 
-    @Override
+    @After
     public void tearDown() throws Exception {
-        testRealm.close();
+        realm.close();
     }
 
-    public void testSortMultiFailures() {
-        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+    @Test
+    public void sortMultiFailures() {
+        RealmResults<AllTypes> allTypes = realm.allObjects(AllTypes.class);
 
         // zero fields specified
         try {
@@ -210,91 +230,93 @@ public class SortTest extends AndroidTestCase {
         assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(3));
     }
 
-    public void testSortRealmResultsTwoFields() {
-        RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class).sort(ORDER_STRING_INT, ORDER_ASC_ASC);
+    @Test
+    public void sortRealmResultsTwoFields() {
+        RealmResults<AllTypes> results1 = realm.where(AllTypes.class).findAll().sort(ORDER_STRING_INT, ORDER_ASC_ASC);
         checkSortTwoFieldsStringAscendingIntAscending(results1);
 
-        RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class).sort(ORDER_INT_STRING, ORDER_ASC_ASC);
+        RealmResults<AllTypes> results2 = realm.where(AllTypes.class).findAll().sort(ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
 
-        RealmResults<AllTypes> results3 = testRealm.allObjects(AllTypes.class).sort(ORDER_STRING_INT, ORDER_ASC_DES);
+        RealmResults<AllTypes> results3 = realm.where(AllTypes.class).findAll().sort(ORDER_STRING_INT, ORDER_ASC_DES);
         checkSortTwoFieldsStringAscendingIntDescending(results3);
 
-        RealmResults<AllTypes> results4 = testRealm.allObjects(AllTypes.class).sort(ORDER_INT_STRING, ORDER_ASC_DES);
+        RealmResults<AllTypes> results4 = realm.where(AllTypes.class).findAll().sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
    }
 
-
-    public void testRealmQuerySortTwoFields() {
-        RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class)
-                .findAllSorted(ORDER_STRING_INT, ORDER_ASC_ASC);
+    @Test
+    public void realmQuerySortTwoFields() {
+        RealmResults<AllTypes> results1 = realm.where(AllTypes.class)
+                .findAll().sort(ORDER_STRING_INT, ORDER_ASC_ASC);
         checkSortTwoFieldsStringAscendingIntAscending(results1);
 
-        RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class)
-                .findAllSorted(ORDER_INT_STRING, ORDER_ASC_ASC);
+        RealmResults<AllTypes> results2 = realm.where(AllTypes.class)
+                .findAll().sort(ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
 
-        RealmResults<AllTypes> results3 = testRealm.where(AllTypes.class)
-                .findAllSorted(ORDER_STRING_INT, ORDER_ASC_DES);
+        RealmResults<AllTypes> results3 = realm.where(AllTypes.class)
+                .findAll().sort(ORDER_STRING_INT, ORDER_ASC_DES);
         checkSortTwoFieldsStringAscendingIntDescending(results3);
 
-        RealmResults<AllTypes> results4 = testRealm.where(AllTypes.class)
-                .findAllSorted(ORDER_INT_STRING, ORDER_ASC_DES);
+        RealmResults<AllTypes> results4 = realm.where(AllTypes.class)
+                .findAll().sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
     }
 
-    public void testRealmSortTwoFields() {
-        RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
-                ORDER_STRING_INT, ORDER_ASC_ASC);
+    @Test
+    public void realmSortTwoFields() {
+        RealmResults<AllTypes> results1 = realm.where(AllTypes.class).findAll().
+                sort(ORDER_STRING_INT, ORDER_ASC_ASC);
         checkSortTwoFieldsStringAscendingIntAscending(results1);
 
-        RealmResults<AllTypes> results2 = testRealm.allObjectsSorted(AllTypes.class,
-                ORDER_INT_STRING, ORDER_ASC_ASC);
+        RealmResults<AllTypes> results2 = realm.where(AllTypes.class).findAll().
+                sort(ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
 
-        RealmResults<AllTypes> results3 = testRealm.allObjectsSorted(AllTypes.class,
-                ORDER_STRING_INT, ORDER_ASC_DES);
+        RealmResults<AllTypes> results3 = realm.where(AllTypes.class).findAll().
+                sort(ORDER_STRING_INT, ORDER_ASC_DES);
         checkSortTwoFieldsStringAscendingIntDescending(results3);
 
-        RealmResults<AllTypes> results4 = testRealm.allObjectsSorted(AllTypes.class,
-                ORDER_INT_STRING, ORDER_ASC_DES);
+        RealmResults<AllTypes> results4 = realm.where(AllTypes.class).findAll().
+                sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
     }
 
-    public void testRealmSortMultiFailures() {
-        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+    @Test
+    public void realmSortMultiFailures() {
+        RealmResults<AllTypes> allTypes = realm.where(AllTypes.class).findAll();
 
         // zero fields specified
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new Sort[]{});
+            realm.where(AllTypes.class).findAll().sort(new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // number of fields and sorting orders don't match
         try {
-            testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING}, ORDER_ASC_ASC);
+            realm.where(AllTypes.class).findAll().
+                    sort(new String[]{FIELD_STRING}, ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // null is not allowed
         try {
-            testRealm.allObjectsSorted(AllTypes.class, null, (Sort[])null);
+            realm.where(AllTypes.class).findAll().sort(null, (Sort[])null);
             fail();
         } catch (IllegalArgumentException ignored) {}
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
+            realm.where(AllTypes.class).findAll().sort(new String[]{FIELD_STRING}, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // non-existing field name
         try {
-            testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING, "dont-exist"},
-                    ORDER_ASC_ASC);
+            realm.where(AllTypes.class).findAll().
+                    sort(new String[]{FIELD_STRING, "dont-exist"}, ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
