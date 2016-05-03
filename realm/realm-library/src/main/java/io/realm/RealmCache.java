@@ -36,6 +36,10 @@ final class RealmCache {
         void onResult(int count);
     }
 
+    interface Callback0 {
+        void onCall();
+    }
+
     private static class RefAndCount {
         // The Realm instance in this thread.
         private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<BaseRealm>();
@@ -260,5 +264,14 @@ final class RealmCache {
             totalRefCount += cache.refAndCountMap.get(type).globalCount;
         }
         callback.onResult(totalRefCount);
+    }
+
+    /**
+     * Runs the callback function with synchronization on {@class RealmCache}.
+     *
+     * @param callback the callback will be executed.
+     */
+    static synchronized void invokeWithLock(Callback0 callback) {
+        callback.onCall();
     }
 }
