@@ -315,6 +315,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * This method is thread-safe and should _only_ be called from another thread than the one that
      * called waitForChange.
+     *
+     * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
      */
     public void stopWaitForChange() {
         RealmCache.invokeWithLock(new RealmCache.Callback0() {
