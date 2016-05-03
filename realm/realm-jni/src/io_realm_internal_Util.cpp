@@ -33,7 +33,8 @@ using std::string;
 int trace_level = 0;
 const char* log_tag = "REALM";
 
-const char* const TABLE_PREFIX = "class_";
+const string TABLE_PREFIX("class_");
+
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
@@ -80,8 +81,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, j
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(
     JNIEnv* env, jclass)
 {
-    string table_prefix(TABLE_PREFIX);
-    realm::StringData sd(table_prefix);
+    realm::StringData sd(TABLE_PREFIX);
     return to_jstring(env, sd);
 }
 

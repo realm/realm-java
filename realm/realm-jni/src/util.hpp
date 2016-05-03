@@ -673,7 +673,7 @@ inline jobject NewFloat(JNIEnv* env, float value)
 inline jlong to_milliseconds(const realm::Timestamp& ts)
 {
     // From core's reference implementation aka unit test
-    // FIXME: check for overflow
+    // FIXME: check for overflow/underflow
     const int64_t seconds = ts.get_seconds();
     const int32_t nanoseconds = ts.get_nanoseconds();
     const int64_t milliseconds = seconds * 1000 + nanoseconds / 1000000; // This may overflow
@@ -688,6 +688,6 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
     return realm::Timestamp(seconds, nanoseconds);
 }
 
-extern const char* const TABLE_PREFIX;
+extern const std::string TABLE_PREFIX;
 
 #endif // REALM_JAVA_UTIL_HPP

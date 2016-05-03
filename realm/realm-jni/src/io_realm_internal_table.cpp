@@ -260,8 +260,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                     // checked previously
                     break;
                 case type_OldDateTime:
-                    // not used
-                    break;
+                    ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
+                    return;
             }
         }
         if (table->has_search_index(column_index + 1)) {
@@ -386,7 +386,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                     break;
                 case type_OldDateTime:
                     // not used
-                    break;
+                    ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
+                    return;
             }
         }
         if (table->has_search_index(column_index + 1)) {
@@ -1409,7 +1410,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Sort is only support on String, Date, boolean, byte, short, int, long and their boxed variants.");
             return 0;
     }
     return 0;
@@ -1457,7 +1458,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, byte, boolean, short, int, long and their boxed variants are supported.");
+                ThrowException(env, IllegalArgument, "Sort is only support on String, Date, boolean, byte, short, int, long and their boxed variants.");
                 return 0;
         }
     }
@@ -1639,7 +1640,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     try {
         Table* table = TBL(nativeTablePtr);
         Table* pk_table = TBL(nativePrivateKeyTablePtr);
-        const std::string table_name(table->get_name().substr(strlen(TABLE_PREFIX))); // Remove "class_" prefix
+        const std::string table_name(table->get_name().substr(TABLE_PREFIX.length())); // Remove "class_" prefix
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
@@ -1698,8 +1699,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
     const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
 
-    const string table_prefix(TABLE_PREFIX);
-
     Group* group = G(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
 
@@ -1728,9 +1727,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     size_t number_of_rows = pk_table->size();
     for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
         StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
-        if (table_name.begins_with(table_prefix)) {
+        if (table_name.begins_with(TABLE_PREFIX)) {
             // New string copy is needed, since the original memory will be changed.
-            std::string str(table_name.substr(strlen(TABLE_PREFIX)));
+            std::string str(table_name.substr(TABLE_PREFIX.length()));
             StringData sd(str);
             pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, sd);
         }
