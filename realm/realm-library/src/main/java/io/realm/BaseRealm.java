@@ -264,8 +264,10 @@ abstract class BaseRealm implements Closeable {
      * It also calls the listeners associated to the Realm instance.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @deprecated Please use {@link #waitForChange()} instead.
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public void refresh() {
         checkIfValid();
         if (isInTransaction()) {
@@ -279,6 +281,52 @@ abstract class BaseRealm implements Closeable {
         } else {
             handlerController.notifyCurrentThreadRealmChanged();
         }
+    }
+
+    /**
+     * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange()}
+     * is called from another thread. Once stopWaitForChange is called, all future calls to this method will
+     * return false immediately.
+     *
+     * @return {@code true} if the Realm was updated to the latest version, {@code false} if it was
+     * cancelled by calling stopWaitForChange.
+     * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
+     */
+    public boolean waitForChange() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
+        }
+        if (Looper.myLooper() != null) {
+            throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
+        }
+        boolean hasChanged = sharedGroupManager.getSharedGroup().waitForChange();
+        if (hasChanged) {
+            // Since this Realm instance has been waiting for change, advance realm & refresh realm.
+            sharedGroupManager.advanceRead();
+            handlerController.refreshSynchronousTableViews();
+        }
+        return hasChanged;
+    }
+
+    /**
+     * Makes any current {@link #waitForChange()} return {@code false} immediately. Once this is called,
+     * all future calls to waitForChange will immediately return {@code false}.
+     * <p>
+     * This method is thread-safe and should _only_ be called from another thread than the one that
+     * called waitForChange.
+     */
+    public void stopWaitForChange() {
+        RealmCache.invokeWithLock(new RealmCache.Callback0() {
+            @Override
+            public void onCall() {
+                // Check if the Realm instance has been closed
+                if (sharedGroupManager == null || !sharedGroupManager.isOpen() || sharedGroupManager.getSharedGroup().isClosed()) {
+                    throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+                }
+                sharedGroupManager.getSharedGroup().stopWaitForChange();
+            }
+        });
     }
 
     /**
