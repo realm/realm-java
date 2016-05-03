@@ -293,6 +293,22 @@ public class SharedGroup implements Closeable {
         }
     }
 
+    /**
+     * Waits for change committed by {@link SharedGroup} in other Thread.
+     *
+     * @return {@code true} if successfully detects change, {@code false} no change has been detected otherwise.
+     */
+    public boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    /**
+     * Stops waiting for change.
+     */
+    public void stopWaitForChange() {
+        nativeStopWaitForChange(nativePtr);
+    }
+
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
                                                              int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
@@ -317,6 +333,8 @@ public class SharedGroup implements Closeable {
     private native void nativeCloseReplication(long nativeReplicationPtr);
     private native void nativeRollbackAndContinueAsRead(long nativePtr);
     private native long[] nativeGetVersionID (long nativePtr);
+    private native boolean nativeWaitForChange(long nativePtr);
+    private native void nativeStopWaitForChange(long nativePtr);
     private native void nativeAdvanceRead(long nativePtr);
     private native void nativeAdvanceReadToVersion(long nativePtr, long version, long index) throws BadVersionException;
     private native void nativePromoteToWrite(long nativePtr);
