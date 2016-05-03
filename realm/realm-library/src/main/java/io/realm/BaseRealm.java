@@ -125,26 +125,7 @@ abstract class BaseRealm implements Closeable {
         return !sharedGroupManager.isImmutable();
     }
 
-    /**
-     * Adds a change listener to the Realm.
-     * <p>
-     * The listeners will be executed:
-     * <ul>
-     * <li>Immediately if a change was committed by the local thread</li>
-     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
-     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
-     * </ul>
-     *
-     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
-     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
-     *
-     * @param listener the change listener.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
-     * @see io.realm.RealmChangeListener
-     * @see #removeChangeListener(RealmChangeListener)
-     * @see #removeAllChangeListeners()
-     */
-    public void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+    protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
@@ -158,7 +139,6 @@ abstract class BaseRealm implements Closeable {
      * @param listener the change listener to be removed.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
-     * @see #addChangeListener(RealmChangeListener)
      */
     public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
@@ -193,7 +173,6 @@ abstract class BaseRealm implements Closeable {
      *
      * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
-     * @see #addChangeListener(RealmChangeListener)
      */
     public void removeAllChangeListeners() {
         checkIfValid();

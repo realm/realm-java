@@ -63,7 +63,8 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmIsNotNull() {
-        looperThread.realm.addChangeListener(new RealmChangeListener<Realm>() {
+        Realm realm = looperThread.realm;
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm realm) {
                 assertNotNull(realm);
@@ -71,8 +72,8 @@ public class RealmChangeListenerTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.realm.beginTransaction();
-        looperThread.realm.commitTransaction();
+        realm.beginTransaction();
+        realm.commitTransaction();
     }
 
     @Test
