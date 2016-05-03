@@ -115,14 +115,14 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDouble
     return ROW(nativeRowPtr)->get_double( S(columnIndex) );
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetTimestamp
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
         return 0;
 
-    return ROW(nativeRowPtr)->get_datetime( S(columnIndex) ).get_datetime();
+    return to_milliseconds(ROW(nativeRowPtr)->get_timestamp( S(columnIndex) ));
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetString
@@ -217,7 +217,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
         return 0;
 
-    LinkView* link_view_ptr = LangBindHelper::get_linklist_ptr( *ROW( nativeRowPtr ), S( columnIndex) );
+    LinkViewRef* link_view_ptr = const_cast<LinkViewRef*>(&(LangBindHelper::get_linklist_ptr(*ROW(nativeRowPtr), S(columnIndex))));
     return reinterpret_cast<jlong>(link_view_ptr);
 }
 
@@ -269,7 +269,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDouble
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetTimestamp
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
     TR_ENTER_PTR(nativeRowPtr)
@@ -277,7 +277,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDate
         return;
 
     try {
-        ROW(nativeRowPtr)->set_datetime( S(columnIndex), value);
+        ROW(nativeRowPtr)->set_timestamp( S(columnIndex), from_milliseconds(value));
     } CATCH_STD()
 }
 

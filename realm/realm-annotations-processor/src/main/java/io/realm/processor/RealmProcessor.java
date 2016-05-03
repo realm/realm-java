@@ -54,7 +54,7 @@ import io.realm.annotations.RealmClass;
  * <ol>
  *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
  *  <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
- *  <li>Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named <moduleName>Mediator.java</li>
+ *  <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
  * </ol>
  *
  * <h1>WHY</h1>
@@ -68,7 +68,7 @@ import io.realm.annotations.RealmClass;
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
- * @RealmModule annotation. Realm automatically knows about this module, but it is still possible for users to create
+ * {@code @RealmModule} annotation. Realm automatically knows about this module, but it is still possible for users to create
  * their own modules with a subset of model classes.</li>
  *
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This

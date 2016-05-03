@@ -36,7 +36,7 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
         }
         // depends_on_deleted_linklist() will return true if and only if the current TableView was created from a
         // query on a RealmList and that RealmList was then deleted (as a result of the object being deleted).
-        if (!TV(nativeViewPtr)->is_in_sync() && TV(nativeViewPtr)->depends_on_deleted_linklist()) {
+        if (!TV(nativeViewPtr)->is_in_sync() && TV(nativeViewPtr)->depends_on_deleted_object()) {
             // This table view is no longer valid. By calling sync_if_needed we ensure it behaves
             // properly as a 0-size TableView.
             TV(nativeViewPtr)->sync_if_needed();
@@ -70,8 +70,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
         switch (TV(nativeViewPtr)->get_column_type(S(columnIndex))) {
             case type_Bool:
             case type_Int:
-            case type_DateTime:
             case type_String:
+            case type_Timestamp:
                 TV(nativeViewPtr)->distinct(S(columnIndex));
                 break;
             default:
@@ -101,8 +101,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
             switch (TV(nativeViewPtr)->get_column_type(S(indexes[i]))) {
                 case type_Bool:
                 case type_Int:
-                case type_DateTime:
                 case type_String:
+                case type_Timestamp:
                     columns.push_back(S(indexes[i]));
                     break;
                 default:
@@ -203,11 +203,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeGetColumnName
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetColumnIndex
    (JNIEnv *env, jobject, jlong nativeViewPtr, jstring columnName)
+
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-        return 0;
-
+            return 0;
         JStringAccessor columnName2(env, columnName); // throws
         return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
     } CATCH_STD()
@@ -268,15 +268,15 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeGetDouble(
     return TV(nativeViewPtr)->get_double( S(columnIndex), S(rowIndex));  // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetDateTimeValue(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetTimestamp(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_DateTime))
+            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Timestamp))
             return 0;
     } CATCH_STD()
-    return TV(nativeViewPtr)->get_datetime( S(columnIndex), S(rowIndex)).get_datetime();  // noexcept
+    return to_milliseconds(TV(nativeViewPtr)->get_timestamp( S(columnIndex), S(rowIndex)));
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeGetString(
@@ -435,14 +435,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetDouble(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetDateTimeValue(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong dateTimeValue)
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetTimestamp(
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong timestampValue)
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_DateTime))
+            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Timestamp))
             return;
-        TV(nativeViewPtr)->set_datetime( S(columnIndex), S(rowIndex), dateTimeValue);
+        TV(nativeViewPtr)->set_timestamp( S(columnIndex), S(rowIndex), from_milliseconds(timestampValue));
     } CATCH_STD()
 }
 
@@ -603,6 +603,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindFirstDouble(
     return 0;
 }
 
+// FIXME: find_first_timestamp() isn't implemented
+/*
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindFirstDate(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong dateTimeValue)
 {
@@ -614,6 +616,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindFirstDate(
     } CATCH_STD()
     return 0;
 }
+*/
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindFirstString(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jstring value)
@@ -684,6 +687,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllDouble(
     return 0;
 }
 
+// FIXME: find_all_timestamp() isn't implemented
+/*
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllDate(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong dateTimeValue)
 {
@@ -697,6 +702,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllDate(
     } CATCH_STD()
     return 0;
 }
+*/
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllString(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jstring value)
@@ -891,35 +897,35 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDouble(
 
 // date aggregates
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumTimestamp(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
+            !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Timestamp))
             return NULL;
 
         size_t return_ndx;
-        DateTime result = TV(nativeViewPtr)->maximum_datetime( S(columnIndex), &return_ndx);
+        Timestamp result = TV(nativeViewPtr)->maximum_timestamp( S(columnIndex), &return_ndx);
         if (return_ndx != npos) {
-            return NewLong(env, result.get_datetime());
+            return NewLong(env, to_milliseconds(result));
         }
     } CATCH_STD()
     return NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumTimestamp(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
+            !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Timestamp))
             return NULL;
 
         size_t return_ndx;
-        DateTime result = TV(nativeViewPtr)->minimum_datetime( S(columnIndex), &return_ndx);
+        Timestamp result = TV(nativeViewPtr)->minimum_timestamp( S(columnIndex), &return_ndx);
         if (return_ndx != npos) {
-            return NewLong(env, result.get_datetime());
+            return NewLong(env, to_milliseconds(result));
         }
     } CATCH_STD()
     return NULL;
@@ -939,10 +945,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
         switch (colType) {
             case type_Bool:
             case type_Int:
-            case type_DateTime:
             case type_Float:
             case type_Double:
             case type_String:
+            case type_Timestamp:
                 TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
                 break;
             default:
@@ -988,10 +994,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
             switch (colType) {
                 case type_Bool:
                 case type_Int:
-                case type_DateTime:
                 case type_Float:
                 case type_Double:
                 case type_String:
+                case type_Timestamp:
                     indices.push_back( S(long_arr[i]) );
                     ascendings.push_back( B(bool_arr[i]) );
                     break;

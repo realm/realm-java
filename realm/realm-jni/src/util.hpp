@@ -31,6 +31,7 @@
 #include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
 #include <realm/lang_bind_helper.hpp>
+#include <realm/timestamp.hpp>
 
 #include "io_realm_internal_Util.h"
 
@@ -96,7 +97,7 @@ std::string num_to_string(T pNumber)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<realm::Table*>(x)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)
-#define LV(x)   reinterpret_cast<realm::LinkView*>(x)
+#define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
@@ -292,7 +293,7 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
+inline bool RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset=false)
 {
     if (rowIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
@@ -669,6 +670,24 @@ inline jobject NewFloat(JNIEnv* env, float value)
     return env->NewObject(java_lang_float, java_lang_float_init, value);
 }
 
-extern const char* const TABLE_PREFIX;
+inline jlong to_milliseconds(const realm::Timestamp& ts)
+{
+    // From core's reference implementation aka unit test
+    // FIXME: check for overflow/underflow
+    const int64_t seconds = ts.get_seconds();
+    const int32_t nanoseconds = ts.get_nanoseconds();
+    const int64_t milliseconds = seconds * 1000 + nanoseconds / 1000000; // This may overflow
+    return milliseconds;
+}
+
+inline realm::Timestamp from_milliseconds(jlong milliseconds)
+{
+    // From core's reference implementation aka unit test
+    int64_t seconds = milliseconds / 1000;
+    int32_t nanoseconds = (milliseconds % 1000) * 1000000;
+    return realm::Timestamp(seconds, nanoseconds);
+}
+
+extern const std::string TABLE_PREFIX;
 
 #endif // REALM_JAVA_UTIL_HPP

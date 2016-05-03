@@ -33,6 +33,10 @@ package io.realm;
  * objects, but just invalidate any UI elements that are using them. If there is a chance that a object has been been
  * deleted, it can be verified by using {@link RealmObject#isValid()}.
  *
+ * @param <T> The <a href="https://realm.io/docs/java/latest/#auto-updating-objects">live object</a> being returned
+ *         ({@link Realm}, {@link DynamicRealm}, {@link RealmObject}, {@link RealmResults}, {@link DynamicRealmObject}
+ *          or your model implementing {@link RealmModel})
+ *
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()
  * @see Realm#removeChangeListener(RealmChangeListener)
@@ -42,6 +46,6 @@ public interface RealmChangeListener<T> {
     /**
      * Called when a transaction is committed.
      */
-     void onChange(T object);
+    void onChange(T element);
 
 }

@@ -58,7 +58,7 @@ public class SimpleRealmProxy extends Simple
 
     SimpleRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (SimpleColumnInfo) columnInfo;
-        this.proxyState = new ProxyState(Simple.class);
+        this.proxyState = new ProxyState(Simple.class, this);
     }
 
     @SuppressWarnings("cast")

@@ -1398,44 +1398,6 @@ public class TypeBasedNotificationsTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // Test modifying realmObjects in RealmObject's change listener
-    @Test
-    @RunTestInLooperThread
-    public void change_realm_objects_map_in_listener() throws InterruptedException {
-        final Realm realm = looperThread.realm;
-        realm.beginTransaction();
-        // At least two objects are needed to make sure list modification happen during iterating.
-        final Cat cat = realm.createObject(Cat.class);
-        final Owner owner = realm.createObject(Owner.class);
-        owner.setCat(cat);
-        realm.commitTransaction();
-
-        RealmChangeListener listener = new RealmChangeListener() {
-            @Override
-            public void onChange(Object object) {
-                Cat cat = owner.getCat();
-                boolean foundKey = false;
-                // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
-                for (WeakReference<RealmObjectProxy> weakReference : realm.handlerController.realmObjects.keySet()) {
-                    if (weakReference.get() == cat) {
-                        foundKey = true;
-                        break;
-                    }
-                }
-                assertTrue(foundKey);
-                looperThread.testComplete();
-            }
-        };
-
-        cat.addChangeListener(listener);
-        owner.addChangeListener(listener);
-
-        realm.beginTransaction();
-        // To make sure the shared group version changed
-        realm.createObject(Owner.class);
-        realm.commitTransaction();
-    }
-
     // Test modifying syncRealmResults in RealmResults's change listener
     @Test
     @RunTestInLooperThread

@@ -637,9 +637,17 @@ final class HandlerController implements Handler.Callback {
         syncRealmResults.add(realmResultsWeakReference);
     }
 
-    // add to the list of RealmObject to be notified after a commit
-    <E extends RealmModel> void addToRealmObjects(E realmobject) {
-        realmObjects.put(new WeakReference<RealmObjectProxy>((RealmObjectProxy) realmobject), null);
+    // Add to the list of RealmObject to be notified after a commit.
+    // This method will check if the object exists in the list. It won't add the same object multiple times
+    <E extends RealmObjectProxy> void addToRealmObjects(E realmObject) {
+        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
+            if (ref.get() == realmObject) {
+                return;
+            }
+        }
+        final WeakReference<RealmObjectProxy> realmObjectWeakReference =
+                new WeakReference<RealmObjectProxy>(realmObject, referenceQueueRealmObject);
+        realmObjects.put(realmObjectWeakReference, null);
     }
 
     <E extends RealmObjectProxy> WeakReference<RealmObjectProxy> addToAsyncRealmObject(E realmObject, RealmQuery<? extends RealmModel> realmQuery) {

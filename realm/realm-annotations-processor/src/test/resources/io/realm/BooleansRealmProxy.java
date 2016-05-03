@@ -68,7 +68,7 @@ public class BooleansRealmProxy extends Booleans
 
     BooleansRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (BooleansColumnInfo) columnInfo;
-        this.proxyState = new ProxyState(Booleans.class);
+        this.proxyState = new ProxyState(Booleans.class, this);
     }
 
     @SuppressWarnings("cast")

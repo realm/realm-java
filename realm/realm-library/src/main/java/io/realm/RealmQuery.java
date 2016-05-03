@@ -1876,9 +1876,6 @@ public final class RealmQuery<E extends RealmModel> {
         long sourceRowIndex = getSourceRowIndexForFirstObject();
         if (sourceRowIndex >= 0) {
             E realmObject = realm.get(clazz, className, sourceRowIndex);
-            WeakReference<RealmObjectProxy> realmObjectWeakReference
-                    = new WeakReference<RealmObjectProxy>((RealmObjectProxy) realmObject, realm.handlerController.referenceQueueRealmObject);
-            realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
             return realmObject;
         } else {
             return null;

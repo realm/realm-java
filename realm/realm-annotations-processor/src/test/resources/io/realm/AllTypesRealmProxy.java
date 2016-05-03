@@ -94,7 +94,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     AllTypesRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (AllTypesColumnInfo) columnInfo;
-        this.proxyState = new ProxyState(AllTypes.class);
+        this.proxyState = new ProxyState(AllTypes.class, this);
     }
 
     @SuppressWarnings("cast")

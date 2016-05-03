@@ -95,7 +95,8 @@ public class RealmChangeListenerTests {
     @Test
     @RunTestInLooperThread
     public void returnedRealmResultsIsNotNull() {
-        RealmResults<Cat> cats = looperThread.realm.where(Cat.class).findAll();
+        Realm realm = looperThread.realm;
+        RealmResults<Cat> cats = realm.where(Cat.class).findAll();
         cats.addChangeListener(new RealmChangeListener<RealmResults<Cat>>() {
             @Override
             public void onChange(RealmResults<Cat> result) {
@@ -103,16 +104,17 @@ public class RealmChangeListenerTests {
                 looperThread.testComplete();
             }
         });
-        looperThread.realm.beginTransaction();
-        Cat cat = looperThread.realm.createObject(Cat.class);
+        realm.beginTransaction();
+        Cat cat = realm.createObject(Cat.class);
         cat.setName("cat1");
-        looperThread.realm.commitTransaction();
+        realm.commitTransaction();
     }
 
     @Test
     @RunTestInLooperThread
     public void returnedRealmResultsOfModelIsNotNull() {
-        RealmResults<AllTypesRealmModel> alltypes = looperThread.realm.where(AllTypesRealmModel.class).findAll();
+        Realm realm = looperThread.realm;
+        RealmResults<AllTypesRealmModel> alltypes = realm.where(AllTypesRealmModel.class).findAll();
         alltypes.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
             public void onChange(RealmResults<AllTypesRealmModel> result) {
@@ -121,19 +123,20 @@ public class RealmChangeListenerTests {
             }
         });
 
-        looperThread.realm.beginTransaction();
-        AllTypesRealmModel model = looperThread.realm.createObject(AllTypesRealmModel.class);
+        realm.beginTransaction();
+        AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class);
         model.columnString = "data 1";
-        looperThread.realm.commitTransaction();
+        realm.commitTransaction();
     }
 
 
     @Test
     @RunTestInLooperThread
     public void returnedRealmObjectIsNotNull() {
-        looperThread.realm.beginTransaction();
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
         Cat cat = looperThread.realm.createObject(Cat.class);
-        looperThread.realm.commitTransaction();
+        realm.commitTransaction();
 
         cat.addChangeListener(new RealmChangeListener<Cat>() {
             @Override
@@ -143,17 +146,18 @@ public class RealmChangeListenerTests {
             }
         });
 
-        looperThread.realm.beginTransaction();
+        realm.beginTransaction();
         cat.setName("cat1");
-        looperThread.realm.commitTransaction();
+        realm.commitTransaction();
     }
 
     @Test
     @RunTestInLooperThread
     public void returnedRealmModelIsNotNull() {
-        looperThread.realm.beginTransaction();
-        AllTypesRealmModel model = looperThread.realm.createObject(AllTypesRealmModel.class);
-        looperThread.realm.commitTransaction();
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class);
+        realm.commitTransaction();
 
         RealmObject.addChangeListener(model, new RealmChangeListener<AllTypesRealmModel>() {
             @Override
@@ -163,9 +167,9 @@ public class RealmChangeListenerTests {
             }
         });
 
-        looperThread.realm.beginTransaction();
+        realm.beginTransaction();
         model.columnString = "model1";
-        looperThread.realm.commitTransaction();
+        realm.commitTransaction();
     }
 
     @Test

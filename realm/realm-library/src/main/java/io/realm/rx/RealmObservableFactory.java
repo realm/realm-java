@@ -138,7 +138,7 @@ public class RealmObservableFactory implements RxObservableFactory {
 
                 final RealmChangeListener<RealmResults<E>> listener = new RealmChangeListener<RealmResults<E>>() {
                     @Override
-                    public void onChange(RealmResults<E> object) {
+                    public void onChange(RealmResults<E> result) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(results);
                         }
@@ -174,7 +174,7 @@ public class RealmObservableFactory implements RxObservableFactory {
 
                 final RealmChangeListener<RealmResults<DynamicRealmObject>> listener = new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
                     @Override
-                    public void onChange(RealmResults<DynamicRealmObject> object) {
+                    public void onChange(RealmResults<DynamicRealmObject> result) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(results);
                         }
@@ -224,7 +224,7 @@ public class RealmObservableFactory implements RxObservableFactory {
 
                 final RealmChangeListener<E> listener = new RealmChangeListener<E>() {
                     @Override
-                    public void onChange(E result) {
+                    public void onChange(E object) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(object);
                         }
@@ -260,7 +260,7 @@ public class RealmObservableFactory implements RxObservableFactory {
 
                 final RealmChangeListener<DynamicRealmObject> listener = new RealmChangeListener<DynamicRealmObject>() {
                     @Override
-                    public void onChange(DynamicRealmObject result) {
+                    public void onChange(DynamicRealmObject object) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(object);
                         }

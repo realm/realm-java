@@ -40,7 +40,7 @@ import io.realm.examples.threads.model.Dot;
 /**
  * This fragment demonstrates how you can perform asynchronous queries with Realm.
  */
-public class AsyncQueryFragment extends Fragment implements View.OnClickListener, RealmChangeListener {
+public class AsyncQueryFragment extends Fragment implements View.OnClickListener, RealmChangeListener<RealmResults<Dot>> {
     private Realm realm;
     private DotAdapter dotAdapter;
     private RealmResults<Dot> allSortedDots;
@@ -135,7 +135,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onChange() {
+    public void onChange(RealmResults<Dot> result) {
         dotAdapter.notifyDataSetChanged();
     }
 
