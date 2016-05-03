@@ -1109,8 +1109,7 @@ public final class RealmQuery<E extends RealmModel> {
     public RealmResults<E> distinct(String fieldName) {
         checkQueryIsNotReused();
         long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
-        TableView tableView = this.query.findAll();
-        tableView.distinct(columnIndex);
+        TableView tableView = this.query.findAll().distinct(columnIndex);
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
@@ -1246,8 +1245,7 @@ public final class RealmQuery<E extends RealmModel> {
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
         checkQueryIsNotReused();
         List<Long> columnIndexes = getValidatedColumIndexes(this.table.getTable(), firstFieldName, remainingFieldNames);
-        TableView tableView = this.query.findAll();
-        tableView.distinct(columnIndexes);
+        TableView tableView = this.query.findAll().distinct(columnIndexes);
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {

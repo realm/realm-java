@@ -540,7 +540,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
  * Method:    nativeDistinct
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeDistinct
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -548,7 +548,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct
  * Method:    nativeMultiDistinct
  * Signature: (J[J)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti
   (JNIEnv *, jobject, jlong, jlongArray);
 
 /*

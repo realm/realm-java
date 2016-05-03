@@ -593,6 +593,62 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    public void distinct_checkChainedOpertionValidity() {
+        final long numberOfBlocks = 1; // must be greater than 1
+        TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
+
+        final RealmResults<AnnotationIndexTypes> distinctStringAndLong = realm.where(AnnotationIndexTypes.class).findAll().distinct("indexString").distinct("indexLong");
+        final RealmResults<AnnotationIndexTypes> distinctLongAndString = realm.where(AnnotationIndexTypes.class).findAll().distinct("indexLong").distinct("indexString");
+        assertEquals("distinctStringAndLong", 1, distinctStringAndLong.size());
+        assertEquals("distinctLongAndString", 2, distinctLongAndString.size());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void distinctAsync_checkChainedOpertionValidity() throws Throwable {
+        final AtomicInteger changeListenerCalled = new AtomicInteger(2);
+        final Realm realm = looperThread.realm;
+        final long numberOfBlocks = 1; // must be greater than 1
+        TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
+
+        final RealmResults<AnnotationIndexTypes> distinctStringAndLong = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync("indexString").distinctAsync("indexLong");
+        final RealmResults<AnnotationIndexTypes> distinctLongAndString = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync("indexLong").distinctAsync("indexString");
+
+        assertFalse(distinctStringAndLong.isLoaded());
+        assertTrue(distinctStringAndLong.isValid());
+        assertTrue(distinctStringAndLong.isEmpty());
+
+        assertFalse(distinctLongAndString.isLoaded());
+        assertTrue(distinctLongAndString.isValid());
+        assertTrue(distinctLongAndString.isEmpty());
+
+        final Runnable endTest = new Runnable() {
+            @Override
+            public void run() {
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
+        };
+
+        distinctStringAndLong.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals("distinctStringAndLong", 1, distinctStringAndLong.size());
+                endTest.run();
+            }
+        });
+
+        distinctLongAndString.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals("distinctLongAndString", 2, distinctLongAndString.size());
+                endTest.run();
+            }
+        });
+    }
+
+    @Test
     public void distinctMultiArgs() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
