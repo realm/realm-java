@@ -227,9 +227,12 @@ final class RealmCache {
             // Try to detect this problem specifically so we can throw a better error message.
             RealmMigration newMigration = newConfiguration.getMigration();
             RealmMigration oldMigration = configuration.getMigration();
-            if (oldMigration != null && newMigration != null && oldMigration.getClass().equals(newMigration.getClass())) {
+            if (oldMigration != null 
+                && newMigration != null 
+                && oldMigration.getClass().equals(newMigration.getClass())
+                && !newMigration.equals(oldMigration)) {
                 throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
-                        "The most likely cause are that equals() and hashCode() are not overridden in the " +
+                        "The most likely cause is that equals() and hashCode() are not overridden in the " +
                         "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
             }
 
