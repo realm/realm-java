@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -26,8 +28,10 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
+import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +41,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.ConflictingFieldName;
 import io.realm.entities.CustomMethods;
 import io.realm.entities.CyclicType;
@@ -73,6 +78,8 @@ public class RealmObjectTests {
     public final ExpectedException thrown = ExpectedException.none();
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     private Realm realm;
     private RealmConfiguration realmConfig;
@@ -943,7 +950,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void IsValid_deletedObject() {
+    public void isValid_deletedObject() {
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
         assertTrue(allTypes.isValid());
@@ -1648,6 +1655,116 @@ public class RealmObjectTests {
             fail("Failed to remove null listener.");
         } catch (IllegalArgumentException ignore) {
             looperThread.testComplete();
+        }
+    }
+
+    // Bug https://github.com/realm/realm-java/issues/2569
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_returnedObjectOfCopyToRealmOrUpdate() {
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        realm.createObject(AllTypesPrimaryKey.class, 1);
+
+        AllTypesPrimaryKey allTypesPrimaryKey = new AllTypesPrimaryKey();
+        allTypesPrimaryKey.setColumnLong(1);
+        allTypesPrimaryKey.setColumnFloat(42f);
+        allTypesPrimaryKey = realm.copyToRealmOrUpdate(allTypesPrimaryKey);
+        realm.commitTransaction();
+
+        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
+            @Override
+            public void onChange(AllTypesPrimaryKey element) {
+                assertEquals(42.0f, element.getColumnFloat(), 0f);
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    // The object should be added to HandlerController.realmObjects only when the first time addListener called.
+    @Test
+    @UiThreadTest
+    public void addChangeListener_shouldAddTheObjectToHandlerRealmObjects() {
+        realm.beginTransaction();
+        AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
+        realm.commitTransaction();
+        final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
+                realm.handlerController.realmObjects;
+
+        assertTrue(realmObjects.isEmpty());
+
+        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
+            @Override
+            public void onChange(AllTypesPrimaryKey element) {
+            }
+        });
+
+        assertEquals(1, realmObjects.size());
+        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
+            assertTrue(ref.get() == allTypesPrimaryKey);
+        }
+    }
+
+    // The object should be added to HandlerController.realmObjects only once.
+    @Test
+    @UiThreadTest
+    public void addChangeListener_shouldNotAddDupEntriesToHandlerRealmObjects() {
+        realm.beginTransaction();
+        AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
+        realm.commitTransaction();
+        final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
+                realm.handlerController.realmObjects;
+
+        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
+            assertFalse(ref.get() == allTypesPrimaryKey);
+        }
+
+        // Add different listeners twice
+        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
+            @Override
+            public void onChange(AllTypesPrimaryKey element) {
+            }
+        });
+        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
+            @Override
+            public void onChange(AllTypesPrimaryKey element) {
+            }
+        });
+
+        assertEquals(1, realmObjects.size());
+        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
+            assertTrue(ref.get() == allTypesPrimaryKey);
+        }
+    }
+
+    // The object should not be added to HandlerController again after the async query loaded.
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_checkHandlerRealmObjectsWhenCallingOnAsyncObject() {
+        Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        realm.createObject(AllTypesPrimaryKey.class, 1);
+        realm.commitTransaction();
+        final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
+                realm.handlerController.realmObjects;
+
+        final AllTypesPrimaryKey allTypesPrimaryKey = realm.where(AllTypesPrimaryKey.class).findFirstAsync();
+        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
+            @Override
+            public void onChange(AllTypesPrimaryKey element) {
+                allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
+                    @Override
+                    public void onChange(AllTypesPrimaryKey element) {
+
+                    }
+                });
+                assertEquals(1, realmObjects.size());
+                looperThread.testComplete();
+            }
+        });
+        assertEquals(1, realmObjects.size());
+        for (RealmQuery<? extends RealmModel> query : realmObjects.values()) {
+            assertNotNull(query);
         }
     }
 }

@@ -29,12 +29,16 @@
 
 ### Enhancements
 
-* `RealmObjectSchema.getPrimaryKey()`. (#2636)
+* `RealmObjectSchema.getPrimaryKey()` (#2636).
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
 * Unit tests in Android library projects now detect Realm model classes.
 * Better error message if `equals()` and `hashCode()` are not properly overridden in custom Migration classes.
 * Expanding the precision of `Date` fields to cover full range (#833).
 * `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
+
+### Bug fixes
+
+* `RealmChangeListener` on `RealmObject` is not triggered when adding listener on returned `RealmObject` of `copyToRealmOrUpdate()` (#2569).
 
 ### Credits
 

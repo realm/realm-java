@@ -575,9 +575,6 @@ abstract class BaseRealm implements Closeable {
         proxy.realmGet$proxyState().setRealm$realm(this);
         proxy.realmGet$proxyState().setTableVersion$realm();
 
-        if (handlerController != null) {
-            handlerController.addToRealmObjects(result);
-        }
         return result;
     }
 
@@ -605,7 +602,6 @@ abstract class BaseRealm implements Closeable {
             proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
         }
 
-        handlerController.addToRealmObjects(result);
         return result;
     }
 
