@@ -3187,6 +3187,7 @@ public class RealmTests {
         }).start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
+        Thread.sleep(200);
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertFalse(bgRealmChangeResult.get());
