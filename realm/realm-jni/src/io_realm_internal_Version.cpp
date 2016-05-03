@@ -20,6 +20,7 @@
 #include "util.hpp"
 #include "io_realm_internal_Version.h"
 #include <realm/version.hpp>
+#include <realm/string_data.hpp>
 
 static int realm_jni_version = 23;
 
@@ -34,7 +35,9 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Version_nativeGetAPIVersion(JNIEnv
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Version_nativeGetVersion(JNIEnv *env, jclass)
 {
     try {
-        return to_jstring(env, Version::get_version());
+        std::string str(Version::get_version());
+        StringData sd(str);
+        return to_jstring(env, sd);
     }
     CATCH_STD();
     return NULL;

@@ -1,5 +1,7 @@
 ## 0.90.0
 
+* Updated Realm Core to 0.100.0.
+
 ### Breaking changes
 
 * RealmChangeListener provides the changed object/Realm/collection as well (#1594).
@@ -10,6 +12,8 @@
 * Removed constructor of `RealmAsyncTask` from the public API (#1594).
 * `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
   See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
+* File format of Realm files is changed. Files will be automatically upgraded but opening a Realm file with older
+  versions of Realm is not possible.
 
 ### Deprecated
 
@@ -28,6 +32,7 @@
 * `RealmObjectSchema.getPrimaryKey()`. (#2636)
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
 * Unit tests in Android library projects now detect Realm model classes.
+* Expanding the precision of `Date` fields to cover full range (#833).
 * `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
 
 ### Credits

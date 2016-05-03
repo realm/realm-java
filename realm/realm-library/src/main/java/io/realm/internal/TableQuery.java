@@ -287,7 +287,7 @@ public class TableQuery implements Closeable {
         if (value == null) {
             nativeIsNull(nativePtr, columnIndex);
         } else {
-            nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
+            nativeEqualTimestamp(nativePtr, columnIndex, value.getTime());
         }
         queryValidated = false;
         return this;
@@ -296,7 +296,7 @@ public class TableQuery implements Closeable {
     public TableQuery notEqualTo(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
-        nativeNotEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        nativeNotEqualTimestamp(nativePtr, columnIndex, value.getTime());
         queryValidated = false;
         return this;
     }
@@ -304,7 +304,7 @@ public class TableQuery implements Closeable {
     public TableQuery greaterThan(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
-        nativeGreaterDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        nativeGreaterTimestamp(nativePtr, columnIndex, value.getTime());
         queryValidated = false;
         return this;
     }
@@ -312,7 +312,7 @@ public class TableQuery implements Closeable {
     public TableQuery greaterThanOrEqual(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
-        nativeGreaterEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        nativeGreaterEqualTimestamp(nativePtr, columnIndex, value.getTime());
         queryValidated = false;
         return this;
     }
@@ -320,7 +320,7 @@ public class TableQuery implements Closeable {
     public TableQuery lessThan(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
-        nativeLessDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        nativeLessTimestamp(nativePtr, columnIndex, value.getTime());
         queryValidated = false;
         return this;
     }
@@ -328,7 +328,7 @@ public class TableQuery implements Closeable {
     public TableQuery lessThanOrEqual(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
-        nativeLessEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        nativeLessEqualTimestamp(nativePtr, columnIndex, value.getTime());
         queryValidated = false;
         return this;
     }
@@ -336,7 +336,7 @@ public class TableQuery implements Closeable {
     public TableQuery between(long columnIndex[], Date value1, Date value2){
         if (value1 == null || value2 == null)
             throw new IllegalArgumentException("Date values in query criteria must not be null."); // Different text
-        nativeBetweenDateTime(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
+        nativeBetweenTimestamp(nativePtr, columnIndex, value1.getTime(), value2.getTime());
         queryValidated = false;
         return this;
     }
@@ -655,24 +655,24 @@ public class TableQuery implements Closeable {
 
     public Date maximumDate(long columnIndex, long start, long end, long limit) {
         validateQuery();
-        Long result = nativeMaximumDate(nativePtr, columnIndex, start, end, limit);
+        Long result = nativeMaximumTimestamp(nativePtr, columnIndex, start, end, limit);
         if (result != null) {
-            return new Date(result * 1000);
+            return new Date(result);
         }
         return null;
     }
     public Date maximumDate(long columnIndex) {
         validateQuery();
-        Long result = nativeMaximumDate(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        Long result = nativeMaximumTimestamp(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
         if (result != null) {
-            return new Date(result * 1000);
+            return new Date(result);
         }
         return null;
     }
 
     public Date minimumDate(long columnIndex, long start, long end, long limit) {
         validateQuery();
-        Long result = nativeMinimumDate(nativePtr, columnIndex, start, end, limit);
+        Long result = nativeMinimumTimestamp(nativePtr, columnIndex, start, end, limit);
         if (result != null) {
             return new Date(result * 1000);
         }
@@ -680,9 +680,9 @@ public class TableQuery implements Closeable {
     }
     public Date minimumDate(long columnIndex) {
         validateQuery();
-        Long result = nativeMinimumDate(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        Long result = nativeMinimumTimestamp(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
         if (result != null) {
-            return new Date(result * 1000);
+            return new Date(result);
         }
         return null;
     }
@@ -772,13 +772,13 @@ public class TableQuery implements Closeable {
     private native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], double value);
     private native void nativeBetween(long nativeQueryPtr, long columnIndex[], double value1, double value2);
     private native void nativeEqual(long nativeQueryPtr, long columnIndex[], boolean value);
-    private native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
-    private native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
-    private native void nativeGreaterDateTime(long nativeQueryPtr, long columnIndex[], long value);
-    private native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
-    private native void nativeLessDateTime(long nativeQueryPtr, long columnIndex[], long value);
-    private native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
-    private native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex[], long value1, long value2);
+    private native void nativeEqualTimestamp(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeNotEqualTimestamp(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeGreaterTimestamp(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeGreaterEqualTimestamp(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeLessTimestamp(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeLessEqualTimestamp(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeBetweenTimestamp(long nativeQueryPtr, long columnIndex[], long value1, long value2);
     private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
     private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
     private native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
@@ -799,8 +799,8 @@ public class TableQuery implements Closeable {
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
     private native Double nativeMinimumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
     private native double nativeAverageDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-    private native Long nativeMaximumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-    private native Long nativeMinimumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native Long nativeMaximumTimestamp(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native Long nativeMinimumTimestamp(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
     private native void nativeIsNull(long nativePtr, long columnIndices[]);
     private native void nativeIsNotNull(long nativePtr, long columnIndices[]);
     private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
