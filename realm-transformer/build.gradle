@@ -1,14 +1,18 @@
 buildscript {
+    ext.kotlin_version = '1.0.1-2'
     repositories {
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 apply plugin: 'groovy'
+apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -24,6 +28,7 @@ targetCompatibility = '1.6'
 repositories {
     mavenLocal()
     jcenter()
+    mavenCentral()
 }
 
 configurations {
@@ -39,6 +44,7 @@ sourceSets {
             srcDir 'build/generated-src/main/java'
         }
     }
+    main.java.srcDirs += 'src/main/kotlin'
 }
 
 dependencies {
@@ -51,6 +57,7 @@ dependencies {
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
         exclude module: 'groovy-all'
     }
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 // for Ant filter

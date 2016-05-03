@@ -1,3 +1,9 @@
+## 0.90.1
+
+### Enhancements
+
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+
 ## 0.90.0
 
 * Updated Realm Core to 0.100.0.
