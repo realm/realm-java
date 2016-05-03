@@ -81,10 +81,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDouble
 
 /*
  * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeGetDateTime
+ * Method:    nativeGetTimestamp
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetTimestamp
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -177,10 +177,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDouble
 
 /*
  * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeSetDate
+ * Method:    nativeSetTimestamp
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*

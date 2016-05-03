@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -491,12 +490,14 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void maxDate() {
-        assertEquals(new Date(YEAR_MILLIS * 20 * 4), collection.maxDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(TEST_SIZE, collection.size());
+        assertEquals(new Date(YEAR_MILLIS * 20 * (TEST_SIZE/2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
     public void minDate() {
-        assertEquals(new Date(YEAR_MILLIS * 20 * -5), collection.minDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(TEST_SIZE, collection.size());
+        assertEquals(new Date(- YEAR_MILLIS * 20 * TEST_SIZE/2), collection.minDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test

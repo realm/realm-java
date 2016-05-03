@@ -621,10 +621,33 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    static private boolean deletes(String canonicalPath, File rootFolder, String realmFileName) {
+        final AtomicBoolean realmDeleted = new AtomicBoolean(true);
+
+        List<File> filesToDelete = Arrays.asList(
+                new File(rootFolder, realmFileName),
+                new File(rootFolder, realmFileName + ".lock"),
+                new File(rootFolder, realmFileName + ".log_a"),
+                new File(rootFolder, realmFileName + ".log_b"),
+                new File(rootFolder, realmFileName + ".log"),
+                new File(canonicalPath));
+        for (File fileToDelete : filesToDelete) {
+            if (fileToDelete.exists()) {
+                boolean deleteResult = fileToDelete.delete();
+                if (!deleteResult) {
+                    realmDeleted.set(false);
+                    RealmLog.w("Could not delete the file " + fileToDelete);
+                }
+            }
+        }
+        return realmDeleted.get();
+    }
+
     /**
      * Deletes the Realm file defined by the given configuration.
      */
     static boolean deleteRealm(final RealmConfiguration configuration) {
+        final String management = ".management";
         final AtomicBoolean realmDeleted = new AtomicBoolean(true);
 
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
@@ -638,20 +661,10 @@ abstract class BaseRealm implements Closeable {
                 String canonicalPath = configuration.getPath();
                 File realmFolder = configuration.getRealmFolder();
                 String realmFileName = configuration.getRealmFileName();
-                List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
-                        new File(realmFolder, realmFileName + ".lock"),
-                        new File(realmFolder, realmFileName + ".log_a"),
-                        new File(realmFolder, realmFileName + ".log_b"),
-                        new File(realmFolder, realmFileName + ".log"));
-                for (File fileToDelete : filesToDelete) {
-                    if (fileToDelete.exists()) {
-                        boolean deleteResult = fileToDelete.delete();
-                        if (!deleteResult) {
-                            realmDeleted.set(false);
-                            RealmLog.w("Could not delete the file " + fileToDelete);
-                        }
-                    }
-                }
+                File managementFolder = new File(realmFolder, realmFileName + management);
+                realmDeleted.set(deletes(realmFolder.getPath()+ "/" + realmFileName + management, managementFolder, realmFileName));
+                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
+
             }
         });
 

@@ -328,8 +328,6 @@ public interface TableOrView {
 
     TableView findAllDouble(long columnIndex, double value);
 
-    TableView findAllDate(long columnIndex, Date value);
-
     TableView findAllString(long columnIndex, String value);
 
     String toJson();
