@@ -30,6 +30,10 @@
 * Unit tests in Android library projects now detect Realm model classes.
 * `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
 
+### Bug fixes
+
+* `RealmChangeListener` on `RealmObject` is not triggered when adding listener on returned `RealmObject` of `copyToRealmOrUpdate()`. (#2569)
+
 ### Credits
 
 * Thanks to Brenden Kromhout (@bkromhout) for adding `RealmObjectSchema.getPrimaryKey()`.

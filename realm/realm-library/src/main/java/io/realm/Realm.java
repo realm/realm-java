@@ -552,7 +552,6 @@ public final class Realm extends BaseRealm {
         checkHasPrimaryKey(clazz);
         try {
             E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
-            handlerController.addToRealmObjects(realmObject);
             return realmObject;
         } catch (JSONException e) {
             throw new RealmException("Could not map JSON", e);
