@@ -3264,6 +3264,8 @@ public class RealmTests {
 
         TestHelper.awaitOrFail(bgRealmsOpened);
         bgRealm.get().stopWaitForChange();
+        // wait for Thread 2 to wait
+        Thread.sleep(500);
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmsClosed);
         assertFalse(bgRealmFirstWaitResult.get());
@@ -3271,12 +3273,12 @@ public class RealmTests {
         assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
     }
 
-    // Check if waitForChange response to Thread.interrupt().
+    // Check if waitForChange() does not respond to Thread.interrupt().
     @Test
-    public void waitForChange_interruptingThread() {
+    public void waitForChange_interruptingThread() throws InterruptedException {
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final AtomicBoolean bgRealmWaitResult = new AtomicBoolean(true);
+        final AtomicReference<Boolean> bgRealmWaitResult = new AtomicReference<Boolean>();
         final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         // wait in background
@@ -3286,7 +3288,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealm.set(realm);
                 bgRealmOpened.countDown();
-                bgRealmWaitResult.set(realm.waitForChange());
+                bgRealmWaitResult.set(new Boolean(realm.waitForChange()));
                 realm.close();
                 bgRealmClosed.countDown();
             }
@@ -3294,17 +3296,21 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // interrupting thread should neither cause any side effect nor terminate of thread.
+        // make sure background thread goes to wait
+        Thread.sleep(500);
+        // interrupting a thread should neither cause any side effect nor terminate the Background Realm from waiting.
         thread.interrupt();
-        assertTrue(bgRealmWaitResult.get());
+        assertTrue(thread.isInterrupted());
+        assertEquals(null, bgRealmWaitResult.get());
+
         // now we'll stop realm from waiting
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
-        assertFalse(bgRealmWaitResult.get());
+        assertFalse(bgRealmWaitResult.get().booleanValue());
     }
 
     @Test
-    public void waitForChange_onLooperThread() throws InterruptedException {
+    public void waitForChange_onLooperThread() throws Throwable {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final ExceptionHolder bgError = new ExceptionHolder();
 
@@ -3327,6 +3333,9 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmClosed);
+        if (bgError.getException() instanceof AssertionError) {
+            throw bgError.getException();
+        }
         assertEquals(IllegalStateException.class, bgError.getException().getClass());
     }
 
@@ -3361,6 +3370,7 @@ public class RealmTests {
         }
     }
 
+    // waitForChange & stopWaitForChange within a simple Thread wrapper.
     @Test
     public void waitForChange_runWithRealmThread() throws InterruptedException {
         final CountDownLatch bgRealmStarted = new CountDownLatch(1);
@@ -3374,6 +3384,7 @@ public class RealmTests {
                 bgRealmStarted.countDown();
                 bgRealmChangeResult.set(realm.waitForChange());
                 bgRealmResultSize.set(realm.where(AllTypes.class).count());
+                realm.close();
                 bgRealmFished.countDown();
             }
         });
@@ -3397,6 +3408,7 @@ public class RealmTests {
             public void run(Realm realm) {
                 bgRealmStarted.countDown();
                 bgRealmChangeResult.set(realm.waitForChange());
+                realm.close();
                 bgRealmFished.countDown();
             }
         });

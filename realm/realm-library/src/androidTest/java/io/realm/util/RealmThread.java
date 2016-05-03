@@ -20,7 +20,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 // this is a simple example of how Realm can be encapsulated within a Thread wrapper.
-public class RealmThread extends Thread {
+public final class RealmThread extends Thread {
 
     public interface RealmRunnable {
         void run(final Realm realm);
@@ -31,6 +31,13 @@ public class RealmThread extends Thread {
     private Realm realm;
 
     public RealmThread(RealmConfiguration realmConfig, RealmRunnable task) {
+        super();
+        this.realmConfig = realmConfig;
+        this.task = task;
+    }
+
+    public RealmThread(RealmConfiguration realmConfig, RealmRunnable task, String threadName) {
+        super(threadName);
         this.realmConfig = realmConfig;
         this.task = task;
     }

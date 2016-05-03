@@ -288,7 +288,7 @@ abstract class BaseRealm implements Closeable {
      * is called from another thread. Once stopWaitForChange is called, all future calls to this will
      * return false immediately.
      *
-     * @return {@code true} If the Realm was updated to the latest version, {@code false} if it was
+     * @return {@code true} if the Realm was updated to the latest version, {@code false} if it was
      * cancelled by calling stopWaitForChange.
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      */
