@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.AndroidTestCase;
 
 import org.junit.After;
 import org.junit.Before;
@@ -35,8 +34,11 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 @RunWith(AndroidJUnit4.class)
-public class SortTest extends AndroidTestCase {
+public class SortTest {
     private Realm realm;
 
     @Rule
@@ -95,7 +97,7 @@ public class SortTest extends AndroidTestCase {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (realm != null) {
             realm.close();
         }
@@ -103,7 +105,7 @@ public class SortTest extends AndroidTestCase {
 
     @Test
     public void sortMultiFailures() {
-        RealmResults<AllTypes> allTypes = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> allTypes = realm.where(AllTypes.class).findAll();
 
         // zero fields specified
         try {
@@ -341,7 +343,6 @@ public class SortTest extends AndroidTestCase {
     public void resorting() throws InterruptedException {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
 
-
         final Realm realm = Realm.getInstance(looperThread.createConfiguration());
         realm.setAutoRefresh(true);
 
@@ -409,7 +410,6 @@ public class SortTest extends AndroidTestCase {
                 endTest.run();
             }
         });
-
 
         // After commit:
         // 0: (5, "Adam")
