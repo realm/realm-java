@@ -27,8 +27,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.realm.entities.AllTypes;
 import io.realm.internal.TableView;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 @RunWith(AndroidJUnit4.class)
@@ -37,6 +41,8 @@ public class SortTest extends AndroidTestCase {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Context context;
     private RealmConfiguration realmConfig;
@@ -50,19 +56,7 @@ public class SortTest extends AndroidTestCase {
     private final static Sort[] ORDER_ASC_ASC = {Sort.ASCENDING, Sort.ASCENDING};
     private final static Sort[] ORDER_ASC_DES = {Sort.ASCENDING, Sort.DESCENDING};
 
-    @Before
-    public void setUp() {
-        // Creates a Realm with the following objects:
-        // 0: (5, "Adam")
-        // 1: (4, "Brian")
-        // 2: (4, "Adam")
-        // 3: (5, "Adam")
-        // Injecting the Instrumentation instance is required
-        // for your test to run with AndroidJUnitRunner.
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-        realmConfig = configFactory.createConfiguration();
-        realm = Realm.getInstance(realmConfig);
-
+    private void populateRealm(Realm realm) {
         realm.beginTransaction();
         realm.delete(AllTypes.class);
         AllTypes object1 = realm.createObject(AllTypes.class);
@@ -83,9 +77,28 @@ public class SortTest extends AndroidTestCase {
         realm.commitTransaction();
     }
 
+    @Before
+    public void setUp() {
+        // Creates a Realm with the following objects:
+        // 0: (5, "Adam")
+        // 1: (4, "Brian")
+        // 2: (4, "Adam")
+        // 3: (5, "Adam")
+
+        // Injecting the Instrumentation instance is required
+        // for your test to run with AndroidJUnitRunner.
+        context = InstrumentationRegistry.getInstrumentation().getContext();
+        realmConfig = configFactory.createConfiguration();
+        realm = Realm.getInstance(realmConfig);
+
+        populateRealm(realm);
+    }
+
     @After
     public void tearDown() throws Exception {
-        realm.close();
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     @Test
@@ -108,7 +121,7 @@ public class SortTest extends AndroidTestCase {
 
         // null is not allowed
         try {
-            allTypes.sort(null, (Sort[])null);
+            allTypes.sort(null, (Sort[]) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -137,19 +150,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
@@ -163,19 +176,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Brian", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
@@ -189,19 +202,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Brian", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
@@ -215,19 +228,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(5, results.get(0).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(4, results.get(2).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     @Test
@@ -243,7 +256,7 @@ public class SortTest extends AndroidTestCase {
 
         RealmResults<AllTypes> results4 = realm.where(AllTypes.class).findAll().sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
-   }
+    }
 
     @Test
     public void realmQuerySortTwoFields() {
@@ -304,9 +317,10 @@ public class SortTest extends AndroidTestCase {
 
         // null is not allowed
         try {
-            realm.where(AllTypes.class).findAll().sort(null, (Sort[])null);
+            realm.where(AllTypes.class).findAll().sort(null, (Sort[]) null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         try {
             realm.where(AllTypes.class).findAll().sort(new String[]{FIELD_STRING}, null);
             fail();
@@ -320,5 +334,92 @@ public class SortTest extends AndroidTestCase {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void resorting() throws InterruptedException {
+        final AtomicInteger changeListenerCalled = new AtomicInteger(4);
+
+
+        final Realm realm = Realm.getInstance(looperThread.createConfiguration());
+        realm.setAutoRefresh(true);
+
+        final Runnable endTest = new Runnable() {
+            @Override
+            public void run() {
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    realm.close();
+                    looperThread.testComplete();
+                }
+            }
+        };
+
+        // 0: (5, "Adam")
+        // 1: (4, "Brian")
+        // 2: (4, "Adam")
+        // 3: (5, "Adam")
+        populateRealm(realm);
+
+        // rr0: [0, 1, 2, 3]
+        final RealmResults<AllTypes> rr0 = realm.where(AllTypes.class).findAll();
+        rr0.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                // After commit: [0, 1, 2, 3, 4] - most likely as order isn't guaranteed
+                assertEquals(5, element.size());
+                endTest.run();
+            }
+        });
+
+        // rr1: [1, 2, 0, 3]
+        final RealmResults<AllTypes> rr1 = realm.where(AllTypes.class).findAll().sort(FIELD_LONG, Sort.ASCENDING);
+        rr1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                // After commit: [1, 2, 0, 3, 4]
+                assertEquals(4, element.first().getColumnLong());
+                assertEquals(6, element.last().getColumnLong());
+                assertEquals(5, element.size());
+                endTest.run();
+            }
+        });
+        assertEquals(4, rr1.first().getColumnLong());
+        assertEquals(5, rr1.last().getColumnLong());
+
+        // rr2: [0, 3, 1, 2]
+        final RealmResults<AllTypes> rr2 = realm.where(AllTypes.class).findAll().sort(FIELD_LONG, Sort.DESCENDING);
+        rr2.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                // After commit: [4, 0, 3, 1, 2]
+                assertEquals(6, element.first().getColumnLong());
+                assertEquals(4, element.last().getColumnLong());
+                assertEquals(5, element.size());
+                endTest.run();
+            }
+        });
+        assertEquals(5, rr2.first().getColumnLong());
+        assertEquals(4, rr2.last().getColumnLong());
+
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                assertEquals(5, element.where(AllTypes.class).findAll().size());
+                endTest.run();
+            }
+        });
+
+
+        // After commit:
+        // 0: (5, "Adam")
+        // 1: (4, "Brian")
+        // 2: (4, "Adam")
+        // 3: (5, "Adam")
+        // 4: (6, "")
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnLong(6);
+        realm.commitTransaction();
     }
 }
