@@ -180,7 +180,6 @@ task connectedUnitTests(type: GradleBuild) {
     tasks = ['connectedAndroidTest']
 }
 
-
 install {
     repositories.mavenInstaller {
         pom {

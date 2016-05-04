@@ -29,7 +29,7 @@ public class BenchmarkConfig {
         File csvDir = new File(externalDocuments, "csv");
         csvDir.mkdir();
         File csvFile = new File(csvDir, className + ".csv");
-        ResultProcessor csv = new CSVResultProcessor(csvFile);
+        ResultProcessor csvResultProcessor = new CSVResultProcessor(csvFile);
 
         // General configuration for running benchmarks.
         // Always save result files. CI will determine if it wants to store them.
@@ -44,7 +44,7 @@ public class BenchmarkConfig {
                                 .measurements(9)
                                 .build()
                 )
-                .addResultProcessor(csv);
+                .addResultProcessor(csvResultProcessor);
 
         // Only use baseline file if it exists
         if (baselineFile.exists()) {
