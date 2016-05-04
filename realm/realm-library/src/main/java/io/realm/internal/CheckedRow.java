@@ -96,19 +96,18 @@ public class CheckedRow extends UncheckedRow {
         return super.isNull(columnIndex);
     }
 
+    /**
+     * Set null to a row pointer with checking if a column is nullable, except when the column type
+     * is binary.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     */
     @Override
     public void setNull(long columnIndex) {
         RealmFieldType columnType = getColumnType(columnIndex);
-        if (columnType == RealmFieldType.STRING) {
-            super.setString(columnIndex, null);
-        }
-        else if (columnType == RealmFieldType.BINARY) {
+        if (columnType == RealmFieldType.BINARY) {
             super.setBinaryByteArray(columnIndex, null);
-        }
-        else {
-            if (!this.getTable().isColumnNullable(columnIndex)) {
-                throw new IllegalArgumentException("field is not nullable");
-            }
+        } else {
             super.setNull(columnIndex);
         }
     }
@@ -121,7 +120,7 @@ public class CheckedRow extends UncheckedRow {
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
@@ -133,7 +132,7 @@ public class CheckedRow extends UncheckedRow {
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
-    protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
+    protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);

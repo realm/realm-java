@@ -74,7 +74,7 @@ public class MediatorTest extends AndroidTestCase {
 
     public void testFilterableMediatorModelClassesCount() {
         //noinspection unchecked
-        final FilterableMediator mediator = new FilterableMediator(new AnimalModuleMediator(), Arrays.asList(Cat.class, CatOwner.class));
+        final FilterableMediator mediator = new FilterableMediator(new AnimalModuleMediator(), Arrays.<Class<? extends RealmModel>>asList(Cat.class, CatOwner.class));
 
         assertTrue(mediator.getModelClasses().contains(Cat.class));
         // CatOwner is not a member of AnimalModuleMediator

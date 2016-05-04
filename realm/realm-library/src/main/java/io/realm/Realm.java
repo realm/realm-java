@@ -122,8 +122,8 @@ public final class Realm extends BaseRealm {
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmObject>, Table> classToTable =
-            new HashMap<Class<? extends RealmObject>, Table>();
+    private final Map<Class<? extends RealmModel>, Table> classToTable =
+            new HashMap<Class<? extends RealmModel>, Table>();
 
     private static RealmConfiguration defaultConfiguration;
 
@@ -305,10 +305,10 @@ public final class Realm extends BaseRealm {
             }
 
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-            final Set<Class<? extends RealmObject>> modelClasses = mediator.getModelClasses();
-            final Map<Class<? extends RealmObject>, ColumnInfo> columnInfoMap;
-            columnInfoMap = new HashMap<Class<? extends RealmObject>, ColumnInfo>(modelClasses.size());
-            for (Class<? extends RealmObject> modelClass : modelClasses) {
+            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
+            columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
                     mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
@@ -342,7 +342,7 @@ public final class Realm extends BaseRealm {
      * @param json an array where each JSONObject must map to the specified class.
      * @throws RealmException if mapping from JSON fails.
      */
-    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
+    public <E extends RealmModel> void createAllFromJson(Class<E> clazz, JSONArray json) {
         if (clazz == null || json == null) {
             return;
         }
@@ -350,8 +350,8 @@ public final class Realm extends BaseRealm {
         for (int i = 0; i < json.length(); i++) {
             try {
                 configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), false);
-            } catch (Exception e) {
-                throw new RealmException("Could not map Json", e);
+            } catch (JSONException e) {
+                throw new RealmException("Could not map JSON", e);
             }
         }
     }
@@ -370,7 +370,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if unable to map JSON.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
-    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
+    public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
         if (clazz == null || json == null) {
             return;
         }
@@ -378,8 +378,8 @@ public final class Realm extends BaseRealm {
         for (int i = 0; i < json.length(); i++) {
             try {
                 configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
-            } catch (Exception e) {
-                throw new RealmException("Could not map Json", e);
+            } catch (JSONException e) {
+                throw new RealmException("Could not map JSON", e);
             }
         }
     }
@@ -394,7 +394,7 @@ public final class Realm extends BaseRealm {
      * @param json the JSON array as a String where each object can map to the specified class.
      * @throws RealmException if mapping from JSON fails.
      */
-    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, String json) {
+    public <E extends RealmModel> void createAllFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
             return;
         }
@@ -402,7 +402,7 @@ public final class Realm extends BaseRealm {
         JSONArray arr;
         try {
             arr = new JSONArray(json);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not create JSON array from string", e);
         }
 
@@ -423,7 +423,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if unable to create a JSON array from the json string.
      * @see #createAllFromJson(Class, String)
      */
-    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
+    public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
             return;
         }
@@ -451,7 +451,7 @@ public final class Realm extends BaseRealm {
      * @throws IOException if something was wrong with the input stream.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+    public <E extends RealmModel> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         if (clazz == null || inputStream == null) {
             return;
         }
@@ -483,7 +483,7 @@ public final class Realm extends BaseRealm {
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) throws IOException {
+    public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) throws IOException {
         if (clazz == null || in == null) {
             return;
         }
@@ -519,15 +519,15 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if the mapping from JSON fails.
      * @see #createOrUpdateObjectFromJson(Class, org.json.JSONObject)
      */
-    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, JSONObject json) {
+    public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, JSONObject json) {
         if (clazz == null || json == null) {
             return null;
         }
 
         try {
             return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
-        } catch (Exception e) {
-            throw new RealmException("Could not map Json", e);
+        } catch (JSONException e) {
+            throw new RealmException("Could not map JSON", e);
         }
     }
 
@@ -545,19 +545,16 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if JSON data cannot be mapped.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
-    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
+    public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
         if (clazz == null || json == null) {
             return null;
         }
         checkHasPrimaryKey(clazz);
         try {
             E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
-            if (handlerController != null) {
-                handlerController.addToRealmObjects(realmObject);
-            }
             return realmObject;
         } catch (JSONException e) {
-            throw new RealmException("Could not map Json", e);
+            throw new RealmException("Could not map JSON", e);
         }
     }
 
@@ -572,7 +569,7 @@ public final class Realm extends BaseRealm {
      * @return created object or null if json string was empty or null.
      * @throws RealmException if mapping to json failed.
      */
-    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, String json) {
+    public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
             return null;
         }
@@ -580,7 +577,7 @@ public final class Realm extends BaseRealm {
         JSONObject obj;
         try {
             obj = new JSONObject(json);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not create Json object from string", e);
         }
 
@@ -602,7 +599,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if JSON object cannot be mapped from the string parameter.
      * @see #createObjectFromJson(Class, String)
      */
-    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
+    public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
             return null;
         }
@@ -611,7 +608,7 @@ public final class Realm extends BaseRealm {
         JSONObject obj;
         try {
             obj = new JSONObject(json);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not create Json object from string", e);
         }
 
@@ -631,7 +628,7 @@ public final class Realm extends BaseRealm {
      * @throws IOException if something was wrong with the input stream.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+    public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         if (clazz == null || inputStream == null) {
             return null;
         }
@@ -680,7 +677,7 @@ public final class Realm extends BaseRealm {
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) throws IOException {
+    public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) throws IOException {
         if (clazz == null || in == null) {
             return null;
         }
@@ -713,7 +710,7 @@ public final class Realm extends BaseRealm {
      * @return the new object
      * @throws RealmException if an object could not be created
      */
-    public <E extends RealmObject> E createObject(Class<E> clazz) {
+    public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
@@ -721,22 +718,26 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Creates a new object inside the Realm with the Primary key value initially set.
+     * Instantiates and adds a new object to the Realm with the primary key value already set.
+     *
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
      *
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
-     * @throws RealmException if object could not be created.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException If the model clazz does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     *                                  expected value.
      */
-    <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
+    public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex);
     }
 
-    void remove(Class<? extends RealmObject> clazz, long objectIndex) {
+    void remove(Class<? extends RealmModel> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
@@ -753,7 +754,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.IllegalArgumentException if the object is {@code null} or it belongs to a Realm instance
      * in a different thread.
      */
-    public <E extends RealmObject> E copyToRealm(E object) {
+    public <E extends RealmModel> E copyToRealm(E object) {
         checkNotNullObject(object);
         return copyOrUpdate(object, false);
     }
@@ -768,11 +769,11 @@ public final class Realm extends BaseRealm {
      *
      * @param object {@link io.realm.RealmObject} to copy or update.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
-     * @throws java.lang.IllegalArgumentException if the object is {@code null} or it belongs to a Realm instance
-     *         in a different thread.
-     * @see #copyToRealm(RealmObject)
+     * @throws java.lang.IllegalArgumentException if the object is {@code null} or doesn't have a Primary key defined
+     *  or it belongs to a Realm instance in a different thread.
+     * @see #copyToRealm(RealmModel)
      */
-    public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
+    public <E extends RealmModel> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
         return copyOrUpdate(object, true);
@@ -791,7 +792,7 @@ public final class Realm extends BaseRealm {
      * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
      * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
      */
-    public <E extends RealmObject> List<E> copyToRealm(Iterable<E> objects) {
+    public <E extends RealmModel> List<E> copyToRealm(Iterable<E> objects) {
         if (objects == null) {
             return new ArrayList<E>();
         }
@@ -817,7 +818,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
      * @see #copyToRealm(Iterable)
      */
-    public <E extends RealmObject> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
+    public <E extends RealmModel> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
         if (objects == null) {
             return new ArrayList<E>(0);
         }
@@ -837,7 +838,7 @@ public final class Realm extends BaseRealm {
      * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      *
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmObject)},
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmModel)},
      * but all fields will be overridden, not just those that were changed. This includes references to other objects,
      * and can potentially override changes made by other threads.
      *
@@ -847,7 +848,7 @@ public final class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
-    public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects) {
+    public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects) {
         return copyFromRealm(realmObjects, Integer.MAX_VALUE);
     }
 
@@ -872,14 +873,14 @@ public final class Realm extends BaseRealm {
      *         {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
-    public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
+    public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
         checkMaxDepth(maxDepth);
         if (realmObjects == null) {
             return new ArrayList<E>(0);
         }
 
         ArrayList<E> standaloneObjects = new ArrayList<E>();
-        Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> listCache = new HashMap<RealmObject, RealmObjectProxy.CacheData<RealmObject>>();
+        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
             standaloneObjects.add(createDetachedCopy(object, maxDepth, listCache));
@@ -895,17 +896,17 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      *
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using
-     * {@link #copyToRealmOrUpdate(RealmObject)}, but all fields will be overridden, not just those that were changed.
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
+     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects, and can potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
      * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
-     * @see #copyToRealmOrUpdate(RealmObject)
+     * @see #copyToRealmOrUpdate(RealmModel)
      */
-    public <E extends RealmObject> E copyFromRealm(E realmObject) {
+    public <E extends RealmModel> E copyFromRealm(E realmObject) {
         return copyFromRealm(realmObject, Integer.MAX_VALUE);
     }
 
@@ -916,9 +917,9 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      *
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using
-     * {@link #copyToRealmOrUpdate(RealmObject)}, but all fields will be overridden, not just those that were changed.
-     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
+     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed. 
+     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being 
      * reached. This can also potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy
@@ -928,15 +929,15 @@ public final class Realm extends BaseRealm {
      * @return an in-memory detached copy of the managed {@link RealmObject}.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
      *         {@link DynamicRealmObject}.
-     * @see #copyToRealmOrUpdate(RealmObject)
+     * @see #copyToRealmOrUpdate(RealmModel)
      */
-    public <E extends RealmObject> E copyFromRealm(E realmObject, int maxDepth) {
+    public <E extends RealmModel> E copyFromRealm(E realmObject, int maxDepth) {
         checkMaxDepth(maxDepth);
         checkValidObjectForDetach(realmObject);
-        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmObject, RealmObjectProxy.CacheData<RealmObject>>());
+        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
     }
 
-    boolean contains(Class<? extends RealmObject> clazz) {
+    boolean contains(Class<? extends RealmModel> clazz) {
         return configuration.getSchemaMediator().getModelClasses().contains(clazz);
     }
 
@@ -947,34 +948,47 @@ public final class Realm extends BaseRealm {
      * @return a typed RealmQuery, which can be used to query for specific objects of this type.
      * @see io.realm.RealmQuery
      */
-    public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
+    public <E extends RealmModel> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
         return RealmQuery.createQuery(this, clazz);
     }
 
     /**
-     * Gets all objects of a specific Class. If no objects exist, the returned RealmResults will not be {@code null}.
-     * The RealmResults.size() to check the number of objects instead.
+     * Adds a change listener to the Realm.
+     * <p>
+     * The listeners will be executed:
+     * <ul>
+     * <li>Immediately if a change was committed by the local thread</li>
+     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * </ul>
      *
-     * @param clazz the Class to get objects of.
-     * @return a RealmResult list containing the objects.
-     * @see io.realm.RealmResults
+     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
+     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
+     *
+     * @param listener the change listener.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
+     * @see #removeChangeListener(RealmChangeListener)
+     * @see #removeAllChangeListeners()
      */
-    public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
+    public void addChangeListener(RealmChangeListener<Realm> listener) {
+        super.addListener(listener);
+    }
+
+    /**
+     * DEPRECATED: Use {@code realm.where(clazz).findAll()} instead.
+     */
+    @Deprecated
+    public <E extends RealmModel> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
     }
 
     /**
-     * Get all objects of a specific Class sorted by a field. If no objects exist, the returned {@link RealmResults}
-     * will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the Class to get objects of.
-     * @param fieldName the field name to sort by.
-     * @param sortOrder how to sort the results.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName, sortOrder)} instead.
      */
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
+    @Deprecated
+    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
                                                                     Sort sortOrder) {
         checkIfValid();
         Table table = getTable(clazz);
@@ -989,18 +1003,10 @@ public final class Realm extends BaseRealm {
 
 
     /**
-     * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the class ti get objects of.
-     * @param fieldName1 first field name to sort by.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name to sort by.
-     * @param sortOrder2 sort order for second field.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
      */
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
+    @Deprecated
+    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     Sort sortOrder1, String fieldName2,
                                                                     Sort sortOrder2) {
         return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
@@ -1008,20 +1014,11 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the class ti get objects of.
-     * @param fieldName1 first field name to sort by.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name to sort by.
-     * @param sortOrder2 sort order for second field.
-     * @param fieldName3 third field name to sort by.
-     * @param sortOrder3 sort order for third field.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2, fieldName3, sortOrder3)}
+     * instead.
      */
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
+    @Deprecated
+    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     Sort sortOrder1,
                                                                     String fieldName2, Sort sortOrder2,
                                                                     String fieldName3, Sort sortOrder3) {
@@ -1030,18 +1027,11 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific Class sorted by multiple fields. If no objects exist, the returned
-     * {@link RealmResults} will not be null. The RealmResults.size() to check the number of objects instead.
-     *
-     * @param clazz the Class to get objects of.
-     * @param sortOrders sort ascending if Sort.ASCENDING, sort descending if Sort.DESCENDING.
-     * @param fieldNames an array of field names to sort objects by. The objects are first sorted by fieldNames[0], then
-     *                   by fieldNames[1] and so forth.
-     * @return a sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldNames[], sortOrders[])} instead.
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
+    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                     Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
@@ -1051,16 +1041,10 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Returns a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in case of multiple occurrences.
-     *
-     * @param clazz the Class to get objects of.
-     * @param fieldName the field name.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * DEPRECATED: Use {@code realm.where(clazz).distinct(fieldName)} instead.
      */
-    public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
+    @Deprecated
+    public <E extends RealmModel> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
         checkIfValid();
         Table table = schema.getTable(clazz);
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, table);
@@ -1069,36 +1053,18 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Returns a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in case of multiple occurrences.
-     * This method is only available from a Looper thread.
-     *
-     * @param clazz the Class to get objects of.
-     * @param fieldName the field name.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     *         query completes.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
-     *         is not indexed, or points to linked fields.
+     * DEPRECATED: Use {@code realm.where(clazz).distinctAsync(fieldName)} instead.
      */
-    public <E extends RealmObject> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
+    @Deprecated
+    public <E extends RealmModel> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
         checkIfValid();
         return where(clazz).distinctAsync(fieldName);
     }
 
     /**
-     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
-     * given, all unique combinations of values in the fields will be returned. In case of multiple
-     * matches, it is undefined which object is returned. Unless the result is sorted, then the
-     * first object will be returned.
-     *
-     * @param clazz the Class to get objects of.
-     * @param firstFieldName first field name to use when finding distinct objects.
-     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     *         is an unsupported type, or points to a linked field.
+     * DEPRECATED: Use {@code realm.where(clazz).distinct(firstFieldName, remainingFieldNames)} instead.
      */
+    @Deprecated
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String firstFieldName, String... remainingFieldNames) {
         checkIfValid();
         return where(clazz).distinct(firstFieldName, remainingFieldNames);
@@ -1410,7 +1376,7 @@ public final class Realm extends BaseRealm {
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     @Deprecated
-    public void clear(Class<? extends RealmObject> clazz) {
+    public void clear(Class<? extends RealmModel> clazz) {
         delete(clazz);
     }
 
@@ -1420,30 +1386,30 @@ public final class Realm extends BaseRealm {
      * @param clazz the class which objects should be removed.
      * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
      */
-    public void delete(Class<? extends RealmObject> clazz) {
+    public void delete(Class<? extends RealmModel> clazz) {
         checkIfValid();
         getTable(clazz).clear();
     }
 
 
     @SuppressWarnings("unchecked")
-    private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
+    private <E extends RealmModel> E copyOrUpdate(E object, boolean update) {
         checkIfValid();
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
+        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmModel, RealmObjectProxy>());
     }
 
-    private <E extends RealmObject> E createDetachedCopy(E object, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> cache) {
+    private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
         checkIfValid();
         return configuration.getSchemaMediator().createDetachedCopy(object, maxDepth, cache);
     }
 
-    private <E extends RealmObject> void checkNotNullObject(E object) {
+    private <E extends RealmModel> void checkNotNullObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
         }
     }
 
-    private void checkHasPrimaryKey(Class<? extends RealmObject> clazz) {
+    private void checkHasPrimaryKey(Class<? extends RealmModel> clazz) {
         if (!getTable(clazz).hasPrimaryKey()) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
@@ -1455,11 +1421,11 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    private <E extends RealmObject> void checkValidObjectForDetach(E realmObject) {
+    private <E extends RealmModel> void checkValidObjectForDetach(E realmObject) {
         if (realmObject == null) {
             throw new IllegalArgumentException("Null objects cannot be copied from Realm.");
         }
-        if (!realmObject.isValid()) {
+        if (!RealmObject.isValid(realmObject)) {
             throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
         }
         if (realmObject instanceof DynamicRealmObject) {
@@ -1529,11 +1495,11 @@ public final class Realm extends BaseRealm {
         try {
             return realmFile.getCanonicalPath();
         } catch (IOException e) {
-            throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
+            throw new RealmIOException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
         }
     }
 
-    Table getTable(Class<? extends RealmObject> clazz) {
+    Table getTable(Class<? extends RealmModel> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
@@ -1549,7 +1515,7 @@ public final class Realm extends BaseRealm {
      *
      * @return the default Realm module or null if no default module exists.
      * @throws RealmException if unable to create an instance of the module.
-     * @see io.realm.RealmConfiguration.Builder#setModules(Object, Object...)
+     * @see io.realm.RealmConfiguration.Builder#modules(Object, Object...)
      */
     public static Object getDefaultModule() {
         String moduleName = "io.realm.DefaultRealmModule";

@@ -101,11 +101,11 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), StringData(string));
             return;
         }
-    case type_DateTime:
+    case type_Timestamp:
         {
             jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
-            DateTime date(dateTimeValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(date));
+            Timestamp ts = from_milliseconds(dateTimeValue);
+            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(ts));
             return;
         }
     case type_Binary:
@@ -144,6 +144,9 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_Link:
         break;
     case type_LinkList:
+        break;
+    case type_OldDateTime:
+        // not used
         break;
     }
     TR_ERR("ERROR: nativeSetMixed() failed.")
@@ -186,11 +189,11 @@ void row_nativeSetMixed(R* pRow, JNIEnv* env, jlong columnIndex, jobject jMixedV
             pRow->set_mixed( S(columnIndex), StringData(string));
             return;
         }
-    case type_DateTime:
+    case type_Timestamp:
         {
             jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
-            DateTime date(dateTimeValue);
-            pRow->set_mixed( S(columnIndex), Mixed(date));
+            Timestamp ts = from_milliseconds(dateTimeValue);
+            pRow->set_mixed( S(columnIndex), Mixed(ts));
             return;
         }
     case type_Binary:
@@ -229,6 +232,9 @@ void row_nativeSetMixed(R* pRow, JNIEnv* env, jlong columnIndex, jobject jMixedV
     case type_Link:
         break;
     case type_LinkList:
+        break;
+    case type_OldDateTime:
+        // not used
         break;
     }
     TR_ERR("ERROR: nativeSetMixed() failed.")

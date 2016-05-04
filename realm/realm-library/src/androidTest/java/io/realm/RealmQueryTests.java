@@ -45,6 +45,11 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
+import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
+import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -769,6 +774,190 @@ public class RealmQueryTests {
         }
     }
 
+    // Querying nullable PrimaryKey
+    @Test
+    public void equalTo_nullPrimaryKeys() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
+        // fill up a Realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 10, -5);
+
+        // String
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).equalTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY,             (String) null).findAll().first().getId());
+        // Boxed Byte
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).equalTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       (Byte) null).findAll().first().getName());
+        // Boxed Short
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).equalTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     (Short) null).findAll().first().getName());
+        // Boxed Integer
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).equalTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, (Integer) null).findAll().first().getName());
+        // Boxed Long
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       (Long) null).findAll().first().getName());
+    }
+
+    @Test
+    public void isNull_nullPrimaryKeys() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
+        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 10, -5);
+
+        // String
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).isNull(PrimaryKeyAsString.FIELD_PRIMARY_KEY).findAll().first().getId());
+        // Boxed Byte
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).isNull(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY).findAll().first().getName());
+        // Boxed Short
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).isNull(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY).findAll().first().getName());
+        // Boxed Integer
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).isNull(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY).findAll().first().getName());
+        // Boxed Long
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).isNull(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY).findAll().first().getName());
+    }
+
+    @Test
+    public void notEqualTo_nullPrimaryKeys() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
+        // fill up a realm with one user PrimaryKey value and one numeric values, starting from -1
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 2, -1);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 2, -1);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 2, -1);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING, 2, -1);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 2, -1);
+
+        // String
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).notEqualTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY,             "-1").findAll().first().getId());
+        // Boxed Byte
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).notEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       Byte.valueOf((byte)-1)).findAll().first().getName());
+        // Boxed Short
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).notEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     Short.valueOf((short)-1)).findAll().first().getName());
+        // Boxed Integer
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).notEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, Integer.valueOf(-1)).findAll().first().getName());
+        // Boxed Long
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       Long.valueOf((long)-1)).findAll().first().getName());
+    }
+
+    @Test
+    public void beginWith_nullStringPrimaryKey() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
+    }
+
+    @Test
+    public void contains_nullStringPrimaryKey() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
+    }
+
+    @Test
+    public void endsWith_nullStringPrimaryKey() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
+    }
+
+    @Test
+    public void between_nullPrimaryKeysIsNotZero() {
+        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+
+        // Boxed Byte
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedByte.class).between(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1, 1).count());
+        // Boxed Short
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedShort.class).between(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1, 1).count());
+        // Boxed Integer
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedInteger.class).between(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1, 1).count());
+        // Boxed Long
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1, 1).count());
+    }
+
+    @Test
+    public void greaterThan_nullPrimaryKeysIsNotZero() {
+        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+
+        // Boxed Byte
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedByte.class).greaterThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1).count());
+        // Boxed Short
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedShort.class).greaterThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1).count());
+        // Boxed Integer
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThan(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1).count());
+        // Boxed Long
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
+    }
+
+    @Test
+    public void greaterThanOrEqualTo_nullPrimaryKeysIsNotZero() {
+        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+
+        // Boxed Byte
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedByte.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1).count());
+        // Boxed Short
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedShort.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1).count());
+        // Boxed Integer
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1).count());
+        // Boxed Long
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
+    }
+
+    @Test
+    public void lessThan_nullPrimaryKeysIsNotZero() {
+        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+
+        // Boxed Byte
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedByte.class).lessThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
+        // Boxed Short
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedShort.class).lessThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     1).count());
+        // Boxed Integer
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedInteger.class).lessThan(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, 1).count());
+        // Boxed Long
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
+    }
+
+    @Test
+    public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
+        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+
+        // Boxed Byte
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
+        // Boxed Short
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedShort.class).lessThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     1).count());
+        // Boxed Integer
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedInteger.class).lessThanOrEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, 1).count());
+        // Boxed Long
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedLong.class).lessThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
+    }
+
     // Querying nullable fields, querying with equalTo null
     @Test
     public void equalTo_nullableFields() {
@@ -1119,7 +1308,7 @@ public class RealmQueryTests {
         assertEquals(4, query.max(NullTypes.FIELD_INTEGER_NULL).intValue());
         assertEquals(5f, query.max(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
         assertEquals(6d, query.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
-        assertEquals(12000, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
+        assertEquals(12345, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
     }
 
     // Test max on columns with partial null rows
@@ -1131,7 +1320,7 @@ public class RealmQueryTests {
         assertEquals(4, query.max(NullTypes.FIELD_INTEGER_NULL).intValue());
         assertEquals(5f, query.max(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
         assertEquals(6d, query.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
-        assertEquals(12000, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
+        assertEquals(12345, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
     }
 
     // Test average on empty columns
@@ -1638,6 +1827,7 @@ public class RealmQueryTests {
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        list.remove(RealmFieldType.UNSUPPORTED_DATE);
         NOT_SUPPORTED_IS_EMPTY_TYPES = list;
     }
 
@@ -1760,6 +1950,7 @@ public class RealmQueryTests {
         list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        list.remove(RealmFieldType.UNSUPPORTED_DATE);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
     }
 
@@ -2120,33 +2311,33 @@ public class RealmQueryTests {
             }
         };
 
-        distinctBool.addChangeListener(new RealmChangeListener() {
+        distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(2, distinctBool.size());
                 endTest.run();
             }
         });
 
-        distinctLong.addChangeListener(new RealmChangeListener() {
+        distinctLong.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctLong.size());
                 endTest.run();
             }
         });
 
-        distinctDate.addChangeListener(new RealmChangeListener() {
+        distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctDate.size());
                 endTest.run();
             }
         });
 
-        distinctString.addChangeListener(new RealmChangeListener() {
+        distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AnnotationIndexTypes> object) {
                 assertEquals(numberOfBlocks, distinctString.size());
                 endTest.run();
             }
@@ -2187,17 +2378,17 @@ public class RealmQueryTests {
 
                     Realm.asyncQueryExecutor.resume();
 
-                    distinctDate.addChangeListener(new RealmChangeListener() {
+                    distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
                             assertEquals(1, distinctDate.size());
                             signalCallbackFinished.countDown();
                         }
                     });
 
-                    distinctString.addChangeListener(new RealmChangeListener() {
+                    distinctString.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(RealmResults<AnnotationIndexTypes> object) {
                             assertEquals(1, distinctString.size());
                             signalCallbackFinished.countDown();
                         }

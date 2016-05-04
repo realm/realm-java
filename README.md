@@ -6,18 +6,18 @@ This repository holds the source code for the Java version of Realm, which curre
 ## Features
 
 * **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets and wearables.
-* **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](http://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
+* **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations, while maintaining an extremely rich feature set.
 
 ## Getting Started
 
-Please see the [detailed instructions in our docs](http://realm.io/docs/java/#installation) to add Realm to your project.
+Please see the [detailed instructions in our docs](https://realm.io/docs/java/#installation) to add Realm to your project.
 
 ## Documentation
 
-Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).
-The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/java/api).
+Documentation for Realm can be found at [realm.io/docs/java](https://realm.io/docs/java).
+The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/java/api).
 
 ## Getting Help
 
@@ -114,6 +114,7 @@ That command will generate:
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
  * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
  * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This saves recompilation time a lot.
+ * `./gradlew connectedCheck -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 
@@ -139,7 +140,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 ## License
 
 Realm Java is published under the Apache 2.0 license.
-The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/java/#faq).
+The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](https://realm.io/docs/java/#faq).
 
 **This product is not being made available to any person located in Cuba, Iran,
 North Korea, Sudan, Syria or the Crimea region, or to any other person that is

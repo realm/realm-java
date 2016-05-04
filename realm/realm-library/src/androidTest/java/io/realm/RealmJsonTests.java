@@ -246,10 +246,10 @@ public class RealmJsonTests {
         Calendar cal = GregorianCalendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("Australia/West"));
         cal.set(2015, Calendar.OCTOBER, 03, 14, 45, 33);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.MILLISECOND, 376);
         Date convDate = obj.getColumnDate();
 
-        assertEquals(convDate.getTime(), cal.getTime().getTime());
+        assertEquals(convDate.getTime(), cal.getTimeInMillis());
     }
 
     @Test
@@ -532,12 +532,10 @@ public class RealmJsonTests {
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
         cal.set(Calendar.MILLISECOND, 789);
         Date date = cal.getTime();
-        cal.set(Calendar.MILLISECOND, 0);
-        Date dateZeroMillis = cal.getTime();
 
         // Check that all primitive types are imported correctly
         AllTypes obj = realm.allObjects(AllTypes.class).first();
-        assertEquals(dateZeroMillis, obj.getColumnDate());
+        assertEquals(date, obj.getColumnDate());
     }
 
     @Test
@@ -1171,71 +1169,90 @@ public class RealmJsonTests {
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(0));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 2 Bytes
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(1));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 3 Boolean
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(2));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 4 Byte
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(3));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 5 Short
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(4));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 6 Integer
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(5));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 7 Long
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(6));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 8 Float
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(7));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 9 Double
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(8));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 10 Date
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(9));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
 
         realm.cancelTransaction();

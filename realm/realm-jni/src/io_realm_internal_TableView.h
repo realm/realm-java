@@ -97,10 +97,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeGetDouble
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeGetDateTimeValue
+ * Method:    nativeGetTimestamp
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetDateTimeValue
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -201,10 +201,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetDouble
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeSetDateTimeValue
+ * Method:    nativeSetTimestampValue
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetDateTimeValue
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetTimestampValue
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -465,18 +465,18 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeAverageDouble
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeMaximumDate
+ * Method:    nativeMaximumTimestamp
  * Signature: (JJ)Ljava/lang/Long;
  */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumTimestamp
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeMinimumDate
+ * Method:    nativeMinimumTimestamp
  * Signature: (JJ)Ljava/lang/Long;
  */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumTimestamp
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -561,10 +561,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeSync
+ * Method:    nativeSyncIfNeeded
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded
   (JNIEnv *, jobject, jlong);
 
 /*

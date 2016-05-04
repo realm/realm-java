@@ -57,6 +57,8 @@ class Realm implements Plugin<Project> {
         } else {
             project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("androidTestApt", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
     }
 

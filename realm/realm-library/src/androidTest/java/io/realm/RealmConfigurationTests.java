@@ -258,23 +258,23 @@ public class RealmConfigurationTests {
     public void setModules_nonRealmModulesThrows() {
         // Test first argument
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).setModules(new Object());
+            new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Test second argument
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).setModules(Realm.getDefaultModule(), new Object());
+            new RealmConfiguration.Builder(configFactory.getRoot()).modules(Realm.getDefaultModule(), new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void setModules() {
+    public void modules() {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(Realm.getDefaultModule(), (Object) null).build();
+                .modules(Realm.getDefaultModule(), (Object) null).build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
     }
@@ -381,11 +381,11 @@ public class RealmConfigurationTests {
     @Test
     public void equals_withCustomModules() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule(), new AnimalModule())
+                .modules(new HumanModule(), new AnimalModule())
                 .build();
 
         RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new AnimalModule(), new HumanModule())
+                .modules(new AnimalModule(), new HumanModule())
                 .build();
 
         assertTrue(config1.equals(config2));
@@ -394,10 +394,10 @@ public class RealmConfigurationTests {
     @Test
     public void hashCode_withCustomModules() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule(), new AnimalModule())
+                .modules(new HumanModule(), new AnimalModule())
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new AnimalModule(), new HumanModule())
+                .modules(new AnimalModule(), new HumanModule())
                 .build();
 
         assertEquals(config1.hashCode(), config2.hashCode());
@@ -543,7 +543,7 @@ public class RealmConfigurationTests {
     public void modelClassesForDefaultMediator() throws Exception {
         assertTrue(defaultConfig.getSchemaMediator() instanceof DefaultRealmModuleMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = defaultConfig.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = defaultConfig.getRealmObjectClasses();
 
         assertTrue(realmClasses.contains(AllTypes.class));
 
@@ -558,10 +558,10 @@ public class RealmConfigurationTests {
     @Test
     public void modelClasses_forGeneratedMediator() throws Exception {
         final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule()).build();
+                .modules(new HumanModule()).build();
         assertTrue(config.getSchemaMediator() instanceof HumanModuleMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
 
         assertFalse(realmClasses.contains(AllTypes.class));
         assertTrue(realmClasses.contains(CatOwner.class));
@@ -578,10 +578,10 @@ public class RealmConfigurationTests {
     @Test
     public void modelClasses_forCompositeMediator() throws Exception {
         final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .setModules(new HumanModule(), new AnimalModule()).build();
+                .modules(new HumanModule(), new AnimalModule()).build();
         assertTrue(config.getSchemaMediator() instanceof CompositeMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
 
         assertFalse(realmClasses.contains(AllTypes.class));
         assertTrue(realmClasses.contains(CatOwner.class));
@@ -602,7 +602,7 @@ public class RealmConfigurationTests {
                 .schema(AllTypes.class, CatOwner.class).build();
         assertTrue(config.getSchemaMediator() instanceof FilterableMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
 
         assertTrue(realmClasses.contains(AllTypes.class));
         assertTrue(realmClasses.contains(CatOwner.class));
@@ -630,7 +630,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
+            public <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
                 return null;
             }
 
@@ -640,7 +640,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
+            public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
                 return null;
             }
 
@@ -650,7 +650,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<E> from(Realm realm, E object) {
+            public <E extends RealmModel> Observable<E> from(Realm realm, E object) {
                 return null;
             }
 
@@ -660,7 +660,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+            public <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
                 return null;
             }
 
@@ -778,5 +778,28 @@ public class RealmConfigurationTests {
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    private static class MigrationWithNoEquals implements RealmMigration {
+        @Override
+        public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+            // Do nothing
+        }
+    }
+
+    @Test
+    public void detectMissingEqualsInCustomMigration() {
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+
+        Realm realm = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("The most likely cause is that equals() and hashCode() are not overridden"));
+        } finally {
+            realm.close();
+        }
     }
 }

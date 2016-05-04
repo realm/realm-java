@@ -103,13 +103,13 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_CheckedRow_nativeGetDouble
     return Java_io_realm_internal_UncheckedRow_nativeGetDouble(env, obj, nativeRowPtr, columnIndex);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetTimestamp
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
+    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Timestamp))
         return 0;
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetDateTime(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetTimestamp(env, obj, nativeRowPtr, columnIndex);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetString
@@ -211,13 +211,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDouble
     Java_io_realm_internal_UncheckedRow_nativeSetDouble(env, obj, nativeRowPtr, columnIndex, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetTimestamp
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
+    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Timestamp))
         return;
 
-    Java_io_realm_internal_UncheckedRow_nativeSetDate(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetTimestamp(env, obj, nativeRowPtr, columnIndex, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetString

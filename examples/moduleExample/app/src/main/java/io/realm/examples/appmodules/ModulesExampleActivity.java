@@ -65,14 +65,14 @@ public class ModulesExampleActivity extends Activity {
         // Spider, Cat, Dog }
         RealmConfiguration farmAnimalsConfig = new RealmConfiguration.Builder(this)
                 .name("farm.realm")
-                .setModules(Realm.getDefaultModule(), new DomesticAnimalsModule())
+                .modules(Realm.getDefaultModule(), new DomesticAnimalsModule())
                 .build();
 
         // Or you can completely replace the default schema.
         // This Realm contains the following classes: { Elephant, Lion, Zebra, Snake, Spider }
         RealmConfiguration exoticAnimalsConfig = new RealmConfiguration.Builder(this)
                 .name("exotic.realm")
-                .setModules(new ZooAnimalsModule(), new CreepyAnimalsModule())
+                .modules(new ZooAnimalsModule(), new CreepyAnimalsModule())
                 .build();
 
         // Multiple Realms can be open at the same time

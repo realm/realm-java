@@ -128,7 +128,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -490,12 +490,14 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void maxDate() {
-        assertEquals(new Date(YEAR_MILLIS * 20 * 4), collection.maxDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(TEST_SIZE, collection.size());
+        assertEquals(new Date(YEAR_MILLIS * 20 * (TEST_SIZE/2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
     public void minDate() {
-        assertEquals(new Date(YEAR_MILLIS * 20 * -5), collection.minDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(TEST_SIZE, collection.size());
+        assertEquals(new Date(- YEAR_MILLIS * 20 * TEST_SIZE/2), collection.minDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
@@ -783,3 +785,4 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
 }
+

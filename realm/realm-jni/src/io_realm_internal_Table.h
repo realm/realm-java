@@ -255,10 +255,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeGetDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeGetDateTime
+ * Method:    nativeGetTimestamp
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -383,10 +383,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeSetDate
+ * Method:    nativeSetTimestamp
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -404,6 +404,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
   (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeSetNull
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -575,18 +583,18 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeMaximumDate
+ * Method:    nativeMaximumTimestamp
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumDate
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumTimestamp
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeMinimumDate
+ * Method:    nativeMinimumTimestamp
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumDate
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumTimestamp
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -663,10 +671,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeFindFirstDate
+ * Method:    nativeFindFirstTimestamp
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDate
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -676,6 +684,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDate
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString
   (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeFindFirstNull
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -711,10 +727,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDouble
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeFindAllDate
+ * Method:    nativeFindAllTimestamp
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
