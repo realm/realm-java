@@ -40,6 +40,10 @@
 
 * `RealmChangeListener` on `RealmObject` is not triggered when adding listener on returned `RealmObject` of `copyToRealmOrUpdate()` (#2569).
 
+### Bug fixes
+
+* Fixed a bug where onSuccess might not be called with the right Realm version for async transaction (#1893).
+
 ### Credits
 
 * Thanks to Brenden Kromhout (@bkromhout) for adding `RealmObjectSchema.getPrimaryKey()`.
