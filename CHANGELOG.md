@@ -1,4 +1,4 @@
-## 0.91.0
+## 0.90.1
 
 * Updated Realm Core to 0.100.2.
 
@@ -7,6 +7,7 @@
 * Opening a Realm while closing a Realm in another thread could lead to a race condition.
 * Automatic migration to the new file format could in rare circumstances lead to a crash.
 * Fixing a race condition that may occur when using Async API (#2724).
+* Fixed CannotCompileException when related class definition in android.jar cannot be found (#2703).
 
 ### Enhancements
 
