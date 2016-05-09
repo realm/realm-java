@@ -49,7 +49,7 @@ public final class RealmAsyncTask {
         // first thread is attempting to purge the queue the attempt to purge
         // the queue fails and the cancelled object remain in the queue.
         // A better way to cancel objects with thread pools is to use the remove()
-        Realm.asyncQueryExecutor.getQueue().remove(pendingQuery);
+        Realm.asyncTaskExecutor.getQueue().remove(pendingQuery);
     }
 
     /**
