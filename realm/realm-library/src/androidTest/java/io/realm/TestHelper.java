@@ -951,7 +951,7 @@ public class TestHelper {
      * @param executor {@link RealmThreadPoolExecutor} that should replace the current one
      */
     public static RealmThreadPoolExecutor replaceRealmThreadExectutor(RealmThreadPoolExecutor executor) throws NoSuchFieldException, IllegalAccessException {
-        Field field = BaseRealm.class.getDeclaredField("asyncQueryExecutor");
+        Field field = BaseRealm.class.getDeclaredField("asyncTaskExecutor");
         field.setAccessible(true);
         RealmThreadPoolExecutor oldExecutor = (RealmThreadPoolExecutor) field.get(null);
         field.set(field, executor);
