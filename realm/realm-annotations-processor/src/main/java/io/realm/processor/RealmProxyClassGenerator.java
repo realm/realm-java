@@ -927,6 +927,11 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
+    /**
+     * Currently, the hash value emitted from this could suddenly change as an object's index might
+     * alternate along with the changes of the Realm. It is therefore advisable not to solely
+     * rely on the hash value to identify an instance of RealmObject.
+     */
     private void emitHashcodeMethod(JavaWriter writer) throws IOException {
         if (metadata.containsHashCode()) {
             return;
