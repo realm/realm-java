@@ -643,7 +643,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Currently, the hash value returned from this could suddenly change as the object's index might
-     * become different along with the changes of the Realm. Thus, it is  advisable not to solely rely
+     * become different along with the changes of the Realm. Thus, it is advisable not to solely rely
      * on the hash value to identify an instance of {@link DynamicRealmObject}.
      *
      * @return hashCode an unique object id.
