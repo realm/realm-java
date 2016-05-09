@@ -329,6 +329,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * {@inheritDoc}
+     *
+     * @return a new sorted {@link RealmResults}. The original {@link RealmResults} stays unchanged.
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
@@ -337,6 +339,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * {@inheritDoc}
+     *
+     * @return a new sorted {@link RealmResults}. The original {@link RealmResults} stays unchanged.
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
@@ -345,6 +349,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * {@inheritDoc}
+     *
+     * @return a new sorted {@link RealmResults}. The original {@link RealmResults} stays unchanged.
      */
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
@@ -353,6 +359,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * {@inheritDoc}
+     *
+     * @return a new sorted {@link RealmResults}. The original {@link RealmResults} stays unchanged.
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
