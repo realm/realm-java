@@ -552,7 +552,6 @@ public final class Realm extends BaseRealm {
         checkHasPrimaryKey(clazz);
         try {
             E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
-            handlerController.addToRealmObjects(realmObject);
             return realmObject;
         } catch (JSONException e) {
             throw new RealmException("Could not map JSON", e);
@@ -952,6 +951,29 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
         return RealmQuery.createQuery(this, clazz);
+    }
+
+    /**
+     * Adds a change listener to the Realm.
+     * <p>
+     * The listeners will be executed:
+     * <ul>
+     * <li>Immediately if a change was committed by the local thread</li>
+     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * </ul>
+     *
+     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
+     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
+     *
+     * @param listener the change listener.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
+     * @see #removeChangeListener(RealmChangeListener)
+     * @see #removeAllChangeListeners()
+     */
+    public void addChangeListener(RealmChangeListener<Realm> listener) {
+        super.addListener(listener);
     }
 
     /**

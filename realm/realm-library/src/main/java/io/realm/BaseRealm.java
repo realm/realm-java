@@ -125,26 +125,7 @@ abstract class BaseRealm implements Closeable {
         return !sharedGroupManager.isImmutable();
     }
 
-    /**
-     * Adds a change listener to the Realm.
-     * <p>
-     * The listeners will be executed:
-     * <ul>
-     * <li>Immediately if a change was committed by the local thread</li>
-     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
-     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
-     * </ul>
-     *
-     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
-     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
-     *
-     * @param listener the change listener.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
-     * @see io.realm.RealmChangeListener
-     * @see #removeChangeListener(RealmChangeListener)
-     * @see #removeAllChangeListeners()
-     */
-    public void addChangeListener(RealmChangeListener listener) {
+    protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
@@ -158,9 +139,8 @@ abstract class BaseRealm implements Closeable {
      * @param listener the change listener to be removed.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
-     * @see #addChangeListener(RealmChangeListener)
      */
-    public void removeChangeListener(RealmChangeListener listener) {
+    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
@@ -193,7 +173,6 @@ abstract class BaseRealm implements Closeable {
      *
      * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
-     * @see #addChangeListener(RealmChangeListener)
      */
     public void removeAllChangeListeners() {
         checkIfValid();
@@ -264,8 +243,10 @@ abstract class BaseRealm implements Closeable {
      * It also calls the listeners associated to the Realm instance.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @deprecated Please use {@link #waitForChange()} instead.
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public void refresh() {
         checkIfValid();
         if (isInTransaction()) {
@@ -279,6 +260,54 @@ abstract class BaseRealm implements Closeable {
         } else {
             handlerController.notifyCurrentThreadRealmChanged();
         }
+    }
+
+    /**
+     * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange()}
+     * is called from another thread. Once stopWaitForChange is called, all future calls to this method will
+     * return false immediately.
+     *
+     * @return {@code true} if the Realm was updated to the latest version, {@code false} if it was
+     * cancelled by calling stopWaitForChange.
+     * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
+     */
+    public boolean waitForChange() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
+        }
+        if (Looper.myLooper() != null) {
+            throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
+        }
+        boolean hasChanged = sharedGroupManager.getSharedGroup().waitForChange();
+        if (hasChanged) {
+            // Since this Realm instance has been waiting for change, advance realm & refresh realm.
+            sharedGroupManager.advanceRead();
+            handlerController.refreshSynchronousTableViews();
+        }
+        return hasChanged;
+    }
+
+    /**
+     * Makes any current {@link #waitForChange()} return {@code false} immediately. Once this is called,
+     * all future calls to waitForChange will immediately return {@code false}.
+     * <p>
+     * This method is thread-safe and should _only_ be called from another thread than the one that
+     * called waitForChange.
+     *
+     * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
+     */
+    public void stopWaitForChange() {
+        RealmCache.invokeWithLock(new RealmCache.Callback0() {
+            @Override
+            public void onCall() {
+                // Check if the Realm instance has been closed
+                if (sharedGroupManager == null || !sharedGroupManager.isOpen() || sharedGroupManager.getSharedGroup().isClosed()) {
+                    throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+                }
+                sharedGroupManager.getSharedGroup().stopWaitForChange();
+            }
+        });
     }
 
     /**
@@ -525,9 +554,6 @@ abstract class BaseRealm implements Closeable {
         proxy.realmGet$proxyState().setRealm$realm(this);
         proxy.realmGet$proxyState().setTableVersion$realm();
 
-        if (handlerController != null) {
-            handlerController.addToRealmObjects(result);
-        }
         return result;
     }
 
@@ -555,7 +581,6 @@ abstract class BaseRealm implements Closeable {
             proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
         }
 
-        handlerController.addToRealmObjects(result);
         return result;
     }
 
@@ -571,10 +596,33 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    static private boolean deletes(String canonicalPath, File rootFolder, String realmFileName) {
+        final AtomicBoolean realmDeleted = new AtomicBoolean(true);
+
+        List<File> filesToDelete = Arrays.asList(
+                new File(rootFolder, realmFileName),
+                new File(rootFolder, realmFileName + ".lock"),
+                new File(rootFolder, realmFileName + ".log_a"),
+                new File(rootFolder, realmFileName + ".log_b"),
+                new File(rootFolder, realmFileName + ".log"),
+                new File(canonicalPath));
+        for (File fileToDelete : filesToDelete) {
+            if (fileToDelete.exists()) {
+                boolean deleteResult = fileToDelete.delete();
+                if (!deleteResult) {
+                    realmDeleted.set(false);
+                    RealmLog.w("Could not delete the file " + fileToDelete);
+                }
+            }
+        }
+        return realmDeleted.get();
+    }
+
     /**
      * Deletes the Realm file defined by the given configuration.
      */
     static boolean deleteRealm(final RealmConfiguration configuration) {
+        final String management = ".management";
         final AtomicBoolean realmDeleted = new AtomicBoolean(true);
 
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
@@ -588,20 +636,10 @@ abstract class BaseRealm implements Closeable {
                 String canonicalPath = configuration.getPath();
                 File realmFolder = configuration.getRealmFolder();
                 String realmFileName = configuration.getRealmFileName();
-                List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
-                        new File(realmFolder, realmFileName + ".lock"),
-                        new File(realmFolder, realmFileName + ".log_a"),
-                        new File(realmFolder, realmFileName + ".log_b"),
-                        new File(realmFolder, realmFileName + ".log"));
-                for (File fileToDelete : filesToDelete) {
-                    if (fileToDelete.exists()) {
-                        boolean deleteResult = fileToDelete.delete();
-                        if (!deleteResult) {
-                            realmDeleted.set(false);
-                            RealmLog.w("Could not delete the file " + fileToDelete);
-                        }
-                    }
-                }
+                File managementFolder = new File(realmFolder, realmFileName + management);
+                realmDeleted.set(deletes(realmFolder.getPath()+ "/" + realmFileName + management, managementFolder, realmFileName));
+                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
+
             }
         });
 

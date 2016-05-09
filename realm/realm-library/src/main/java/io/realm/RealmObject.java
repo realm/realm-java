@@ -218,8 +218,8 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
-    public final void addChangeListener(RealmChangeListener listener) {
-        RealmObject.addChangeListener(this, listener);
+    public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
+        RealmObject.addChangeListener((E) this, listener);
     }
 
     /**
@@ -229,7 +229,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
-    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener listener) {
+    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -243,6 +243,12 @@ public abstract class RealmObject implements RealmModel {
             List<RealmChangeListener> listeners = proxy.realmGet$proxyState().getListeners$realm();
             if (!listeners.contains(listener)) {
                 listeners.add(listener);
+            }
+            if (isLoaded(proxy)) {
+                // Try to add this object to the realmObjects if it has already been loaded.
+                // For newly created async objects, it will be handled in RealmQuery.findFirstAsync &
+                // HandlerController.completedAsyncRealmObject.
+                realm.handlerController.addToRealmObjects(proxy);
             }
         } else {
             throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");

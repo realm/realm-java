@@ -15,8 +15,6 @@
  */
 package io.realm;
 
-import android.util.Log;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,6 +41,10 @@ final class RealmCache {
 
     interface Callback {
         void onResult(int count);
+    }
+
+    interface Callback0 {
+        void onCall();
     }
 
     private static class RefAndCount {
@@ -235,6 +237,19 @@ final class RealmCache {
         if (!Arrays.equals(configuration.getEncryptionKey(), newConfiguration.getEncryptionKey())) {
             throw new IllegalArgumentException(DIFFERENT_KEY_MESSAGE);
         } else {
+            // A common problem is that people are forgetting to override `equals` in their custom migration class.
+            // Try to detect this problem specifically so we can throw a better error message.
+            RealmMigration newMigration = newConfiguration.getMigration();
+            RealmMigration oldMigration = configuration.getMigration();
+            if (oldMigration != null 
+                && newMigration != null 
+                && oldMigration.getClass().equals(newMigration.getClass())
+                && !newMigration.equals(oldMigration)) {
+                throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
+                        "The most likely cause is that equals() and hashCode() are not overridden in the " +
+                        "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
+            }
+
             throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
                     "\nCached configuration: \n" + configuration +
                     "\n\nNew configuration: \n" + newConfiguration);
@@ -259,6 +274,15 @@ final class RealmCache {
             totalRefCount += cache.refAndCountMap.get(type).globalCount;
         }
         callback.onResult(totalRefCount);
+    }
+
+   /**
+     * Runs the callback function with synchronization on {@class RealmCache}.
+     *
+     * @param callback the callback will be executed.
+     */
+    static synchronized void invokeWithLock(Callback0 callback) {
+        callback.onCall();
     }
 
     /**

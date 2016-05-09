@@ -1,12 +1,19 @@
 ## 0.90.0
 
+* Updated Realm Core to 0.100.0.
+
 ### Breaking changes
 
+* RealmChangeListener provides the changed object/Realm/collection as well (#1594).
 * All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
 * Marked all methods on `RealmObject` and all public classes final (#1594).
 * Removed `BaseRealm` from the public API.
 * Removed `HandlerController` from the public API.
-* Removed constructor of `RealmAsyncTask` from the public API8 (#1594).
+* Removed constructor of `RealmAsyncTask` from the public API (#1594).
+* `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
+  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
+* File format of Realm files is changed. Files will be automatically upgraded but opening a Realm file with older
+  versions of Realm is not possible.
 
 ### Deprecated
 
@@ -18,11 +25,20 @@
 * `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
 * `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+* `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
 
 ### Enhancements
 
-* `RealmObjectSchema.getPrimaryKey()`. (#2636)
+* `RealmObjectSchema.getPrimaryKey()` (#2636).
 * `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+* Unit tests in Android library projects now detect Realm model classes.
+* Better error message if `equals()` and `hashCode()` are not properly overridden in custom Migration classes.
+* Expanding the precision of `Date` fields to cover full range (#833).
+* `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
+
+### Bug fixes
+
+* `RealmChangeListener` on `RealmObject` is not triggered when adding listener on returned `RealmObject` of `copyToRealmOrUpdate()` (#2569).
 
 ### Credits
 
@@ -46,6 +62,7 @@
 * `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
 * `RealmList.first()` and `RealmList.last()` now throw `ArrayIndexOutOfBoundsException` if `RealmList` is empty.
 * Removed deprecated method `Realm.getTable()` from public API.
+* `Realm.refresh()` and `DynamicRealm.refresh()` on a Looper no longer have any effect. `RealmObject` and `RealmResults` are always updated on the next event loop.
 
 ### Deprecated
 

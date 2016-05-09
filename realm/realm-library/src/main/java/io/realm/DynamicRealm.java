@@ -97,7 +97,6 @@ public final class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
-        handlerController.addToRealmObjects(dynamicRealmObject);
         return dynamicRealmObject;
     }
 
@@ -115,6 +114,30 @@ public final class DynamicRealm extends BaseRealm {
             throw new IllegalArgumentException("Class does not exist in the Realm so it cannot be queried: " + className);
         }
         return RealmQuery.createDynamicQuery(this, className);
+    }
+
+
+    /**
+     * Adds a change listener to the Realm.
+     * <p>
+     * The listeners will be executed:
+     * <ul>
+     * <li>Immediately if a change was committed by the local thread</li>
+     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * </ul>
+     *
+     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
+     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
+     *
+     * @param listener the change listener.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
+     * @see #removeChangeListener(RealmChangeListener)
+     * @see #removeAllChangeListeners()
+     */
+    public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
+        super.addListener(listener);
     }
 
     /**

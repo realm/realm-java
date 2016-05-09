@@ -33,7 +33,8 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
     if (!(column_type == type_String ||
                 column_type == type_Int ||
                 column_type == type_Bool ||
-                column_type == type_DateTime)) {
+                column_type == type_Timestamp ||
+                column_type == type_OldDateTime)) {
         ThrowException(env, IllegalArgument,
                 "This field cannot be indexed - "
                 "Only String/byte/short/int/long/boolean/Date fields are supported.");
@@ -166,7 +167,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
 }
 
 
-// General comments about the implementation of 
+// General comments about the implementation of
 // Java_io_realm_internal_Table_nativeConvertColumnToNullable and Java_io_realm_internal_Table_nativeConvertColumnToNotNullable
 //
 // 1. converting a (not-)nullable column is idempotent (and is implemented as a no-op)
@@ -212,8 +213,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         while (true) {
             std::ostringstream ss;
             ss << std::string("__TMP__") << j;
-            if (table->get_column_index(ss.str()) == realm::not_found) {
-                table->insert_column(column_index, column_type, ss.str(), true);
+            std::string str = ss.str();
+            StringData sd(str);
+            if (table->get_column_index(sd) == realm::not_found) {
+                table->insert_column(column_index, column_type, sd, true);
                 tmp_column_name = ss.str();
                 break;
             }
@@ -222,10 +225,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 
         for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) {
-                case type_String:
+               case type_String: {
                     // Payload copy is needed
-                    table->set_string(column_index, i, std::string(table->get_string(column_index + 1, i)));
+                    StringData sd(table->get_string(column_index + 1, i));
+                    table->set_string(column_index, i, sd);
                     break;
+                }
                 case type_Binary: {
                     // Payload copy is needed
                     BinaryData bd = table->get_binary(column_index + 1, i);
@@ -239,8 +244,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                 case type_Bool:
                     table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
                     break;
-                case type_DateTime:
-                    table->set_datetime(column_index, i, table->get_datetime(column_index + 1, i));
+                case type_Timestamp:
+                    table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
                     break;
                 case type_Float:
                     table->set_float(column_index, i, table->get_float(column_index + 1, i));
@@ -254,6 +259,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                 case type_Table:
                     // checked previously
                     break;
+                case type_OldDateTime:
+                    ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
+                    return;
             }
         }
         if (table->has_search_index(column_index + 1)) {
@@ -279,7 +287,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         size_t column_index = S(columnIndex);
         if (!table->is_nullable(column_index)) {
             return; // column is already not nullable
-        } 
+        }
 
         std::string column_name = table->get_column_name(column_index);
         DataType column_type = table->get_column_type(column_index);
@@ -295,8 +303,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         while (true) {
             std::ostringstream ss;
             ss << std::string("__TMP__") << j;
-            if (table->get_column_index(ss.str()) == realm::not_found) {
-                table->insert_column(column_index, column_type, ss.str(), false);
+            std::string str = ss.str();
+            StringData sd(str);
+            if (table->get_column_index(sd) == realm::not_found) {
+                table->insert_column(column_index, column_type, sd, false);
                 tmp_column_name = ss.str();
                 break;
             }
@@ -312,7 +322,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                     }
                     else {
                         // Payload copy is needed
-                        table->set_string(column_index, i, std::string(sd));
+                        table->set_string(column_index, i, sd);
                     }
                     break;
                 }
@@ -344,12 +354,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                         table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
                     }
                     break;
-                case type_DateTime:
+                case type_Timestamp:
                     if (table->is_null(column_index + 1, i)) {
-                        table->set_datetime(column_index, i, static_cast<time_t>(0));
+                        table->set_timestamp(column_index, i, Timestamp(0, 0));
                     }
                     else {
-                        table->set_datetime(column_index, i, table->get_datetime(column_index + 1, i));
+                        table->set_timestamp(column_index, i, table->get_timestamp(column_index + 1, i));
                     }
                     break;
                 case type_Float:
@@ -374,6 +384,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                 case type_Table:
                     // checked previously
                     break;
+                case type_OldDateTime:
+                    // not used
+                    ThrowException(env, UnsupportedOperation, "The old DateTime type is not supported.");
+                    return;
             }
         }
         if (table->has_search_index(column_index + 1)) {
@@ -592,12 +606,15 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeGetDouble(
     return TBL(nativeTablePtr)->get_double( S(columnIndex), S(rowIndex));  // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDateTime(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_DateTime))
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Timestamp))
         return 0;
-    return TBL(nativeTablePtr)->get_datetime( S(columnIndex), S(rowIndex)).get_datetime();  // noexcept
+    try {
+        return to_milliseconds(TBL(nativeTablePtr)->get_timestamp( S(columnIndex), S(rowIndex)));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(
@@ -783,13 +800,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDate(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong dateTimeValue)
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong timestampValue)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_DateTime))
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Timestamp))
         return;
     try {
-        TBL(nativeTablePtr)->set_datetime( S(columnIndex), S(rowIndex), dateTimeValue);
+        TBL(nativeTablePtr)->set_timestamp( S(columnIndex), S(rowIndex), from_milliseconds(timestampValue));
     } CATCH_STD()
 }
 
@@ -1065,26 +1082,24 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeAverageDouble(
 
 //--------------------- Aggregate methods for date
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMaximumTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        // This exploits the fact that dates are stored as int in core
-        return TBL(nativeTablePtr)->maximum_int( S(columnIndex));
+        return to_milliseconds(TBL(nativeTablePtr)->maximum_timestamp( S(columnIndex)));
     } CATCH_STD()
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMinimumTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        // This exploits the fact that dates are stored as int in core
-        return TBL(nativeTablePtr)->minimum_int( S(columnIndex));
+        return to_milliseconds(TBL(nativeTablePtr)->minimum_timestamp( S(columnIndex)));
     } CATCH_STD()
     return 0;
 }
@@ -1197,14 +1212,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDate(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        size_t res = TBL(nativeTablePtr)->find_first_datetime( S(columnIndex), DateTime(dateTimeValue));
-        return to_jlong_or_not_found( res );
+        size_t res = TBL(nativeTablePtr)->find_first_timestamp( S(columnIndex), from_milliseconds(dateTimeValue));
+        return to_jlong_or_not_found(res);
     } CATCH_STD()
     return 0;
 }
@@ -1285,18 +1300,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllBool(
     return reinterpret_cast<jlong>(pTableView);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate(
+// FIXME: reenable when find_first_timestamp() is implemented
+/*
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllTimestamp(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Timestamp))
         return 0;
     try {
-        TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_datetime( S(columnIndex),
-                                            DateTime(dateTimeValue)) );
+        TableView* pTableView = new TableView(TBL(nativeTablePtr)->find_all_timestamp(S(columnIndex), from_milliseconds(dateTimeValue)));
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
 }
+*/
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllString(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring value)
@@ -1358,15 +1375,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
     switch (pTable->get_column_type(S(columnIndex))) {
         case type_Bool:
         case type_Int:
-        case type_DateTime:
         case type_String:
+        case type_Timestamp:
             try {
                 TableView* pTableView = new TableView( pTable->get_distinct_view(S(columnIndex)) );
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
             break;
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
             return 0;
         break;
     }
@@ -1384,16 +1401,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
     switch (colType) {
         case type_Int:
         case type_Bool:
-        case type_DateTime:
         case type_String:
         case type_Double:
         case type_Float:
+        case type_Timestamp:
             try {
                 TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
         default:
-            ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
+            ThrowException(env, IllegalArgument, "Sort is only support on String, Date, boolean, byte, short, int, long and their boxed variants.");
             return 0;
     }
     return 0;
@@ -1433,15 +1450,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         switch (colType) {
             case type_Int:
             case type_Bool:
-            case type_DateTime:
             case type_String:
             case type_Double:
             case type_Float:
+            case type_Timestamp:
                 indices[i] = S(long_arr[i]);
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
+                ThrowException(env, IllegalArgument, "Sort is only support on String, Date, boolean, byte, short, int, long and their boxed variants.");
                 return 0;
         }
     }
@@ -1623,7 +1640,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     try {
         Table* table = TBL(nativeTablePtr);
         Table* pk_table = TBL(nativePrivateKeyTablePtr);
-        const std::string table_name(table->get_name().substr(strlen(TABLE_PREFIX))); // Remove "class_" prefix
+        const std::string table_name(table->get_name().substr(TABLE_PREFIX.length())); // Remove "class_" prefix
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
@@ -1697,7 +1714,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
             size_t col_ndx = static_cast<size_t>(pk_table->get_int(FIELD_COLUMN_INDEX, row_ndx));
             StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
             // Make a copy of the string
-            pk_table->set_string(tmp_col_ndx, row_ndx, std::string(col_name));
+            pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
         }
 
         // Delete old int column, and rename tmp column to same name
@@ -1712,7 +1729,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
         if (table_name.begins_with(TABLE_PREFIX)) {
             // New string copy is needed, since the original memory will be changed.
-            pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, std::string(table_name.substr(strlen(TABLE_PREFIX))));
+            std::string str(table_name.substr(TABLE_PREFIX.length()));
+            StringData sd(str);
+            pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, sd);
         }
     }
 }

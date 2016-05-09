@@ -529,7 +529,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             case DATE:
                 if (value == null)
                     throw new IllegalArgumentException("Null Date is not allowed.");
-                nativeSetDate(nativePtr, columnIndex, rowIndex, ((Date) value).getTime() / 1000);
+                nativeSetTimestamp(nativePtr, columnIndex, rowIndex, ((Date) value).getTime());
                 break;
             case UNSUPPORTED_MIXED:
                 if (value == null)
@@ -710,7 +710,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public Date getDate(long columnIndex, long rowIndex) {
-        return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
+        return new Date(nativeGetTimestamp(nativePtr, columnIndex, rowIndex));
     }
 
     /**
@@ -892,7 +892,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (date == null)
             throw new IllegalArgumentException("Null Date is not allowed.");
         checkImmutable();
-        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
+        nativeSetTimestamp(nativePtr, columnIndex, rowIndex, date.getTime());
     }
 
     /**
@@ -1152,12 +1152,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public Date maximumDate(long columnIndex) {
-        return new Date(nativeMaximumDate(nativePtr, columnIndex) * 1000);
+        return new Date(nativeMaximumTimestamp(nativePtr, columnIndex));
     }
 
     @Override
     public Date minimumDate(long columnIndex) {
-        return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
+        return new Date(nativeMinimumTimestamp(nativePtr, columnIndex));
     }
 
     //
@@ -1237,7 +1237,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (date == null) {
             throw new IllegalArgumentException("null is not supported");
         }
-        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
+        return nativeFindFirstTimestamp(nativePtr, columnIndex, date.getTime());
     }
 
     @Override
@@ -1301,19 +1301,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
-    }
-
-    @Override
-    public TableView findAllDate(long columnIndex, Date date) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000);
         try {
             return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
@@ -1482,7 +1469,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
     private native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
     private native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
-    private native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex);
     private native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
     private native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
@@ -1498,7 +1485,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
     private native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
     private native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
-    private native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
+    private native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
     private native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     private native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
@@ -1523,8 +1510,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native double nativeMaximumDouble(long nativePtr, long columnIndex);
     private native double nativeMinimumDouble(long nativePtr, long columnIndex);
     private native double nativeAverageDouble(long nativePtr, long columnIndex);
-    private native long nativeMaximumDate(long nativePtr, long columnIndex);
-    private native long nativeMinimumDate(long nativePtr, long columnIndex);
+    private native long nativeMaximumTimestamp(long nativePtr, long columnIndex);
+    private native long nativeMinimumTimestamp(long nativePtr, long columnIndex);
     private native long nativeCountLong(long nativePtr, long columnIndex, long value);
     private native long nativeCountFloat(long nativePtr, long columnIndex, float value);
     private native long nativeCountDouble(long nativePtr, long columnIndex, double value);
@@ -1534,14 +1521,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
-    private native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnIndex, long dateTimeValue);
     private native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
     private native long nativeFindFirstNull(long nativePtr, long columnIndex);
     private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
-    private native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindAllTimestamp(long nativePtr, long columnIndex, long dateTimeValue);
     private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
     private native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     private native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);

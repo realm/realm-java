@@ -337,10 +337,9 @@ public class DynamicRealmTests {
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
         assertFalse(allTypes.isLoaded());
-
-        allTypes.addChangeListener(new RealmChangeListener() {
+        allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
-            public void onChange() {
+            public void onChange(DynamicRealmObject object) {
                 assertEquals("test data 4", allTypes.getString(AllTypes.FIELD_STRING));
                 dynamicRealm.close();
                 looperThread.testComplete();
@@ -359,9 +358,9 @@ public class DynamicRealmTests {
         assertFalse(allTypes.isLoaded());
         assertEquals(0, allTypes.size());
 
-        allTypes.addChangeListener(new RealmChangeListener() {
+        allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals(6, allTypes.size());
                 for (int i = 0; i < allTypes.size(); i++) {
                     assertEquals("test data " + (4 + i), allTypes.get(i).getString(AllTypes.FIELD_STRING));
@@ -382,9 +381,9 @@ public class DynamicRealmTests {
         assertFalse(allTypes.isLoaded());
         assertEquals(0, allTypes.size());
 
-        allTypes.addChangeListener(new RealmChangeListener() {
+        allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals(5, allTypes.size());
                 for (int i = 0; i < 5; i++) {
                     int iteration = (4 - i);
@@ -450,9 +449,9 @@ public class DynamicRealmTests {
             }
         };
 
-        realmResults1.addChangeListener(new RealmChangeListener() {
+        realmResults1.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 0", realmResults1.get(0).get(AllTypes.FIELD_STRING));
                 assertEquals(3L, realmResults1.get(0).get(AllTypes.FIELD_LONG));
                 assertEquals("data 0", realmResults1.get(1).get(AllTypes.FIELD_STRING));
@@ -480,9 +479,9 @@ public class DynamicRealmTests {
             }
         });
 
-        realmResults2.addChangeListener(new RealmChangeListener() {
+        realmResults2.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 2", realmResults2.get(0).get(AllTypes.FIELD_STRING));
                 assertEquals(1L, realmResults2.get(0).get(AllTypes.FIELD_LONG));
                 assertEquals("data 2", realmResults2.get(1).get(AllTypes.FIELD_STRING));
