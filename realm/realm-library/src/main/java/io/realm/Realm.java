@@ -1128,7 +1128,7 @@ public final class Realm extends BaseRealm {
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
-        final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+        final Future<?> pendingTransaction = asyncTaskExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (Thread.currentThread().isInterrupted()) {
@@ -1192,7 +1192,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new RealmAsyncTask(pendingQuery);
+        return new RealmAsyncTask(pendingTransaction);
     }
 
     /**
@@ -1269,7 +1269,7 @@ public final class Realm extends BaseRealm {
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
-        final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+        final Future<?> pendingTransaction= asyncTaskExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (Thread.currentThread().isInterrupted()) {
@@ -1363,7 +1363,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new RealmAsyncTask(pendingQuery);
+        return new RealmAsyncTask(pendingTransaction);
     }
 
 
