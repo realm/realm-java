@@ -33,6 +33,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -1688,7 +1689,7 @@ public class RealmObjectTests {
         realm.beginTransaction();
         AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
         realm.commitTransaction();
-        final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
+        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
                 realm.handlerController.realmObjects;
 
         assertTrue(realmObjects.isEmpty());
@@ -1712,7 +1713,7 @@ public class RealmObjectTests {
         realm.beginTransaction();
         AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
         realm.commitTransaction();
-        final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
+        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
                 realm.handlerController.realmObjects;
 
         for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
@@ -1745,7 +1746,7 @@ public class RealmObjectTests {
         realm.beginTransaction();
         realm.createObject(AllTypesPrimaryKey.class, 1);
         realm.commitTransaction();
-        final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
+        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
                 realm.handlerController.realmObjects;
 
         final AllTypesPrimaryKey allTypesPrimaryKey = realm.where(AllTypesPrimaryKey.class).findFirstAsync();
@@ -1763,7 +1764,7 @@ public class RealmObjectTests {
             }
         });
         assertEquals(1, realmObjects.size());
-        for (RealmQuery<? extends RealmModel> query : realmObjects.values()) {
+        for (Object query : realmObjects.values()) {
             assertNotNull(query);
         }
     }

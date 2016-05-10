@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
@@ -41,6 +42,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -1945,6 +1947,95 @@ public class RealmAsyncQueryTests {
 
         // 3. The async query should now (hopefully) fail with a BadVersion
         result.load();
+    }
+
+    // handlerController#emptyAsyncRealmObject is accessed from different threads
+    // make sure that we iterate over it safely without any race condition (ConcurrentModification)
+    @Test
+    @RunTestInLooperThread
+    public void concurrentModificationEmptyAsyncRealmObject() {
+        final Realm realm = looperThread.realm;
+        Dog dog1 = new Dog();
+        dog1.setName("Dog 1");
+
+        Dog dog2 = new Dog();
+        dog2.setName("Dog 2");
+
+        realm.beginTransaction();
+        dog1 = realm.copyToRealm(dog1);
+        dog2 = realm.copyToRealm(dog2);
+        realm.commitTransaction();
+
+        final WeakReference<RealmObjectProxy> weakReference1 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog1);
+        final WeakReference<RealmObjectProxy> weakReference2 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog2);
+
+        final RealmQuery<Dog> dummyQuery = RealmQuery.createQuery(realm, Dog.class);
+        looperThread.realm.handlerController.emptyAsyncRealmObject.put(weakReference1, dummyQuery);
+
+        final CountDownLatch dogAddFromBg = new CountDownLatch(1);
+        Iterator<Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>>> iterator = looperThread.realm.handlerController.emptyAsyncRealmObject.entrySet().iterator();
+        AtomicBoolean fireOnce = new AtomicBoolean(true);
+        while (iterator.hasNext()) {
+            Dog next = (Dog) iterator.next().getKey().get();
+            // add a new Dog from a background thread
+            if (fireOnce.compareAndSet(true, false)) {
+                new Thread() {
+                    @Override
+                    public void run() {
+                        looperThread.realm.handlerController.emptyAsyncRealmObject.put(weakReference2, dummyQuery);
+                        dogAddFromBg.countDown();
+                    }
+                }.start();
+                TestHelper.awaitOrFail(dogAddFromBg);
+            }
+            assertEquals("Dog 1", next.getName());
+        }
+
+        looperThread.testComplete();
+    }
+
+    // handlerController#realmObjects is accessed from different threads
+    // make sure that we iterate over it safely without any race condition (ConcurrentModification)
+    @Test
+    @RunTestInLooperThread
+    public void concurrentModificationRealmObjects() {
+        final Realm realm = looperThread.realm;
+        Dog dog1 = new Dog();
+        dog1.setName("Dog 1");
+
+        Dog dog2 = new Dog();
+        dog2.setName("Dog 2");
+
+        realm.beginTransaction();
+        dog1 = realm.copyToRealm(dog1);
+        dog2 = realm.copyToRealm(dog2);
+        realm.commitTransaction();
+
+        final WeakReference<RealmObjectProxy> weakReference1 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog1);
+        final WeakReference<RealmObjectProxy> weakReference2 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog2);
+
+        looperThread.realm.handlerController.realmObjects.put(weakReference1, Boolean.TRUE);
+
+        final CountDownLatch dogAddFromBg = new CountDownLatch(1);
+        Iterator<Map.Entry<WeakReference<RealmObjectProxy>, Object>> iterator = looperThread.realm.handlerController.realmObjects.entrySet().iterator();
+        AtomicBoolean fireOnce = new AtomicBoolean(true);
+        while (iterator.hasNext()) {
+            Dog next = (Dog) iterator.next().getKey().get();
+            // add a new Dog from a background thread
+            if (fireOnce.compareAndSet(true, false)) {
+                new Thread() {
+                    @Override
+                    public void run() {
+                        looperThread.realm.handlerController.realmObjects.put(weakReference2, Boolean.TRUE);
+                        dogAddFromBg.countDown();
+                    }
+                }.start();
+                TestHelper.awaitOrFail(dogAddFromBg);
+            }
+            assertEquals("Dog 1", next.getName());
+        }
+
+        looperThread.testComplete();
     }
 
     // *** Helper methods ***
