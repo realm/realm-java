@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -420,6 +421,95 @@ public class SortTest {
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
         allTypes.setColumnLong(6);
+        realm.commitTransaction();
+    }
+
+    private void populateDates(Realm realm, int n) {
+        realm.beginTransaction();
+        realm.delete(AllTypes.class);
+        for (int i = 0; i < n; i++) {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnDate(new Date(i));
+        }
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void sortingDates() {
+        final int TEST_SIZE = 10;
+
+        populateDates(realm, TEST_SIZE);
+
+        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
+        assertEquals(TEST_SIZE, objectsAscending.size());
+        int i = 0;
+        for (AllTypes allTypes : objectsAscending) {
+            assertEquals(new Date(i), allTypes.getColumnDate());
+            i++;
+        }
+
+        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
+        assertEquals(TEST_SIZE, objectsDescending.size());
+        i = TEST_SIZE - 1;
+        for (AllTypes allTypes : objectsDescending) {
+            assertEquals(new Date(i), allTypes.getColumnDate());
+            i--;
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void resortingDates() {
+        final int TEST_SIZE = 10;
+        final AtomicInteger changeListenerCalled = new AtomicInteger(2);
+
+        final Realm realm = Realm.getInstance(looperThread.createConfiguration());
+        realm.setAutoRefresh(true);
+        populateDates(realm, TEST_SIZE);
+
+        final Runnable endTest = new Runnable() {
+            @Override
+            public void run() {
+                if (changeListenerCalled.decrementAndGet() == 0) {
+                    realm.close();
+                    looperThread.testComplete();
+                }
+            }
+        };
+
+        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
+        assertEquals(TEST_SIZE, objectsAscending.size());
+        objectsAscending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                assertEquals(TEST_SIZE + 1, element.size());
+                int i = 0;
+                for (AllTypes allTypes : element) {
+                    assertEquals(new Date(i), allTypes.getColumnDate());
+                    i++;
+                }
+                endTest.run();
+            }
+        });
+
+        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
+        assertEquals(TEST_SIZE, objectsDescending.size());
+        objectsDescending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                assertEquals(TEST_SIZE + 1, element.size());
+                int i = element.size() - 1;
+                for (AllTypes allTypes : element) {
+                    assertEquals(new Date(i), allTypes.getColumnDate());
+                    i--;
+                }
+                endTest.run();
+            }
+        });
+
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnDate(new Date(TEST_SIZE));
         realm.commitTransaction();
     }
 }
