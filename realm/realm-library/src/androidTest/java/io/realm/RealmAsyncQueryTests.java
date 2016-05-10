@@ -1952,9 +1952,10 @@ public class RealmAsyncQueryTests {
     // handlerController#emptyAsyncRealmObject is accessed from different threads
     // make sure that we iterate over it safely without any race condition (ConcurrentModification)
     @Test
-    @RunTestInLooperThread
+    @UiThreadTest
     public void concurrentModificationEmptyAsyncRealmObject() {
-        final Realm realm = looperThread.realm;
+        RealmConfiguration config  = configFactory.createConfiguration();
+        final Realm realm = Realm.getInstance(config);
         Dog dog1 = new Dog();
         dog1.setName("Dog 1");
 
@@ -1970,10 +1971,12 @@ public class RealmAsyncQueryTests {
         final WeakReference<RealmObjectProxy> weakReference2 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog2);
 
         final RealmQuery<Dog> dummyQuery = RealmQuery.createQuery(realm, Dog.class);
-        looperThread.realm.handlerController.emptyAsyncRealmObject.put(weakReference1, dummyQuery);
+        // Initialize the emptyAsyncRealmObject map, to make sure that iterating is safe
+        // even if we modify the map from a background thread (in case of an empty findFirstAsync)
+        realm.handlerController.emptyAsyncRealmObject.put(weakReference1, dummyQuery);
 
         final CountDownLatch dogAddFromBg = new CountDownLatch(1);
-        Iterator<Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>>> iterator = looperThread.realm.handlerController.emptyAsyncRealmObject.entrySet().iterator();
+        Iterator<Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>>> iterator = realm.handlerController.emptyAsyncRealmObject.entrySet().iterator();
         AtomicBoolean fireOnce = new AtomicBoolean(true);
         while (iterator.hasNext()) {
             Dog next = (Dog) iterator.next().getKey().get();
@@ -1982,24 +1985,27 @@ public class RealmAsyncQueryTests {
                 new Thread() {
                     @Override
                     public void run() {
-                        looperThread.realm.handlerController.emptyAsyncRealmObject.put(weakReference2, dummyQuery);
+                        // add a WeakReference to simulate an empty row using a findFirstAsync
+                        // this is added on an Executor thread, hence the dedicated thread
+                        realm.handlerController.emptyAsyncRealmObject.put(weakReference2, dummyQuery);
                         dogAddFromBg.countDown();
                     }
                 }.start();
                 TestHelper.awaitOrFail(dogAddFromBg);
             }
             assertEquals("Dog 1", next.getName());
+            assertFalse(iterator.hasNext());
         }
-
-        looperThread.testComplete();
+        realm.close();
     }
 
     // handlerController#realmObjects is accessed from different threads
     // make sure that we iterate over it safely without any race condition (ConcurrentModification)
     @Test
-    @RunTestInLooperThread
+    @UiThreadTest
     public void concurrentModificationRealmObjects() {
-        final Realm realm = looperThread.realm;
+        RealmConfiguration config  = configFactory.createConfiguration();
+        final Realm realm = Realm.getInstance(config);
         Dog dog1 = new Dog();
         dog1.setName("Dog 1");
 
@@ -2014,10 +2020,10 @@ public class RealmAsyncQueryTests {
         final WeakReference<RealmObjectProxy> weakReference1 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog1);
         final WeakReference<RealmObjectProxy> weakReference2 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog2);
 
-        looperThread.realm.handlerController.realmObjects.put(weakReference1, Boolean.TRUE);
+        realm.handlerController.realmObjects.put(weakReference1, Boolean.TRUE);
 
         final CountDownLatch dogAddFromBg = new CountDownLatch(1);
-        Iterator<Map.Entry<WeakReference<RealmObjectProxy>, Object>> iterator = looperThread.realm.handlerController.realmObjects.entrySet().iterator();
+        Iterator<Map.Entry<WeakReference<RealmObjectProxy>, Object>> iterator = realm.handlerController.realmObjects.entrySet().iterator();
         AtomicBoolean fireOnce = new AtomicBoolean(true);
         while (iterator.hasNext()) {
             Dog next = (Dog) iterator.next().getKey().get();
@@ -2026,16 +2032,17 @@ public class RealmAsyncQueryTests {
                 new Thread() {
                     @Override
                     public void run() {
-                        looperThread.realm.handlerController.realmObjects.put(weakReference2, Boolean.TRUE);
+                        realm.handlerController.realmObjects.put(weakReference2, Boolean.TRUE);
                         dogAddFromBg.countDown();
                     }
                 }.start();
                 TestHelper.awaitOrFail(dogAddFromBg);
             }
             assertEquals("Dog 1", next.getName());
+            assertFalse(iterator.hasNext());
         }
 
-        looperThread.testComplete();
+        realm.close();
     }
 
     // *** Helper methods ***
