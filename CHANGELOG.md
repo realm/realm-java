@@ -1,3 +1,9 @@
+## 0.90.1
+
+### Bug fixes
+
+* Making HandlerController#emptyAsyncRealmObject and HandlerController#realmObjects thread safe (#2724).
+
 ## 0.90.0
 
 * Updated Realm Core to 0.100.0.
