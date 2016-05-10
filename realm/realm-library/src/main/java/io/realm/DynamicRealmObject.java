@@ -642,11 +642,17 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     }
 
     /**
-     * Currently, the hash value returned from this could suddenly change as the object's index might
-     * become different along with the changes of the Realm. Thus, it is advisable not to solely rely
-     * on the hash value to identify an instance of {@link DynamicRealmObject}.
+     * Returns a hash code value for the object.
+     * <p>
+     * By the general contract of hashCode, any two objects for which {@link #equals} returns
+     * {@code true} must return the same hash code value.
+     * <p>
+     * Note that a {@link RealmObject} is <em>live</em> object, and it might be updated by changes from
+     * other threads. This means that the hash code value of the object is not stable, and the value
+     * should be neither used as a key in HashMap nor saved in HashSet.
      *
-     * @return hashCode an unique object id.
+     * @return  a hash code value for this object.
+     * @see     #equals(Object)
      */
     @Override
     public int hashCode() {

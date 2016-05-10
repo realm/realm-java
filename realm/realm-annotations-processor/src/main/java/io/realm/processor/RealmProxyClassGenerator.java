@@ -929,8 +929,8 @@ public class RealmProxyClassGenerator {
 
     /**
      * Currently, the hash value emitted from this could suddenly change as an object's index might
-     * alternate along with the changes of the Realm. It is therefore advisable not to solely
-     * rely on the hash value to identify an instance of RealmObject.
+     * alternate due to Realm Java using {@code Table#moveLastOver()}. Hash codes should therefore not
+     * be considered stable, i.e. don't save them in a HashSet or use them as a key in a HashMap.
      */
     private void emitHashcodeMethod(JavaWriter writer) throws IOException {
         if (metadata.containsHashCode()) {
