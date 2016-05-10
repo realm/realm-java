@@ -57,7 +57,7 @@ public class RealmResultsBenchmarks {
             obj.setColumnDouble(i + 1.234D);
         }
         realm.commitTransaction();
-        results = realm.allObjects(AllTypes.class);
+        results = realm.where(AllTypes.class).findAll();
     }
 
     @AfterExperiment
