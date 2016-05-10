@@ -647,7 +647,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * By the general contract of {@link Object#hashCode()}, any two objects for which {@link #equals}
      * returns {@code true} must return the same hash code value.
      * <p>
-     * Note that a {@link RealmObject} is <em>live</em> object, and it might be updated by changes from
+     * Note that a {@link RealmObject} is a live object, and it might be updated by changes from
      * other threads. This means that a hash code value of the object is not stable, and the value
      * should be neither used as a key in HashMap nor saved in HashSet.
      *
