@@ -701,7 +701,7 @@ public class RealmAsyncQueryTests {
             }
         };
         realm.setHandler(handler);
-        Realm.asyncQueryExecutor.pause();
+        Realm.asyncTaskExecutor.pause();
 
         // Create async queries and check they haven't completed
         final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
@@ -725,7 +725,7 @@ public class RealmAsyncQueryTests {
                 realm.commitTransaction();
             }
         }.awaitOrFail();
-        Realm.asyncQueryExecutor.resume();
+        Realm.asyncTaskExecutor.resume();
 
         // Setup change listeners
         final Runnable signalCallbackDone = new Runnable() {
@@ -1025,7 +1025,7 @@ public class RealmAsyncQueryTests {
         };
         realm.setHandler(handler);
 
-        // 3. This will add a task to the paused asyncQueryExecutor
+        // 3. This will add a task to the paused asyncTaskExecutor
         final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 4, 8)
                 .findAllSortedAsync("columnString", Sort.ASCENDING);
@@ -1410,7 +1410,7 @@ public class RealmAsyncQueryTests {
     public void combiningAsyncAndSync() {
         populateTestRealm(looperThread.realm, 10);
 
-        Realm.asyncQueryExecutor.pause();
+        Realm.asyncTaskExecutor.pause();
         final RealmResults<AllTypes> allTypesAsync = looperThread.realm.where(AllTypes.class).greaterThan("columnLong", 5).findAllAsync();
         final RealmResults<AllTypes> allTypesSync = allTypesAsync.where().greaterThan("columnLong", 3).findAll();
 
@@ -1424,7 +1424,7 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
-        Realm.asyncQueryExecutor.resume();
+        Realm.asyncTaskExecutor.resume();
         looperThread.keepStrongReference.add(allTypesAsync);
     }
 
@@ -1789,7 +1789,7 @@ public class RealmAsyncQueryTests {
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
 
         populateTestRealm(looperThread.realm, 10);
-        Realm.asyncQueryExecutor.pause();
+        Realm.asyncTaskExecutor.pause();
 
         final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
         firstAsync.addChangeListener(new RealmChangeListener<AllTypes>() {
@@ -1809,7 +1809,7 @@ public class RealmAsyncQueryTests {
                 // Advancing the Realm without generating notifications
                 bgRealm.sharedGroupManager.promoteToWrite();
                 bgRealm.sharedGroupManager.commitAndContinueAsRead();
-                Realm.asyncQueryExecutor.resume();
+                Realm.asyncTaskExecutor.resume();
                 bgRealm.close();
                 signalClosedRealm.countDown();
             }
