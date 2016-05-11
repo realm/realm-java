@@ -22,10 +22,13 @@ import android.os.Looper;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -66,6 +69,8 @@ public abstract class BaseRealm implements Closeable {
     RealmSchema schema;
     Handler handler;
     HandlerController handlerController;
+    List<Runnable> asyncTransactionCallbacks = new ArrayList<Runnable>();
+    List<Future<?>> asyncTransactions = new ArrayList<Future<?>>();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -435,6 +440,19 @@ public abstract class BaseRealm implements Closeable {
         }
         if (handler != null) {
             removeHandler();
+        }
+    }
+
+    /**
+     * Tidies performed(canceled and done) transactions.
+     */
+    void tidyPerformedTransactions() {
+        Iterator<Future<?>> transactionsIterator = asyncTransactions.iterator();
+        while (transactionsIterator.hasNext()) {
+            Future<?> pendingTransaction = transactionsIterator.next();
+            if (pendingTransaction.isCancelled() || pendingTransaction.isDone()) {
+                transactionsIterator.remove();
+            }
         }
     }
 

@@ -168,6 +168,11 @@ final class RealmCache {
             return;
         }
 
+        realm.tidyPerformedTransactions();
+        if (!realm.asyncTransactions.isEmpty() || !realm.asyncTransactionCallbacks.isEmpty()) {
+            RealmLog.w("Realm " + canonicalPath + " will be closed with pending async transactions or callbacks.");
+        }
+
         // Decrease the local counter.
         refCount -= 1;
 

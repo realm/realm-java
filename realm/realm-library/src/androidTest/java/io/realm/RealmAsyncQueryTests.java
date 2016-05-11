@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -277,6 +278,117 @@ public class RealmAsyncQueryTests {
                 throw new RuntimeException("Dummy exception");
             }
         }, transactionCallback);
+    }
+
+    // Test case for https://github.com/realm/realm-java/issues/1893
+    // Ensure that onSuccess might not be called with the right Realm version for async transaction.
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_asyncQuery() {
+        Realm realm = looperThread.realm;
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference.add(results);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
+                looperThread.testComplete();
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                fail();
+            }
+        });
+    }
+
+    // Test case for https://github.com/realm/realm-java/issues/1893
+    // Ensure that Realm.close() log a warning if you close a Realm while an async transaction is pending.
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_closeWithPendingTransaction() {
+        final CountDownLatch queryLatch = new CountDownLatch(1);
+        final CountDownLatch closeLatch = new CountDownLatch(1);
+
+        Realm realm = looperThread.realm;
+        Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                TestHelper.awaitOrFail(queryLatch);
+                return 0L;
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.close();
+                closeLatch.countDown();
+            }
+        });
+
+        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        RealmLog.add(testLogger);
+        realm.close();
+        RealmLog.remove(testLogger);
+        queryLatch.countDown();
+
+        String[] logs = testLogger.message.split("will ");
+        assertEquals("be closed with pending async transactions or callbacks.", logs[1]);
+
+        TestHelper.awaitOrFail(closeLatch);
+        looperThread.testComplete();
+    }
+
+    // Test case for https://github.com/realm/realm-java/issues/1893
+    // Ensure that Realm.close() log a warning if you close a Realm while an async transaction is still executing.
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_closeWithPendingTransactionCallback() {
+        final CountDownLatch inTransactionLatch = new CountDownLatch(1);
+        final CountDownLatch asyncLatch = new CountDownLatch(1);
+        final CountDownLatch closeLatch = new CountDownLatch(1);
+
+        Realm realm = looperThread.realm;
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                inTransactionLatch.countDown();
+                TestHelper.awaitOrFail(asyncLatch);
+                realm.close();
+                closeLatch.countDown();
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+            }
+        });
+
+        TestHelper.awaitOrFail(inTransactionLatch);
+
+        Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                TestHelper.awaitOrFail(asyncLatch);
+                return 0L;
+            }
+        });
+
+        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        RealmLog.add(testLogger);
+        realm.close();
+        RealmLog.remove(testLogger);
+
+        String[] logs = testLogger.message.split("will ");
+        assertEquals("be closed with pending async transactions or callbacks.", logs[1]);
+        asyncLatch.countDown();
+
+        TestHelper.awaitOrFail(closeLatch);
+        looperThread.testComplete();
     }
 
     // ************************************
@@ -1945,36 +2057,6 @@ public class RealmAsyncQueryTests {
 
         // 3. The async query should now (hopefully) fail with a BadVersion
         result.load();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void testAsyncTransactionWorksWithAsyncQuery() {
-        RealmResults<AllTypes> results = looperThread.realm.where(AllTypes.class).findAllAsync();
-        results.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                //assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
-            }
-        });
-        looperThread.keepStrongReference.add(results);
-        looperThread.realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObject(AllTypes.class);
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-                assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
-                looperThread.testComplete();
-            }
-        }, new Realm.Transaction.OnError() {
-            @Override
-            public void onError(Throwable error) {
-                fail();
-            }
-        });
     }
 
     // *** Helper methods ***
