@@ -19,8 +19,6 @@ package io.realm;
 import android.os.Handler;
 import android.os.Message;
 
-import io.realm.HandlerController;
-
 /**
  * Handler decorator, to help intercept some messages before they are sent and received.
  */

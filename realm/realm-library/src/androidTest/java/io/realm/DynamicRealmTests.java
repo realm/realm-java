@@ -556,7 +556,7 @@ public class DynamicRealmTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.CLASS_NAME);
         DynamicRealmObject cat = realm.createObject(Cat.CLASS_NAME);
-        DynamicRealmObject owner =  realm.createObject(Owner.CLASS_NAME);
+        DynamicRealmObject owner = realm.createObject(Owner.CLASS_NAME);
         owner.setObject("cat", cat);
         realm.getSchema().create("TestRemoveAll").addField("Field1", String.class);
         realm.createObject("TestRemoveAll");
