@@ -127,9 +127,9 @@ public abstract class RealmObject implements RealmModel {
      * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
      * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
      *
-     * <p>Note that a notification for {@link rx.Observer} will <em>not</em> be triggered when a
-     * {@link RealmQuery} completes with an invalid RealmObject. Subscribe a {@link RealmResults}
-     * and filter the result instead for an appropriate reaction.
+     * <p>Note that a notification for Observer will <em>not</em> be triggered when a {@link RealmQuery}
+     * completes with an invalid RealmObject. Subscribe a {@link RealmResults} and filter the result
+     * instead for an appropriate reaction.
      *
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
      */
