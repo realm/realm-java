@@ -1,12 +1,13 @@
 ## 0.91.0
 
-* Updated Realm Core to 0.100.2.
+* Updated Realm Core to 0.100.3.
 
 ### Bug fixes
 
 * Opening a Realm while closing a Realm in another thread could lead to a race condition.
 * Automatic migration to the new file format could in rare circumstances lead to a crash.
 * Fixing a race condition that may occur when using Async API (#2724).
+* Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
 
 ### Enhancements
 
