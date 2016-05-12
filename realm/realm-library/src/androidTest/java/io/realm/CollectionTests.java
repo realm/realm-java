@@ -138,7 +138,7 @@ public abstract class CollectionTests {
         realm.commitTransaction();
 
         OrderedRealmCollection<CyclicType> result;
-        switch(collectionClass) {
+        switch (collectionClass) {
             case MANAGED_REALMLIST:
                 result = parent.getObjects();
                 break;

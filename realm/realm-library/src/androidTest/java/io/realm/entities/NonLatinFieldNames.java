@@ -19,7 +19,7 @@ package io.realm.entities;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
-public class NonLatinFieldNames extends RealmObject{
+public class NonLatinFieldNames extends RealmObject {
 
     public final static String FIELD_LONG_KOREAN_CHAR = "델타";
     public final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";

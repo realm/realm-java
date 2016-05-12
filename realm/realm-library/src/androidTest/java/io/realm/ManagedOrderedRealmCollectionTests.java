@@ -181,7 +181,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         throw new AssertionError("Unknown collection: " + collectionClass);
     }
 
-   @Test
+    @Test
     public void sort_twoFields() {
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
         AllJavaTypes obj = sortedList.first();
@@ -674,11 +674,11 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     @Test
     public void methodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (OrderedRealmCollectionMethod method : OrderedRealmCollectionMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
 
         for (ListMethod method : ListMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
     }
 

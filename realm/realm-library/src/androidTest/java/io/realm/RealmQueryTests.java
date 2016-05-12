@@ -2345,7 +2345,7 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void distinctAsync_withNullValues () throws Throwable {
+    public void distinctAsync_withNullValues() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];

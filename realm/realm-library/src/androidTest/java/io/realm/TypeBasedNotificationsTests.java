@@ -43,7 +43,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1138,7 +1137,7 @@ public class TypeBasedNotificationsTests {
                     realm.handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(2,typebasedCommitInvocations.get());
+                            assertEquals(2, typebasedCommitInvocations.get());
                             looperThread.testComplete();
                         }
                     });
@@ -1202,7 +1201,7 @@ public class TypeBasedNotificationsTests {
                     realm.handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(typebasedCommitInvocations.get(),1);
+                            assertEquals(typebasedCommitInvocations.get(), 1);
                             looperThread.testComplete();
                         }
                     });
@@ -1256,7 +1255,7 @@ public class TypeBasedNotificationsTests {
                     realm.handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(2,typebasedCommitInvocations.get());
+                            assertEquals(2, typebasedCommitInvocations.get());
                             looperThread.testComplete();
                         }
                     });
@@ -1478,7 +1477,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void run() {
                 realm.close();
-                assertEquals(1,typebasedCommitInvocations.get());
+                assertEquals(1, typebasedCommitInvocations.get());
                 looperThread.testComplete();
             }
         });
