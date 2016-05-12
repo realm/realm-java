@@ -6,6 +6,7 @@
 
 * Opening a Realm while closing a Realm in another thread could lead to a race condition.
 * Automatic migration to the new file format could in rare circumstances lead to a crash.
+* Fixing a race condition that may occur when using Async API (#2724).
 
 ### Enhancements
 
