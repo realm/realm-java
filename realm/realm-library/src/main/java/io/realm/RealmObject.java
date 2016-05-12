@@ -328,8 +328,9 @@ public abstract class RealmObject implements RealmModel {
      * </pre>
      *
      * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Please avoid using {@code subscribeOn()}, and use
-     * {@code RealmQuery.*Async()} methods instead.
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
