@@ -62,13 +62,16 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
         ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
     } \
     catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \
+        ThrowException(env, IOFailed, string(fileName), \
+                std::string(e.what()) + " path: " + e.get_path()); \
     } \
-    catch (util::File::NotFound&) { \
-        ThrowException(env, FileNotFound, string(fileName).data());    \
+    catch (util::File::NotFound& e) { \
+        ThrowException(env, FileNotFound, string(fileName), \
+                std::string(e.what()) + " path: " + e.get_path());    \
     } \
     catch (util::File::AccessError& e) { \
-        ThrowException(env, FileAccessError, string(fileName), e.what()); \
+        ThrowException(env, FileAccessError, string(fileName), \
+                std::string(e.what()) + " path: " + e.get_path()); \
     }
 
 #define CATCH_STD() \

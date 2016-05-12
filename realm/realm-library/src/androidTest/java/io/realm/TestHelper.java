@@ -77,7 +77,7 @@ public class TestHelper {
         }
     }
 
-    public static RealmFieldType getColumnType(Object o){
+    public static RealmFieldType getColumnType(Object o) {
         if (o instanceof Boolean)
             return RealmFieldType.BOOLEAN;
         if (o instanceof String)
@@ -97,9 +97,10 @@ public class TestHelper {
 
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     *
      * @return
      */
-    public static Table getTableWithAllColumnTypes(){
+    public static Table getTableWithAllColumnTypes() {
         Table t = new Table();
 
         t.addColumn(RealmFieldType.BINARY, "binary");
@@ -316,7 +317,7 @@ public class TestHelper {
         if (garbageSize == 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
             long totalMemory = Runtime.getRuntime().totalMemory();
-            garbageSize = (int)(maxMemory - totalMemory)/10*9;
+            garbageSize = (int) (maxMemory - totalMemory) / 10 * 9;
         }
         byte garbage[] = new byte[0];
         try {
@@ -326,7 +327,7 @@ public class TestHelper {
                 garbage[garbage.length - 1] = 1;
             }
         } catch (OutOfMemoryError oom) {
-            return allocGarbage(garbageSize/10*9);
+            return allocGarbage(garbageSize / 10 * 9);
         }
 
         return garbage;
@@ -633,7 +634,7 @@ public class TestHelper {
         testRealm.commitTransaction();
     }
 
-    public static void populateAllNonNullRowsForNumericTesting (Realm realm) {
+    public static void populateAllNonNullRowsForNumericTesting(Realm realm) {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -668,7 +669,7 @@ public class TestHelper {
         realm.commitTransaction();
     }
 
-    public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+    public static void populatePartialNullRowsForNumericTesting(Realm realm) {
         // Id values are [1, 2, 3]
         // IntegerNull values are [3, null, 4]
         // FloatNull values are [4F, null, 5F]
