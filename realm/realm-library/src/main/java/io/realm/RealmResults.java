@@ -991,6 +991,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * }
      * </pre>
      *
+     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Please avoid using {@code subscribeOn()}, and use
+     * {@code RealmQuery.*Async()} methods instead.
+     *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
