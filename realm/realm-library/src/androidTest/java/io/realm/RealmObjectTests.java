@@ -145,7 +145,7 @@ public class RealmObjectTests {
     @Test
     public void invalidSurrogates() {
         String high = "Invalid high surrogate \uD83C\uD83C\uDF51";
-        String low  = "Invalid low surrogate \uD83C\uDF51\uDF51";
+        String low = "Invalid low surrogate \uD83C\uDF51\uDF51";
 
         realm.beginTransaction();
         realm.delete(AllTypes.class);
@@ -316,7 +316,7 @@ public class RealmObjectTests {
                     switch (method) {
                         case METHOD_GETTER:
                             allTypes.getColumnFloat();
-                           break;
+                            break;
                         case METHOD_SETTER:
                             allTypes.setColumnFloat(1.0f);
                             break;
@@ -1138,8 +1138,7 @@ public class RealmObjectTests {
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
-        }
-        finally {
+        } finally {
             realm.cancelTransaction();
         }
     }

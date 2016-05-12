@@ -222,7 +222,7 @@ public class SortTest extends AndroidTestCase {
 
         RealmResults<AllTypes> results4 = testRealm.allObjects(AllTypes.class).sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
-   }
+    }
 
 
     public void testRealmQuerySortTwoFields() {

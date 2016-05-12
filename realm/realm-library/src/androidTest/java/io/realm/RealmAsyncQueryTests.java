@@ -1824,7 +1824,7 @@ public class RealmAsyncQueryTests {
     @UiThreadTest
     public void badVersion_findAll() throws NoSuchFieldException, IllegalAccessException {
         TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
-        RealmConfiguration config  = configFactory.createConfiguration();
+        RealmConfiguration config = configFactory.createConfiguration();
         Realm realm = Realm.getInstance(config);
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override

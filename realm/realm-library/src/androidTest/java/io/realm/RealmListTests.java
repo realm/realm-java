@@ -415,7 +415,7 @@ public class RealmListTests extends CollectionTests {
 
     // Test that set correctly uses Realm.copyToRealmOrUpdate() on standalone objects with a primary key.
     @Test
-    public void  set_nonManagedPrimaryKeyObjectToManagedList() {
+    public void set_nonManagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
         CyclicTypePrimaryKey parent = realm.copyToRealm(new CyclicTypePrimaryKey(1, "Parent"));
         RealmList<CyclicTypePrimaryKey> children = parent.getObjects();
@@ -876,14 +876,14 @@ public class RealmListTests extends CollectionTests {
                 }
 
                 try {
-                    list.add(0,dynDog);
+                    list.add(0, dynDog);
                     fail();
                 } catch (IllegalStateException expected) {
                     assertEquals(expectedMsg, expected.getMessage());
                 }
 
                 try {
-                    list.set(0,dynDog);
+                    list.set(0, dynDog);
                     fail();
                 } catch (IllegalStateException expected) {
                     assertEquals(expectedMsg, expected.getMessage());
