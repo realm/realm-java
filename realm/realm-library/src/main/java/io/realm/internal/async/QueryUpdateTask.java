@@ -211,7 +211,7 @@ public class QueryUpdateTask implements Runnable {
 
         public static Result newRealmResultsResponse() {
             Result result = new Result();
-            result.updatedTableViews = new IdentityHashMap<WeakReference<RealmResults<?>>, Long>(1);
+            result.updatedTableViews = new IdentityHashMap<WeakReference<RealmResults<? extends RealmModel>>, Long>(1);
             return result;
         }
 

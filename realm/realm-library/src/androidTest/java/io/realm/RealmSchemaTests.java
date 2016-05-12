@@ -31,7 +31,6 @@ import java.util.Set;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;

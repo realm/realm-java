@@ -2151,7 +2151,7 @@ public class RealmTests {
     public void createObjectWithPrimaryKey_null() {
         // Byte
         realm.beginTransaction();
-        PrimaryKeyAsBoxedByte primaryKeyAsBoxedByte= realm.createObject(PrimaryKeyAsBoxedByte.class, null);
+        PrimaryKeyAsBoxedByte primaryKeyAsBoxedByte = realm.createObject(PrimaryKeyAsBoxedByte.class, null);
         realm.commitTransaction();
         assertEquals(1, realm.where(PrimaryKeyAsBoxedByte.class).count());
         assertNull(primaryKeyAsBoxedByte.getId());

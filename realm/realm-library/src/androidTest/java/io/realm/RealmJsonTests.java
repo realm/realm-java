@@ -200,8 +200,8 @@ public class RealmJsonTests {
         // Check that all primitive types are imported correctly
         assertEquals("String", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
-        assertEquals(1.23F, obj.getColumnFloat(),0F);
-        assertEquals(1.23D, obj.getColumnDouble(),0D);
+        assertEquals(1.23F, obj.getColumnFloat(), 0F);
+        assertEquals(1.23D, obj.getColumnDouble(), 0D);
         assertEquals(true, obj.isColumnBoolean());
         assertArrayEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
     }
@@ -306,7 +306,7 @@ public class RealmJsonTests {
     public void createObjectFromJson_stringSimpleObject() {
         realm.beginTransaction();
         Dog dog = realm.createObjectFromJson(Dog.class, "{ name: \"Foo\" }");
-        realm. commitTransaction();
+        realm.commitTransaction();
 
         assertEquals("Foo", dog.getName());
         assertEquals("Foo", realm.allObjects(Dog.class).first().getName());
@@ -618,7 +618,7 @@ public class RealmJsonTests {
     }
 
     @Test
-    public void createObjectFromJson_streamNullJson() throws IOException  {
+    public void createObjectFromJson_streamNullJson() throws IOException {
         InputStream in = TestHelper.loadJsonFromAssets(context, "all_types_invalid.json");
         realm.beginTransaction();
         try {
@@ -632,7 +632,7 @@ public class RealmJsonTests {
     }
 
     @Test
-    public void createObjectFromJson_streamNullInputStream() throws IOException  {
+    public void createObjectFromJson_streamNullInputStream() throws IOException {
         realm.beginTransaction();
         assertNull(realm.createObjectFromJson(AnnotationTypes.class, (InputStream) null));
         realm.commitTransaction();
