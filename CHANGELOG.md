@@ -1,4 +1,4 @@
-## 0.91.0
+## 0.90.1
 
 * Updated Realm Core to 0.100.2.
 
@@ -10,7 +10,7 @@
 
 ### Enhancements
 
-* Prints path when file related exceptions thrown.
+* Prints path when file related exceptions are thrown.
 
 ## 0.90.0
 
