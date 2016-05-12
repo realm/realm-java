@@ -27,6 +27,7 @@ import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
 import javassist.LoaderClassPath
+import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -43,6 +44,11 @@ import static com.android.build.api.transform.QualifiedContent.*
 class RealmTransformer extends Transform {
 
     private Logger logger = LoggerFactory.getLogger('realm-logger')
+    private Project project
+
+    public RealmTransformer(Project project) {
+        this.project = project
+    }
 
     @Override
     String getName() {
@@ -84,6 +90,9 @@ class RealmTransformer extends Transform {
 
         // Create and populate the Javassist class pool
         ClassPool classPool = createClassPool(inputs, referencedInputs)
+        // Append android.jar to class pool. We don't need the class names of them but only the class in the pool for
+        // javassist. See https://github.com/realm/realm-java/issues/2703.
+        addBootClassesToClassPool(classPool)
 
         logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
@@ -278,4 +287,19 @@ class RealmTransformer extends Transform {
         return merged;
     }
 
+    // There is no official way to get the path to android.jar for transform.
+    // See https://code.google.com/p/android/issues/detail?id=209426
+    private void addBootClassesToClassPool(ClassPool classPool) {
+        try {
+            project.android.bootClasspath.each {
+                String path = it.absolutePath
+                logger.info "Add boot class " + path + " to class pool."
+                classPool.appendClassPath(path)
+            }
+        } catch (Exception e) {
+            // Just log it. It might not impact the transforming if the method which needs to be transformer doesn't
+            // contain classes from android.jar.
+            logger.info("Cannot get bootClasspath caused by:", e)
+        }
+    }
 }
