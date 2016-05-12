@@ -162,7 +162,7 @@ abstract class BaseRealm implements Closeable {
      * }
      * </pre>
      *
-     * <p>Note that when the Realm is accessed on threads other than where it was created, {@link IllegalStateException}
+     * <p>Note that when the Realm is accessed from threads other than where it was created, {@link IllegalStateException}
      * will be thrown. Please avoid using {@code subscribeOn()}, and use {@code Realm.where().*Async()} methods instead.
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
