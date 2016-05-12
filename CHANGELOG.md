@@ -1,8 +1,15 @@
-## 0.90.1
+## 0.91.0
+
+* Updated Realm Core to 0.100.2.
+
+### Bug fixes
+
+* Opening a Realm while closing a Realm in another thread could lead to a race condition.
+* Automatic migration to the new file format could in rare circumstances lead to a crash.
 
 ### Enhancements
 
-* Print path when file related exceptions thrown.
+* Prints path when file related exceptions thrown.
 
 ## 0.90.0
 
