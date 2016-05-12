@@ -58,5 +58,10 @@
         <Class name="~.*Tests?$"/>
         <Bug pattern="DM_GC"/>
     </Match>
+    <Match>
+        <Class name="io.realm.HandlerController" />
+        <Method name="completedAsyncRealmObject" />
+        <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
+    </Match>
 
 </FindBugsFilter>

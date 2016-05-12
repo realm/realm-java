@@ -17,8 +17,7 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
-import io.realm.entities.AllJavaTypes;
-import io.realm.rule.TestRealmConfigurationFactory;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +27,9 @@ import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.Set;
+
+import io.realm.entities.AllJavaTypes;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -180,7 +182,7 @@ public class RealmObjectSchemaTests {
     public void addRemoveField() {
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
-            switch(fieldType) {
+            switch (fieldType) {
                 case OBJECT:
                     schema.addRealmObjectField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);

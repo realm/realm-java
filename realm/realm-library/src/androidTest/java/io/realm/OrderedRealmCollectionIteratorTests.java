@@ -492,7 +492,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_startIndex() {
-        int i = TEST_SIZE/2;
+        int i = TEST_SIZE / 2;
         ListIterator<AllJavaTypes> it = collection.listIterator(i);
 
         assertTrue(it.hasPrevious());

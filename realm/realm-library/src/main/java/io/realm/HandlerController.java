@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
@@ -50,6 +51,7 @@ final class HandlerController implements Handler.Callback {
     static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
     static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
     static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
     // Keep a strong reference to the registered RealmChangeListener
     // user should unregister those listeners
@@ -63,7 +65,7 @@ final class HandlerController implements Handler.Callback {
     final BaseRealm realm;
     private boolean autoRefresh; // Requires a Looper thread to be true.
 
-    // pending update of async queriess
+    // pending update of async queries
     private Future updateAsyncQueriesTask;
 
     private final ReferenceQueue<RealmResults<? extends RealmModel>> referenceQueueAsyncRealmResults =
@@ -81,15 +83,19 @@ final class HandlerController implements Handler.Callback {
     // Keep a WeakReference to the currently empty RealmObjects obtained asynchronously. We need to keep re-running
     // the query in the background for each commit, until we got a valid Row (pointer)
     final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> emptyAsyncRealmObject =
-            new IdentityHashMap<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>>();
+            new ConcurrentHashMap<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>>();
 
-    // keep a reference to the list of sync RealmResults, we'll use it
+    // Keep a reference to the list of sync RealmResults, we'll use it
     // to deliver type based notification once the shared_group advance
     final IdentitySet<WeakReference<RealmResults<? extends RealmModel>>> syncRealmResults =
             new IdentitySet<WeakReference<RealmResults<? extends RealmModel>>>();
 
-    final Map<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>> realmObjects =
-            new IdentityHashMap<WeakReference<RealmObjectProxy>, RealmQuery<? extends RealmModel>>();
+    // Since ConcurrentHashMap doesn't support null value, and since java.util.Optional are not
+    // yet an option (using Java 6) we use an Object with the dummy value Boolean.TRUE to indicate
+    // a null value (no RealmQuery<? extends RealmModel>) this is the same approach used in the JDK
+    // ex here https://android.googlesource.com/platform/libcore/+/refs/heads/master/luni/src/main/java/java/util/concurrent/ConcurrentSkipListSet.java#214
+    final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
+            new ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object>();
 
     public HandlerController(BaseRealm realm) {
         this.realm = realm;
@@ -143,7 +149,7 @@ final class HandlerController implements Handler.Callback {
 
     /**
      * For internal use only.
-     * Sometimes we don't know when to unregister listeners (ex: {@link RealmBaseAdapter}). Using
+     * Sometimes we don't know when to unregister listeners (ex: {@code RealmBaseAdapter}). Using
      * a WeakReference the listener doesn't need to be explicitly unregistered.
      *
      * @param listener the change listener.
@@ -527,7 +533,7 @@ final class HandlerController implements Handler.Callback {
                     if (rowPointer != 0 && emptyAsyncRealmObject.containsKey(realmObjectWeakReference)) {
                         // cleanup a previously empty async RealmObject
                         emptyAsyncRealmObject.remove(realmObjectWeakReference);
-                        realmObjects.put(realmObjectWeakReference, null);
+                        realmObjects.put(realmObjectWeakReference, NO_REALM_QUERY);
                     }
                     proxy.realmGet$proxyState().onCompleted$realm(rowPointer);
                     proxy.realmGet$proxyState().notifyChangeListeners$realm();
@@ -541,11 +547,15 @@ final class HandlerController implements Handler.Callback {
                         proxy.realmGet$proxyState().notifyChangeListeners$realm();
 
                     } else {
-                        RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ proxy + "] , realm:" + HandlerController.this
+                        RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT " + proxy + "] , realm:" + HandlerController.this
                                 + " RealmObject is not loaded yet. Rerun the query.");
-                        RealmQuery<?> realmQuery = realmObjects.get(realmObjectWeakReference);
-                        if (realmQuery == null) { // this is a retry of an empty RealmObject
+                        Object value = realmObjects.get(realmObjectWeakReference);
+                        RealmQuery<? extends RealmModel> realmQuery;
+                        if (value == null || value == NO_REALM_QUERY) { // this is a retry of an empty RealmObject
                             realmQuery = emptyAsyncRealmObject.get(realmObjectWeakReference);
+
+                        } else {
+                            realmQuery = (RealmQuery<? extends RealmModel>) value;
                         }
 
                         QueryUpdateTask queryUpdateTask = QueryUpdateTask.newBuilder()
@@ -647,7 +657,7 @@ final class HandlerController implements Handler.Callback {
         }
         final WeakReference<RealmObjectProxy> realmObjectWeakReference =
                 new WeakReference<RealmObjectProxy>(realmObject, referenceQueueRealmObject);
-        realmObjects.put(realmObjectWeakReference, null);
+        realmObjects.put(realmObjectWeakReference, NO_REALM_QUERY);
     }
 
     <E extends RealmObjectProxy> WeakReference<RealmObjectProxy> addToAsyncRealmObject(E realmObject, RealmQuery<? extends RealmModel> realmQuery) {

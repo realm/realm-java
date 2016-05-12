@@ -250,7 +250,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         for (Integer index : indexes) {
             try {
                 collection.get(index);
-                fail(index +  " did not throw the expected Exception.");
+                fail(index + " did not throw the expected Exception.");
             } catch (IndexOutOfBoundsException ignored) {
             }
         }

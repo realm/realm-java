@@ -152,7 +152,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     private OrderedRealmCollection<NullTypes> createAllNullRowsForNumericTesting(Realm realm, ManagedCollection collectionClass) {
         TestHelper.populateAllNullRowsForNumericTesting(realm);
-        switch(collectionClass) {
+        switch (collectionClass) {
             case MANAGED_REALMLIST:
                 RealmResults<NullTypes> results = realm.allObjects(NullTypes.class);
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
@@ -398,7 +398,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     public void sum() {
         Number sum = collection.sum(AllJavaTypes.FIELD_LONG);
         // Sum of numbers 0 to M-1: (M-1)*M/2
-        assertEquals((TEST_SIZE - 1) * TEST_SIZE/ 2, sum.intValue());
+        assertEquals((TEST_SIZE - 1) * TEST_SIZE / 2, sum.intValue());
     }
 
     // Test sum on nullable rows with all null values
@@ -491,13 +491,13 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     @Test
     public void maxDate() {
         assertEquals(TEST_SIZE, collection.size());
-        assertEquals(new Date(YEAR_MILLIS * 20 * (TEST_SIZE/2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(new Date(YEAR_MILLIS * 20 * (TEST_SIZE / 2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
     public void minDate() {
         assertEquals(TEST_SIZE, collection.size());
-        assertEquals(new Date(- YEAR_MILLIS * 20 * TEST_SIZE/2), collection.minDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(new Date(-YEAR_MILLIS * 20 * TEST_SIZE / 2), collection.minDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
@@ -693,10 +693,10 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     @Test
     public void methodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (RealmCollectionMethod method : RealmCollectionMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
         for (CollectionMethod method : CollectionMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
     }
 
