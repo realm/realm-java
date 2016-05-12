@@ -127,7 +127,18 @@ public abstract class RealmObject implements RealmModel {
      * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
      * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
      *
+     * <p>Note that this can be used to check the validity of certain conditions such as being null
+     * when observed.
+     * <pre>
+     * {@code
+     * realm.where(BannerRealm.class).equalTo("type", type).findFirstAsync().asObservable()
+     *      .filter(result.isLoaded() && result.isValid())
+     *      .first()
+     * }
+     * </pre>
+     *
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">Examples using Realm with RxJava</a>
      */
     public final boolean isValid() {
         return RealmObject.isValid(this);
