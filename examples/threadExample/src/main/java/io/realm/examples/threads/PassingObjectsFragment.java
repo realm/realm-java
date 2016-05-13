@@ -97,13 +97,15 @@ public class PassingObjectsFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        person = realm.createObject(Person.class);
-        person.setName("Jane");
-        person.setAge(42);
-        person.setId(UUID.randomUUID().toString());
-        realm.commitTransaction();
-
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                person = realm.createObject(Person.class);
+                person.setName("Jane");
+                person.setAge(42);
+                person.setId(UUID.randomUUID().toString());
+            }
+        });
         textContent.setText(person.toString());
     }
 

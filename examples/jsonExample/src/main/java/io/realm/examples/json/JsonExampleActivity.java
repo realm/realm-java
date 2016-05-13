@@ -115,18 +115,24 @@ public class JsonExampleActivity extends Activity {
         Map<String, String> city = new HashMap<String, String>();
         city.put("name", "København");
         city.put("votes", "9");
-        JSONObject json = new JSONObject(city);
+        final JSONObject json = new JSONObject(city);
 
-        realm.beginTransaction();
-        realm.createObjectFromJson(City.class, json);
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObjectFromJson(City.class, json);
+            }
+        });
     }
 
     private void loadJsonFromString() {
-        String json = "{ name: \"Aarhus\", votes: 99 }";
+        final String json = "{ name: \"Aarhus\", votes: 99 }";
 
-        realm.beginTransaction();
-        realm.createObjectFromJson(City.class, json);
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObjectFromJson(City.class, json);
+            }
+        });
     }
 }

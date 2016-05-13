@@ -85,9 +85,12 @@ public class ExampleActivity extends Activity {
 
     private void cleanUp() {
         // Delete all persons
-        realm.beginTransaction();
-        realm.allObjects(Person.class).deleteAllFromRealm();
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.allObjects(Person.class).deleteAllFromRealm();
+            }
+        });
     }
 
     @Override
@@ -107,40 +110,45 @@ public class ExampleActivity extends Activity {
         showStatus("Perform basic Create/Read/Update/Delete (CRUD) operations...");
 
         // All writes must be wrapped in a transaction to facilitate safe multi threading
-        realm.beginTransaction();
-
-        // Add a person
-        Person person = realm.createObject(Person.class);
-        person.setId(1);
-        person.setName("John Young");
-        person.setAge(14);
-
-        // When the transaction is committed, all changes a synced to disk.
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // Add a person
+                Person person = realm.createObject(Person.class);
+                person.setId(1);
+                person.setName("John Young");
+                person.setAge(14);
+            }
+        });
 
         // Find the first person (no query conditions) and read a field
-        person = realm.where(Person.class).findFirst();
+        final Person person = realm.where(Person.class).findFirst();
         showStatus(person.getName() + ":" + person.getAge());
 
         // Update person in a transaction
-        realm.beginTransaction();
-        person.setName("John Senior");
-        person.setAge(89);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                person.setName("John Senior");
+                person.setAge(89);
+            }
+        });
+
         showStatus(person.getName() + " got older: " + person.getAge());
-        realm.commitTransaction();
 
         // Add two more people
-        realm.beginTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Person jane = realm.createObject(Person.class);
+                jane.setName("Jane");
+                jane.setAge(27);
 
-        Person jane = realm.createObject(Person.class);
-        jane.setName("Jane");
-        jane.setAge(27);
-
-        Person doug = realm.createObject(Person.class);
-        doug.setName("Robert");
-        doug.setAge(42);
-
-        realm.commitTransaction();
+                Person doug = realm.createObject(Person.class);
+                doug.setName("Robert");
+                doug.setAge(42);
+            }
+        });
 
         RealmResults<Person> people = realm.where(Person.class).findAll();
         showStatus(String.format("Found %s people", people.size()));
