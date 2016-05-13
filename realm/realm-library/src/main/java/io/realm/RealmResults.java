@@ -65,7 +65,7 @@ import rx.Observable;
  * @param <E> The class of objects in this list.
  * @see RealmQuery#findAll()
  * @see Realm#allObjects(Class)
- * @see io.realm.Realm#beginTransaction()
+ * @see io.realm.Realm#executeTransaction(Realm.Transaction)
  */
 public final class RealmResults<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 

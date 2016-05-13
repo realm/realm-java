@@ -22,12 +22,15 @@ import io.realm.examples.unittesting.model.Dog;
 
 public class DogRepositoryImpl implements DogRepository {
     @Override
-    public void createDog(String name) {
+    public void createDog(final String name) {
         Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        Dog dog = realm.createObject(Dog.class);
-        dog.setName(name);
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Dog dog = realm.createObject(Dog.class);
+                dog.setName(name);
+            }
+        });
         realm.close();
     }
 }

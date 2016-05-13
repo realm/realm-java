@@ -53,13 +53,16 @@ public class EncryptionExampleActivity extends Activity {
         realm = Realm.getInstance(realmConfiguration);
 
         // Everything continues to work as normal except for that the file is encrypted on disk
-        realm.beginTransaction();
-        Person person = realm.createObject(Person.class);
-        person.setName("Happy Person");
-        person.setAge(14);
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Person person = realm.createObject(Person.class);
+                person.setName("Happy Person");
+                person.setAge(14);
+            }
+        });
 
-        person = realm.where(Person.class).findFirst();
+        Person person = realm.where(Person.class).findFirst();
         Log.i(TAG, String.format("Person name: %s", person.getName()));
     }
 

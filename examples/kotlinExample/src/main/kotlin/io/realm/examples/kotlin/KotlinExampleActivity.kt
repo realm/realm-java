@@ -98,27 +98,24 @@ class KotlinExampleActivity : Activity() {
         showStatus("Perform basic Create/Read/Update/Delete (CRUD) operations...")
 
         // All writes must be wrapped in a transaction to facilitate safe multi threading
-        realm.beginTransaction()
-
-        // Add a person
-        var person = realm.createObject(Person::class.java)
-        person.id = 1
-        person.name = "Young Person"
-        person.age = 14
-
-        // When the transaction is committed, all changes a synced to disk.
-        realm.commitTransaction()
+        realm.executeTransaction {
+            // Add a person
+            var person = realm.createObject(Person::class.java)
+            person.id = 1
+            person.name = "Young Person"
+            person.age = 14
+        }
 
         // Find the first person (no query conditions) and read a field
-        person = realm.where(Person::class.java).findFirst()
+        var person = realm.where(Person::class.java).findFirst()
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction
-        realm.beginTransaction()
-        person.name = "Senior Person"
-        person.age = 99
-        showStatus(person.name + " got older: " + person.age)
-        realm.commitTransaction()
+        realm.executeTransaction {
+            person.name = "Senior Person"
+            person.age = 99
+            showStatus(person.name + " got older: " + person.age)
+        }
     }
 
     private fun basicQuery(realm: Realm) {
@@ -147,29 +144,29 @@ class KotlinExampleActivity : Activity() {
         val realm = Realm.getInstance(realmConfig)
 
         // Add ten persons in one transaction
-        realm.beginTransaction()
-        val fido = realm.createObject(Dog::class.java)
-        fido.name = "fido"
-        for (i in 0..9) {
-            val person = realm.createObject(Person::class.java)
-            person.id = i.toLong()
-            person.name = "Person no. $i"
-            person.age = i
-            person.dog = fido
+        realm.executeTransaction {
+            val fido = realm.createObject(Dog::class.java)
+            fido.name = "fido"
+            for (i in 0..9) {
+                val person = realm.createObject(Person::class.java)
+                person.id = i.toLong()
+                person.name = "Person no. $i"
+                person.age = i
+                person.dog = fido
 
-            // The field tempReference is annotated with @Ignore.
-            // This means setTempReference sets the Person tempReference
-            // field directly. The tempReference is NOT saved as part of
-            // the RealmObject:
-            person.tempReference = 42
+                // The field tempReference is annotated with @Ignore.
+                // This means setTempReference sets the Person tempReference
+                // field directly. The tempReference is NOT saved as part of
+                // the RealmObject:
+                person.tempReference = 42
 
-            for (j in 0..i - 1) {
-                val cat = realm.createObject(Cat::class.java)
-                cat.name = "Cat_$j"
-                person.cats.add(cat)
+                for (j in 0..i - 1) {
+                    val cat = realm.createObject(Cat::class.java)
+                    cat.name = "Cat_$j"
+                    person.cats.add(cat)
+                }
             }
         }
-        realm.commitTransaction()
 
         // Implicit read transactions allow you to access your objects
         status += "\nNumber of persons: ${realm.allObjects(Person::class.java).size}"
