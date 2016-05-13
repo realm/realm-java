@@ -327,7 +327,7 @@ targets.each { target ->
         // Store the unstripped version
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}.so"
-            into "${projectDir}/../build/output/jniLibs-unstripped/${target.abi}"
+            into "${buildDir}/outputs/jniLibs-unstripped/${target.abi}"
             rename "librealm-jni-${target.name}${getDebugExt()}.so", 'librealm-jni.so'
         }
     }
@@ -347,7 +347,6 @@ task clean(type: Delete) {
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
-    delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
 
     doLast {
