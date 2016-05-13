@@ -40,7 +40,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
-import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -1000,41 +999,6 @@ public class RealmResultsTests extends CollectionTests {
                 } else {
                     fail("Listeners wasn't removed");
                 }
-            }
-        });
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void deleteAndDeleteAll() {
-        final Realm realm = looperThread.realm;
-        realm.beginTransaction();
-        for (int i = 0; i < 10; i++) {
-            StringOnly stringOnly = realm.createObject(StringOnly.class);
-            stringOnly.setChars("String " + i);
-        }
-        realm.commitTransaction();
-
-        RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).findAll();
-
-        realm.beginTransaction();
-        // remove one object
-        stringOnlies.get(0).deleteFromRealm();
-        realm.commitTransaction();
-
-        realm.beginTransaction();
-        // remove the rest
-        stringOnlies.deleteAllFromRealm();
-        realm.commitTransaction();
-
-        assertEquals(0, realm.where(StringOnly.class).findAll().size());
-
-        // The above commit should have put a REALM_CHANGED event on the Looper queue before this runnable.
-        looperThread.postRunnable(new Runnable() {
-            @Override
-            public void run() {
-                realm.close();
-                looperThread.testComplete();
             }
         });
     }
