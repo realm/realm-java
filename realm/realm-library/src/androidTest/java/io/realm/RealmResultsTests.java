@@ -1005,9 +1005,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    @RunTestInLooperThread
     public void deleteAndDeleteAll() {
-        final Realm realm = looperThread.realm;
         realm.beginTransaction();
         for (int i = 0; i < 10; i++) {
             StringOnly stringOnly = realm.createObject(StringOnly.class);
@@ -1028,14 +1026,5 @@ public class RealmResultsTests extends CollectionTests {
         realm.commitTransaction();
 
         assertEquals(0, realm.where(StringOnly.class).findAll().size());
-
-        // The above commit should have put a REALM_CHANGED event on the Looper queue before this runnable.
-        looperThread.postRunnable(new Runnable() {
-            @Override
-            public void run() {
-                realm.close();
-                looperThread.testComplete();
-            }
-        });
     }
 }
