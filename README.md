@@ -114,7 +114,7 @@ That command will generate:
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
  * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
  * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This saves recompilation time a lot.
- * `./gradlew connectedCheck -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.
+ * `./gradlew connectedUnitTests -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 
