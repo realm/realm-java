@@ -34,6 +34,10 @@ import java.lang.annotation.Target;
  * {@code library = true}. Setting {@code library = true} is normally only relevant for library authors. See below for
  * further details.
  *
+ * <p>
+ * Currently, it is not possible to have multiple RealmModule declarations in a single file. If you have more than one
+ * RealmModule, you will have to use separate Java files for each module.
+ *
  *
  * <h2>RealmModules and libraries</h2>
  *
