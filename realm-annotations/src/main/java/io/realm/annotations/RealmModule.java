@@ -56,7 +56,7 @@ import java.lang.annotation.Target;
  * App developers are not required to specify any modules, as they implicitly use the {@code DefaultRealmModule}, but
  * they now has the option of adding the library project classes to their schema using
  * {@code RealmConfiguration.addModule()}.
- * 
+ *
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples/realmModuleAppExample">Example of a project using modules</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
