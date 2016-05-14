@@ -1,3 +1,15 @@
+## 0.91.0
+
+* Updated Realm Core to 0.100.4.
+
+### Enhancements
+
+* Upgrading to OpenSSL 1.0.1t (#2749).
+
+### Bug fixes
+
+* Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
+
 ## 0.90.1
 
 * Updated Realm Core to 0.100.2.
