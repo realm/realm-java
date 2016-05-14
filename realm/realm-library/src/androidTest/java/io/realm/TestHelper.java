@@ -246,60 +246,75 @@ public class TestHelper {
      */
     public static class TestLogger implements Logger {
 
+        public String previousMessage;
         public String message;
         public Throwable throwable;
 
+        private void backupMessage() {
+            previousMessage = this.message;
+        }
+
         @Override
         public void v(String message) {
+            backupMessage();
             this.message = message;
         }
 
         @Override
         public void v(String message, Throwable t) {
+            backupMessage();
             this.message = message;
             this.throwable = t;
         }
 
         @Override
         public void d(String message) {
+            backupMessage();
             this.message = message;
         }
 
         @Override
         public void d(String message, Throwable t) {
+            backupMessage();
             this.message = message;
             this.throwable = t;
         }
 
         @Override
         public void i(String message) {
+            backupMessage();
             this.message = message;
         }
 
         @Override
         public void i(String message, Throwable t) {
+            backupMessage();
             this.message = message;
             this.throwable = t;
         }
 
         @Override
         public void w(String message) {
+            backupMessage();
             this.message = message;
         }
 
         @Override
         public void w(String message, Throwable t) {
+            backupMessage();
             this.message = message;
             this.throwable = t;
         }
 
         @Override
         public void e(String message) {
+            backupMessage();
             this.message = message;
         }
 
         @Override
         public void e(String message, Throwable t) {
+            backupMessage();
             this.message = message;
             this.throwable = t;
         }

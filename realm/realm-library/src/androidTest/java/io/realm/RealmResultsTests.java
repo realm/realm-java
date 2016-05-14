@@ -348,12 +348,12 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(10, results.size());
 
         // 1. Delete first object from another thread.
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
             }
-        }, new Realm.Transaction.Callback() {
+        }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
                 // 2. RealmResults are refreshed before onSuccess is called

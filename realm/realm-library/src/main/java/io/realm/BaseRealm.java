@@ -458,6 +458,11 @@ abstract class BaseRealm implements Closeable {
      * Closes the Realm instances and all its resources without checking the {@link RealmCache}.
      */
     void doClose() {
+        if (asyncTaskExecutor.hasPendingTransactions() || !handlerController.asyncTransactionCallbacks.isEmpty()) {
+            String canonicalPath = getPath();
+            RealmLog.w("Realm " + canonicalPath + " will be closed with pending async transactions or callbacks.");
+        }
+
         if (sharedGroupManager != null) {
             sharedGroupManager.close();
             sharedGroupManager = null;

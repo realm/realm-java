@@ -1,3 +1,9 @@
+## 0.90.2
+
+### Bug fixes
+
+* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
+
 ## 0.90.1
 
 * Updated Realm Core to 0.100.2.
