@@ -24,10 +24,8 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.ColumnIndices;
-import io.realm.internal.SharedGroup;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -295,6 +293,10 @@ final class RealmCache {
     private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
         if (configuration.hasAssetFile()) {
             File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
+            if (realmFile.exists()) {
+                return;
+            }
+
             InputStream inputStream = null;
             FileOutputStream outputStream = null;
             try {

@@ -16,16 +16,16 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+import android.test.MoreAsserts;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,10 +59,10 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmConfigurationTests {
@@ -783,13 +783,13 @@ public class RealmConfigurationTests {
     public void assetFileNullAndEmptyFileName() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
         try {
-            new RealmConfiguration.Builder(context, null).build();
+            new RealmConfiguration.Builder(context).assetFile(context, null).build();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         try {
-            new RealmConfiguration.Builder(context, "").build();
+            new RealmConfiguration.Builder(context).assetFile(context, "").build();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -806,7 +806,7 @@ public class RealmConfigurationTests {
         assertTrue(new File(configuration.getPath()).exists());
 
         try {
-            new RealmConfiguration.Builder(context, "asset_file.realm").build();
+            new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm").build();
             fail();
         } catch (RealmException ignored) {
         }
@@ -820,7 +820,7 @@ public class RealmConfigurationTests {
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         try {
-            new RealmConfiguration.Builder(context, "asset_file.realm").inMemory().build();
+            new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm").inMemory().build();
             fail();
         } catch (RealmException ignored) {
         }
@@ -833,7 +833,7 @@ public class RealmConfigurationTests {
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context, "no_file").build();
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "no_file").build();
         try {
             Realm.getInstance(configuration);
             fail();
@@ -848,7 +848,7 @@ public class RealmConfigurationTests {
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context, "asset_file.realm")
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
 
@@ -868,9 +868,6 @@ public class RealmConfigurationTests {
         configFactory.copyRealmFromAssets(context, "asset_file.realm", "asset_file_copy.realm");
         File copyFromAsset = new File(configFactory.getRoot(), "asset_file_copy.realm");
         assertTrue(copyFromAsset.exists());
-
-        // Check file size of the copied by Realm and the original one
-        assertEquals(realmFile.length(), copyFromAsset.length());
 
         Realm.deleteRealm(configuration);
         assertFalse(realmFile.exists());
