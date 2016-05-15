@@ -458,15 +458,6 @@ public final class RealmConfiguration {
         }
 
         /**
-         * DEPRECATED: Use {@link #modules(Object, Object...)} instead.
-         */
-        @Deprecated
-        public Builder setModules(Object baseModule, Object... additionalModules) {
-            modules(baseModule, additionalModules);
-            return this;
-        }
-
-        /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
          *

@@ -123,14 +123,14 @@ public class IntroExampleActivity extends Activity {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.allObjects(Person.class).deleteAllFromRealm();
+                realm.delete(Person.class);
             }
         });
     }
 
     private void basicQuery(Realm realm) {
         showStatus("\nPerforming basic Query operation...");
-        showStatus("Number of persons: " + realm.allObjects(Person.class).size());
+        showStatus("Number of persons: " + realm.where(Person.class).count());
 
         RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
 
@@ -139,7 +139,7 @@ public class IntroExampleActivity extends Activity {
 
     private void basicLinkQuery(Realm realm) {
         showStatus("\nPerforming basic Link Query operation...");
-        showStatus("Number of persons: " + realm.allObjects(Person.class).size());
+        showStatus("Number of persons: " + realm.where(Person.class).count());
 
         RealmResults<Person> results = realm.where(Person.class).equalTo("cats.name", "Tiger").findAll();
 
@@ -182,10 +182,10 @@ public class IntroExampleActivity extends Activity {
         });
 
         // Implicit read transactions allow you to access your objects
-        status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
+        status += "\nNumber of persons: " + realm.where(Person.class).count();
 
         // Iterate over all objects
-        for (Person pers : realm.allObjects(Person.class)) {
+        for (Person pers : realm.where(Person.class).findAll()) {
             String dogName;
             if (pers.getDog() == null) {
                 dogName = "None";
@@ -196,9 +196,8 @@ public class IntroExampleActivity extends Activity {
         }
 
         // Sorting
-        RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
-        sortedPersons.sort("age", Sort.DESCENDING);
-        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first()
+        RealmResults<Person> sortedPersons = realm.where(Person.class).findAllSorted("age", Sort.DESCENDING);
+        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.where(Person.class).findFirst()
                 .getName();
 
         realm.close();
@@ -209,7 +208,7 @@ public class IntroExampleActivity extends Activity {
         String status = "\n\nPerforming complex Query operation...";
 
         Realm realm = Realm.getInstance(realmConfig);
-        status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
+        status += "\nNumber of persons: " + realm.where(Person.class).count();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".
         RealmResults<Person> results = realm.where(Person.class)

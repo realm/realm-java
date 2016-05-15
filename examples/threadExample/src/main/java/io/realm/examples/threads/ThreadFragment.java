@@ -91,7 +91,7 @@ public class ThreadFragment extends Fragment {
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        realm.clear(Dot.class);
+                        realm.delete(Dot.class);
                     }
                 });
                 return true;
@@ -114,7 +114,7 @@ public class ThreadFragment extends Fragment {
         // Note that the query gets updated by rerunning it on the thread it was
         // created. This can negatively effect frame rates if it is a complicated query or a very
         // large data set.
-        dotsView.setRealmResults(realm.allObjects(Dot.class));
+        dotsView.setRealmResults(realm.where(Dot.class).findAll());
     }
 
     @Override
