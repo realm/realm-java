@@ -1,3 +1,9 @@
+## 0.91.0
+
+### Breaking changes
+
+* Removed all `@Deprecated` methods.
+
 ## 0.90.1
 
 * Updated Realm Core to 0.100.2.
