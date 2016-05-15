@@ -73,7 +73,7 @@ public class RealmResultsTests extends CollectionTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         populateTestRealm();
-        collection = realm.allObjectsSorted(AllTypes.class, AllTypes.FIELD_LONG, Sort.ASCENDING);
+        collection = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG, Sort.ASCENDING);
     }
 
     @After
@@ -112,7 +112,7 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void subList() {
-        RealmResults<AllTypes> list = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> list = realm.where(AllTypes.class).findAll();
         list.sort("columnLong");
         List<AllTypes> sublist = list.subList(Math.max(list.size() - 20, 0), list.size());
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
@@ -348,12 +348,12 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(10, results.size());
 
         // 1. Delete first object from another thread.
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+                realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().deleteFromRealm();
             }
-        }, new Realm.Transaction.Callback() {
+        }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
                 // 2. RealmResults are refreshed before onSuccess is called
@@ -853,7 +853,7 @@ public class RealmResultsTests extends CollectionTests {
     @RunTestInLooperThread
     public void addChangeListener() {
         Realm realm = looperThread.realm;
-        RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -872,7 +872,7 @@ public class RealmResultsTests extends CollectionTests {
     public void addChangeListener_twice() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
         final Realm realm = looperThread.realm;
-        RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -923,7 +923,7 @@ public class RealmResultsTests extends CollectionTests {
     public void removeChangeListener() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
         final Realm realm = looperThread.realm;
-        RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -967,7 +967,7 @@ public class RealmResultsTests extends CollectionTests {
     public void removeAllChangeListeners() {
         final AtomicInteger listenersTriggered = new AtomicInteger(0);
         final Realm realm = looperThread.realm;
-        RealmResults<AllTypes> collection = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
         RealmChangeListener<RealmResults<AllTypes>> listenerA = new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override

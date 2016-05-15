@@ -93,14 +93,14 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+            RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
         // PrimaryKeyAsNumber
         } else {
-            RealmResults results = realm.allObjects(clazz);
+            RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
             assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
@@ -116,14 +116,14 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+            RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
         // PrimaryKeyAsNumber
         } else {
-            RealmResults results = realm.allObjects(clazz);
+            RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
             assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
@@ -140,14 +140,14 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+            RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
         // PrimaryKeyAsNumber
         } else {
-            RealmResults results = realm.allObjects(clazz);
+            RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
             assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());

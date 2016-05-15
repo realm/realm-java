@@ -106,15 +106,15 @@ public class RealmModelTests {
             realm.commitTransaction();
         }
 
-        RealmResults<AllTypesRealmModel> resultList = realm.allObjects(AllTypesRealmModel.class);
-        assertEquals("Realm.get is returning wrong result set", 42, resultList.size());
+        long size = realm.where(AllTypesRealmModel.class).count();
+        assertEquals("Realm.get is returning wrong result set", 42, size);
     }
 
     @Test
     public void copyToRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
-        RealmResults<AllTypesRealmModel> resultList = realm.allObjects(AllTypesRealmModel.class);
-        assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
+        long size = realm.where(AllTypesRealmModel.class).count();
+        assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, size);
     }
 
 
@@ -151,9 +151,9 @@ public class RealmModelTests {
             }
         });
 
-        assertEquals(1, realm.allObjects(AllTypesRealmModel.class).size());
+        assertEquals(1, realm.where(AllTypesRealmModel.class).count());
 
-        AllTypesRealmModel obj = realm.allObjects(AllTypesRealmModel.class).first();
+        AllTypesRealmModel obj = realm.where(AllTypesRealmModel.class).findFirst();
         assertEquals("Foo", obj.columnString);
     }
 
@@ -163,8 +163,8 @@ public class RealmModelTests {
         realm.createOrUpdateAllFromJson(AllTypesRealmModel.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
         realm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(AllTypesRealmModel.class).size());
-        AllTypesRealmModel obj = realm.allObjects(AllTypesRealmModel.class).first();
+        assertEquals(1, realm.where(AllTypesRealmModel.class).count());
+        AllTypesRealmModel obj = realm.where(AllTypesRealmModel.class).findFirst();
         assertEquals("Bar", obj.columnString);
         assertEquals(2.23F, obj.columnFloat, 0.000000001);
         assertEquals(2.234D, obj.columnDouble, 0.000000001);
@@ -188,9 +188,10 @@ public class RealmModelTests {
     @Test
     @RunTestInLooperThread
     public void async_query() {
-        populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, TEST_DATA_SIZE);
 
-        final RealmResults<AllTypesRealmModel> allTypesRealmModels = looperThread.realm.distinctAsync(AllTypesRealmModel.class, AllTypesRealmModel.FIELD_STRING);
+        final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctAsync(AllTypesRealmModel.FIELD_STRING);
         allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
             public void onChange(RealmResults<AllTypesRealmModel> object) {
@@ -204,7 +205,7 @@ public class RealmModelTests {
     public void dynamicObject() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        AllTypesRealmModel typedObj = realm.allObjects(AllTypesRealmModel.class).first();
+        AllTypesRealmModel typedObj = realm.where(AllTypesRealmModel.class).findFirst();
         DynamicRealmObject dObj = new DynamicRealmObject(typedObj);
 
         realm.beginTransaction();

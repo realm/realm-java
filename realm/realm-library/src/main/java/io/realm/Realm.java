@@ -158,27 +158,6 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Realm static constructor for the default Realm file {@value io.realm.RealmConfiguration#DEFAULT_REALM_NAME}.
-     * This is equivalent to calling {@code Realm.getInstance(new RealmConfiguration(getContext()).build())}.
-     *
-     * This constructor is only provided for convenience. It is recommended to use
-     * {@link #getInstance(RealmConfiguration)} or {@link #getDefaultInstance()}.
-     *
-     * @param context a non-null Android {@link android.content.Context}
-     * @return an instance of the Realm class.
-     * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
-     * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm and it must
-     *         be migrated.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
-     * @deprecated use {@link #getDefaultInstance()} or {@link #getInstance(RealmConfiguration)} instead.
-     */
-    public static Realm getInstance(Context context) {
-        return Realm.getInstance(new RealmConfiguration.Builder(context)
-                .name(DEFAULT_REALM_NAME)
-                .build());
-    }
-
-    /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
      *
