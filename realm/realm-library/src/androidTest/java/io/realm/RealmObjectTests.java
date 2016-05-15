@@ -1183,9 +1183,7 @@ public class RealmObjectTests {
 
     @Test
     public void getter_afterDeleteFromOtherThreadThrows() {
-        realm = Realm.getInstance(configFactory.createConfiguration());
         final CountDownLatch bgRealmDone = new CountDownLatch(1);
-
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
