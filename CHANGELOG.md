@@ -9,7 +9,7 @@
 ### Bug fixes
 
 * Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
-* added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
+* Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
 
 ## 0.90.1
 

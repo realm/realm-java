@@ -227,7 +227,7 @@ public abstract class RealmObject implements RealmModel {
      * Adds a change listener to this RealmObject.
      *
      * @param listener the change listener to be notified.
-     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalArgumentException if object is an un-managed RealmObject.
      */
     public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
@@ -277,8 +277,7 @@ public abstract class RealmObject implements RealmModel {
      * Removes a previously registered listener.
      *
      * @param listener the instance to be removed.
-     * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalArgumentException if object is an un-managed RealmObject.
+     * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public final void removeChangeListener(RealmChangeListener listener) {

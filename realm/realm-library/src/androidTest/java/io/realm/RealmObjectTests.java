@@ -1577,10 +1577,11 @@ public class RealmObjectTests {
             @Override
             public void run() throws Exception {
                 final Realm realm = Realm.getInstance(realmConfig);
+                final Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
-                    createManagedDogObjectFromRealmInstance(realm).addChangeListener(null);
+                    dog.addChangeListener(null);
                     fail("adding null change listener must throw an exception.");
                 } catch (IllegalArgumentException ignore) {
                 } finally {
@@ -1629,10 +1630,11 @@ public class RealmObjectTests {
             @Override
             public void run() throws Exception {
                 final Realm realm = Realm.getInstance(realmConfig);
+                final Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
-                    createManagedDogObjectFromRealmInstance(realm).removeChangeListener(null);
+                    dog.removeChangeListener(null);
                     fail("removing null change listener must throw an exception.");
                 } catch (IllegalArgumentException ignore) {
                 } finally {
