@@ -89,7 +89,7 @@ abstract class BaseRealm implements Closeable {
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
-     * @throws IllegalStateException if called from a non-Looper thread.
+     * @throws IllegalStateException if called from a non-Looper thread with {@code autoRefresh} {@code true}.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
