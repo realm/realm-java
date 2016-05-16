@@ -61,22 +61,22 @@ public class RealmJsonNullPrimaryKeyTests {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-             {PrimaryKeyAsBoxedByte.class    ,"OhThisIsNullKey?!", "{ \"id\":null, \"name\":\"OhThisIsNullKey?!\" }", }
-            ,{PrimaryKeyAsBoxedShort.class   ,"YouBetItIsNullKey", "{ \"id\":null, \"name\":\"YouBetItIsNullKey\" }", }
-            ,{PrimaryKeyAsBoxedInteger.class ,"Gosh Didnt KnowIt", "{ \"id\":null, \"name\":\"Gosh Didnt KnowIt\" }", }
-            ,{PrimaryKeyAsBoxedLong.class    ,"?YOUNOWKNOWRIGHT?", "{ \"id\":null, \"name\":\"?YOUNOWKNOWRIGHT?\" }", }
+             {PrimaryKeyAsBoxedByte.class    ,"OhThisIsNullKey?!", "{ \"id\":null, \"name\":\"OhThisIsNullKey?!\" }"}
+            ,{PrimaryKeyAsBoxedShort.class   ,"YouBetItIsNullKey", "{ \"id\":null, \"name\":\"YouBetItIsNullKey\" }"}
+            ,{PrimaryKeyAsBoxedInteger.class ,"Gosh Didnt KnowIt", "{ \"id\":null, \"name\":\"Gosh Didnt KnowIt\" }"}
+            ,{PrimaryKeyAsBoxedLong.class    ,"?YOUNOWKNOWRIGHT?", "{ \"id\":null, \"name\":\"?YOUNOWKNOWRIGHT?\" }"}
             ,{PrimaryKeyAsBoxedByte.class    ,"HaHaHaHaHaHaHaHaH", "{ \"name\":\"HaHaHaHaHaHaHaHaH\" }"}
             ,{PrimaryKeyAsBoxedShort.class   ,"KeyValueTestIsFun", "{ \"name\":\"KeyValueTestIsFun\" }"}
             ,{PrimaryKeyAsBoxedInteger.class ,"FunValueTestIsKey", "{ \"name\":\"FunValueTestIsKey\" }"}
             ,{PrimaryKeyAsBoxedLong.class    ,"NameAsBoxedLong-!", "{ \"name\":\"NameAsBoxedLong-!\" }"}
-            ,{PrimaryKeyAsString.class       ,"4299121",           "{ \"name\":null, \"id\":4299121 }" }
+            ,{PrimaryKeyAsString.class       ,"4299121",           "{ \"name\":null, \"id\":4299121  }"}
             ,{PrimaryKeyAsString.class       ,"2429214",           "{ \"id\":2429214 }"}
         });
     }
 
-    final private String jsonString;
-    final private String secondaryFieldValue;
     final private Class<? extends RealmObject> clazz;
+    final private String secondaryFieldValue;
+    final private String jsonString;
 
     public RealmJsonNullPrimaryKeyTests(Class<? extends RealmObject> clazz, String secondFieldValue, String jsonString) {
         this.jsonString = jsonString;
