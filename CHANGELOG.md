@@ -9,6 +9,7 @@
 ### Bug fixes
 
 * Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
+* The annotation processor now correctly reports an error if trying to reference interfaces in model classes (#2808).
 
 ## 0.90.1
 
