@@ -4,7 +4,7 @@
 
 ### Enhancements
 
-* Upgrading to OpenSSL 1.0.1t (#2749).
+* Upgrading to OpenSSL 1.0.1t. Google Play will on July 11, 2016 only accept apps using OpenSSL 1.0.1r or later (https://support.google.com/faqs/answer/6376725, #2749).
 
 ### Bug fixes
 
