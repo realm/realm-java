@@ -689,9 +689,9 @@ public class RealmListTests extends CollectionTests {
     public void clear_notDeleting() {
         Owner owner = realm.where(Owner.class).findFirst();
         realm.beginTransaction();
-        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
         owner.getDogs().clear();
-        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
         realm.commitTransaction();
     }
 

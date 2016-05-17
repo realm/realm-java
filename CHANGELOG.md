@@ -2,18 +2,19 @@
 
 * Updated Realm Core to 0.100.4.
 
-### Enhancements
+### Breaking changes
 
-* Upgrading to OpenSSL 1.0.1t (#2749).
+* Removed all `@Deprecated` methods.
+* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
 
 ### Bug fixes
 
 * Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
 * Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
 
-### Breaking changes
+### Enhancements
 
-* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
+* Upgrading to OpenSSL 1.0.1t (#2749).
 
 ## 0.90.1
 

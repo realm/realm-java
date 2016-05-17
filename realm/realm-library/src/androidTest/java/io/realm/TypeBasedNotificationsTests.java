@@ -226,7 +226,7 @@ public class TypeBasedNotificationsTests {
             public void onChange(PrimaryKeyAsLong object) {
                 assertEquals(1, primaryKeyAsLong.getId());
                 assertEquals("Bar", primaryKeyAsLong.getName());
-                assertEquals(1, realm.allObjects(PrimaryKeyAsLong.class).size());
+                assertEquals(1, realm.where(PrimaryKeyAsLong.class).count());
                 typebasedCommitInvocations.incrementAndGet();
             }
         });
@@ -448,7 +448,7 @@ public class TypeBasedNotificationsTests {
         newObj.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey object) {
-                assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
+                assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
                 assertEquals("bar", newObj.getColumnString());
                 assertTrue(newObj.getColumnBoxedBoolean());
                 typebasedCommitInvocations.incrementAndGet();
@@ -1405,12 +1405,12 @@ public class TypeBasedNotificationsTests {
 
         final Realm realm = looperThread.realm;
         // Two results needed to make sure list modification happen while iterating
-        RealmResults<Owner> results1 = realm.allObjects(Owner.class);
-        RealmResults<Cat> results2 = realm.allObjects(Cat.class);
+        RealmResults<Owner> results1 = realm.where(Owner.class).findAll();
+        RealmResults<Cat> results2 = realm.where(Cat.class).findAll();
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
             public void onChange(Object object) {
-                RealmResults<Owner> results = realm.allObjects(Owner.class);
+                RealmResults<Owner> results = realm.where(Owner.class).findAll();
                 boolean foundKey = false;
                 // Check if the results has been added to the syncRealmResults in case of the behaviour of
                 // allObjects changes

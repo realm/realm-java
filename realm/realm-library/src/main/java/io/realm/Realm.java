@@ -74,7 +74,7 @@ import rx.Observable;
  *  onStart/onStop.
  * <p>
  * Realm instances coordinate their state across threads using the {@link android.os.Handler} mechanism. This also means
- * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #refresh()}
+ * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #waitForChange()}
  * is manually called.
  * <p>
  * A standard pattern for working with Realm in Android activities can be seen below:
@@ -155,27 +155,6 @@ public final class Realm extends BaseRealm {
             );
         }
         super.finalize();
-    }
-
-    /**
-     * Realm static constructor for the default Realm file {@value io.realm.RealmConfiguration#DEFAULT_REALM_NAME}.
-     * This is equivalent to calling {@code Realm.getInstance(new RealmConfiguration(getContext()).build())}.
-     *
-     * This constructor is only provided for convenience. It is recommended to use
-     * {@link #getInstance(RealmConfiguration)} or {@link #getDefaultInstance()}.
-     *
-     * @param context a non-null Android {@link android.content.Context}
-     * @return an instance of the Realm class.
-     * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
-     * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm and it must
-     *         be migrated.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
-     * @deprecated use {@link #getDefaultInstance()} or {@link #getInstance(RealmConfiguration)} instead.
-     */
-    public static Realm getInstance(Context context) {
-        return Realm.getInstance(new RealmConfiguration.Builder(context)
-                .name(DEFAULT_REALM_NAME)
-                .build());
     }
 
     /**
@@ -737,10 +716,6 @@ public final class Realm extends BaseRealm {
         return get(clazz, rowIndex);
     }
 
-    void remove(Class<? extends RealmModel> clazz, long objectIndex) {
-        getTable(clazz).moveLastOver(objectIndex);
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -937,10 +912,6 @@ public final class Realm extends BaseRealm {
         return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
     }
 
-    boolean contains(Class<? extends RealmModel> clazz) {
-        return configuration.getSchemaMediator().getModelClasses().contains(clazz);
-    }
-
     /**
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
      *
@@ -956,15 +927,12 @@ public final class Realm extends BaseRealm {
     /**
      * Adds a change listener to the Realm.
      * <p>
-     * The listeners will be executed:
-     * <ul>
-     * <li>Immediately if a change was committed by the local thread</li>
-     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
-     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
-     * </ul>
+     * The listeners will be executed on every loop of a Handler thread if
+     * the current thread or other threads committed changes to the Realm.
      *
-     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
-     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
+     * Realm instances are per-thread singletons and cached, so listeners should be
+     * removed manually even if calling {@link #close()}. Otherwise there is a
+     * risk of memory leaks.
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -975,100 +943,6 @@ public final class Realm extends BaseRealm {
      */
     public void addChangeListener(RealmChangeListener<Realm> listener) {
         super.addListener(listener);
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAll()} instead.
-     */
-    @Deprecated
-    public <E extends RealmModel> RealmResults<E> allObjects(Class<E> clazz) {
-        return where(clazz).findAll();
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName, sortOrder)} instead.
-     */
-    @Deprecated
-    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
-                                                                    Sort sortOrder) {
-        checkIfValid();
-        Table table = getTable(clazz);
-        long columnIndex = schema.columnIndices.getColumnIndex(clazz, fieldName);
-        if (columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-
-        TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
-    }
-
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
-     */
-    @Deprecated
-    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                                    Sort sortOrder1, String fieldName2,
-                                                                    Sort sortOrder2) {
-        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
-                sortOrder2});
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldName1, sortOrder1, fieldName2, sortOrder2, fieldName3, sortOrder3)}
-     * instead.
-     */
-    @Deprecated
-    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                                    Sort sortOrder1,
-                                                                    String fieldName2, Sort sortOrder2,
-                                                                    String fieldName3, Sort sortOrder3) {
-        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2, fieldName3},
-                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).findAllSorted(fieldNames[], sortOrders[])} instead.
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public <E extends RealmModel> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
-                                                                    Sort sortOrders[]) {
-        checkAllObjectsSortedParameters(fieldNames, sortOrders);
-        Table table = this.getTable(clazz);
-
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).distinct(fieldName)} instead.
-     */
-    @Deprecated
-    public <E extends RealmModel> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
-        checkIfValid();
-        Table table = schema.getTable(clazz);
-        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, table);
-        TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).distinctAsync(fieldName)} instead.
-     */
-    @Deprecated
-    public <E extends RealmModel> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
-        checkIfValid();
-        return where(clazz).distinctAsync(fieldName);
-    }
-
-    /**
-     * DEPRECATED: Use {@code realm.where(clazz).distinct(firstFieldName, remainingFieldNames)} instead.
-     */
-    @Deprecated
-    public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String firstFieldName, String... remainingFieldNames) {
-        checkIfValid();
-        return where(clazz).distinct(firstFieldName, remainingFieldNames);
     }
 
     /**
@@ -1102,106 +976,8 @@ public final class Realm extends BaseRealm {
      * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
-     * @param callback optional, to receive the result of this query.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
-     *         another thread.
-     * @deprecated replaced by {@link #executeTransactionAsync(Transaction)},
-     * {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess)},
-     * {@link #executeTransactionAsync(Transaction, io.realm.Realm.Transaction.OnError)} and
-     * {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess, Transaction.OnError)}.
-     */
-    @Deprecated
-    public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
-        checkIfValid();
-        if (transaction == null) {
-            throw new IllegalArgumentException("Transaction should not be null");
-        }
-
-        // If the user provided a Callback then we make sure, the current Realm has a Handler
-        // we can use to deliver the result
-        if (callback != null && handler == null) {
-            throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
-                    " and you provided a callback, we need a Handler to invoke your callback");
-        }
-
-        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
-        // to perform the transaction
-        final RealmConfiguration realmConfiguration = getConfiguration();
-
-        final Future<?> pendingTransaction = asyncTaskExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (Thread.currentThread().isInterrupted()) {
-                    return;
-                }
-
-                boolean transactionCommitted = false;
-                final Exception[] exception = new Exception[1];
-                final Realm bgRealm = Realm.getInstance(realmConfiguration);
-                bgRealm.beginTransaction();
-                try {
-                    transaction.execute(bgRealm);
-
-                    if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitTransaction(false, new Runnable() {
-                            @Override
-                            public void run() {
-                                // The bgRealm needs to be closed before post event to caller's handler to avoid
-                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
-                                // This will close Realm before sending REALM_CHANGED.
-                                bgRealm.close();
-                            }
-                        });
-                        transactionCommitted = true;
-                    }
-                } catch (final Exception e) {
-                    exception[0] = e;
-                } finally {
-                    if (!bgRealm.isClosed()) {
-                        if (bgRealm.isInTransaction()) {
-                            bgRealm.cancelTransaction();
-                        } else if (exception[0] != null) {
-                            RealmLog.w("Could not cancel transaction, not currently in a transaction.");
-                        }
-                        bgRealm.close();
-                    }
-
-                    // Send response as the final step to ensure the bg thread quit before others get the response!
-                    if (callback != null
-                            && handler != null
-                            && !Thread.currentThread().isInterrupted()
-                            && handler.getLooper().getThread().isAlive()) {
-                        if (transactionCommitted) {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callback.onSuccess();
-                                }
-                            });
-                        } else if (exception[0] != null) {
-                            // transaction has not been canceled by there is a exception during transaction.
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callback.onError(exception[0]);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-        });
-
-        return new RealmAsyncTask(pendingTransaction);
-    }
-
-    /**
-     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
-     *
-     * @param transaction {@link io.realm.Realm.Transaction} to execute.
-     * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the Realm is opened from
      *                                  another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {
@@ -1365,20 +1141,6 @@ public final class Realm extends BaseRealm {
         });
 
         return new RealmAsyncTask(pendingTransaction);
-    }
-
-
-    /**
-     * Removes all objects of the specified class.
-     *
-     * DEPRECATED: Use {@link #delete(Class)} instead.
-     *
-     * @param clazz the class which objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
-     */
-    @Deprecated
-    public void clear(Class<? extends RealmModel> clazz) {
-        delete(clazz);
     }
 
     /**

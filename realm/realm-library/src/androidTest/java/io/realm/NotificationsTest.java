@@ -267,7 +267,7 @@ public class NotificationsTest {
                 Realm realm = null;
                 try {
                     realm = Realm.getInstance(realmConfig);
-                    final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                    final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
                     assertEquals(0, dogs.size());
                     listener[0] = new RealmChangeListener<Realm>() {
                         @Override
@@ -302,7 +302,7 @@ public class NotificationsTest {
             dog.setName("Rex " + i);
         }
         realm.commitTransaction();
-        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
         realm.close();
 
         try {
@@ -341,7 +341,7 @@ public class NotificationsTest {
                 backgroundLooperStarted.countDown();
 
                 // Random operation in the client code
-                final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
                 if (dogs.size() != 0) {
                     return false;
                 }
@@ -384,7 +384,7 @@ public class NotificationsTest {
             dog.setName("Rex " + i);
         }
         realm.commitTransaction();
-        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        assertEquals(TEST_SIZE, realm.where(Dog.class).count());
         realm.close();
         addHandlerMessages.countDown();
 
@@ -1012,7 +1012,7 @@ public class NotificationsTest {
     @RunTestInLooperThread
     public void realmResultsListenerAddedAfterCommit() {
         Realm realm = looperThread.realm;
-        RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();

@@ -77,7 +77,7 @@ public class GotchasActivity extends Activity {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.allObjectsSorted(Person.class, "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100));
+                realm.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100));
             }
         });
 
