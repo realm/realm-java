@@ -796,23 +796,6 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void assetFileRealmFileExists() {
-        Context context = InstrumentationRegistry.getInstrumentation().getContext();
-
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context).build();
-        Realm realm = Realm.getInstance(configuration);
-        realm.close();
-
-        assertTrue(new File(configuration.getPath()).exists());
-
-        try {
-            new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm").build();
-            fail();
-        } catch (RealmException ignored) {
-        }
-    }
-
-    @Test
     public void assetFileWithInMemoryConfig() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
 

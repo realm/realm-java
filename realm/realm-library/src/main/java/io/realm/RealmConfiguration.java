@@ -571,8 +571,8 @@ public final class RealmConfiguration {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
-            if (new File(folder, fileName).exists()) {
-                throw new RealmException("Asset file can not be used if Realm file exists.");
+            if (durability == SharedGroup.Durability.MEM_ONLY) {
+                throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
 
             this.contextWeakRef = new WeakReference<>(context);
