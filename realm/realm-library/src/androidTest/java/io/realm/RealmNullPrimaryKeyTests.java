@@ -197,8 +197,8 @@ public class RealmNullPrimaryKeyTests {
     public void createObject_duplicatedNullPrimaryKeyThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         addPrimaryKeyObjectToTestRealm(realm);
 
+        realm.beginTransaction();
         try {
-            realm.beginTransaction();
             realm.createObject(testClazz, null);
             fail("Null value as primary key already exists.");
         } catch (RealmPrimaryKeyConstraintException expected) {

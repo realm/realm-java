@@ -127,8 +127,8 @@ public class RealmPrimaryKeyTests {
     // @PrimaryKey + @Required annotation does not accept null as a primary key value for Realm version 0.89.1+
     @Test
     public void createObject_nullPrimaryKeyValueThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        realm.beginTransaction();
         try {
-            realm.beginTransaction();
             realm.createObject(testClazz, null);
             fail("@PrimaryKey + @Required field cannot be null");
         } catch (RuntimeException expected) {
