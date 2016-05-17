@@ -716,10 +716,6 @@ public final class Realm extends BaseRealm {
         return get(clazz, rowIndex);
     }
 
-    void remove(Class<? extends RealmModel> clazz, long objectIndex) {
-        getTable(clazz).moveLastOver(objectIndex);
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -914,10 +910,6 @@ public final class Realm extends BaseRealm {
         checkMaxDepth(maxDepth);
         checkValidObjectForDetach(realmObject);
         return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
-    }
-
-    boolean contains(Class<? extends RealmModel> clazz) {
-        return configuration.getSchemaMediator().getModelClasses().contains(clazz);
     }
 
     /**

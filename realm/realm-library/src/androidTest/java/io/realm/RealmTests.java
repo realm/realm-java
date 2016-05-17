@@ -267,7 +267,7 @@ public class RealmTests {
     @Test
     public void getInstance() {
         assertNotNull("Realm.getInstance unexpectedly returns null", realm);
-        assertTrue("Realm.getInstance does not contain expected table", realm.contains(AllTypes.class));
+        assertTrue("Realm.getInstance does not contain expected table", realm.getSchema().contains(AllTypes.CLASS_NAME));
     }
 
     @Test
@@ -1961,7 +1961,6 @@ public class RealmTests {
         try { realm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
         try { realm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
         try { realm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
-        try { realm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
         try { realm.delete(AllTypes.class);         fail(); } catch (IllegalStateException expected) {}
         try { realm.deleteAll();                    fail(); } catch (IllegalStateException expected) {}
 
