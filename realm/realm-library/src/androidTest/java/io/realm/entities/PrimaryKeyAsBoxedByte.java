@@ -30,11 +30,18 @@ public class PrimaryKeyAsBoxedByte extends RealmObject implements NullPrimaryKey
 
     private String name;
 
+    public PrimaryKeyAsBoxedByte() {}
+    public PrimaryKeyAsBoxedByte(Byte id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     @Override
     public Byte getId() {
         return id;
     }
 
+    @Override
     public void setId(Byte id) {
         this.id = id;
     }
@@ -44,6 +51,7 @@ public class PrimaryKeyAsBoxedByte extends RealmObject implements NullPrimaryKey
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
