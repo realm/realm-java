@@ -127,6 +127,7 @@ public final class DynamicRealm extends BaseRealm {
      * or {@link #removeAllChangeListeners()}. Not doing so can cause memory leaks.
      *
      * @param listener the change listener.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
      * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)

@@ -2852,6 +2852,72 @@ public class RealmTests {
     }
 
     @Test
+    @RunTestInLooperThread
+    public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
+        final Realm realm = looperThread.realm;
+
+        try {
+            realm.addChangeListener(null);
+            fail("adding null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    public void addChangeListener_throwOnAddingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final Realm realm = Realm.getInstance(realmConfig);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    realm.addChangeListener(null);
+                    fail("adding null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    realm.close();
+                }
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
+        final Realm realm = looperThread.realm;
+
+        try {
+            realm.removeChangeListener(null);
+            fail("removing null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    public void removeChangeListener_throwOnRemovingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final Realm realm = Realm.getInstance(realmConfig);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    realm.removeChangeListener(null);
+                    fail("removing null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    realm.close();
+                }
+            }
+        });
+    }
+
+    @Test
     public void removeChangeListenerThrowExceptionOnNonLooperThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {

@@ -1559,16 +1559,37 @@ public class RealmObjectTests {
 
     @Test
     @RunTestInLooperThread
-    public void addChangeListener_throwOnAddingNullListener() {
+    public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
         final Realm realm = looperThread.realm;
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
-            dog.addChangeListener((RealmChangeListener) null);
-            fail("Failed on adding null change listener.");
+            dog.addChangeListener(null);
+            fail("adding null change listener must throw an exception.");
         } catch (IllegalArgumentException ignore) {
+        } finally {
             looperThread.testComplete();
         }
+    }
+
+    @Test
+    public void addChangeListener_throwOnAddingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final Realm realm = Realm.getInstance(realmConfig);
+                final Dog dog = createManagedDogObjectFromRealmInstance(realm);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    dog.addChangeListener(null);
+                    fail("adding null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    realm.close();
+                }
+            }
+        });
     }
 
     @Test
@@ -1582,24 +1603,46 @@ public class RealmObjectTests {
                 public void onChange(Dog object) {
                 }
             });
-            fail("Failed on adding listener on null realm.");
+            fail("adding change listener on unmanaged object must throw an exception.");
         } catch (IllegalArgumentException ignore) {
+        } finally {
             looperThread.testComplete();
         }
     }
 
     @Test
     @RunTestInLooperThread
-    public void removeChangeListener_throwOnRemovingNullListener() {
+    public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
         final Realm realm = looperThread.realm;
         Dog dog = createManagedDogObjectFromRealmInstance(realm);
 
         try {
-            dog.removeChangeListener((RealmChangeListener) null);
-            fail("Failed on adding null change listener.");
+            dog.removeChangeListener(null);
+            fail("removing null change listener must throw an exception.");
         } catch (IllegalArgumentException ignore) {
+        } finally {
             looperThread.testComplete();
         }
+    }
+
+    @Test
+    public void removeChangeListener_throwOnRemovingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final Realm realm = Realm.getInstance(realmConfig);
+                final Dog dog = createManagedDogObjectFromRealmInstance(realm);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    dog.removeChangeListener(null);
+                    fail("removing null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    realm.close();
+                }
+            }
+        });
     }
 
     /**
