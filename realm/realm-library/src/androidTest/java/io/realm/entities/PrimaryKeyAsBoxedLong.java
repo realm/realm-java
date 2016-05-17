@@ -30,11 +30,18 @@ public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey
 
     private String name;
 
+    public PrimaryKeyAsBoxedLong() {}
+    public PrimaryKeyAsBoxedLong(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -44,6 +51,7 @@ public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

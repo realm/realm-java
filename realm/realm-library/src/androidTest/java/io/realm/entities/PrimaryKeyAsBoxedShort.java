@@ -30,11 +30,18 @@ public class PrimaryKeyAsBoxedShort extends RealmObject implements NullPrimaryKe
 
     private String name;
 
+    public PrimaryKeyAsBoxedShort() {}
+    public PrimaryKeyAsBoxedShort(Short id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     @Override
     public Short getId() {
         return id;
     }
 
+    @Override
     public void setId(Short id) {
         this.id = id;
     }
@@ -44,6 +51,7 @@ public class PrimaryKeyAsBoxedShort extends RealmObject implements NullPrimaryKe
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
