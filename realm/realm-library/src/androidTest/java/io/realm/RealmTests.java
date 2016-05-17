@@ -1237,7 +1237,7 @@ public class RealmTests {
         childObj.setName("Child");
         childObj.setId(1);
 
-        // Parent object is a standalone object
+        // Parent object is a unmanaged object
         CyclicTypePrimaryKey parentObj = new CyclicTypePrimaryKey(2);
         parentObj.setObject(childObj);
 
@@ -1503,7 +1503,7 @@ public class RealmTests {
     }
 
 
-    // Checks that a standalone object with only default values can override data
+    // Checks that a unmanaged object with only default values can override data
     @Test
     public void copyToRealmOrUpdate_defaultValuesOverrideExistingData() {
         realm.executeTransaction(new Realm.Transaction() {
@@ -1940,7 +1940,7 @@ public class RealmTests {
     @Test
     public void callMutableMethodOutsideTransaction() throws JSONException, IOException {
 
-        // Prepare standalone object data
+        // Prepare unmanaged object data
         AllTypesPrimaryKey t = new AllTypesPrimaryKey();
         List<AllTypesPrimaryKey> ts = Arrays.asList(t, t);
 
@@ -2508,24 +2508,24 @@ public class RealmTests {
     public void copyFromRealm() {
         populateTestRealm();
         AllTypes realmObject = realm.where(AllTypes.class).findAllSorted("columnLong").first();
-        AllTypes standaloneObject = realm.copyFromRealm(realmObject);
-        assertArrayEquals(realmObject.getColumnBinary(), standaloneObject.getColumnBinary());
-        assertEquals(realmObject.getColumnString(), standaloneObject.getColumnString());
-        assertEquals(realmObject.getColumnLong(), standaloneObject.getColumnLong());
-        assertEquals(realmObject.getColumnFloat(), standaloneObject.getColumnFloat(), 0.00000000001);
-        assertEquals(realmObject.getColumnDouble(), standaloneObject.getColumnDouble(), 0.00000000001);
-        assertEquals(realmObject.isColumnBoolean(), standaloneObject.isColumnBoolean());
-        assertEquals(realmObject.getColumnDate(), standaloneObject.getColumnDate());
+        AllTypes unmanagedObject = realm.copyFromRealm(realmObject);
+        assertArrayEquals(realmObject.getColumnBinary(), unmanagedObject.getColumnBinary());
+        assertEquals(realmObject.getColumnString(), unmanagedObject.getColumnString());
+        assertEquals(realmObject.getColumnLong(), unmanagedObject.getColumnLong());
+        assertEquals(realmObject.getColumnFloat(), unmanagedObject.getColumnFloat(), 0.00000000001);
+        assertEquals(realmObject.getColumnDouble(), unmanagedObject.getColumnDouble(), 0.00000000001);
+        assertEquals(realmObject.isColumnBoolean(), unmanagedObject.isColumnBoolean());
+        assertEquals(realmObject.getColumnDate(), unmanagedObject.getColumnDate());
     }
 
     @Test
     public void copyFromRealm_newCopyEachTime() {
         populateTestRealm();
         AllTypes realmObject = realm.where(AllTypes.class).findAllSorted("columnLong").first();
-        AllTypes standaloneObject1 = realm.copyFromRealm(realmObject);
-        AllTypes standaloneObject2 = realm.copyFromRealm(realmObject);
-        assertFalse(standaloneObject1 == standaloneObject2);
-        assertNotSame(standaloneObject1, standaloneObject2);
+        AllTypes unmanagedObject1 = realm.copyFromRealm(realmObject);
+        AllTypes unmanagedObject2 = realm.copyFromRealm(realmObject);
+        assertFalse(unmanagedObject1 == unmanagedObject2);
+        assertNotSame(unmanagedObject1, unmanagedObject2);
     }
 
     // Test that the object graph is copied as it is and no extra copies are made

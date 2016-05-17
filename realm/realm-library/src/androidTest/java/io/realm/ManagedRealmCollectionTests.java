@@ -47,7 +47,7 @@ import static org.junit.Assert.fail;
 /**
  * Test class for all methods part of the the {@link RealmCollection} interface.
  * This class only tests collections that are managed by Realm. See {@link UnManagedRealmCollectionTests} for
- * all tests targeting un-managed collections.
+ * all tests targeting unmanaged collections.
  *
  * Methods tested in this class:
  *

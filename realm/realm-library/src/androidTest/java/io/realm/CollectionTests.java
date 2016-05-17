@@ -37,7 +37,7 @@ public abstract class CollectionTests {
         MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS
     }
 
-    // Enumerate all current supported collections that can be in un-managed mode.
+    // Enumerate all current supported collections that can be in unmanaged mode.
     protected enum UnManagedCollection {
         UNMANAGED_REALMLIST
     }

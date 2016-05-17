@@ -288,7 +288,7 @@
 * BREAKING CHANGE: Realm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
 * Added Realm.isEmpty().
-* Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
+* Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (unmanaged, removed, closed, from different Realm) object (#1749).
 * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
 * The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
 * Updated Realm Core to 0.95.
@@ -383,7 +383,7 @@
 * Deprecated Realm.migrateRealmAtPath(). It has been replaced by Realm.migrateRealm(RealmConfiguration).
 * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
 * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
-* RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
+* RealmList.add(), RealmList.addAt() and RealmList.set() now copy unmanaged objects transparently into Realm.
 * Realm now works with Kotlin (M12+). (Thank you @cypressious)
 * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
 * Added a check to give a better error message when null is used as value for a primary key.
@@ -471,7 +471,7 @@
 * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and extending RealmResults.sort() for multi-field sorting.
 * Added more logging capabilities at the JNI level.
 * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
-* Added support for standalone objects and custom constructors.
+* Added support for unmanaged objects and custom constructors.
 * Added more precise imports in proxy classes to avoid ambiguous references.
 * Added support for executing a transaction with a closure using Realm.executeTransaction().
 * Added RealmObject.isValid() to test if an object is still accessible.

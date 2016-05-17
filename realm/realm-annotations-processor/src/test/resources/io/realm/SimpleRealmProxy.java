@@ -216,22 +216,22 @@ public class SimpleRealmProxy extends Simple
             return null;
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
-        Simple standaloneObject;
+        Simple unmanagedObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
                 return (Simple)cachedObject.object;
             } else {
-                standaloneObject = (Simple)cachedObject.object;
+                unmanagedObject = (Simple)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {
-            standaloneObject = new Simple();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject));
+            unmanagedObject = new Simple();
+            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
         }
-        ((SimpleRealmProxyInterface) standaloneObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
-        ((SimpleRealmProxyInterface) standaloneObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());
-        return standaloneObject;
+        ((SimpleRealmProxyInterface) unmanagedObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
+        ((SimpleRealmProxyInterface) unmanagedObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());
+        return unmanagedObject;
     }
 
     @Override

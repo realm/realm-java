@@ -661,45 +661,45 @@ public class AllTypesRealmProxy extends AllTypes
             return null;
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
-        AllTypes standaloneObject;
+        AllTypes unmanagedObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
                 return (AllTypes)cachedObject.object;
             } else {
-                standaloneObject = (AllTypes)cachedObject.object;
+                unmanagedObject = (AllTypes)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {
-            standaloneObject = new AllTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject));
+            unmanagedObject = new AllTypes();
+            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
         }
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnString(((AllTypesRealmProxyInterface) realmObject).realmGet$columnString());
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnLong(((AllTypesRealmProxyInterface) realmObject).realmGet$columnLong());
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnFloat(((AllTypesRealmProxyInterface) realmObject).realmGet$columnFloat());
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnDouble(((AllTypesRealmProxyInterface) realmObject).realmGet$columnDouble());
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnBoolean(((AllTypesRealmProxyInterface) realmObject).realmGet$columnBoolean());
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnDate(((AllTypesRealmProxyInterface) realmObject).realmGet$columnDate());
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnBinary(((AllTypesRealmProxyInterface) realmObject).realmGet$columnBinary());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnString(((AllTypesRealmProxyInterface) realmObject).realmGet$columnString());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnLong(((AllTypesRealmProxyInterface) realmObject).realmGet$columnLong());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnFloat(((AllTypesRealmProxyInterface) realmObject).realmGet$columnFloat());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnDouble(((AllTypesRealmProxyInterface) realmObject).realmGet$columnDouble());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnBoolean(((AllTypesRealmProxyInterface) realmObject).realmGet$columnBoolean());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnDate(((AllTypesRealmProxyInterface) realmObject).realmGet$columnDate());
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnBinary(((AllTypesRealmProxyInterface) realmObject).realmGet$columnBinary());
 
         // Deep copy of columnObject
-        ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnObject(AllTypesRealmProxy.createDetachedCopy(((AllTypesRealmProxyInterface) realmObject).realmGet$columnObject(), currentDepth + 1, maxDepth, cache));
+        ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnObject(AllTypesRealmProxy.createDetachedCopy(((AllTypesRealmProxyInterface) realmObject).realmGet$columnObject(), currentDepth + 1, maxDepth, cache));
 
         // Deep copy of columnRealmList
         if (currentDepth == maxDepth) {
-            ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnRealmList(null);
+            ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnRealmList(null);
         } else {
             RealmList<AllTypes> managedcolumnRealmListList = ((AllTypesRealmProxyInterface) realmObject).realmGet$columnRealmList();
-            RealmList<AllTypes> standalonecolumnRealmListList = new RealmList<AllTypes>();
-            ((AllTypesRealmProxyInterface) standaloneObject).realmSet$columnRealmList(standalonecolumnRealmListList);
+            RealmList<AllTypes> unmanagedcolumnRealmListList = new RealmList<AllTypes>();
+            ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnRealmList(unmanagedcolumnRealmListList);
             int nextDepth = currentDepth + 1;
             int size = managedcolumnRealmListList.size();
             for (int i = 0; i < size; i++) {
                 AllTypes item = AllTypesRealmProxy.createDetachedCopy(managedcolumnRealmListList.get(i), nextDepth, maxDepth, cache);
-                standalonecolumnRealmListList.add(item);
+                unmanagedcolumnRealmListList.add(item);
             }
         }
-        return standaloneObject;
+        return unmanagedObject;
     }
 
     static AllTypes update(Realm realm, AllTypes realmObject, AllTypes newObject, Map<RealmModel, RealmObjectProxy> cache) {
