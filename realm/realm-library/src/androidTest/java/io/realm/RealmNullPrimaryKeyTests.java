@@ -66,12 +66,12 @@ public class RealmNullPrimaryKeyTests {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                // 1) Test target class          2) PK Class    3) 2nd Class  4) 2nd field value   5) 2nd field value for update
-                {PrimaryKeyAsString.class,       String.class,  long.class,   Long.valueOf(492412), Long.valueOf(991241)},
-                {PrimaryKeyAsBoxedByte.class,    Byte.class,    String.class, "This-Is-Second-One", "Gosh Didnt KnowIt"},
-                {PrimaryKeyAsBoxedShort.class,   Short.class,   String.class, "AnyValueIsAccepted", "?YOUNOWKNOWRIGHT?"},
-                {PrimaryKeyAsBoxedInteger.class, Integer.class, String.class, "PlayWithSeondFied!", "HaHaHaHaHaHaHaHaH"},
-                {PrimaryKeyAsBoxedLong.class,    Long.class,    String.class, "Let's name a value", "KeyValueTestIsFun"}
+            // 1) Test target class          2) PK Class    3) 2nd Class  4) 2nd field value   5) 2nd field value for update
+            {PrimaryKeyAsString.class,       String.class,  long.class,   Long.valueOf(492412), Long.valueOf(991241)},
+            {PrimaryKeyAsBoxedByte.class,    Byte.class,    String.class, "This-Is-Second-One", "Gosh Didnt KnowIt"},
+            {PrimaryKeyAsBoxedShort.class,   Short.class,   String.class, "AnyValueIsAccepted", "?YOUNOWKNOWRIGHT?"},
+            {PrimaryKeyAsBoxedInteger.class, Integer.class, String.class, "PlayWithSeondFied!", "HaHaHaHaHaHaHaHaH"},
+            {PrimaryKeyAsBoxedLong.class,    Long.class,    String.class, "Let's name a value", "KeyValueTestIsFun"}
         });
     }
 
