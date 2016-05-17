@@ -325,7 +325,7 @@ final class RealmCache {
                     try {
                         outputStream.close();
                     } catch (IOException e) {
-                        // Ignore this exception because any significant errors should already have been handled
+                        throw new RealmIOException("Invalid output stream to " + realmFile.getPath(), e);
                     }
                 }
             }
