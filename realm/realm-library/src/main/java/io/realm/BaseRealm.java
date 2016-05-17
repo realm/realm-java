@@ -77,15 +77,21 @@ abstract class BaseRealm implements Closeable {
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         this.handlerController = new HandlerController(this);
-        setAutoRefresh(autoRefresh);
+        if (Looper.myLooper() == null) {
+            if (autoRefresh) {
+                throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
+            }
+        } else {
+            setAutoRefresh(autoRefresh);
+        }
     }
 
     /**
      * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
-     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in
-     * another thread. This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled
+     * (RealmResults and RealmObject instances) when a commit is performed on a Realm acting on the same file in
+     * another thread. This feature is only available if the Realm instance lives on a {@link android.os.Looper} enabled
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
@@ -93,7 +99,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        if (autoRefresh && Looper.myLooper() == null) {
+        if (Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
 
