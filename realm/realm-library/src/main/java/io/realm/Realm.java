@@ -930,8 +930,8 @@ public final class Realm extends BaseRealm {
      * The listeners will be executed on every loop of a Handler thread if
      * the current thread or other threads committed changes to the Realm.
      *
-     * Realm instances are thread singletons and cached, so listeners should be
-     * removed manually even if calling {@link #close()}, otherwise there is a
+     * Realm instances are per-thread singletons and cached, so listeners should be
+     * removed manually even if calling {@link #close()}. Otherwise there is a
      * risk of memory leaks.
      *
      * @param listener the change listener.
@@ -977,7 +977,7 @@ public final class Realm extends BaseRealm {
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the Realm is opened from
      *                                  another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {

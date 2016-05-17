@@ -1284,7 +1284,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to sum. Only number fields are supported.
      * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
-     *         for the given field, {@code 0} will be returned. When computing the sum. Objects with {@code null} values
+     *         for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
      *         are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
