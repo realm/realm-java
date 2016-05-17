@@ -31,11 +31,9 @@ import java.io.IOException;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.MyCustomInterface;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.entities.pojo.InvalidRealmModel;
 import io.realm.entities.pojo.PojoWithRealmListOfRealmObject;
-import io.realm.entities.pojo.RealmModelWithCustomInterface;
 import io.realm.entities.pojo.RealmModelWithRealmListOfRealmModel;
 import io.realm.entities.pojo.RealmModelWithRealmModelField;
 import io.realm.entities.pojo.RealmObjectWithRealmListOfRealmModel;
@@ -379,21 +377,6 @@ public class RealmModelTests {
         RealmResults<RealmObjectWithRealmModelField> all = realm.where(RealmObjectWithRealmModelField.class).findAll();
         assertEquals(1, all.size());
         assertEquals(42, all.first().getAllTypesRealmModel().columnLong);
-    }
-
-    // Test the behaviour of a RealmObject that implements an interface that extends RealmModel
-    @Test
-    public void realmModelWithExtensionInterface() {
-        RealmModelWithCustomInterface obj = new RealmModelWithCustomInterface();
-        obj.name = "Foo";
-        obj.obj = obj;
-
-        realm.beginTransaction();
-        obj = realm.copyToRealm(obj);
-        realm.commitTransaction();
-
-        assertEquals("Foo", obj.name);
-        assertEquals(obj, obj.obj);
     }
 }
 

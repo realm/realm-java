@@ -162,8 +162,7 @@ public class ClassMetaData {
         for (VariableElement field : fields) {
             if (Utils.isRealmList(field)) {
                 // Check for missing generic (default back to Object)
-                String genericType = Utils.getGenericType(field);
-                if (genericType == null) {
+                if (Utils.getGenericType(field) == null) {
                     Utils.error("No generic type supplied for field", field);
                     return false;
                 }
