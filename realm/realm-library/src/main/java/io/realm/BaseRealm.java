@@ -77,15 +77,21 @@ abstract class BaseRealm implements Closeable {
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         this.handlerController = new HandlerController(this);
-        setAutoRefresh(autoRefresh);
+        if (Looper.myLooper() == null) {
+            if (autoRefresh) {
+                throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
+            }
+        } else {
+            setAutoRefresh(autoRefresh);
+        }
     }
 
     /**
      * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
-     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in
-     * another thread. This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled
+     * (RealmResults and RealmObject instances) when a commit is performed on a Realm acting on the same file in
+     * another thread. This feature is only available if the Realm instance lives on a {@link android.os.Looper} enabled
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
@@ -93,7 +99,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        if (autoRefresh && Looper.myLooper() == null) {
+        if (Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
 
@@ -126,6 +132,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
@@ -137,10 +146,14 @@ abstract class BaseRealm implements Closeable {
      * Removes the specified change listener.
      *
      * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");

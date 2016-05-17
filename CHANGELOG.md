@@ -9,6 +9,11 @@
 ### Bug fixes
 
 * Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
+* Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
+
+### Breaking changes
+
+* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
 
 ## 0.90.1
 

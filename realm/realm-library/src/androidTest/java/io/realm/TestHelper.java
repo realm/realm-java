@@ -41,6 +41,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -977,4 +978,31 @@ public class TestHelper {
         }
     }
 
+    public static abstract class Task {
+        public abstract void run() throws Exception;
+    }
+
+    public static void executeOnNonLooperThread(final Task task) throws Throwable {
+        final AtomicReference<Throwable> thrown = new AtomicReference<Throwable>();
+        final Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    task.run();
+                } catch (Throwable e) {
+                    thrown.set(e);
+                    if (e instanceof Error) {
+                        throw (Error) e;
+                    }
+                }
+            }
+        };
+        thread.start();
+        thread.join();
+
+        final Throwable throwable = thrown.get();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
 }

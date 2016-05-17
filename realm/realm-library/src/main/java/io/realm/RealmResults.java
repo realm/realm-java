@@ -939,6 +939,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * Adds a change listener to this RealmResults.
      *
      * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper Thread.
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         if (listener == null) {
@@ -957,11 +959,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * Removes a previously registered listener.
      *
      * @param listener the instance to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public void removeChangeListener(RealmChangeListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
-
+        }
         realm.checkIfValid();
         listeners.remove(listener);
     }
