@@ -67,12 +67,12 @@ public class RealmPrimaryKeyTests {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                // 1) Test target class                  2) PK Class    3) PK value            4) 2nd Class  5) 2nd field value
-                {PrimaryKeyRequiredAsString.class,       String.class,  "424123",              String.class, "SomeSecondaryValue"},
-                {PrimaryKeyRequiredAsBoxedByte.class,    Byte.class,    Byte.valueOf("67"),    String.class, "This-Is-Second-One"},
-                {PrimaryKeyRequiredAsBoxedShort.class,   Short.class,   Short.valueOf("1729"), String.class, "AnyValueIsAccepted"},
-                {PrimaryKeyRequiredAsBoxedInteger.class, Integer.class, Integer.valueOf("19"), String.class, "PlayWithSeondFied!"},
-                {PrimaryKeyRequiredAsBoxedLong.class,    Long.class,    Long.valueOf("62914"), String.class, "Let's name a value"}
+            // 1) Test target class                  2) PK Class    3) PK value            4) 2nd Class  5) 2nd field value
+            {PrimaryKeyRequiredAsString.class,       String.class,  "424123",              String.class, "SomeSecondaryValue"},
+            {PrimaryKeyRequiredAsBoxedByte.class,    Byte.class,    Byte.valueOf("67"),    String.class, "This-Is-Second-One"},
+            {PrimaryKeyRequiredAsBoxedShort.class,   Short.class,   Short.valueOf("1729"), String.class, "AnyValueIsAccepted"},
+            {PrimaryKeyRequiredAsBoxedInteger.class, Integer.class, Integer.valueOf("19"), String.class, "PlayWithSeondFied!"},
+            {PrimaryKeyRequiredAsBoxedLong.class,    Long.class,    Long.valueOf("62914"), String.class, "Let's name a value"}
         });
     }
 
@@ -107,9 +107,10 @@ public class RealmPrimaryKeyTests {
     // @PrimaryKey + @Required annotation does accept null as a primary key value for Realm version 0.89.1+
     @Test
     public void copyToRealmOrUpdate_requiredPrimaryKeyThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        RealmObject obj = (RealmObject)testClazz.getConstructor(primaryKeyFieldType, secondaryFieldType).newInstance(null, null);
+
+        realm.beginTransaction();
         try {
-            RealmObject obj = (RealmObject)testClazz.getConstructor(primaryKeyFieldType, secondaryFieldType).newInstance(null, null);
-            realm.beginTransaction();
             realm.copyToRealmOrUpdate(obj);
             fail("@PrimaryKey + @Required field cannot be null");
         } catch (RuntimeException expected) {
