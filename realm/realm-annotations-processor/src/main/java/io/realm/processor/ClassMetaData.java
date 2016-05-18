@@ -173,7 +173,7 @@ public class ClassMetaData {
                 String genericCanonicalType = typeArguments.get(0).toString();
                 TypeElement typeElement = elements.getTypeElement(genericCanonicalType);
                 if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
-                    Utils.error("Only concrete Realm classes are allowed in Lists. Neither " +
+                    Utils.error("Only concrete Realm classes are allowed in RealmLists. Neither " +
                             "interfaces nor abstract classes can be used.", field);
                     return false;
                 }
