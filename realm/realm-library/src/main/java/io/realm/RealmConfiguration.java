@@ -17,8 +17,12 @@
 package io.realm;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -81,6 +85,7 @@ public final class RealmConfiguration {
     private final File realmFolder;
     private final String realmFileName;
     private final String canonicalPath;
+    private final String assetFilePath;
     private final byte[] key;
     private final long schemaVersion;
     private final RealmMigration migration;
@@ -89,11 +94,13 @@ public final class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
+    private final WeakReference<Context> contextWeakRef;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
         this.realmFileName = builder.fileName;
         this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
+        this.assetFilePath = builder.assetFilePath;
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
@@ -102,6 +109,7 @@ public final class RealmConfiguration {
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
         this.initialDataTransaction = builder.initialDataTransaction;
+        this.contextWeakRef = builder.contextWeakRef;
     }
 
     public File getRealmFolder() {
@@ -148,6 +156,30 @@ public final class RealmConfiguration {
      */
     Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
+    }
+
+    /**
+     * Indicates if there is available asset file for copy action.
+     *
+     * @return true if there is asset file, false otherwise.
+     */
+    boolean hasAssetFile() {
+        return !TextUtils.isEmpty(assetFilePath);
+    }
+
+    /**
+     * Returns input stream object to the Realm asset file.
+     *
+     * @return input stream to the asset file.
+     * @throws IOException if copying the file fails.
+     */
+    InputStream getAssetFile() throws IOException {
+        Context context = contextWeakRef.get();
+        if (context != null) {
+            return context.getAssets().open(assetFilePath);
+        } else {
+            throw new IllegalArgumentException("Context should not be null. Use Application Context instead of Activity Context.");
+        }
     }
 
     /**
@@ -314,6 +346,7 @@ public final class RealmConfiguration {
     public static final class Builder {
         private File folder;
         private String fileName;
+        private String assetFilePath;
         private byte[] key;
         private long schemaVersion;
         private RealmMigration migration;
@@ -321,6 +354,7 @@ public final class RealmConfiguration {
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -339,7 +373,7 @@ public final class RealmConfiguration {
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
          *
-         * This will use the apps own internal directory for storing the Realm file. This does not require any
+         * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
@@ -453,7 +487,12 @@ public final class RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
+            if (!TextUtils.isEmpty(assetFilePath)) {
+                throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
+            }
+
             this.durability = SharedGroup.Durability.MEM_ONLY;
+
             return this;
         }
 
@@ -503,6 +542,33 @@ public final class RealmConfiguration {
          */
         public Builder initialData(Realm.Transaction transaction) {
             initialDataTransaction = transaction;
+            return this;
+        }
+
+        /**
+         * Copies the Realm file from the given asset file path.
+         *
+         * When opening the Realm for the first time, instead of creating an empty file,
+         * the Realm file will be copied from the provided assets file and used instead.
+         * WARNING: This could potentially be a lengthy operation so should ideally be done on a background thread.
+         *
+         * @param context Android application context.
+         * @param assetFile path to the asset database file.
+         */
+        public Builder assetFile(Context context, final String assetFile) {
+            if (context == null) {
+                throw new IllegalArgumentException("A non-null Context must be provided");
+            }
+            if (TextUtils.isEmpty(assetFile)) {
+                throw new IllegalArgumentException("A non-empty asset file path must be provided");
+            }
+            if (durability == SharedGroup.Durability.MEM_ONLY) {
+                throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
+            }
+
+            this.contextWeakRef = new WeakReference<>(context);
+            this.assetFilePath = assetFile;
+
             return this;
         }
 
