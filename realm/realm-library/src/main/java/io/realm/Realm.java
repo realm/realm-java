@@ -807,7 +807,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
+     * Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
      * referenced objects.
      *
      * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
@@ -828,7 +828,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
+     * Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
      * referenced objects up to the defined depth.
      *
      * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
@@ -865,7 +865,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
+     * Makes an unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
      * all referenced objects.
      *
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
@@ -886,7 +886,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
+     * Makes an unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
      * all referenced objects up to the defined depth.
      *
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means

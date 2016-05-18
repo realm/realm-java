@@ -769,7 +769,7 @@ public class RealmObjectTests {
 
             RealmList<CyclicType> list = new RealmList<>();
             list.add(realm.createObject(CyclicType.class));
-            list.add(unmanaged); // List contains a unmanaged object
+            list.add(unmanaged); // List contains an unmanaged object
             list.add(realm.createObject(CyclicType.class));
 
             try {

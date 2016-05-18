@@ -137,7 +137,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * end.
      * <ol>
      * <li><b>Unmanaged RealmLists:</b> It is possible to add both managed and unmanaged objects. If adding managed
-     * objects to a unmanaged RealmList they will not be copied to the Realm again if using
+     * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add unmanaged objects to a RealmList that is already managed. In
@@ -170,7 +170,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * Adds the specified object at the end of this List.
      * <ol>
      * <li><b>Unmanaged RealmLists:</b> It is possible to add both managed and unmanaged objects. If adding managed
-     * objects to a unmanaged RealmList they will not be copied to the Realm again if using
+     * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add unmanaged objects to a RealmList that is already managed. In
@@ -200,7 +200,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * Replaces the element at the specified location in this list with the specified object.
      * <ol>
      * <li><b>Unmanaged RealmLists:</b> It is possible to add both managed and unmanaged objects. If adding managed
-     * objects to a unmanaged RealmList they will not be copied to the Realm again if using
+     * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add unmanaged objects to a RealmList that is already managed.
@@ -229,7 +229,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
         return oldObject;
     }
 
-    // Transparently copies a unmanaged object or managed object from another Realm to the Realm backing this RealmList.
+    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;

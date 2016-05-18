@@ -150,7 +150,7 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Determines if the current RealmObject is obtained synchronously or asynchronously (from a worker thread).
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This will return {@code true} if called for a unmanaged object (created outside of Realm).
+     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
      *
      * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
      * progress.
@@ -162,7 +162,7 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Determines if the RealmObject is obtained synchronously or asynchronously (from a worker thread).
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This will return {@code true} if called for a unmanaged object (created outside of Realm).
+     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
      *
      * @param object RealmObject to check.
      * @return {@code true} if the query has completed and the data is available {@code false} if the query is in

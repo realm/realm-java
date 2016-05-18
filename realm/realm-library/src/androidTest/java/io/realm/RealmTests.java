@@ -1237,7 +1237,7 @@ public class RealmTests {
         childObj.setName("Child");
         childObj.setId(1);
 
-        // Parent object is a unmanaged object
+        // Parent object is an unmanaged object
         CyclicTypePrimaryKey parentObj = new CyclicTypePrimaryKey(2);
         parentObj.setObject(childObj);
 
@@ -1503,7 +1503,7 @@ public class RealmTests {
     }
 
 
-    // Checks that a unmanaged object with only default values can override data
+    // Checks that an unmanaged object with only default values can override data
     @Test
     public void copyToRealmOrUpdate_defaultValuesOverrideExistingData() {
         realm.executeTransaction(new Realm.Transaction() {
