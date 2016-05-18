@@ -514,9 +514,11 @@ public class RealmObjectSchemaTests {
             schema.addPrimaryKey(fieldName);
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.isPrimaryKey(fieldName));
+            assertTrue(schema.hasIndex(fieldName));
             schema.removePrimaryKey();
             assertFalse(schema.hasPrimaryKey());
             assertFalse(schema.isPrimaryKey(fieldName));
+            assertFalse(schema.hasIndex(fieldName));
             schema.removeField(fieldName);
         }
     }

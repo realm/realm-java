@@ -1137,43 +1137,43 @@ public class NullTypesRealmProxy extends NullTypes
             return null;
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
-        NullTypes standaloneObject;
+        NullTypes unmanagedObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
                 return (NullTypes)cachedObject.object;
             } else {
-                standaloneObject = (NullTypes)cachedObject.object;
+                unmanagedObject = (NullTypes)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {
-            standaloneObject = new NullTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject));
+            unmanagedObject = new NullTypes();
+            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
         }
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBooleanNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBooleanNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBytesNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBytesNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldByteNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldByteNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldShortNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldShortNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldIntegerNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldIntegerNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldLongNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldLongNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldFloatNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldFloatNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDoubleNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDoubleNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDateNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNotNull());
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDateNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBooleanNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBooleanNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBytesNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldBytesNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldByteNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldByteNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldShortNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldShortNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldIntegerNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldIntegerNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldLongNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldLongNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldFloatNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldFloatNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDoubleNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDoubleNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDateNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNotNull());
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldDateNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNull());
 
         // Deep copy of fieldObjectNull
-        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldObjectNull(NullTypesRealmProxy.createDetachedCopy(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
-        return standaloneObject;
+        ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldObjectNull(NullTypesRealmProxy.createDetachedCopy(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
+        return unmanagedObject;
     }
 
     @Override

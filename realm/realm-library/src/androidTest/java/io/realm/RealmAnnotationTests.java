@@ -241,7 +241,7 @@ public class RealmAnnotationTests {
         anc1.setObject(true);
         realm.commitTransaction();
 
-        AnnotationNameConventions anc2 = realm.allObjects(AnnotationNameConventions.class).first();
+        AnnotationNameConventions anc2 = realm.where(AnnotationNameConventions.class).findFirst();
         assertTrue(anc2.isHasObject());
         assertEquals(1, anc2.getId_object());
         assertEquals(2, anc2.getmObject());

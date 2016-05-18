@@ -16,16 +16,16 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+import android.test.MoreAsserts;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +41,8 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
@@ -764,20 +766,94 @@ public class RealmConfigurationTests {
         Realm.deleteRealm(defaultConfig);
 
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
-        configFactory.copyRealmFromAssets(context, "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        configFactory.copyRealmFromAssets(context, "asset_file.realm", Realm.DEFAULT_REALM_NAME);
         assertTrue(new File(configFactory.getRoot(), Realm.DEFAULT_REALM_NAME).exists());
 
         Realm.Transaction transaction = mock(Realm.Transaction.class);
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                // Just reuse existing file and set right schema
-                .schemaVersion(0)
-                .schema(AllTypes.class)
                 .initialData(transaction)
                 .build();
 
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void assetFileNullAndEmptyFileName() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        try {
+            new RealmConfiguration.Builder(context).assetFile(context, null).build();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            new RealmConfiguration.Builder(context).assetFile(context, "").build();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileWithInMemoryConfig() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        try {
+            new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm").inMemory().build();
+            fail();
+        } catch (RealmException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileFakeFile() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "no_file").build();
+        try {
+            Realm.getInstance(configuration);
+            fail();
+        } catch (RealmIOException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileValidFile() throws IOException {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm")
+                .build();
+        Realm.deleteRealm(configuration);
+
+        File realmFile = new File(configuration.getPath());
+        assertFalse(realmFile.exists());
+
+        realm = Realm.getInstance(configuration);
+        assertTrue(realmFile.exists());
+
+        // Asset file has 10 Owners and 10 Cats, check if data is present
+        assertEquals(10, realm.where(Owner.class).count());
+        assertEquals(10, realm.where(Cat.class).count());
+
+        realm.close();
+
+        // Copy original file to another location
+        configFactory.copyRealmFromAssets(context, "asset_file.realm", "asset_file_copy.realm");
+        File copyFromAsset = new File(configFactory.getRoot(), "asset_file_copy.realm");
+        assertTrue(copyFromAsset.exists());
+
+        Realm.deleteRealm(configuration);
+        assertFalse(realmFile.exists());
     }
 
     private static class MigrationWithNoEquals implements RealmMigration {

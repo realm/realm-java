@@ -88,7 +88,7 @@ public class JsonExampleActivity extends Activity {
         loadJsonFromJsonObject();
         loadJsonFromString();
 
-        return realm.allObjects(City.class);
+        return realm.where(City.class).findAll();
     }
 
     private void loadJsonFromStream() throws IOException {

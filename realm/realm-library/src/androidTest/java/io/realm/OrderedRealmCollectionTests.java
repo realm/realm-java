@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
- * Test class for all methods specific to OrderedRealmCollections no matter if they are managed or un-managed.
+ * Test class for all methods specific to OrderedRealmCollections no matter if they are managed or unmanaged.
  *
  * Methods tested in this class:
  *
@@ -151,7 +151,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
 
             case REALMRESULTS:
                 populateRealm(realm, TEST_SIZE);
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.where(AllJavaTypes.class).findAll();
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);

@@ -88,7 +88,7 @@ public class ExampleActivity extends Activity {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.allObjects(Person.class).deleteAllFromRealm();
+                realm.delete(Person.class);
             }
         });
     }
@@ -161,7 +161,7 @@ public class ExampleActivity extends Activity {
         String status = "\n\nPerforming complex Query operation...";
 
         Realm realm = Realm.getInstance(realmConfig);
-        status += "\nNumber of people in the DB: " + realm.allObjects(Person.class).size();
+        status += "\nNumber of people in the DB: " + realm.where(Person.class).count();
 
         // Find all persons where age between 1 and 99 and name begins with "J".
         RealmResults<Person> results = realm.where(Person.class)

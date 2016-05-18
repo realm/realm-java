@@ -47,7 +47,7 @@ import static org.junit.Assert.fail;
 /**
  * Test class for all methods part of the the {@link RealmCollection} interface.
  * This class only tests collections that are managed by Realm. See {@link UnManagedRealmCollectionTests} for
- * all tests targeting un-managed collections.
+ * all tests targeting unmanaged collections.
  *
  * Methods tested in this class:
  *
@@ -128,7 +128,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -154,7 +154,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         TestHelper.populateAllNullRowsForNumericTesting(realm);
         switch (collectionClass) {
             case MANAGED_REALMLIST:
-                RealmResults<NullTypes> results = realm.allObjects(NullTypes.class);
+                RealmResults<NullTypes> results = realm.where(NullTypes.class).findAll();
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
                 realm.beginTransaction();
                 for (int i = 0; i < results.size(); i++) {
@@ -173,7 +173,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         populatePartialNullRowsForNumericTesting(realm);
         switch (collectionClass) {
             case MANAGED_REALMLIST:
-                RealmResults<NullTypes> results = realm.allObjects(NullTypes.class);
+                RealmResults<NullTypes> results = realm.where(NullTypes.class).findAll();
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
                 realm.beginTransaction();
                 int size = results.size();
@@ -195,7 +195,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
-                RealmResults<NonLatinFieldNames> results = realm.allObjects(NonLatinFieldNames.class);
+                RealmResults<NonLatinFieldNames> results = realm.where(NonLatinFieldNames.class).findAll();
                 RealmList<NonLatinFieldNames> list = results.get(0).getChildren();
                 for (int i = 0; i < results.size(); i++) {
                     list.add(results.get(i));
@@ -204,7 +204,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 return list;
 
             case REALMRESULTS:
-                return realm.allObjects(NonLatinFieldNames.class);
+                return realm.where(NonLatinFieldNames.class).findAll();
 
             default:
                 throw new AssertionError("Unknown collection: " + collectionClass);
