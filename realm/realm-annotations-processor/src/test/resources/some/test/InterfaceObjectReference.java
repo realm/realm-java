@@ -25,3 +25,4 @@ public class InterfaceObjectReference implements CustomInterface {
     String name;
     CustomInterface obj; // Polymorphism, not yet supported.
 }
+
