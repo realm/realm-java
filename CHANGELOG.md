@@ -11,6 +11,7 @@
 
 * Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
 * Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
+* Calling `RealmObjectSchema.addPrimaryKey()` adds an index to the primary key field, and calling `RealmObjectSchema.removePrimaryKey()` removes the index from the field (#2832).
 
 ### Enhancements
 
