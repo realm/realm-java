@@ -292,7 +292,7 @@ public final class RealmObjectSchema {
 
     /**
      * Adds a primary key to a given field. This is the same as adding the {@link io.realm.annotations.PrimaryKey}
-     * annotation on the field.
+     * annotation on the field. Further, this implicitly adds {@link io.realm.annotations.Index} annotation to the field as well.
      *
      * @param fieldName field to set as primary key.
      * @return the updated schema.
@@ -306,12 +306,17 @@ public final class RealmObjectSchema {
             throw new IllegalStateException("A primary key is already defined");
         }
         table.setPrimaryKey(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
+        if (!table.hasSearchIndex(columnIndex)) {
+            // No exception will be thrown since adding PrimaryKey implies the column has an index.
+            table.addSearchIndex(columnIndex);
+        }
         return this;
     }
 
     /**
      * Removes the primary key from this class. This is the same as removing the {@link io.realm.annotations.PrimaryKey}
-     * annotation from the class.
+     * annotation from the class. Further, this implicitly removes {@link io.realm.annotations.Index} annotation from the field as well.
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
@@ -319,6 +324,10 @@ public final class RealmObjectSchema {
     public RealmObjectSchema removePrimaryKey() {
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
+        }
+        long columnIndex = table.getPrimaryKey();
+        if (table.hasSearchIndex(columnIndex)) {
+            table.removeSearchIndex(columnIndex);
         }
         table.setPrimaryKey("");
         return this;
