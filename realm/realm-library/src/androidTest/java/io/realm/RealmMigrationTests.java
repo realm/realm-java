@@ -255,7 +255,7 @@ public class RealmMigrationTests {
                 .build();
 
         realm = Realm.getInstance(realmConfig);
-        RealmObjectSchema schema = realm.getSchema().getSchemaForClass(AnnotationTypes.class);
+        RealmObjectSchema schema = realm.getSchema().get("AnnotationTypes");
         assertTrue(schema.hasPrimaryKey());
         assertTrue(schema.hasIndex("id"));
         realm.close();
