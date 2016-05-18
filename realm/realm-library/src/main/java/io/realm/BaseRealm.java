@@ -19,6 +19,8 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.getkeepsafe.relinker.BuildConfig;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -249,30 +251,6 @@ abstract class BaseRealm implements Closeable {
         }
         checkIfValid();
         sharedGroupManager.copyToFile(destination, key);
-    }
-
-    /**
-     * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
-     * It also calls the listeners associated to the Realm instance.
-     *
-     * @throws IllegalStateException if attempting to refresh from within a transaction.
-     * @deprecated Please use {@link #waitForChange()} instead.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public void refresh() {
-        checkIfValid();
-        if (isInTransaction()) {
-            throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
-        }
-        if (!handlerController.isAutoRefreshEnabled()) {
-            // non Looper Thread, just advance the Realm
-            // registering listeners is not allowed, hence nothing to notify
-            sharedGroupManager.advanceRead();
-            handlerController.refreshSynchronousTableViews();
-        } else {
-            handlerController.notifyCurrentThreadRealmChanged();
-        }
     }
 
     /**

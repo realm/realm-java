@@ -82,7 +82,7 @@ public class RealmLinkTests extends AndroidTestCase {
     }
 
     public void testObjects() {
-        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         assertEquals(1, owners.size());
         assertEquals(2, owners.first().getDogs().size());
         assertEquals("Pluto", owners.first().getDogs().first().getName());
@@ -90,13 +90,13 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Blackie", owners.first().getCat().getName());
         assertEquals(12, owners.first().getCat().getAge());
 
-        RealmResults<Dog> dogs = testRealm.allObjects(Dog.class);
+        RealmResults<Dog> dogs = testRealm.where(Dog.class).findAll();
         assertEquals(2, dogs.size());
         for (Dog dog : dogs) {
             assertEquals("Tim", dog.getOwner().getName());
         }
 
-        RealmResults<Cat> cats = testRealm.allObjects(Cat.class);
+        RealmResults<Cat> cats = testRealm.where(Cat.class).findAll();
         assertEquals(1, cats.size());
         assertEquals("Tim", cats.first().getOwner().getName());
     }
@@ -471,7 +471,7 @@ public class RealmLinkTests extends AndroidTestCase {
     }
 
     public void testWhere() throws Exception {
-        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         RealmResults<Dog> dogs = owners.first().getDogs().where().equalTo("name", "Pluto").findAll();
         assertEquals(1, dogs.size());
         assertEquals("Pluto", dogs.first().getName());

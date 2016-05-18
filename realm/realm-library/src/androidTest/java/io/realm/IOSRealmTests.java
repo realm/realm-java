@@ -79,7 +79,7 @@ public class IOSRealmTests {
             configFactory.copyRealmFromAssets(context,
                     "ios/" + iosVersion + "-alltypes.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
-            RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "id", Sort.ASCENDING);
+            RealmResults<IOSAllTypes> result = realm.where(IOSAllTypes.class).findAllSorted("id", Sort.ASCENDING);
             // Verify metadata
             Table table = realm.getTable(IOSAllTypes.class);
             assertTrue(table.hasPrimaryKey());
@@ -113,7 +113,7 @@ public class IOSRealmTests {
                     "ios/" + iosVersion + "-alltypes-default.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
 
-            IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertFalse(obj.isBoolCol());
             assertEquals(0, obj.getShortCol());
             assertEquals(0, obj.getIntCol());
@@ -136,7 +136,7 @@ public class IOSRealmTests {
                     "ios/" + iosVersion + "-alltypes-null-value.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
 
-            IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertEquals(null, obj.getByteCol());
             assertEquals(null, obj.getStringCol());
             assertEquals(null, obj.getDateCol());
@@ -152,7 +152,7 @@ public class IOSRealmTests {
                     "ios/" + iosVersion + "-alltypes-min.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
 
-            IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertFalse(obj.isBoolCol());
             assertEquals(Short.MIN_VALUE, obj.getShortCol());
             assertEquals(Integer.MIN_VALUE, obj.getIntCol());
@@ -173,7 +173,7 @@ public class IOSRealmTests {
                     "ios/" + iosVersion + "-alltypes-max.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
 
-            IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertEquals(Short.MAX_VALUE, obj.getShortCol());
             assertEquals(Integer.MAX_VALUE, obj.getIntCol());
             assertEquals(Integer.MAX_VALUE, obj.getLongCol());
@@ -198,7 +198,7 @@ public class IOSRealmTests {
                     .build();
             realm = Realm.getInstance(realmConfig);
 
-            IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertFalse(obj.isBoolCol());
             assertEquals(0, obj.getShortCol());
             assertEquals(0, obj.getIntCol());

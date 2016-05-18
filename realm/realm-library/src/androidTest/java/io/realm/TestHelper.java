@@ -798,7 +798,7 @@ public class TestHelper {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
         populateForMultiSort(dynamicRealm);
         dynamicRealm.close();
-        typedRealm.refresh();
+        typedRealm.waitForChange();
     }
 
     public static void populateForMultiSort(DynamicRealm realm) {

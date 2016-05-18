@@ -113,7 +113,7 @@ public class PassingObjectsFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         // Clear out all Person instances.
-        realm.clear(Person.class);
+        realm.delete(Person.class);
         realm.close();
     }
 }

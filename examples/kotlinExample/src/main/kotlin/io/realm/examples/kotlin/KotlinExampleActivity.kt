@@ -66,7 +66,7 @@ class KotlinExampleActivity : Activity() {
         // Using executeTransaction with a lambda reduces code size and makes it impossible
         // to forget to commit the transaction.
         realm.executeTransaction {
-            realm.allObjects(Person::class.java).deleteAllFromRealm()
+            realm.delete(Person::class.java)
         }
 
         // More complex operations can be executed on another thread, for example using
@@ -120,7 +120,7 @@ class KotlinExampleActivity : Activity() {
 
     private fun basicQuery(realm: Realm) {
         showStatus("\nPerforming basic Query operation...")
-        showStatus("Number of persons: ${realm.allObjects(Person::class.java).size}")
+        showStatus("Number of persons: ${realm.where(Person::class.java).count()}")
 
         val results = realm.where(Person::class.java).equalTo("age", 99).findAll()
 
@@ -129,7 +129,7 @@ class KotlinExampleActivity : Activity() {
 
     private fun basicLinkQuery(realm: Realm) {
         showStatus("\nPerforming basic Link Query operation...")
-        showStatus("Number of persons: ${realm.allObjects(Person::class.java).size}")
+        showStatus("Number of persons: ${realm.where(Person::class.java).count()}")
 
         val results = realm.where(Person::class.java).equalTo("cats.name", "Tiger").findAll()
 
@@ -169,10 +169,10 @@ class KotlinExampleActivity : Activity() {
         }
 
         // Implicit read transactions allow you to access your objects
-        status += "\nNumber of persons: ${realm.allObjects(Person::class.java).size}"
+        status += "\nNumber of persons: ${realm.where(Person::class.java).count()}"
 
         // Iterate over all objects
-        for (person in realm.allObjects(Person::class.java)) {
+        for (person in realm.where(Person::class.java).findAll()) {
             val dogName: String = person?.dog?.name ?: "None"
 
             status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
@@ -184,10 +184,9 @@ class KotlinExampleActivity : Activity() {
         }
 
         // Sorting
-        val sortedPersons = realm.allObjects(Person::class.java)
-        sortedPersons.sort("age", Sort.DESCENDING)
-        check(realm.allObjects(Person::class.java).last().name == sortedPersons.first().name)
-        status += "\nSorting ${sortedPersons.last().name} == ${realm.allObjects(Person::class.java).first().name}"
+        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING);
+        check(realm.where(Person::class.java).findAll().last().name == sortedPersons.first().name)
+        status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
 
         realm.close()
         return status
@@ -200,7 +199,7 @@ class KotlinExampleActivity : Activity() {
         // extension method 'use' (pun intended).
         Realm.getInstance(realmConfig).use {
             // 'it' is the implicit lambda parameter of type Realm
-            status += "\nNumber of persons: ${it.allObjects(Person::class.java).size}"
+            status += "\nNumber of persons: ${it.where(Person::class.java).count()}"
 
             // Find all persons where age between 7 and 9 and name begins with "Person".
             val results = it

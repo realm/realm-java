@@ -65,20 +65,6 @@ import rx.Observable;
 
 @RealmClass
 public abstract class RealmObject implements RealmModel {
-    /**
-     * DEPRECATED: Use {@link #deleteFromRealm()} instead.
-     *
-     * Removes the object from the Realm it is currently associated to.
-     * <p>
-     * After this method is called the object will be invalid and any operation (read or write) performed on it will
-     * fail with an IllegalStateException
-     *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
-     */
-    @Deprecated
-    public final void removeFromRealm() {
-        deleteFromRealm();
-    }
 
     /**
      * Deletes the object from the Realm it is currently associated to.

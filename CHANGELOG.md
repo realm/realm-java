@@ -2,18 +2,23 @@
 
 * Updated Realm Core to 0.100.4.
 
-### Enhancements
+### Breaking changes
 
+<<<<<<< HEAD
 * Upgrading to OpenSSL 1.0.1t. Google Play will on July 11, 2016 only accept apps using OpenSSL 1.0.1r or later (https://support.google.com/faqs/answer/6376725, #2749).
+=======
+* Removed all `@Deprecated` methods.
+* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
+>>>>>>> ddcffd0935507f9034566756e93b8a63c00d9db4
 
 ### Bug fixes
 
 * Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
 * Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
 
-### Breaking changes
+### Enhancements
 
-* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
+* Upgrading to OpenSSL 1.0.1t (#2749).
 
 ## 0.90.1
 

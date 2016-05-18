@@ -89,7 +89,7 @@ public class AsyncTaskFragment extends Fragment {
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
-                    realm.clear(Score.class);
+                    realm.delete(Score.class);
                     for (int i = 0; i < TEST_OBJECTS; i++) {
                         if (isCancelled()) break;
                         Score score = realm.createObject(Score.class);
@@ -99,7 +99,7 @@ public class AsyncTaskFragment extends Fragment {
                 }
             });
 
-            Number sum = realm.allObjects(Score.class).sum("score");
+            Number sum = realm.where(Score.class).sum("score");
             realm.close();
             return sum.intValue();
         }

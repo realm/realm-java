@@ -126,7 +126,7 @@ public class RealmCollectionTests extends CollectionTests {
 
             case REALMRESULTS:
                 populateRealm(realm, TEST_SIZE);
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.where(AllJavaTypes.class).findAll();
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);

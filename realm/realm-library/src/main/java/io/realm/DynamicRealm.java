@@ -21,7 +21,6 @@ import android.os.Looper;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -120,15 +119,12 @@ public final class DynamicRealm extends BaseRealm {
     /**
      * Adds a change listener to the Realm.
      * <p>
-     * The listeners will be executed:
-     * <ul>
-     * <li>Immediately if a change was committed by the local thread</li>
-     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
-     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
-     * </ul>
+     * The listeners will be executed on every loop of a Handler thread if changes are committed by
+     * this or another thread.
      *
-     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
-     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
+     * Realm instances are cached pr. thread, so for that reason it is important to
+     * remember to remove listeners again either using {@link #removeChangeListener(RealmChangeListener)}
+     * or {@link #removeAllChangeListeners()}. Not doing so can cause memory leaks.
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -139,18 +135,6 @@ public final class DynamicRealm extends BaseRealm {
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         super.addListener(listener);
-    }
-
-    /**
-     * Removes all objects of the specified class.
-     *
-     * DEPRECATED: Use {@link #delete(String)} instead.
-     *
-     * @param className the class for which all objects should be removed.
-     */
-    @Deprecated
-    public void clear(String className) {
-        delete(className);
     }
 
     /**
@@ -191,55 +175,6 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll()} instead.
-     */
-    @Deprecated
-    public RealmResults<DynamicRealmObject> allObjects(String className) {
-        return where(className).findAll();
-    }
-
-    /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll(fieldName, sortOrder)} instead.
-     */
-    @Deprecated
-    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
-        checkIfValid();
-        Table table = schema.getTable(className);
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-
-        TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
-    }
-
-
-    /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll(fieldName1, sortOrder1, fieldName2, sortOrder2)} instead.
-     */
-    @Deprecated
-    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName1,
-                                                                    Sort sortOrder1, String fieldName2,
-                                                                    Sort sortOrder2) {
-        return allObjectsSorted(className, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
-                sortOrder2});
-    }
-
-    /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).findAll(fieldNames[], sortOrders[])} instead.
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[], Sort sortOrders[]) {
-        checkAllObjectsSortedParameters(fieldNames, sortOrders);
-        Table table = schema.getTable(className);
-
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
-    }
-
-    /**
      * Creates a {@link DynamicRealm} instance without checking the existence in the {@link RealmCache}.
      *
      * @return a {@link DynamicRealm} instance.
@@ -247,36 +182,6 @@ public final class DynamicRealm extends BaseRealm {
     static DynamicRealm createInstance(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         return new DynamicRealm(configuration, autoRefresh);
-    }
-
-    /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).distinct(fieldName)} instead.
-     */
-    @Deprecated
-    public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
-        checkIfValid();
-        Table table = schema.getTable(className);
-        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, table);
-        TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
-    }
-
-    /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).distinctAsync(fieldName)} instead.
-     */
-    @Deprecated
-    public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
-        checkIfValid();
-        return where(className).distinctAsync(fieldName);
-    }
-
-    /**
-     * DEPRECATED: Use {@code dynamicRealm.where(className).distinct(firstFieldName, remainingFieldNames)} instead.
-     */
-    @Deprecated
-    public RealmResults<DynamicRealmObject> distinct(String className, String firstFieldName, String... remainingFieldNames) {
-        checkIfValid();
-        return where(className).distinct(firstFieldName, remainingFieldNames);
     }
 
     /**

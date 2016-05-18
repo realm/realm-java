@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.entities.AllTypes;
 
 /**
@@ -120,9 +121,9 @@ public class RemoteProcessService extends Service {
 
         @Override
         void run() {
-            thiz.testRealm = Realm.getInstance(thiz);
+            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder(thiz).build());
             int expected = 1;
-            int got = thiz.testRealm.allObjects(AllTypes.class).size();
+            long got = thiz.testRealm.where(AllTypes.class).count();
             if (expected == got) {
                 response(null);
             } else {
@@ -136,7 +137,7 @@ public class RemoteProcessService extends Service {
 
         @Override
         void run() {
-            thiz.testRealm = Realm.getInstance(thiz);
+            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder(thiz).build());
             thiz.testRealm.close();
             response(null);
             Runtime.getRuntime().exit(0);
