@@ -263,7 +263,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        // un-managed objects are always invalid, but cannot be GC'ed while we have a reference.
+        // Unmanaged objects are always invalid, but cannot be GC'ed while we have a reference.
         // managed objects should not be deleted (= invalid).
         assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
         assertTrue(obj.isValid());
@@ -286,7 +286,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 assertEquals(TEST_SIZE - 1, collection.size());
                 break;
 
-            // Un-managed collections are not affected by changes to Realm and RealmResult should maintain a stable
+            // Unmanaged collections are not affected by changes to Realm and RealmResult should maintain a stable
             // view until next time sync_if_needed is called.
             case UNMANAGED_REALMLIST:
             case REALMRESULTS:

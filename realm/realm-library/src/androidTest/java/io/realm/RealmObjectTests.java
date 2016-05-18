@@ -389,7 +389,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void equals_standAloneObject() {
+    public void equals_unmanagedObject() {
         realm.beginTransaction();
         CyclicType ct1 = realm.createObject(CyclicType.class);
         ct1.setName("Foo");
@@ -625,15 +625,15 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void setter_link_standaloneObject() {
-        CyclicType standalone = new CyclicType();
+    public void setter_link_unmanagedObject() {
+        CyclicType unmanaged = new CyclicType();
 
         realm.beginTransaction();
         try {
             CyclicType target = realm.createObject(CyclicType.class);
 
             try {
-                target.setObject(standalone);
+                target.setObject(unmanaged);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -760,8 +760,8 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void setter_list_withStandaloneObject() {
-        CyclicType standalone = new CyclicType();
+    public void setter_list_withUnmanagedObject() {
+        CyclicType unmanaged = new CyclicType();
 
         realm.beginTransaction();
         try {
@@ -769,7 +769,7 @@ public class RealmObjectTests {
 
             RealmList<CyclicType> list = new RealmList<>();
             list.add(realm.createObject(CyclicType.class));
-            list.add(standalone); // List contains a standalone object
+            list.add(unmanaged); // List contains an unmanaged object
             list.add(realm.createObject(CyclicType.class));
 
             try {
@@ -931,7 +931,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void isValid_standaloneObject() {
+    public void isValid_unmanagedObject() {
         AllTypes allTypes = new AllTypes();
         assertFalse(allTypes.isValid());
     }
@@ -1381,18 +1381,18 @@ public class RealmObjectTests {
 
     @Test
     public void conflictingFieldName_readAndUpdate() {
-        final ConflictingFieldName standalone = new ConflictingFieldName();
-        standalone.setRealm("realm");
-        standalone.setRow("row");
-        standalone.setIsCompleted("isCompleted");
-        standalone.setListeners("listeners");
-        standalone.setPendingQuery("pendingQuery");
-        standalone.setCurrentTableVersion("currentTableVersion");
+        final ConflictingFieldName unmanaged = new ConflictingFieldName();
+        unmanaged.setRealm("realm");
+        unmanaged.setRow("row");
+        unmanaged.setIsCompleted("isCompleted");
+        unmanaged.setListeners("listeners");
+        unmanaged.setPendingQuery("pendingQuery");
+        unmanaged.setCurrentTableVersion("currentTableVersion");
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.copyToRealm(standalone);
+                realm.copyToRealm(unmanaged);
             }
         });
 

@@ -144,7 +144,7 @@ public class GotchasActivity extends Activity {
 
         // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
-        // Either avoid using buffer or copy data into an un-managed object.
+        // Either avoid using buffer or copy data into an unmanaged object.
         return personObserver
                 .buffer(2)
                 .subscribe(new Action1<List<Person>>() {

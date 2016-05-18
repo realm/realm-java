@@ -49,7 +49,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
         if (!RealmObject.isValid(obj)) {
             throw new IllegalArgumentException("An object managed by Realm must be provided. This " +
-                    "is a standalone object or it was deleted.");
+                    "is an unmanaged object or it was deleted.");
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) obj;
@@ -575,7 +575,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         String tableName = proxyState.getRow$realm().getTable().getName();
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
-            // Standalone lists don't know anything about the types they contain. They might even hold objects of
+            // Unmanaged lists don't know anything about the types they contain. They might even hold objects of
             // multiple types :(, so we have to check each item in the list.
             typeValidated = false;
         } else {

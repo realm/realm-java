@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
- * Test class for all methods specific to OrderedRealmCollections no matter if they are managed or un-managed.
+ * Test class for all methods specific to OrderedRealmCollections no matter if they are managed or unmanaged.
  *
  * Methods tested in this class:
  *
