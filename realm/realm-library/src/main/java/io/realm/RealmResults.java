@@ -217,7 +217,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (size() > 0) {
             return get(0);
         } else {
-            throw new IndexOutOfBoundsException("No results was found.");
+            throw new IndexOutOfBoundsException("No results were found.");
         }
     }
 
@@ -230,7 +230,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (size > 0) {
             return get(size - 1);
         } else {
-            throw new IndexOutOfBoundsException("No results was found.");
+            throw new IndexOutOfBoundsException("No results were found.");
         }
     }
 
