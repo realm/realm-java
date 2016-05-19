@@ -593,6 +593,7 @@ abstract class BaseRealm implements Closeable {
         List<File> filesToDelete = Arrays.asList(
                 new File(rootFolder, realmFileName),
                 new File(rootFolder, realmFileName + ".lock"),
+                // Old core log file naming styles
                 new File(rootFolder, realmFileName + ".log_a"),
                 new File(rootFolder, realmFileName + ".log_b"),
                 new File(rootFolder, realmFileName + ".log"),
@@ -628,9 +629,19 @@ abstract class BaseRealm implements Closeable {
                 File realmFolder = configuration.getRealmFolder();
                 String realmFileName = configuration.getRealmFileName();
                 File managementFolder = new File(realmFolder, realmFileName + management);
-                realmDeleted.set(deletes(realmFolder.getPath()+ "/" + realmFileName + management, managementFolder, realmFileName));
-                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
 
+                // delete files in management folder and the folder
+                // there is no subfolders in the management folder
+                File[] files = managementFolder.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        realmDeleted.set(realmDeleted.get() && file.delete());
+                    }
+                }
+                realmDeleted.set(realmDeleted.get() && managementFolder.delete());
+
+                // delete specific files in root folder
+                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
             }
         });
 
