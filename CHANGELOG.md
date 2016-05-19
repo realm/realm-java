@@ -19,6 +19,7 @@
 
 * Upgrading to OpenSSL 1.0.1t. From July 11, 2016, Google Play only accept apps using OpenSSL 1.0.1r or later (https://support.google.com/faqs/answer/6376725, #2749).
 * Added support for automatically copying an initial database from assets using `RealmConfiguration.Builder.assetFile()`.
+* Better error messages when certain file operations fail.
 
 ### Credits
 
