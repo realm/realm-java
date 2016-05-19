@@ -1884,20 +1884,9 @@ public class RealmTests {
 
     @Test
     public void deleteRealm() throws InterruptedException {
-        File tempDir = new File(context.getFilesDir(), "delete_test_dir");
-        if (!tempDir.exists()) {
-            assertTrue(tempDir.mkdir());
-        }
-
-        assertTrue(tempDir.isDirectory());
-
-        // Delete all files in the directory
-        File[] files = tempDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                assertTrue(file.delete());
-            }
-        }
+        File tempDir = new File(configFactory.getRoot(), "delete_test_dir");
+        File tempDirRenamed = new File(configFactory.getRoot(), "delete_test_dir_2");
+        assertTrue(tempDir.mkdir());
 
         final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
 
@@ -1922,14 +1911,15 @@ public class RealmTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
+        // Move the directory so core won't be able to delete log files
+        assertTrue(tempDir.renameTo(tempDirRenamed));
         readyToCloseLatch.countDown();
+
         realm.close();
         closedLatch.await();
+        // Now we get log files back!
+        assertTrue(tempDirRenamed.renameTo(tempDir));
 
-        // ATTENTION: log, log_a, log_b will be deleted when the other thread close the Realm peacefully. And we force
-        // user to close all Realm instances before deleting. It would be difficult to simulate a case that log files
-        // exist before deletion. Let's keep the case like this for now, we might allow user to delete Realm even there
-        // are instances opened in the future.
         assertTrue(Realm.deleteRealm(configuration));
 
         // Directory should be empty now
