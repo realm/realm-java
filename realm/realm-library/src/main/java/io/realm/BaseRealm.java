@@ -597,10 +597,6 @@ abstract class BaseRealm implements Closeable {
                 new File(rootFolder, realmFileName + ".log_a"),
                 new File(rootFolder, realmFileName + ".log_b"),
                 new File(rootFolder, realmFileName + ".log"),
-                // New styles
-                new File(rootFolder, "log_a"),
-                new File(rootFolder, "log_b"),
-                new File(rootFolder, "log_access"),
                 new File(canonicalPath));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
