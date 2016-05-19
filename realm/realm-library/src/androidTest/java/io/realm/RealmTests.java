@@ -1911,7 +1911,7 @@ public class RealmTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
-        // Move the directory so core won't be able to delete log files
+        // A core upgrade might change the location of the files
         assertTrue(tempDir.renameTo(tempDirRenamed));
         readyToCloseLatch.countDown();
 
