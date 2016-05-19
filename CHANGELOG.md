@@ -22,7 +22,6 @@
 ### Credits
 
 * Paweł Surówka (@thesurix) for adding the `RealmConfiguration.Builder.assetFile()`.
->>>>>>> master
 
 ## 0.90.1
 
