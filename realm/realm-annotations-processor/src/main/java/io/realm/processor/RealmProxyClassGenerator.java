@@ -752,18 +752,18 @@ public class RealmProxyClassGenerator {
                 .emitStatement("return null")
             .endControlFlow()
             .emitStatement("CacheData<RealmModel> cachedObject = cache.get(realmObject)")
-            .emitStatement("%s standaloneObject", className)
+            .emitStatement("%s unmanagedObject", className)
             .beginControlFlow("if (cachedObject != null)")
                 .emitSingleLineComment("Reuse cached object or recreate it because it was encountered at a lower depth.")
                 .beginControlFlow("if (currentDepth >= cachedObject.minDepth)")
                     .emitStatement("return (%s)cachedObject.object", className)
                 .nextControlFlow("else")
-                    .emitStatement("standaloneObject = (%s)cachedObject.object", className)
+                    .emitStatement("unmanagedObject = (%s)cachedObject.object", className)
                     .emitStatement("cachedObject.minDepth = currentDepth")
                 .endControlFlow()
             .nextControlFlow("else")
-                .emitStatement("standaloneObject = new %s()", className)
-                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject))")
+                .emitStatement("unmanagedObject = new %s()", className)
+                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject))")
             .endControlFlow();
 
         for (VariableElement field : metadata.getFields()) {
@@ -775,34 +775,34 @@ public class RealmProxyClassGenerator {
                 writer
                     .emitEmptyLine()
                     .emitSingleLineComment("Deep copy of %s", fieldName)
-                    .emitStatement("((%s) standaloneObject).%s(%s.createDetachedCopy(((%s) realmObject).%s(), currentDepth + 1, maxDepth, cache))",
+                    .emitStatement("((%s) unmanagedObject).%s(%s.createDetachedCopy(((%s) realmObject).%s(), currentDepth + 1, maxDepth, cache))",
                                 interfaceName, setter, Utils.getProxyClassSimpleName(field), interfaceName, getter);
             } else if (Utils.isRealmList(field)) {
                 writer
                     .emitEmptyLine()
                     .emitSingleLineComment("Deep copy of %s", fieldName)
                     .beginControlFlow("if (currentDepth == maxDepth)")
-                        .emitStatement("((%s) standaloneObject).%s(null)", interfaceName, setter)
+                        .emitStatement("((%s) unmanagedObject).%s(null)", interfaceName, setter)
                     .nextControlFlow("else")
                         .emitStatement("RealmList<%s> managed%sList = ((%s) realmObject).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
-                        .emitStatement("RealmList<%1$s> standalone%2$sList = new RealmList<%1$s>()", Utils.getGenericType(field), fieldName)
-                        .emitStatement("((%s) standaloneObject).%s(standalone%sList)", interfaceName, setter, fieldName)
+                        .emitStatement("RealmList<%1$s> unmanaged%2$sList = new RealmList<%1$s>()", Utils.getGenericType(field), fieldName)
+                        .emitStatement("((%s) unmanagedObject).%s(unmanaged%sList)", interfaceName, setter, fieldName)
                         .emitStatement("int nextDepth = currentDepth + 1")
                         .emitStatement("int size = managed%sList.size()", fieldName)
                         .beginControlFlow("for (int i = 0; i < size; i++)")
                             .emitStatement("%s item = %s.createDetachedCopy(managed%sList.get(i), nextDepth, maxDepth, cache)",
                                     Utils.getGenericType(field), Utils.getProxyClassSimpleName(field), fieldName)
-                            .emitStatement("standalone%sList.add(item)", fieldName)
+                            .emitStatement("unmanaged%sList.add(item)", fieldName)
                         .endControlFlow()
                     .endControlFlow();
             } else {
-                writer.emitStatement("((%s) standaloneObject).%s(((%s) realmObject).%s())",
+                writer.emitStatement("((%s) unmanagedObject).%s(((%s) realmObject).%s())",
                         interfaceName, setter, interfaceName, getter);
             }
         }
 
-        writer.emitStatement("return standaloneObject");
+        writer.emitStatement("return unmanagedObject");
         writer.endMethod();
         writer.emitEmptyLine();
     }

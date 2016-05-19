@@ -86,7 +86,7 @@ public class RealmListTests extends CollectionTests {
         }
     }
 
-    private RealmList<Dog> createNonManagedDogList() {
+    private RealmList<Dog> createUnmanagedDogList() {
         RealmList<Dog> list = new RealmList<Dog>();
         for (int i = 0; i < TEST_SIZE; i++) {
             list.add(new Dog("Dog " + i));
@@ -106,25 +106,25 @@ public class RealmListTests extends CollectionTests {
 
             //noinspection TryWithIdenticalCatches
     /*********************************************************
-     * Un-managed mode tests                                *
+     * Unmanaged mode tests                                *
      *********************************************************/
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_nonManaged_null() {
+    public void constructor_unmanaged_null() {
         AllTypes[] args = null;
         //noinspection ConstantConditions
         new RealmList<AllTypes>(args);
     }
 
     @Test
-    public void isValid_nonManagedMode() {
+    public void isValid_unmanagedMode() {
         //noinspection MismatchedQueryAndUpdateOfCollection
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         assertFalse(list.isValid());
     }
 
     @Test
-    public void add_nonManagedMode() {
+    public void add_unmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
@@ -134,12 +134,12 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test (expected = IllegalArgumentException.class)
-    public void add_nullInNonManagedMode() {
+    public void add_nullInUnmanagedMode() {
         new RealmList<AllTypes>().add(null);
     }
 
     @Test
-    public void add_managedObjectInNonManagedMode() {
+    public void add_managedObjectInUnmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         realm.beginTransaction();
         AllTypes managedAllTypes = realm.createObject(AllTypes.class);
@@ -150,7 +150,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void add_standaloneObjectAtIndexInNonManagedMode() {
+    public void add_unmanagedObjectAtIndexInUnmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
@@ -160,7 +160,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void add_managedObjectAtIndexInNonManagedMode() {
+    public void add_managedObjectAtIndexInUnmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         realm.beginTransaction();
@@ -182,12 +182,12 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test (expected = IllegalArgumentException.class)
-    public void add_nullAtIndexInNonManagedMode() {
+    public void add_nullAtIndexInUnmanagedMode() {
         new RealmList<AllTypes>().add(0, null);
     }
 
     @Test
-    public void set_nonManagedMode() {
+    public void set_unmanagedMode() {
         RealmList<Dog> list = new RealmList<Dog>();
         Dog dog1 = new Dog("dog1");
         Dog dog2 = new Dog("dog2");
@@ -214,7 +214,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void set_nullInNonManagedMode() {
+    public void set_nullInUnmanagedMode() {
         @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
@@ -223,7 +223,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void set_managedObjectInNonManagedMode() {
+    public void set_managedObjectInUnmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         realm.beginTransaction();
@@ -235,7 +235,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void clear_nonManagedMode() {
+    public void clear_unmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         assertEquals(1, list.size());
@@ -244,7 +244,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void remove_nonManagedMode() {
+    public void remove_unmanagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object1 = new AllTypes();
         list.add(object1);
@@ -281,8 +281,8 @@ public class RealmListTests extends CollectionTests {
 
     // Test move where oldPosition > newPosition
     @Test
-    public void move_downInNonManagedMode() {
-        RealmList<Dog> dogs = createNonManagedDogList();
+    public void move_downInUnmanagedMode() {
+        RealmList<Dog> dogs = createUnmanagedDogList();
         Dog dog1 = dogs.get(1);
         dogs.move(1, 0);
 
@@ -291,8 +291,8 @@ public class RealmListTests extends CollectionTests {
 
     // Test move where oldPosition < newPosition
     @Test
-    public void move_upInNonManagedMode() {
-        RealmList<Dog> dogs = createNonManagedDogList();
+    public void move_upInUnmanagedMode() {
+        RealmList<Dog> dogs = createUnmanagedDogList();
         int oldIndex = TEST_SIZE / 2;
         int newIndex = oldIndex + 1;
         Dog dog = dogs.get(oldIndex);
@@ -371,9 +371,9 @@ public class RealmListTests extends CollectionTests {
         assertEquals(1, realm.where(Owner.class).findFirst().getDogs().size());
     }
 
-    // Test that add correctly uses Realm.copyToRealm() on standalone objects.
+    // Test that add correctly uses Realm.copyToRealm() on unmanaged objects.
     @Test
-    public void add_nonManagedObjectToManagedList() {
+    public void add_unmanagedObjectToManagedList() {
         realm.beginTransaction();
         CyclicType parent = realm.createObject(CyclicType.class);
         RealmList<CyclicType> children = parent.getObjects();
@@ -382,9 +382,9 @@ public class RealmListTests extends CollectionTests {
         assertEquals(1, realm.where(CyclicType.class).findFirst().getObjects().size());
     }
 
-    // Make sure that standalone objects with a primary key are added using copyToRealmOrUpdate
+    // Make sure that unmanaged objects with a primary key are added using copyToRealmOrUpdate
     @Test
-    public void add_nonManagedPrimaryKeyObjectToManagedList() {
+    public void add_unmanagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
         realm.copyToRealm(new CyclicTypePrimaryKey(2, "original"));
         RealmList<CyclicTypePrimaryKey> children = realm.copyToRealm(new CyclicTypePrimaryKey(1)).getObjects();
@@ -395,9 +395,9 @@ public class RealmListTests extends CollectionTests {
         assertEquals("new", realm.where(CyclicTypePrimaryKey.class).equalTo("id", 2).findFirst().getName());
     }
 
-    // Test that set correctly uses Realm.copyToRealm() on standalone objects.
+    // Test that set correctly uses Realm.copyToRealm() on unmanaged objects.
     @Test
-    public void set_nonManagedObjectToManagedList() {
+    public void set_unmanagedObjectToManagedList() {
         realm.beginTransaction();
         CyclicType parent = realm.copyToRealm(new CyclicType("Parent"));
         RealmList<CyclicType> children = parent.getObjects();
@@ -413,9 +413,9 @@ public class RealmListTests extends CollectionTests {
         assertEquals(5, realm.where(CyclicType.class).count());
     }
 
-    // Test that set correctly uses Realm.copyToRealmOrUpdate() on standalone objects with a primary key.
+    // Test that set correctly uses Realm.copyToRealmOrUpdate() on unmanaged objects with a primary key.
     @Test
-    public void set_nonManagedPrimaryKeyObjectToManagedList() {
+    public void set_unmanagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
         CyclicTypePrimaryKey parent = realm.copyToRealm(new CyclicTypePrimaryKey(1, "Parent"));
         RealmList<CyclicTypePrimaryKey> children = parent.getObjects();
@@ -594,7 +594,7 @@ public class RealmListTests extends CollectionTests {
 
     @Test
     public void removeAll_unmanaged_wrongClass() {
-        RealmList<Dog> list = createNonManagedDogList();
+        RealmList<Dog> list = createUnmanagedDogList();
         //noinspection SuspiciousMethodCalls
         assertFalse(list.removeAll(Collections.singletonList(new Cat())));
     }

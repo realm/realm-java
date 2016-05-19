@@ -807,7 +807,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a standalone in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
+     * Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
      * referenced objects.
      *
      * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
@@ -828,7 +828,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a standalone in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
+     * Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
      * referenced objects up to the defined depth.
      *
      * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
@@ -854,18 +854,18 @@ public final class Realm extends BaseRealm {
             return new ArrayList<E>(0);
         }
 
-        ArrayList<E> standaloneObjects = new ArrayList<E>();
+        ArrayList<E> unmanagedObjects = new ArrayList<E>();
         Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
-            standaloneObjects.add(createDetachedCopy(object, maxDepth, listCache));
+            unmanagedObjects.add(createDetachedCopy(object, maxDepth, listCache));
         }
 
-        return standaloneObjects;
+        return unmanagedObjects;
     }
 
     /**
-     * Makes a standalone in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
+     * Makes an unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
      * all referenced objects.
      *
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
@@ -886,7 +886,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Makes a standalone in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
+     * Makes an unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
      * all referenced objects up to the defined depth.
      *
      * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means

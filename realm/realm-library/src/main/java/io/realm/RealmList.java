@@ -39,9 +39,9 @@ import io.realm.internal.RealmObjectProxy;
  * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the content whenever the
  * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.RealmObject}.
  * <p>
- * Non-managed RealmLists can be created by the user and can contain both managed and non-managed RealmObjects. This is
+ * Unmanaged RealmLists can be created by the user and can contain both managed and non-managed RealmObjects. This is
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
- * Non-managed elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
+ * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
  * <p>
  * {@link RealmList} can contain more elements than {@code Integer.MAX_VALUE}.
  * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
@@ -60,7 +60,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     protected String className;
     protected LinkView view;
     protected BaseRealm realm;
-    private List<E> nonManagedList;
+    private List<E> unmanagedList;
 
     /**
      * Creates a RealmList in non-managed mode, where the elements are not controlled by a Realm.
@@ -71,7 +71,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      */
     public RealmList() {
         managedMode = false;
-        nonManagedList = new ArrayList<E>();
+        unmanagedList = new ArrayList<E>();
     }
 
     /**
@@ -88,8 +88,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
         managedMode = false;
-        nonManagedList = new ArrayList<E>(objects.length);
-        Collections.addAll(nonManagedList, objects);
+        unmanagedList = new ArrayList<E>(objects.length);
+        Collections.addAll(unmanagedList, objects);
     }
 
     /**
@@ -117,7 +117,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * Checks if the {@link RealmList} is managed by Realm and contains valid data i.e. the {@link io.realm.Realm}
      * instance hasn't been closed.
      *
-     * @return {@code true} if still valid to use, {@code false} otherwise or if it's an un-managed list.
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it's an unmanaged list.
      */
     public boolean isValid() {
         //noinspection SimplifiableIfStatement
@@ -136,11 +136,11 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * element at the specified location. If the location is equal to the size of this List, the object is added at the
      * end.
      * <ol>
-     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
-     * objects to a un-managed RealmList they will not be copied to the Realm again if using
+     * <li><b>Unmanaged RealmLists:</b> It is possible to add both managed and unmanaged objects. If adding managed
+     * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * <li><b>Managed RealmLists:</b> It is possible to add unmanaged objects to a RealmList that is already managed. In
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
      * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
@@ -161,7 +161,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             view.insert(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
-            nonManagedList.add(location, object);
+            unmanagedList.add(location, object);
         }
         modCount++;
     }
@@ -169,11 +169,11 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     /**
      * Adds the specified object at the end of this List.
      * <ol>
-     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
-     * objects to a un-managed RealmList they will not be copied to the Realm again if using
+     * <li><b>Unmanaged RealmLists:</b> It is possible to add both managed and unmanaged objects. If adding managed
+     * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * <li><b>Managed RealmLists:</b> It is possible to add unmanaged objects to a RealmList that is already managed. In
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
      * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
@@ -190,7 +190,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             view.add(proxy.realmGet$proxyState().getRow$realm().getIndex());
         } else {
-            nonManagedList.add(object);
+            unmanagedList.add(object);
         }
         modCount++;
         return true;
@@ -199,11 +199,11 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     /**
      * Replaces the element at the specified location in this list with the specified object.
      * <ol>
-     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
-     * objects to a un-managed RealmList they will not be copied to the Realm again if using
+     * <li><b>Unmanaged RealmLists:</b> It is possible to add both managed and unmanaged objects. If adding managed
+     * objects to an unmanaged RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
+     * <li><b>Managed RealmLists:</b> It is possible to add unmanaged objects to a RealmList that is already managed.
      * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
      * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
@@ -224,12 +224,12 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
             return oldObject;
         } else {
-            oldObject = nonManagedList.set(location, object);
+            oldObject = unmanagedList.set(location, object);
         }
         return oldObject;
     }
 
-    // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
+    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
@@ -291,11 +291,11 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
         } else {
             checkIndex(oldPos);
             checkIndex(newPos);
-            E object = nonManagedList.remove(oldPos);
+            E object = unmanagedList.remove(oldPos);
             if (newPos > oldPos) {
-                nonManagedList.add(newPos - 1, object);
+                unmanagedList.add(newPos - 1, object);
             } else {
-                nonManagedList.add(newPos, object);
+                unmanagedList.add(newPos, object);
             }
         }
     }
@@ -314,7 +314,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             checkValidView();
             view.clear();
         } else {
-            nonManagedList.clear();
+            unmanagedList.clear();
         }
         modCount++;
     }
@@ -335,7 +335,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             removedItem = get(location);
             view.remove(location);
         } else {
-            removedItem = nonManagedList.remove(location);
+            removedItem = unmanagedList.remove(location);
         }
         modCount++;
         return removedItem;
@@ -441,7 +441,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             long rowIndex = view.getTargetRowIndex(location);
             return realm.get(clazz, className, rowIndex);
         } else {
-            return nonManagedList.get(location);
+            return unmanagedList.get(location);
         }
     }
 
@@ -457,8 +457,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             if (!view.isEmpty()) {
                 return get(0);
             }
-        } else if (nonManagedList != null && nonManagedList.size() > 0) {
-            return nonManagedList.get(0);
+        } else if (unmanagedList != null && unmanagedList.size() > 0) {
+            return unmanagedList.get(0);
         }
         throw new IndexOutOfBoundsException("The list is empty.");
     }
@@ -475,8 +475,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             if (!view.isEmpty()) {
                 return get((int) view.size() - 1);
             }
-        } else if (nonManagedList != null && nonManagedList.size() > 0) {
-            return nonManagedList.get(nonManagedList.size() - 1);
+        } else if (unmanagedList != null && unmanagedList.size() > 0) {
+            return unmanagedList.get(unmanagedList.size() - 1);
         }
         throw new IndexOutOfBoundsException("The list is empty.");
     }
@@ -548,7 +548,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             long size = view.size();
             return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
-            return nonManagedList.size();
+            return unmanagedList.size();
         }
     }
 
@@ -664,7 +664,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      */
     @Override
     public boolean isLoaded() {
-        return true; // Managed RealmLists are always loaded, Un-managed RealmLists return true pr. the contract.
+        return true; // Managed RealmLists are always loaded, Unmanaged RealmLists return true pr. the contract.
     }
 
     /**
@@ -672,7 +672,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      */
     @Override
     public boolean load() {
-        return true; // Managed RealmLists are always loaded, Un-managed RealmLists return true pr. the contract.
+        return true; // Managed RealmLists are always loaded, Unmanaged RealmLists return true pr. the contract.
     }
 
     /**
@@ -697,7 +697,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
                 }
             }
         } else {
-            contains = nonManagedList.contains(object);
+            contains = unmanagedList.contains(object);
         }
         return contains;
     }

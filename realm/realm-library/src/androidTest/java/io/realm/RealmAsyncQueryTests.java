@@ -328,7 +328,7 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
-    public void standaloneObjectAsyncBehaviour() {
+    public void unmanagedObjectAsyncBehaviour() {
         Dog dog = new Dog();
         dog.setName("Akamaru");
         dog.setAge(10);
