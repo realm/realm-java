@@ -149,7 +149,8 @@ final class HandlerController implements Handler.Callback {
 
     /**
      * For internal use only.
-     * Sometimes we don't know when to unregister listeners (ex: {@code RealmBaseAdapter}). Using
+     * <p>
+     * Sometimes we don't know when to unregister listeners (e.g., {@code RealmBaseAdapter}). Using
      * a WeakReference the listener doesn't need to be explicitly unregistered.
      *
      * @param listener the change listener.
@@ -600,10 +601,10 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * Indicate the presence of empty {@code RealmObject} obtained asynchronously using {@link RealmQuery#findFirstAsync()}
-     * empty means no pointer to a valid Row. This will help to caller to decice when to rerun the query.
+     * Indicates the presence of empty {@code RealmObject} obtained asynchronously using {@link RealmQuery#findFirstAsync()}.
+     * Empty means no pointer to a valid Row. This will help caller to decide when to rerun the query.
      *
-     * @return {@code true} if there is at least one (non GC'ed) instance of {@link RealmObject} {@code false} otherwise.
+     * @return {@code true} if there is at least one (non GC'ed) instance of {@link RealmObject}, {@code false} otherwise.
      */
     boolean threadContainsAsyncEmptyRealmObject() {
         boolean isEmpty = true;
@@ -675,11 +676,11 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * Refreshes all synchronous RealmResults by calling `sync_if_needed` on them. This will cause any backing queries
-     * to be rerun and any deleted objects will be removed from the TableView.
-     *
+     * Refreshes all synchronous RealmResults by calling {@code sync_if_needed} on them. This will cause any backing queries
+     * to rerun and any deleted objects will be removed from the TableView.
+     * <p>
      * WARNING: This will _NOT_ refresh TableViews created from async queries.
-     *
+     * <p>
      * Note this will _not_ notify any registered listeners.
      */
     public void refreshSynchronousTableViews() {
@@ -707,7 +708,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * Notify the current thread that the Realm has changed. This will also trigger change listener asynchronously.
+     * Notifies the current thread that the Realm has changed. This will also trigger change listener asynchronously.
      */
     public void notifyCurrentThreadRealmChanged() {
         if (realm != null) {

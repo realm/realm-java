@@ -167,8 +167,8 @@ abstract class BaseRealm implements Closeable {
      * Returns an RxJava Observable that monitors changes to this Realm. It will emit the current state
      * when subscribed to. Items will continually be emitted as the Realm is updated -
      * {@code onComplete} will never be called.
-     *
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * <p>
+     * If you would like the {@code asObservable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      *
      * <pre>
@@ -302,13 +302,13 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or aborted by
+     * Starts a transaction which must be closed by {@link io.realm.Realm#commitTransaction()} or aborted by
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
-     * <br>
-     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm in the case of
+     * <p>
+     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the Realm in the case of
      * pending updates from other threads.
-     * <br>
+     * <p>
      * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
      * thrown.
      */
@@ -320,7 +320,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the Realm reverts back to
      * being read-only. An event is sent to notify all other Realm instances that a change has occurred. When the event
-     * is received, the other Realms will get their objects and {@link io.realm.RealmResults} updated to reflect the
+     * is received, the other Realms will update their objects and {@link io.realm.RealmResults} to reflect the
      * changes from this commit.
      */
     public void commitTransaction() {
@@ -371,9 +371,9 @@ abstract class BaseRealm implements Closeable {
     /**
      * Reverts all writes (created, updated, or deleted objects) made in the current write transaction and end the
      * transaction.
-     * <br>
+     * <p>
      * The Realm reverts back to read-only.
-     * <br>
+     * <p>
      * Calling this when not in a transaction will throw an exception.
      */
     public void cancelTransaction() {
@@ -650,6 +650,10 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Compacts the Realm file defined by the given configuration.
+     *
+     * @param configuration configuration for the Realm to compact.
+     * @throw IllegalArgumentException if Realm is encrypted.
+     * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
         if (configuration.getEncryptionKey() != null) {
@@ -662,8 +666,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration configuration for the Realm that should be migrated
-     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param configuration configuration for the Realm that should be migrated.
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */

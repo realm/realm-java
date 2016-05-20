@@ -42,21 +42,23 @@ import io.realm.rx.RxObservableFactory;
 
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
- *
+ * <p>
  * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
  * its {@link io.realm.RealmConfiguration.Builder#build()} method.
- *
+ * <p>
  * A commonly used RealmConfiguration can easily be accessed by first saving it as
  * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
- *
+ * <p>
  * A minimal configuration can be created using:
- *
+ * <p>
  * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
- *
+ * <p>
  * This will create a RealmConfiguration with the following properties.
- * - Realm file is called "default.realm"
- * - It is saved in Context.getFilesDir()
- * - It has its schema version set to 0.
+ * <ul>
+ * <li>Realm file is called "default.realm"</li>
+ * <li>It is saved in Context.getFilesDir()</li>
+ * <li>It has its schema version set to 0.</li>
+ * </ul>
  */
 public final class RealmConfiguration {
 
@@ -161,7 +163,7 @@ public final class RealmConfiguration {
     /**
      * Indicates if there is available asset file for copy action.
      *
-     * @return true if there is asset file, false otherwise.
+     * @return {@code true} if there is asset file, {@code false} otherwise.
      */
     boolean hasAssetFile() {
         return !TextUtils.isEmpty(assetFilePath);
@@ -326,7 +328,7 @@ public final class RealmConfiguration {
     /**
      * Checks if RxJava is can be loaded.
      *
-     * @return true if RxJava dependency exist.
+     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
     private static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
@@ -362,8 +364,8 @@ public final class RealmConfiguration {
          * Creates an instance of the Builder for the RealmConfiguration.
          * The Realm file will be saved in the provided folder.
          *
-         * @param folder Folder to save Realm file in. Folder must be writable.
-         * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
+         * @param folder the folder to save Realm file in. Folder must be writable.
+         * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
          */
         public Builder(File folder) {
             RealmCore.loadLibrary();
@@ -372,12 +374,12 @@ public final class RealmConfiguration {
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
-         *
+         * <p>
          * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
-         * @param context Android context.
+         * @param context an Android context.
          */
         public Builder(Context context) {
             if (context == null) {
@@ -439,7 +441,7 @@ public final class RealmConfiguration {
         /**
          * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
          * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
-         *
+         * <p>
          * If no migration code is provided, Realm will throw a
          * {@link io.realm.exceptions.RealmMigrationNeededException}.
          *
@@ -499,13 +501,13 @@ public final class RealmConfiguration {
         /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
-         *
+         * <p>
          * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
          * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
          * dependency is thus done using the following code:
-         *
+         * <p>
          * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
-         *
+         * <p>
          * @param baseModule the first Realm module (required).
          * @param additionalModules the additional Realm modules
          * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
@@ -547,10 +549,11 @@ public final class RealmConfiguration {
 
         /**
          * Copies the Realm file from the given asset file path.
-         *
+         * <p>
          * When opening the Realm for the first time, instead of creating an empty file,
          * the Realm file will be copied from the provided assets file and used instead.
-         * WARNING: This could potentially be a lengthy operation so should ideally be done on a background thread.
+         * <p>
+         * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param context Android application context.
          * @param assetFile path to the asset database file.

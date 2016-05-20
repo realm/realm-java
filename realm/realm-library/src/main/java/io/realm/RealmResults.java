@@ -54,7 +54,7 @@ import rx.Observable;
  * A RealmResults object cannot be passed between different threads.
  * <p>
  * Notice that a RealmResults is never {@code null} not even in the case where it contains no objects. You should always
- * use the size() method to check if a RealmResults is empty or not.
+ * use the {@link RealmResults#size()} method to check if a RealmResults is empty or not.
  * <p>
  * If a RealmResults is built on RealmList through {@link RealmList#where()}, it will become empty when the source
  * RealmList gets deleted.

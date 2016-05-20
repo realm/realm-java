@@ -71,7 +71,7 @@ import rx.Observable;
  * Realm and should be considered a lightweight operation.
  * <p>
  * For the UI thread this means that opening and closing Realms should occur in either onCreate/onDestroy or
- *  onStart/onStop.
+ * onStart/onStop.
  * <p>
  * Realm instances coordinate their state across threads using the {@link android.os.Handler} mechanism. This also means
  * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #waitForChange()}
@@ -218,7 +218,7 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#schema#columnIndices} will be
+     * @param columnIndices if this is not  {@code null}, the {@link BaseRealm#schema#columnIndices} will be
      *                      initialized to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from
      *                      the Realm file.
      * @return a {@link Realm} instance.
@@ -313,8 +313,9 @@ public final class Realm extends BaseRealm {
 
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
-     * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
-     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the RealmObject
+     * <p>
+     * JSON properties with {@code null} values will map to the default value for the data type in Realm and unknown properties
+     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject}
      * field will be set to the default value for that type.
      *
      * @param clazz type of Realm objects to create.
@@ -365,7 +366,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
-     * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
+     * JSON properties with {@code null} values will map to the default value for the data type in Realm and unknown properties
      * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field
      * will be set to the default value for that type.
      *
@@ -420,7 +421,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
-     * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
+     * JSON properties with {@code null} value will map to the default value for the data type in Realm and unknown properties
      * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field
      * will be set to the default value for that type.
      *
@@ -488,13 +489,13 @@ public final class Realm extends BaseRealm {
 
     /**
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
-     * properties with a null value will map to the default value for the data type in Realm and unknown properties will
+     * properties with {@code null} values will map to the default value for the data type in Realm and unknown properties will
      * be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will
      * be set to the default value for that type.
      *
      * @param clazz type of Realm object to create.
      * @param json the JSONObject with object data.
-     * @return created object or null if no json data was provided.
+     * @return created object or {@code null} if no JSON data was provided.
      * @throws RealmException if the mapping from JSON fails.
      * @see #createOrUpdateObjectFromJson(Class, org.json.JSONObject)
      */
@@ -539,13 +540,13 @@ public final class Realm extends BaseRealm {
 
     /**
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
-     * properties with a null value will map to the default value for the data type in Realm and unknown properties will
+     * properties with {@code null} values will map to the default value for the data type in Realm and unknown properties will
      * be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will
      * be set to the default value for that type.
      *
      * @param clazz type of Realm object to create.
      * @param json the JSON string with object data.
-     * @return created object or null if json string was empty or null.
+     * @return created object or {@code null} if JSON string was empty or null.
      * @throws RealmException if mapping to json failed.
      */
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, String json) {
@@ -596,15 +597,15 @@ public final class Realm extends BaseRealm {
 
     /**
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
-     * properties with a null value will map to the default value for the data type in Realm and unknown properties will
+     * properties with {@code null} value will map to the default value for the data type in Realm and unknown properties will
      * be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will
      * be set to the default value for that type.
      *
      * @param clazz type of Realm object to create.
      * @param inputStream the JSON object data as a InputStream.
-     * @return created object or null if json string was empty or null.
+     * @return created object or {@code null} if JSON string was empty or null.
      * @throws RealmException if the mapping from JSON failed.
-     * @throws IOException if something was wrong with the input stream.
+     * @throws IOException if something went wrong with the input stream.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
@@ -685,9 +686,9 @@ public final class Realm extends BaseRealm {
     /**
      * Instantiates and adds a new object to the Realm.
      *
-     * @param clazz the Class of the object to create
-     * @return the new object
-     * @throws RealmException if an object could not be created
+     * @param clazz the Class of the object to create.
+     * @return the new object.
+     * @throws RealmException if an object cannot be created.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
@@ -698,7 +699,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Instantiates and adds a new object to the Realm with the primary key value already set.
-     *
+     * <p>
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
      *
@@ -706,7 +707,7 @@ public final class Realm extends BaseRealm {
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
      * @throws RealmException if object could not be created due to the primary key being invalid.
-     * @throws IllegalStateException If the model clazz does not have an primary key defined.
+     * @throws IllegalStateException if the model clazz does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      *                                  expected value.
      */
@@ -720,8 +721,8 @@ public final class Realm extends BaseRealm {
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
      * already in this Realm will be ignored.
-     *
-     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in this and child objects will be
      * set to their default value if not provided.
      *
      * @param object the {@link io.realm.RealmObject} to copy to the Realm.
@@ -736,10 +737,10 @@ public final class Realm extends BaseRealm {
 
     /**
      * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or creates
-     * a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
+     * a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced objects will be
      * either copied or updated.
-     *
-     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
      * set to their default value if not provided.
      *
      * @param object {@link io.realm.RealmObject} to copy or update.
@@ -756,10 +757,10 @@ public final class Realm extends BaseRealm {
 
     /**
      * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes to the
-     * original RealmObjects will not be reflected in the Realm copies. This is a deep copy, so all referenced objects
+     * original RealmObjects will not be reflected in the Realm copies. This is a deep copy i.e., all referenced objects
      * will be copied. Objects already in this Realm will be ignored.
-     *
-     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the objects and child objects will be
      * set to their default value if not provided.
      *
      * @param objects the RealmObjects to copy to the Realm.
@@ -782,10 +783,10 @@ public final class Realm extends BaseRealm {
 
     /**
      * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or
-     * creates a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects
+     * creates a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced objects
      * will be either copied or updated.
-     *
-     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the objects and child objects will be
      * set to their default value if not provided.
      *
      * @param objects a list of objects to update or copy into Realm.
@@ -809,15 +810,15 @@ public final class Realm extends BaseRealm {
     /**
      * Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
      * referenced objects.
-     *
-     * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
+     * <p>
+     * The copied objects are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
-     *
+     * <p>
      * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmModel)},
      * but all fields will be overridden, not just those that were changed. This includes references to other objects,
      * and can potentially override changes made by other threads.
      *
-     * @param realmObjects RealmObjects to copy
+     * @param realmObjects RealmObjects to copy.
      * @param <E> type of object.
      * @return an in-memory detached copy of managed RealmObjects.
      * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
@@ -830,10 +831,10 @@ public final class Realm extends BaseRealm {
     /**
      * Makes an unmanaged in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
      * referenced objects up to the defined depth.
-     *
-     * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
+     * <p>
+     * The copied objects are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
-     *
+     * <p>
      * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(Iterable)},
      * but all fields will be overridden, not just those that were changed. This includes references to other objects
      * even though they might be {@code null} due to {@code maxDepth} being reached. This can also potentially override
@@ -867,15 +868,15 @@ public final class Realm extends BaseRealm {
     /**
      * Makes an unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
      * all referenced objects.
-     *
-     * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
+     * <p>
+     * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
-     *
+     * <p>
      * *WARNING*: Any changes to copied objects can be merged back into Realm using 
      * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects, and can potentially override changes made by other threads.
      *
-     * @param realmObject {@link RealmObject} to copy
+     * @param realmObject {@link RealmObject} to copy.
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
      * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
@@ -888,16 +889,16 @@ public final class Realm extends BaseRealm {
     /**
      * Makes an unmanaged in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
      * all referenced objects up to the defined depth.
-     *
-     * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
+     * <p>
+     * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
-     *
+     * <p>
      * *WARNING*: Any changes to copied objects can be merged back into Realm using 
      * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed. 
      * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being 
      * reached. This can also potentially override changes made by other threads.
      *
-     * @param realmObject {@link RealmObject} to copy
+     * @param realmObject {@link RealmObject} to copy.
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is
      * {@code 0}.
      * @param <E> type of object.
@@ -929,8 +930,8 @@ public final class Realm extends BaseRealm {
      * <p>
      * The listeners will be executed on every loop of a Handler thread if
      * the current thread or other threads committed changes to the Realm.
-     *
-     * Realm instances are per-thread singletons and cached, so listeners should be
+     * <p>
+     * Realm instances are per thread singletons and cached, so listeners should be
      * removed manually even if calling {@link #close()}. Otherwise there is a
      * risk of memory leaks.
      *
@@ -1005,7 +1006,7 @@ public final class Realm extends BaseRealm {
      * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnError callback.
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
-     * @param onError callback invoked when the transaction failed.
+     * @param onError callback invoked when the transaction fails.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
      *                                  another thread.
@@ -1023,7 +1024,7 @@ public final class Realm extends BaseRealm {
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param onSuccess callback invoked when the transaction succeeds.
-     * @param onError callback invoked when the transaction failed.
+     * @param onError callback invoked when the transaction fails.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
      *                                  another thread.
@@ -1226,7 +1227,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Deletes the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
-     * The Realm must be unused and closed before calling this method.
+     * All Realm instances must be closed before calling this method.
      *
      * @param configuration a {@link RealmConfiguration}.
      * @return {@code false} if a file could not be deleted. The failing file will be logged.
@@ -1276,7 +1277,7 @@ public final class Realm extends BaseRealm {
      * Returns the default Realm module. This module contains all Realm classes in the current project, but not those
      * from library or project dependencies. Realm classes in these should be exposed using their own module.
      *
-     * @return the default Realm module or null if no default module exists.
+     * @return the default Realm module or {@code null} if no default module exists.
      * @throws RealmException if unable to create an instance of the module.
      * @see io.realm.RealmConfiguration.Builder#modules(Object, Object...)
      */
