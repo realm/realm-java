@@ -115,7 +115,6 @@ public class IntroExampleActivity extends Activity {
                 person.setName("Senior Person");
                 person.setAge(99);
                 showStatus(person.getName() + " got older: " + person.getAge());
-                realm.commitTransaction();
             }
         });
 
