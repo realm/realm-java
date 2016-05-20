@@ -1162,7 +1162,7 @@ public final class RealmQuery<E extends RealmModel> {
 
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1283,8 +1283,9 @@ public final class RealmQuery<E extends RealmModel> {
      * Calculates the sum of a given field.
      *
      * @param fieldName the field to sum. Only number fields are supported.
-     * @return the sum if no objects exist or they all have {@code null} as the value for the given field, {@code 0}
-     * will be returned. When computing the sum, objects with {@code null} values are ignored.
+     * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
+     *         for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
+     *         are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
@@ -1469,7 +1470,7 @@ public final class RealmQuery<E extends RealmModel> {
 
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1587,7 +1588,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults =
                 realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1648,7 +1649,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field name to sort by.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldName) {
         return findAllSorted(fieldName, Sort.ASCENDING);
@@ -1660,7 +1662,8 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName) {
         return findAllSortedAsync(fieldName, Sort.ASCENDING);
@@ -1760,7 +1763,7 @@ public final class RealmQuery<E extends RealmModel> {
 
             final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-            final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+            final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
                 @Override
                 public Long call() throws Exception {
                     if (!Thread.currentThread().isInterrupted()) {
@@ -1823,10 +1826,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param sortOrder2 sort order for second field
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-                                   String fieldName2, Sort sortOrder2) {
+                                         String fieldName2, Sort sortOrder2) {
         return findAllSorted(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
@@ -1836,33 +1840,12 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
                                               String fieldName2, Sort sortOrder2) {
         return findAllSortedAsync(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
-    }
-
-    /**
-     * DEPRECATED: Use {@link #findAllSorted(String[], Sort[])}  instead.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-                                   String fieldName2, Sort sortOrder2,
-                                   String fieldName3, Sort sortOrder3) {
-        return findAllSorted(new String[]{fieldName1, fieldName2, fieldName3},
-                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
-    }
-
-    /**
-     * DEPRECATED: Use {@link #findAllSortedAsync(String[], Sort[])}  instead.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-                                              String fieldName2, Sort sortOrder2,
-                                              String fieldName3, Sort sortOrder3) {
-        return findAllSortedAsync(new String[]{fieldName1, fieldName2, fieldName3},
-                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     /**
@@ -1920,7 +1903,7 @@ public final class RealmQuery<E extends RealmModel> {
         proxy.realmGet$proxyState().setRealm$realm(realm);
         proxy.realmGet$proxyState().setRow$realm(Row.EMPTY_ROW);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {

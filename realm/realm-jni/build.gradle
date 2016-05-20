@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.100.0'
+ext.coreVersion = '1.0.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'f3bb8564a8bab7eca8dc85f1c508a35e125b93a104f964105558739bd1032d98'
+ext.coreSha256Hash = '5160c1228b56b06805dc4b5e639b721eab364ee4f8c363b70f2e5de029b5fe52'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -327,7 +327,7 @@ targets.each { target ->
         // Store the unstripped version
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}.so"
-            into "${projectDir}/../build/output/jniLibs-unstripped/${target.abi}"
+            into "${buildDir}/outputs/jniLibs-unstripped/${target.abi}"
             rename "librealm-jni-${target.name}${getDebugExt()}.so", 'librealm-jni.so'
         }
     }
@@ -347,7 +347,6 @@ task clean(type: Delete) {
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
-    delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
 
     doLast {

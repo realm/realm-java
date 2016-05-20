@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
@@ -64,24 +61,24 @@ public class RealmJsonNullPrimaryKeyTests {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-             {"{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj", PrimaryKeyAsBoxedByte.class}
-            ,{"{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj",  PrimaryKeyAsBoxedShort.class}
-            ,{"{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj", PrimaryKeyAsBoxedInteger.class}
-            ,{"{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj", PrimaryKeyAsBoxedLong.class}
-            ,{"{ \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj", PrimaryKeyAsBoxedByte.class}
-            ,{"{ \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj",  PrimaryKeyAsBoxedShort.class}
-            ,{"{ \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj", PrimaryKeyAsBoxedInteger.class}
-            ,{"{ \"name\":\"nullPrimaryKeyObj\" }", "nullPrimaryKeyObj", PrimaryKeyAsBoxedLong.class}
-            ,{"{ \"name\":null, \"id\":4299214 }", "4299214", PrimaryKeyAsString.class}
-            ,{"{ \"id\":4299214 }", "4299214", PrimaryKeyAsString.class}
+            {PrimaryKeyAsBoxedByte.class,    "OhThisIsNullKey?!", "{ \"id\":null, \"name\":\"OhThisIsNullKey?!\" }"},
+            {PrimaryKeyAsBoxedShort.class,   "YouBetItIsNullKey", "{ \"id\":null, \"name\":\"YouBetItIsNullKey\" }"},
+            {PrimaryKeyAsBoxedInteger.class, "Gosh Didnt KnowIt", "{ \"id\":null, \"name\":\"Gosh Didnt KnowIt\" }"},
+            {PrimaryKeyAsBoxedLong.class,    "?YOUNOWKNOWRIGHT?", "{ \"id\":null, \"name\":\"?YOUNOWKNOWRIGHT?\" }"},
+            {PrimaryKeyAsBoxedByte.class,    "HaHaHaHaHaHaHaHaH", "{ \"name\":\"HaHaHaHaHaHaHaHaH\" }"},
+            {PrimaryKeyAsBoxedShort.class,   "KeyValueTestIsFun", "{ \"name\":\"KeyValueTestIsFun\" }"},
+            {PrimaryKeyAsBoxedInteger.class, "FunValueTestIsKey", "{ \"name\":\"FunValueTestIsKey\" }"},
+            {PrimaryKeyAsBoxedLong.class,    "NameAsBoxedLong-!", "{ \"name\":\"NameAsBoxedLong-!\" }"},
+            {PrimaryKeyAsString.class,       "4299121",           "{ \"name\":null, \"id\":4299121  }"},
+            {PrimaryKeyAsString.class,       "2429214",           "{ \"id\":2429214 }"}
         });
     }
 
-    final private String jsonString;
-    final private String secondaryFieldValue;
     final private Class<? extends RealmObject> clazz;
+    final private String secondaryFieldValue;
+    final private String jsonString;
 
-    public RealmJsonNullPrimaryKeyTests(String jsonString, String secondFieldValue, Class<? extends RealmObject> clazz) {
+    public RealmJsonNullPrimaryKeyTests(Class<? extends RealmObject> clazz, String secondFieldValue, String jsonString) {
         this.jsonString = jsonString;
         this.secondaryFieldValue = secondFieldValue;
         this.clazz = clazz;
@@ -96,14 +93,14 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+            RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
         // PrimaryKeyAsNumber
         } else {
-            RealmResults results = realm.allObjects(clazz);
+            RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
             assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
@@ -119,14 +116,14 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+            RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
         // PrimaryKeyAsNumber
         } else {
-            RealmResults results = realm.allObjects(clazz);
+            RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
             assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
@@ -143,14 +140,14 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+            RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
         // PrimaryKeyAsNumber
         } else {
-            RealmResults results = realm.allObjects(clazz);
+            RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
             assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());

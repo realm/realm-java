@@ -40,6 +40,7 @@ public class PrimaryKeyRequiredAsString extends RealmObject implements NullPrima
         return id;
     }
 
+    @Override
     public void setId(String id) {
         this.id = id;
     }
@@ -49,6 +50,7 @@ public class PrimaryKeyRequiredAsString extends RealmObject implements NullPrima
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

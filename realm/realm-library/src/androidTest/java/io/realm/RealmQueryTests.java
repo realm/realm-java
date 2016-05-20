@@ -639,7 +639,7 @@ public class RealmQueryTests {
         RealmResults<StringOnly> stringOnlies1 = realm.where(StringOnly.class).contains("chars", "მთავარი").findAll();
         assertEquals(1, stringOnlies1.size());
 
-        RealmResults<StringOnly> stringOnlies2 = realm.allObjects(StringOnly.class);
+        RealmResults<StringOnly> stringOnlies2 = realm.where(StringOnly.class).findAll();
         stringOnlies2 = stringOnlies2.sort("chars");
         for (int i = 0; i < stringOnlies2.size(); i++) {
             assertEquals(sorted[i], stringOnlies2.get(i).getChars());
@@ -1722,7 +1722,7 @@ public class RealmQueryTests {
                         public void run() {
                             RealmConfiguration realmConfig = configFactory.createConfiguration();
                             Realm realm = Realm.getInstance(realmConfig);
-                            RealmResults<StringOnly> realmResults = realm.allObjects(StringOnly.class);
+                            RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).findAll();
                             int n = 0;
                             for (StringOnly ignored : realmResults) {
                                 n = n + 1;
@@ -2345,7 +2345,7 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void distinctAsync_withNullValues () throws Throwable {
+    public void distinctAsync_withNullValues() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
@@ -2359,7 +2359,7 @@ public class RealmQueryTests {
 
                 Realm asyncRealm = null;
                 try {
-                    Realm.asyncQueryExecutor.pause();
+                    Realm.asyncTaskExecutor.pause();
                     asyncRealm = openRealmInstance("testDistinctAsyncQueryWithNull");
                     final long numberOfBlocks = 25;
                     final long numberOfObjects = 10; // must be greater than 1
@@ -2376,7 +2376,7 @@ public class RealmQueryTests {
                     assertTrue(distinctString.isValid());
                     assertTrue(distinctString.isEmpty());
 
-                    Realm.asyncQueryExecutor.resume();
+                    Realm.asyncTaskExecutor.resume();
 
                     distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
                         @Override

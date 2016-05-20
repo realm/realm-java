@@ -40,6 +40,7 @@ public class PrimaryKeyRequiredAsBoxedShort extends RealmObject implements NullP
         return id;
     }
 
+    @Override
     public void setId(Short id) {
         this.id = id;
     }
@@ -49,6 +50,7 @@ public class PrimaryKeyRequiredAsBoxedShort extends RealmObject implements NullP
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
