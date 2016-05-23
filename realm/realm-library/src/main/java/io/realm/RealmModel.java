@@ -21,7 +21,7 @@ import io.realm.annotations.RealmClass;
 
 /**
  * Interface for marking classes as RealmObjects, it can be used instead of extending {@link RealmObject}.
- *
+ * <p>
  * All helper methods available to classes that extend RealmObject are instead available as static methods:
  *
  * <pre>
