@@ -45,7 +45,7 @@ dependencies {
     compile localGroovy()
     compile gradleApi()
     compile "io.realm:realm-annotations:${version}"
-    provided 'com.android.tools.build:gradle:1.5.0'
+    provided 'com.android.tools.build:gradle:2.1.0'
     compile 'org.javassist:javassist:3.20.0-GA'
 
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
