@@ -25,7 +25,7 @@ import io.realm.internal.Row;
 import rx.Observable;
 
 /**
- * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
+ * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then
  * create your objects within a Realm, and use your custom subclasses instead of using the RealmObject class directly.
  * <p>
  * An annotation processor will create a proxy class for your RealmObject subclass.
@@ -49,7 +49,8 @@ import rx.Observable;
  * within a Realm.
  * <p>
  * The only restriction a RealmObject has is that fields are not allowed to be final, transient' or volatile.
- * Any method as well as public fields are allowed.
+ * Any method as well as public fields are allowed. When providing custom constructors, a public constructor with
+ * no arguments must be declared and be empty.
  * <p>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and don't require either a
  * getter or setter.
@@ -78,7 +79,7 @@ public abstract class RealmObject implements RealmModel {
     public final void deleteFromRealm() {
         deleteFromRealm(this);
     }
-    
+
     /**
      * Deletes the object from the Realm it is currently associated with.
      * <p>
