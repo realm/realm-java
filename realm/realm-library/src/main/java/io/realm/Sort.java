@@ -19,7 +19,6 @@ package io.realm;
 /**
  * This class describes the sorting order used in Realm queries.
  *
- * @see io.realm.Realm#allObjectsSorted(Class, String, Sort)
  * @see io.realm.RealmQuery#findAllSorted(String, Sort)
  */
 public enum Sort {

@@ -40,6 +40,7 @@ public class PrimaryKeyRequiredAsBoxedInteger extends RealmObject implements Nul
         return id;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -49,6 +50,7 @@ public class PrimaryKeyRequiredAsBoxedInteger extends RealmObject implements Nul
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

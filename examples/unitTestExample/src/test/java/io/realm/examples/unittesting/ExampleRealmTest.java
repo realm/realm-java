@@ -38,6 +38,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -91,7 +92,9 @@ public class ExampleRealmTest {
      * This test verifies the behavior in the {@link DogRepositoryImpl} class.
      */
     @Test
-    public void shouldVerifyTransactionWasCreated() {
+    public void shouldVerifyThatDogWasCreated() {
+
+        doCallRealMethod().when(mockRealm).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         Dog dog = mock(Dog.class);
         when(mockRealm.createObject(Dog.class)).thenReturn(dog);
@@ -99,8 +102,12 @@ public class ExampleRealmTest {
         DogRepository dogRepo = new DogRepositoryImpl();
         dogRepo.createDog("Spot");
 
-        // Verify that the begin transaction was called only once
-        verify(mockRealm, times(1)).beginTransaction();
+        // Attempting to verify that a method was called (executeTransaction) on a partial
+        // mock will return unexpected resultes due to the partial mock. For example,
+        // verifying that `executeTransaction` was called only once will fail as Powermock
+        // actually calls the method 3 times for some reason. I cannot determine why at this
+        // point.
+
 
         // Verify that Realm#createObject was called only once
         verify(mockRealm, times(1)).createObject(Dog.class); // Verify that a Dog was in fact created.
@@ -108,8 +115,22 @@ public class ExampleRealmTest {
         // Verify that Dog#setName() is called only once
         verify(dog, times(1)).setName(Mockito.anyString()); // Any string will do
 
-        // Verify that the transaction was committed only once
-        verify(mockRealm, times(1)).commitTransaction();
+        // Verify that the Realm was closed only once.
+        verify(mockRealm, times(1)).close();
+    }
+
+    /**
+     * Have to verify the {@link Realm#executeTransaction(Realm.Transaction)} call in a different
+     * test because of a problem with Powermock: https://github.com/jayway/powermock/issues/649
+     */
+    @Test
+    public void shouldVerifyThatTransactionWasExecuted() {
+
+        DogRepository dogRepo = new DogRepositoryImpl();
+        dogRepo.createDog("Spot");
+
+        // Verify that the begin transaction was called only once
+        verify(mockRealm, times(1)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Verify that the Realm was closed only once.
         verify(mockRealm, times(1)).close();

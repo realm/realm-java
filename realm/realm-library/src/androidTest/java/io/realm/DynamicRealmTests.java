@@ -556,7 +556,7 @@ public class DynamicRealmTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.CLASS_NAME);
         DynamicRealmObject cat = realm.createObject(Cat.CLASS_NAME);
-        DynamicRealmObject owner =  realm.createObject(Owner.CLASS_NAME);
+        DynamicRealmObject owner = realm.createObject(Owner.CLASS_NAME);
         owner.setObject("cat", cat);
         realm.getSchema().create("TestRemoveAll").addField("Field1", String.class);
         realm.createObject("TestRemoveAll");
@@ -590,5 +590,75 @@ public class DynamicRealmTests {
 
         assertEquals(0, list.size());
         assertEquals(0, realm.where(Dog.CLASS_NAME).count());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
+        final DynamicRealm dynamicRealm = initializeDynamicRealm();
+
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.addChangeListener(null);
+            fail("adding null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            dynamicRealm.close();
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    public void addChangeListener_throwOnAddingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    dynamicRealm.addChangeListener(null);
+                    fail("adding null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    dynamicRealm.close();
+                }
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
+        final DynamicRealm dynamicRealm = initializeDynamicRealm();
+
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.removeChangeListener(null);
+            fail("removing null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            dynamicRealm.close();
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    public void removeChangeListener_throwOnRemovingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    dynamicRealm.removeChangeListener(null);
+                    fail("removing null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    dynamicRealm.close();
+                }
+            }
+        });
     }
 }

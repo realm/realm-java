@@ -99,7 +99,7 @@ public abstract class RealmProxyMediator {
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
-     * @param cache the cache for mapping between standalone objects and their {@link RealmObjectProxy} representation.
+     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
      * @return the managed Realm object.
      */
     public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
@@ -129,13 +129,13 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
 
     /**
-     * Creates a deep standalone copy of a RealmObject. This is a deep copy so all links will be copied as well.
+     * Creates a deep unmanaged copy of a RealmObject. This is a deep copy so all links will be copied as well.
      * The depth can be restricted to a maximum depth after which all links will be turned into null values instead.
      *
      * @param realmObject RealmObject to copy. It must be a valid object.
      * @param maxDepth restrict the depth of the copy to this level. The root object is depth {@code 0}.
-     * @param cache cache used to make sure standalone objects are reused correctly.
-     * @return a standalone copy of the given object.
+     * @param cache cache used to make sure unmanaged objects are reused correctly.
+     * @return an unmanaged copy of the given object.
      */
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 

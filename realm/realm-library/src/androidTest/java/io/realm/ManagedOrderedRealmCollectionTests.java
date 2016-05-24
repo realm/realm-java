@@ -159,7 +159,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.where(AllJavaTypes.class).findAll();
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -181,7 +181,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         throw new AssertionError("Unknown collection: " + collectionClass);
     }
 
-   @Test
+    @Test
     public void sort_twoFields() {
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
         AllJavaTypes obj = sortedList.first();
@@ -296,7 +296,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
-                RealmResults<NullTypes> objects = realm.allObjects(NullTypes.class);
+                RealmResults<NullTypes> objects = realm.where(NullTypes.class).findAll();
                 NullTypes parent = realm.createObject(NullTypes.class, 0);
                 for (int i = 0; i < objects.size(); i++) {
                     NullTypes object = objects.get(i);
@@ -310,8 +310,8 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                 break;
 
             case REALMRESULTS:
-                original = realm.allObjects(NullTypes.class);
-                copy = realm.allObjects(NullTypes.class);
+                original = realm.where(NullTypes.class).findAll();
+                copy = realm.where(NullTypes.class).findAll();
                 break;
 
             default:
@@ -594,7 +594,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     dog.setName("Dog " + i);
                 }
                 realm.commitTransaction();
-                return realm.allObjects(Dog.class);
+                return realm.where(Dog.class).findAll();
 
             default:
                 throw new AssertionError("Unknown collection class: " + collectionClass);
@@ -674,11 +674,11 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     @Test
     public void methodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (OrderedRealmCollectionMethod method : OrderedRealmCollectionMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
 
         for (ListMethod method : ListMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
     }
 

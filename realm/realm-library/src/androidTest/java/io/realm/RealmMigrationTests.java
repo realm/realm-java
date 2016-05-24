@@ -226,6 +226,41 @@ public class RealmMigrationTests {
         }
     }
 
+    @Test
+    public void settingPrimaryKeyWithObjectSchema() {
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(AllTypes.class)
+                .build();
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("AnnotationTypes")
+                        .addField("id", long.class)
+                        .addPrimaryKey("id")    // use addPrimaryKey() instead of adding FieldAttribute.PrimaryKey
+                        .addField("indexString", String.class)
+                        .addIndex("indexString") // use addIndex() instead of FieldAttribute.Index
+                        .addField("notIndexString", String.class);
+            }
+        };
+
+        // Create v1 of the Realm
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(AllTypes.class, AnnotationTypes.class)
+                .migration(migration)
+                .build();
+
+        realm = Realm.getInstance(realmConfig);
+        RealmObjectSchema schema = realm.getSchema().get("AnnotationTypes");
+        assertTrue(schema.hasPrimaryKey());
+        assertTrue(schema.hasIndex("id"));
+        realm.close();
+    }
+
     // adding search index is idempotent
     @Test
     public void addingSearchIndexTwice() throws IOException {

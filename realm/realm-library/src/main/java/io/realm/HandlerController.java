@@ -51,6 +51,7 @@ final class HandlerController implements Handler.Callback {
     static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
     static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
     static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
     // Keep a strong reference to the registered RealmChangeListener
     // user should unregister those listeners
@@ -532,7 +533,7 @@ final class HandlerController implements Handler.Callback {
                     if (rowPointer != 0 && emptyAsyncRealmObject.containsKey(realmObjectWeakReference)) {
                         // cleanup a previously empty async RealmObject
                         emptyAsyncRealmObject.remove(realmObjectWeakReference);
-                        realmObjects.put(realmObjectWeakReference, Boolean.TRUE);
+                        realmObjects.put(realmObjectWeakReference, NO_REALM_QUERY);
                     }
                     proxy.realmGet$proxyState().onCompleted$realm(rowPointer);
                     proxy.realmGet$proxyState().notifyChangeListeners$realm();
@@ -550,7 +551,7 @@ final class HandlerController implements Handler.Callback {
                                 + " RealmObject is not loaded yet. Rerun the query.");
                         Object value = realmObjects.get(realmObjectWeakReference);
                         RealmQuery<? extends RealmModel> realmQuery;
-                        if (value == null || value == Boolean.TRUE) { // this is a retry of an empty RealmObject
+                        if (value == null || value == NO_REALM_QUERY) { // this is a retry of an empty RealmObject
                             realmQuery = emptyAsyncRealmObject.get(realmObjectWeakReference);
 
                         } else {
@@ -656,7 +657,7 @@ final class HandlerController implements Handler.Callback {
         }
         final WeakReference<RealmObjectProxy> realmObjectWeakReference =
                 new WeakReference<RealmObjectProxy>(realmObject, referenceQueueRealmObject);
-        realmObjects.put(realmObjectWeakReference, Boolean.TRUE);
+        realmObjects.put(realmObjectWeakReference, NO_REALM_QUERY);
     }
 
     <E extends RealmObjectProxy> WeakReference<RealmObjectProxy> addToAsyncRealmObject(E realmObject, RealmQuery<? extends RealmModel> realmQuery) {

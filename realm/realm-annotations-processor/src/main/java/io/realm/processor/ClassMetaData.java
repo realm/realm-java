@@ -31,8 +31,10 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import io.realm.annotations.Ignore;
@@ -59,11 +61,13 @@ public class ClassMetaData {
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
+    private final Elements elements;
 
     public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
+        elements = env.getElementUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
@@ -112,6 +116,7 @@ public class ClassMetaData {
 
         if (!categorizeClassElements()) return false;
         if (!checkListTypes()) return  false;
+        if (!checkReferenceTypes()) return  false;
         if (!checkDefaultConstructor()) return false;
         if (!checkForFinalFields()) return false;
         if (!checkForTransientFields()) return false;
@@ -156,14 +161,45 @@ public class ClassMetaData {
     private boolean checkListTypes() {
         for (VariableElement field : fields) {
             if (Utils.isRealmList(field)) {
+                // Check for missing generic (default back to Object)
                 if (Utils.getGenericType(field) == null) {
                     Utils.error("No generic type supplied for field", field);
                     return false;
                 }
+
+                // Check that the referenced type is a concrete class and not an interface
+                TypeMirror fieldType = field.asType();
+                List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
+                String genericCanonicalType = typeArguments.get(0).toString();
+                TypeElement typeElement = elements.getTypeElement(genericCanonicalType);
+                if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
+                    Utils.error("Only concrete Realm classes are allowed in RealmLists. Neither " +
+                            "interfaces nor abstract classes can be used.", field);
+                    return false;
+                }
             }
         }
+
         return true;
     }
+
+    private boolean checkReferenceTypes() {
+        for (VariableElement field : fields) {
+            if (Utils.isRealmModel(field)) {
+                // Check that the referenced type is a concrete class and not an interface
+                TypeElement typeElement = elements.getTypeElement(field.asType().toString());
+                if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
+                    Utils.error("Only concrete Realm classes can be referenced in model classes. " +
+                            "Neither interfaces nor abstract classes can be used.", field);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
 
     // Report if the default constructor is missing
     private boolean checkDefaultConstructor() {
