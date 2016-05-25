@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 0.92.0-SNAPSHOT
+=======
+0.91.2-SNAPSHOT
+>>>>>>> origin/releases
