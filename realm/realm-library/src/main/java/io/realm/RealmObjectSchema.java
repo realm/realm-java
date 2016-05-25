@@ -88,8 +88,10 @@ public final class RealmObjectSchema {
     /**
      * Returns the name of the RealmObject class being represented by this schema.
      * <p>
-     * When using a normal {@link Realm} this name is the same as the {@link RealmObject} class.
-     * When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.
+     * <ul>
+     * <li>When using a normal {@link Realm} this name is the same as the {@link RealmObject} class.</li>
+     * <li>When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.</li>
+     * </ul>
      *
      * @return the name of the RealmObject class represented by this schema.
      */
@@ -115,7 +117,7 @@ public final class RealmObjectSchema {
 
     /**
      * Adds a new simple field to the RealmObject class. The type must be one supported by Realm. See {@link RealmObject}
-     * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.
+     * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.,
      * {@code Integer.class} instead of {@code int.class}.
      * <p>
      * To add fields that reference other RealmObjects or RealmLists use {@link #addRealmObjectField(String, RealmObjectSchema)}
@@ -334,8 +336,8 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a field to be required, i.e. not allowed to hold {@code null values}. This is equivalent to switching
-     * between boxed types and their primitive variant e.g. {@code Integer} to {@code int}.
+     * Sets a field to be required i.e., it is not allowed to hold {@code null} values. This is equivalent to switching
+     * between boxed types and their primitive variant e.g., {@code Integer} to {@code int}.
      *
      * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
@@ -371,8 +373,8 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a field to be nullable, i.e. it should be able to hold {@code null values}. This is equivalent to switching
-     * between primitive types and their boxed variant e.g. {@code int} to {@code Integer}.
+     * Sets a field to be nullable i.e., it should be able to hold {@code null} values. This is equivalent to switching
+     * between primitive types and their boxed variant e.g., {@code int} to {@code Integer}.
      *
      * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
@@ -385,7 +387,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Checks if a given field is required, i.e. is not allowed to contain {@code null} values.
+     * Checks if a given field is required i.e., it is not allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
      * @return {@code true} if it is required, {@code false} otherwise.
@@ -398,7 +400,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Checks if a given field is nullable, i.e. is allowed to contain {@code null} values.
+     * Checks if a given field is nullable i.e., it is allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
      * @return {@code true} if it is required, {@code false} otherwise.
@@ -562,10 +564,10 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the column indices for the given field name. If a linked field is defined, the column index for
-     * each field is returned
+     * each field is returned.
      *
      * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes Legal field type for the last field in a linked field
+     * @param validColumnTypes valid field type for the last field in a linked field
      * @return list of column indices.
      */
     // TODO: consider another caching strategy so linked classes are included in the cache.

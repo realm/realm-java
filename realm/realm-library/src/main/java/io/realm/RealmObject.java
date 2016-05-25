@@ -25,7 +25,7 @@ import io.realm.internal.Row;
 import rx.Observable;
 
 /**
- * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
+ * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then
  * create your objects within a Realm, and use your custom subclasses instead of using the RealmObject class directly.
  * <p>
  * An annotation processor will create a proxy class for your RealmObject subclass.
@@ -49,7 +49,8 @@ import rx.Observable;
  * within a Realm.
  * <p>
  * The only restriction a RealmObject has is that fields are not allowed to be final, transient' or volatile.
- * Any method as well as public fields are allowed.
+ * Any method as well as public fields are allowed. When providing custom constructors, a public constructor with
+ * no arguments must be declared and be empty.
  * <p>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and don't require either a
  * getter or setter.
@@ -78,7 +79,7 @@ public abstract class RealmObject implements RealmModel {
     public final void deleteFromRealm() {
         deleteFromRealm(this);
     }
-    
+
     /**
      * Deletes the object from the Realm it is currently associated with.
      * <p>
@@ -110,10 +111,10 @@ public abstract class RealmObject implements RealmModel {
 
 
     /**
-     * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
-     * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
-     *
-     * <p>Note that this can be used to check the validity of certain conditions such as being null
+     * Checks if the RealmObject is still valid to use i.e., the RealmObject hasn't been deleted nor has the
+     * {@link io.realm.Realm} been closed. It will always return {@code false} for unmanaged objects.
+     * <p>
+     * Note that this can be used to check the validity of certain conditions such as being {@code null}
      * when observed.
      * <pre>
      * {@code
@@ -131,8 +132,8 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
-     * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
+     * Checks if the RealmObject is still valid to use i.e., the RealmObject hasn't been deleted nor has the
+     * {@link io.realm.Realm} been closed. It will always return {@code false} for unmanaged objects.
      *
      * @param object RealmObject to check validity for.
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is an unmanaged object.
@@ -180,6 +181,7 @@ public abstract class RealmObject implements RealmModel {
 
     /**
      * Makes an asynchronous query blocking. This will also trigger any registered listeners.
+     * <p>
      * Note: This will return {@code true} if called for an unmanaged object (created outside of Realm).
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
@@ -190,6 +192,7 @@ public abstract class RealmObject implements RealmModel {
 
     /**
      * Makes an asynchronous query blocking. This will also trigger any registered listeners.
+     * <p>
      * Note: This will return {@code true} if called for an unmanaged object (created outside of Realm).
      *
      * @param object RealmObject to force load.
@@ -322,10 +325,10 @@ public abstract class RealmObject implements RealmModel {
      * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
-     *
-     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * <p>
+     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
-     *
+     * <p>
      * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      *
@@ -338,7 +341,8 @@ public abstract class RealmObject implements RealmModel {
      * }
      * </pre>
      *
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * <p>
+     * Note that when the {@link Realm} is accessed from threads other than where it was created,
      * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
      * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
      * instead.
@@ -357,10 +361,10 @@ public abstract class RealmObject implements RealmModel {
      * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to. Object updates will continuously be emitted as the RealmObject is updated -
      * {@code onComplete} will never be called.
-     *
-     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * <p>
+     * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
-     *
+     * <p>
      * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
      * emit only the first item by using the {@code first()} operator:
      *
