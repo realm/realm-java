@@ -1,3 +1,11 @@
+## 0.91.1
+
+* Updated Realm Core.
+
+### Bug fixes
+
+* Fixed a bug when opening a Realm cause a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported". 
+
 ## 0.91.0
 
 * Updated Realm Core to 0.100.4.
