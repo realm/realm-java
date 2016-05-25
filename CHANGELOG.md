@@ -1,6 +1,10 @@
+# 1.0.0
+
+No changes since 0.91.1.
+
 ## 0.91.1
 
-* Updated Realm Core.
+* Updated Realm Core to 1.0.1.
 
 ### Bug fixes
 
@@ -8,7 +12,7 @@
 
 ## 0.91.0
 
-* Updated Realm Core to 0.100.4.
+* Updated Realm Core to 1.0.0.
 
 ### Breaking changes
 
