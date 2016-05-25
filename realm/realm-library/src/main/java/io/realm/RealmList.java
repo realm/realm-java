@@ -446,10 +446,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     }
 
     /**
-     * Finds the first object.
-     *
-     * @return the first object or {@code null} if the list is empty.
-     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
+     * {@inheritDoc}
      */
     public E first() {
         if (managedMode) {
@@ -464,10 +461,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     }
 
     /**
-     * Finds the last object.
-     *
-     * @return the last object or {@code null} if the list is empty.
-     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
+     * {@inheritDoc}
      */
     public E last() {
         if (managedMode) {
