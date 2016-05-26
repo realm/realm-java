@@ -1380,7 +1380,26 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, INFINITE);
+        long columnCount = getColumnCount();
+        StringBuilder stringBuilder = new StringBuilder("Table ");
+        stringBuilder.append(getName());
+        stringBuilder.append(" contains ");
+        stringBuilder.append(columnCount);
+        stringBuilder.append(" columns: ");
+
+        for (int i = 0; i < columnCount; i++) {
+            if (i != 0) {
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append(getColumnName(i));
+        }
+        stringBuilder.append(".");
+
+        stringBuilder.append(" And ");
+        stringBuilder.append(size());
+        stringBuilder.append(" rows.");
+
+        return stringBuilder.toString();
     }
 
     @Override
