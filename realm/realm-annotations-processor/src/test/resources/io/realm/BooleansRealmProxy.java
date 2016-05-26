@@ -294,24 +294,24 @@ public class BooleansRealmProxy extends Booleans
             return null;
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
-        Booleans standaloneObject;
+        Booleans unmanagedObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
                 return (Booleans)cachedObject.object;
             } else {
-                standaloneObject = (Booleans)cachedObject.object;
+                unmanagedObject = (Booleans)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {
-            standaloneObject = new Booleans();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, standaloneObject));
+            unmanagedObject = new Booleans();
+            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
         }
-        ((BooleansRealmProxyInterface) standaloneObject).realmSet$done(((BooleansRealmProxyInterface) realmObject).realmGet$done());
-        ((BooleansRealmProxyInterface) standaloneObject).realmSet$isReady(((BooleansRealmProxyInterface) realmObject).realmGet$isReady());
-        ((BooleansRealmProxyInterface) standaloneObject).realmSet$mCompleted(((BooleansRealmProxyInterface) realmObject).realmGet$mCompleted());
-        ((BooleansRealmProxyInterface) standaloneObject).realmSet$anotherBoolean(((BooleansRealmProxyInterface) realmObject).realmGet$anotherBoolean());
-        return standaloneObject;
+        ((BooleansRealmProxyInterface) unmanagedObject).realmSet$done(((BooleansRealmProxyInterface) realmObject).realmGet$done());
+        ((BooleansRealmProxyInterface) unmanagedObject).realmSet$isReady(((BooleansRealmProxyInterface) realmObject).realmGet$isReady());
+        ((BooleansRealmProxyInterface) unmanagedObject).realmSet$mCompleted(((BooleansRealmProxyInterface) realmObject).realmGet$mCompleted());
+        ((BooleansRealmProxyInterface) unmanagedObject).realmSet$anotherBoolean(((BooleansRealmProxyInterface) realmObject).realmGet$anotherBoolean());
+        return unmanagedObject;
     }
 
     @Override

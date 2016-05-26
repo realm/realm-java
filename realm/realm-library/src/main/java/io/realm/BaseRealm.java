@@ -19,6 +19,8 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.getkeepsafe.relinker.BuildConfig;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -59,7 +61,7 @@ abstract class BaseRealm implements Closeable {
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
     // Thread pool for all async operations (Query & transaction)
-    static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
+    static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
     protected RealmConfiguration configuration;
@@ -78,15 +80,21 @@ abstract class BaseRealm implements Closeable {
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         this.handlerController = new HandlerController(this);
-        setAutoRefresh(autoRefresh);
+        if (Looper.myLooper() == null) {
+            if (autoRefresh) {
+                throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
+            }
+        } else {
+            setAutoRefresh(autoRefresh);
+        }
     }
 
     /**
      * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
-     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in
-     * another thread. This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled
+     * (RealmResults and RealmObject instances) when a commit is performed on a Realm acting on the same file in
+     * another thread. This feature is only available if the Realm instance lives on a {@link android.os.Looper} enabled
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
@@ -94,7 +102,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        if (autoRefresh && Looper.myLooper() == null) {
+        if (Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
 
@@ -127,6 +135,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
@@ -138,10 +149,14 @@ abstract class BaseRealm implements Closeable {
      * Removes the specified change listener.
      *
      * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
@@ -153,8 +168,8 @@ abstract class BaseRealm implements Closeable {
      * Returns an RxJava Observable that monitors changes to this Realm. It will emit the current state
      * when subscribed to. Items will continually be emitted as the Realm is updated -
      * {@code onComplete} will never be called.
-     *
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * <p>
+     * If you would like the {@code asObservable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      *
      * <pre>
@@ -241,30 +256,6 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
-     * It also calls the listeners associated to the Realm instance.
-     *
-     * @throws IllegalStateException if attempting to refresh from within a transaction.
-     * @deprecated Please use {@link #waitForChange()} instead.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public void refresh() {
-        checkIfValid();
-        if (isInTransaction()) {
-            throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
-        }
-        if (!handlerController.isAutoRefreshEnabled()) {
-            // non Looper Thread, just advance the Realm
-            // registering listeners is not allowed, hence nothing to notify
-            sharedGroupManager.advanceRead();
-            handlerController.refreshSynchronousTableViews();
-        } else {
-            handlerController.notifyCurrentThreadRealmChanged();
-        }
-    }
-
-    /**
      * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange()}
      * is called from another thread. Once stopWaitForChange is called, all future calls to this method will
      * return false immediately.
@@ -313,13 +304,13 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or aborted by
+     * Starts a transaction which must be closed by {@link io.realm.Realm#commitTransaction()} or aborted by
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
-     * <br>
-     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm in the case of
+     * <p>
+     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the Realm in the case of
      * pending updates from other threads.
-     * <br>
+     * <p>
      * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
      * thrown.
      */
@@ -331,7 +322,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the Realm reverts back to
      * being read-only. An event is sent to notify all other Realm instances that a change has occurred. When the event
-     * is received, the other Realms will get their objects and {@link io.realm.RealmResults} updated to reflect the
+     * is received, the other Realms will update their objects and {@link io.realm.RealmResults} to reflect the
      * changes from this commit.
      */
     public void commitTransaction() {
@@ -382,9 +373,9 @@ abstract class BaseRealm implements Closeable {
     /**
      * Reverts all writes (created, updated, or deleted objects) made in the current write transaction and end the
      * transaction.
-     * <br>
+     * <p>
      * The Realm reverts back to read-only.
-     * <br>
+     * <p>
      * Calling this when not in a transaction will throw an exception.
      */
     public void cancelTransaction() {
@@ -604,6 +595,7 @@ abstract class BaseRealm implements Closeable {
         List<File> filesToDelete = Arrays.asList(
                 new File(rootFolder, realmFileName),
                 new File(rootFolder, realmFileName + ".lock"),
+                // Old core log file naming styles
                 new File(rootFolder, realmFileName + ".log_a"),
                 new File(rootFolder, realmFileName + ".log_b"),
                 new File(rootFolder, realmFileName + ".log"),
@@ -639,9 +631,19 @@ abstract class BaseRealm implements Closeable {
                 File realmFolder = configuration.getRealmFolder();
                 String realmFileName = configuration.getRealmFileName();
                 File managementFolder = new File(realmFolder, realmFileName + management);
-                realmDeleted.set(deletes(realmFolder.getPath()+ "/" + realmFileName + management, managementFolder, realmFileName));
-                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
 
+                // delete files in management folder and the folder
+                // there is no subfolders in the management folder
+                File[] files = managementFolder.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        realmDeleted.set(realmDeleted.get() && file.delete());
+                    }
+                }
+                realmDeleted.set(realmDeleted.get() && managementFolder.delete());
+
+                // delete specific files in root folder
+                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
             }
         });
 
@@ -650,6 +652,10 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Compacts the Realm file defined by the given configuration.
+     *
+     * @param configuration configuration for the Realm to compact.
+     * @throw IllegalArgumentException if Realm is encrypted.
+     * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
         if (configuration.getEncryptionKey() != null) {
@@ -662,8 +668,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration configuration for the Realm that should be migrated
-     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param configuration configuration for the Realm that should be migrated.
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */

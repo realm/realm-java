@@ -40,6 +40,7 @@ public class PrimaryKeyRequiredAsBoxedByte extends RealmObject implements NullPr
         return id;
     }
 
+    @Override
     public void setId(Byte id) {
         this.id = id;
     }
@@ -49,6 +50,7 @@ public class PrimaryKeyRequiredAsBoxedByte extends RealmObject implements NullPr
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

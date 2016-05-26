@@ -48,7 +48,7 @@ class Realm implements Plugin<Project> {
             project.plugins.apply(AndroidAptPlugin)
         }
 
-        project.android.registerTransform(new RealmTransformer())
+        project.android.registerTransform(new RealmTransformer(project))
         if (!isAndroidLib) {
             project.android.registerTransform(new RealmOptionalAPITransformer())
         }

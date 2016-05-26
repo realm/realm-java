@@ -19,7 +19,6 @@ package io.realm;
 /**
  * This class describes the sorting order used in Realm queries.
  *
- * @see io.realm.Realm#allObjectsSorted(Class, String, Sort)
  * @see io.realm.RealmQuery#findAllSorted(String, Sort)
  */
 public enum Sort {
@@ -34,7 +33,7 @@ public enum Sort {
 
     /**
      * Returns the value for this setting that is used by the underlying query engine.
-     * @return The value used by the underlying query engine to indicate this value.
+     * @return the value used by the underlying query engine to indicate this value.
      */
     public boolean getValue() {
         return value;

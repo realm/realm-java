@@ -47,7 +47,7 @@ dependencies {
     compile localGroovy()
     compile "io.realm:realm-transformer:${version}"
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-    provided 'com.android.tools.build:gradle:1.5.0'
+    provided 'com.android.tools.build:gradle:2.1.0'
 
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'

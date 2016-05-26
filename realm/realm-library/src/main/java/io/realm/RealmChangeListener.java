@@ -22,11 +22,8 @@ package io.realm;
  * <p>
  * When registered against a {@code Realm} you'll get notified when a Realm instance has been updated.
  * Register against a {@code RealmResults} or {@code RealmObject} to only get notified about changes to them.
- *
  * <p>
- * Realm instances on a thread without an {@link android.os.Looper} (almost all background threads) don't get updated
- * automatically, but have to call {@link Realm#refresh()} manually. This will in turn trigger the RealmChangeListener
- * for that background thread.
+ * Realm instances on a thread without an {@link android.os.Looper} cannot register a RealmChangeListener.
  * <p>
  * All {@link io.realm.RealmObject} and {@link io.realm.RealmResults} will automatically contain their new values when
  * the {@link #onChange(Object)} method is called. Normally this means that it isn't necessary to query again for those

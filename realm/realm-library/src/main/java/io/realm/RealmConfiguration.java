@@ -17,8 +17,12 @@
 package io.realm;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -38,21 +42,23 @@ import io.realm.rx.RxObservableFactory;
 
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
- *
+ * <p>
  * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
  * its {@link io.realm.RealmConfiguration.Builder#build()} method.
- *
+ * <p>
  * A commonly used RealmConfiguration can easily be accessed by first saving it as
  * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
- *
+ * <p>
  * A minimal configuration can be created using:
- *
+ * <p>
  * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
- *
+ * <p>
  * This will create a RealmConfiguration with the following properties.
- * - Realm file is called "default.realm"
- * - It is saved in Context.getFilesDir()
- * - It has its schema version set to 0.
+ * <ul>
+ * <li>Realm file is called "default.realm"</li>
+ * <li>It is saved in Context.getFilesDir()</li>
+ * <li>It has its schema version set to 0.</li>
+ * </ul>
  */
 public final class RealmConfiguration {
 
@@ -81,6 +87,7 @@ public final class RealmConfiguration {
     private final File realmFolder;
     private final String realmFileName;
     private final String canonicalPath;
+    private final String assetFilePath;
     private final byte[] key;
     private final long schemaVersion;
     private final RealmMigration migration;
@@ -89,11 +96,13 @@ public final class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
+    private final WeakReference<Context> contextWeakRef;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
         this.realmFileName = builder.fileName;
         this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
+        this.assetFilePath = builder.assetFilePath;
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
@@ -102,6 +111,7 @@ public final class RealmConfiguration {
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
         this.initialDataTransaction = builder.initialDataTransaction;
+        this.contextWeakRef = builder.contextWeakRef;
     }
 
     public File getRealmFolder() {
@@ -148,6 +158,30 @@ public final class RealmConfiguration {
      */
     Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
+    }
+
+    /**
+     * Indicates if there is available asset file for copy action.
+     *
+     * @return {@code true} if there is asset file, {@code false} otherwise.
+     */
+    boolean hasAssetFile() {
+        return !TextUtils.isEmpty(assetFilePath);
+    }
+
+    /**
+     * Returns input stream object to the Realm asset file.
+     *
+     * @return input stream to the asset file.
+     * @throws IOException if copying the file fails.
+     */
+    InputStream getAssetFile() throws IOException {
+        Context context = contextWeakRef.get();
+        if (context != null) {
+            return context.getAssets().open(assetFilePath);
+        } else {
+            throw new IllegalArgumentException("Context should not be null. Use Application Context instead of Activity Context.");
+        }
     }
 
     /**
@@ -294,7 +328,7 @@ public final class RealmConfiguration {
     /**
      * Checks if RxJava is can be loaded.
      *
-     * @return true if RxJava dependency exist.
+     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
     private static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
@@ -314,6 +348,7 @@ public final class RealmConfiguration {
     public static final class Builder {
         private File folder;
         private String fileName;
+        private String assetFilePath;
         private byte[] key;
         private long schemaVersion;
         private RealmMigration migration;
@@ -321,6 +356,7 @@ public final class RealmConfiguration {
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -328,8 +364,8 @@ public final class RealmConfiguration {
          * Creates an instance of the Builder for the RealmConfiguration.
          * The Realm file will be saved in the provided folder.
          *
-         * @param folder Folder to save Realm file in. Folder must be writable.
-         * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
+         * @param folder the folder to save Realm file in. Folder must be writable.
+         * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
          */
         public Builder(File folder) {
             RealmCore.loadLibrary();
@@ -338,12 +374,12 @@ public final class RealmConfiguration {
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
-         *
-         * This will use the apps own internal directory for storing the Realm file. This does not require any
+         * <p>
+         * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
-         * @param context Android context.
+         * @param context an Android context.
          */
         public Builder(Context context) {
             if (context == null) {
@@ -405,7 +441,7 @@ public final class RealmConfiguration {
         /**
          * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
          * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
-         *
+         * <p>
          * If no migration code is provided, Realm will throw a
          * {@link io.realm.exceptions.RealmMigrationNeededException}.
          *
@@ -453,29 +489,25 @@ public final class RealmConfiguration {
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
-            this.durability = SharedGroup.Durability.MEM_ONLY;
-            return this;
-        }
+            if (!TextUtils.isEmpty(assetFilePath)) {
+                throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
+            }
 
-        /**
-         * DEPRECATED: Use {@link #modules(Object, Object...)} instead.
-         */
-        @Deprecated
-        public Builder setModules(Object baseModule, Object... additionalModules) {
-            modules(baseModule, additionalModules);
+            this.durability = SharedGroup.Durability.MEM_ONLY;
+
             return this;
         }
 
         /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
-         *
+         * <p>
          * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
          * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
          * dependency is thus done using the following code:
-         *
+         * <p>
          * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
-         *
+         * <p>
          * @param baseModule the first Realm module (required).
          * @param additionalModules the additional Realm modules
          * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
@@ -512,6 +544,34 @@ public final class RealmConfiguration {
          */
         public Builder initialData(Realm.Transaction transaction) {
             initialDataTransaction = transaction;
+            return this;
+        }
+
+        /**
+         * Copies the Realm file from the given asset file path.
+         * <p>
+         * When opening the Realm for the first time, instead of creating an empty file,
+         * the Realm file will be copied from the provided assets file and used instead.
+         * <p>
+         * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
+         *
+         * @param context Android application context.
+         * @param assetFile path to the asset database file.
+         */
+        public Builder assetFile(Context context, final String assetFile) {
+            if (context == null) {
+                throw new IllegalArgumentException("A non-null Context must be provided");
+            }
+            if (TextUtils.isEmpty(assetFile)) {
+                throw new IllegalArgumentException("A non-empty asset file path must be provided");
+            }
+            if (durability == SharedGroup.Durability.MEM_ONLY) {
+                throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
+            }
+
+            this.contextWeakRef = new WeakReference<>(context);
+            this.assetFilePath = assetFile;
+
             return this;
         }
 
