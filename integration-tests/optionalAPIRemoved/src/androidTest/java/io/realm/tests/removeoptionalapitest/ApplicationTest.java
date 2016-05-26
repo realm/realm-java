@@ -23,6 +23,7 @@ import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
+import rx.Observable;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
@@ -62,9 +63,10 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
     public void testRealmAsObservableRemoved() {
         try {
-            realm.getClass().getMethod("asObservable");
+            @SuppressWarnings("unused")
+            Observable<Realm> observable = realm.asObservable();
             fail();
-        } catch (NoSuchMethodException ignored) {
+        } catch (NoSuchMethodError ignored) {
         }
     }
 
@@ -72,17 +74,19 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
         Dog dog = realm.where(Dog.class).findFirst();
 
         try {
-            dog.getClass().getMethod("asObservable");
+            @SuppressWarnings("unused")
+            Observable<Dog> observable = dog.asObservable();
             fail();
-        } catch (NoSuchMethodException ignored) {
+        } catch (NoSuchMethodError ignored) {
         }
     }
 
     public void testDynamicRealmAsObservableRemoved() {
         try {
-            dynamicRealm.getClass().getMethod("asObservable");
+            @SuppressWarnings("unused")
+            Observable<DynamicRealm> observable = dynamicRealm.asObservable();
             fail();
-        } catch (NoSuchMethodException ignored) {
+        } catch (NoSuchMethodError ignored) {
         }
     }
 
@@ -90,9 +94,10 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
         DynamicRealmObject dog = dynamicRealm.where("Dog").findFirst();
 
         try {
-            dog.getClass().getMethod("asObservable");
+            @SuppressWarnings("unused")
+            Observable<DynamicRealmObject> observable = dog.asObservable();
             fail();
-        } catch (NoSuchMethodException ignored) {
+        } catch (NoSuchMethodError ignored) {
         }
     }
 
@@ -100,9 +105,10 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
         RealmResults<Dog> results = realm.where(Dog.class).findAll();
 
         try {
-            results.getClass().getMethod("asObservable");
+            @SuppressWarnings("unused")
+            Observable<RealmResults<Dog>> observable = results.asObservable();
             fail();
-        } catch (NoSuchMethodException ignored) {
+        } catch (NoSuchMethodError ignored) {
         }
     }
 }
