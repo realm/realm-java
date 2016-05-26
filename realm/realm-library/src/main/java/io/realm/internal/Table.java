@@ -1381,9 +1381,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public String toString() {
         long columnCount = getColumnCount();
+        String name = getName();
         StringBuilder stringBuilder = new StringBuilder("Table ");
-        stringBuilder.append(getName());
-        stringBuilder.append(" contains ");
+        if (name != null && !name.isEmpty()) {
+            stringBuilder.append(getName());
+            stringBuilder.append(" ");
+        }
+        stringBuilder.append("contains ");
         stringBuilder.append(columnCount);
         stringBuilder.append(" columns: ");
 
