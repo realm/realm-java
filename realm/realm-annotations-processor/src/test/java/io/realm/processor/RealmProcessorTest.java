@@ -460,4 +460,28 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
+
+    @Test
+    public void compileBacklinks() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks.java"))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void failOnBacklinksWithInvalidFieldType() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_InvalidFieldType.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void failOnBacklinksWithInvalidParentName() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_InvalidParentName.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
 }
