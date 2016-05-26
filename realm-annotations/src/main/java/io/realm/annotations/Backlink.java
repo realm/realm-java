@@ -23,8 +23,14 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for defining a bi-directional link from one class to another. This annotation can
- * only be added to a field of the type {@code RealmResults}. The backlink is maintained by Realm
- * and only work on managed objects. Backlinks can be queried just like normal references.
+ * only be added to a field of the type {@code RealmResults}.
+ *
+ * Backlinks have the following properties:
+ * <ul>
+ *     <li>The backlink is maintained by Realm and only work on managed objects.</li>
+ *     <li>Backlinks can be queries just like normal references.</li>
+ * </ul>
+ *
  **
  * Example:
  *
