@@ -23,7 +23,6 @@ import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
-import rx.Observable;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
@@ -35,53 +34,52 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
     private Realm realm;
     private DynamicRealm dynamicRealm;
+    private RealmConfiguration realmConfiguration;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this.getContext()).build();
+        realmConfiguration = new RealmConfiguration.Builder(this.getContext()).build();
+
         realm = Realm.getInstance(realmConfiguration);
-        dynamicRealm = DynamicRealm.getInstance(realmConfiguration);
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(Dog.class);
             }
         });
+        // Open the dynamic Realm after transaction.
+        dynamicRealm = DynamicRealm.getInstance(realmConfiguration);
     }
 
     @Override
     protected void tearDown() throws Exception {
         realm.close();
         dynamicRealm.close();
+        Realm.deleteRealm(realmConfiguration);
         super.tearDown();
     }
 
     public void testRealmAsObservableRemoved() {
-        @SuppressWarnings("unused")
-        Observable<Realm> observable = realm.asObservable();
+        assertNotNull(realm.asObservable());
     }
 
     public void testRealmObjectAsObservableRemoved() {
         Dog dog = realm.where(Dog.class).findFirst();
-        @SuppressWarnings("unused")
-        Observable<Dog> observable = dog.asObservable();
+        assertNotNull(dog.asObservable());
     }
 
     public void testDynamicRealmAsObservableRemoved() {
-        @SuppressWarnings("unused")
-        Observable<DynamicRealm> observable = dynamicRealm.asObservable();
+        assertNotNull(dynamicRealm.asObservable());
     }
 
     public void testDynamicRealmObjectAsObservableRemoved() {
         DynamicRealmObject dog = dynamicRealm.where("Dog").findFirst();
-        @SuppressWarnings("unused")
-        Observable<DynamicRealmObject> observable = dog.asObservable();
+        assertNotNull(dog.asObservable());
     }
 
     public void testRealmResultsAsObservableRemoved() {
         RealmResults<Dog> results = realm.where(Dog.class).findAll();
-        @SuppressWarnings("unused")
-        Observable<RealmResults<Dog>> observable = results.asObservable();
+        assertNotNull(results.asObservable());
     }
 }

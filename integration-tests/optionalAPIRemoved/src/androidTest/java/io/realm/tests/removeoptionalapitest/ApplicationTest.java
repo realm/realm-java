@@ -34,25 +34,29 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
     private Realm realm;
     private DynamicRealm dynamicRealm;
+    private RealmConfiguration realmConfiguration;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this.getContext()).build();
+        realmConfiguration = new RealmConfiguration.Builder(this.getContext()).build();
+
         realm = Realm.getInstance(realmConfiguration);
-        dynamicRealm = DynamicRealm.getInstance(realmConfiguration);
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(Dog.class);
             }
         });
+        // Open the dynamic Realm after transaction.
+        dynamicRealm = DynamicRealm.getInstance(realmConfiguration);
     }
 
     @Override
     protected void tearDown() throws Exception {
         realm.close();
         dynamicRealm.close();
+        Realm.deleteRealm(realmConfiguration);
         super.tearDown();
     }
 
