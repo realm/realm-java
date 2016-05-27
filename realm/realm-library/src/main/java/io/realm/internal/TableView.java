@@ -746,16 +746,6 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
-
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
-    }
-
-    @Override
     public TableQuery where() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         this.context.executeDelayedDisposal();
@@ -914,8 +904,6 @@ public class TableView implements TableOrView, Closeable {
     private native void nativeSortMulti(long nativeTableViewPtr, long columnIndices[], boolean ascending[]);
     private native long createNativeTableView(Table table, long nativeTablePtr);
     private native String nativeToJson(long nativeViewPtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
     private native long nativeDistinct(long nativeViewPtr, long columnIndex);

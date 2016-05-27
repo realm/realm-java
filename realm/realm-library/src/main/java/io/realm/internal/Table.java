@@ -1407,16 +1407,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
-
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
-    }
-
-    @Override
     public long syncIfNeeded() {
         throw new RuntimeException("Not supported for tables");
     }
@@ -1560,8 +1550,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native String nativeGetName(long nativeTablePtr);
     private native void nativeOptimize(long nativeTablePtr);
     private native String nativeToJson(long nativeTablePtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
 }

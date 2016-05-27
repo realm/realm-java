@@ -334,14 +334,6 @@ public interface TableOrView {
 
     String toString();
 
-    // For testing purpose only. It might crash in UTF16 conversion.
-    @Deprecated
-    String toString(long maxRows);
-
-    // For testing purpose only. It might crash in UTF16 conversion.
-    @Deprecated
-    String rowToString(long rowIndex);
-
     TableQuery where();
 
     /**
