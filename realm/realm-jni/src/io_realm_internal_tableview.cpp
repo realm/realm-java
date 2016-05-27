@@ -1027,37 +1027,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson(
     return NULL;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToString(
-    JNIEnv *env, jobject, jlong nativeViewPtr, jlong maxRows)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-            return NULL;
-
-        std::ostringstream ss;
-        ss.sync_with_stdio(false); // for performance
-        TV(nativeViewPtr)->to_string(ss, S(maxRows));
-        const std::string str = ss.str();
-        return to_jstring(env, str);
-    } CATCH_STD()
-    return NULL;
-}
-
-JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeRowToString(
-    JNIEnv *env, jobject, jlong nativeViewPtr, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
-            return NULL;
-
-        std::ostringstream ss;
-        TV(nativeViewPtr)->row_to_string(S(rowIndex), ss);
-        const std::string str = ss.str();
-        return to_jstring(env, str);
-    } CATCH_STD()
-    return NULL;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
     JNIEnv *env, jobject, jlong nativeViewPtr)
 {
