@@ -851,7 +851,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Returns {@code false} if the results are not yet loaded or still being loaded, {@code true} otherwise. Synchronous
+     * Returns {@code false} if the results are not yet loaded, {@code true} if they are loaded. Synchronous
      * query methods like findAll() will always return {@code true}, while asynchronous query methods like
      * findAllAsync() will return {@code false} until the results are available.
      * This will return {@code true} if called for an unmanaged object (created outside of Realm).
