@@ -1382,7 +1382,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public String toString() {
         long columnCount = getColumnCount();
         String name = getName();
-        StringBuilder stringBuilder = new StringBuilder("Table ");
+        StringBuilder stringBuilder = new StringBuilder("The Table ");
         if (name != null && !name.isEmpty()) {
             stringBuilder.append(getName());
             stringBuilder.append(" ");

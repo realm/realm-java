@@ -49,7 +49,7 @@ public class JNITableTest extends AndroidTestCase {
         t.add("s1", 1, true);
         t.add("s2", 2, false);
 
-        String expected = "Table contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
+        String expected = "The Table contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
         assertEquals(expected, t.toString());
     }
 

@@ -375,7 +375,7 @@ public class JNIViewTest extends TestCase {
 
         TableView view = t.where().findAll();
 
-        String expected = "This TableView contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
+        String expected = "The TableView contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
 
         assertEquals(expected, view.toString());
     }
