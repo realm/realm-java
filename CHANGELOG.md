@@ -1,3 +1,9 @@
+## 1.0.1
+
+### Bug fixes
+
+* Fixed a crash when calling Table.toString() in debugger (#2429).
+
 ## 1.0.0
 
 No changes since 0.91.1.

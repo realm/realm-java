@@ -724,17 +724,25 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, 500);
-    }
+        long columnCount = getColumnCount();
+        StringBuilder stringBuilder = new StringBuilder("The TableView ");
+        stringBuilder.append("contains ");
+        stringBuilder.append(columnCount);
+        stringBuilder.append(" columns: ");
 
-    @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
+        for (int i = 0; i < columnCount; i++) {
+            if (i != 0) {
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append(getColumnName(i));
+        }
+        stringBuilder.append(".");
 
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
+        stringBuilder.append(" And ");
+        stringBuilder.append(size());
+        stringBuilder.append(" rows.");
+
+        return stringBuilder.toString();
     }
 
     @Override
@@ -896,8 +904,6 @@ public class TableView implements TableOrView, Closeable {
     private native void nativeSortMulti(long nativeTableViewPtr, long columnIndices[], boolean ascending[]);
     private native long createNativeTableView(Table table, long nativeTablePtr);
     private native String nativeToJson(long nativeViewPtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
     private native long nativeDistinct(long nativeViewPtr, long columnIndex);
