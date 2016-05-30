@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.text.TextUtils;
-
 import io.realm.annotations.Required;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
