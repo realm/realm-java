@@ -4,7 +4,7 @@
 
 * Revised `RealmResults.isLoaded()` description (#2895).
 
-# 1.0.0
+## 1.0.0
 
 No changes since 0.91.1.
 
