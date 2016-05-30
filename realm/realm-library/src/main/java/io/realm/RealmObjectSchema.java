@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.text.TextUtils;
+
 import io.realm.annotations.Required;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
@@ -203,6 +205,14 @@ public final class RealmObjectSchema {
         long columnIndex = getColumnIndex(fieldName);
         if (table.getPrimaryKey() == columnIndex) {
             table.setPrimaryKey(null);
+        }
+        // When PK does not exist (-2) this cannot happen. Meanwhile a removal target has a smaller
+        // index than the PK index, we can expect an rearrangement.
+        if (columnIndex < table.getPrimaryKey()) {
+            String pkField = getPrimaryKey();
+            table.removeColumn(columnIndex);
+            table.setPrimaryKey(pkField);
+            return this;
         }
         table.removeColumn(columnIndex);
         return this;
