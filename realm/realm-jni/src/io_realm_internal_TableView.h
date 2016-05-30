@@ -513,22 +513,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeToString
- * Signature: (JJ)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToString
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableView
- * Method:    nativeRowToString
- * Signature: (JJ)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeRowToString
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableView
  * Method:    nativeWhere
  * Signature: (J)J
  */

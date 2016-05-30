@@ -799,22 +799,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeToString
- * Signature: (JJ)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToString
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeRowToString
- * Signature: (JJ)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeHasSameSchema
  * Signature: (JJ)Z
  */
