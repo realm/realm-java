@@ -59,7 +59,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 
 #define CATCH_FILE(fileName) \
     catch (InvalidDatabase&) { \
-        ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
+        ThrowException(env, IllegalArgument, \
+                std::string(e.what()) + " path: " + e.get_path()); \
     } \
     catch (util::File::PermissionDenied& e) { \
         ThrowException(env, IOFailed, string(fileName), \
