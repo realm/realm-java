@@ -1380,17 +1380,30 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, INFINITE);
-    }
+        long columnCount = getColumnCount();
+        String name = getName();
+        StringBuilder stringBuilder = new StringBuilder("The Table ");
+        if (name != null && !name.isEmpty()) {
+            stringBuilder.append(getName());
+            stringBuilder.append(" ");
+        }
+        stringBuilder.append("contains ");
+        stringBuilder.append(columnCount);
+        stringBuilder.append(" columns: ");
 
-    @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
+        for (int i = 0; i < columnCount; i++) {
+            if (i != 0) {
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append(getColumnName(i));
+        }
+        stringBuilder.append(".");
 
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
+        stringBuilder.append(" And ");
+        stringBuilder.append(size());
+        stringBuilder.append(" rows.");
+
+        return stringBuilder.toString();
     }
 
     @Override
@@ -1537,8 +1550,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native String nativeGetName(long nativeTablePtr);
     private native void nativeOptimize(long nativeTablePtr);
     private native String nativeToJson(long nativeTablePtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
 }
