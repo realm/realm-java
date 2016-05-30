@@ -1512,36 +1512,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(
     return NULL;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToString(
-    JNIEnv *env, jobject, jlong nativeTablePtr, jlong maxRows)
-{
-    Table* table = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, table))
-        return NULL;
-    try {
-        ostringstream ss;
-        table->to_string(ss, S(maxRows));
-        const string str = ss.str();
-        return to_jstring(env, str);
-    } CATCH_STD()
-    return NULL;
-}
-
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString(
-    JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
-{
-    Table* table = TBL(nativeTablePtr);
-    if (!TBL_AND_ROW_INDEX_VALID(env, table, rowIndex))
-        return NULL;
-    try {
-        ostringstream ss;
-        table->row_to_string(S(rowIndex), ss);
-        const string str = ss.str();
-        return to_jstring(env, str);
-    } CATCH_STD()
-    return NULL;
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeEquals(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong nativeTableToComparePtr)
 {
