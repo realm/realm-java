@@ -76,13 +76,13 @@ Example:
 ```
 // Named backlink queries
 realm.where(Dog.class).equalTo("allOwners.name", "John").findAll();
-realm.where(Dog.class).equalTo("favoriteOwner.name")
+realm.where(Dog.class).equalTo("favoriteOwner.name", "John").findAll();
 
 // Unnamed backlink queries
-realm.where(Dog.class).equalTo("name[Person.favoriteDog]").findAll();
+realm.where(Dog.class).equalTo("name[Person.favoriteDog]", "John").findAll();
 realm.where(Dog.class)
-  .equalTo("name[Person.favoriteDog]")
-  .equalTo("name[Person.dogs]")
+  .equalTo("name[Person.favoriteDog]", "John")
+  .equalTo("name[Person.dogs]", "John")
   .findAll();
 
 // Example in a purely text based variant
