@@ -1,12 +1,13 @@
-- Feature Name: Backlink query syntax
+- Feature Name: Inverse relationship syntax
 - Start Date: 2016-05-30
 - RFC PR: 
+- Version: 2
 
 # Summary
 
 It should be possible to define and query backlinks in both `Realm` and 
-`DynamicRealm`. As a `DynamicRealm` can work without _any_ Realm model classes,
-it should be possible to query backlinks without them being defined there.
+`DynamicRealm`. As a `DynamicRealm` can work without _any_ Realm model 
+classes, it should be possible to query backlinks without them being defined there.
 
 # Motivation
 
@@ -52,19 +53,20 @@ public class Dog extends RealmObject {
 	private String name
 
 	// Named backlinks below
-	@Backlink
-	private RealmResults<Person> owner;
-
 	@Backlink("favoriteDog")
+	private RealmResults<Person> favoriteOwner;
+
+	@Backlink("favoriteDog", "dogs")
 	private RealmResults<Person> favoriteOwner;
 }
 ```
 
 **Introduce the following query extension**
 
-- Use `"y[x]"`to search field Y on type X where X is the backlink type.
 - Use `"y[x.z]"` to search field Y on type X where X is a backlink through 
   field Z.
+- Searching multiple fields should be done in individual query methods:
+  `equalTo("y[x.z]", "foo").equalTo("y[x.z1]", "foo")`
 - This is a supplement to defining the named backlinks.
 - No changes to the migration API.
 - No changes to the schema definition.
@@ -77,11 +79,14 @@ realm.where(Dog.class).equalTo("owners.name", "John").findAll();
 realm.where(Dog.class).equalTo("favoriteOwner.name")
 
 // Unnamed backlink queries
-realm.where(Dog.class).equalTo("name[Person]", "John").findAll();
 realm.where(Dog.class).equalTo("name[Person.favoriteDog]").findAll();
+realm.where(Dog.class)
+  .equalTo("name[Person.favoriteDog]")
+  .equalTo("name[Person.dogs]")
+  .findAll();
 
 // Example in a purely text based variant
-"name[Person] = 'John'"
+"name[Person.favoriteDog] = 'John'"
 ```
 
 **Implementation**
@@ -113,6 +118,7 @@ are generally low, this shouldn't be a problem in practise.
 
 - Will introduce two ways of querying backlinks.
 
+- Without wildcards for unnamed backlinks queries risk getting extremely verbose.
 
 
 ## Alternative syntax suggestions
@@ -137,6 +143,19 @@ considered:
 - "^Person(favoriteDog, dogs).name"
 - "Person(favoriteDog, dogs)<-.name"
 
+
+4) Special grouping operator
+
+```
+realm.where(Dog.class)
+   .backlinks("Dogs", "dogs")
+      .equalTo("state", "CA")
+   .backlinksEnd()
+   .equalTo("name", "Fido")
+   .findAll()
+```
+
+
 ```
 
 ## Possible extensions
@@ -146,6 +165,7 @@ The proposed query syntax can also be extended to support the following features
 ```
 // Wild cards
 - "name[*] = 'John' " // All backlink types
+- "name[Person.*] = 'John' " // All fields are included from the backlink type.
 - "name[* extends Person] = 'John' " // Polymorphic backlinks
 - *[*] = 'John' // Any string based field on all types of backlinks
 
@@ -202,3 +222,10 @@ schema.
 # Unresolved questions
 
 None.
+
+# Version history
+
+1: Initial version
+2: Backlink fields must now be enumerated. Removed "[Person]" as a shortcut
+   for enumerating all fields on Person. Added suggestion that introduces
+   a special `backlinks()/backlinksEnd()` grouping method.
