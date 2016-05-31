@@ -58,8 +58,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 // Exception handling
 
 #define CATCH_FILE(fileName) \
-    catch (InvalidDatabase&) { \
-        ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
+    catch (InvalidDatabase& e) { \
+        ThrowException(env, InvalidDb, std::string(e.what()) + " path: " + e.get_path()); \
     } \
     catch (util::File::PermissionDenied& e) { \
         ThrowException(env, IOFailed, string(fileName), \
@@ -125,7 +125,8 @@ enum ExceptionKind {
     RuntimeError = 12,
     RowInvalid = 13,
     CrossTableLink = 15,
-    BadVersion = 16
+    BadVersion = 16,
+    InvalidDb = 17
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 

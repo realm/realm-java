@@ -40,6 +40,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -86,6 +88,7 @@ import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmInvalidDatabaseException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
@@ -216,6 +219,21 @@ public class RealmTests {
         } finally {
             realm1.close();
         }
+    }
+
+    @Test
+    public void getInstance_invalidDatabase() throws IOException {
+        realm.close();
+
+        File file = new File(realmConfig.getPath());
+        FileOutputStream fos = new FileOutputStream(file);
+        for (int i = 0; i < 1024; i++) {
+            // Damaging db file is fun!
+            fos.write(42);
+        }
+
+        thrown.expect(RealmInvalidDatabaseException.class);
+        Realm.getInstance(realmConfig);
     }
 
     @Test

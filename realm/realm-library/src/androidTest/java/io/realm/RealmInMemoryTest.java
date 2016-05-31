@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.Dog;
+import io.realm.exceptions.RealmInvalidDatabaseException;
 
 public class RealmInMemoryTest extends AndroidTestCase {
 
@@ -166,7 +167,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
                     .build();
             Realm.getInstance(wrongKeyConf);
             fail("Realm.getInstance should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmInvalidDatabaseException ignored) {
         }
     }
 

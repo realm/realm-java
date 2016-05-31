@@ -20,6 +20,7 @@ import android.os.Looper;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmInvalidDatabaseException;
 import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -59,6 +60,8 @@ public final class DynamicRealm extends BaseRealm {
      * @see RealmConfiguration for details on how to configure a Realm.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
+     * @throws RealmInvalidDatabaseException if the existing Realm file is corrupted, a non-Realm file, a Realm file
+     *         created by newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
