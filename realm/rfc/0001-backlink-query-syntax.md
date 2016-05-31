@@ -53,10 +53,10 @@ public class Dog extends RealmObject {
 	private String name
 
 	// Named backlinks below
-	@Backlink("favoriteDog")
+	@Backlink({"favoriteDog"})
 	private RealmResults<Person> favoriteOwner;
 
-	@Backlink("favoriteDog", "dogs")
+	@Backlink({"favoriteDog", "dogs"})
 	private RealmResults<Person> allOwners;
 }
 ```
