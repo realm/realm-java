@@ -1,7 +1,7 @@
 - Feature Name: Inverse relationship syntax
 - Start Date: 2016-05-30
 - RFC PR: 
-- Version: 2
+- Version: 3
 
 # Summary
 
@@ -57,7 +57,7 @@ public class Dog extends RealmObject {
 	private RealmResults<Person> favoriteOwner;
 
 	@Backlink("favoriteDog", "dogs")
-	private RealmResults<Person> favoriteOwner;
+	private RealmResults<Person> allOwners;
 }
 ```
 
@@ -75,7 +75,7 @@ Example:
 
 ```
 // Named backlink queries
-realm.where(Dog.class).equalTo("owners.name", "John").findAll();
+realm.where(Dog.class).equalTo("allOwners.name", "John").findAll();
 realm.where(Dog.class).equalTo("favoriteOwner.name")
 
 // Unnamed backlink queries
@@ -229,3 +229,4 @@ None.
 2: Backlink fields must now be enumerated. Removed "[Person]" as a shortcut
    for enumerating all fields on Person. Added suggestion that introduces
    a special `backlinks()/backlinksEnd()` grouping method.
+3: Fixed Typos and mistakes.
