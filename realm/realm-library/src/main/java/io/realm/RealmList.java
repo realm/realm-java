@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,7 +86,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      *
      * @param objects initial objects in the list.
      */
-    public RealmList(E... objects) {
+    public RealmList(@NonNull E... objects) {
+        //noinspection ConstantConditions
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
@@ -151,7 +155,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}.
      */
     @Override
-    public void add(int location, E object) {
+    public void add(int location, @NonNull E object) {
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
@@ -183,7 +187,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
-    public boolean add(E object) {
+    public boolean add(@NonNull E object) {
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
@@ -214,7 +218,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
-    public E set(int location, E object) {
+    public E set(int location, @NonNull E object) {
         checkValidObject(object);
         E oldObject;
         if (managedMode) {
@@ -359,7 +363,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * @throws NullPointerException  if {@code object} is {@code null}.
      */
     @Override
-    public boolean remove(Object object) {
+    public boolean remove(@NonNull Object object) {
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -383,7 +387,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * @throws NullPointerException if {@code collection} is {@code null}.
      */
     @Override
-    public boolean removeAll(Collection<?> collection) {
+    public boolean removeAll(@NonNull Collection<?> collection) {
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -479,7 +483,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldName) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldName) {
         return this.sort(fieldName, Sort.ASCENDING);
     }
 
@@ -487,7 +492,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldName, Sort sortOrder) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldName, Sort sortOrder) {
         if (managedMode) {
             return this.where().findAllSorted(fieldName, sortOrder);
         } else {
@@ -499,7 +505,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldName1, Sort sortOrder1, @NonNull String fieldName2, Sort sortOrder2) {
         return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
@@ -507,7 +514,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String[] fieldNames, @NonNull Sort[] sortOrders) {
         if (managedMode) {
             return where().findAllSorted(fieldNames, sortOrders);
         } else {
@@ -553,6 +561,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see io.realm.RealmQuery
      */
+    @NonNull
     public RealmQuery<E> where() {
         if (managedMode) {
             checkValidView();
@@ -566,7 +575,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public Number min(String fieldName) {
+    @Nullable
+    public Number min(@NonNull String fieldName) {
         if (managedMode) {
             return this.where().min(fieldName);
         } else {
@@ -578,7 +588,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public Number max(String fieldName) {
+    @Nullable
+    public Number max(@NonNull String fieldName) {
         if (managedMode) {
             return this.where().max(fieldName);
         } else {
@@ -590,7 +601,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public Number sum(String fieldName) {
+    @NonNull
+    public Number sum(@NonNull String fieldName) {
         if (managedMode) {
             return this.where().sum(fieldName);
         } else {
@@ -602,7 +614,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public double average(String fieldName) {
+    public double average(@NonNull String fieldName) {
         if (managedMode) {
             return this.where().average(fieldName);
         } else {
@@ -614,7 +626,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public Date maxDate(String fieldName) {
+    @Nullable
+    public Date maxDate(@NonNull String fieldName) {
         if (managedMode) {
             return this.where().maximumDate(fieldName);
         } else {
@@ -626,7 +639,8 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
-    public Date minDate(String fieldName) {
+    @Nullable
+    public Date minDate(@NonNull String fieldName) {
         if (managedMode) {
             return this.where().minimumDate(fieldName);
         } else {
@@ -699,6 +713,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     /**
      * {@inheritDoc}
      */
+    @NonNull
     @Override
     public Iterator<E> iterator() {
         if (managedMode) {
@@ -712,6 +727,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     @Override
+    @NonNull
     public ListIterator<E> listIterator() {
         return listIterator(0);
     }
@@ -719,6 +735,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     /**
      * {@inheritDoc}
      */
+    @NonNull
     @Override
     public ListIterator<E> listIterator(int location) {
         if (managedMode) {
@@ -749,6 +766,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     }
 
     @Override
+    @NonNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(managedMode ? clazz.getSimpleName() : getClass().getSimpleName());
@@ -904,7 +922,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
         /**
          * {@inheritDoc}
          */
-        public void set(E e) {
+        public void set(@NonNull E e) {
             realm.checkIfValid();
             if (lastRet < 0) {
                 throw new IllegalStateException();
@@ -925,7 +943,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
          *
          * @see #add(RealmModel)
          */
-        public void add(E e) {
+        public void add(@NonNull E e) {
             realm.checkIfValid();
             checkConcurrentModification();
             try {

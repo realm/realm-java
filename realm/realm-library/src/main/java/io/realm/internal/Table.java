@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.support.annotation.NonNull;
+
 import java.io.Closeable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -369,7 +371,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return the index, {@link #NO_MATCH} if not found.
      */
     @Override
-    public long getColumnIndex(String columnName) {
+    public long getColumnIndex(@NonNull String columnName) {
+        //noinspection ConstantConditions
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
         }
@@ -383,6 +386,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return the type of the particular column.
      */
     @Override
+    @NonNull
     public RealmFieldType getColumnType(long columnIndex) {
         return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
@@ -814,6 +818,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
+    @NonNull
     public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
         return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
     }

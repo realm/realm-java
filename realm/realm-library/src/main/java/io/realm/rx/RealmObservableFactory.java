@@ -16,6 +16,9 @@
 
 package io.realm.rx;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -62,7 +65,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     };
 
     @Override
-    public Observable<Realm> from(Realm realm) {
+    @NonNull
+    public Observable<Realm> from(@NonNull Realm realm) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<Realm>() {
             @Override
@@ -92,7 +96,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Observable<DynamicRealm> from(DynamicRealm realm) {
+    @NonNull
+    public Observable<DynamicRealm> from(@NonNull DynamicRealm realm) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<DynamicRealm>() {
             @Override
@@ -125,7 +130,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
+    @NonNull
+    public <E extends RealmModel> Observable<RealmResults<E>> from(@NonNull final Realm realm, @NonNull final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
 
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
@@ -162,7 +168,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, final RealmResults<DynamicRealmObject> results) {
+    @NonNull
+    public Observable<RealmResults<DynamicRealmObject>> from(@NonNull DynamicRealm realm, @NonNull final RealmResults<DynamicRealmObject> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<RealmResults<DynamicRealmObject>>() {
             @Override
@@ -212,7 +219,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmModel> Observable<E> from(final Realm realm, final E object) {
+    @NonNull
+    public <E extends RealmModel> Observable<E> from(@NonNull final Realm realm, @NonNull final E object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<E>() {
             @Override
@@ -248,7 +256,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Observable<DynamicRealmObject> from(DynamicRealm realm, final DynamicRealmObject object) {
+    @NonNull
+    public Observable<DynamicRealmObject> from(@NonNull DynamicRealm realm, @NonNull final DynamicRealmObject object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new Observable.OnSubscribe<DynamicRealmObject>() {
             @Override
@@ -294,7 +303,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         return o instanceof RealmObservableFactory;
     }
 

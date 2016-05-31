@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.support.annotation.NonNull;
+
 import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
@@ -169,6 +171,7 @@ public class TableView implements TableOrView, Closeable {
      * @return type of the particular column.
      */
     @Override
+    @NonNull
     public RealmFieldType getColumnType(long columnIndex) {
         return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
@@ -267,6 +270,7 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    @NonNull
     public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
         return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
     }

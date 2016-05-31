@@ -19,6 +19,8 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -135,7 +137,8 @@ abstract class BaseRealm implements Closeable {
         return !sharedGroupManager.isImmutable();
     }
 
-    protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
+    protected void addListener(@NonNull RealmChangeListener<? extends BaseRealm> listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -154,7 +157,8 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
-    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+    public void removeChangeListener(@NonNull RealmChangeListener<? extends BaseRealm> listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -230,7 +234,7 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @throws java.io.IOException if any write operation fails.
      */
-    public void writeCopyTo(File destination) throws java.io.IOException {
+    public void writeCopyTo(@NonNull File destination) throws java.io.IOException {
         writeEncryptedCopyTo(destination, null);
     }
 
@@ -248,7 +252,8 @@ abstract class BaseRealm implements Closeable {
      * @throws java.io.IOException if any write operation fails.
      * @throws IllegalArgumentException if destination argument is null.
      */
-    public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
+    public void writeEncryptedCopyTo(@NonNull File destination, @Nullable byte[] key) throws java.io.IOException {
+        //noinspection ConstantConditions
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
@@ -338,7 +343,7 @@ abstract class BaseRealm implements Closeable {
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
      * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, @Nullable Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
 
@@ -699,8 +704,12 @@ abstract class BaseRealm implements Closeable {
      * @param callback callback for specific Realm type behaviors.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback) throws FileNotFoundException {
+    protected static void migrateRealm(
+            @NonNull final RealmConfiguration configuration,
+            final RealmMigration migration,
+            final MigrationCallback callback
+    ) throws FileNotFoundException {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }

@@ -17,6 +17,9 @@
 package io.realm;
 
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Collections;
@@ -163,6 +166,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * {@inheritDoc}
      */
+    @NonNull
     @Override
     public RealmQuery<E> where() {
         realm.checkIfValid();
@@ -178,7 +182,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      *         {@code false} otherwise
      */
     @Override
-    public boolean contains(Object object) {
+    public boolean contains(@Nullable Object object) {
         boolean contains = false;
         if (isLoaded() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
@@ -197,6 +201,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
+    @NonNull
     public E get(int location) {
         E obj;
         realm.checkIfValid();
@@ -214,6 +219,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
+    @NonNull
     public E first() {
         if (size() > 0) {
             return get(0);
@@ -226,6 +232,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
+    @NonNull
     public E last() {
         int size = size();
         if (size > 0) {
@@ -268,6 +275,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @see Iterator
      */
     @Override
+    @NonNull
     public Iterator<E> iterator() {
         if (!isLoaded()) {
             // Collections.emptyIterator(); is only available since API 19
@@ -284,6 +292,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @see ListIterator
      */
     @Override
+    @NonNull
     public ListIterator<E> listIterator() {
         if (!isLoaded()) {
             // Collections.emptyListIterator() is only available since API 19
@@ -302,6 +311,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @see ListIterator
      */
     @Override
+    @NonNull
     public ListIterator<E> listIterator(int location) {
         if (!isLoaded()) {
             // Collections.emptyListIterator() is only available since API 19
@@ -313,7 +323,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // Sorting
 
     // aux. method used by sort methods
-    private long getColumnIndexForSort(String fieldName) {
+    private long getColumnIndexForSort(@NonNull String fieldName) {
+        //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name required.");
         }
@@ -331,7 +342,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldName) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldName) {
         return this.sort(fieldName, Sort.ASCENDING);
     }
 
@@ -339,7 +351,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldName, Sort sortOrder) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldName, Sort sortOrder) {
         return where().findAllSorted(fieldName, sortOrder);
     }
 
@@ -347,7 +360,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldNames[], @NonNull Sort sortOrders[]) {
         return where().findAllSorted(fieldNames, sortOrders);
     }
 
@@ -355,7 +369,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+    @NonNull
+    public RealmResults<E> sort(@NonNull String fieldName1, Sort sortOrder1, @NonNull String fieldName2, Sort sortOrder2) {
         return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
@@ -379,7 +394,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * {@inheritDoc}
      */
-    public Number min(String fieldName) {
+    @Nullable
+    public Number min(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -397,7 +413,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * {@inheritDoc}
      */
-    public Date minDate(String fieldName) {
+    @Nullable
+    public Date minDate(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
         if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
@@ -411,7 +428,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * {@inheritDoc}
      */
-    public Number max(String fieldName) {
+    @Nullable
+    public Number max(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -436,7 +454,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
-    public Date maxDate(String fieldName) {
+    @Nullable
+    public Date maxDate(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
         if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
@@ -451,7 +470,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * {@inheritDoc}
      */
-    public Number sum(String fieldName) {
+    @NonNull
+    public Number sum(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -469,7 +489,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * {@inheritDoc}
      */
-    public double average(String fieldName) {
+    public double average(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -494,7 +514,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
      * is not indexed, or points to linked fields.
      */
-    public RealmResults<E> distinct(String fieldName) {
+    @NonNull
+    public RealmResults<E> distinct(@NonNull String fieldName) {
         realm.checkIfValid();
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
 
@@ -719,6 +740,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         /**
          * {@inheritDoc}
          */
+        @NonNull
         public E next() {
             realm.checkIfValid();
             checkRealmIsStable();
@@ -795,6 +817,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
          * {@inheritDoc}
          */
         @Override
+        @NonNull
         public E previous() {
             realm.checkIfValid();
             checkRealmIsStable();
@@ -919,7 +942,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @throws IllegalArgumentException if the change listener is {@code null}.
      * @throws IllegalStateException if you try to add a listener from a non-Looper Thread.
      */
-    public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
+    public void addChangeListener(@NonNull RealmChangeListener<RealmResults<E>> listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -939,7 +963,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @throws IllegalArgumentException if the change listener is {@code null}.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
-    public void removeChangeListener(RealmChangeListener listener) {
+    public void removeChangeListener(@NonNull RealmChangeListener listener) {
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }

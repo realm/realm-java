@@ -15,6 +15,9 @@
  */
 package io.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
@@ -39,7 +42,8 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param obj the Realm object to convert to a dynamic object. Only objects managed by {@link Realm} can be used.
      * @throws IllegalArgumentException if object isn't managed by Realm or is a {@link DynamicRealmObject} already.
      */
-    public DynamicRealmObject(RealmModel obj) {
+    public DynamicRealmObject(@NonNull RealmModel obj) {
+        //noinspection ConstantConditions
         if (obj == null) {
             throw new IllegalArgumentException("A non-null object must be provided.");
         }
@@ -241,6 +245,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @return the Date value.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Dates.
      */
+    @Nullable
     public Date getDate(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         if (proxyState.getRow$realm().isNull(columnIndex)) {
@@ -257,6 +262,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @return the {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain links to other objects.
      */
+    @Nullable
     public DynamicRealmObject getObject(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         if (proxyState.getRow$realm().isNullLink(columnIndex)) {
@@ -275,6 +281,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @return the {@link RealmList} data for this field.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of links.
      */
+    @NonNull
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
@@ -317,8 +324,8 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param fieldName field name to check.
      * @return {@code true} if the object has a field with the given name, {@code false} otherwise.
      */
-    public boolean hasField(String fieldName) {
-        //noinspection SimplifiableIfStatement
+    public boolean hasField(@NonNull String fieldName) {
+        //noinspection SimplifiableIfStatement,ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             return false;
         }
@@ -350,7 +357,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @throws NumberFormatException if a String based number cannot be converted properly.
      */
     @SuppressWarnings("unchecked")
-    public void set(String fieldName, Object value) {
+    public void set(String fieldName, @Nullable Object value) {
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
 
@@ -527,7 +534,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a Date field.
      */
-    public void setDate(String fieldName, Date value) {
+    public void setDate(String fieldName, @Nullable Date value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         if (value == null) {
             proxyState.getRow$realm().setNull(columnIndex);
@@ -544,7 +551,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @throws IllegalArgumentException if field name doesn't exist, it doesn't link to other Realm objects, the type
      * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
-    public void setObject(String fieldName, DynamicRealmObject value) {
+    public void setObject(String fieldName, @Nullable DynamicRealmObject value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         if (value == null) {
             proxyState.getRow$realm().nullifyLink(columnIndex);
@@ -574,7 +581,8 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * of the object represented by the DynamicRealmObject doesn't match or any element in the list belongs to a
      * different Realm.
      */
-    public void setList(String fieldName, RealmList<? extends RealmModel> list) {
+    public void setList(String fieldName, @NonNull RealmList<? extends RealmModel> list) {
+        //noinspection ConstantConditions
         if (list == null) {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
@@ -675,7 +683,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -701,6 +709,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     }
 
     @Override
+    @NonNull
     public String toString() {
         if (proxyState.getRealm$realm() == null || !proxyState.getRow$realm().isAttached()) {
             return "Invalid object";

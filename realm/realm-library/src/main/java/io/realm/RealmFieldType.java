@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
@@ -75,7 +78,7 @@ public enum RealmFieldType {
      * @param obj object to test compatibility on.
      * @return {@code true} if object can be converted to the Realm type, {@code false} otherwise.
      */
-    public boolean isValid(Object obj) {
+    public boolean isValid(@Nullable Object obj) {
         switch (nativeValue) {
             case 0: return (obj instanceof Long || obj instanceof Integer || obj instanceof Short || obj instanceof Byte);
             case 1: return (obj instanceof Boolean);
@@ -108,6 +111,7 @@ public enum RealmFieldType {
      * @return the corresponding Realm type.
      * @throws IllegalArgumentException if value isn't valid.
      */
+    @NonNull
     public static RealmFieldType fromNativeValue(int value) {
         if (0 <= value && value < typeList.length) {
             RealmFieldType e = typeList[value];

@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -68,6 +71,7 @@ public final class RealmSchema {
      * @return schema object for that class or {@code null} if the class doesn't exists.
      *
      */
+    @Nullable
     public RealmObjectSchema get(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalClassName = TABLE_PREFIX + className;
@@ -85,6 +89,7 @@ public final class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
+    @NonNull
     public Set<RealmObjectSchema> getAll() {
         int tableCount = (int) transaction.size();
         Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
@@ -106,6 +111,7 @@ public final class RealmSchema {
      * @param className name of the class.
      * @return a Realm schema object for that class.
      */
+    @NonNull
     public RealmObjectSchema create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
@@ -126,7 +132,7 @@ public final class RealmSchema {
      *
      * @param className name of the class to remove.
      */
-    public void remove(String className) {
+    public void remove(@NonNull String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
@@ -144,7 +150,8 @@ public final class RealmSchema {
      * @param newClassName new class name.
      * @return a schema object for renamed class.
      */
-    public RealmObjectSchema rename(String oldClassName, String newClassName) {
+    @NonNull
+    public RealmObjectSchema rename(@NonNull String oldClassName, @NonNull String newClassName) {
         checkEmpty(oldClassName, "Class names cannot be empty or null");
         checkEmpty(newClassName, "Class names cannot be empty or null");
         String oldInternalName = TABLE_PREFIX + oldClassName;
@@ -205,7 +212,7 @@ public final class RealmSchema {
         return columnInfo;
     }
 
-    Table getTable(String className) {
+    Table getTable(@NonNull String className) {
         className = Table.TABLE_PREFIX + className;
         Table table = dynamicClassToTable.get(className);
         if (table == null) {
