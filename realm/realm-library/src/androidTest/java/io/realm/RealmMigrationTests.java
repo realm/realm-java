@@ -238,9 +238,8 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
-                
-                schema.rename("AllJavaTypes", "PrimaryKeyAsLong")
+                realm.getSchema()
+                        .rename("AllJavaTypes", "PrimaryKeyAsLong")
                         // There are three columns coming prior to the PK field 'fieldLong', and
                         // removing "fieldString", "fieldShort" & "fieldInt" should not rearrange the PK
                         .removeField("fieldString")

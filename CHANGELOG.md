@@ -4,6 +4,7 @@
 
 * Fixed a crash when calling Table.toString() in debugger (#2429).
 * Revised `RealmResults.isLoaded()` description (#2895).
+* Fixed a bug when migration loses tracking of primary key field in `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).
 
 ## 1.0.0
 
