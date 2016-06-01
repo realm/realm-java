@@ -186,7 +186,7 @@ However this is not part of this RFC.
 
 # Drawbacks
 
-It is not clear that his approach is the correct way forward. I am not sure what 
+It is not clear that this approach is the correct way forward. I am not sure what
 can be done to gain more confidence in this, expect asking for more input. Please 
 see the list of advantages and disadvantages in the last section as well as the 
 proposed alternatives.
@@ -235,10 +235,10 @@ None.
 
 # Version history
 
-1: Initial version
-2: Backlink fields must now be enumerated. Removed "[Person]" as a shortcut
-   for enumerating all fields on Person. Added suggestion that introduces
-   a special `backlinks()/backlinksEnd()` grouping method.
+1: Initial version.
+2: Backlink fields must now be enumerated. Removed "[Person]" as a shortcut for enumerating all
+   fields on Person. Added suggestion that introduces a special `backlinks()/backlinksEnd()`
+   grouping method.
 3: Fixed typos and mistakes.
 4: Annotation renamed to `@LinkingObjects`. Syntax is now`linkingObjects(x.y).z`. Added more details
    to the motivation section. Only one field is now allowed in the annotation, multiple backlink
