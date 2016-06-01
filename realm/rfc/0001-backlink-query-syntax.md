@@ -53,13 +53,12 @@ Any design should ideally solve all these constraints:
 
 ```
 public class Person extends RealmObject {
+	private String name
 	private Dog favoriteDog;
 	private RealmList<Dog> dogs;
 }
 
 public class Dog extends RealmObject {
-	private String name
-
 	// Named backlinks
 	@LinkingObjects("favoriteDog")
 	private RealmResults<Person> favoriteOwner;
@@ -78,11 +77,11 @@ Example:
 
 ```
 // Named backlink queries
-realm.where(Dog.class).equalTo("favoriteOwner.name", "John").findAll();
+RealmResults<Dog> dogs = realm.where(Dog.class).equalTo("favoriteOwner.name", "John").findAll();
 
 // Unnamed backlink queries
-realm.where(Dog.class).equalTo("linkingObjects(Person.dogs).name", "John").findAll();
-dynamicRealm.where("Dog").equalTo("linkingObjects(Person.dogs).name", "John").findAll();
+RealmResults<Dog> dogs = realm.where(Dog.class).equalTo("linkingObjects(Person.dogs).name", "John").findAll();
+RealmResults<DynamicRealmObjcet> dogs = dynamicRealm.where("Dog").equalTo("linkingObjects(Person.dogs).name", "John").findAll();
 
 // Example in a purely text based variant
 "ANY linkingObjects(Person.dogs).name = 'John'"
