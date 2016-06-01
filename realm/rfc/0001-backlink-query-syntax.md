@@ -1,7 +1,7 @@
 - Feature Name: Inverse relationship syntax
 - Start Date: 2016-05-30
 - RFC PR: 
-- Version: 3
+- Version: 4
 
 # Summary
 
@@ -21,22 +21,30 @@ This proposal introduces a new syntax for queries so it is possible to query
 across a backlink even though it hasn't been defined by a model class. This is
 called *unnamed backlinks*.
 
+Realm Objective C/Swift shipped with only support for named backlinks. This was mostly
+prompted by restrictions in NSPredicate, which do not have a syntax for unnamed backlinks.
+
+Realm Java does not have this constraint and at the same time the Java Migration/Dynamic API
+is more full-fledged and expected to have the same feature set as the static API due to how the
+query api works.
+
+Adding support for the unnamed variant now will also most likely save us time documenting the
+difference as well as reduce the amount of support we have to do.
+
 Any design should ideally solve all these constraints:
 
-- Should support a list of backlinks.
+- Should support a list of backlink objects.
 
-- Should support a single backlink, enforcing the constraint that only 1 object 
+- Should support a single backlink object, enforcing the constraint that only 1 object
   can point to it. This is not supported by Core, but it is a natural extension.
-
-- Should support backlinks from multiple fields.
 
 - Should be usable from the Dynamic API.
 
 - Should either support polymorphic objects or not prevent them from being 
   implemented.
 
-- Ideally it should work for both a pure text-based variant as well as the 
-  current mixed style found in Realm Java.
+- Ideally it should work for both the pure text-based variant of the query language in the
+  Object Store as well as the current mixed style found in Realm Java.
   
 
 # Detailed design
@@ -52,22 +60,17 @@ public class Person extends RealmObject {
 public class Dog extends RealmObject {
 	private String name
 
-	// Named backlinks below
-	@Backlink({"favoriteDog"})
+	// Named backlinks
+	@LinkingObjects("favoriteDog")
 	private RealmResults<Person> favoriteOwner;
-
-	@Backlink({"favoriteDog", "dogs"})
-	private RealmResults<Person> allOwners;
 }
 ```
 
 **Introduce the following query extension**
 
-- Use `"y[x.z]"` to search field Y on type X where X is a backlink through 
-  field Z.
-- Searching multiple fields should be done in individual query methods:
-  `equalTo("y[x.z]", "foo").equalTo("y[x.z1]", "foo")`
-- This is a supplement to defining the named backlinks.
+- Use `linkingObjects(x.z).y` to search field Y on type X where X is a backlink object through
+  field Z. This is a supplement to defining the named backlinks, which will continue to work as normal
+  link queries: `favoriteOwner.name`
 - No changes to the migration API.
 - No changes to the schema definition.
 
@@ -75,18 +78,14 @@ Example:
 
 ```
 // Named backlink queries
-realm.where(Dog.class).equalTo("allOwners.name", "John").findAll();
 realm.where(Dog.class).equalTo("favoriteOwner.name", "John").findAll();
 
 // Unnamed backlink queries
-realm.where(Dog.class).equalTo("name[Person.favoriteDog]", "John").findAll();
-realm.where(Dog.class)
-  .equalTo("name[Person.favoriteDog]", "John")
-  .equalTo("name[Person.dogs]", "John")
-  .findAll();
+realm.where(Dog.class).equalTo("linkingObjects(Person.dogs).name", "John").findAll();
+dynamicRealm.where("Dog").equalTo("linkingObjects(Person.dogs).name", "John").findAll();
 
 // Example in a purely text based variant
-"name[Person.favoriteDog] = 'John'"
+"ANY linkingObjects(Person.dogs).name = 'John'"
 ```
 
 **Implementation**
@@ -96,29 +95,44 @@ split a field name into a name and a type part.
 
 Validating that the type is an actual backlink with the given field does require 
 an `O(n)` lookup where `m: number of fields in Person`. Since number of fields 
-are generally low, this shouldn't be a problem in practise.
+are generally low, this should not be a problem in practise.
 
 **Advantages**
-- Using "[]" is not an allowed field characters in any of our supported 
+- Using "()" is not allowed in field names in any of our supported
   languages as far as I know. So parsing the above expressions should be 
   possible with no ambiguity.
 
-- The default case is easy to describe.
+- Using a method invocation syntax make it descriptive what is happening instead of relying
+  on people understanding some unfamiliar syntax.
 
-- Using [] as a modifier already has precedent in NSPredicate.
+- Using a method invocation syntax make it easy to add more functionality to the query
+  language.
 
+- Will feel like a natural way of doing it if coming from NSPredicate.
 
 **Disadvantages**
 
-- Unknown syntax. This concept is not used nor supported in neither NSPredicate, 
-  LINQ or SQL. It will be a "power feature", and might make the language feel 
-  complicated and hard to use.
+- Unknown syntax, with no help from the type system. The concept of unnamed backlinks is not used
+  nor supported in neither NSPredicate, LINQ or SQL. It will be a "power feature", and might make
+  the language feel complicated and hard to use.
 
 - Moves the Java query language further away from being type safe.
 
+- Nesting text-based method calls inside other Java method calls feels and reads a bit strange:
+  `equalTo("linkingObjects(foo.bar).baz", "42")`.
+
 - Will introduce two ways of querying backlinks.
 
-- Without wildcards for unnamed backlinks queries risk getting extremely verbose.
+
+## Alternative annotation name suggestions
+
+The name of the annotation should reflect how we otherwise document and talk about the feature.
+
+Possible names for the annotation so far:
+
+- `@Backlink` (Internal name)
+- `@InverseRelationship` (Name used on Cocoa/CoreData docs)
+- `@LinkingObjects` (API name used by Cocoa)
 
 
 ## Alternative syntax suggestions
@@ -127,26 +141,21 @@ As an alternative to the above, I have listed a some of variants that were
 considered:
 
 ```
-1) Type in front
+1) Use [] as seperator
 
-- "[Person]name = 'John'"
-- "[Person.favoriteDog]name = 'John'"
+- "name[Person.dogs] = 'John'"
 
+2) Type in front
 
-2) All fields explicit. Group fields using ()
-
-- "name[Person.(favoriteDog, dogs)]  = 'John'"
-
+- "[Person.dogs]name = 'John'"
 
 3) Other modifiers (^ up) , (<- back)
 
-- "^Person(favoriteDog, dogs).name"
-- "Person(favoriteDog, dogs)<-.name"
-
+- "^[Person.dogs].name"
+- "[Person.dogs]<-.name"
 
 4) Special grouping operator
 
-```
 realm.where(Dog.class)
    .backlinks("Dogs", "dogs")
       .equalTo("state", "CA")
@@ -155,8 +164,12 @@ realm.where(Dog.class)
    .findAll()
 ```
 
+The primary argument against 1-3 is that it will introduce a completely new syntax that is unknown
+to users, also the use of special chars will make it harder to google for help.
 
-```
+The primary argument against 4 is that we should try to avoid adding query methods only needed by
+the Dynamic API.
+
 
 ## Possible extensions
 
@@ -164,14 +177,12 @@ The proposed query syntax can also be extended to support the following features
 
 ```
 // Wild cards
-- "name[*] = 'John' " // All backlink types
-- "name[Person.*] = 'John' " // All fields are included from the backlink type.
-- "name[* extends Person] = 'John' " // Polymorphic backlinks
-- *[*] = 'John' // Any string based field on all types of backlinks
+- "linkingObjects(Person.*).name = 'John' // search all backlink fields on Person
+- "linkingObjects(*.*).name  = 'John' // Include all backlink types
+- "linkingObjects(Person.dogs, Person.favoriteDog).name = 'John' // Multiple fields at the same time.
+```
 
 However this is not part of this RFC.
-
-```
 
 
 # Drawbacks
@@ -229,4 +240,7 @@ None.
 2: Backlink fields must now be enumerated. Removed "[Person]" as a shortcut
    for enumerating all fields on Person. Added suggestion that introduces
    a special `backlinks()/backlinksEnd()` grouping method.
-3: Fixed Typos and mistakes.
+3: Fixed typos and mistakes.
+4: Annotation renamed to `@LinkingObjects`. Syntax is now`linkingObjects(x.y).z`. Added more details
+   to the motivation section. Only one field is now allowed in the annotation, multiple backlink
+   fields must be added or queried separately.
