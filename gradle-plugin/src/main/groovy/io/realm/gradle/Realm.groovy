@@ -19,6 +19,7 @@ package io.realm.gradle
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
+import io.realm.transformer.RealmOptionalAPITransformer
 import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -48,6 +49,9 @@ class Realm implements Plugin<Project> {
         }
 
         project.android.registerTransform(new RealmTransformer(project))
+        if (!isAndroidLib) {
+            project.android.registerTransform(new RealmOptionalAPITransformer())
+        }
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")

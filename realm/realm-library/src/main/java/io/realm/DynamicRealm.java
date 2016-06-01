@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.Looper;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
@@ -188,6 +189,7 @@ public final class DynamicRealm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<DynamicRealm> asObservable() {
         return configuration.getRxFactory().from(this);
     }
