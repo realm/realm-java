@@ -204,6 +204,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
+        if (getPrimaryKey() == columnIndex) {
+            Table pkTable = getPrimaryKeyTable();
+            String className = tableNameToClassName(getName());
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+            if (rowIndex != NO_MATCH) {
+                pkTable.getUncheckedRow(rowIndex).setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, newName);
+            } else {
+                throw new IllegalStateException("PrimaryKey field is not properly recorded for " + className + ".");
+            }
+        }
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 

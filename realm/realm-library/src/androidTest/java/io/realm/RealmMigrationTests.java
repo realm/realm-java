@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
@@ -224,6 +225,54 @@ public class RealmMigrationTests {
                 realm.close();
             }
         }
+    }
+
+    @Test
+    public void removePriorIndexesOrRenamingPrimaryKey() {
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(AllJavaTypes.class)
+                .build();
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.getSchema()
+                        .rename("AllJavaTypes", "PrimaryKeyAsLong")
+                        // There are three columns coming prior to the PK field 'fieldLong', and
+                        // removing "fieldString", "fieldShort" & "fieldInt" should not rearrange the PK
+                        .removeField("fieldString")
+                        .removeField("fieldShort")
+                        .removeField("fieldInt")
+
+                        // removal of rest fields should not affect PK attribute
+                        .removeField("fieldByte")
+                        .removeField("fieldFloat")
+                        .removeField("fieldDouble")
+                        .removeField("fieldBoolean")
+                        .removeField("fieldDate")
+                        .removeField("fieldBinary")
+                        .removeField("fieldObject")
+                        .removeField("fieldList")
+
+                        // Renaming PK field should not affect PK attribute as well.
+                        .renameField("fieldLong", "id")
+                        .addField("name",String.class);
+            }
+        };
+
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(PrimaryKeyAsLong.class)
+                .migration(migration)
+                .build();
+
+        realm = Realm.getInstance(realmConfig);
+        Table table = realm.getTable(PrimaryKeyAsLong.class);
+        assertEquals(2, table.getColumnCount());
+        assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
     }
 
     @Test
