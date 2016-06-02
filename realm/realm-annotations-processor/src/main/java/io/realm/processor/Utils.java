@@ -22,6 +22,7 @@ public class Utils {
     public static Types typeUtils;
     private static Messager messager;
     private static DeclaredType realmList;
+    private static DeclaredType realmResults;
     private static DeclaredType markerInterface;
     private static TypeMirror realmModel;
 
@@ -29,6 +30,8 @@ public class Utils {
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
         realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
+                typeUtils.getWildcardType(null, null));
+        realmResults = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmResults"),
                 typeUtils.getWildcardType(null, null));
         realmModel = env.getElementUtils().getTypeElement("io.realm.RealmModel").asType();
         markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
@@ -155,6 +158,9 @@ public class Utils {
         return typeUtils.isAssignable(field.asType(), realmModel);
     }
 
+    public static boolean isRealmResults(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmResults);
+    }
 
     /**
      * @return the qualified type name for a field.
@@ -231,4 +237,5 @@ public class Utils {
     public static String getProxyInterfaceName(String className) {
         return className + Constants.INTERFACE_SUFFIX;
     }
+
 }
