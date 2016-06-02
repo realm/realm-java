@@ -1,7 +1,7 @@
 - Feature Name: Inverse relationship syntax
 - Start Date: 2016-05-30
 - RFC PR: 
-- Version: 4
+- Version: 5
 
 # Summary
 
@@ -179,10 +179,13 @@ The proposed query syntax can also be extended to support the following features
 - "linkingObjects(Person.*).name = 'John' // search all backlink fields on Person
 - "linkingObjects(*.*).name  = 'John' // Include all backlink types
 - "linkingObjects(Person.dogs, Person.favoriteDog).name = 'John' // Multiple fields at the same time.
+
+// Backlinks multiple levels back (City -> Person -> Dog)
+// Find all dogs, that has a owner that lives in Copenhagen
+- "linkingObjects(City.citizens.dog).name = 'Copenhagen'"
 ```
 
 However this is not part of this RFC.
-
 
 # Drawbacks
 
@@ -243,3 +246,4 @@ None.
 4: Annotation renamed to `@LinkingObjects`. Syntax is now`linkingObjects(x.y).z`. Added more details
    to the motivation section. Only one field is now allowed in the annotation, multiple backlink
    fields must be added or queried separately.
+5: Added backlinks reaching back multiple levels as a possible extension.
