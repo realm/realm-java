@@ -61,7 +61,7 @@ public final class DynamicRealm extends BaseRealm {
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
      * @throws RealmInvalidDatabaseException if the existing Realm file is corrupted, a non-Realm file, a Realm file
-     *         created by newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
+     *         created by a newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {

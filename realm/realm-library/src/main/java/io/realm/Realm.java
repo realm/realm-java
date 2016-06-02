@@ -165,7 +165,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      *         RealmObject classes or version has has changed so a migration is required.
      * @throws RealmInvalidDatabaseException if the existing Realm file is corrupted, a non-Realm file, a Realm file
-     *         created by newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
+     *         created by a newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
@@ -185,7 +185,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @throws RealmInvalidDatabaseException if the existing Realm file is corrupted, a non-Realm file, a Realm file
-     *         created by newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
+     *         created by a newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
