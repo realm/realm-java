@@ -1,13 +1,15 @@
+## 1.1.0
+
+### Enhancements
+
+* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+
 ## 1.0.1
 
 ### Bug fixes
 
 * Fixed a crash when calling `Table.toString()` in debugger (#2429).
 * Revised `RealmResults.isLoaded()` description (#2895).
-
-### Enhancements
-
-* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
 
 ### Enhancements
 
