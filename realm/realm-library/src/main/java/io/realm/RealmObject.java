@@ -19,6 +19,7 @@ package io.realm;
 import java.util.List;
 
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -353,6 +354,7 @@ public abstract class RealmObject implements RealmModel {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public final <E extends RealmObject> Observable<E> asObservable() {
         return (Observable<E>) RealmObject.asObservable(this);
     }

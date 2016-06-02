@@ -1,3 +1,9 @@
+## 1.1.0
+
+### Enhancements
+
+* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+
 ## 1.0.1
 
 ### Bug fixes
@@ -7,7 +13,7 @@
 
 ### Enhancements
 
-* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
 
 ## 1.0.0
 
