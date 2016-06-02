@@ -1,13 +1,13 @@
 package some.test;
 
 import io.realm.RealmObject;
-import io.realm.annotations.Backlink;
+import io.realm.annotations.LinkingObjects;
 
-public class Backlinks extends RealmObject {
+public class Backlinks_InvalidFieldType extends RealmObject {
 
-    private Backlinks child;
+    private Backlinks_InvalidFieldType child;
 
     // Backlinks are only allowed on RealmResults
-    @Backlink
-    private Backlinks singleParent;
+    @LinkingObjects
+    private Backlinks_InvalidFieldType singleParent;
 }
