@@ -1049,7 +1049,7 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void realmListener_realmResultShouldBeSynced() {
-        final AtomicBoolean changedOnce = new AtomicBoolean(false);
+        final AtomicInteger changeCounter = new AtomicInteger(0);
         final Realm realm = looperThread.realm;
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -1063,28 +1063,31 @@ public class NotificationsTest {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm element) {
-                if (!changedOnce.get()) {
-                    // Change event triggered by populating
-                    assertEquals(1, realm.where(AllTypes.class).count());
-                    assertEquals(1, results.size());
+                switch (changeCounter.getAndAdd(1)) {
+                    case 0:
+                        // Change event triggered by populating
+                        assertEquals(1, realm.where(AllTypes.class).count());
+                        assertEquals(1, results.size());
 
-                    realm.executeTransactionAsync(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            AllTypes allTypes = realm.where(AllTypes.class).findFirst();
-                            assertNotNull(allTypes);
-                            allTypes.deleteFromRealm();
-                            final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
-                            assertEquals(0, results.size());
-                        }
-                    });
-                    changedOnce.set(true);
-                } else {
-                    // Change event triggered by deletion in async transaction.
-                    assertEquals(0, realm.where(AllTypes.class).count());
-                    assertEquals(0, results.size());
-                    realm.close();
-                    looperThread.testComplete();
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                                assertNotNull(allTypes);
+                                allTypes.deleteFromRealm();
+                                assertEquals(0, realm.where(AllTypes.class).count());
+                            }
+                        });
+                        break;
+                    case 1:
+                        // Change event triggered by deletion in async transaction.
+                        assertEquals(0, realm.where(AllTypes.class).count());
+                        assertEquals(0, results.size());
+                        realm.close();
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        break;
                 }
             }
         });
@@ -1095,8 +1098,10 @@ public class NotificationsTest {
     // 1. Synced object listener
     // 2. Synced results listener
     // 3. Global listener
-    // If this case fails on your code, think more before changing the test!
-    // https://github.com/realm/realm-java/issues/2408 is related with this test!
+    // Async listeners are not concerned by this test. Since they are triggered by different event and no advance read
+    // involved.
+    // If this case fails on your code, think twice before changing the test!
+    // https://github.com/realm/realm-java/issues/2408 is related to this test!
     @Test
     @RunTestInLooperThread
     public void callingOrdersOfListeners() {
