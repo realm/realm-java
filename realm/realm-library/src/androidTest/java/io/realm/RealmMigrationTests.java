@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
@@ -227,7 +226,7 @@ public class RealmMigrationTests {
         }
     }
 
-    // this build a temporary schema that does not exist in io.realm.entities
+    // this builds a temporary schema that does not exist in io.realm.entities
     private void buildBaseMigrationSchema() {
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder().build();
         Realm realm = Realm.getInstance(originalConfig);
