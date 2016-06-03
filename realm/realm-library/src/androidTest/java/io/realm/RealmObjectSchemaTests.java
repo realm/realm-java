@@ -585,7 +585,6 @@ public class RealmObjectSchemaTests {
     public void removeField_removeIndexesPriorToPrimaryKey() {
         RealmObjectSchema schema = realmSchema.get("AllJavaTypes");
 
-        // table from RealmObjectSchema should return the same PK index as the ones newly instantiated.
         assertEquals(3, schema.table.getPrimaryKey());
         schema.removeField("fieldString");
         assertEquals(2, schema.table.getPrimaryKey());

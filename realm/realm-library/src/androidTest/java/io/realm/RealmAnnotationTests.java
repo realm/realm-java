@@ -285,7 +285,6 @@ public class RealmAnnotationTests {
         }
     }
 
-
     // Annotation processor honors common naming conventions
     // We check if setters and getters are generated and working
     @Test
