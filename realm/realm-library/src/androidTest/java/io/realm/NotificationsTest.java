@@ -255,7 +255,8 @@ public class NotificationsTest {
         final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final Map<Integer, Integer> results = new ConcurrentHashMap<Integer, Integer>();
         final Looper[] looper = new Looper[1];
-        final RealmChangeListener<Realm> listener[] = new RealmChangeListener[1];
+        //noinspection unchecked
+        final RealmChangeListener<Realm>[] listener = new RealmChangeListener[1];
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -1043,5 +1044,129 @@ public class NotificationsTest {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void realmListener_realmResultShouldBeSynced() {
+        final AtomicInteger changeCounter = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        });
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        assertEquals(1, results.size());
+
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                switch (changeCounter.getAndIncrement()) {
+                    case 0:
+                        // Change event triggered by populating
+                        assertEquals(1, realm.where(AllTypes.class).count());
+                        assertEquals(1, results.size());
+
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                                assertNotNull(allTypes);
+                                allTypes.deleteFromRealm();
+                                assertEquals(0, realm.where(AllTypes.class).count());
+                            }
+                        });
+                        break;
+                    case 1:
+                        // Change event triggered by deletion in async transaction.
+                        assertEquals(0, realm.where(AllTypes.class).count());
+                        assertEquals(0, results.size());
+                        realm.close();
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    }
+
+    // We precisely depend on the order of triggering change listeners right now.
+    // So it should be:
+    // 1. Synced object listener
+    // 2. Synced results listener
+    // 3. Global listener
+    // Async listeners are not concerned by this test. Since they are triggered by different event and no advance read
+    // involved.
+    // If this case fails on your code, think twice before changing the test!
+    // https://github.com/realm/realm-java/issues/2408 is related to this test!
+    @Test
+    @RunTestInLooperThread
+    public void callingOrdersOfListeners() {
+        final Realm realm = looperThread.realm;
+        final AtomicInteger count = new AtomicInteger(0);
+
+        final RealmChangeListener<RealmResults<AllTypes>> syncedResultsListener =
+                new RealmChangeListener<RealmResults<AllTypes>>() {
+                    @Override
+                    public void onChange(RealmResults<AllTypes> element) {
+                        // First called
+                        assertEquals(0, count.getAndIncrement());
+                    }
+                };
+
+        final RealmChangeListener<AllTypes> syncedObjectListener = new RealmChangeListener<AllTypes>() {
+            @Override
+            public void onChange(AllTypes element) {
+                // Second called
+                assertEquals(1, count.getAndIncrement());
+            }
+        };
+        final RealmChangeListener<Realm> globalListener = new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                // third called
+                assertEquals(2, count.getAndIncrement());
+                looperThread.testComplete();
+            }
+        };
+
+
+        realm.beginTransaction();
+        final AllTypes allTypes = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        // We need to create one objects first and let the pass the first change event
+        final RealmChangeListener<Realm> initListener = new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                looperThread.postRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Clear the change listeners
+                        realm.removeAllChangeListeners();
+
+                        // Now we can start testing
+                        allTypes.addChangeListener(syncedObjectListener);
+                        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+                        results.addChangeListener(syncedResultsListener);
+                        realm.addChangeListener(globalListener);
+
+                        // Now we trigger those listeners
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                                assertNotNull(allTypes);
+                                allTypes.setColumnLong(42);
+                            }
+                        });
+                    }
+                });
+            }
+        };
+        realm.addChangeListener(initListener);
     }
 }
