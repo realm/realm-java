@@ -19,19 +19,20 @@
 #ifndef REALM_REALM_HPP
 #define REALM_REALM_HPP
 
-#include "schema.hpp"
-
 #include <memory>
 #include <string>
 #include <thread>
 #include <vector>
 
 namespace realm {
+    class BinaryData;
     class BindingContext;
     class Group;
     class Realm;
     class Replication;
+    class Schema;
     class SharedGroup;
+    class StringData;
     typedef std::shared_ptr<Realm> SharedRealm;
     typedef std::weak_ptr<Realm> WeakRealm;
 
@@ -121,6 +122,7 @@ namespace realm {
 
         void invalidate();
         bool compact();
+        void write_copy(StringData path, BinaryData encryption_key);
 
         std::thread::id thread_id() const { return m_thread_id; }
         void verify_thread() const;
@@ -131,6 +133,8 @@ namespace realm {
         // Close this Realm and remove it from the cache. Continuing to use a
         // Realm after closing it will produce undefined behavior.
         void close();
+
+        bool is_closed() { return !m_read_only_group && !m_shared_group; }
 
         ~Realm();
 
@@ -199,14 +203,16 @@ namespace realm {
             /** Thrown if the file needs to be upgraded to a new format, but upgrades have been explicitly disabled. */
             FormatUpgradeRequired,
         };
-        RealmFileException(Kind kind, std::string path, std::string message) :
-            std::runtime_error(std::move(message)), m_kind(kind), m_path(std::move(path)) {}
+        RealmFileException(Kind kind, std::string path, std::string message, std::string underlying) :
+            std::runtime_error(std::move(message)), m_kind(kind), m_path(std::move(path)), m_underlying(std::move(underlying)) {}
         Kind kind() const { return m_kind; }
         const std::string& path() const { return m_path; }
+        const std::string& underlying() const { return m_underlying; }
 
     private:
         Kind m_kind;
         std::string m_path;
+        std::string m_underlying;
     };
 
     class MismatchedConfigException : public std::runtime_error {
@@ -224,9 +230,9 @@ namespace realm {
         IncorrectThreadException() : std::runtime_error("Realm accessed from incorrect thread.") {}
     };
 
-    class UnitializedRealmException : public std::runtime_error {
+    class UninitializedRealmException : public std::runtime_error {
     public:
-        UnitializedRealmException(std::string message) : std::runtime_error(message) {}
+        UninitializedRealmException(std::string message) : std::runtime_error(message) {}
     };
 
     class InvalidEncryptionKeyException : public std::runtime_error {

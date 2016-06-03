@@ -69,6 +69,6 @@ target_include_directories(realm-object-store-static PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(realm-object-store-static PUBLIC realm ${CF_LIBRARY})
 
 # A dynamic library, linking together the prebuilt object files.
-add_library(realm-object-store SHARED $<TARGET_OBJECTS:realm-object-store-objects>)
+add_library(realm-object-store SHARED $<TARGET_OBJECTS:realm-object-store-objects> placeholder.cpp)
 target_include_directories(realm-object-store PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(realm-object-store PRIVATE realm ${CF_LIBRARY})
