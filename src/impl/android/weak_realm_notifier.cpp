@@ -19,6 +19,7 @@
 #include "impl/weak_realm_notifier.hpp"
 #include "shared_realm.hpp"
 
+#include <errno.h>
 #include <fcntl.h> 
 #include <unistd.h>
 #include <android/log.h>

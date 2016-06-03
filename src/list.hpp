@@ -20,6 +20,7 @@
 #define REALM_LIST_HPP
 
 #include "collection_notifications.hpp"
+#include "impl/collection_notifier.hpp"
 
 #include <realm/link_view_fwd.hpp>
 #include <realm/row.hpp>
@@ -45,6 +46,11 @@ public:
     List() noexcept;
     List(std::shared_ptr<Realm> r, const ObjectSchema& s, LinkViewRef l) noexcept;
     ~List();
+
+    List(const List&);
+    List& operator=(const List&);
+    List(List&&);
+    List& operator=(List&&);
 
     const std::shared_ptr<Realm>& get_realm() const { return m_realm; }
     Query get_query() const;
@@ -89,7 +95,7 @@ private:
     std::shared_ptr<Realm> m_realm;
     const ObjectSchema* m_object_schema;
     LinkViewRef m_link_view;
-    std::shared_ptr<_impl::CollectionNotifier> m_notifier;
+    _impl::CollectionNotifier::Handle<_impl::CollectionNotifier> m_notifier;
 
     void verify_valid_row(size_t row_ndx, bool insertion = false) const;
 
