@@ -583,7 +583,7 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeField_removeIndexesPriorToPrimaryKey() {
-        RealmObjectSchema schema = realmSchema.get("AllJavaTypes");
+        RealmObjectSchema schema = realmSchema.get(AllJavaTypes.CLASS_NAME);
 
         assertEquals(3, schema.table.getPrimaryKey());
         schema.removeField("fieldString");
@@ -596,7 +596,7 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void removeField_removeIndexesPosteriorToPrimaryKey() {
-        RealmObjectSchema schema = realmSchema.get("AllJavaTypes");
+        RealmObjectSchema schema = realmSchema.get(AllJavaTypes.CLASS_NAME);
 
         assertEquals(3, schema.table.getPrimaryKey());
         schema.removeField("fieldList");

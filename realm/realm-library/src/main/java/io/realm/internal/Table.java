@@ -1054,21 +1054,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Rearrange the primary key column index for this table. This needs to be called manually before inserting data into the table.
+     * Invalidating cached the primary key column index for this table. This needs to be called manually before inserting data into the table.
      */
-    public void rearrangePrimaryKeyColumn() {
-        long pkColumnIndex = getPrimaryKey();
-        if (pkColumnIndex == NO_PRIMARY_KEY) {
-            return;
-        }
-
-        Table pkTable = getPrimaryKeyTable();
-        String className = tableNameToClassName(getName());
-        long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
-        if (pkRowIndex != NO_MATCH) {
-            String pkColumnName = pkTable.getString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex);
-            setPrimaryKey(pkColumnName);
-        }
+    public void invalidateCachedPrimaryKeyIndex() {
+        cachedPrimaryKeyColumnIndex = NO_MATCH;
     }
 
     /*
