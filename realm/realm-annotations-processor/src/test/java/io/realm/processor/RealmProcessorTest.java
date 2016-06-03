@@ -492,4 +492,13 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
+
+    @Test
+    public void failsOnLinkingObjectsWithLinkedFields() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_LinkedFields.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
 }
