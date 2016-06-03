@@ -533,3 +533,54 @@ TEST_CASE("Async Results error handling") {
         }
     }
 }
+
+TEST_CASE("Notifications on moved Results") {
+    InMemoryTestFile config;
+    config.cache = false;
+    config.automatic_change_notifications = false;
+    config.schema = std::make_unique<Schema>(Schema{
+        {"object", "", {
+            {"value", PropertyType::Int},
+        }},
+    });
+
+    auto r = Realm::get_shared_realm(config);
+    auto table = r->read_group()->get_table("class_object");
+    auto results = std::make_unique<Results>(r, *config.schema->find("object"), *table);
+
+    int notification_calls = 0;
+    auto token = results->add_notification_callback([&](CollectionChangeSet c, std::exception_ptr err) {
+        REQUIRE_FALSE(err);
+        ++notification_calls;
+    });
+
+    advance_and_notify(*r);
+
+    auto write = [&](auto&& f) {
+        r->begin_transaction();
+        f();
+        r->commit_transaction();
+        advance_and_notify(*r);
+    };
+
+    SECTION("notifications continue to work after Results is moved (move-constructor)") {
+        Results r(std::move(*results));
+        results.reset();
+
+        write([&] {
+            table->set_int(0, table->add_empty_row(), 1);
+        });
+        REQUIRE(notification_calls == 2);
+    }
+
+    SECTION("notifications continue to work after Results is moved (move-assignment)") {
+        Results r;
+        r = std::move(*results);
+        results.reset();
+
+        write([&] {
+            table->set_int(0, table->add_empty_row(), 1);
+        });
+        REQUIRE(notification_calls == 2);
+    }
+}

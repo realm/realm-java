@@ -19,8 +19,8 @@
 #include "impl/external_commit_helper.hpp"
 #include "impl/realm_coordinator.hpp"
 
-
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sstream>
 #include <sys/epoll.h>
@@ -35,9 +35,6 @@
 #else
 #define ANDROID_LOG(...)
 #endif
-
-#include <errno.h>
-#include <sstream>
 
 using namespace realm;
 using namespace realm::_impl;
