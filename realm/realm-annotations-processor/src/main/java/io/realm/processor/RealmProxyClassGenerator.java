@@ -89,6 +89,24 @@ public class RealmProxyClassGenerator {
         imports.add("org.json.JSONObject");
         imports.add("org.json.JSONException");
         imports.add("org.json.JSONArray");
+        imports.add(metadata.getFullyQualifiedClassName());
+
+        List<VariableElement> allFields = new ArrayList<VariableElement>();
+        allFields.addAll(metadata.getPersistedFields());
+        for (ClassMetaData.Backlink backlink : metadata.getBacklinkFields()) {
+            allFields.add(backlink.field);
+        }
+        for (VariableElement field : allFields) {
+            String fieldTypeName = "";
+            if (Utils.isRealmModel(field)) { // Links
+                fieldTypeName = field.asType().toString();
+            } else if (Utils.isRealmList(field) || Utils.isRealmResults(field)) { // LinkLists, Backlinks
+                fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+            }
+            if (!fieldTypeName.isEmpty() && !imports.contains(fieldTypeName)) {
+                imports.add(fieldTypeName);
+            }
+        }
 
         Collections.sort(imports);
         writer.emitImports(imports);
@@ -108,9 +126,12 @@ public class RealmProxyClassGenerator {
 
         emitClassFields(writer);
         emitConstructor(writer);
+
         emitInjectContextMethod(writer);
         emitAccessors(writer);
         emitCreateRealmObjectSchemaMethod(writer);
+        emitPersistedFieldAccessors(writer);
+        emitBacklinkFieldAccessors(writer);
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetTableNameMethod(writer);
@@ -145,7 +166,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         // fields
-        for (VariableElement variableElement : metadata.getFields()) {
+        for (VariableElement variableElement : metadata.getPersistedFields()) {
             writer.emitField("long", columnIndexVarName(variableElement),
                     EnumSet.of(Modifier.PUBLIC));
         }
@@ -156,8 +177,8 @@ public class RealmProxyClassGenerator {
                 "String", "path",
                 "Table", "table");
         writer.emitStatement("final Map<String, Long> indicesMap = new HashMap<String, Long>(%s)",
-                metadata.getFields().size());
-        for (VariableElement variableElement : metadata.getFields()) {
+                metadata.getPersistedFields().size());
+        for (VariableElement variableElement : metadata.getPersistedFields()) {
             final String columnName = variableElement.getSimpleName().toString();
             final String columnIndexVarName = columnIndexVarName(variableElement);
             writer.emitStatement("this.%s = getValidColumnIndex(path, table, \"%s\", \"%s\")",
@@ -207,7 +228,7 @@ public class RealmProxyClassGenerator {
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE));
         writer.emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
-        for (VariableElement variableElement : metadata.getFields()) {
+        for (VariableElement variableElement : metadata.getPersistedFields()) {
             if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericTypeQualifiedName(variableElement);
                 writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
@@ -217,7 +238,7 @@ public class RealmProxyClassGenerator {
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
         writer.emitStatement("List<String> fieldNames = new ArrayList<String>()");
-        for (VariableElement field : metadata.getFields()) {
+        for (VariableElement field : metadata.getPersistedFields()) {
             writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
         }
         writer.emitStatement("FIELD_NAMES = Collections.unmodifiableList(fieldNames)");
@@ -512,6 +533,40 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
+    private void emitBacklinkFieldAccessors(JavaWriter writer) throws IOException {
+        for (ClassMetaData.Backlink backlink : metadata.getBacklinkFields()) {
+            VariableElement field = backlink.field;
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            if (Utils.isRealmResults(field)) {
+                /**
+                 * Backlinks (RealmResults)
+                 */
+                String genericType = Utils.getGenericType(field);
+
+                // Getter
+                writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+                writer.emitStatement("BaseRealm realm = proxyState.getRealm$realm()");
+                writer.emitStatement("Row row = proxyState.getRow$realm()");
+                writer.emitStatement("Table srcTable = realm.getSchema().getTable(%s.class)", genericType);
+                writer.emitStatement("long srcColumnIndex = realm.getSchema().getSchemaForClass(%s.class).getFieldIndex(\"%s\")", genericType, backlink.backlinkFieldName);
+                writer.emitStatement("return RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex), %s.class)", genericType);
+                writer.endMethod();
+                writer.emitEmptyLine();
+
+                // Setter
+                writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.emitStatement("throw new UnsupportedOperationException(\"Fields that are @LinkingObjects cannot be modified. They are managed by Realm.\")");
+                writer.endMethod();
+                writer.emitEmptyLine();
+
+            } else {
+                throw new IllegalArgumentException(String.format("Type %s of field %s is not supported",
+                        fieldTypeCanonicalName, fieldName));
+            }
+        }
+    }
 
     private void emitRealmObjectProxyImplementation(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
@@ -580,7 +635,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // For each field generate corresponding table index constant
-        for (VariableElement field : metadata.getFields()) {
+        for (VariableElement field : metadata.getPersistedFields()) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
@@ -642,6 +697,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
+
         writer.emitStatement("final long columnCount = table.getColumnCount()");
         writer.beginControlFlow("if (columnCount != %d)", metadata.getFields().size());
             writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
@@ -655,11 +711,14 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is more than expected - expected %d but was \" + columnCount)",
                         metadata.getFields().size());
             writer.endControlFlow();
+        writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getPersistedFields().size() + ")");
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field count does not match - expected %d but was \" + table.getColumnCount())",
+                metadata.getPersistedFields().size());
         writer.endControlFlow();
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
-        writer.beginControlFlow("for (long i = 0; i < columnCount; i++)");
+        writer.beginControlFlow("for (long i = 0; i < " + metadata.getPersistedFields().size() + "; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();
         writer.emitEmptyLine();
@@ -689,7 +748,7 @@ public class RealmProxyClassGenerator {
 
         // For each field verify there is a corresponding
         long fieldIndex = 0;
-        for (VariableElement field : metadata.getFields()) {
+        for (VariableElement field : metadata.getPersistedFields()) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field);
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
@@ -1132,6 +1191,7 @@ public class RealmProxyClassGenerator {
         addPrimaryKeyCheckIfNeeded(metadata, true, writer);
 
         for (VariableElement field : metadata.getFields()) {
+        writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
             String fieldName = field.getSimpleName().toString();
             String fieldType = field.asType().toString();
             String getter = metadata.getGetter(fieldName);
@@ -1505,7 +1565,7 @@ public class RealmProxyClassGenerator {
                 .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject))")
             .endControlFlow();
 
-        for (VariableElement field : metadata.getFields()) {
+        for (VariableElement field : metadata.getPersistedFields()) {
             String fieldName = field.getSimpleName().toString();
             String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
@@ -1557,7 +1617,7 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.STATIC), // Modifiers
                 "Realm", "realm", qualifiedClassName, "realmObject", qualifiedClassName, "newObject", "Map<RealmModel, RealmObjectProxy>", "cache"); // Argument type & argument name
 
-        for (VariableElement field : metadata.getFields()) {
+        for (VariableElement field : metadata.getPersistedFields()) {
             String fieldName = field.getSimpleName().toString();
             String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
@@ -1783,7 +1843,7 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
         }
 
-        for (VariableElement field : metadata.getFields()) {
+        for (VariableElement field : metadata.getPersistedFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
             if (metadata.isPrimaryKey(field)) {
@@ -1857,7 +1917,7 @@ public class RealmProxyClassGenerator {
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
 
-        List<VariableElement> fields = metadata.getFields();
+        List<VariableElement> fields = metadata.getPersistedFields();
         for (int i = 0; i < fields.size(); i++) {
             VariableElement field = fields.get(i);
             String fieldName = field.getSimpleName().toString();

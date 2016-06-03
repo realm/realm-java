@@ -18,10 +18,8 @@ package io.realm.processor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -56,7 +54,7 @@ public class ClassMetaData {
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
     private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all user persisted fields in the class.
-    private List<VariableElement> backlinkFields = new ArrayList<VariableElement>(); // List of all fields maintained by Realm (RealmResults)
+    private List<Backlink> backlinkFields = new ArrayList<Backlink>(); // List of all fields maintained by Realm (RealmResults)
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private boolean containsToString;
@@ -309,7 +307,6 @@ public class ClassMetaData {
                                 variableElement.getSimpleName().toString(), variableElement.asType().toString()));
                         return false;
                     }
-
                     // Since @LinkingObjects might reference a type from a library project that is not
                     // part of this processing round, we can only do basic type checking here.
                     // Real validation must be done at runtime.
@@ -317,9 +314,17 @@ public class ClassMetaData {
                     if (backlinkField == null || backlinkField.equals("")) {
                         Utils.error(String.format("@LinkingObjects is missing a non-empty field parameter: %s",
                                 variableElement.getSimpleName().toString()));
+                        return false;
                     }
 
-                    backlinkFields.add(variableElement);
+                    // Using link syntax to try to reference a linked field is not possible.
+                    if (backlinkField.contains(".")) {
+                        Utils.error("Only fields in the @LinkingObjects class can be be used. Using '.' to specify " +
+                                "fields in referenced classes is not possible.");
+                        return false;
+                    }
+
+                    backlinkFields.add(new Backlink(variableElement, Utils.getGenericType(variableElement), backlinkField));
                     continue;
                 }
 
@@ -364,12 +369,12 @@ public class ClassMetaData {
         return packageName + "." + className;
     }
 
-    public List<VariableElement> getFields() {
+    public List<VariableElement> getPersistedFields() {
         return fields;
     }
 
-    public List<VariableElement> getBacklinkFields() {
-        return fields;
+    public List<Backlink> getBacklinkFields() {
+        return backlinkFields;
     }
 
     public String getGetter(String fieldName) {
@@ -447,6 +452,21 @@ public class ClassMetaData {
 
     public boolean containsHashCode() {
         return containsHashCode;
+    }
+
+    /**
+     * Wrapper class for representing backlinks.
+     */
+    static class Backlink {
+        public final String backlinkQualifiedType; //The type of backlink (fully qualified)
+        public final String backlinkFieldName; // The field name in the backlink type
+        public final VariableElement field; // The field name in the class defining the backlink
+
+        public Backlink(VariableElement field, String backlinkQualifiedType, String backlinkFieldName) {
+            this.field = field;
+            this.backlinkQualifiedType = backlinkQualifiedType;
+            this.backlinkFieldName = backlinkFieldName;
+        }
     }
 }
 

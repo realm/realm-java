@@ -187,6 +187,18 @@ public class UncheckedRow implements NativeObject, Row {
         return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
     }
 
+    @Override
+    public TableView getBacklinkView(Table srcTable, long srcColumnIndex) {
+        context.executeDelayedDisposal();
+        long backlinkViewPtr = nativeGetBacklinkView(nativePointer, srcTable.nativePtr, srcColumnIndex);
+        try {
+            return new TableView(context, getTable(), backlinkViewPtr);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(backlinkViewPtr);
+            throw e;
+        }
+    }
+
     // Setters
 
     @Override
@@ -324,5 +336,6 @@ public class UncheckedRow implements NativeObject, Row {
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
     protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetBacklinkView(long nativeRowPtr, long backlinkTablePtr, long backlinkColumnIndex);
     private static native long nativeGetFinalizerPtr();
 }

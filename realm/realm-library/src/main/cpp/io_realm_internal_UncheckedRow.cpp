@@ -369,9 +369,24 @@ static void finalize_unchecked_row(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPtr
-  (JNIEnv *, jclass)
-{
+  (JNIEnv *, jclass) {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_unchecked_row);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetBacklinkView
+  (JNIEnv *env, jobject, jlong nativeRowPtr, jlong srcTablePtr, jlong srcColumnIndex) {
+
+    TR_ENTER_PTR(nativeRowPtr)
+    if (!ROW_VALID(env, ROW(nativeRowPtr)))
+        return -1;
+    try {
+        Row* row = ROW(nativeRowPtr);
+        Table* srcTable = TBL(srcTablePtr);
+        TableView backlinkView = row->get_table()->get_backlink_view(row->get_index(), srcTable, srcColumnIndex);
+        TableView* tv = new TableView(backlinkView);
+        return reinterpret_cast<jlong>(tv);
+    } CATCH_STD()
+    return -1;
 }
 

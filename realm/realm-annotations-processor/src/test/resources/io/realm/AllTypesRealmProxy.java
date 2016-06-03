@@ -464,6 +464,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
     }
 
+<<<<<<< HEAD
     public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.contains("AllTypes")) {
             RealmObjectSchema realmObjectSchema = realmSchema.create("AllTypes");
@@ -487,9 +488,23 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return realmSchema.get("AllTypes");
     }
 
-    public static Table initTable(SharedRealm sharedRealm) {
-        if (!sharedRealm.hasTable("class_AllTypes")) {
-            Table table = sharedRealm.getTable("class_AllTypes");
+
+    public RealmResults<AllTypes> realmGet$parentObjects() {
+        BaseRealm realm = proxyState.getRealm$realm();
+        Row row = proxyState.getRow$realm();
+        Table srcTable = realm.getSchema().getTable(AllTypes.class);
+        long srcColumnIndex = realm.getSchema().getSchemaForClass(AllTypes.class).getFieldIndex("parentObject");
+        cachedParentObjects = RealmResults.createFromTableOrView(realm, row.getBacklinkView(srcTable, srcColumnIndex));
+        return cachedParentObjects;
+    }
+
+    public void realmSet$parentObjects(RealmResults<AllTypes> value) {
+        throw new UnsupportedOperationException("Fields that are @LinkingObjects cannot be modified. They are managed by Realm.");
+    }
+
+    public static Table initTable(ImplicitTransaction transaction) {
+        if (!transaction.hasTable("class_AllTypes")) {
+            Table table = transaction.getTable("class_AllTypes");
             table.addColumn(RealmFieldType.STRING, "columnString", Table.NULLABLE);
             table.addColumn(RealmFieldType.INTEGER, "columnLong", Table.NOT_NULLABLE);
             table.addColumn(RealmFieldType.FLOAT, "columnFloat", Table.NOT_NULLABLE);

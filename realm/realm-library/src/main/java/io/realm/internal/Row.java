@@ -75,6 +75,8 @@ public interface Row {
 
     LinkView getLinkList(long columnIndex);
 
+    TableView getBacklinkView(Table srcTable, long srcColumnIndex);
+
     void setLong(long columnIndex, long value);
 
     void setBoolean(long columnIndex, boolean value);
@@ -203,6 +205,11 @@ public interface Row {
 
         @Override
         public LinkView getLinkList(long columnIndex) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public TableView getBacklinkView(Table srcTable, long srcColumnIndex) {
             throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
