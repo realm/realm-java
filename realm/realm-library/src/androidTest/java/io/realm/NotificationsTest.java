@@ -1063,7 +1063,7 @@ public class NotificationsTest {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm element) {
-                switch (changeCounter.getAndAdd(1)) {
+                switch (changeCounter.getAndIncrement()) {
                     case 0:
                         // Change event triggered by populating
                         assertEquals(1, realm.where(AllTypes.class).count());
@@ -1113,7 +1113,7 @@ public class NotificationsTest {
                     @Override
                     public void onChange(RealmResults<AllTypes> element) {
                         // First called
-                        assertEquals(0, count.getAndAdd(1));
+                        assertEquals(0, count.getAndIncrement());
                     }
                 };
 
@@ -1121,14 +1121,14 @@ public class NotificationsTest {
             @Override
             public void onChange(AllTypes element) {
                 // Second called
-                assertEquals(1, count.getAndAdd(1));
+                assertEquals(1, count.getAndIncrement());
             }
         };
         final RealmChangeListener<Realm> globalListener = new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm element) {
                 // third called
-                assertEquals(2, count.getAndAdd(1));
+                assertEquals(2, count.getAndIncrement());
                 looperThread.testComplete();
             }
         };
