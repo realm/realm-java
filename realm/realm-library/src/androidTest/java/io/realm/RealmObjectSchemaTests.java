@@ -582,6 +582,33 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    public void removeField_removeIndexesPriorToPrimaryKey() {
+        RealmObjectSchema schema = realmSchema.get("AllJavaTypes");
+
+        // table from RealmObjectSchema should return the same PK index as the ones newly instantiated.
+        assertEquals(3, schema.table.getPrimaryKey());
+        schema.removeField("fieldString");
+        assertEquals(2, schema.table.getPrimaryKey());
+        schema.removeField("fieldShort");
+        assertEquals(1, schema.table.getPrimaryKey());
+        schema.removeField("fieldInt");
+        assertEquals(0, schema.table.getPrimaryKey());
+    }
+
+    @Test
+    public void removeField_removeIndexesPosteriorToPrimaryKey() {
+        RealmObjectSchema schema = realmSchema.get("AllJavaTypes");
+
+        assertEquals(3, schema.table.getPrimaryKey());
+        schema.removeField("fieldList");
+        assertEquals(3, schema.table.getPrimaryKey());
+        schema.removeField("fieldObject");
+        assertEquals(3, schema.table.getPrimaryKey());
+        schema.removeField("fieldDate");
+        assertEquals(3, schema.table.getPrimaryKey());
+    }
+
+    @Test
     public void renameField() {
         String oldFieldName = "old";
         String newFieldName = "new";

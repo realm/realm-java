@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.text.TextUtils;
+
 import java.io.Closeable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -204,16 +206,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
-        if (getPrimaryKey() == columnIndex) {
-            Table pkTable = getPrimaryKeyTable();
-            String className = tableNameToClassName(getName());
-            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
-            if (rowIndex != NO_MATCH) {
-                pkTable.getUncheckedRow(rowIndex).setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, newName);
-            } else {
-                throw new IllegalStateException("PrimaryKey field is not properly recorded for " + className + ".");
-            }
-        }
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
@@ -1033,6 +1025,50 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
 
         return pkTable;
+    }
+
+    /**
+     * Rename the primary key column for the table. This needs to be called manually before inserting data into the table.
+     *
+     * @param newFieldName the name of the field replacing old primary key field name.
+     * @throws {@link IllegalArgumentException} if {@code newFieldName} is an empty string, or exceeds field name length limit.
+     * @throws {@link io.realm.exceptions.RealmException} if a primary key does not exist.
+     */
+    public void renamePrimaryKeyColumn(String newFieldName) {
+        if (TextUtils.isEmpty(newFieldName)) {
+            throw new IllegalArgumentException("Primary key field cannot be renamed with an empty string.");
+        }
+        verifyColumnName(newFieldName);
+        long pkColumnIndex = getPrimaryKey();
+        if (pkColumnIndex == NO_PRIMARY_KEY) {
+            throw new RealmException("Non-existent primary key field cannot be renamed.");
+        }
+
+        Table pkTable = getPrimaryKeyTable();
+        String className = tableNameToClassName(getName());
+        long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+        if (pkRowIndex != NO_MATCH) {
+            pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newFieldName);
+            nativeRenameColumn(nativePtr, pkColumnIndex, newFieldName);
+        }
+    }
+
+    /**
+     * Rearrange the primary key column index for this table. This needs to be called manually before inserting data into the table.
+     */
+    public void rearrangePrimaryKeyColumn() {
+        long pkColumnIndex = getPrimaryKey();
+        if (pkColumnIndex == NO_PRIMARY_KEY) {
+            return;
+        }
+
+        Table pkTable = getPrimaryKeyTable();
+        String className = tableNameToClassName(getName());
+        long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+        if (pkRowIndex != NO_MATCH) {
+            String pkColumnName = pkTable.getString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex);
+            setPrimaryKey(pkColumnName);
+        }
     }
 
     /*

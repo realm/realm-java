@@ -204,15 +204,12 @@ public final class RealmObjectSchema {
         if (table.getPrimaryKey() == columnIndex) {
             table.setPrimaryKey(null);
         }
+        table.removeColumn(columnIndex);
         // When PK does not exist (-2) this cannot happen. Meanwhile a removal target has a smaller
         // index than the PK index, we can expect an rearrangement.
-        if (columnIndex < table.getPrimaryKey()) {
-            String pkField = getPrimaryKey();
-            table.removeColumn(columnIndex);
-            table.setPrimaryKey(pkField);
-            return this;
+        if (table.hasPrimaryKey() && columnIndex < table.getPrimaryKey()) {
+            table.rearrangePrimaryKeyColumn();
         }
-        table.removeColumn(columnIndex);
         return this;
     }
 
@@ -230,7 +227,11 @@ public final class RealmObjectSchema {
         checkLegalName(newFieldName);
         checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(currentFieldName);
-        table.renameColumn(columnIndex, newFieldName);
+        if (table.getPrimaryKey() == columnIndex) {
+            table.renamePrimaryKeyColumn(newFieldName);
+        } else {
+            table.renameColumn(columnIndex, newFieldName);
+        }
 
         // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
 

@@ -227,52 +227,120 @@ public class RealmMigrationTests {
         }
     }
 
+    // this build a temporary schema that does not exist in io.realm.entities
+    private void buildBaseMigrationSchema() {
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder().build();
+        Realm realm = Realm.getInstance(originalConfig);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.getSchema()
+                        .create("OldSchema")
+                        .addField("firstField", String.class)
+                        .addField("secondField", String.class)
+                        .addField("thirdField", long.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("fourthField", Integer.class)
+                        .addField("fifthField", Integer.class);
+            }
+        });
+        realm.close();
+    }
+
     @Test
-    public void removePriorIndexesOrRenamingPrimaryKey() {
-        // Create v0 of the Realm
-        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllJavaTypes.class)
-                .build();
-        Realm.getInstance(originalConfig).close();
+    public void renameTransferPrimaryKey() {
+        buildBaseMigrationSchema();
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema()
-                        .rename("AllJavaTypes", "PrimaryKeyAsLong")
-                        // There are three columns coming prior to the PK field 'fieldLong', and
-                        // removing "fieldString", "fieldShort" & "fieldInt" should not rearrange the PK
-                        .removeField("fieldString")
-                        .removeField("fieldShort")
-                        .removeField("fieldInt")
-
-                        // removal of rest fields should not affect PK attribute
-                        .removeField("fieldByte")
-                        .removeField("fieldFloat")
-                        .removeField("fieldDouble")
-                        .removeField("fieldBoolean")
-                        .removeField("fieldDate")
-                        .removeField("fieldBinary")
-                        .removeField("fieldObject")
-                        .removeField("fieldList")
-
-                        // Renaming PK field should not affect PK attribute as well.
-                        .renameField("fieldLong", "id")
-                        .addField("name",String.class);
+                realm.getSchema().rename("OldSchema", "NewSchema");
             }
         };
-
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(PrimaryKeyAsLong.class)
                 .migration(migration)
                 .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        Table table = realm.getSchema().getTable("NewSchema");
 
-        realm = Realm.getInstance(realmConfig);
-        Table table = realm.getTable(PrimaryKeyAsLong.class);
-        assertEquals(2, table.getColumnCount());
+        assertEquals(5, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
+        assertEquals(2, table.getPrimaryKey());
+        assertEquals("thirdField", table.getColumnName(table.getPrimaryKey()));
+    }
+
+    @Test
+    public void removeIndexesPriorToPrimaryKey() {
+        buildBaseMigrationSchema();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.getSchema().get("OldSchema")
+                        .removeField("firstField")
+                        .removeField("secondField");
+            }
+        };
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        Table table = realm.getSchema().getTable("OldSchema");
+
+        assertEquals(3, table.getColumnCount());
+        assertTrue(table.hasPrimaryKey());
+        assertEquals(0, table.getPrimaryKey());
+        assertEquals("thirdField", table.getColumnName(table.getPrimaryKey()));
+    }
+
+    @Test
+    public void removeIndexesPosteriorToPrimaryKey() {
+        buildBaseMigrationSchema();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.getSchema().get("OldSchema")
+                        .removeField("fourthField")
+                        .removeField("fifthField");
+            }
+        };
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        Table table = realm.getSchema().getTable("OldSchema");
+
+        assertEquals(3, table.getColumnCount());
+        assertTrue(table.hasPrimaryKey());
+        assertEquals(2, table.getPrimaryKey());
+        assertEquals("thirdField", table.getColumnName(table.getPrimaryKey()));
+    }
+
+    @Test
+    public void renamePrimaryKeyFieldInMigration() {
+        buildBaseMigrationSchema();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.getSchema().get("OldSchema")
+                        .renameField("thirdField", "NewPrimaryKey");
+            }
+        };
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        Table table = realm.getSchema().getTable("OldSchema");
+
+        assertEquals(5, table.getColumnCount());
+        assertTrue(table.hasPrimaryKey());
+        assertEquals(2, table.getPrimaryKey());
+        assertEquals("NewPrimaryKey", table.getColumnName(table.getPrimaryKey()));
     }
 
     @Test

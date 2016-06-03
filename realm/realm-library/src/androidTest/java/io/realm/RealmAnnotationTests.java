@@ -29,6 +29,7 @@ import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -226,6 +227,64 @@ public class RealmAnnotationTests {
         assertTrue(table.hasPrimaryKey());
         assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
     }
+
+    @Test
+    public void primaryKey_renameExistingPrimaryKey() {
+        final String NEW_PRIMARYKEY_FIELD_NAME = "NewPrimaryKeyName";
+
+        Table table = realm.getTable(PrimaryKeyAsString.class);
+        final long pkColumnIndex = table.getPrimaryKey();
+        assertTrue(table.hasPrimaryKey());
+        assertEquals(pkColumnIndex, table.getColumnIndex("name"));
+
+        realm.beginTransaction();
+        table.renamePrimaryKeyColumn(NEW_PRIMARYKEY_FIELD_NAME);
+        realm.commitTransaction();
+
+        assertTrue(table.hasPrimaryKey());
+        assertEquals(pkColumnIndex, table.getPrimaryKey());
+        assertEquals(pkColumnIndex, table.getColumnIndex(NEW_PRIMARYKEY_FIELD_NAME));
+    }
+
+    @Test
+    public void primaryKey_renameWithEmptyStringName() {
+        Table table = realm.getTable(PrimaryKeyAsString.class);
+        assertTrue(table.hasPrimaryKey());
+
+        realm.beginTransaction();
+        try {
+            table.renamePrimaryKeyColumn("");
+            fail("cannot rename primary Key with an empty string");
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        realm.beginTransaction();
+        try {
+            table.renamePrimaryKeyColumn(null);
+            fail("cannot rename primary Key with null");
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void primaryKey_renameUnexistingPrimaryKey() {
+        Table table = realm.getTable(AnnotationIndexTypes.class);
+        assertFalse(table.hasPrimaryKey());
+
+        realm.beginTransaction();
+        try {
+            table.renamePrimaryKeyColumn("NewPrimaryKeyName");
+            fail("cannot rename un-existing primary key");
+        } catch (RealmException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
 
     // Annotation processor honors common naming conventions
     // We check if setters and getters are generated and working
