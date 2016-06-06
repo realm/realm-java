@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import android.text.TextUtils;
-
 import java.io.Closeable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1035,7 +1033,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @throws {@link io.realm.exceptions.RealmException} if a primary key does not exist.
      */
     public void renamePrimaryKeyColumn(String newFieldName) {
-        if (TextUtils.isEmpty(newFieldName)) {
+        if (newFieldName == null || newFieldName.length() == 0) {
             throw new IllegalArgumentException("Primary key field cannot be renamed with an empty string.");
         }
         verifyColumnName(newFieldName);

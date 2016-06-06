@@ -36,6 +36,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
+import io.realm.entities.migration.MigrationFieldRenamed;
+import io.realm.entities.migration.MigrationPosteriorIndexOnly;
+import io.realm.entities.migration.MigrationPriorIndexOnly;
+import io.realm.entities.migration.MigrationSchemaRenamed;
+import io.realm.migration.MigrationPrimaryKey;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
@@ -227,19 +232,24 @@ public class RealmMigrationTests {
     }
 
     // this builds a temporary schema that does not exist in io.realm.entities
-    private void buildBaseMigrationSchema() {
+    private void buildBaseMigrationSchema(final String schemaName, final boolean createBase) {
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder().build();
+        // Ensure that there is no data
+        Realm.deleteRealm(originalConfig);
         Realm realm = Realm.getInstance(originalConfig);
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                // firstly remove an existing schema
+                realm.getSchema().remove(schemaName);
+                // then recreate the deleted schema or build base schema
                 realm.getSchema()
-                        .create("OldSchema")
-                        .addField("firstField", String.class)
-                        .addField("secondField", String.class)
-                        .addField("thirdField", long.class, FieldAttribute.PRIMARY_KEY)
-                        .addField("fourthField", Integer.class)
-                        .addField("fifthField", Integer.class);
+                        .create(createBase ? MigrationPrimaryKey.CLASS_NAME : schemaName)
+                        .addField(MigrationPrimaryKey.FIELD_FIRST,   Byte.class)
+                        .addField(MigrationPrimaryKey.FIELD_SECOND,  Short.class)
+                        .addField(MigrationPrimaryKey.FIELD_PRIMARY, String.class, FieldAttribute.PRIMARY_KEY)
+                        .addField(MigrationPrimaryKey.FIELD_FOURTH,  Integer.class)
+                        .addField(MigrationPrimaryKey.FIELD_FIFTH,   Long.class);
             }
         });
         realm.close();
@@ -247,99 +257,104 @@ public class RealmMigrationTests {
 
     @Test
     public void renameTransferPrimaryKey() {
-        buildBaseMigrationSchema();
+        buildBaseMigrationSchema(MigrationSchemaRenamed.CLASS_NAME, true);
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().rename("OldSchema", "NewSchema");
+                realm.getSchema()
+                        .rename(MigrationPrimaryKey.CLASS_NAME, MigrationSchemaRenamed.CLASS_NAME);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
+                .schema(MigrationSchemaRenamed.class)
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable("NewSchema");
+        Table table = realm.getSchema().getTable(MigrationSchemaRenamed.class);
 
-        assertEquals(5, table.getColumnCount());
+        assertEquals(MigrationSchemaRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertEquals(2, table.getPrimaryKey());
-        assertEquals("thirdField", table.getColumnName(table.getPrimaryKey()));
+        assertEquals(MigrationSchemaRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
+        assertEquals(MigrationSchemaRenamed.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
     @Test
     public void removeIndexesPriorToPrimaryKey() {
-        buildBaseMigrationSchema();
+        buildBaseMigrationSchema(MigrationPosteriorIndexOnly.CLASS_NAME, false);
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().get("OldSchema")
-                        .removeField("firstField")
-                        .removeField("secondField");
+                realm.getSchema().get(MigrationPosteriorIndexOnly.CLASS_NAME)
+                        .removeField(MigrationPrimaryKey.FIELD_FIRST)
+                        .removeField(MigrationPrimaryKey.FIELD_SECOND);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
+                .schema(MigrationPosteriorIndexOnly.class)
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable("OldSchema");
+        Table table = realm.getSchema().getTable(MigrationPosteriorIndexOnly.class);
 
-        assertEquals(3, table.getColumnCount());
+        assertEquals(MigrationPosteriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertEquals(0, table.getPrimaryKey());
-        assertEquals("thirdField", table.getColumnName(table.getPrimaryKey()));
+        assertEquals(MigrationPosteriorIndexOnly.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
+        assertEquals(MigrationPosteriorIndexOnly.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
     @Test
     public void removeIndexesPosteriorToPrimaryKey() {
-        buildBaseMigrationSchema();
+        buildBaseMigrationSchema(MigrationPriorIndexOnly.CLASS_NAME, false);
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().get("OldSchema")
-                        .removeField("fourthField")
-                        .removeField("fifthField");
+                realm.getSchema().get(MigrationPriorIndexOnly.CLASS_NAME)
+                        .removeField(MigrationPrimaryKey.FIELD_FOURTH)
+                        .removeField(MigrationPrimaryKey.FIELD_FIFTH);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
+                .schema(MigrationPriorIndexOnly.class)
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable("OldSchema");
+        Table table = realm.getSchema().getTable(MigrationPriorIndexOnly.class);
 
-        assertEquals(3, table.getColumnCount());
+        assertEquals(MigrationPriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertEquals(2, table.getPrimaryKey());
-        assertEquals("thirdField", table.getColumnName(table.getPrimaryKey()));
+        assertEquals(MigrationPriorIndexOnly.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
+        assertEquals(MigrationPriorIndexOnly.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
     @Test
     public void renamePrimaryKeyFieldInMigration() {
-        buildBaseMigrationSchema();
+        buildBaseMigrationSchema(MigrationFieldRenamed.CLASS_NAME, false);
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().get("OldSchema")
-                        .renameField("thirdField", "NewPrimaryKey");
+                realm.getSchema().get(MigrationFieldRenamed.CLASS_NAME)
+                        .renameField(MigrationPrimaryKey.FIELD_PRIMARY, MigrationFieldRenamed.FIELD_PRIMARY);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
+                .schema(MigrationFieldRenamed.class)
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable("OldSchema");
+        Table table = realm.getSchema().getTable(MigrationFieldRenamed.class);
 
-        assertEquals(5, table.getColumnCount());
+        assertEquals(MigrationFieldRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertEquals(2, table.getPrimaryKey());
-        assertEquals("NewPrimaryKey", table.getColumnName(table.getPrimaryKey()));
+        assertEquals(MigrationFieldRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
+        assertEquals(MigrationFieldRenamed.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
     @Test
