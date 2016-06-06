@@ -946,20 +946,20 @@ public class NotificationsTest {
     public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
         final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        looperThread.realm.addChangeListener(new RealmChangeListener<Realm>() {
+        final Realm realm = looperThread.realm;
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
                 switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
                     case 1: {
                         // first commit
-                        Dog dog = looperThread.realm.where(Dog.class).findFirstAsync();
+                        Dog dog = realm.where(Dog.class).findFirstAsync();
                         assertTrue(dog.load());
                         dog.addChangeListener(new RealmChangeListener<Dog>() {
                             @Override
                             public void onChange(Dog dog) {
                             }
                         });
-                        looperThread.keepStrongReference.add(dog);
 
                         new Thread() {
                             @Override
@@ -987,9 +987,9 @@ public class NotificationsTest {
         looperThread.postRunnable(new Runnable() {
             @Override
             public void run() {
-                looperThread.realm.beginTransaction();
-                looperThread.realm.createObject(Dog.class);
-                looperThread.realm.commitTransaction();
+                realm.beginTransaction();
+                realm.createObject(Dog.class);
+                realm.commitTransaction();
             }
         });
     }
@@ -1169,4 +1169,41 @@ public class NotificationsTest {
         };
         realm.addChangeListener(initListener);
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void accessingSyncRealmResultInsideAsyncResultListener() {
+        final Realm realm = looperThread.realm;
+        final AtomicInteger asyncResultCallback = new AtomicInteger(0);
+
+        final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
+
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                switch (asyncResultCallback.incrementAndGet()) {
+                    case 1:
+                        // 1. Called when first async query completes
+                        assertEquals(0, results.size());
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.createObject(AllTypes.class);
+                            }
+                        });
+                        break;
+
+                    case 2:
+                        // 2. Called after async transaction completes, A REALM_CHANGED event has been triggered,
+                        // async queries have rerun, and listeners are triggered again
+                        assertEquals(1, results.size());
+                        assertEquals(1, syncResults.size());
+                        looperThread.testComplete();
+                        break;
+                }
+            }
+        });
+    }
+
 }

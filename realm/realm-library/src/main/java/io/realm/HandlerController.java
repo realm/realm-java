@@ -269,7 +269,7 @@ final class HandlerController implements Handler.Callback {
         }
         // It is very important to notify the global listeners last.
         // We don't sync RealmResults in realmChanged, instead, they are synced in notifySyncRealmResultsCallbacks.
-        // This is because of we need to compare the TableView version in order to decide if it changes. Thus, we cannot
+        // This is because we need to compare the TableView version in order to decide if it changes. Thus, we cannot
         // sync the RealmResults together with advance read - the result's listener won't get called.
         // NotificationTest.callingOrdersOfListeners will fail if orders change.
         notifyGlobalListeners();
@@ -462,7 +462,9 @@ final class HandlerController implements Handler.Callback {
         SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
         int compare = callerVersionID.compareTo(result.versionID);
         if (compare > 0) {
-            // if the caller thread is advanced i.e it already sent a REALM_CHANGE that will update the queries
+            // if the caller thread is more advanced than the worker thread, it means it did a local commit.
+            // This should also have put a REALM_CHANGED event on the Looper queue, so ignoring this result should
+            // be safe as all async queries will be rerun when processing the REALM_CHANGED event.
             RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, Looper will updates queries");
 
         } else {
