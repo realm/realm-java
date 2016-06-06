@@ -14,7 +14,8 @@ set(SOURCES
     impl/results_notifier.cpp
     impl/transact_log_handler.cpp
     parser/parser.cpp
-    parser/query_builder.cpp)
+    parser/query_builder.cpp
+    util/format.cpp)
 
 set(HEADERS
     collection_notifications.hpp
@@ -37,7 +38,8 @@ set(HEADERS
     impl/weak_realm_notifier_base.hpp
     parser/parser.hpp
     parser/query_builder.hpp
-    util/atomic_shared_ptr.hpp)
+    util/atomic_shared_ptr.hpp
+    util/format.hpp)
 
 if(APPLE)
     list(APPEND SOURCES

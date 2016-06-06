@@ -22,8 +22,6 @@
 #include "parser.hpp"
 #include "object_accessor.hpp"
 
-#include <realm/util/to_string.hpp>
-
 namespace realm {
 class Query;
 class Schema;
@@ -68,10 +66,7 @@ class ArgumentConverter : public Arguments {
     ContextType m_ctx;
 
     ValueType &argument_at(size_t index) {
-        if (index >= m_arguments.size()) {
-            throw std::out_of_range((std::string)"Argument index " + util::to_string(index) + " out of range 0.." + util::to_string(m_arguments.size()-1));
-        }
-        return m_arguments[index];
+        return m_arguments.at(index);
     }
 };
 }

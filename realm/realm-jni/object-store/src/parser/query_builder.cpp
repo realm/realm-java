@@ -19,10 +19,11 @@
 #include "query_builder.hpp"
 #include "parser.hpp"
 
-#include <realm.hpp>
 #include "object_store.hpp"
 #include "schema.hpp"
+#include "util/format.hpp"
 
+#include <realm.hpp>
 #include <assert.h>
 
 namespace realm {
@@ -30,12 +31,12 @@ namespace query_builder {
 using namespace parser;
 
 template<typename T>
-T stot(const std::string s) {
+T stot(std::string const& s) {
     std::istringstream iss(s);
     T value;
     iss >> value;
     if (iss.fail()) {
-        throw std::invalid_argument("Cannot convert string '" + s + "'");
+        throw std::invalid_argument(util::format("Cannot convert string '%1'", s));
     }
     return value;
 }
@@ -95,12 +96,13 @@ struct PropertyExpression
         for (size_t index = 0; index < key_path.size(); index++) {
             if (prop) {
                 precondition(prop->type == PropertyType::Object || prop->type == PropertyType::Array,
-                             (std::string)"Property '" + key_path[index] + "' is not a link in object of type '" + desc->name + "'");
+                             util::format("Property '%1' is not a link in object of type '%2'", key_path[index], desc->name));
                 indexes.push_back(prop->table_column);
 
             }
             prop = desc->property_for_name(key_path[index]);
-            precondition(prop != nullptr, "No property '" + key_path[index] + "' on object of type '" + desc->name + "'");
+            precondition(prop != nullptr,
+                         util::format("No property '%1' on object of type '%2'", key_path[index], desc->name));
 
             if (prop->object_type.size()) {
                 desc = schema.find(prop->object_type);
@@ -432,9 +434,8 @@ void do_add_comparison_to_query(Query &query, const Schema &schema, const Object
         case PropertyType::Array:
             add_link_constraint_to_query(query, cmp.op, expr, link_argument(lhs, rhs, args));
             break;
-        default: {
-            throw std::runtime_error((std::string)"Object type " + string_for_property_type(type) + " not supported");
-        }
+        default:
+            throw std::runtime_error(util::format("Object type '%1' not supported", string_for_property_type(type)));
     }
 }
 

@@ -21,9 +21,8 @@
 #include "impl/list_notifier.hpp"
 #include "impl/realm_coordinator.hpp"
 #include "results.hpp"
+#include "util/format.hpp"
 
-#include <realm/link_view.hpp>
-#include <realm/util/to_string.hpp>
 #include <stdexcept>
 
 using namespace realm;
@@ -54,8 +53,7 @@ void List::verify_valid_row(size_t row_ndx, bool insertion) const
 {
     size_t size = m_link_view->size();
     if (row_ndx > size || (!insertion && row_ndx == size)) {
-        throw std::out_of_range("Index " + util::to_string(row_ndx) + " is outside of range 0..." +
-                                util::to_string(size) + ".");
+        throw std::out_of_range(util::format("Index %1 is outside of range 0...%2.", row_ndx, size));
     }
 }
 
