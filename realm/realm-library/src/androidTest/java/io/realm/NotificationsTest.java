@@ -46,6 +46,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.log.Logger;
@@ -1206,4 +1207,27 @@ public class NotificationsTest {
         });
     }
 
+
+    // RealmResults are opdated just before their change listener is notified, this means that synchronous RealmResults
+    // might accidentially reference another RealmResults that have been advance_read, but not called sync_if_needed.
+    // This can result in accessing detached rows and other errors.
+    @Test
+    @RunTestInLooperThread
+    public void accessingSyncRealmResultsInsideResultListener() {
+        final Realm realm = looperThread.realm;
+        final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
+        final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
+        syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                assertEquals(1, syncResults1.size());
+                assertEquals(1, syncResults2.size()); // If syncResults2 is not in sync yet, this will fail.
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
 }
