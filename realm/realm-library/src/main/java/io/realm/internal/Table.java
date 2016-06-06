@@ -196,6 +196,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
+        // When PK does not exist this cannot happen. But if you remove a column with a smaller index
+        // than that of PK column, you need to rearrange PK column index.
+        if (hasPrimaryKey() && columnIndex < getPrimaryKey()) {
+            invalidateCachedPrimaryKeyIndex();
+        }
     }
 
     /**
@@ -1054,7 +1059,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Invalidating cached the primary key column index for this table. This needs to be called manually before inserting data into the table.
      */
-    public void invalidateCachedPrimaryKeyIndex() {
+    private void invalidateCachedPrimaryKeyIndex() {
         cachedPrimaryKeyColumnIndex = NO_MATCH;
     }
 

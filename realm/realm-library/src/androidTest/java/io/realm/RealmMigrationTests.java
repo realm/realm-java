@@ -233,10 +233,7 @@ public class RealmMigrationTests {
 
     // this builds a temporary schema that does not exist in io.realm.entities
     private void buildBaseMigrationSchema(final String schemaName, final boolean createBase) {
-        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder().build();
-        // Ensure that there is no data
-        Realm.deleteRealm(originalConfig);
-        Realm realm = Realm.getInstance(originalConfig);
+        Realm realm = Realm.getInstance(configFactory.createConfigurationBuilder().build());
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {

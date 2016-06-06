@@ -582,40 +582,6 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    public void removeField_removeIndexesPriorToPrimaryKey() {
-        RealmObjectSchema schema = realmSchema.get(AllJavaTypes.CLASS_NAME);
-        long primaryKeyIndex = AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX;
-
-        // check if pk index is an expected one
-        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
-        // decrements by one
-        schema.removeField("fieldString");
-        primaryKeyIndex--;
-        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
-        // another by fieldShort
-        schema.removeField("fieldShort");
-        primaryKeyIndex--;
-        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
-        // final one by fieldInt
-        schema.removeField("fieldInt");
-        primaryKeyIndex--;
-        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
-    }
-
-    @Test
-    public void removeField_removeIndexesPosteriorToPrimaryKey() {
-        RealmObjectSchema schema = realmSchema.get(AllJavaTypes.CLASS_NAME);
-
-        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
-        schema.removeField("fieldList");
-        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
-        schema.removeField("fieldObject");
-        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
-        schema.removeField("fieldDate");
-        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
-    }
-
-    @Test
     public void renameField() {
         String oldFieldName = "old";
         String newFieldName = "new";

@@ -205,11 +205,6 @@ public final class RealmObjectSchema {
             table.setPrimaryKey(null);
         }
         table.removeColumn(columnIndex);
-        // When PK does not exist this cannot happen. But if you remove a column with a smaller index
-        // than that of PK column, you need to rearrange PK column index.
-        if (table.hasPrimaryKey() && columnIndex < table.getPrimaryKey()) {
-            table.invalidateCachedPrimaryKeyIndex();
-        }
         return this;
     }
 
