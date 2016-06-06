@@ -17,7 +17,7 @@
 
 using namespace realm;
 
-TEST_CASE("Results") {
+TEST_CASE("[results] notifications") {
     InMemoryTestFile config;
     config.cache = false;
     config.automatic_change_notifications = false;
@@ -420,7 +420,7 @@ TEST_CASE("Results") {
     }
 }
 
-TEST_CASE("Async Results error handling") {
+TEST_CASE("[results] async error handling") {
     InMemoryTestFile config;
     config.cache = false;
     config.automatic_change_notifications = false;
@@ -534,7 +534,7 @@ TEST_CASE("Async Results error handling") {
     }
 }
 
-TEST_CASE("Notifications on moved Results") {
+TEST_CASE("[results] notifications after move") {
     InMemoryTestFile config;
     config.cache = false;
     config.automatic_change_notifications = false;
@@ -582,5 +582,30 @@ TEST_CASE("Notifications on moved Results") {
             table->set_int(0, table->add_empty_row(), 1);
         });
         REQUIRE(notification_calls == 2);
+    }
+}
+
+TEST_CASE("[results] error messages") {
+    InMemoryTestFile config;
+    config.schema = std::make_unique<Schema>(Schema{
+        {"object", "", {
+            {"value", PropertyType::String},
+        }},
+    });
+
+    auto r = Realm::get_shared_realm(config);
+    auto table = r->read_group()->get_table("class_object");
+    Results results(r, *config.schema->find("object"), *table);
+
+    r->begin_transaction();
+    table->add_empty_row();
+    r->commit_transaction();
+
+    SECTION("out of bounds access") {
+        REQUIRE_THROWS_WITH(results.get(5), "Requested index 5 greater than max 1");
+    }
+
+    SECTION("unsupported aggregate operation") {
+        REQUIRE_THROWS_WITH(results.sum(0), "Cannot sum property 'value': operation not supported for 'string' properties");
     }
 }

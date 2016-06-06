@@ -25,7 +25,6 @@
 
 #include <realm/table_view.hpp>
 #include <realm/util/optional.hpp>
-#include <realm/util/to_string.hpp>
 
 namespace realm {
 template<typename T> class BasicRowExpr;
@@ -138,18 +137,13 @@ public:
 
     // The Results object has been invalidated (due to the Realm being invalidated)
     // All non-noexcept functions can throw this
-    struct InvalidatedException : public std::runtime_error
-    {
+    struct InvalidatedException : public std::runtime_error {
         InvalidatedException() : std::runtime_error("Access to invalidated Results objects") {}
     };
 
     // The input index parameter was out of bounds
-    struct OutOfBoundsIndexException : public std::out_of_range
-    {
-        OutOfBoundsIndexException(size_t r, size_t c) :
-            std::out_of_range((std::string)"Requested index " + util::to_string(r) +
-                              " greater than max " + util::to_string(c)),
-            requested(r), valid_count(c) {}
+    struct OutOfBoundsIndexException : public std::out_of_range {
+        OutOfBoundsIndexException(size_t r, size_t c);
         const size_t requested;
         const size_t valid_count;
     };
@@ -161,8 +155,8 @@ public:
 
     // The input Row object belongs to a different table
     struct IncorrectTableException : public std::runtime_error {
-        IncorrectTableException(StringData e, StringData a, const std::string &error) :
-            std::runtime_error(error), expected(e), actual(a) {}
+        IncorrectTableException(StringData e, StringData a, const std::string &error)
+        : std::runtime_error(error), expected(e), actual(a) {}
         const StringData expected;
         const StringData actual;
     };
@@ -173,7 +167,7 @@ public:
         StringData column_name;
         DataType column_type;
 
-        UnsupportedColumnTypeException(size_t column, const Table* table);
+        UnsupportedColumnTypeException(size_t column, const Table* table, const char* operation);
     };
 
     // Create an async query from this Results
@@ -220,6 +214,7 @@ private:
 
     template<typename Int, typename Float, typename Double, typename Timestamp>
     util::Optional<Mixed> aggregate(size_t column, bool return_none_for_empty,
+                                    const char* name,
                                     Int agg_int, Float agg_float,
                                     Double agg_double, Timestamp agg_timestamp);
 
