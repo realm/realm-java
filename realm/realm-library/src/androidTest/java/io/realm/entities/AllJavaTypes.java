@@ -44,6 +44,8 @@ public class AllJavaTypes extends RealmObject {
     public static final String   INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY;
     public static final String[] INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT = new String[]{FIELD_OBJECT + "." + FIELD_BINARY, FIELD_OBJECT + "." + FIELD_OBJECT, FIELD_OBJECT + "." + FIELD_LIST};
 
+    public static long DEFAULT_PRIMARYKEY_INDEX = 3;
+
     @Ignore private String fieldIgnored;
     @Index private String fieldString;
     private short fieldShort;

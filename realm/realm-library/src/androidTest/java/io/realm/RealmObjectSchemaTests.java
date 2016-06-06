@@ -584,27 +584,35 @@ public class RealmObjectSchemaTests {
     @Test
     public void removeField_removeIndexesPriorToPrimaryKey() {
         RealmObjectSchema schema = realmSchema.get(AllJavaTypes.CLASS_NAME);
+        long primaryKeyIndex = AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX;
 
-        assertEquals(3, schema.table.getPrimaryKey());
+        // check if pk index is an expected one
+        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
+        // decrements by one
         schema.removeField("fieldString");
-        assertEquals(2, schema.table.getPrimaryKey());
+        primaryKeyIndex--;
+        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
+        // another by fieldShort
         schema.removeField("fieldShort");
-        assertEquals(1, schema.table.getPrimaryKey());
+        primaryKeyIndex--;
+        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
+        // final one by fieldInt
         schema.removeField("fieldInt");
-        assertEquals(0, schema.table.getPrimaryKey());
+        primaryKeyIndex--;
+        assertEquals(primaryKeyIndex, schema.table.getPrimaryKey());
     }
 
     @Test
     public void removeField_removeIndexesPosteriorToPrimaryKey() {
         RealmObjectSchema schema = realmSchema.get(AllJavaTypes.CLASS_NAME);
 
-        assertEquals(3, schema.table.getPrimaryKey());
+        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
         schema.removeField("fieldList");
-        assertEquals(3, schema.table.getPrimaryKey());
+        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
         schema.removeField("fieldObject");
-        assertEquals(3, schema.table.getPrimaryKey());
+        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
         schema.removeField("fieldDate");
-        assertEquals(3, schema.table.getPrimaryKey());
+        assertEquals(AllJavaTypes.DEFAULT_PRIMARYKEY_INDEX, schema.table.getPrimaryKey());
     }
 
     @Test
