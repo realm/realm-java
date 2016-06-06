@@ -186,4 +186,7 @@ public class AllJavaTypes extends RealmObject {
         return listParents;
     }
 
+    public void setObjectParents(RealmResults<AllJavaTypes> objectParents) {
+        this.objectParents = objectParents;
+    }
 }
