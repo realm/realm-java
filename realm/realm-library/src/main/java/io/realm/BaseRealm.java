@@ -361,8 +361,8 @@ abstract class BaseRealm implements Closeable {
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
             Looper looper = handler.getLooper();
-            if (realmPath.equals(configuration.getPath())                               // It's the right realm
-                            && looper.getThread().isAlive()) {                          // The receiving thread is alive
+            if (realmPath.equals(configuration.getPath())          // It's the right realm
+                            && looper.getThread().isAlive()) {     // The receiving thread is alive
 
                 boolean messageHandled = true;
                 if (looper == Looper.myLooper()) {
