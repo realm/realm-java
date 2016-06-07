@@ -1208,8 +1208,8 @@ public class NotificationsTest {
     }
 
 
-    // RealmResults are opdated just before their change listener is notified, this means that synchronous RealmResults
-    // might accidentially reference another RealmResults that have been advance_read, but not called sync_if_needed.
+    // If RealmResults are updated just before their change listener are notified, one change listener might
+    // reference another RealmResults that have been advance_read, but not yet called sync_if_needed.
     // This can result in accessing detached rows and other errors.
     @Test
     @RunTestInLooperThread
