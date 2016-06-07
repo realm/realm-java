@@ -46,7 +46,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.log.Logger;
@@ -1185,7 +1184,7 @@ public class NotificationsTest {
             public void onChange(RealmResults<AllTypes> results) {
                 switch (asyncResultCallback.incrementAndGet()) {
                     case 1:
-                        // 1. Called when first async query completes
+                        // Called when first async query completes
                         assertEquals(0, results.size());
                         realm.executeTransactionAsync(new Realm.Transaction() {
                             @Override
@@ -1196,10 +1195,11 @@ public class NotificationsTest {
                         break;
 
                     case 2:
-                        // 2. Called after async transaction completes, A REALM_CHANGED event has been triggered,
+                        // Called after async transaction completes, A REALM_CHANGED event has been triggered,
                         // async queries have rerun, and listeners are triggered again
+
                         assertEquals(1, results.size());
-                        assertEquals(1, syncResults.size());
+                        assertEquals(1, syncResults.size()); // If syncResults is not in sync yet, this will fail.
                         looperThread.testComplete();
                         break;
                 }
@@ -1213,7 +1213,7 @@ public class NotificationsTest {
     // This can result in accessing detached rows and other errors.
     @Test
     @RunTestInLooperThread
-    public void accessingSyncRealmResultsInsideResultListener() {
+    public void accessingSyncRealmResultsInsideAnotherResultListener() {
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
