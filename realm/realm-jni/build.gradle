@@ -20,7 +20,7 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 // To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
 ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
 
-def commonCflags = [ '-Os', '-std=c++11' ]
+def commonCflags = [ '-Os', '-std=c++14' ]
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
     commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -75,7 +75,8 @@ def toolchains = [
 ]
 
 def allTargets = [
-    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
+    // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might drop it or use the new NDK clang to compile it.
+    //new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
     new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
     new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
     new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
@@ -307,6 +308,7 @@ targets.each { target ->
             "-j${Runtime.getRuntime().availableProcessors() * 2}",
             "-l${Runtime.getRuntime().availableProcessors()}",
             '-C', "${projectDir}/src",
+            "OBJECT_STORE_DIR=${projectDir}/object-store",
             "CC_IS=${clang?'clang':'gcc'}",
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
