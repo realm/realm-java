@@ -1197,7 +1197,6 @@ public class NotificationsTest {
                     case 2:
                         // Called after async transaction completes, A REALM_CHANGED event has been triggered,
                         // async queries have rerun, and listeners are triggered again
-
                         assertEquals(1, results.size());
                         assertEquals(1, syncResults.size()); // If syncResults is not in sync yet, this will fail.
                         looperThread.testComplete();
