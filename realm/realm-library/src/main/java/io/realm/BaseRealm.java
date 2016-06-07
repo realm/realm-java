@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -359,13 +360,26 @@ abstract class BaseRealm implements Closeable {
             // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
-            if (
-                    realmPath.equals(configuration.getPath())                           // It's the right realm
+            Looper looper = handler.getLooper();
+            if (realmPath.equals(configuration.getPath())                               // It's the right realm
                             && !handler.hasMessages(HandlerController.REALM_CHANGED)    // The right message
-                            && handler.getLooper().getThread().isAlive()                // The receiving thread is alive
-                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                        "to prevent this.");
+                            && looper.getThread().isAlive()) {                          // The receiving thread is alive
+
+                boolean messageSent;
+                if (looper == Looper.getMainLooper()) {
+                    // Force any UI updates to the front of the queue. Not doing this means that e.g scrolling events
+                    // could get processed first, which could cause UI components like ListView to crash.
+                    // See https://github.com/realm/realm-android-adapters/issues/11
+                    Message msg = Message.obtain();
+                    msg.what = HandlerController.REALM_CHANGED;
+                    messageSent = handler.sendMessageAtFrontOfQueue(msg);
+                } else {
+                    messageSent = handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+                }
+                if (!messageSent) {
+                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                            "to prevent this.");
+                }
             }
         }
     }
