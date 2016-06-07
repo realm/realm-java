@@ -451,4 +451,17 @@ public class JNITransactions {
         }
         db.close();
     }
+
+    // Test if toString() returns a correct PrimaryKey field description from a Table
+    public void testTableToStringWithPrimaryKey() {
+        Table t = getTableWithStringPrimaryKey();
+        t.addColumn(RealmFieldType.INTEGER, "intCol");
+        t.addColumn(RealmFieldType.BOOLEAN, "boolCol");
+
+        t.add("s1", 1, true);
+        t.add("s2", 2, false);
+
+        String expected = "The Table has 'colName' field as a PrimaryKey, and contains 3 columns: colName, intCol, boolCol. And 2 rows.";
+        assertEquals(expected, t.toString());
+    }
 }

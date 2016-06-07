@@ -1,4 +1,22 @@
-# 1.0.0
+## 1.1.0
+
+### Enhancements
+
+* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+
+## 1.0.1
+
+### Bug fixes
+
+* Fixed a crash when calling `Table.toString()` in debugger (#2429).
+* Revised `RealmResults.isLoaded()` description (#2895).
+* Fixed a crash that RealmResults was not updated in Realm's change listener by adjusting the calling orders of listeners on Realm, RealmObject and RealmResults (#2926).
+
+### Enhancements
+
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+
+## 1.0.0
 
 No changes since 0.91.1.
 

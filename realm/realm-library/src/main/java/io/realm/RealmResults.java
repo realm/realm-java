@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
@@ -851,12 +852,11 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Returns {@code true} if the results are not yet loaded, {@code false} if they are still loading. Synchronous
+     * Returns {@code false} if the results are not yet loaded, {@code true} if they are loaded. Synchronous
      * query methods like findAll() will always return {@code true}, while asynchronous query methods like
      * findAllAsync() will return {@code false} until the results are available.
-     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
      *
-     * @return {@code true} if the query has completed and the data is available {@code false} if the query is still
+     * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
      * running.
      */
     public boolean isLoaded() {
@@ -974,7 +974,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+
     @SuppressWarnings("unchecked")
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<RealmResults<E>> asObservable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
