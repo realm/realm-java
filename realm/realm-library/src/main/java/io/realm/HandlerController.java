@@ -51,6 +51,8 @@ final class HandlerController implements Handler.Callback {
     static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
     static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
     static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    static final int LOCAL_COMMIT = 165580141;
+
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
     // Keep a strong reference to the registered RealmChangeListener
@@ -112,6 +114,7 @@ final class HandlerController implements Handler.Callback {
             QueryUpdateTask.Result result;
             switch (message.what) {
 
+                case LOCAL_COMMIT:
                 case REALM_CHANGED:
                     realmChanged();
                     break;
