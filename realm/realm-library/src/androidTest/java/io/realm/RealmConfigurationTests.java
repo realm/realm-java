@@ -257,7 +257,7 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void setModules_nonRealmModulesThrows() {
+    public void modules_nonRealmModulesThrows() {
         // Test first argument
         try {
             new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
