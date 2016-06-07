@@ -1387,6 +1387,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
             stringBuilder.append(getName());
             stringBuilder.append(" ");
         }
+        if (hasPrimaryKey()) {
+            String pkFieldName = getColumnName(getPrimaryKey());
+            stringBuilder.append("has \'" + pkFieldName + "\' field as a PrimaryKey, and ");
+        }
         stringBuilder.append("contains ");
         stringBuilder.append(columnCount);
         stringBuilder.append(" columns: ");
