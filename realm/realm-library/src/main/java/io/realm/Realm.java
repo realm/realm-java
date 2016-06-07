@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.os.Build;
 import android.os.Looper;
 import android.util.JsonReader;
@@ -35,6 +34,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -49,7 +50,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -782,6 +782,78 @@ public final class Realm extends BaseRealm {
     }
 
     /**
+     * Bulk insert of a list of RealmObjects, this is faster than {@link #copyToRealm(Iterable)} since it
+     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * set to their default value if not provided.
+     *
+     * @param objects RealmObjects to insert.
+     */
+    public void insertToRealm(Iterable<? extends RealmModel> objects) {
+        Iterator<? extends RealmModel> iterator = objects.iterator();
+        RealmModel object = null;
+        if (iterator.hasNext()) {
+            // access the first element to figure out the type
+            object = iterator.next();
+            configuration.getSchemaMediator().insertToRealm(this, object);
+        }
+
+        if (iterator.hasNext()) {
+            configuration.getSchemaMediator().insertToRealm(this, object, iterator);
+        }
+    }
+
+    /**
+     * Insert of a RealmObject, this is faster than {@link #copyToRealm(RealmModel)} since it
+     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * set to their default value if not provided.
+     *
+     * @param object RealmObjects to insert.
+     */
+    public void insertToRealm(RealmModel object) {
+        configuration.getSchemaMediator().insertToRealm(this, object);
+    }
+
+    /**
+     * Bulk insert or update of a list of RealmObjects, this is faster than {@link #copyToRealmOrUpdate(Iterable)} since it
+     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * set to their default value if not provided.
+     *
+     * @param objects RealmObjects to insert.
+     */
+    public void insertOrUpdateToRealm(Iterable<? extends RealmModel> objects) {
+        Iterator<? extends RealmModel> iterator = objects.iterator();
+        RealmModel object = null;
+        if (iterator.hasNext()) {
+            // access the first element to figure out the type
+            object = iterator.next();
+            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object);
+        }
+
+        if (iterator.hasNext()) {
+            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, iterator);
+        }
+    }
+
+    /**
+     * Insert or update a RealmObject, this is faster than {@link #copyOrUpdate(RealmModel, boolean)}} since it
+     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * <p>
+     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * set to their default value if not provided.
+     *
+     * @param object RealmObjects to insert.
+     */
+    public void insertOrUpdateToRealm(RealmModel object) {
+        configuration.getSchemaMediator().insertOrUpdateToRealm(this, object);
+    }
+
+    /**
      * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or
      * creates a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced objects
      * will be either copied or updated.
@@ -856,7 +928,7 @@ public final class Realm extends BaseRealm {
         }
 
         ArrayList<E> unmanagedObjects = new ArrayList<E>();
-        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
+        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new IdentityHashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
             unmanagedObjects.add(createDetachedCopy(object, maxDepth, listCache));
@@ -910,7 +982,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> E copyFromRealm(E realmObject, int maxDepth) {
         checkMaxDepth(maxDepth);
         checkValidObjectForDetach(realmObject);
-        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
+        return createDetachedCopy(realmObject, maxDepth, new IdentityHashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
     }
 
     /**
@@ -1159,7 +1231,7 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     private <E extends RealmModel> E copyOrUpdate(E object, boolean update) {
         checkIfValid();
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmModel, RealmObjectProxy>());
+        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new IdentityHashMap<RealmModel, RealmObjectProxy>());
     }
 
     private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {

@@ -303,6 +303,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeGetLinkView
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkView
+        (JNIEnv *, jobject, jlong, jlong, jlong);
+
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeGetLinkTarget
  * Signature: (JJ)J
  */

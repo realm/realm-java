@@ -21,6 +21,7 @@ import android.util.JsonReader;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,6 +104,14 @@ public abstract class RealmProxyMediator {
      * @return the managed Realm object.
      */
     public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
+
+    public abstract void insertToRealm(Realm realm, RealmModel object);
+
+    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object);
+
+    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects);
+
+    public abstract void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.

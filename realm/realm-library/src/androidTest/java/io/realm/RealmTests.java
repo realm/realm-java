@@ -1067,7 +1067,6 @@ public class RealmTests {
     @Test
     public void copyToRealm() {
         Date date = new Date();
-        date.setTime(1000); // Remove ms. precision as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
         RealmList<Dog> list = new RealmList<Dog>();
