@@ -20,8 +20,8 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.migration.MigrationPrimaryKey;
 
-public class MigrationSchemaRenamed extends RealmObject implements MigrationPrimaryKey {
-    public static String CLASS_NAME = "MigrationSchemaRenamed";
+public class MigrationClassRenamed extends RealmObject implements MigrationPrimaryKey {
+    public static String CLASS_NAME = "MigrationClassRenamed";
 
     public static long DEFAULT_FIELDS_COUNT = 5;
     public static long DEFAULT_PRIMARY_INDEX = 2;

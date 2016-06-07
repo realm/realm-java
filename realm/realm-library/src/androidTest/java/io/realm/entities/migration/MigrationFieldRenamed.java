@@ -20,7 +20,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.migration.MigrationPrimaryKey;
 
-// This class has a renamed PrimaryKey field and same class name as that of original.
+// This class has a renamed PrimaryKey field from MigrationPrimaryKey interface.
 public class MigrationFieldRenamed extends RealmObject implements MigrationPrimaryKey {
     public static String CLASS_NAME = "MigrationFieldRenamed";
 
@@ -33,7 +33,7 @@ public class MigrationFieldRenamed extends RealmObject implements MigrationPrima
     private Short fieldSecond;
 
     // PK is placed in the middle to check if prior/posterior fields' removal is properly reflected
-    // during migration step. Further, the original class' PK field name is `fieldPrimary`.
+    // during migration step. The MigrationPrimaryKey interface' PK field name is `fieldPrimary`.
     @PrimaryKey
     private String fieldRenamedPrimary;
     private Integer fieldFourth;

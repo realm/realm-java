@@ -36,10 +36,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
+import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationFieldRenamed;
 import io.realm.entities.migration.MigrationPosteriorIndexOnly;
 import io.realm.entities.migration.MigrationPriorIndexOnly;
-import io.realm.entities.migration.MigrationSchemaRenamed;
 import io.realm.migration.MigrationPrimaryKey;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
@@ -57,6 +57,8 @@ import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -231,17 +233,26 @@ public class RealmMigrationTests {
         }
     }
 
-    // this builds a temporary schema that does not exist in io.realm.entities
-    private void buildBaseMigrationSchema(final String schemaName, final boolean createBase) {
+    /**
+     * Builds a temporary schema to be modified later in migration. {@link MigrationPrimaryKey} is
+     * the base class when specified.
+     *
+     * <p>MigrationPrimaryKey is supposed to be a RealmObject, but that would hamper our steps toward
+     * testing migration as Realm looks for it in migration. It is thus set to be an interface.
+     *
+     * @param className a class whose schema is to be re-created
+     * @param createBase create a schema named "MigrationPrimaryKey" instead of {@code className} if {@code true}
+     */
+    private void buildInitialMigrationSchema(final String className, final boolean createBase) {
         Realm realm = Realm.getInstance(configFactory.createConfigurationBuilder().build());
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                // firstly remove an existing schema
-                realm.getSchema().remove(schemaName);
-                // then recreate the deleted schema or build base schema
+                // first, remove an existing schema
+                realm.getSchema().remove(className);
+                // then recreate the deleted schema or build a base schema
                 realm.getSchema()
-                        .create(createBase ? MigrationPrimaryKey.CLASS_NAME : schemaName)
+                        .create(createBase ? MigrationPrimaryKey.CLASS_NAME : className)
                         .addField(MigrationPrimaryKey.FIELD_FIRST,   Byte.class)
                         .addField(MigrationPrimaryKey.FIELD_SECOND,  Short.class)
                         .addField(MigrationPrimaryKey.FIELD_PRIMARY, String.class, FieldAttribute.PRIMARY_KEY)
@@ -252,34 +263,38 @@ public class RealmMigrationTests {
         realm.close();
     }
 
+    // Test to show renaming a class does not hinder its PK field's attribute
     @Test
-    public void renameTransferPrimaryKey() {
-        buildBaseMigrationSchema(MigrationSchemaRenamed.CLASS_NAME, true);
+    public void renameClassTransferPrimaryKey() {
+        buildInitialMigrationSchema(MigrationClassRenamed.CLASS_NAME, true);
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 realm.getSchema()
-                        .rename(MigrationPrimaryKey.CLASS_NAME, MigrationSchemaRenamed.CLASS_NAME);
+                        .rename(MigrationPrimaryKey.CLASS_NAME, MigrationClassRenamed.CLASS_NAME);
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(MigrationSchemaRenamed.class)
+                .schema(MigrationClassRenamed.class)
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable(MigrationSchemaRenamed.class);
 
-        assertEquals(MigrationSchemaRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
+        Table table = realm.getSchema().getTable(MigrationClassRenamed.class);
         assertTrue(table.hasPrimaryKey());
-        assertEquals(MigrationSchemaRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
-        assertEquals(MigrationSchemaRenamed.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
+        assertEquals(MigrationClassRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
+        assertEquals(MigrationClassRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
+        assertEquals(MigrationClassRenamed.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
+        //old schema does not exists
+        assertNull(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME));
     }
 
+    // Removing fields before a pk field does not affect the pk
     @Test
-    public void removeIndexesPriorToPrimaryKey() {
-        buildBaseMigrationSchema(MigrationPosteriorIndexOnly.CLASS_NAME, false);
+    public void removeFieldsBeforePrimaryKey() {
+        buildInitialMigrationSchema(MigrationPosteriorIndexOnly.CLASS_NAME, false);
 
         RealmMigration migration = new RealmMigration() {
             @Override
@@ -297,15 +312,16 @@ public class RealmMigrationTests {
         Realm realm = Realm.getInstance(realmConfig);
         Table table = realm.getSchema().getTable(MigrationPosteriorIndexOnly.class);
 
-        assertEquals(MigrationPosteriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
+        assertEquals(MigrationPosteriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationPosteriorIndexOnly.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
         assertEquals(MigrationPosteriorIndexOnly.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
+    // Removing fields after a pk field does not affect the pk
     @Test
-    public void removeIndexesPosteriorToPrimaryKey() {
-        buildBaseMigrationSchema(MigrationPriorIndexOnly.CLASS_NAME, false);
+    public void removeFieldsAfterPrimaryKey() {
+        buildInitialMigrationSchema(MigrationPriorIndexOnly.CLASS_NAME, false);
 
         RealmMigration migration = new RealmMigration() {
             @Override
@@ -323,15 +339,16 @@ public class RealmMigrationTests {
         Realm realm = Realm.getInstance(realmConfig);
         Table table = realm.getSchema().getTable(MigrationPriorIndexOnly.class);
 
-        assertEquals(MigrationPriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
+        assertEquals(MigrationPriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationPriorIndexOnly.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
         assertEquals(MigrationPriorIndexOnly.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
+    // Renaming the class should also rename the the class entry in the pk metadata table that tracks primary keys
     @Test
     public void renamePrimaryKeyFieldInMigration() {
-        buildBaseMigrationSchema(MigrationFieldRenamed.CLASS_NAME, false);
+        buildInitialMigrationSchema(MigrationFieldRenamed.CLASS_NAME, false);
 
         RealmMigration migration = new RealmMigration() {
             @Override
@@ -346,12 +363,15 @@ public class RealmMigrationTests {
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        Table table = realm.getSchema().getTable(MigrationFieldRenamed.class);
 
-        assertEquals(MigrationFieldRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
+        Table table = realm.getSchema().getTable(MigrationFieldRenamed.class);
         assertTrue(table.hasPrimaryKey());
+        assertEquals(MigrationFieldRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertEquals(MigrationFieldRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
-        assertEquals(MigrationFieldRenamed.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
+
+        RealmObjectSchema objectSchema = realm.getSchema().getSchemaForClass(MigrationFieldRenamed.class);
+        assertFalse(objectSchema.hasField(MigrationPrimaryKey.FIELD_PRIMARY));
+        assertEquals(MigrationFieldRenamed.FIELD_PRIMARY, objectSchema.getPrimaryKey());
     }
 
     @Test

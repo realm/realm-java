@@ -16,8 +16,11 @@
 
 package io.realm.migration;
 
-// This class has should be created dynamically in the first version of realm. This does not inherit
-// RealmObject
+/**
+ * This interface should be used as a stub for dynamically creating the first version of schema.
+ * As this is an interface and does not inherit RealmObject, a schema for {@link MigrationPrimaryKey}
+ * there does not exist.
+ */
 public interface MigrationPrimaryKey {
     public static String CLASS_NAME    = "MigrationPrimaryKey";
 

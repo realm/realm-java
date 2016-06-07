@@ -3,7 +3,7 @@
 ### Bug fixes
 
 * Fixed a crash when calling Table.toString() in debugger (#2429).
-* Fixed a bug when migration loses tracking of primary key field in `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).
+* Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).
 * Fixed a crash that RealmResults was not updated in Realm's change listener by adjusting the calling orders of listeners on Realm, RealmObject and RealmResults (#2926).
 
 ### Enhancements

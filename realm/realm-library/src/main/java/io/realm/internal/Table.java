@@ -198,17 +198,33 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeRemoveColumn(nativePtr, columnIndex);
         // When PK does not exist this cannot happen. But if you remove a column with a smaller index
         // than that of PK column, you need to rearrange PK column index.
-        if (hasPrimaryKey() && columnIndex < getPrimaryKey()) {
+        if (hasPrimaryKey() && columnIndex <= getPrimaryKey()) {
             invalidateCachedPrimaryKeyIndex();
         }
     }
 
     /**
-     * Renames a column in the table.
+     * Renames a column in the table. This needs to be called manually before inserting data into the table.
+     *
+     * @param columnIndex the column index to be renamed.
+     * @param newName a new name replacing the old column name.
+     * @throws {@link IllegalArgumentException} if {@code newFieldName} is an empty string, or exceeds field name length limit.
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
+        // a primary key renamed
+        if (getPrimaryKey() == columnIndex) {
+            if (newName == null || newName.length() == 0) {
+                throw new IllegalArgumentException("Primary key field cannot be renamed with an empty string.");
+            }
+            Table pkTable = getPrimaryKeyTable();
+            String className = tableNameToClassName(getName());
+            long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+            if (pkRowIndex != NO_MATCH) {
+                pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName);
+            }
+        }
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
@@ -1028,32 +1044,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
 
         return pkTable;
-    }
-
-    /**
-     * Rename the primary key column for the table. This needs to be called manually before inserting data into the table.
-     *
-     * @param newFieldName the name of the field replacing old primary key field name.
-     * @throws {@link IllegalArgumentException} if {@code newFieldName} is an empty string, or exceeds field name length limit.
-     * @throws {@link io.realm.exceptions.RealmException} if a primary key does not exist.
-     */
-    public void renamePrimaryKeyColumn(String newFieldName) {
-        if (newFieldName == null || newFieldName.length() == 0) {
-            throw new IllegalArgumentException("Primary key field cannot be renamed with an empty string.");
-        }
-        verifyColumnName(newFieldName);
-        long pkColumnIndex = getPrimaryKey();
-        if (pkColumnIndex == NO_PRIMARY_KEY) {
-            throw new RealmException("Non-existent primary key field cannot be renamed.");
-        }
-
-        Table pkTable = getPrimaryKeyTable();
-        String className = tableNameToClassName(getName());
-        long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
-        if (pkRowIndex != NO_MATCH) {
-            pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newFieldName);
-            nativeRenameColumn(nativePtr, pkColumnIndex, newFieldName);
-        }
     }
 
     /**

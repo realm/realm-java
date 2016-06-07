@@ -222,11 +222,7 @@ public final class RealmObjectSchema {
         checkLegalName(newFieldName);
         checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(currentFieldName);
-        if (table.getPrimaryKey() == columnIndex) {
-            table.renamePrimaryKeyColumn(newFieldName);
-        } else {
-            table.renameColumn(columnIndex, newFieldName);
-        }
+        table.renameColumn(columnIndex, newFieldName);
 
         // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
 
