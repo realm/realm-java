@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import android.text.TextUtils;
-
 import java.io.Closeable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,7 +141,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void verifyColumnName(String name) {
-        if (name.length() > 63) {
+        if (name == null || name.length() == 0 || name.length() > 63) {
             throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
         }
     }
@@ -199,14 +197,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
         // When PK does not exist this cannot happen. But if you remove a column with a smaller index
-        // than that of PK column, you need to rearrange PK column index.
+        // than that of PK column, you need to recalculate the PK column index as core could have changed its column index.
         if (hasPrimaryKey() && columnIndex <= getPrimaryKey()) {
             invalidateCachedPrimaryKeyIndex();
         }
     }
 
     /**
-     * Renames a column in the table. This needs to be called manually before inserting data into the table.
+     * Renames a column in the table. If the column is a primary key column, the corresponding entry
+     * in PrimaryKeyTable will be renamed accordingly.
      *
      * @param columnIndex the column index to be renamed.
      * @param newName a new name replacing the old column name.
@@ -215,19 +214,30 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
-        // a primary key renamed
+        // get the old column name. We'll assume that the old column name is *NOT* an empty string.
+        String oldName = nativeGetColumnName(nativePtr, columnIndex);
+
+        // then let's try to rename a column. If an error occurs for some reasons, we'll throw.
+        nativeRenameColumn(nativePtr, columnIndex, newName);
+
+        // Rename a primary key. At this point, renaming the column name should have been fine.
         if (getPrimaryKey() == columnIndex) {
-            if (TextUtils.isEmpty(newName)) {
-                throw new IllegalArgumentException("Primary key field cannot be renamed with an empty string.");
-            }
-            Table pkTable = getPrimaryKeyTable();
-            String className = tableNameToClassName(getName());
-            long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
-            if (pkRowIndex != NO_MATCH) {
-                pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName);
+            try {
+                String className = tableNameToClassName(getName());
+                Table pkTable = getPrimaryKeyTable();
+                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+                if (pkRowIndex != NO_MATCH) {
+                    pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName);
+                } else {
+                    throw new IllegalStateException("Non-existent PrimaryKey column cannot be renamed");
+                }
+            } catch (Exception e) {
+                // we failed to rename the pk meta table. roll back the column name, not pk meta table
+                // then rethrow.
+                nativeRenameColumn(nativePtr, columnIndex, oldName);
+                throw e;
             }
         }
-        nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
     /**

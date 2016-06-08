@@ -234,11 +234,11 @@ public class RealmMigrationTests {
     }
 
     /**
-     * Builds a temporary schema to be modified later in migration. {@link MigrationPrimaryKey} is
+     * Builds a temporary schema to be modified later in a migration. {@link MigrationPrimaryKey} is
      * the base class when specified.
      *
      * <p>MigrationPrimaryKey is supposed to be a RealmObject, but that would hamper our steps toward
-     * testing migration as Realm looks for it in migration. It is thus set to be an interface.
+     * testing migrations as Realm looks for it in migration. It is thus set to be an interface.
      *
      * @param className a class whose schema is to be re-created
      * @param createBase create a schema named "MigrationPrimaryKey" instead of {@code className} if {@code true}

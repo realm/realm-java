@@ -20,7 +20,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.migration.MigrationPrimaryKey;
 
-// This class has a renamed PrimaryKey field from MigrationPrimaryKey interface.
+// Class used to test what happens if you rename a primary field in a migration.
 public class MigrationFieldRenamed extends RealmObject implements MigrationPrimaryKey {
     public static String CLASS_NAME = "MigrationFieldRenamed";
 

@@ -20,6 +20,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.migration.MigrationPrimaryKey;
 
+// Class used to test what happens if you modify a class name in a migration.
 public class MigrationClassRenamed extends RealmObject implements MigrationPrimaryKey {
     public static String CLASS_NAME = "MigrationClassRenamed";
 

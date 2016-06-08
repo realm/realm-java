@@ -20,6 +20,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.migration.MigrationPrimaryKey;
 
+// Class used for testing what happens if you modify fields defined before the primary key field
 public class MigrationPriorIndexOnly extends RealmObject implements MigrationPrimaryKey {
     public static String CLASS_NAME = "MigrationPriorIndexOnly";
 
