@@ -117,7 +117,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateLocalReplication
   (JNIEnv* env, jobject, jstring jfile_name, jbyteArray keyArray)
 {
     TR_ENTER()
@@ -127,12 +129,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
         file_name = StringData(file_name_tmp);
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        std::unique_ptr<Replication> hist = realm::sync::make_sync_history(file_name);
-//        history = realm::sync::make_sync_history(config.path);
-//        std::unique_ptr<Replication> hist = make_client_history(file_name, key.data());
+        std::unique_ptr<Replication> hist = make_client_history(file_name, key.data());
 #else
         std::unique_ptr<Replication> hist = make_client_history(file_name);
 #endif
+        return reinterpret_cast<jlong>(hist.release());
+    }
+    CATCH_FILE(file_name)
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateSyncReplication
+  (JNIEnv* env, jobject, jstring jfile_name)
+{
+    TR_ENTER()
+    StringData file_name;
+    try {
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
+        file_name = StringData(file_name_tmp);
+        std::unique_ptr<Replication> hist = realm::sync::make_sync_history(file_name);
         return reinterpret_cast<jlong>(hist.release());
     }
     CATCH_FILE(file_name)

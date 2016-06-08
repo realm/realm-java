@@ -70,10 +70,7 @@ public class QueryUpdateTask implements Runnable {
     public void run() {
         SharedGroup sharedGroup = null;
         try {
-            sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                    SharedGroup.IMPLICIT_TRANSACTION,
-                    realmConfiguration.getDurability(),
-                    realmConfiguration.getEncryptionKey());
+            sharedGroup = new SharedGroup(realmConfiguration);
 
             Result result;
             boolean updateSuccessful;

@@ -1169,10 +1169,7 @@ public final class RealmQuery<E extends RealmModel> {
                     SharedGroup sharedGroup = null;
 
                     try {
-                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                                SharedGroup.IMPLICIT_TRANSACTION,
-                                realmConfiguration.getDurability(),
-                                realmConfiguration.getEncryptionKey());
+                        sharedGroup = new SharedGroup(realmConfiguration);
 
                         long handoverTableViewPointer = query.
                                 findDistinctWithHandover(sharedGroup.getNativePointer(),
@@ -1477,10 +1474,7 @@ public final class RealmQuery<E extends RealmModel> {
                     SharedGroup sharedGroup = null;
 
                     try {
-                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                                SharedGroup.IMPLICIT_TRANSACTION,
-                                realmConfiguration.getDurability(),
-                                realmConfiguration.getEncryptionKey());
+                        sharedGroup = new SharedGroup(realmConfiguration);
 
                         // Run the query & handover the table view for the caller thread
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
@@ -1595,11 +1589,7 @@ public final class RealmQuery<E extends RealmModel> {
                     SharedGroup sharedGroup = null;
 
                     try {
-                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                                SharedGroup.IMPLICIT_TRANSACTION,
-                                realmConfiguration.getDurability(),
-                                realmConfiguration.getEncryptionKey());
-
+                        sharedGroup = new SharedGroup(realmConfiguration);
                         long columnIndex = getColumnIndexForSort(fieldName);
 
                         // run the query & handover the table view for the caller thread
@@ -1770,10 +1760,7 @@ public final class RealmQuery<E extends RealmModel> {
                         SharedGroup sharedGroup = null;
 
                         try {
-                            sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                                    SharedGroup.IMPLICIT_TRANSACTION,
-                                    realmConfiguration.getDurability(),
-                                    realmConfiguration.getEncryptionKey());
+                            sharedGroup = new SharedGroup(realmConfiguration);
 
                             // run the query & handover the table view for the caller thread
                             long handoverTableViewPointer = query.findAllMultiSortedWithHandover(sharedGroup.getNativePointer(),
@@ -1910,10 +1897,7 @@ public final class RealmQuery<E extends RealmModel> {
                     SharedGroup sharedGroup = null;
 
                     try {
-                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                                SharedGroup.IMPLICIT_TRANSACTION,
-                                realmConfiguration.getDurability(),
-                                realmConfiguration.getEncryptionKey());
+                        sharedGroup = new SharedGroup(realmConfiguration);
 
                         long handoverRowPointer = query.findWithHandover(sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);

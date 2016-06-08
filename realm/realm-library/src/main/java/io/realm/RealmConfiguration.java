@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -97,6 +99,8 @@ public final class RealmConfiguration {
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
     private final WeakReference<Context> contextWeakRef;
+    private final URL syncServerUrl;
+    private final String syncUserToken;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -112,6 +116,8 @@ public final class RealmConfiguration {
         this.rxObservableFactory = builder.rxFactory;
         this.initialDataTransaction = builder.initialDataTransaction;
         this.contextWeakRef = builder.contextWeakRef;
+        this.syncServerUrl = builder.syncServerUrl;
+        this.syncUserToken = builder.syncUserToken;
     }
 
     public File getRealmFolder() {
@@ -213,6 +219,33 @@ public final class RealmConfiguration {
         return rxObservableFactory;
     }
 
+    /**
+     * Checks if server side synchronization is enabled for this Realm.
+     *
+     * @return {@code true} if synchronisation is enabled, {@code false} otherwise.
+     */
+    public boolean isSyncEnabled() {
+        return syncServerUrl != null;
+    }
+
+    /**
+     * Returns the server side URL used to sync this Realm across devices.
+     *
+     * @return URL of the Realm Sync server.
+     */
+    public URL getSyncServerUrl() {
+        return syncServerUrl;
+    }
+
+    /**
+     * Returns the predefined user token for server side synchronization or {@code null} if no user is predefined.
+     *
+     * @return The user token for Realm Sync of {@code null} if no token is defined.
+     */
+    public String getSyncUserToken() {
+        return syncUserToken;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -231,8 +264,17 @@ public final class RealmConfiguration {
         //noinspection SimplifiableIfStatement
         if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) return false;
+        if (syncServerUrl == null ? that.syncServerUrl != null : !syncServerUrl.equals(that.syncServerUrl)) {
+            return false;
+        }
+        if (syncUserToken == null ? that.syncUserToken != null : !syncUserToken.equals(that.syncUserToken)) {
+            return false;
+        }
+
         return schemaMediator.equals(that.schemaMediator);
     }
+
+
 
     @Override
     public int hashCode() {
@@ -247,6 +289,8 @@ public final class RealmConfiguration {
         result = 31 * result + durability.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
+        result = 31 * result + (syncServerUrl != null ? syncServerUrl.hashCode() : 0);
+        result = 31 * result + (syncUserToken != null ? syncUserToken.hashCode() : 0);
 
         return result;
     }
@@ -359,6 +403,8 @@ public final class RealmConfiguration {
         private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
+        private URL syncServerUrl;
+        private String syncUserToken;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -481,7 +527,7 @@ public final class RealmConfiguration {
         }
 
         /**
-         * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
+         * Setting this will create an in-eq Realm instead of saving it to disk. In-memory Realms might still use
          * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
          * Realm is closed.
          * <p>
@@ -572,6 +618,34 @@ public final class RealmConfiguration {
             this.contextWeakRef = new WeakReference<>(context);
             this.assetFilePath = assetFile;
 
+            return this;
+        }
+
+        /**
+         * Enable server side synchronization for this Realm. The URL should point to an endpoint exposed by a
+         * Realm Sync server.
+         *
+         * @param url Realm Sync server url.
+         */
+        public Builder syncServerUrl(String url) {
+            try {
+                syncServerUrl = new URL(url);
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Url was not valid", e);
+            }
+            return this;
+        }
+
+        /**
+         * Sets the default user token to be used with Realm Sync.
+         *
+         * @param userToken User token identifying the user connecting to Realm Sync.
+         */
+        public Builder syncUserToken(String userToken) {
+            if (userToken == null || userToken.equals("")) {
+                throw new IllegalArgumentException("Non-empty user token required");
+            }
+            syncUserToken = userToken;
             return this;
         }
 

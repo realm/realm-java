@@ -17,11 +17,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 
 /*
  * Class:     io_realm_internal_SharedGroup
- * Method:    nativeCreateReplication
+ * Method:    nativeCreateLocalReplication
  * Signature: (Ljava/lang/String;[B)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateLocalReplication
   (JNIEnv *, jobject, jstring, jbyteArray);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeCreateSyncReplication
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateSyncReplication
+  (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     io_realm_internal_SharedGroup

@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.io.IOError;
 
+import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
 
@@ -51,6 +52,7 @@ public class SharedGroup implements Closeable {
         }
     }
 
+    // TODO Only used by JNI tests -> Remove?
     public SharedGroup(String databaseFile) {
         context = new Context();
         path = databaseFile;
@@ -58,9 +60,49 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String canonicalPath, boolean enableImplicitTransactions, Durability durability, byte[] key) {
+    // TODO Only used by JNI tests -> Remove?
+    public SharedGroup(String canonicalPath, Durability durability, byte[] key) {
+        path = canonicalPath;
+        context = new Context();
+        nativePtr = nativeCreate(canonicalPath, durability.value, false, false, key);
+        checkNativePtrNotZero();
+    }
+
+    /**
+     * Constructs a new shared group using implicit transactions.
+     *
+     * @param config RealmConfiguration to create the SharedGroup for.
+     */
+    public SharedGroup(RealmConfiguration config) {
+        String canonicalPath = config.getPath();
+        boolean syncEnabled = config.isSyncEnabled();
+        byte[] encryptionKey = config.getEncryptionKey();
+        Durability durability = config.getDurability();
+
+        if (syncEnabled) {
+            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+        } else {
+            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, encryptionKey);
+        }
+        nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, encryptionKey);
+        implicitTransactionsEnabled = true;
+        context = new Context();
+        path = canonicalPath;
+        checkNativePtrNotZero();
+    }
+
+    // TODO Remove this? Explicit transactions are not supported anyway?
+    public SharedGroup(String canonicalPath,
+                       boolean enableImplicitTransactions,
+                       boolean enableSync,
+                       Durability durability,
+                       byte[] key) {
         if (enableImplicitTransactions) {
-            nativeReplicationPtr = nativeCreateReplication(canonicalPath, key);
+            if (enableSync) {
+                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+            } else {
+                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
+            }
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr,
                     durability.value, key);
             implicitTransactionsEnabled = true;
@@ -69,13 +111,6 @@ public class SharedGroup implements Closeable {
         }
         context = new Context();
         path = canonicalPath;
-        checkNativePtrNotZero();
-    }
-
-    public SharedGroup(String canonicalPath, Durability durability, byte[] key) {
-        path = canonicalPath;
-        context = new Context();
-        nativePtr = nativeCreate(canonicalPath, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
 
@@ -311,7 +346,8 @@ public class SharedGroup implements Closeable {
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
                                                              int durability, byte[] key);
-    private native long nativeCreateReplication(String databaseFile, byte[] key);
+    private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
+    private native long nativeCreateSyncReplication(String databaseFile);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
