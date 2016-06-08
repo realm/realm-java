@@ -9,7 +9,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -18,9 +17,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -209,6 +208,45 @@ public class SimpleRealmProxy extends Simple
         ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
         ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface) newObject).realmGet$age());
         return realmObject;
+    }
+
+    public static long insert(Realm realm, Simple object, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(Simple.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+        cache.put(object, rowIndex);
+        String realmGet$name =  ((SimpleRealmProxyInterface)object).realmGet$name();
+        if (realmGet$name != null) {
+            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+        }
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+        return rowIndex;
+    }
+
+    public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(Simple.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        Simple object = null;
+        while(objects.hasNext()) {
+            object = (Simple) objects.next();
+            long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+            cache.put(object, rowIndex);
+            String realmGet$name =  ((SimpleRealmProxyInterface)object).realmGet$name();
+            if (realmGet$name != null) {
+                Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+            }
+            Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+        }
+    }
+
+    public static long insertOrUpdate(Realm realm, Simple object, Map<RealmModel,Long> cache) {
+        throw new UnsupportedOperationException("No Primary Key available, call insert instead");
+    }
+
+    public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
+        throw new UnsupportedOperationException("No Primary Key available, call insert instead");
     }
 
     public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
