@@ -191,19 +191,40 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Removes a column in the table dynamically. if {@code columnIndex} is the same or smaller than
-     * the primary key column index, {@link #invalidateCachedPrimaryKeyIndex()} will be called to
-     * recalculate the primary key column index.
+     * Removes a column in the table dynamically. if {@code columnIndex} is smaller than the primary
+     * key column index, {@link #invalidateCachedPrimaryKeyIndex()} will be called to recalculate the
+     * primary key column index.
+     *
+     * <p>It should be noted if {@code columnIndex} is the same as the primary key column index,
+     * the primary key column is removed from the meta table.
      *
      * @param columnIndex the column index to be removed.
      */
     @Override
     public void removeColumn(long columnIndex) {
+        // Check the PK column index before removing a column. We don't know if we're hitting a PK col,
+        // but it should be noted that once a column is removed, there is no way we can find whether
+        // a PK exists or not.
+        final long oldPkColumnIndex = getPrimaryKey();
+
+        // firstly remove a column. If there is no error, we can proceed. Otherwise, it will stop here.
         nativeRemoveColumn(nativePtr, columnIndex);
-        // When PK does not exist this cannot happen. But if you remove a column with a smaller index
-        // than that of PK column, you need to recalculate the PK column index as core could have changed its column index.
-        if (hasPrimaryKey() && columnIndex <= getPrimaryKey()) {
-            invalidateCachedPrimaryKeyIndex();
+
+        // Check if a PK exists and take actions if there is. This is same as hasPrimaryKey(), but
+        // this relies on the local cache.
+        if (oldPkColumnIndex >= 0) {
+
+            // In case we're hitting PK column, we should remove the PK as it is either 1) a user has
+            // forgotten to remove PK or 2) removeColumn gets called before setPrimaryKey(null) is called.
+            // Since there is no danger in removing PK twice, we'll do it here to be on safe side.
+            if (oldPkColumnIndex == columnIndex) {
+                setPrimaryKey(null);
+
+            // But if you remove a column with a smaller index than that of PK column, you need to
+            // recalculate the PK column index as core could have changed its column index.
+            } else if (oldPkColumnIndex > columnIndex) {
+                invalidateCachedPrimaryKeyIndex();
+            }
         }
     }
 
