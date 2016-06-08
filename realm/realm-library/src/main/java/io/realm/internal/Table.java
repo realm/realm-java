@@ -210,6 +210,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param columnIndex the column index to be renamed.
      * @param newName a new name replacing the old column name.
      * @throws {@link IllegalArgumentException} if {@code newFieldName} is an empty string, or exceeds field name length limit.
+     * @throws {@link IllegalStateException} if a PrimaryKey column name could not be found in the meta table, but {@link #getPrimaryKey()} returns an index.
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
