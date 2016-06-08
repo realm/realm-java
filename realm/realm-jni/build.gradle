@@ -10,7 +10,7 @@ ext.clang = project.hasProperty('clang') ? project.getProperty('clang').toBoolea
 // Build with debug symbols
 ext.debugBuild = project.hasProperty('debugBuild') ? project.getProperty('debugBuild').toBoolean() : false
 // Strip the symbols from the so file or not. If debugBuild is true, this one will be always false.
-ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('stripSymbols').toBoolean() : false
+ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('stripSymbols').toBoolean() : true
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
@@ -75,12 +75,12 @@ def toolchains = [
 ]
 
 def allTargets = [
-//    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
-//    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-//    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
-//    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
+    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
+    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
+    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
     new Target( name:'x86',     abi:'x86',         toolchain:toolchains.find {it.name == 'x86'},    cflags:[] ),
-//    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
+    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
 ]
 
 def targets
