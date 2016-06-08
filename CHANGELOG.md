@@ -11,6 +11,7 @@
 * Fixed a crash when calling `Table.toString()` in debugger (#2429).
 * Revised `RealmResults.isLoaded()` description (#2895).
 * Fixed a crash that RealmResults was not updated in Realm's change listener by adjusting the calling orders of listeners on Realm, RealmObject and RealmResults (#2926).
+* Updated ProGuard configuration in order not to depend on Android's default configuraion (#2972).
 
 ### Enhancements
 
