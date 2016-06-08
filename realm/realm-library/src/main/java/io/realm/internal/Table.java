@@ -191,7 +191,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Removes a column in the table dynamically.
+     * Removes a column in the table dynamically. if {@code columnIndex} is the same or smaller than
+     * the primary key column index, {@link #invalidateCachedPrimaryKeyIndex()} will be called to
+     * recalculate the primary key column index.
+     *
+     * @param columnIndex the column index to be removed.
      */
     @Override
     public void removeColumn(long columnIndex) {
