@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '1.0.1'
+ext.coreVersion = '1.1.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'e132f5824dc31e683353fb0be91eb45cac702f88f8cee819499a1dfa7936aeac'
+//ext.coreSha256Hash = 'e132f5824dc31e683353fb0be91eb45cac702f88f8cee819499a1dfa7936aeac'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -10,7 +10,7 @@ ext.clang = project.hasProperty('clang') ? project.getProperty('clang').toBoolea
 // Build with debug symbols
 ext.debugBuild = project.hasProperty('debugBuild') ? project.getProperty('debugBuild').toBoolean() : false
 // Strip the symbols from the so file or not. If debugBuild is true, this one will be always false.
-ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('stripSymbols').toBoolean() : true
+ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('stripSymbols').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
@@ -75,12 +75,12 @@ def toolchains = [
 ]
 
 def allTargets = [
-    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
-    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
-    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
+//    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
+//    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+//    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
+//    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
     new Target( name:'x86',     abi:'x86',         toolchain:toolchains.find {it.name == 'x86'},    cflags:[] ),
-    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
+//    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
 ]
 
 def targets
@@ -311,7 +311,7 @@ targets.each { target ->
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
+            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-x86 -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}${getDebugExt()}.so"
         ]

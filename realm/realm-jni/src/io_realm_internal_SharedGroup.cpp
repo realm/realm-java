@@ -22,6 +22,9 @@
 #include <realm/replication.hpp>
 #include <realm/commit_log.hpp>
 
+#include <realm/sync/history.hpp>
+#include <realm/sync/client.hpp>
+
 #include "util.hpp"
 #include "io_realm_internal_SharedGroup.h"
 
@@ -124,7 +127,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
         file_name = StringData(file_name_tmp);
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        std::unique_ptr<Replication> hist = make_client_history(file_name, key.data());
+        std::unique_ptr<Replication> hist = realm::sync::make_sync_history(file_name);
+//        history = realm::sync::make_sync_history(config.path);
+//        std::unique_ptr<Replication> hist = make_client_history(file_name, key.data());
 #else
         std::unique_ptr<Replication> hist = make_client_history(file_name);
 #endif
