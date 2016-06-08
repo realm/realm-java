@@ -1064,7 +1064,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Invalidating cached the primary key column index for this table. This needs to be called manually before inserting data into the table.
+     * Invalidating a cached primary key column index for the table.
      */
     private void invalidateCachedPrimaryKeyIndex() {
         cachedPrimaryKeyColumnIndex = NO_MATCH;
