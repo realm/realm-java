@@ -3,7 +3,7 @@
 ### Enhancements
 
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
-* Updated ProGuard configuration in order not to depend on Andtoid's default configuraion(#2972).
+* Updated ProGuard configuration in order not to depend on Android's default configuraion (#2972).
 
 ## 1.0.1
 
