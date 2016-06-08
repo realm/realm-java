@@ -141,7 +141,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void verifyColumnName(String name) {
-        if (name == null || name.length() == 0 || name.length() > 63) {
+        if (name.length() > 63) {
             throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
         }
     }
@@ -220,13 +220,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
         // get the old column name. We'll assume that the old column name is *NOT* an empty string.
-        String oldName = nativeGetColumnName(nativePtr, columnIndex);
+        final String oldName = nativeGetColumnName(nativePtr, columnIndex);
+        // also old pk index. Once a column name changes, there is no way you can find the column name
+        // by old name.
+        final long oldPkColumnIndex = getPrimaryKey();
 
         // then let's try to rename a column. If an error occurs for some reasons, we'll throw.
         nativeRenameColumn(nativePtr, columnIndex, newName);
 
         // Rename a primary key. At this point, renaming the column name should have been fine.
-        if (getPrimaryKey() == columnIndex) {
+        if (oldPkColumnIndex == columnIndex) {
             try {
                 String className = tableNameToClassName(getName());
                 Table pkTable = getPrimaryKeyTable();
