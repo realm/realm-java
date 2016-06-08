@@ -6,3 +6,6 @@
 -dontwarn io.realm.**
 -keep class io.realm.RealmCollection
 -keep class io.realm.OrderedRealmCollection
+-keepclasseswithmembernames class io.realm.internal.** {
+    native <methods>;
+}
