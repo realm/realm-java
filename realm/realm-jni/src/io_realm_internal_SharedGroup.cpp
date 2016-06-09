@@ -17,7 +17,6 @@
 #include <jni.h>
 
 #include "util.hpp"
-
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
 #include <realm/commit_log.hpp>
@@ -25,8 +24,9 @@
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
 
-#include "util.hpp"
 #include "io_realm_internal_SharedGroup.h"
+#include <mutex>
+#include <thread>
 
 using namespace std;
 using namespace realm;
@@ -364,3 +364,55 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChang
         SG(native_ptr)->wait_for_change_release();
     } CATCH_STD()
 }
+
+
+// ---- TEMPORARY SYNC CODE -----
+
+using namespace realm;
+using namespace realm::_impl;
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
+  (JNIEnv* env, jobject, jstring jsync_identity, jstring jsync_signature, jstring jpath, jstring jserver_url)
+{
+    TR_ENTER()
+    try {
+        //JStringAccessor path_tmp(env, jpath); // throws
+        StringData path = StringData("/data/data/io.realm.test/files/foo.realm);
+
+//        JStringAccessor server_url_tmp(env, jserver_url); // throws
+        StringData server_url = StringData(server_url_tmp);
+
+        StringData user_token = StringData("user");
+
+        sync::Client::LogLevel log_level = sync::Client::LogLevel::normal;
+        std::unique_ptr<sync::Client> m_sync_client = std::make_unique<sync::Client>(user_token, nullptr, log_level);
+        std::unique_ptr<sync::Session> m_sync_session = std::make_unique<sync::Session>(*m_sync_client, path);
+//        m_sync_session->set_sync_transact_callback([this] (sync::Session::version_type) {
+//            if (m_notifier)
+ //               m_notifier->notify_others();
+//        });
+        m_sync_session->bind(server_url);
+
+        std::thread m_sync_thread = std::thread(&sync::Client::run, m_sync_client.get());
+
+
+//        std::shared_ptr<SyncClient> client = sync_client_for_user(sync_identity, sync_signature);
+//       std::unique_ptr<SyncSession> sync_session = start_sync_session_for_client(client, path, server_url);
+        return reinterpret_cast<jlong>(m_sync_session.release());
+    } CATCH_STD()
+    return 0;
+}
+
+/*
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStopSession
+  (JNIEnv* env, jobject, jlong nativeSessionPtr)
+{
+    TR_ENTER()
+    SyncSession *session = reinterpret_cast<SyncSession*>(nativeSessionPtr);
+    session->client.
+    std::shared_ptr<SyncClient> client = sync_client_for_user(sync_identity, sync_signature);
+    std::unique_ptr<SyncSession> sync_session = start_sync_session_for_client(client, config.path, *config.sync_server_url);
+    return reintrpret_cast<jlong>(sync_session.release());
+}
+*/

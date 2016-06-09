@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOError;
 
 import io.realm.RealmConfiguration;
+import io.realm.sync.SyncConfiguration;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
 
@@ -91,6 +92,21 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
+    public SharedGroup(SyncConfiguration syncConfig) {
+        RealmConfiguration config = syncConfig.getConfiguration();
+        String canonicalPath = config.getPath();
+        byte[] encryptionKey = config.getEncryptionKey();
+        Durability durability = config.getDurability();
+
+        nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+        //FIXME use the URL from syncConfig
+        nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, encryptionKey);
+        implicitTransactionsEnabled = true;
+        context = new Context();
+        path = canonicalPath;
+        checkNativePtrNotZero();
+    }
+
     // TODO Remove this? Explicit transactions are not supported anyway?
     public SharedGroup(String canonicalPath,
                        boolean enableImplicitTransactions,
@@ -112,6 +128,10 @@ public class SharedGroup implements Closeable {
         context = new Context();
         path = canonicalPath;
         checkNativePtrNotZero();
+    }
+
+    public long startSession (String userToken, String serverUrl) {
+        return nativeStartSession(userToken, serverUrl);
     }
 
     void advanceRead() {
@@ -348,7 +368,9 @@ public class SharedGroup implements Closeable {
                                                              int durability, byte[] key);
     private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
     private native long nativeCreateSyncReplication(String databaseFile);
+    private native long nativeStartSession(String userToken, String serverUrl);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
+
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
 
