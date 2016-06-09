@@ -1,13 +1,13 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -31,5 +31,6 @@ public class SyncTests {
 
         SyncSession session = SyncManager.apply(syncConfig);
         session.start();
+        Log.e("BOOM", "startSync: BOOOM");
     }
 }
