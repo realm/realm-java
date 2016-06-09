@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -359,13 +360,37 @@ abstract class BaseRealm implements Closeable {
             // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
-            if (
-                    realmPath.equals(configuration.getPath())                           // It's the right realm
-                            && !handler.hasMessages(HandlerController.REALM_CHANGED)    // The right message
-                            && handler.getLooper().getThread().isAlive()                // The receiving thread is alive
-                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                        "to prevent this.");
+            Looper looper = handler.getLooper();
+            if (realmPath.equals(configuration.getPath())          // It's the right realm
+                            && looper.getThread().isAlive()) {     // The receiving thread is alive
+
+                boolean messageHandled = true;
+                if (looper == Looper.myLooper()) {
+                    // Force any updates on the current thread to the front the queue. Doing this is mostly
+                    // relevant on the UI thread where it could otherwise process a motion event before the
+                    // REALM_CHANGED event. This could in turn cause a UI component like ListView to crash. See
+                    // https://github.com/realm/realm-android-adapters/issues/11 for such a case.
+                    // Other Looper threads could process similar events. For that reason all looper threads will
+                    // prioritize local commits.
+                    //
+                    // If a user is doing commits inside a RealmChangeListener this can cause the Looper thread to get
+                    // event starved as it only starts handling Realm events instead. This is an acceptable risk as
+                    // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
+                    // be responsive.
+                    Message msg = Message.obtain();
+                    msg.what = HandlerController.LOCAL_COMMIT;
+                    if (!handler.hasMessages(HandlerController.LOCAL_COMMIT)) {
+                        messageHandled = handler.sendMessageAtFrontOfQueue(msg);
+                    }
+                } else {
+                    if (!handler.hasMessages(HandlerController.REALM_CHANGED)) {
+                        messageHandled = handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+                    }
+                }
+                if (!messageHandled) {
+                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                            "to prevent this.");
+                }
             }
         }
     }

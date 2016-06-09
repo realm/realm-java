@@ -946,20 +946,20 @@ public class NotificationsTest {
     public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
         final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        looperThread.realm.addChangeListener(new RealmChangeListener<Realm>() {
+        final Realm realm = looperThread.realm;
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
                 switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
                     case 1: {
                         // first commit
-                        Dog dog = looperThread.realm.where(Dog.class).findFirstAsync();
+                        Dog dog = realm.where(Dog.class).findFirstAsync();
                         assertTrue(dog.load());
                         dog.addChangeListener(new RealmChangeListener<Dog>() {
                             @Override
                             public void onChange(Dog dog) {
                             }
                         });
-                        looperThread.keepStrongReference.add(dog);
 
                         new Thread() {
                             @Override
@@ -987,9 +987,9 @@ public class NotificationsTest {
         looperThread.postRunnable(new Runnable() {
             @Override
             public void run() {
-                looperThread.realm.beginTransaction();
-                looperThread.realm.createObject(Dog.class);
-                looperThread.realm.commitTransaction();
+                realm.beginTransaction();
+                realm.createObject(Dog.class);
+                realm.commitTransaction();
             }
         });
     }
@@ -1046,49 +1046,46 @@ public class NotificationsTest {
         });
     }
 
+    public static class PopulateOneAllTypes implements RunInLooperThread.RunnableBefore {
+
+        @Override
+        public void run(RealmConfiguration realmConfig) {
+            Realm realm = Realm.getInstance(realmConfig);
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.createObject(AllTypes.class);
+                }
+            });
+            realm.close();
+        }
+    }
+
     @Test
-    @RunTestInLooperThread
+    @RunTestInLooperThread(PopulateOneAllTypes.class)
     public void realmListener_realmResultShouldBeSynced() {
-        final AtomicInteger changeCounter = new AtomicInteger(0);
         final Realm realm = looperThread.realm;
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObject(AllTypes.class);
-            }
-        });
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(1, results.size());
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                assertNotNull(allTypes);
+                allTypes.deleteFromRealm();
+                assertEquals(0, realm.where(AllTypes.class).count());
+            }
+        });
 
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm element) {
-                switch (changeCounter.getAndIncrement()) {
-                    case 0:
-                        // Change event triggered by populating
-                        assertEquals(1, realm.where(AllTypes.class).count());
-                        assertEquals(1, results.size());
-
-                        realm.executeTransactionAsync(new Realm.Transaction() {
-                            @Override
-                            public void execute(Realm realm) {
-                                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
-                                assertNotNull(allTypes);
-                                allTypes.deleteFromRealm();
-                                assertEquals(0, realm.where(AllTypes.class).count());
-                            }
-                        });
-                        break;
-                    case 1:
-                        // Change event triggered by deletion in async transaction.
-                        assertEquals(0, realm.where(AllTypes.class).count());
-                        assertEquals(0, results.size());
-                        realm.close();
-                        looperThread.testComplete();
-                        break;
-                    default:
-                        break;
-                }
+                // Change event triggered by deletion in async transaction.
+                assertEquals(0, realm.where(AllTypes.class).count());
+                assertEquals(0, results.size());
+                realm.close();
+                looperThread.testComplete();
             }
         });
     }
@@ -1168,5 +1165,205 @@ public class NotificationsTest {
             }
         };
         realm.addChangeListener(initListener);
+    }
+
+    // See https://github.com/realm/realm-android-adapters/issues/48
+    // Step 1: Populate the db
+    // Step 2: Post a runnable to caller thread.
+    //         Event Queue: |Posted Runnable| <- TOP
+    // Step 3: Delete object which will make the results contain a invalid object at this moment
+    //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
+    //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
+    // Step 4: Posted runnable called.
+    @Test
+    @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
+    public void realmListener_localChangeShouldBeSendAtFrontOfTheQueue() {
+        final AtomicInteger changeCounter = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        assertEquals(1, results.size());
+
+        // Step 2
+        // The transaction later will trigger the results sync, and it should be run before this runnable.
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                // Step 4
+                assertEquals(0, results.size());
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        // Step 3
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                assertNotNull(allTypes);
+                allTypes.deleteFromRealm();
+                assertEquals(0, realm.where(AllTypes.class).count());
+                assertFalse(results.get(0).isValid());
+            }
+        });
+    }
+
+    // See https://github.com/realm/realm-android-adapters/issues/48
+    // Step 1: Populate the db
+    // Step 2: Create a async query, and wait until it finishes
+    // Step 3: Post a runnable to caller thread.
+    //         Event Queue: |Posted Runnable| <- TOP
+    // Step 4: Delete object which will make the results contain a invalid object at this moment
+    //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
+    //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
+    // Step 5: Posted runnable called.
+    @Test
+    @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
+    public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithLoadedAsync() {
+        final AtomicBoolean changedFirstTime = new AtomicBoolean(false);
+        final Realm realm = looperThread.realm;
+        final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAllAsync();
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+
+        assertEquals(1, results.size());
+
+        asyncResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                if (!changedFirstTime.get()) {
+                    // Step 2
+                    // The transaction later will trigger the results sync, and it should be run before this runnable.
+                    looperThread.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Step 5
+                            assertEquals(0, asyncResults.size());
+                            assertEquals(0, results.size());
+                            realm.close();
+                            looperThread.testComplete();
+                        }
+                    });
+
+                    // Step 3
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                            assertNotNull(allTypes);
+                            allTypes.deleteFromRealm();
+                            assertEquals(0, realm.where(AllTypes.class).count());
+                            assertFalse(results.get(0).isValid());
+                        }
+                    });
+                    changedFirstTime.set(true);
+                }
+            }
+        });
+    }
+
+    // See https://github.com/realm/realm-android-adapters/issues/48
+    // Step 1: Populate the db
+    // Step 2: Create a async query, and pause it
+    // Step 3: Post a runnable to caller thread.
+    //         Event Queue: |Posted Runnable| <- TOP
+    // Step 4: Delete object which will make the results contain a invalid object at this moment
+    //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
+    //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
+    // Step 5: Posted runnable called.
+    @Test
+    @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
+    public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithPausedAsync() {
+        final Realm realm = looperThread.realm;
+
+        Realm.asyncTaskExecutor.pause();
+        final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAllAsync();
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+
+        assertEquals(1, results.size());
+
+        // Step 2
+        // The transaction later will trigger the results sync, and it should be run before this runnable.
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                // Step 5
+                assertFalse(asyncResults.isLoaded());
+                assertEquals(0, results.size());
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        // Step 3
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                assertNotNull(allTypes);
+                allTypes.deleteFromRealm();
+                assertEquals(0, realm.where(AllTypes.class).count());
+                assertFalse(results.get(0).isValid());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void accessingSyncRealmResultInsideAsyncResultListener() {
+        final Realm realm = looperThread.realm;
+        final AtomicInteger asyncResultCallback = new AtomicInteger(0);
+
+        final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
+
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                switch (asyncResultCallback.incrementAndGet()) {
+                    case 1:
+                        // Called when first async query completes
+                        assertEquals(0, results.size());
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.createObject(AllTypes.class);
+                            }
+                        });
+                        break;
+
+                    case 2:
+                        // Called after async transaction completes, A REALM_CHANGED event has been triggered,
+                        // async queries have rerun, and listeners are triggered again
+                        assertEquals(1, results.size());
+                        assertEquals(1, syncResults.size()); // If syncResults is not in sync yet, this will fail.
+                        looperThread.testComplete();
+                        break;
+                }
+            }
+        });
+    }
+
+
+    // If RealmResults are updated just before their change listener are notified, one change listener might
+    // reference another RealmResults that have been advance_read, but not yet called sync_if_needed.
+    // This can result in accessing detached rows and other errors.
+    @Test
+    @RunTestInLooperThread
+    public void accessingSyncRealmResultsInsideAnotherResultListener() {
+        final Realm realm = looperThread.realm;
+        final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
+        final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
+        syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                assertEquals(1, syncResults1.size());
+                assertEquals(1, syncResults2.size()); // If syncResults2 is not in sync yet, this will fail.
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
     }
 }

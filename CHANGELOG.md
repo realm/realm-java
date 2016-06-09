@@ -11,6 +11,8 @@
 * Fixed a crash when calling `Table.toString()` in debugger (#2429).
 * Revised `RealmResults.isLoaded()` description (#2895).
 * Fixed a crash that RealmResults was not updated in Realm's change listener by adjusting the calling orders of listeners on Realm, RealmObject and RealmResults (#2926).
+* Fixed a race condition between Realms notifications and other UI events. This could e.g. cause ListView to crash.
+* Fixed a potential crash when accessing other RealmResults from inside a RealmResults' RealmChangeListener (#2951).
 
 ### Enhancements
 
