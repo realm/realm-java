@@ -53,7 +53,7 @@ ifeq ($(REALM_ANDROID),)
   endif
 else
   ifeq ($(COMPILER_IS),gcc)
-    PROJECT_CFLAGS += -Wno-missing-field-initializers -Wno-missing-braces
+    PROJECT_CFLAGS += -Wno-missing-field-initializers -Wno-missing-braces -Werror
   endif
   PROJECT_CFLAGS += -DANDROID
   CFLAGS_OPTIM = -Os -DNDEBUG
