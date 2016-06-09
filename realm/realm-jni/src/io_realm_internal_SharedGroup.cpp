@@ -373,32 +373,32 @@ using namespace realm::_impl;
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
-  (JNIEnv* env, jobject, jstring jsync_identity, jstring jsync_signature, jstring jpath, jstring jserver_url)
+  (JNIEnv* env, jobject, jstring jpath, jstring jserver_url)
 {
     TR_ENTER()
     try {
-        //JStringAccessor path_tmp(env, jpath); // throws
-        StringData path = StringData("/data/data/io.realm.test/files/foo.realm);
+        JStringAccessor path_tmp(env, jpath); // throws
+        StringData path = StringData(path_tmp);
 
-//        JStringAccessor server_url_tmp(env, jserver_url); // throws
+        JStringAccessor server_url_tmp(env, jserver_url); // throws
         StringData server_url = StringData(server_url_tmp);
 
         StringData user_token = StringData("user");
 
         sync::Client::LogLevel log_level = sync::Client::LogLevel::normal;
         std::unique_ptr<sync::Client> m_sync_client = std::make_unique<sync::Client>(user_token, nullptr, log_level);
+        TR(">>>>>>>>>>>>>>>>>>>>>>>>> m_sync_client")
         std::unique_ptr<sync::Session> m_sync_session = std::make_unique<sync::Session>(*m_sync_client, path);
+        TR(">>>>>>>>>>>>>>>>>>>>>>>>> m_sync_session")
 //        m_sync_session->set_sync_transact_callback([this] (sync::Session::version_type) {
 //            if (m_notifier)
  //               m_notifier->notify_others();
 //        });
         m_sync_session->bind(server_url);
-
+        TR(">>>>>>>>>>>>>>>>>>>>>>>>> server_url")
         std::thread m_sync_thread = std::thread(&sync::Client::run, m_sync_client.get());
+        TR(">>>>>>>>>>>>>>>>>>>>>>>>> m_sync_thread")
 
-
-//        std::shared_ptr<SyncClient> client = sync_client_for_user(sync_identity, sync_signature);
-//       std::unique_ptr<SyncSession> sync_session = start_sync_session_for_client(client, path, server_url);
         return reinterpret_cast<jlong>(m_sync_session.release());
     } CATCH_STD()
     return 0;

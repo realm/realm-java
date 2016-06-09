@@ -16,13 +16,13 @@ public class SyncConfiguration {
     }
 
     public String getServer() {
-        return server.toString();
+        return server;
     }
 
-    private final URL server;
+    private final String server;
 
     //TODO have a builder
-    public SyncConfiguration(RealmConfiguration configuration, URL server) {
+    public SyncConfiguration(RealmConfiguration configuration, String server) {
         this.configuration = configuration;
         this.server = server;
         this.syncPolicy = new RealtimeSyncPolicy();

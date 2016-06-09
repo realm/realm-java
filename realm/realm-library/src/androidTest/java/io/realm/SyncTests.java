@@ -25,8 +25,10 @@ public class SyncTests {
 
     @Test
     public void startSync() throws MalformedURLException {
+        io.realm.internal.Util.setDebugLevel(5);
         RealmConfiguration config = configFactory.createConfiguration();
-        SyncConfiguration syncConfig = new SyncConfiguration(config, new URL("http://127.0.0.1:8000"));
+        SyncConfiguration syncConfig = new SyncConfiguration(config, "realm://fr.demo.realmusercontent.com");
+
         SyncSession session = SyncManager.apply(syncConfig);
         session.start();
     }

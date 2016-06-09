@@ -206,7 +206,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChang
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
-  (JNIEnv *, jobject, jstring, jstring, jstring, jstring);
+  (JNIEnv *, jobject, jstring, jstring);
 
 
 

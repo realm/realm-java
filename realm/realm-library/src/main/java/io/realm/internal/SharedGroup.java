@@ -131,7 +131,7 @@ public class SharedGroup implements Closeable {
     }
 
     public long startSession (String userToken, String serverUrl) {
-        return nativeStartSession(userToken, serverUrl);
+        return nativeStartSession(path, serverUrl);
     }
 
     void advanceRead() {
