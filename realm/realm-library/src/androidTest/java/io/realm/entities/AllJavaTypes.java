@@ -24,7 +24,7 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-public class AllJavaTypes extends RealmObject{
+public class AllJavaTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AllJavaTypes";
     public static String FIELD_IGNORED = "fieldIgnored";
@@ -57,6 +57,14 @@ public class AllJavaTypes extends RealmObject{
     private byte[] fieldBinary;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
+
+    public AllJavaTypes() {
+
+    }
+
+    public AllJavaTypes(long fieldLong) {
+        this.fieldLong = fieldLong;
+    }
 
     public String getFieldIgnored() {
         return fieldIgnored;

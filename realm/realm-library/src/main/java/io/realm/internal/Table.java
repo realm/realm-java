@@ -162,7 +162,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *
      * @param type the column type.
      * @param name the field/column name.
-     * @param isNullable {@code true} if column can contain null values, {@ code false}e otherwise.
+     * @param isNullable {@code true} if column can contain null values, {@code false} otherwise.
      * @return the index of the new column.
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
@@ -191,20 +191,82 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Removes a column in the table dynamically.
+     * Removes a column in the table dynamically. if {@code columnIndex} is smaller than the primary
+     * key column index, {@link #invalidateCachedPrimaryKeyIndex()} will be called to recalculate the
+     * primary key column index.
+     *
+     * <p>It should be noted if {@code columnIndex} is the same as the primary key column index,
+     * the primary key column is removed from the meta table.
+     *
+     * @param columnIndex the column index to be removed.
      */
     @Override
     public void removeColumn(long columnIndex) {
+        // Check the PK column index before removing a column. We don't know if we're hitting a PK col,
+        // but it should be noted that once a column is removed, there is no way we can find whether
+        // a PK exists or not.
+        final long oldPkColumnIndex = getPrimaryKey();
+
+        // firstly remove a column. If there is no error, we can proceed. Otherwise, it will stop here.
         nativeRemoveColumn(nativePtr, columnIndex);
+
+        // Check if a PK exists and take actions if there is. This is same as hasPrimaryKey(), but
+        // this relies on the local cache.
+        if (oldPkColumnIndex >= 0) {
+
+            // In case we're hitting PK column, we should remove the PK as it is either 1) a user has
+            // forgotten to remove PK or 2) removeColumn gets called before setPrimaryKey(null) is called.
+            // Since there is no danger in removing PK twice, we'll do it here to be on safe side.
+            if (oldPkColumnIndex == columnIndex) {
+                setPrimaryKey(null);
+
+            // But if you remove a column with a smaller index than that of PK column, you need to
+            // recalculate the PK column index as core could have changed its column index.
+            } else if (oldPkColumnIndex > columnIndex) {
+                invalidateCachedPrimaryKeyIndex();
+            }
+        }
     }
 
     /**
-     * Renames a column in the table.
+     * Renames a column in the table. If the column is a primary key column, the corresponding entry
+     * in PrimaryKeyTable will be renamed accordingly.
+     *
+     * @param columnIndex the column index to be renamed.
+     * @param newName a new name replacing the old column name.
+     * @throws {@link IllegalArgumentException} if {@code newFieldName} is an empty string, or exceeds field name length limit.
+     * @throws {@link IllegalStateException} if a PrimaryKey column name could not be found in the meta table, but {@link #getPrimaryKey()} returns an index.
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
+        // get the old column name. We'll assume that the old column name is *NOT* an empty string.
+        final String oldName = nativeGetColumnName(nativePtr, columnIndex);
+        // also old pk index. Once a column name changes, there is no way you can find the column name
+        // by old name.
+        final long oldPkColumnIndex = getPrimaryKey();
+
+        // then let's try to rename a column. If an error occurs for some reasons, we'll throw.
         nativeRenameColumn(nativePtr, columnIndex, newName);
+
+        // Rename a primary key. At this point, renaming the column name should have been fine.
+        if (oldPkColumnIndex == columnIndex) {
+            try {
+                String className = tableNameToClassName(getName());
+                Table pkTable = getPrimaryKeyTable();
+                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+                if (pkRowIndex != NO_MATCH) {
+                    pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName);
+                } else {
+                    throw new IllegalStateException("Non-existent PrimaryKey column cannot be renamed");
+                }
+            } catch (Exception e) {
+                // we failed to rename the pk meta table. roll back the column name, not pk meta table
+                // then rethrow.
+                nativeRenameColumn(nativePtr, columnIndex, oldName);
+                throw e;
+            }
+        }
     }
 
     /**
@@ -339,6 +401,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        checkImmutable();
+        remove(0);
+    }
+
+    @Override
     public void removeLast() {
         checkImmutable();
         nativeRemoveLast(nativePtr);
@@ -365,7 +433,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
                         throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
                     }
                     break;
-
                 default:
                     throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
             }
@@ -384,38 +451,55 @@ public class Table implements TableOrView, TableSchema, Closeable {
         UncheckedRow row;
 
         // Add with primary key initially set
-        switch (type) {
-            case STRING:
-                if (!(primaryKeyValue instanceof String)) {
-                    throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
-                }
-                if (findFirstString(primaryKeyColumnIndex, (String)primaryKeyValue) != NO_MATCH) {
-                    throwDuplicatePrimaryKeyException(primaryKeyValue);
-                }
-                rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
-                row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
-                break;
+        if (primaryKeyValue == null) {
+            switch (type) {
+                case STRING:
+                case INTEGER:
+                    if (findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyException("null");
+                    }
+                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                    row = getUncheckedRow(rowIndex);
+                    row.setNull(primaryKeyColumnIndex);
+                    break;
 
-            case INTEGER:
-                long pkValue;
-                try {
-                    pkValue = Long.parseLong(primaryKeyValue.toString());
-                } catch (RuntimeException e) {
-                    throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
-                }
-                if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
-                    throwDuplicatePrimaryKeyException(pkValue);
-                }
-                rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
-                row.setLong(primaryKeyColumnIndex, pkValue);
-                break;
+                default:
+                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+            }
 
-            default:
-                throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+        } else {
+            switch (type) {
+                case STRING:
+                    if (!(primaryKeyValue instanceof String)) {
+                        throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
+                    }
+                    if (findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyException(primaryKeyValue);
+                    }
+                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                    row = getUncheckedRow(rowIndex);
+                    row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                    break;
+
+                case INTEGER:
+                    long pkValue;
+                    try {
+                        pkValue = Long.parseLong(primaryKeyValue.toString());
+                    } catch (RuntimeException e) {
+                        throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
+                    }
+                    if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyException(pkValue);
+                    }
+                    rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                    row = getUncheckedRow(rowIndex);
+                    row.setLong(primaryKeyColumnIndex, pkValue);
+                    break;
+
+                default:
+                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+            }
         }
-
         return rowIndex;
     }
 
@@ -479,9 +563,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeSetBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
             case INTEGER:
-                long intValue = ((Number) value).longValue();
-                checkIntValueIsLegal(columnIndex, rowIndex, intValue);
-                nativeSetLong(nativePtr, columnIndex, rowIndex, intValue);
+                if (value == null) {
+                    checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+                    nativeSetNull(nativePtr, columnIndex, rowIndex);
+                } else {
+                    long intValue = ((Number) value).longValue();
+                    checkIntValueIsLegal(columnIndex, rowIndex, intValue);
+                    nativeSetLong(nativePtr, columnIndex, rowIndex, intValue);
+                }
                 break;
             case FLOAT:
                 nativeSetFloat(nativePtr, columnIndex, rowIndex, (Float) value);
@@ -490,14 +579,19 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeSetDouble(nativePtr, columnIndex, rowIndex, (Double) value);
                 break;
             case STRING:
-                String stringValue = (String) value;
-                checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
-                nativeSetString(nativePtr, columnIndex, rowIndex, (String) value);
+                if (value == null) {
+                    checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+                    nativeSetNull(nativePtr, columnIndex, rowIndex);
+                } else {
+                    String stringValue = (String) value;
+                    checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
+                    nativeSetString(nativePtr, columnIndex, rowIndex, (String) value);
+                }
                 break;
             case DATE:
                 if (value == null)
                     throw new IllegalArgumentException("Null Date is not allowed.");
-                nativeSetDate(nativePtr, columnIndex, rowIndex, ((Date) value).getTime() / 1000);
+                nativeSetTimestamp(nativePtr, columnIndex, rowIndex, ((Date) value).getTime());
                 break;
             case UNSUPPORTED_MIXED:
                 if (value == null)
@@ -629,6 +723,25 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    // check if it is ok to use null value for given row and column.
+    void checkDuplicatedNullForPrimaryKeyValue(long columnIndex, long rowToUpdate) {
+        if (isPrimaryKeyColumn(columnIndex)) {
+            RealmFieldType type = getColumnType(columnIndex);
+            switch (type) {
+                case STRING:
+                case INTEGER:
+                    long rowIndex = findFirstNull(columnIndex);
+                    if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+                        throwDuplicatePrimaryKeyException("null");
+                    }
+                    break;
+                default:
+                    // Since it is sufficient to check the existance of duplicated null values
+                    // on PrimaryKey in supported types only, this part is left empty.
+            }
+        }
+    }
+
     private void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
@@ -659,7 +772,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public Date getDate(long columnIndex, long rowIndex) {
-        return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
+        return new Date(nativeGetTimestamp(nativePtr, columnIndex, rowIndex));
     }
 
     /**
@@ -841,14 +954,26 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (date == null)
             throw new IllegalArgumentException("Null Date is not allowed.");
         checkImmutable();
-        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
+        nativeSetTimestamp(nativePtr, columnIndex, rowIndex, date.getTime());
     }
 
+    /**
+     * Set a String value to a cell of Table, pointed by column and row index.
+     *
+     * @param columnIndex 0 based index value of the cell column.
+     * @param rowIndex 0 based index value of the cell row.
+     * @param value a String value to set in the cell.
+     */
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
-        checkStringValueIsLegal(columnIndex, rowIndex, value);
-        nativeSetString(nativePtr, columnIndex, rowIndex, value);
+        if (value == null) {
+            checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+            nativeSetNull(nativePtr, columnIndex, rowIndex);
+        } else {
+            checkStringValueIsLegal(columnIndex, rowIndex, value);
+            nativeSetString(nativePtr, columnIndex, rowIndex, value);
+        }
     }
 
     /**
@@ -926,7 +1051,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Define a primary key for this table. This needs to be called manually before inserting data into the table.
+     * Defines a primary key for this table. This needs to be called manually before inserting data into the table.
      *
      * @param columnName the name of the field that will function primary key. "" or {@code null} will remove any
      *                   previous set magic key.
@@ -960,6 +1085,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
 
         return pkTable;
+    }
+
+    /**
+     * Invalidating a cached primary key column index for the table.
+     */
+    private void invalidateCachedPrimaryKeyIndex() {
+        cachedPrimaryKeyColumnIndex = NO_MATCH;
     }
 
     /*
@@ -1089,12 +1221,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public Date maximumDate(long columnIndex) {
-        return new Date(nativeMaximumDate(nativePtr, columnIndex) * 1000);
+        return new Date(nativeMaximumTimestamp(nativePtr, columnIndex));
     }
 
     @Override
     public Date minimumDate(long columnIndex) {
-        return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
+        return new Date(nativeMinimumTimestamp(nativePtr, columnIndex));
     }
 
     //
@@ -1174,7 +1306,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (date == null) {
             throw new IllegalArgumentException("null is not supported");
         }
-        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
+        return nativeFindFirstTimestamp(nativePtr, columnIndex, date.getTime());
     }
 
     @Override
@@ -1183,6 +1315,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw new IllegalArgumentException("null is not supported");
         }
         return nativeFindFirstString(nativePtr, columnIndex, value);
+    }
+
+    /**
+     * Searches for first occurrence of null. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex the column to search in.
+     * @return the row index for the first match found or {@link #NO_MATCH}.
+     */
+    public long findFirstNull(long columnIndex) {
+        return nativeFindFirstNull(nativePtr, columnIndex);
     }
 
     @Override
@@ -1228,19 +1370,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
-    }
-
-    @Override
-    public TableView findAllDate(long columnIndex, Date date) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000);
         try {
             return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
@@ -1298,7 +1427,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Return the table name as it is in the associated group.
+     * Returns the table name as it is in the associated group.
      *
      * @return Name of the the table or null if it not part of a group.
      */
@@ -1320,21 +1449,34 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, INFINITE);
+        long columnCount = getColumnCount();
+        String name = getName();
+        StringBuilder stringBuilder = new StringBuilder("The Table ");
+        if (name != null && !name.isEmpty()) {
+            stringBuilder.append(getName());
+            stringBuilder.append(" ");
+        }
+        stringBuilder.append("contains ");
+        stringBuilder.append(columnCount);
+        stringBuilder.append(" columns: ");
+
+        for (int i = 0; i < columnCount; i++) {
+            if (i != 0) {
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append(getColumnName(i));
+        }
+        stringBuilder.append(".");
+
+        stringBuilder.append(" And ");
+        stringBuilder.append(size());
+        stringBuilder.append(" rows.");
+
+        return stringBuilder.toString();
     }
 
     @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
-
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
-    }
-
-    @Override
-    public long sync() {
+    public long syncIfNeeded() {
         throw new RuntimeException("Not supported for tables");
     }
 
@@ -1363,13 +1505,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Report the current versioning counter for the table. The versioning counter is guaranteed to
+     * Reports the current versioning counter for the table. The versioning counter is guaranteed to
      * change when the contents of the table changes after advance_read() or promote_to_write(), or
      * immediately after calls to methods which change the table.
      *
      * @return version_counter for the table.
      */
-    public long version() {
+    public long getVersion() {
         return nativeVersion(nativePtr);
     }
 
@@ -1409,7 +1551,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
     private native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
     private native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
-    private native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex);
     private native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
     private native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
@@ -1425,8 +1567,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
     private native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
     private native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
-    private native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
+    private native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
     private native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    private native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     private native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
     private native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
@@ -1449,8 +1592,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native double nativeMaximumDouble(long nativePtr, long columnIndex);
     private native double nativeMinimumDouble(long nativePtr, long columnIndex);
     private native double nativeAverageDouble(long nativePtr, long columnIndex);
-    private native long nativeMaximumDate(long nativePtr, long columnIndex);
-    private native long nativeMinimumDate(long nativePtr, long columnIndex);
+    private native long nativeMaximumTimestamp(long nativePtr, long columnIndex);
+    private native long nativeMinimumTimestamp(long nativePtr, long columnIndex);
     private native long nativeCountLong(long nativePtr, long columnIndex, long value);
     private native long nativeCountFloat(long nativePtr, long columnIndex, float value);
     private native long nativeCountDouble(long nativePtr, long columnIndex, double value);
@@ -1460,13 +1603,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
-    private native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnIndex, long dateTimeValue);
     private native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
+    private native long nativeFindFirstNull(long nativePtr, long columnIndex);
     private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
-    private native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindAllTimestamp(long nativePtr, long columnIndex, long dateTimeValue);
     private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
     private native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     private native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
@@ -1475,8 +1619,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native String nativeGetName(long nativeTablePtr);
     private native void nativeOptimize(long nativeTablePtr);
     private native String nativeToJson(long nativeTablePtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
 }

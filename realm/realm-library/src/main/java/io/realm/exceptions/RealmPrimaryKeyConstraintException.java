@@ -24,7 +24,7 @@ import io.realm.internal.Keep;
  * @see io.realm.annotations.PrimaryKey
  */
 @Keep
-public class RealmPrimaryKeyConstraintException extends RuntimeException {
+public final class RealmPrimaryKeyConstraintException extends RuntimeException {
     public RealmPrimaryKeyConstraintException(String message) {
         super(message);
     }

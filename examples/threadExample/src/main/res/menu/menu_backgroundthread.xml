@@ -21,12 +21,12 @@
         android:id="@+id/action_add_dot"
         android:title="@string/add_dot"
         android:icon="@android:drawable/ic_menu_add"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_clear"
         android:title="@string/clear_dots"
         android:icon="@android:drawable/ic_menu_delete"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
 </menu>

@@ -104,7 +104,7 @@ public class DetailsActivity extends AppCompatActivity {
 
     public void setRead(boolean read) {
         if (read) {
-            readView.setText("READ");
+            readView.setText(R.string.read);
             readView.animate().alpha(1.0f);
         } else {
             readView.setText("");

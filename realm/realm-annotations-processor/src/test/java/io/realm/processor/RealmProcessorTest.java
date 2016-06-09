@@ -49,6 +49,13 @@ public class RealmProcessorTest {
     private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
     private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
     private JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
+    private JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_1.java");
+    private JavaFileObject invalidRealmModelModel_2 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_2.java");
+    private JavaFileObject invalidRealmModelModel_3 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_3.java");
+    private JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelRealmModel_ExtendingRealmObject.java");
+    private JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
+    private JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
+    private JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
 
     @Test
     public void compileSimpleFile() {
@@ -383,6 +390,73 @@ public class RealmProcessorTest {
     public void failOnVolatileFields() throws Exception {
         ASSERT.about(javaSource())
                 .that(volatileModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    // annotation without implementing RealmModel interface
+    @Test
+    public void failOnInvalidRealmModel_1() throws Exception {
+        ASSERT.about(javaSource())
+                .that(invalidRealmModelModel_1)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    // it's not allowed to extend from another RealmObject
+    @Test
+    public void failOnInvalidRealmModel_2() throws Exception {
+        ASSERT.about(javaSource())
+                .that(invalidRealmModelModel_2)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    // it's not allowed to extend from another RealmObject
+    @Test
+    public void failOnInvalidRealmModel_3() throws Exception {
+        ASSERT.about(javaSource())
+                .that(invalidRealmModelModel_3)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void validRealmModelUsingInheritance() throws Exception {
+        ASSERT.about(javaSource())
+                .that(ValidModelPojo_ExtendingRealmObject)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void canNotInheritRealmList() throws Exception {
+        ASSERT.about(javaSource())
+                .that(UseExtendRealmList)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileWithRealmModelFieldInReamlModel() {
+        ASSERT.about(javaSource())
+                .that(SimpleRealmModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileWithInterfaceForList() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceList.java"), customInterface))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileWithInterfaceForObject() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceObjectReference.java"), customInterface))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

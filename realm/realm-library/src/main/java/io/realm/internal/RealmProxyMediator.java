@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.Realm;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
 
@@ -46,7 +47,7 @@ public abstract class RealmProxyMediator {
      * @param clazz the {@link RealmObject} model class to create backing table for.
      * @param transaction the read transaction for the Realm to create table in.
      */
-    public abstract Table createTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction);
+    public abstract Table createTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction);
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.
@@ -55,7 +56,7 @@ public abstract class RealmProxyMediator {
      * @param transaction the read transaction for the Realm to validate against.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction);
+    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.
@@ -63,7 +64,7 @@ public abstract class RealmProxyMediator {
      * @param clazz the {@link RealmObject} class reference.
      * @return The simple name of an RealmObject class (before it has been obfuscated).
      */
-    public abstract List<String> getFieldNames(Class<? extends RealmObject> clazz);
+    public abstract List<String> getFieldNames(Class<? extends RealmModel> clazz);
 
     /**
      * Returns the name that Realm should use for all it's internal tables. This is the un-obfuscated name of the
@@ -73,7 +74,7 @@ public abstract class RealmProxyMediator {
      * @return the simple name of an RealmObject class (before it has been obfuscated).
      * @throws java.lang.NullPointerException if null is given as argument.
      */
-    public abstract String getTableName(Class<? extends RealmObject> clazz);
+    public abstract String getTableName(Class<? extends RealmModel> clazz);
 
     /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
@@ -82,26 +83,26 @@ public abstract class RealmProxyMediator {
      * @param columnInfo the {@link ColumnInfo} object for the RealmObject class of {@code E}.
      * @return created {@link RealmObjectProxy} object.
      */
-    public abstract <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
+    public abstract <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
 
     /**
      * Returns the list of RealmObject classes that can be saved in this Realm.
      *
      * @return list of class references to RealmObject classes. Empty list if no RealmObjects are supported.
      */
-    public abstract Set<Class<? extends RealmObject>> getModelClasses();
+    public abstract Set<Class<? extends RealmModel>> getModelClasses();
 
     /**
-     * Copy a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied any
-     * changes to the original object will not be persisted.
+     * Copies a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
+     * any changes to the original object will not be persisted.
      *
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
-     * @param cache the cache for mapping between standalone objects and their {@link RealmObjectProxy} representation.
+     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
      * @return the managed Realm object.
      */
-    public abstract <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache);
+    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.
@@ -114,7 +115,7 @@ public abstract class RealmProxyMediator {
      * @return RealmObject that has been created or updated.
      * @throws JSONException if the JSON mapping doesn't match the expected class.
      */
-    public abstract <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException;
+    public abstract <E extends RealmModel> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException;
 
     /**
      * Creates new {@link RealmObject} based on a JSON input stream.
@@ -125,18 +126,18 @@ public abstract class RealmProxyMediator {
      * @return the created {@link RealmObject}
      * @throws IOException if an error occurs with the input stream.
      */
-    public abstract <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
+    public abstract <E extends RealmModel> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
 
     /**
-     * Creates a deep standalone copy of a RealmObject. This is a deep copy so all links will be copied as well.
+     * Creates a deep unmanaged copy of a RealmObject. This is a deep copy so all links will be copied as well.
      * The depth can be restricted to a maximum depth after which all links will be turned into null values instead.
      *
      * @param realmObject RealmObject to copy. It must be a valid object.
      * @param maxDepth restrict the depth of the copy to this level. The root object is depth {@code 0}.
-     * @param cache cache used to make sure standalone objects are reused correctly.
-     * @return a standalone copy of the given object.
+     * @param cache cache used to make sure unmanaged objects are reused correctly.
+     * @return an unmanaged copy of the given object.
      */
-    public abstract <E extends RealmObject> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> cache);
+    public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
     /**
      * Returns whether Realm transformer has been applied or not. Subclasses of this class are
@@ -163,13 +164,13 @@ public abstract class RealmProxyMediator {
         return getModelClasses().hashCode();
     }
 
-    protected static void checkClass(Class<? extends RealmObject> clazz) {
+    protected static void checkClass(Class<? extends RealmModel> clazz) {
         if (clazz == null) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }
     }
 
-    protected static RealmException getMissingProxyClassException(Class<? extends RealmObject> clazz) {
+    protected static RealmException getMissingProxyClassException(Class<? extends RealmModel> clazz) {
         return new RealmException(clazz + " is not part of the schema for this Realm.");
     }
 }

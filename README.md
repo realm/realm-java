@@ -6,18 +6,18 @@ This repository holds the source code for the Java version of Realm, which curre
 ## Features
 
 * **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets and wearables.
-* **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](http://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
+* **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations, while maintaining an extremely rich feature set.
 
 ## Getting Started
 
-Please see the [detailed instructions in our docs](http://realm.io/docs/java/#installation) to add Realm to your project.
+Please see the [detailed instructions in our docs](https://realm.io/docs/java/#installation) to add Realm to your project.
 
 ## Documentation
 
-Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).
-The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/java/api).
+Documentation for Realm can be found at [realm.io/docs/java](https://realm.io/docs/java).
+The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/java/api).
 
 ## Getting Help
 
@@ -61,17 +61,18 @@ Prerequisites:
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
  * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
- * Or you can use [Hombrew](https://github.com/Homebrew/homebrew) to install Android NDK for Mac:
+ * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
 
     ```
-    brew install android-ndk
+    brew tap homebrew/versions
+    brew install android-ndk-r10e
     ```
 
  * Add two environment variables to your profile:
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export NDK_HOME=/usr/local/Cellar/android-ndk/r10e
+    export NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
     ```
 
  * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
@@ -113,6 +114,7 @@ That command will generate:
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
  * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
  * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This saves recompilation time a lot.
+ * `./gradlew connectedUnitTests -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 
@@ -135,10 +137,14 @@ so each sub-project must be opened in its own window.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 
+This project adheres to the [Contributor Covenant Code of Conduct](https://realm.io/conduct).
+By participating, you are expected to uphold this code. Please report
+unacceptable behavior to [info@realm.io](mailto:info@realm.io).
+
 ## License
 
 Realm Java is published under the Apache 2.0 license.
-The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/java/#faq).
+The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](https://realm.io/docs/java/#faq).
 
 **This product is not being made available to any person located in Cuba, Iran,
 North Korea, Sudan, Syria or the Crimea region, or to any other person that is

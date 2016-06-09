@@ -25,11 +25,11 @@ import java.util.concurrent.Future;
  * case of a configuration change for example (to avoid memory leak, as the transaction will post the result to the
  * caller's thread callback).
  */
-public class RealmAsyncTask {
+public final class RealmAsyncTask {
     private final Future<?> pendingQuery;
     private volatile boolean isCancelled = false;
 
-    public RealmAsyncTask(Future<?> pendingQuery) {
+    RealmAsyncTask(Future<?> pendingQuery) {
         this.pendingQuery = pendingQuery;
     }
 
@@ -49,7 +49,7 @@ public class RealmAsyncTask {
         // first thread is attempting to purge the queue the attempt to purge
         // the queue fails and the cancelled object remain in the queue.
         // A better way to cancel objects with thread pools is to use the remove()
-        Realm.asyncQueryExecutor.getQueue().remove(pendingQuery);
+        Realm.asyncTaskExecutor.getQueue().remove(pendingQuery);
     }
 
     /**

@@ -23,8 +23,11 @@ import com.google.common.collect.Sets
 import com.google.common.io.Files
 import groovy.io.FileType
 import io.realm.annotations.Ignore
+import io.realm.annotations.RealmClass
 import javassist.ClassPool
+import javassist.CtClass
 import javassist.LoaderClassPath
+import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -41,6 +44,11 @@ import static com.android.build.api.transform.QualifiedContent.*
 class RealmTransformer extends Transform {
 
     private Logger logger = LoggerFactory.getLogger('realm-logger')
+    private Project project
+
+    public RealmTransformer(Project project) {
+        this.project = project
+    }
 
     @Override
     String getName() {
@@ -82,6 +90,9 @@ class RealmTransformer extends Transform {
 
         // Create and populate the Javassist class pool
         ClassPool classPool = createClassPool(inputs, referencedInputs)
+        // Append android.jar to class pool. We don't need the class names of them but only the class in the pool for
+        // javassist. See https://github.com/realm/realm-java/issues/2703.
+        addBootClassesToClassPool(classPool)
 
         logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
@@ -98,11 +109,10 @@ class RealmTransformer extends Transform {
         }
 
         // Find the model classes
-        def realmObject = classPool.get('io.realm.RealmObject')
         def allModelClasses = allClassNames
                 .findAll { it.endsWith('RealmProxy') }
                 .collect { classPool.getCtClass(it).superclass }
-                .findAll { it.superclass?.equals(realmObject) }
+                .findAll { it.hasAnnotation(RealmClass.class) || it.superclass.hasAnnotation(RealmClass.class) }
         def inputModelClasses = allModelClasses.findAll {
             inputClassNames.contains(it.name)
         }
@@ -135,6 +145,41 @@ class RealmTransformer extends Transform {
 
         def toc = System.currentTimeMillis()
         logger.info "Realm Transform time: ${toc-tic} milliseconds"
+
+        sendAnalytics(inputs, inputModelClasses)
+    }
+
+    /**
+     * Sends the analytics
+     * @param inputs the inputs provided by the Transform API
+     * @param inputModelClasses a list of ctClasses describing the Realm models
+     */
+    private static sendAnalytics(Collection<TransformInput> inputs, List<CtClass> inputModelClasses) {
+        def containsKotlin = false
+        inputs.each {
+            it.directoryInputs.each {
+                def path = it.file.absolutePath
+                def index = path.indexOf('build' + File.separator + 'intermediates' + File.separator + 'classes')
+                if (index != -1) {
+                    def projectPath = path.substring(0, index)
+                    def buildFile = new File(projectPath + 'build.gradle')
+                    if (buildFile.exists() && buildFile.text.contains('kotlin')) {
+                        containsKotlin = true
+                    }
+                }
+            }
+        }
+
+        def packages = inputModelClasses.collect {
+            it.getPackageName()
+        }
+
+        def env = System.getenv()
+        def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
+        if (disableAnalytics == null || disableAnalytics != "true") {
+            def analytics = RealmAnalytics.getInstance(packages as Set, containsKotlin)
+            analytics.execute()
+        }
     }
 
     /**
@@ -240,5 +285,21 @@ class RealmTransformer extends Transform {
         merged.addAll(set1)
         merged.addAll(set2)
         return merged;
+    }
+
+    // There is no official way to get the path to android.jar for transform.
+    // See https://code.google.com/p/android/issues/detail?id=209426
+    private void addBootClassesToClassPool(ClassPool classPool) {
+        try {
+            project.android.bootClasspath.each {
+                String path = it.absolutePath
+                logger.info "Add boot class " + path + " to class pool."
+                classPool.appendClassPath(path)
+            }
+        } catch (Exception e) {
+            // Just log it. It might not impact the transforming if the method which needs to be transformer doesn't
+            // contain classes from android.jar.
+            logger.info("Cannot get bootClasspath caused by:", e)
+        }
     }
 }

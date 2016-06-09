@@ -31,8 +31,10 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import io.realm.annotations.Ignore;
@@ -59,11 +61,13 @@ public class ClassMetaData {
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
+    private final Elements elements;
 
     public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
+        elements = env.getElementUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
@@ -88,13 +92,12 @@ public class ClassMetaData {
     }
 
     /**
-     * Build the meta data structures for this class. Any errors or messages will be
+     * Builds the meta data structures for this class. Any errors or messages will be
      * posted on the provided Messager.
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
     public boolean generate() {
-
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
         if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
@@ -103,9 +106,9 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        if (!parentElement.toString().endsWith(".RealmObject")) {
-            Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
-            return false;
+        if (!parentElement.toString().equals("java.lang.Object") && !parentElement.toString().equals("io.realm.RealmObject")) {
+                Utils.error("Realm model classes must either extend RealmObject or implement RealmModel to be considered a valid model class", classType);
+                return false;
         }
 
         PackageElement packageElement = (PackageElement) enclosingElement;
@@ -113,6 +116,7 @@ public class ClassMetaData {
 
         if (!categorizeClassElements()) return false;
         if (!checkListTypes()) return  false;
+        if (!checkReferenceTypes()) return  false;
         if (!checkDefaultConstructor()) return false;
         if (!checkForFinalFields()) return false;
         if (!checkForTransientFields()) return false;
@@ -157,14 +161,45 @@ public class ClassMetaData {
     private boolean checkListTypes() {
         for (VariableElement field : fields) {
             if (Utils.isRealmList(field)) {
+                // Check for missing generic (default back to Object)
                 if (Utils.getGenericType(field) == null) {
                     Utils.error("No generic type supplied for field", field);
                     return false;
                 }
+
+                // Check that the referenced type is a concrete class and not an interface
+                TypeMirror fieldType = field.asType();
+                List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
+                String genericCanonicalType = typeArguments.get(0).toString();
+                TypeElement typeElement = elements.getTypeElement(genericCanonicalType);
+                if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
+                    Utils.error("Only concrete Realm classes are allowed in RealmLists. Neither " +
+                            "interfaces nor abstract classes can be used.", field);
+                    return false;
+                }
             }
         }
+
         return true;
     }
+
+    private boolean checkReferenceTypes() {
+        for (VariableElement field : fields) {
+            if (Utils.isRealmModel(field)) {
+                // Check that the referenced type is a concrete class and not an interface
+                TypeElement typeElement = elements.getTypeElement(field.asType().toString());
+                if (typeElement.getSuperclass().getKind() == TypeKind.NONE) {
+                    Utils.error("Only concrete Realm classes can be referenced in model classes. " +
+                            "Neither interfaces nor abstract classes can be used.", field);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
 
     // Report if the default constructor is missing
     private boolean checkDefaultConstructor() {
@@ -226,7 +261,7 @@ public class ClassMetaData {
                     } else if (Utils.isRealmList(variableElement)) {
                         Utils.error("@Required is invalid for field " + element +
                                 " with the type " + element.asType());
-                    } else if (Utils.isRealmObject(variableElement)) {
+                    } else if (Utils.isRealmModel(variableElement)) {
                         Utils.error("@Required is invalid for field " + element +
                                 " with the type " + element.asType());
                     } else {
@@ -329,13 +364,12 @@ public class ClassMetaData {
         return getGetter(primaryKey.getSimpleName().toString());
     }
 
+    /**
+     * Checks if a VariableElement is nullable.
+     *
+     * @return {@code true} if a VariableElement is nullable type, {@code false} otherwise.
+     */
     public boolean isNullable(VariableElement variableElement) {
-        // primary keys cannot be nullable
-        if (hasPrimaryKey()) {
-            if (variableElement.equals(getPrimaryKey())) {
-                return false;
-            }
-        }
         return nullableFields.contains(variableElement);
     }
 

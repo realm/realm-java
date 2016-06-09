@@ -32,10 +32,10 @@ import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
 
 
-public class KotlinExampleActivity : Activity() {
+class KotlinExampleActivity : Activity() {
 
     companion object {
-        public val TAG: String = KotlinExampleActivity::class.qualifiedName as String
+        val TAG: String = KotlinExampleActivity::class.qualifiedName as String
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
@@ -66,7 +66,7 @@ public class KotlinExampleActivity : Activity() {
         // Using executeTransaction with a lambda reduces code size and makes it impossible
         // to forget to commit the transaction.
         realm.executeTransaction {
-            realm.allObjects(Person::class.java).clear()
+            realm.delete(Person::class.java)
         }
 
         // More complex operations can be executed on another thread, for example using
@@ -90,7 +90,7 @@ public class KotlinExampleActivity : Activity() {
     private fun showStatus(txt: String) {
         Log.i(TAG, txt)
         val tv = TextView(this)
-        tv.setText(txt)
+        tv.text = txt
         rootLayout.addView(tv)
     }
 
@@ -98,32 +98,29 @@ public class KotlinExampleActivity : Activity() {
         showStatus("Perform basic Create/Read/Update/Delete (CRUD) operations...")
 
         // All writes must be wrapped in a transaction to facilitate safe multi threading
-        realm.beginTransaction()
-
-        // Add a person
-        var person = realm.createObject(Person::class.java)
-        person.id = 1
-        person.name = "Young Person"
-        person.age = 14
-
-        // When the transaction is committed, all changes a synced to disk.
-        realm.commitTransaction()
+        realm.executeTransaction {
+            // Add a person
+            var person = realm.createObject(Person::class.java)
+            person.id = 1
+            person.name = "Young Person"
+            person.age = 14
+        }
 
         // Find the first person (no query conditions) and read a field
-        person = realm.where(Person::class.java).findFirst()
+        var person = realm.where(Person::class.java).findFirst()
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction
-        realm.beginTransaction()
-        person.name = "Senior Person"
-        person.age = 99
-        showStatus(person.name + " got older: " + person.age)
-        realm.commitTransaction()
+        realm.executeTransaction {
+            person.name = "Senior Person"
+            person.age = 99
+            showStatus(person.name + " got older: " + person.age)
+        }
     }
 
     private fun basicQuery(realm: Realm) {
         showStatus("\nPerforming basic Query operation...")
-        showStatus("Number of persons: ${realm.allObjects(Person::class.java).size}")
+        showStatus("Number of persons: ${realm.where(Person::class.java).count()}")
 
         val results = realm.where(Person::class.java).equalTo("age", 99).findAll()
 
@@ -132,7 +129,7 @@ public class KotlinExampleActivity : Activity() {
 
     private fun basicLinkQuery(realm: Realm) {
         showStatus("\nPerforming basic Link Query operation...")
-        showStatus("Number of persons: ${realm.allObjects(Person::class.java).size}")
+        showStatus("Number of persons: ${realm.where(Person::class.java).count()}")
 
         val results = realm.where(Person::class.java).equalTo("cats.name", "Tiger").findAll()
 
@@ -147,50 +144,49 @@ public class KotlinExampleActivity : Activity() {
         val realm = Realm.getInstance(realmConfig)
 
         // Add ten persons in one transaction
-        realm.beginTransaction()
-        val fido = realm.createObject(Dog::class.java)
-        fido.name = "fido"
-        for (i in 0..9) {
-            val person = realm.createObject(Person::class.java)
-            person.id = i.toLong()
-            person.name = "Person no. $i"
-            person.age = i
-            person.dog = fido
+        realm.executeTransaction {
+            val fido = realm.createObject(Dog::class.java)
+            fido.name = "fido"
+            for (i in 0..9) {
+                val person = realm.createObject(Person::class.java)
+                person.id = i.toLong()
+                person.name = "Person no. $i"
+                person.age = i
+                person.dog = fido
 
-            // The field tempReference is annotated with @Ignore.
-            // This means setTempReference sets the Person tempReference
-            // field directly. The tempReference is NOT saved as part of
-            // the RealmObject:
-            person.tempReference = 42
+                // The field tempReference is annotated with @Ignore.
+                // This means setTempReference sets the Person tempReference
+                // field directly. The tempReference is NOT saved as part of
+                // the RealmObject:
+                person.tempReference = 42
 
-            for (j in 0..i - 1) {
-                val cat = realm.createObject(Cat::class.java)
-                cat.name = "Cat_$j"
-                person.cats.add(cat)
+                for (j in 0..i - 1) {
+                    val cat = realm.createObject(Cat::class.java)
+                    cat.name = "Cat_$j"
+                    person.cats.add(cat)
+                }
             }
         }
-        realm.commitTransaction()
 
         // Implicit read transactions allow you to access your objects
-        status += "\nNumber of persons: ${realm.allObjects(Person::class.java).size}"
+        status += "\nNumber of persons: ${realm.where(Person::class.java).count()}"
 
         // Iterate over all objects
-        for (pers in realm.allObjects(Person::class.java)) {
-            val dogName: String = pers?.dog?.name ?: "None"
+        for (person in realm.where(Person::class.java).findAll()) {
+            val dogName: String = person?.dog?.name ?: "None"
 
-            status += "\n${pers.name}: ${pers.age} : $dogName : ${pers.cats.size}"
+            status += "\n${person.name}: ${person.age} : $dogName : ${person.cats.size}"
 
             // The field tempReference is annotated with @Ignore
             // Though we initially set its value to 42, it has
             // not been saved as part of the Person RealmObject:
-            check(pers.tempReference == 0)
+            check(person.tempReference == 0)
         }
 
         // Sorting
-        val sortedPersons = realm.allObjects(Person::class.java)
-        sortedPersons.sort("age", Sort.DESCENDING)
-        check(realm.allObjects(Person::class.java).last().name == sortedPersons.first().name)
-        status += "\nSorting ${sortedPersons.last().name} == ${realm.allObjects(Person::class.java).first().name}"
+        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING);
+        check(realm.where(Person::class.java).findAll().last().name == sortedPersons.first().name)
+        status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
 
         realm.close()
         return status
@@ -203,7 +199,7 @@ public class KotlinExampleActivity : Activity() {
         // extension method 'use' (pun intended).
         Realm.getInstance(realmConfig).use {
             // 'it' is the implicit lambda parameter of type Realm
-            status += "\nNumber of persons: ${it.allObjects(Person::class.java).size}"
+            status += "\nNumber of persons: ${it.where(Person::class.java).count()}"
 
             // Find all persons where age between 7 and 9 and name begins with "Person".
             val results = it

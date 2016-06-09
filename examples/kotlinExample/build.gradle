@@ -1,7 +1,8 @@
 buildscript {
-    ext.kotlin_version = '1.0.0'
+    ext.kotlin_version = '1.0.2'
     repositories {
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -15,11 +16,14 @@ apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
+    //noinspection GroovyAssignabilityCheck
     compileSdkVersion rootProject.sdkVersion
+    //noinspection GroovyAssignabilityCheck
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId 'io.realm.examples.kotlin'
+        //noinspection GroovyAssignabilityCheck
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
         versionCode 1

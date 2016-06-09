@@ -257,58 +257,58 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JZ
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeEqualDateTime
+ * Method:    nativeEqualTimestamp
  * Signature: (J[JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeNotEqualDateTime
+ * Method:    nativeNotEqualTimestamp
  * Signature: (J[JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeGreaterDateTime
+ * Method:    nativeGreaterTimestamp
  * Signature: (J[JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeGreaterEqualDateTime
+ * Method:    nativeGreaterEqualTimestamp
  * Signature: (J[JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeLessDateTime
+ * Method:    nativeLessTimestamp
  * Signature: (J[JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeLessEqualDateTime
+ * Method:    nativeLessEqualTimestamp
  * Signature: (J[JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeBetweenDateTime
+ * Method:    nativeBetweenTimestamp
  * Signature: (J[JJJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp
   (JNIEnv *, jobject, jlong, jlongArray, jlong, jlong);
 
 /*
@@ -529,18 +529,18 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeMaximumDate
+ * Method:    nativeMaximumTimestamp
  * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeMinimumDate
+ * Method:    nativeMinimumTimestamp
  * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimestamp
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*

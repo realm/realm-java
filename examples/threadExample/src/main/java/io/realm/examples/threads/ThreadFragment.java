@@ -44,9 +44,9 @@ public class ThreadFragment extends Fragment {
     private DotsView dotsView;
 
     // Realm change listener that refreshes the UI when there is changes to Realm.
-    private RealmChangeListener realmListener = new RealmChangeListener() {
+    private RealmChangeListener<Realm> realmListener = new RealmChangeListener<Realm>() {
         @Override
-        public void onChange() {
+        public void onChange(Realm realm) {
             dotsView.invalidate();
         }
     };
@@ -76,18 +76,24 @@ public class ThreadFragment extends Fragment {
         switch(item.getItemId()) {
             case R.id.action_add_dot:
                 // Add blue dot from the UI thread
-                realm.beginTransaction();
-                Dot dot = realm.createObject(Dot.class);
-                dot.setX(random.nextInt(100));
-                dot.setY(random.nextInt(100));
-                dot.setColor(getResources().getColor(R.color.realm_blue));
-                realm.commitTransaction();
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Dot dot = realm.createObject(Dot.class);
+                        dot.setX(random.nextInt(100));
+                        dot.setY(random.nextInt(100));
+                        dot.setColor(getResources().getColor(R.color.realm_blue));
+                    }
+                });
                 return true;
 
             case R.id.action_clear:
-                realm.beginTransaction();
-                realm.clear(Dot.class);
-                realm.commitTransaction();
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.delete(Dot.class);
+                    }
+                });
                 return true;
 
             default:
@@ -108,7 +114,7 @@ public class ThreadFragment extends Fragment {
         // Note that the query gets updated by rerunning it on the thread it was
         // created. This can negatively effect frame rates if it is a complicated query or a very
         // large data set.
-        dotsView.setRealmResults(realm.allObjects(Dot.class));
+        dotsView.setRealmResults(realm.where(Dot.class).findAll());
     }
 
     @Override
@@ -125,17 +131,19 @@ public class ThreadFragment extends Fragment {
             public void run() {
                 // Realm instances cannot be shared between threads, so we need to create a new
                 // instance on the background thread.
-                int redColor = getResources().getColor(R.color.realm_red);
-                Realm backgroundThreadRealm = Realm.getDefaultInstance();
+                final int redColor = getResources().getColor(R.color.realm_red);
+                final Realm backgroundThreadRealm = Realm.getDefaultInstance();
                 while (!backgroundThread.isInterrupted()) {
-                    backgroundThreadRealm.beginTransaction();
-
-                    // Add red dot from the background thread
-                    Dot dot = backgroundThreadRealm.createObject(Dot.class);
-                    dot.setX(random.nextInt(100));
-                    dot.setY(random.nextInt(100));
-                    dot.setColor(redColor);
-                    backgroundThreadRealm.commitTransaction();
+                    backgroundThreadRealm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            // Add red dot from the background thread
+                            Dot dot = backgroundThreadRealm.createObject(Dot.class);
+                            dot.setX(random.nextInt(100));
+                            dot.setY(random.nextInt(100));
+                            dot.setColor(redColor);
+                        }
+                    });
 
                     // Wait 0.5 sec. before adding the next dot.
                     SystemClock.sleep(500);

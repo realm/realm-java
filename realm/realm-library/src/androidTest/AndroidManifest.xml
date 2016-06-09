@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.realm">
+<manifest package="io.realm"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="22" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-sdk tools:overrideLibrary="dk.ilios.spanner"/>
+    <uses-sdk
+        android:minSdkVersion="16"
+        android:targetSdkVersion="22"/>
 
     <application>
-        <uses-library android:name="android.test.runner" />
+        <uses-library android:name="android.test.runner"/>
         <service
             android:name=".services.RemoteProcessService"
             android:enabled="true"
             android:exported="true"
-            android:process=":remote" >
+            android:process=":remote">
         </service>
     </application>
 

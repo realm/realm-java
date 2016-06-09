@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 
 /**
@@ -327,22 +328,16 @@ public interface TableOrView {
 
     TableView findAllDouble(long columnIndex, double value);
 
-    TableView findAllDate(long columnIndex, Date value);
-
     TableView findAllString(long columnIndex, String value);
 
     String toJson();
 
     String toString();
 
-    String toString(long maxRows);
-
-    String rowToString(long rowIndex);
-
     TableQuery where();
 
     /**
-     * Find a row with in the table or view with the given index.
+     * Finds a row with in the table or view with the given index.
      *
      * @param rowIndex the index of the row.
      * @return the index if found, or -1 for not found.
@@ -352,6 +347,17 @@ public interface TableOrView {
     // Experimental:
 
     long count(long columnIndex, String value);
+
+    /**
+     * Report the current versioning counter for the table. The versioning counter is guaranteed to
+     * change when the contents of the table changes after advance_read() or promote_to_write(), or
+     * immediately after calls to methods which change the table.
+     *
+     * @return version_counter for the table.
+     */
+    long getVersion();
+
+    void removeFirst();
 
     enum PivotType {
         COUNT(0),
@@ -370,10 +376,13 @@ public interface TableOrView {
     Table pivot(long stringCol, long intCol, PivotType pivotType);
 
     /**
-     * Syncs the tableview with the underlying table data. It is not required to call this explicitly, all other API
-     * methods will automatically sync the view as well.
+     * Syncs the TableView with the underlying table data. This is effectively the same as rerunning the query, so it
+     * should not be called on TableViews created by an async query.
      *
-     * @return the version number for the updated tableview.
+     * This method gets automatically called when calling {@link Realm#refresh()} or when another thread updates
+     * the Realm, but it will _not_ be called if the same thread commits a transaction.
+     *
+     * @return the version number for the updated TableView.
      */
-    long sync();
+    long syncIfNeeded();
 }

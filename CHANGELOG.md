@@ -1,3 +1,157 @@
+## 1.0.1
+
+### Bug fixes
+
+* Fixed a crash when calling Table.toString() in debugger (#2429).
+* Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).
+* Fixed a crash that RealmResults was not updated in Realm's change listener by adjusting the calling orders of listeners on Realm, RealmObject and RealmResults (#2926).
+
+### Enhancements
+
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+
+## 1.0.0
+
+No changes since 0.91.1.
+
+## 0.91.1
+
+* Updated Realm Core to 1.0.1.
+
+### Bug fixes
+
+* Fixed a bug when opening a Realm cause a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported". 
+
+## 0.91.0
+
+* Updated Realm Core to 1.0.0.
+
+### Breaking changes
+
+* Removed all `@Deprecated` methods.
+* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
+
+### Bug fixes
+
+* Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
+* The annotation processor now correctly reports an error if trying to reference interfaces in model classes (#2808).
+* Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
+* Calling `RealmObjectSchema.addPrimaryKey()` adds an index to the primary key field, and calling `RealmObjectSchema.removePrimaryKey()` removes the index from the field (#2832).
+* Log files are not deleted when calling `Realm.deleteRealm()` (#2834).
+
+### Enhancements
+
+* Upgrading to OpenSSL 1.0.1t. From July 11, 2016, Google Play only accept apps using OpenSSL 1.0.1r or later (https://support.google.com/faqs/answer/6376725, #2749).
+* Added support for automatically copying an initial database from assets using `RealmConfiguration.Builder.assetFile()`.
+* Better error messages when certain file operations fail.
+
+### Credits
+
+* Paweł Surówka (@thesurix) for adding the `RealmConfiguration.Builder.assetFile()`.
+
+## 0.90.1
+
+* Updated Realm Core to 0.100.2.
+
+### Bug fixes
+
+* Opening a Realm while closing a Realm in another thread could lead to a race condition.
+* Automatic migration to the new file format could in rare circumstances lead to a crash.
+* Fixing a race condition that may occur when using Async API (#2724).
+* Fixed CannotCompileException when related class definition in android.jar cannot be found (#2703).
+
+### Enhancements
+
+* Prints path when file related exceptions are thrown.
+
+## 0.90.0
+
+* Updated Realm Core to 0.100.0.
+
+### Breaking changes
+
+* RealmChangeListener provides the changed object/Realm/collection as well (#1594).
+* All JSON methods on Realm now only wraps JSONException in RealmException. All other Exceptions are thrown as they are.
+* Marked all methods on `RealmObject` and all public classes final (#1594).
+* Removed `BaseRealm` from the public API.
+* Removed `HandlerController` from the public API.
+* Removed constructor of `RealmAsyncTask` from the public API (#1594).
+* `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
+  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
+* File format of Realm files is changed. Files will be automatically upgraded but opening a Realm file with older
+  versions of Realm is not possible.
+
+### Deprecated
+
+* `Realm.allObjects*()`. Use `Realm.where(clazz).findAll*()` instead.
+* `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
+* `DynamicRealm.allObjects*()`. Use `DynamicRealm.where(className).findAll*()` instead.
+* `DynamicRealm.distinct*()`. Use `DynamicRealm.where(className).distinct*()` instead.
+* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
+* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
+* `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
+* `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
+
+### Enhancements
+
+* `RealmObjectSchema.getPrimaryKey()` (#2636).
+* `Realm.createObject(Class, Object)` for creating objects with a primary key directly.
+* Unit tests in Android library projects now detect Realm model classes.
+* Better error message if `equals()` and `hashCode()` are not properly overridden in custom Migration classes.
+* Expanding the precision of `Date` fields to cover full range (#833).
+* `Realm.waitForChange()`/`stopWaitForChange()` and `DynamicRealm.waitForChange()`/`stopWaitForChange()` (#2386).
+
+### Bug fixes
+
+* `RealmChangeListener` on `RealmObject` is not triggered when adding listener on returned `RealmObject` of `copyToRealmOrUpdate()` (#2569).
+
+### Credits
+
+* Thanks to Brenden Kromhout (@bkromhout) for adding `RealmObjectSchema.getPrimaryKey()`.
+
+## 0.89.1
+
+### Bug fixes
+
+* @PrimaryKey + @Required on String type primary key no longer throws when using copyToRealm or copyToRealmOrUpdate (#2653).
+* Primary key is cleared/changed when calling RealmSchema.remove()/RealmSchema.rename() (#2555).
+* Objects implementing RealmModel can be used as a field of RealmModel/RealmObject (#2654).
+
+## 0.89.0
+
+### Breaking changes
+
+* @PrimaryKey field value can now be null for String, Byte, Short, Integer, and Long types. Older Realms should be migrated, using RealmObjectSchema.setNullable(), or by adding the @Required annotation. (#2515).
+* `RealmResults.clear()` now throws UnsupportedOperationException. Use `RealmResults.deleteAllFromRealm()` instead.
+* `RealmResults.remove(int)` now throws UnsupportedOperationException. Use `RealmResults.deleteFromRealm(int)` instead.
+* `RealmResults.sort()` and `RealmList.sort()` now return the sorted result instead of sorting in-place.
+* `RealmList.first()` and `RealmList.last()` now throw `ArrayIndexOutOfBoundsException` if `RealmList` is empty.
+* Removed deprecated method `Realm.getTable()` from public API.
+* `Realm.refresh()` and `DynamicRealm.refresh()` on a Looper no longer have any effect. `RealmObject` and `RealmResults` are always updated on the next event loop.
+
+### Deprecated
+
+* `RealmObject.removeFromRealm()` in place of `RealmObject.deleteFromRealm()`
+* `Realm.clear(Class)` in favour of `Realm.delete(Class)`.
+* `DynamicRealm.clear(Class)` in place of `DynamicRealm.delete(Class)`.
+
+### Enhancements
+
+* Added a `RealmModel` interface that can be used instead of extending `RealmObject`.
+* `RealmCollection` and `OrderedRealmCollection` interfaces have been added. `RealmList` and `RealmResults` both implement these.
+* `RealmBaseAdapter` now accept an `OrderedRealmCollection` instead of only `RealmResults`.
+* `RealmObjectSchema.isPrimaryKey(String)` (#2440)
+* `RealmConfiguration.initialData(Realm.Transaction)` can now be used to populate a Realm file before it is used for the first time.
+
+### Bug fixes
+
+* `RealmObjectSchema.isRequired(String)` and `RealmObjectSchema.isNullable(String)` don't throw when the given field name doesn't exist.
+
+### Credits
+
+* Thanks to @thesurix for adding `RealmConfiguration.initialData()`.
+
 ## 0.88.3
 
 * Updated Realm Core to 0.97.3.
@@ -75,6 +229,7 @@
 
 ### Bug fixes
 
+* Error occurring during test and (#2025).
 * Error occurring during test and connectedCheck of unit test example (#1934).
 * Bug in jsonExample (#2092).
 * Multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
@@ -166,7 +321,7 @@
 * BREAKING CHANGE: Realm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
 * Added Realm.isEmpty().
-* Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
+* Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (unmanaged, removed, closed, from different Realm) object (#1749).
 * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
 * The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
 * Updated Realm Core to 0.95.
@@ -261,7 +416,7 @@
 * Deprecated Realm.migrateRealmAtPath(). It has been replaced by Realm.migrateRealm(RealmConfiguration).
 * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
 * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
-* RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
+* RealmList.add(), RealmList.addAt() and RealmList.set() now copy unmanaged objects transparently into Realm.
 * Realm now works with Kotlin (M12+). (Thank you @cypressious)
 * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
 * Added a check to give a better error message when null is used as value for a primary key.
@@ -349,7 +504,7 @@
 * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and extending RealmResults.sort() for multi-field sorting.
 * Added more logging capabilities at the JNI level.
 * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
-* Added support for standalone objects and custom constructors.
+* Added support for unmanaged objects and custom constructors.
 * Added more precise imports in proxy classes to avoid ambiguous references.
 * Added support for executing a transaction with a closure using Realm.executeTransaction().
 * Added RealmObject.isValid() to test if an object is still accessible.

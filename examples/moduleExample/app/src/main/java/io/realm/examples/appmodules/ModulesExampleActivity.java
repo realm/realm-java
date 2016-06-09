@@ -65,20 +65,20 @@ public class ModulesExampleActivity extends Activity {
         // Spider, Cat, Dog }
         RealmConfiguration farmAnimalsConfig = new RealmConfiguration.Builder(this)
                 .name("farm.realm")
-                .setModules(Realm.getDefaultModule(), new DomesticAnimalsModule())
+                .modules(Realm.getDefaultModule(), new DomesticAnimalsModule())
                 .build();
 
         // Or you can completely replace the default schema.
         // This Realm contains the following classes: { Elephant, Lion, Zebra, Snake, Spider }
         RealmConfiguration exoticAnimalsConfig = new RealmConfiguration.Builder(this)
                 .name("exotic.realm")
-                .setModules(new ZooAnimalsModule(), new CreepyAnimalsModule())
+                .modules(new ZooAnimalsModule(), new CreepyAnimalsModule())
                 .build();
 
         // Multiple Realms can be open at the same time
         showStatus("Opening multiple Realms");
         Realm defaultRealm = Realm.getInstance(defaultConfig);
-        Realm farmRealm = Realm.getInstance(farmAnimalsConfig);
+        final Realm farmRealm = Realm.getInstance(farmAnimalsConfig);
         Realm exoticRealm = Realm.getInstance(exoticAnimalsConfig);
 
         // Objects can be added to each Realm independantly
@@ -120,10 +120,14 @@ public class ModulesExampleActivity extends Activity {
         showStatus("Copy objects between Realms");
         showStatus("Number of pigs on the farm : " + farmRealm.where(Pig.class).count());
         showStatus("Copy pig from defaultRealm to farmRealm");
-        Pig defaultPig = defaultRealm.where(Pig.class).findFirst();
-        farmRealm.beginTransaction();
-        farmRealm.copyToRealm(defaultPig);
-        farmRealm.commitTransaction();
+        final Pig defaultPig = defaultRealm.where(Pig.class).findFirst();
+        farmRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.copyToRealm(defaultPig);
+            }
+        });
+
         showStatus("Number of pigs on the farm : " + farmRealm.where(Pig.class).count());
 
         // Each Realm is restricted to only accept the classes in their schema.

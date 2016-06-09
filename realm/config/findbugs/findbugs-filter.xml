@@ -5,10 +5,6 @@
         <Class name="~.*\.R\$.*"/>
     </Match>
     <Match>
-        <!-- ignore all issues in ReLinker -->
-        <Class name="io.realm.internal.android.ReLinker"/>
-    </Match>
-    <Match>
         <Class name="~.*\.Manifest\$.*"/>
     </Match>
     <Match>
@@ -61,6 +57,11 @@
     <Match>
         <Class name="~.*Tests?$"/>
         <Bug pattern="DM_GC"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.HandlerController" />
+        <Method name="completedAsyncRealmObject" />
+        <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
     </Match>
 
 </FindBugsFilter>

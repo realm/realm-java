@@ -15,11 +15,16 @@
  */
 package io.realm;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.exceptions.RealmIOException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.log.RealmLog;
 
@@ -30,10 +35,14 @@ import io.realm.internal.log.RealmLog;
  * One {@link RealmCache} is created for each {@link RealmConfiguration}, and it caches all the {@link Realm} and
  * {@link DynamicRealm} instances which are created from the same {@link RealmConfiguration}.
  */
-class RealmCache {
+final class RealmCache {
 
     interface Callback {
         void onResult(int count);
+    }
+
+    interface Callback0 {
+        void onCall();
     }
 
     private static class RefAndCount {
@@ -98,6 +107,8 @@ class RealmCache {
             cache = new RealmCache(configuration);
             // The new cache should be added to the map later.
             isCacheInMap = false;
+
+            copyAssetFileIfNeeded(configuration);
         } else {
             // Throw the exception if validation failed.
             cache.validateConfiguration(configuration);
@@ -108,6 +119,7 @@ class RealmCache {
         if (refAndCount.localRealm.get() == null) {
             // Create a new local Realm instance
             BaseRealm realm;
+
 
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
@@ -208,7 +220,7 @@ class RealmCache {
     }
 
     /**
-     * Make sure that the new configuration doesn't clash with any cached configurations for the
+     * Makes sure that the new configuration doesn't clash with any cached configurations for the
      * Realm.
      *
      * @throws IllegalArgumentException if the new configuration isn't valid.
@@ -223,6 +235,19 @@ class RealmCache {
         if (!Arrays.equals(configuration.getEncryptionKey(), newConfiguration.getEncryptionKey())) {
             throw new IllegalArgumentException(DIFFERENT_KEY_MESSAGE);
         } else {
+            // A common problem is that people are forgetting to override `equals` in their custom migration class.
+            // Try to detect this problem specifically so we can throw a better error message.
+            RealmMigration newMigration = newConfiguration.getMigration();
+            RealmMigration oldMigration = configuration.getMigration();
+            if (oldMigration != null 
+                && newMigration != null 
+                && oldMigration.getClass().equals(newMigration.getClass())
+                && !newMigration.equals(oldMigration)) {
+                throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
+                        "The most likely cause is that equals() and hashCode() are not overridden in the " +
+                        "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
+            }
+
             throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
                     "\nCached configuration: \n" + configuration +
                     "\n\nNew configuration: \n" + newConfiguration);
@@ -247,5 +272,63 @@ class RealmCache {
             totalRefCount += cache.refAndCountMap.get(type).globalCount;
         }
         callback.onResult(totalRefCount);
+    }
+
+   /**
+     * Runs the callback function with synchronization on {@class RealmCache}.
+     *
+     * @param callback the callback will be executed.
+     */
+    static synchronized void invokeWithLock(Callback0 callback) {
+        callback.onCall();
+    }
+
+    /**
+     * Copies Realm database file from Android asset directory to the directory given in the {@link RealmConfiguration}.
+     * Copy is performed only at the first time when there is no Realm database file.
+     *
+     * @param configuration configuration object for Realm instance.
+     * @throws IOException if copying the file fails.
+     */
+    private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
+        if (configuration.hasAssetFile()) {
+            File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
+            if (realmFile.exists()) {
+                return;
+            }
+
+            InputStream inputStream = null;
+            FileOutputStream outputStream = null;
+            try {
+                inputStream = configuration.getAssetFile();
+                if (inputStream == null) {
+                    throw new RealmIOException("Invalid input stream to asset file.");
+                }
+
+                outputStream = new FileOutputStream(realmFile);
+                byte[] buf = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buf)) > -1) {
+                    outputStream.write(buf, 0, bytesRead);
+                }
+            } catch (IOException e) {
+                throw new RealmIOException("Could not resolve the path to the Realm asset file.", e);
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        // Ignore this exception because any significant errors should already have been handled
+                    }
+                }
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        throw new RealmIOException("Invalid output stream to " + realmFile.getPath(), e);
+                    }
+                }
+            }
+        }
     }
 }

@@ -19,7 +19,10 @@ package io.realm.internal.android;
 
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Utilities methods for manipulating dates in iso8601 format. This is much much faster and GC friendly than using SimpleDateFormat so
@@ -53,7 +56,7 @@ public class ISO8601Utils {
     private static final TimeZone TIMEZONE_Z = TIMEZONE_UTC;
 
     /**
-     * Parse a date from ISO-8601 formatted string. It expects a format
+     * Parses a date from ISO-8601 formatted string. It expects a format
      * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh:mm]]
      *
      * @param date ISO string to parse in the appropriate format.
@@ -216,7 +219,7 @@ public class ISO8601Utils {
 
 
     /**
-     * Check if the expected character exist at the given offset in the value.
+     * Checks if the expected character exist at the given offset in the value.
      *
      * @param value the string to check at the specified offset
      * @param offset the offset to look for the expected character
@@ -228,7 +231,7 @@ public class ISO8601Utils {
     }
 
     /**
-     * Parse an integer located between 2 given offsets in a string
+     * Parses an integer located between 2 given offsets in a string
      *
      * @param value the string to parse
      * @param beginIndex the start index for the integer in the string

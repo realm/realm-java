@@ -84,8 +84,8 @@ public class RealmJsonTests {
 
     // Assert that the list of AllTypesPrimaryKey objects where inserted and updated properly.
     private void assertAllTypesPrimaryKeyUpdated() {
-        assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
-        AllTypesPrimaryKey obj = realm.allObjects(AllTypesPrimaryKey.class).first();
+        assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
+        AllTypesPrimaryKey obj = realm.where(AllTypesPrimaryKey.class).findFirst();
         assertEquals("Bar", obj.getColumnString());
         assertEquals(2.23F, obj.getColumnFloat(), 0F);
         assertEquals(2.234D, obj.getColumnDouble(), 0D);
@@ -172,13 +172,13 @@ public class RealmJsonTests {
     @Test
     public void createObject_fromJsonNullObject() {
         realm.createObjectFromJson(AllTypes.class, (JSONObject) null);
-        assertEquals(0, realm.allObjects(AllTypes.class).size());
+        assertEquals(0, realm.where(AllTypes.class).count());
     }
 
     @Test
     public void createAllFromJson_nullArray() {
         realm.createAllFromJson(AllTypes.class, (JSONArray) null);
-        assertEquals(0, realm.allObjects(AllTypes.class).size());
+        assertEquals(0, realm.where(AllTypes.class).count());
 
     }
 
@@ -195,13 +195,13 @@ public class RealmJsonTests {
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
 
         // Check that all primitive types are imported correctly
         assertEquals("String", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
-        assertEquals(1.23F, obj.getColumnFloat(),0F);
-        assertEquals(1.23D, obj.getColumnDouble(),0D);
+        assertEquals(1.23F, obj.getColumnFloat(), 0F);
+        assertEquals(1.23D, obj.getColumnDouble(), 0D);
         assertEquals(true, obj.isColumnBoolean());
         assertArrayEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
     }
@@ -215,7 +215,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
@@ -228,7 +228,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
@@ -242,14 +242,14 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         Calendar cal = GregorianCalendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("Australia/West"));
         cal.set(2015, Calendar.OCTOBER, 03, 14, 45, 33);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.MILLISECOND, 376);
         Date convDate = obj.getColumnDate();
 
-        assertEquals(convDate.getTime(), cal.getTime().getTime());
+        assertEquals(convDate.getTime(), cal.getTimeInMillis());
     }
 
     @Test
@@ -263,7 +263,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, allTypesObject);
         realm.commitTransaction();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("Fido", obj.getColumnRealmObject().getName());
     }
 
@@ -283,7 +283,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, allTypesObject);
         realm.commitTransaction();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(3, obj.getColumnRealmList().size());
         assertEquals("Fido-3", obj.getColumnRealmList().get(2).getName());
     }
@@ -298,7 +298,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AllTypes.class, allTypesObject);
         realm.commitTransaction();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
@@ -306,10 +306,10 @@ public class RealmJsonTests {
     public void createObjectFromJson_stringSimpleObject() {
         realm.beginTransaction();
         Dog dog = realm.createObjectFromJson(Dog.class, "{ name: \"Foo\" }");
-        realm. commitTransaction();
+        realm.commitTransaction();
 
         assertEquals("Foo", dog.getName());
-        assertEquals("Foo", realm.allObjects(Dog.class).first().getName());
+        assertEquals("Foo", realm.where(Dog.class).findFirst().getName());
     }
 
     @Test
@@ -332,7 +332,7 @@ public class RealmJsonTests {
 
         //noinspection ConstantConditions
         assertNull(dog);
-        assertEquals(0, realm.allObjects(Dog.class).size());
+        assertEquals(0, realm.where(Dog.class).count());
     }
 
     @Test
@@ -342,7 +342,7 @@ public class RealmJsonTests {
         realm.createAllFromJson(AllTypes.class, array);
         realm.commitTransaction();
 
-        assertEquals(0, realm.allObjects(AllTypes.class).size());
+        assertEquals(0, realm.where(AllTypes.class).count());
     }
 
     @Test
@@ -359,7 +359,7 @@ public class RealmJsonTests {
         realm.createAllFromJson(Dog.class, dogList);
         realm.commitTransaction();
 
-        assertEquals(3, realm.allObjects(Dog.class).size());
+        assertEquals(3, realm.where(Dog.class).count());
         assertEquals(1, realm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
 
@@ -374,7 +374,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
 
         // Check that all primitive types are imported correctly
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("", obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
         assertEquals(0F, obj.getColumnFloat(), 0F);
@@ -401,7 +401,7 @@ public class RealmJsonTests {
             realm.commitTransaction();
         }
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("Foo", obj.getColumnString());
         assertEquals(new Date(0), obj.getColumnDate());
     }
@@ -417,7 +417,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(AnnotationTypes.class, json);
         realm.commitTransaction();
 
-        AnnotationTypes annotationsObject = realm.allObjects(AnnotationTypes.class).first();
+        AnnotationTypes annotationsObject = realm.where(AnnotationTypes.class).findFirst();
         assertEquals("Foo", annotationsObject.getIndexString());
         assertEquals(null, annotationsObject.getIgnoreString());
     }
@@ -428,7 +428,7 @@ public class RealmJsonTests {
         realm.createAllFromJson(Dog.class, "[{ name: \"Foo\" }, { name: \"Bar\" }]");
         realm.commitTransaction();
 
-        assertEquals(2, realm.allObjects(Dog.class).size());
+        assertEquals(2, realm.where(Dog.class).count());
     }
 
     @Test
@@ -449,13 +449,31 @@ public class RealmJsonTests {
         realm.createAllFromJson(Dog.class, (String) null);
         realm.commitTransaction();
 
-        assertEquals(0, realm.allObjects(Dog.class).size());
+        assertEquals(0, realm.where(Dog.class).count());
     }
+
+    @Test
+    public void createAllFromJson_stringEmptyArray() {
+        realm.beginTransaction();
+        realm.createAllFromJson(Dog.class, "");
+        realm.commitTransaction();
+        assertEquals(0, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void createAllFromJson_stringNullClass() {
+        realm.beginTransaction();
+        realm.createAllFromJson(null, "[{ name: \"Foo\" }]");
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(Dog.class).count());
+    }
+
 
     @Test
     public void createAllFromJson_streamNull() throws IOException {
         realm.createAllFromJson(AllTypes.class, (InputStream) null);
-        assertEquals(0, realm.allObjects(AllTypes.class).size());
+        assertEquals(0, realm.where(AllTypes.class).count());
     }
 
     @Test
@@ -467,7 +485,7 @@ public class RealmJsonTests {
         in.close();
 
         // Check that all primitive types are imported correctly
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("String", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
         assertEquals(1.23F, obj.getColumnFloat(), 0F);
@@ -485,7 +503,7 @@ public class RealmJsonTests {
         in.close();
 
         // Check that all primitive types are imported correctly
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
@@ -498,7 +516,7 @@ public class RealmJsonTests {
         in.close();
 
         // Check that all primitive types are imported correctly
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
@@ -514,12 +532,10 @@ public class RealmJsonTests {
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
         cal.set(Calendar.MILLISECOND, 789);
         Date date = cal.getTime();
-        cal.set(Calendar.MILLISECOND, 0);
-        Date dateZeroMillis = cal.getTime();
 
         // Check that all primitive types are imported correctly
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
-        assertEquals(dateZeroMillis, obj.getColumnDate());
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(date, obj.getColumnDate());
     }
 
     @Test
@@ -530,7 +546,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("Fido", obj.getColumnRealmObject().getName());
     }
 
@@ -542,7 +558,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
@@ -554,7 +570,7 @@ public class RealmJsonTests {
         realm.commitTransaction();
         in.close();
 
-        assertEquals(3, realm.allObjects(Dog.class).size());
+        assertEquals(3, realm.where(Dog.class).count());
         assertEquals(1, realm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
 
@@ -565,7 +581,7 @@ public class RealmJsonTests {
         realm.createAllFromJson(Dog.class, in);
         realm.commitTransaction();
 
-        assertEquals(3, realm.allObjects(Dog.class).size());
+        assertEquals(3, realm.where(Dog.class).count());
         assertEquals(1, realm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
 
@@ -580,7 +596,7 @@ public class RealmJsonTests {
         in.close();
 
         // Check that all primitive types are imported correctly
-        AllTypes obj = realm.allObjects(AllTypes.class).first();
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals("", obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
         assertEquals(0F, obj.getColumnFloat(), 0F);
@@ -590,6 +606,36 @@ public class RealmJsonTests {
         assertArrayEquals(new byte[0], obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
+    }
+
+    @Test
+    public void createObjectFromJson_streamNullClass() throws IOException {
+        InputStream in = TestHelper.loadJsonFromAssets(context, "array.json");
+        realm.beginTransaction();
+        assertNull(realm.createObjectFromJson(null, in));
+        realm.commitTransaction();
+        in.close();
+    }
+
+    @Test
+    public void createObjectFromJson_streamNullJson() throws IOException {
+        InputStream in = TestHelper.loadJsonFromAssets(context, "all_types_invalid.json");
+        realm.beginTransaction();
+        try {
+            realm.createObjectFromJson(AnnotationTypes.class, in);
+            fail();
+        } catch (RealmException ignored) {
+        } finally {
+            realm.commitTransaction();
+            in.close();
+        }
+    }
+
+    @Test
+    public void createObjectFromJson_streamNullInputStream() throws IOException {
+        realm.beginTransaction();
+        assertNull(realm.createObjectFromJson(AnnotationTypes.class, (InputStream) null));
+        realm.commitTransaction();
     }
 
     /**
@@ -619,7 +665,7 @@ public class RealmJsonTests {
         in.close();
 
         // Check that all primitive types are imported correctly
-        obj = realm.allObjects(AllTypesPrimaryKey.class).first();
+        obj = realm.where(AllTypesPrimaryKey.class).findFirst();
         assertEquals("1", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
         assertEquals(1F, obj.getColumnFloat(), 0F);
@@ -631,48 +677,32 @@ public class RealmJsonTests {
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
-    // Test update a existing object with JSON object with only primary key.
-    // No value should be changed.
     @Test
-    public void createOrUpdateObjectFromJson_objectNullValues() throws IOException {
-        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
-        Date date = new Date(0);
-        obj.setColumnLong(1); // ID
-        obj.setColumnBinary(new byte[]{1});
-        obj.setColumnBoolean(true);
-        obj.setColumnDate(date);
-        obj.setColumnDouble(1);
-        obj.setColumnFloat(1);
-        obj.setColumnString("1");
+    public void createOrUpdateObjectFromJson_streamNullClass() throws IOException {
+        InputStream in = TestHelper.loadJsonFromAssets(context, "all_types_primary_key_field_only.json");
+        realm.beginTransaction();
+        assertNull(realm.createOrUpdateObjectFromJson(null, in));
+        realm.commitTransaction();
+        in.close();
+    }
 
+    @Test
+    public void createOrUpdateObjectFromJson_streamInvalidJson() throws IOException {
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        obj.setColumnLong(1);
         realm.beginTransaction();
         realm.copyToRealm(obj);
         realm.commitTransaction();
 
-        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(context, "all_types_primary_key_field_only.json"));
+        InputStream in = TestHelper.loadJsonFromAssets(context, "all_types_invalid.json");
         realm.beginTransaction();
-        realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
-        realm.commitTransaction();
-
-        // Check that all primitive types are imported correctly
-        obj = realm.allObjects(AllTypesPrimaryKey.class).first();
-        assertEquals("1", obj.getColumnString());
-        assertEquals(1L, obj.getColumnLong());
-        assertEquals(1F, obj.getColumnFloat(), 0F);
-        assertEquals(1D, obj.getColumnDouble(), 0D);
-        assertEquals(true, obj.isColumnBoolean());
-        assertEquals(date, obj.getColumnDate());
-        assertArrayEquals(new byte[]{1}, obj.getColumnBinary());
-        assertNull(obj.getColumnRealmObject());
-        assertEquals(0, obj.getColumnRealmList().size());
-    }
-
-    @Test
-    public void createOrUpdateObject_noPrimaryKeyThrows() {
         try {
-            realm.createOrUpdateObjectFromJson(AllTypes.class, new JSONObject());
+            realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmException ignored) {
+        } finally {
+            realm.commitTransaction();
+            in.close();
         }
     }
 
@@ -692,51 +722,6 @@ public class RealmJsonTests {
             fail();
         } catch (RealmException ignored) {
         }
-    }
-
-    @Test
-    public void createOrUpdateObjectFromJson_stringNoPrimaryKeyThrows() throws IOException {
-        try {
-            realm.createOrUpdateObjectFromJson(AllTypes.class, "{}");
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void createOrUpdateObjectFromJson_withJsonObject() throws JSONException {
-        realm.beginTransaction();
-
-        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
-        obj.setColumnLong(1);
-        obj.setColumnString("Foo");
-        realm.copyToRealm(obj);
-
-        JSONObject json = new JSONObject();
-        json.put("columnLong", 1);
-        json.put("columnString", "bar");
-        AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
-
-        realm.commitTransaction();
-
-        assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
-        assertEquals("bar", newObj.getColumnString());
-    }
-
-    @Test
-    public void createOrUpdateObjectFromJson_objectIgnoreUnsetProperties() throws IOException {
-        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
-
-        realm.beginTransaction();
-        realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, json);
-        realm.commitTransaction();
-
-        // No-op as no properties should be updated
-        realm.beginTransaction();
-        realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\":1 }");
-        realm.commitTransaction();
-
-        assertAllTypesPrimaryKeyUpdated();
     }
 
     @Test
@@ -766,24 +751,224 @@ public class RealmJsonTests {
         AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
         realm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
+        assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
         assertEquals("bar", newObj.getColumnString());
+    }
+
+    /**
+     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
+     * it to the default value (which can fail)
+     */
+    @Test
+    public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
+        InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
+        realm.beginTransaction();
+        realm.createObject(OwnerPrimaryKey.class); // id = 0
+        realm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, stream);
+        realm.commitTransaction();
+
+        RealmResults<OwnerPrimaryKey> owners = realm.where(OwnerPrimaryKey.class).findAll();
+        assertEquals(2, owners.size());
+        assertEquals(1, owners.get(1).getId());
+        assertEquals("bar", owners.get(1).getName());
+    }
+
+    // Test update a existing object with JSON object with only primary key.
+    // No value should be changed.
+    @Test
+    public void createOrUpdateObjectFromJson_objectNullValues() throws IOException {
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        Date date = new Date(0);
+        obj.setColumnLong(1); // ID
+        obj.setColumnBinary(new byte[]{1});
+        obj.setColumnBoolean(true);
+        obj.setColumnDate(date);
+        obj.setColumnDouble(1);
+        obj.setColumnFloat(1);
+        obj.setColumnString("1");
+
+        realm.beginTransaction();
+        realm.copyToRealm(obj);
+        realm.commitTransaction();
+
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(context, "all_types_primary_key_field_only.json"));
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
+        realm.commitTransaction();
+
+        // Check that all primitive types are imported correctly
+        obj = realm.where(AllTypesPrimaryKey.class).findFirst();
+        assertEquals("1", obj.getColumnString());
+        assertEquals(1L, obj.getColumnLong());
+        assertEquals(1F, obj.getColumnFloat(), 0F);
+        assertEquals(1D, obj.getColumnDouble(), 0D);
+        assertEquals(true, obj.isColumnBoolean());
+        assertEquals(date, obj.getColumnDate());
+        assertArrayEquals(new byte[]{1}, obj.getColumnBinary());
+        assertNull(obj.getColumnRealmObject());
+        assertEquals(0, obj.getColumnRealmList().size());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_stringNoPrimaryKeyThrows() throws IOException {
+        try {
+            realm.createOrUpdateObjectFromJson(AllTypes.class, "{}");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_objectIgnoreUnsetProperties() throws IOException {
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
+
+        realm.beginTransaction();
+        realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, json);
+        realm.commitTransaction();
+
+        // No-op as no properties should be updated
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\":1 }");
+        realm.commitTransaction();
+
+        assertAllTypesPrimaryKeyUpdated();
     }
 
     @Test
     public void createOrUpdateObjectFromJson_inputString() throws IOException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
         realm.beginTransaction();
-
-        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
-        obj.setColumnLong(1);
-        obj.setColumnString("Foo");
-        realm.copyToRealm(obj);
-
         AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\" : 1, \"columnString\" : \"bar\" }");
         realm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
+        assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
         assertEquals("bar", newObj.getColumnString());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_inputStringNullClass() throws IOException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        assertNull(realm.createOrUpdateObjectFromJson(null, "{ \"columnLong\" : 1, \"columnString\" : \"bar\" }"));
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_nullInputString() throws IOException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        assertNull(realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, (String) null));
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_emptyInputString() throws IOException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        assertNull(realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, ""));
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_invalidInputString() throws IOException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        try {
+            realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\" : 1,");
+            fail();
+        } catch (RealmException ignored) {
+        } finally {
+            realm.commitTransaction();
+        }
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_noPrimaryKeyThrows() {
+        try {
+            realm.createOrUpdateObjectFromJson(AllTypes.class, new JSONObject());
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_withJsonObject() throws JSONException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        JSONObject json = new JSONObject();
+        json.put("columnLong", 1);
+        json.put("columnString", "bar");
+        AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
+
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
+        assertEquals("bar", newObj.getColumnString());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_jsonObjectNullClass() throws JSONException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        JSONObject json = new JSONObject();
+        json.put("columnLong", 1);
+        json.put("columnString", "bar");
+        assertNull(realm.createOrUpdateObjectFromJson(null, json));
+        realm.commitTransaction();
+
+        AllTypesPrimaryKey obj2 = realm.where(AllTypesPrimaryKey.class).findFirst();
+        assertEquals("Foo", obj2.getColumnString());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_nullJsonObject() throws JSONException {
+        realm.beginTransaction();
+        assertNull(realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, (JSONObject) null));
+        realm.commitTransaction();
+        assertEquals(0, realm.where(AllTypesPrimaryKey.class).count());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_invalidJsonObject() throws JSONException {
+        TestHelper.populateSimpleAllTypesPrimaryKey(realm);
+
+        realm.beginTransaction();
+        JSONObject json = new JSONObject();
+        json.put("columnLong", "A");
+        try {
+            realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
+            fail();
+        } catch (RealmException ignored) {
+        } finally {
+            realm.commitTransaction();
+        }
+        AllTypesPrimaryKey obj2 = realm.where(AllTypesPrimaryKey.class).findFirst();
+        assertEquals("Foo", obj2.getColumnString());
+    }
+
+    /**
+     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
+     * it to the default value (which can fail)
+     */
+    @Test
+    public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
+        JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
+        realm.beginTransaction();
+        realm.createObject(OwnerPrimaryKey.class); // id = 0
+        realm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, newObject);
+        realm.commitTransaction();
+
+        RealmResults<OwnerPrimaryKey> owners = realm.where(OwnerPrimaryKey.class).findAll();
+        assertEquals(2, owners.size());
+        assertEquals(1, owners.get(1).getId());
+        assertEquals("bar", owners.get(1).getName());
     }
 
     @Test
@@ -793,6 +978,18 @@ public class RealmJsonTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test
+    public void createOrUpdateAllFromJson_jsonNullClass() {
+        realm.createOrUpdateAllFromJson(null, new JSONArray());
+        assertEquals(0, realm.where(AllTypes.class).count());
+    }
+
+    @Test
+    public void createOrUpdateAllFromJson_jsonNullJson() {
+        realm.createOrUpdateAllFromJson(AllTypes.class, (JSONArray) null);
+        assertEquals(0, realm.where(AllTypes.class).count());
     }
 
     @Test
@@ -819,6 +1016,42 @@ public class RealmJsonTests {
             realm.createOrUpdateAllFromJson(AllTypes.class, "{}");
             fail();
         } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void createOrUpdateAllFromJson_inputStringNullClass() {
+        realm.beginTransaction();
+        realm.createOrUpdateAllFromJson((Class<AllTypesPrimaryKey>) null, "{ \"columnLong\" : 1 }");
+        realm.commitTransaction();
+        assertEquals(0, realm.where(AllTypesPrimaryKey.class).count());
+    }
+
+    @Test
+    public void createOrUpdateAllFromJson_inputStringNullJson() {
+        realm.beginTransaction();
+        realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, (String) null);
+        realm.commitTransaction();
+        assertEquals(0, realm.where(AllTypesPrimaryKey.class).count());
+    }
+
+    @Test
+    public void createOrUpdateAllFromJson_inputStringEmptyJson() {
+        realm.beginTransaction();
+        realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "");
+        realm.commitTransaction();
+        assertEquals(0, realm.where(AllTypesPrimaryKey.class).count());
+    }
+
+    @Test
+    public void createOrUpdateAllFromJson_inputStringInvalidJson() {
+        realm.beginTransaction();
+        try {
+            realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\" : 1");
+            fail();
+        } catch (RealmException ignored) {
+        } finally {
+            realm.commitTransaction();
         }
     }
 
@@ -861,7 +1094,7 @@ public class RealmJsonTests {
         realm.createAllFromJson(NullTypes.class, array);
         realm.commitTransaction();
 
-        RealmResults<NullTypes> nullTypesRealmResults = realm.allObjects(NullTypes.class);
+        RealmResults<NullTypes> nullTypesRealmResults = realm.where(NullTypes.class).findAll();
         assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
@@ -878,7 +1111,7 @@ public class RealmJsonTests {
         realm.createAllFromJson(NullTypes.class, TestHelper.loadJsonFromAssets(context, "nulltypes.json"));
         realm.commitTransaction();
 
-        RealmResults<NullTypes> nullTypesRealmResults = realm.allObjects(NullTypes.class);
+        RealmResults<NullTypes> nullTypesRealmResults = realm.where(NullTypes.class).findAll();
         assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
@@ -905,7 +1138,7 @@ public class RealmJsonTests {
         realm.createObjectFromJson(NullTypes.class, jsonObject);
         realm.commitTransaction();
 
-        RealmResults<NullTypes> nullTypesRealmResults = realm.allObjects(NullTypes.class);
+        RealmResults<NullTypes> nullTypesRealmResults = realm.where(NullTypes.class).findAll();
         assertEquals(2, nullTypesRealmResults.size());
         checkNullableValuesAreNotNull(nullTypesRealmResults.first());
 
@@ -915,7 +1148,7 @@ public class RealmJsonTests {
         realm.createOrUpdateAllFromJson(NullTypes.class, array);
         realm.commitTransaction();
 
-        nullTypesRealmResults = realm.allObjects(NullTypes.class);
+        nullTypesRealmResults = realm.where(NullTypes.class).findAll();
         assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
@@ -936,71 +1169,90 @@ public class RealmJsonTests {
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(0));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 2 Bytes
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(1));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 3 Boolean
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(2));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 4 Byte
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(3));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 5 Short
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(4));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 6 Integer
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(5));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 7 Long
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(6));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 8 Float
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(7));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 9 Double
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(8));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
+
         // 10 Date
         try {
             realm.createObjectFromJson(NullTypes.class, array.getJSONObject(9));
             fail();
-        } catch (RealmException expected) {
-            assertTrue(expected.getCause() instanceof IllegalArgumentException);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
         }
 
         realm.cancelTransaction();
@@ -1112,24 +1364,6 @@ public class RealmJsonTests {
      * it to the default value (which can fail)
      */
     @Test
-    public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
-        JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
-        realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class); // id = 0
-        realm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, newObject);
-        realm.commitTransaction();
-
-        RealmResults<OwnerPrimaryKey> owners = realm.where(OwnerPrimaryKey.class).findAll();
-        assertEquals(2, owners.size());
-        assertEquals(1, owners.get(1).getId());
-        assertEquals("bar", owners.get(1).getName());
-    }
-
-    /**
-     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
-     * it to the default value (which can fail)
-     */
-    @Test
     public void createObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
         JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
@@ -1143,22 +1377,12 @@ public class RealmJsonTests {
         assertEquals("bar", owners.get(1).getName());
     }
 
-    /**
-     * Check that using createOrUpdateObject will set the primary key directly instead of first setting
-     * it to the default value (which can fail)
-     */
     @Test
-    public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
-        InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
+    public void createObjectFromJson_objectNullClass() throws JSONException {
+        JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class); // id = 0
-        realm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, stream);
+        assertNull(realm.createObjectFromJson(null, newObject));
         realm.commitTransaction();
-
-        RealmResults<OwnerPrimaryKey> owners = realm.where(OwnerPrimaryKey.class).findAll();
-        assertEquals(2, owners.size());
-        assertEquals(1, owners.get(1).getId());
-        assertEquals("bar", owners.get(1).getName());
     }
 
     /**

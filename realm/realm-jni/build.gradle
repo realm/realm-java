@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.97.3'
+ext.coreVersion = '1.0.1'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '2835ae5c51ec83c38fb3f968af6cacd5fce6393b3602ddad4a8f48aaa9e62781'
+ext.coreSha256Hash = 'e132f5824dc31e683353fb0be91eb45cac702f88f8cee819499a1dfa7936aeac'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -16,6 +16,9 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
 // The location of core archive.
 ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
+// target ABIs to build(null means all).
+// To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
+ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
 
 def commonCflags = [ '-Os', '-std=c++11' ]
 // LTO and debugging don't play well together
@@ -51,8 +54,9 @@ class Target {
     // The name of the target. This is used for the task names
     String name
 
-    // The name of the folder the Android Gradle plugin expects to find the shared library
-    String jniFolder
+    // The name of the abi. It is also the name of the folder where the Android Gradle plugin
+    // expects to find the shared library
+    String abi
 
     // The toolchain associated to this target
     Toolchain toolchain
@@ -70,14 +74,29 @@ def toolchains = [
     new Toolchain( name:'x86_64', fullName:'x86_64', commandPrefix:'x86_64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 )
 ]
 
-def targets = [
-    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
-    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
-    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
-    new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] ),
-    new Target( name:'x86_64', jniFolder:'x86_64', toolchain:toolchains.find{it.name == 'x86_64'}, cflags:[] )
+def allTargets = [
+    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
+    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
+    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
+    new Target( name:'x86',     abi:'x86',         toolchain:toolchains.find {it.name == 'x86'},    cflags:[] ),
+    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
 ]
+
+def targets
+if (ext.buildTargetAbis == null) {
+    targets = allTargets;
+} else {
+    targets = ext.buildTargetAbis.collect { targetAbi ->
+        def target = allTargets.find {it.abi == targetAbi}
+        if (!target) {
+            throw new GradleException("Warning: no target ABIs found for '${targetAbi}'." +
+                    " Please check 'buildTargetABIs' property." +
+                    " Supprted ABIs are ${allTargets.collect {it.abi}. join(', ')}.")
+        }
+        return target
+    }
+}
 
 buildscript {
     repositories {
@@ -243,17 +262,9 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
             from tarTree(project.coreArchiveFile)
             into project.coreDir
         }
-        for (target in targets) {
-            exec {
-                commandLine = [
-                        'make',
-                        '-C', "${projectDir}/src",
-                        "BASE_DENOM=${target.name}",
-                        'LIB_SUFFIX_SHARED=.so',
-                        'clean'
-                ]
-            }
-        }
+	exec {
+	    commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
+	}
     }
 }
 
@@ -301,14 +312,14 @@ targets.each { target ->
     task "copyAndroidJni${target.name.capitalize()}"(dependsOn: "buildAndroidJni${target.name.capitalize()}") << {
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}${getStrippedExt()}.so"
-            into "${projectDir}/../realm-library/src/main/jniLibs/${target.jniFolder}"
+            into "${projectDir}/../realm-library/src/main/jniLibs/${target.abi}"
             rename "librealm-jni-${target.name}${getDebugExt()}${getStrippedExt()}.so", 'librealm-jni.so'
         }
 
         // Store the unstripped version
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}.so"
-            into "${projectDir}/../build/output/jniLibs-unstripped/${target.jniFolder}"
+            into "${buildDir}/outputs/jniLibs-unstripped/${target.abi}"
             rename "librealm-jni-${target.name}${getDebugExt()}.so", 'librealm-jni.so'
         }
     }
@@ -328,7 +339,6 @@ task clean(type: Delete) {
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
-    delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
 
     doLast {

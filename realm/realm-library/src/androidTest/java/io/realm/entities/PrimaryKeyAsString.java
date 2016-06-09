@@ -18,15 +18,22 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.objectid.NullPrimaryKey;
 
 public class PrimaryKeyAsString extends RealmObject {
+
+    public static final String CLASS_NAME = "PrimaryKeyAsString";
+    public static final String FIELD_PRIMARY_KEY = "name";
 
     @PrimaryKey
     private String name;
 
     private long id;
 
-    public PrimaryKeyAsString() {
+    public PrimaryKeyAsString() {}
+    public PrimaryKeyAsString(String name, long id) {
+        this.name = name;
+        this.id = id;
     }
 
     public PrimaryKeyAsString(String name) {

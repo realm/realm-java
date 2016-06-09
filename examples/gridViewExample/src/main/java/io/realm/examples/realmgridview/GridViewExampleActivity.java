@@ -100,23 +100,7 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
             return null;
         }
 
-        // GSON can parse the data.
-        // Note there is a bug in GSON 2.5 that can cause it to StackOverflow when working with RealmObjects.
-        // To work around this, use the ExclusionStrategy below or downgrade to 1.7.1
-        // See more here: https://code.google.com/p/google-gson/issues/detail?id=440
-        Gson gson = new GsonBuilder()
-                .setExclusionStrategies(new ExclusionStrategy() {
-                    @Override
-                    public boolean shouldSkipField(FieldAttributes f) {
-                        return f.getDeclaringClass().equals(RealmObject.class);
-                    }
-
-                    @Override
-                    public boolean shouldSkipClass(Class<?> clazz) {
-                        return false;
-                    }
-                })
-                .create();
+        Gson gson = new GsonBuilder().create();
 
         JsonElement json = new JsonParser().parse(new InputStreamReader(stream));
         List<City> cities = gson.fromJson(json, new TypeToken<List<City>>() {}.getType());
@@ -145,12 +129,15 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
         City modifiedCity = (City)mAdapter.getItem(position);
 
         // Acquire the RealmObject matching the name of the clicked City.
-        City city = realm.where(City.class).equalTo("name", modifiedCity.getName()).findFirst();
+        final City city = realm.where(City.class).equalTo("name", modifiedCity.getName()).findFirst();
 
         // Create a transaction to increment the vote count for the selected City in the realm
-        realm.beginTransaction();
-        city.setVotes(city.getVotes() + 1);
-        realm.commitTransaction();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                city.setVotes(city.getVotes() + 1);
+            }
+        });
 
         updateCities();
     }

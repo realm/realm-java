@@ -16,6 +16,11 @@
 
 package io.realm;
 
+import io.realm.annotations.Required;
+import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -23,11 +28,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import io.realm.annotations.Required;
-import io.realm.internal.ImplicitTransaction;
-import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -88,8 +88,10 @@ public final class RealmObjectSchema {
     /**
      * Returns the name of the RealmObject class being represented by this schema.
      * <p>
-     * When using a normal {@link Realm} this name is the same as the {@link RealmObject} class.
-     * When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.
+     * <ul>
+     * <li>When using a normal {@link Realm} this name is the same as the {@link RealmObject} class.</li>
+     * <li>When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.</li>
+     * </ul>
      *
      * @return the name of the RealmObject class represented by this schema.
      */
@@ -115,7 +117,7 @@ public final class RealmObjectSchema {
 
     /**
      * Adds a new simple field to the RealmObject class. The type must be one supported by Realm. See {@link RealmObject}
-     * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.
+     * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.,
      * {@code Integer.class} instead of {@code int.class}.
      * <p>
      * To add fields that reference other RealmObjects or RealmLists use {@link #addRealmObjectField(String, RealmObjectSchema)}
@@ -132,7 +134,7 @@ public final class RealmObjectSchema {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
-                throw new IllegalArgumentException("Use addLinkField() instead to add fields that link to other RealmObjects: " + fieldName);
+                throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
             } else {
                 throw new IllegalArgumentException(String.format("Realm doesn't support this field type: %s(%s)",
                         fieldName, fieldType));
@@ -141,12 +143,11 @@ public final class RealmObjectSchema {
 
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable;
-        if (containsAttribute(attributes, FieldAttribute.REQUIRED) ||
-                containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+        if (containsAttribute(attributes, FieldAttribute.REQUIRED)) {
             nullable = false;
         }
-        long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
 
+        long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
         try {
             addModifiers(fieldName, attributes);
         } catch (Exception e) {
@@ -222,6 +223,9 @@ public final class RealmObjectSchema {
         checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(currentFieldName);
         table.renameColumn(columnIndex, newFieldName);
+
+        // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
+
         return this;
     }
 
@@ -260,6 +264,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName existing field name to check.
      * @return {@code true} if field is indexed, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see io.realm.annotations.Index
      */
     public boolean hasIndex(String fieldName) {
@@ -289,7 +294,7 @@ public final class RealmObjectSchema {
 
     /**
      * Adds a primary key to a given field. This is the same as adding the {@link io.realm.annotations.PrimaryKey}
-     * annotation on the field.
+     * annotation on the field. Further, this implicitly adds {@link io.realm.annotations.Index} annotation to the field as well.
      *
      * @param fieldName field to set as primary key.
      * @return the updated schema.
@@ -303,12 +308,17 @@ public final class RealmObjectSchema {
             throw new IllegalStateException("A primary key is already defined");
         }
         table.setPrimaryKey(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
+        if (!table.hasSearchIndex(columnIndex)) {
+            // No exception will be thrown since adding PrimaryKey implies the column has an index.
+            table.addSearchIndex(columnIndex);
+        }
         return this;
     }
 
     /**
      * Removes the primary key from this class. This is the same as removing the {@link io.realm.annotations.PrimaryKey}
-     * annotation from the class.
+     * annotation from the class. Further, this implicitly removes {@link io.realm.annotations.Index} annotation from the field as well.
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
@@ -317,13 +327,17 @@ public final class RealmObjectSchema {
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
+        long columnIndex = table.getPrimaryKey();
+        if (table.hasSearchIndex(columnIndex)) {
+            table.removeSearchIndex(columnIndex);
+        }
         table.setPrimaryKey("");
         return this;
     }
 
     /**
-     * Sets a field to be required, i.e. not allowed to hold {@code null values}. This is equivalent to switching
-     * between boxed types and their primitive variant e.g. {@code Integer} to {@code int}.
+     * Sets a field to be required i.e., it is not allowed to hold {@code null} values. This is equivalent to switching
+     * between boxed types and their primitive variant e.g., {@code Integer} to {@code int}.
      *
      * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
@@ -359,8 +373,8 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a field to be nullable, i.e. it should be able to hold {@code null values}. This is equivalent to switching
-     * between primitive types and their boxed variant e.g. {@code int} to {@code Integer}.
+     * Sets a field to be nullable i.e., it should be able to hold {@code null} values. This is equivalent to switching
+     * between primitive types and their boxed variant e.g., {@code int} to {@code Integer}.
      *
      * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
@@ -373,29 +387,42 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Checks if a given field is required, i.e. is not allowed to contain {@code null} values.
+     * Checks if a given field is required i.e., it is not allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it is requied, {@code false} otherwise.
+     * @return {@code true} if it is required, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return !table.isColumnNullable(columnIndex);
     }
 
     /**
-     * Checks if a given field is nullable, i.e. is allowed to contain {@code null} values.
+     * Checks if a given field is nullable i.e., it is allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it is requied, {@code false} otherwise.
+     * @return {@code true} if it is required, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return table.isColumnNullable(columnIndex);
+    }
+
+    /**
+     * Checks if a given field is the primary key field.
+     *
+     * @param fieldName field to check.
+     * @return {@code true} if it is the primary key field, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
+     * @see #addPrimaryKey(String)
+     */
+    public boolean isPrimaryKey(String fieldName) {
+        long columnIndex = getColumnIndex(fieldName);
+        return columnIndex == table.getPrimaryKey();
     }
 
     /**
@@ -409,7 +436,20 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Return all fields in this class.
+     * Returns the name of the primary key field.
+     *
+     * @return the name of the primary key field.
+     * @throws IllegalStateException if the class doesn't have a primary key defined.
+     */
+    public String getPrimaryKey() {
+        if (!table.hasPrimaryKey()) {
+            throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
+        }
+        return table.getColumnName(table.getPrimaryKey());
+    }
+
+    /**
+     * Returns all fields in this class.
      *
      * @return a list of all the fields in this class.
      */
@@ -524,10 +564,10 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the column indices for the given field name. If a linked field is defined, the column index for
-     * each field is returned
+     * each field is returned.
      *
      * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes Legal field type for the last field in a linked field
+     * @param validColumnTypes valid field type for the last field in a linked field
      * @return list of column indices.
      */
     // TODO: consider another caching strategy so linked classes are included in the cache.
@@ -593,13 +633,27 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the column index in the underlying table for the given field name.
-     * INVARIANT: fieldName should be present.
      *
      * @param fieldName field name to find index for.
-     * @return column index
+     * @return column index or null if it doesn't exists.
      */
     Long getFieldIndex(String fieldName) {
         return columnIndices.get(fieldName);
+    }
+
+    /**
+     * Returns the column index in the underlying table for the given field name.
+     *
+     * @param fieldName field name to find index for.
+     * @return column index.
+     * @throws IllegalArgumentException if the field does not exists.
+     */
+    long getAndCheckFieldIndex(String fieldName) {
+        Long index = columnIndices.get(fieldName);
+        if (index == null) {
+            throw new IllegalArgumentException("Field does not exist: " + fieldName);
+        }
+        return index;
     }
 
     /**
@@ -632,7 +686,7 @@ public final class RealmObjectSchema {
         }
     }
 
-    static class DynamicColumnMap implements Map<String, Long> {
+    static final class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
         public DynamicColumnMap(Table table) {

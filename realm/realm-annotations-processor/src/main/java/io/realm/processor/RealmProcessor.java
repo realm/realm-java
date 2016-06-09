@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -53,7 +54,7 @@ import io.realm.annotations.RealmClass;
  * <ol>
  *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
  *  <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
- *  <li>Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named <moduleName>Mediator.java</li>
+ *  <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
  * </ol>
  *
  * <h1>WHY</h1>
@@ -67,7 +68,7 @@ import io.realm.annotations.RealmClass;
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
- * @RealmModule annotation. Realm automatically knows about this module, but it is still possible for users to create
+ * {@code @RealmModule} annotation. Realm automatically knows about this module, but it is still possible for users to create
  * their own modules with a subset of model classes.</li>
  *
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
@@ -113,7 +114,6 @@ public class RealmProcessor extends AbstractProcessor {
         if (hasProcessedModules) {
             return true;
         }
-
         RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
 
@@ -124,10 +124,17 @@ public class RealmProcessor extends AbstractProcessor {
         // Create all proxy classes
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 
+            // The class must either extend RealmObject or implement RealmModel
+            if (!Utils.isImplementingMarkerInterface(classElement)) {
+                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject", classElement);
+            }
+
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
                 Utils.error("The RealmClass annotation can only be applied to classes", classElement);
+                return true; // Abort processing by claiming all annotations
             }
+
             ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
             if (!metadata.isModelClass()) {
                 continue;
@@ -135,7 +142,7 @@ public class RealmProcessor extends AbstractProcessor {
             Utils.note("Processing class " + metadata.getSimpleClassName());
             boolean success = metadata.generate();
             if (!success) {
-                return true; // Abort processing by claiming all annotations
+                return true;
             }
             classesToValidate.add(metadata);
             packages.add(metadata.getPackageName());
@@ -155,12 +162,6 @@ public class RealmProcessor extends AbstractProcessor {
             } catch (UnsupportedOperationException e) {
                 Utils.error(e.getMessage(), classElement);
             }
-        }
-
-        String environmentVariable = System.getenv("REALM_DISABLE_ANALYTICS");
-        if (environmentVariable == null || !environmentVariable.equals("true")) {
-            RealmAnalytics analytics = RealmAnalytics.getInstance(packages);
-            analytics.execute();
         }
 
         hasProcessedModules = true;

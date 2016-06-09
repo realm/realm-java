@@ -8,6 +8,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
+apply plugin: 'com.github.kt3k.coveralls'
 
 android {
     compileSdkVersion 23
@@ -27,10 +28,24 @@ android {
         }
     }
 
+    sourceSets {
+        androidTest {
+            java.srcDirs += 'src/benchmarks/java'
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+    }
+
     lintOptions {
         abortOnError false
     }
 }
+
+
+coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 import io.realm.transformer.RealmTransformer
 
@@ -43,6 +58,7 @@ repositories {
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
+    compile 'com.getkeepsafe.relinker:relinker:1.2.1'
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:23.1.1'
@@ -50,6 +66,8 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile 'com.opencsv:opencsv:3.4'
+    androidTestCompile 'dk.ilios:spanner:0.6.0'
 
     androidTestApt project(':realm-annotations-processor')
 }
@@ -77,7 +95,7 @@ task javadoc(type: Javadoc) {
     exclude '**/R.java'
     doLast {
         copy {
-            from "src/realm-overview.png"
+            from "src/realm-java-overview.png"
             into "$buildDir/docs/javadoc"
         }
     }
@@ -142,6 +160,24 @@ task checkstyle(type: Checkstyle) {
 
     // empty classpath
     classpath = files()
+}
+
+// Configuration options can be found here:
+// http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
+task connectedBenchmarks(type: GradleBuild) {
+    description =  'Run all benchmarks on connected devices'
+    group = 'Verification'
+    buildFile = file("${projectDir}/build.gradle")
+    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
+    tasks = ['connectedCheck']
+}
+
+task connectedUnitTests(type: GradleBuild) {
+    description =  'Run all unit tests on connected devices'
+    group = 'Verification'
+    buildFile = file("${projectDir}/build.gradle")
+    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
+    tasks = ['connectedAndroidTest']
 }
 
 install {

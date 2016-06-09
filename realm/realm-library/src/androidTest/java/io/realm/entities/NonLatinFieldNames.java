@@ -16,20 +16,24 @@
 
 package io.realm.entities;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
-public class NonLatinFieldNames extends RealmObject{
+public class NonLatinFieldNames extends RealmObject {
 
     public final static String FIELD_LONG_KOREAN_CHAR = "델타";
     public final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
     public final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
     public final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
+    public final static String FIELD_CHILDREN = "children";
 
     private long 델타;
     private long Δέλτα;
 
     private float 베타;
     private float βήτα;
+
+    private RealmList<NonLatinFieldNames> children;
 
     public float get베타() { return 베타; }
 
@@ -46,4 +50,12 @@ public class NonLatinFieldNames extends RealmObject{
     public long getΔέλτα() { return Δέλτα; }
 
     public void setΔέλτα(long δέλτα) { this.Δέλτα = δέλτα; }
+
+    public RealmList<NonLatinFieldNames> getChildren() {
+        return children;
+    }
+
+    public void setChildren(RealmList<NonLatinFieldNames> children) {
+        this.children = children;
+    }
 }

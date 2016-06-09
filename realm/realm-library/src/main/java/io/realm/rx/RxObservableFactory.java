@@ -20,6 +20,7 @@ import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmList;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -63,7 +64,7 @@ public interface RxObservableFactory {
      * @param <E> type of RealmObject
      * @return Rx observable that emit all updates to the RealmObject.
      */
-    <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results);
+    <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results);
 
     /**
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
@@ -89,7 +90,7 @@ public interface RxObservableFactory {
      * @param realm {@link Realm} instance list is coming from.
      * @param <E> type of RealmObject
      */
-    <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list);
+    <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list);
 
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
@@ -114,7 +115,7 @@ public interface RxObservableFactory {
      * @param realm {@link Realm} instance object is coming from.
      * @param <E> type of RealmObject
      */
-    <E extends RealmObject> Observable<E> from(Realm realm, E object);
+    <E extends RealmModel> Observable<E> from(Realm realm, E object);
 
     /**
      * Creates an Observable for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
@@ -136,7 +137,7 @@ public interface RxObservableFactory {
      * @param realm {@link Realm} instance query is coming from.
      * @param <E> type of RealmObject
      */
-    <E extends RealmObject> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query);
+    <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query);
 
     /**
      * Creates an Observable from a {@link RealmQuery}. It should emit the query and then complete.

@@ -17,6 +17,8 @@
 package io.realm.gradle
 
 import com.android.build.api.transform.Transform
+import io.realm.transformer.RealmOptionalAPITransformer
+import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
@@ -52,7 +54,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:1.5.0'
+                classpath 'com.android.tools.build:gradle:2.1.0'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
@@ -67,6 +69,7 @@ class PluginTest {
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
 
         assertTrue(containsTransform(project.android.transforms, RealmTransformer.class))
+        assertTrue(containsTransform(project.android.transforms, RealmOptionalAPITransformer.class))
     }
 
     @Test
@@ -77,7 +80,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:1.5.0'
+                classpath 'com.android.tools.build:gradle:2.1.0'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }

@@ -315,13 +315,12 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeIsEmpty(
     JNIEnv*, jobject, jlong nativeGroupPtr)
 {
     Group* grp = G(nativeGroupPtr);
-    const string table_prefix(TABLE_PREFIX);
-    const size_t table_prefix_length = table_prefix.length();
+    const size_t table_prefix_length = TABLE_PREFIX.length();
 
     for (size_t i = 0; i < grp->size(); ++i) {
         ConstTableRef table = grp->get_table(i);
         const string table_name = table->get_name();
-        if (table_name.compare(0, table_prefix_length, table_prefix) == 0 && !table->is_empty()) {
+        if (table_name.compare(0, table_prefix_length, TABLE_PREFIX) == 0 && !table->is_empty()) {
             return false;
         }
     }

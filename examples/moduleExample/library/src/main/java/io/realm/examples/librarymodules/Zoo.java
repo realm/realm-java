@@ -35,7 +35,7 @@ public class Zoo {
     public Zoo(Context context) {
         realmConfig = new RealmConfiguration.Builder(context) // Beware this is the app context
                 .name("library.zoo.realm")                    // So always use a unique name
-                .setModules(new AllAnimalsModule())           // Always use explicit modules in library projects
+                .modules(new AllAnimalsModule())           // Always use explicit modules in library projects
                 .build();
 
         // Reset Realm
@@ -52,13 +52,16 @@ public class Zoo {
         return realm.where(Cat.class).count();
     }
 
-    public void addAnimals(int count) {
-        realm.beginTransaction();
-        for (int i = 0; i < count; i++) {
-            Cat cat = realm.createObject(Cat.class);
-            cat.setName("Cat " + i);
-        }
-        realm.commitTransaction();
+    public void addAnimals(final int count) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                for (int i = 0; i < count; i++) {
+                    Cat cat = realm.createObject(Cat.class);
+                    cat.setName("Cat " + i);
+                }
+            }
+        });
     }
 
     public void close() {

@@ -54,6 +54,9 @@ task assembleRealm(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['assemble', 'javadocJar', 'sourcesJar']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task check(type:GradleBuild) {
@@ -61,14 +64,29 @@ task check(type:GradleBuild) {
     description = 'Run the JVM tests and checks Realm project'
     buildFile = file('realm/build.gradle')
     tasks = ['check']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
-task connectedCheck(type:GradleBuild) {
+task integrationTestsConnectedCheck(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the integration tests of the Realm project'
+    dependsOn installTransformer
+    buildFile = file('integration-tests/build.gradle')
+    tasks = ['connectedCheck']
+}
+
+task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
+    dependsOn integrationTestsConnectedCheck
     buildFile = file('realm/build.gradle')
-    tasks = ['connectedCheck']
+    tasks = ['connectedUnitTests']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task installRealm(type:GradleBuild) {
@@ -77,6 +95,9 @@ task installRealm(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['install']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task assembleGradlePlugin(type:GradleBuild) {
@@ -127,6 +148,9 @@ task javadoc(type:GradleBuild) {
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['javadocJar']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task sourcesJar(type:GradleBuild) {
@@ -134,6 +158,9 @@ task sourcesJar(type:GradleBuild) {
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['sourcesJar']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task assemble {
@@ -154,10 +181,6 @@ task distributionPackage(type:Zip) {
     from('changelog.txt')
     from('LICENSE')
     from('version.txt')
-    from("${buildDir}/outputs/gradle") {
-        include "realm-android-${currentVersion}.jar"
-        into 'gradle'
-    }
     from('realm/realm-library/build/libs') {
         include 'realm-android-${currentVersion}-javadoc.jar'
         into 'docs'
@@ -174,13 +197,29 @@ task distributionPackage(type:Zip) {
     }
 }
 
+task distributionJniUnstrippedPackage(type:Zip) {
+    description = 'Generate native libs package with debug symbols'
+    dependsOn assembleRealm
+
+    group = 'Artifact'
+    archiveName = "realm-java-jni-libs-unstripped-${currentVersion}.zip"
+    destinationDir = file("${buildDir}/outputs/distribution")
+
+    from("realm/realm-jni/build/outputs/jniLibs-unstripped") {
+        include '**/*.so'
+    }
+}
+
 task cleanRealm(type:GradleBuild) {
     description = 'Clean the Realm project'
     group = 'Clean'
     buildFile = file('realm/build.gradle')
     tasks = ['clean']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
     if (project.hasProperty('dontCleanJniFiles')) {
-        startParameter.projectProperties = [dontCleanJniFiles: ""]
+        startParameter.projectProperties += [dontCleanJniFiles: project.getProperty('dontCleanJniFiles')]
     }
 }
 
@@ -217,7 +256,9 @@ task uploadDistributionPackage(type: Exec) {
     group = 'Release'
     description = 'Upload the distribution package to S3'
     dependsOn distributionPackage
+    dependsOn distributionJniUnstrippedPackage
     commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
 }
 
 task createEmptyFile(type: Exec) {
@@ -256,6 +297,9 @@ task bintrayRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['bintrayUpload']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task bintrayAnnotations(type: GradleBuild) {
@@ -293,6 +337,9 @@ task ojoRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['artifactoryPublish']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
 }
 
 task ojoAnnotations(type: GradleBuild) {

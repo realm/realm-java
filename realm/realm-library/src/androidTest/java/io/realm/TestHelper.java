@@ -33,7 +33,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,10 +41,17 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.NullTypes;
+import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
+import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -72,7 +78,7 @@ public class TestHelper {
         }
     }
 
-    public static RealmFieldType getColumnType(Object o){
+    public static RealmFieldType getColumnType(Object o) {
         if (o instanceof Boolean)
             return RealmFieldType.BOOLEAN;
         if (o instanceof String)
@@ -92,9 +98,10 @@ public class TestHelper {
 
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     *
      * @return
      */
-    public static Table getTableWithAllColumnTypes(){
+    public static Table getTableWithAllColumnTypes() {
         Table t = new Table();
 
         t.addColumn(RealmFieldType.BINARY, "binary");
@@ -311,7 +318,7 @@ public class TestHelper {
         if (garbageSize == 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
             long totalMemory = Runtime.getRuntime().totalMemory();
-            garbageSize = (int)(maxMemory - totalMemory)/10*9;
+            garbageSize = (int) (maxMemory - totalMemory) / 10 * 9;
         }
         byte garbage[] = new byte[0];
         try {
@@ -321,7 +328,7 @@ public class TestHelper {
                 garbage[garbage.length - 1] = 1;
             }
         } catch (OutOfMemoryError oom) {
-            return allocGarbage(garbageSize/10*9);
+            return allocGarbage(garbageSize / 10 * 9);
         }
 
         return garbage;
@@ -383,6 +390,171 @@ public class TestHelper {
         }
 
         return config.build();
+    }
+
+    /**
+     * Adds a String type PrimaryKey object to a realm with values for name field (PrimaryKey) and id field
+     */
+    public static PrimaryKeyAsString addStringPrimaryKeyObjectToTestRealm(Realm testRealm, String primaryFieldValue, long secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsString obj = new PrimaryKeyAsString();
+        obj.setName(primaryFieldValue);
+        obj.setId(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Populates a realm with String type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
+     */
+    public static void populateTestRealmWithStringPrimaryKey(Realm testRealm, String primaryFieldValue, long secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsString userObj = new PrimaryKeyAsString();
+        userObj.setName(primaryFieldValue);
+        userObj.setId(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        int idValue = iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
+            PrimaryKeyAsString obj = new PrimaryKeyAsString();
+            obj.setName(String.valueOf(idValue));
+            obj.setId(idValue);
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Adds a Byte type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
+     */
+    public static PrimaryKeyAsBoxedByte addBytePrimaryKeyObjectToTestRealm(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Populates a realm with Byte type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
+     */
+    public static void populateTestRealmWithBytePrimaryKey(Realm testRealm, Byte primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedByte userObj = new PrimaryKeyAsBoxedByte();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        byte idValue = (byte)iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
+            PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
+            obj.setId(new Byte(idValue));
+            obj.setName(String.valueOf(idValue));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Adds a Short type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
+     */
+    public static PrimaryKeyAsBoxedShort addShortPrimaryKeyObjectToTestRealm(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Populates a realm with Short type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
+     */
+    public static void populateTestRealmWithShortPrimaryKey(Realm testRealm, Short primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedShort userObj = new PrimaryKeyAsBoxedShort();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        short idValue = (short)iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
+            PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
+            obj.setId(new Short(idValue));
+            obj.setName(String.valueOf(idValue));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Adds a Integer type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
+     */
+    public static PrimaryKeyAsBoxedInteger addIntegerPrimaryKeyObjectToTestRealm(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Populates a realm with Integer type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
+     */
+    public static void populateTestRealmWithIntegerPrimaryKey(Realm testRealm, Integer primaryFieldValue, String secondaryFieldValue, int numberOfPopulation, int iteratorBeginValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedInteger userObj = new PrimaryKeyAsBoxedInteger();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        int idValue = iteratorBeginValue;
+        for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
+            PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
+            obj.setId(new Integer(idValue));
+            obj.setName(String.valueOf(idValue));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
+    }
+
+    /**
+     * Adds a Long type PrimaryKey object to a realm with values for id field (PrimaryKey) and name field
+     */
+    public static PrimaryKeyAsBoxedLong addLongPrimaryKeyObjectToTestRealm(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
+        obj.setId(primaryFieldValue);
+        obj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+        return obj;
+    }
+
+    /**
+     * Populates a realm with Long type Primarykey objects for a number of numberOfPopulation - 1,
+     * starting with iteratorBeginValue. One object is setup to have given values from parameters.
+     */
+    public static void populateTestRealmWithLongPrimaryKey(Realm testRealm, Long primaryFieldValue, String secondaryFieldValue, long numberOfPopulation, long iteratorBeginValue) {
+        testRealm.beginTransaction();
+        PrimaryKeyAsBoxedLong userObj = new PrimaryKeyAsBoxedLong();
+        userObj.setId(primaryFieldValue);
+        userObj.setName(secondaryFieldValue);
+        testRealm.copyToRealm(userObj);
+        long idValue = iteratorBeginValue;
+        for (long i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
+            PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
+            obj.setId(new Long(idValue));
+            obj.setName(String.valueOf(idValue));
+            testRealm.copyToRealm(obj);
+        }
+        testRealm.commitTransaction();
     }
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
@@ -463,7 +635,7 @@ public class TestHelper {
         testRealm.commitTransaction();
     }
 
-    public static void populateAllNonNullRowsForNumericTesting (Realm realm) {
+    public static void populateAllNonNullRowsForNumericTesting(Realm realm) {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -498,7 +670,11 @@ public class TestHelper {
         realm.commitTransaction();
     }
 
-    public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+    public static void populatePartialNullRowsForNumericTesting(Realm realm) {
+        // Id values are [1, 2, 3]
+        // IntegerNull values are [3, null, 4]
+        // FloatNull values are [4F, null, 5F]
+        // DoubleNull values are [5D, null, 6F]
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -622,12 +798,12 @@ public class TestHelper {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
         populateForMultiSort(dynamicRealm);
         dynamicRealm.close();
-        typedRealm.refresh();
+        typedRealm.waitForChange();
     }
 
     public static void populateForMultiSort(DynamicRealm realm) {
         realm.beginTransaction();
-        realm.clear(AllTypes.CLASS_NAME);
+        realm.delete(AllTypes.CLASS_NAME);
         DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
         object1.setLong(AllTypes.FIELD_LONG, 5);
         object1.setString(AllTypes.FIELD_STRING, "Adam");
@@ -639,6 +815,15 @@ public class TestHelper {
         DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
         object3.setLong(AllTypes.FIELD_LONG, 4);
         object3.setString(AllTypes.FIELD_STRING, "Adam");
+        realm.commitTransaction();
+    }
+
+    public static void populateSimpleAllTypesPrimaryKey(Realm realm) {
+        realm.beginTransaction();
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        obj.setColumnLong(1);
+        obj.setColumnString("Foo");
+        realm.copyToRealm(obj);
         realm.commitTransaction();
     }
 
@@ -768,7 +953,7 @@ public class TestHelper {
      * @param executor {@link RealmThreadPoolExecutor} that should replace the current one
      */
     public static RealmThreadPoolExecutor replaceRealmThreadExectutor(RealmThreadPoolExecutor executor) throws NoSuchFieldException, IllegalAccessException {
-        Field field = BaseRealm.class.getDeclaredField("asyncQueryExecutor");
+        Field field = BaseRealm.class.getDeclaredField("asyncTaskExecutor");
         field.setAccessible(true);
         RealmThreadPoolExecutor oldExecutor = (RealmThreadPoolExecutor) field.get(null);
         field.set(field, executor);
@@ -793,4 +978,31 @@ public class TestHelper {
         }
     }
 
+    public static abstract class Task {
+        public abstract void run() throws Exception;
+    }
+
+    public static void executeOnNonLooperThread(final Task task) throws Throwable {
+        final AtomicReference<Throwable> thrown = new AtomicReference<Throwable>();
+        final Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    task.run();
+                } catch (Throwable e) {
+                    thrown.set(e);
+                    if (e instanceof Error) {
+                        throw (Error) e;
+                    }
+                }
+            }
+        };
+        thread.start();
+        thread.join();
+
+        final Throwable throwable = thrown.get();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
 }

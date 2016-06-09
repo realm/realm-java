@@ -37,6 +37,7 @@ public class TableView implements TableOrView, Closeable {
     // Core requests TableView to hold the Query reference.
     @SuppressWarnings({"unused"})
     private final TableQuery query; // the query which created this TableView
+    private long version; // Last seen version number. Call refresh() to update this.
 
     /**
      * Creates a TableView. This constructor is used if the TableView is created from a table.
@@ -78,12 +79,12 @@ public class TableView implements TableOrView, Closeable {
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
-                
+
                 if (DEBUG) {
                     RealmLog.d("==== TableView CLOSE, ptr= " + nativePtr);
                 }
                 nativePtr = 0;
-            } 
+            }
         }
     }
 
@@ -229,7 +230,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public Date getDate(long columnIndex, long rowIndex){
-        return new Date(nativeGetDateTimeValue(nativePtr, columnIndex, rowIndex)*1000);
+        return new Date(nativeGetTimestamp(nativePtr, columnIndex, rowIndex));
     }
 
     /**
@@ -369,7 +370,7 @@ public class TableView implements TableOrView, Closeable {
     @Override
     public void setDate(long columnIndex, long rowIndex, Date value){
         if (parent.isImmutable()) throwImmutable();
-        nativeSetDateTimeValue(nativePtr, columnIndex, rowIndex, value.getTime()/1000);
+        nativeSetTimestampValue(nativePtr, columnIndex, rowIndex, value.getTime());
     }
 
     /**
@@ -454,6 +455,14 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        if (parent.isImmutable()) throwImmutable();
+        if (!isEmpty()) {
+            nativeRemoveRow(nativePtr, 0);
+        }
+    }
+
+    @Override
     public void removeLast() {
         if (parent.isImmutable()) throwImmutable();
         if (!isEmpty()) {
@@ -484,7 +493,9 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public long findFirstDate(long columnIndex, Date date) {
-        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
+        // FIXME: waiting for implementation
+        return NO_MATCH;
+        // return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
     }
 
     @Override
@@ -511,7 +522,7 @@ public class TableView implements TableOrView, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
-        try { 
+        try {
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -524,12 +535,12 @@ public class TableView implements TableOrView, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
-        try { 
+        try {
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
-        }  
+        }
     }
 
     @Override
@@ -537,12 +548,12 @@ public class TableView implements TableOrView, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
-        try { 
+        try {
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
-        }  
+        }
     }
 
     @Override
@@ -550,25 +561,12 @@ public class TableView implements TableOrView, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try { 
+        try {
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
-        }   
-    }
-
-    @Override
-    public TableView findAllDate(long columnIndex, Date date) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
-        try { 
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }  
+        }
     }
 
     @Override
@@ -576,7 +574,7 @@ public class TableView implements TableOrView, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
-        try { 
+        try {
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -589,7 +587,7 @@ public class TableView implements TableOrView, Closeable {
     //
 
     /**
-     * Calculate the sum of the values in a particular column of this tableview.
+     * Calculates the sum of the values in a particular column of this tableview.
      *
      * Note: the type of the column marked by the columnIndex has to be of type RealmFieldType.INTEGER.
      *
@@ -683,20 +681,20 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public Date maximumDate(long columnIndex) {
-        Long result = nativeMaximumDate(nativePtr, columnIndex);
+        Long result = nativeMaximumTimestamp(nativePtr, columnIndex);
         if (result == null) {
             return null;
         }
-        return new Date(result * 1000);
+        return new Date(result);
     }
 
     @Override
     public Date minimumDate(long columnIndex) {
-        Long result = nativeMinimumDate(nativePtr, columnIndex);
+        Long result = nativeMinimumTimestamp(nativePtr, columnIndex);
         if (result == null) {
             return null;
         }
-        return new Date(result * 1000);
+        return new Date(result);
     }
 
     // Sorting
@@ -726,17 +724,24 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, 500);
-    }
+        long columnCount = getColumnCount();
+        StringBuilder stringBuilder = new StringBuilder("The TableView contains ");
+        stringBuilder.append(columnCount);
+        stringBuilder.append(" columns: ");
 
-    @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
+        for (int i = 0; i < columnCount; i++) {
+            if (i != 0) {
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append(getColumnName(i));
+        }
+        stringBuilder.append(".");
 
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
+        stringBuilder.append(" And ");
+        stringBuilder.append(size());
+        stringBuilder.append(" rows.");
+
+        return stringBuilder.toString();
     }
 
     @Override
@@ -765,7 +770,7 @@ public class TableView implements TableOrView, Closeable {
 
 
     private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
+        throw new IllegalStateException("Realm data can only be changed inside a write transaction.");
     }
 
     protected long nativePtr;
@@ -776,6 +781,11 @@ public class TableView implements TableOrView, Closeable {
     public long count(long columnIndex, String value) {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
+    }
+
+    @Override
+    public long getVersion() {
+        return version;
     }
 
     @Override
@@ -824,8 +834,9 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
-    public long sync() {
-        return nativeSync(nativePtr);
+    public long syncIfNeeded() {
+        version = nativeSyncIfNeeded(nativePtr);
+        return version;
     }
 
     static native void nativeClose(long nativeViewPtr);
@@ -839,7 +850,7 @@ public class TableView implements TableOrView, Closeable {
     private native boolean nativeGetBoolean(long nativeViewPtr, long columnIndex, long rowIndex);
     private native float nativeGetFloat(long nativeViewPtr, long columnIndex, long rowIndex);
     private native double nativeGetDouble(long nativeViewPtr, long columnIndex, long rowIndex);
-    private native long nativeGetDateTimeValue(long nativeViewPtr, long columnIndex, long rowIndex);
+    private native long nativeGetTimestamp(long nativeViewPtr, long columnIndex, long rowIndex);
     private native String nativeGetString(long nativeViewPtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
     private native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
@@ -852,7 +863,7 @@ public class TableView implements TableOrView, Closeable {
     private native void nativeSetBoolean(long nativeViewPtr, long columnIndex, long rowIndex, boolean value);
     private native void nativeSetFloat(long nativeViewPtr, long columnIndex, long rowIndex, float value);
     private native void nativeSetDouble(long nativeViewPtr, long columnIndex, long rowIndex, double value);
-    private native void nativeSetDateTimeValue(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
+    private native void nativeSetTimestampValue(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
     private native void nativeSetString(long nativeViewPtr, long columnIndex, long rowIndex, String value);
     private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     private native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
@@ -886,17 +897,16 @@ public class TableView implements TableOrView, Closeable {
     private native Double nativeMaximumDouble(long nativeViewPtr, long columnIndex);
     private native Double nativeMinimumDouble(long nativeViewPtr, long columnIndex);
     private native double nativeAverageDouble(long nativePtr, long columnIndex);
-    private native Long nativeMaximumDate(long nativePtr, long columnIndex);
-    private native Long nativeMinimumDate(long nativePtr, long columnIndex);
+    private native Long nativeMaximumTimestamp(long nativePtr, long columnIndex);
+    private native Long nativeMinimumTimestamp(long nativePtr, long columnIndex);
     private native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean sortOrder);
     private native void nativeSortMulti(long nativeTableViewPtr, long columnIndices[], boolean ascending[]);
     private native long createNativeTableView(Table table, long nativeTablePtr);
     private native String nativeToJson(long nativeViewPtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
     private native long nativeDistinct(long nativeViewPtr, long columnIndex);
+    private native long nativeSyncIfNeeded(long nativeTablePtr);
     private native long nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
 }

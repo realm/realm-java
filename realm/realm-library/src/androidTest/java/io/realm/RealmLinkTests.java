@@ -35,9 +35,9 @@ public class RealmLinkTests extends AndroidTestCase {
         testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.clear(Cat.class);
-        testRealm.clear(Owner.class);
+        testRealm.delete(Dog.class);
+        testRealm.delete(Cat.class);
+        testRealm.delete(Owner.class);
 
         Dog dog1 = testRealm.createObject(Dog.class);
         dog1.setName("Pluto");
@@ -82,7 +82,7 @@ public class RealmLinkTests extends AndroidTestCase {
     }
 
     public void testObjects() {
-        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         assertEquals(1, owners.size());
         assertEquals(2, owners.first().getDogs().size());
         assertEquals("Pluto", owners.first().getDogs().first().getName());
@@ -90,13 +90,13 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Blackie", owners.first().getCat().getName());
         assertEquals(12, owners.first().getCat().getAge());
 
-        RealmResults<Dog> dogs = testRealm.allObjects(Dog.class);
+        RealmResults<Dog> dogs = testRealm.where(Dog.class).findAll();
         assertEquals(2, dogs.size());
         for (Dog dog : dogs) {
             assertEquals("Tim", dog.getOwner().getName());
         }
 
-        RealmResults<Cat> cats = testRealm.allObjects(Cat.class);
+        RealmResults<Cat> cats = testRealm.where(Cat.class).findAll();
         assertEquals(1, cats.size());
         assertEquals("Tim", cats.first().getOwner().getName());
     }
@@ -223,8 +223,7 @@ public class RealmLinkTests extends AndroidTestCase {
 
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -256,8 +255,7 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -389,8 +387,7 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -422,8 +419,7 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -475,7 +471,7 @@ public class RealmLinkTests extends AndroidTestCase {
     }
 
     public void testWhere() throws Exception {
-        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         RealmResults<Dog> dogs = owners.first().getDogs().where().equalTo("name", "Pluto").findAll();
         assertEquals(1, dogs.size());
         assertEquals("Pluto", dogs.first().getName());
@@ -496,7 +492,7 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, owners1.size());
 
         testRealm.beginTransaction();
-        testRealm.clear(Cat.class);
+        testRealm.delete(Cat.class);
         testRealm.commitTransaction();
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
@@ -508,7 +504,7 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners1.size());
 
         testRealm.beginTransaction();
-        testRealm.clear(Cat.class);
+        testRealm.delete(Cat.class);
         testRealm.commitTransaction();
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
