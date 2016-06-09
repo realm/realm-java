@@ -616,7 +616,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Syncs this RealmResults, so it is update to date after `advance_read` has been called.
+     * Syncs this RealmResults, so it is up to date after `advance_read` has been called.
      * Not doing so can leave detached accessors in the table view.
      *
      * By design, we should only call this on looper events.

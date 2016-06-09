@@ -217,14 +217,14 @@ final class HandlerController implements Handler.Callback {
     private void notifyGlobalListeners() {
         // notify strong reference listener
         Iterator<RealmChangeListener<? extends BaseRealm>> iteratorStrongListeners = changeListeners.iterator();
-        while (iteratorStrongListeners.hasNext() && !realm.isClosed()) { // every callback could close the realm
+        while (!realm.isClosed() && iteratorStrongListeners.hasNext()) { // every callback could close the realm
             RealmChangeListener listener = iteratorStrongListeners.next();
             listener.onChange(realm);
         }
         // notify weak reference listener (internals)
         Iterator<WeakReference<RealmChangeListener<? extends BaseRealm>>> iteratorWeakListeners = weakChangeListeners.iterator();
         List<WeakReference<RealmChangeListener<? extends BaseRealm>>> toRemoveList = null;
-        while (iteratorWeakListeners.hasNext() && !realm.isClosed()) {
+        while (!realm.isClosed() && iteratorWeakListeners.hasNext()) {
             WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef = iteratorWeakListeners.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
@@ -272,8 +272,8 @@ final class HandlerController implements Handler.Callback {
      */
     void notifyAllListeners(List<RealmResults<? extends RealmModel>> realmResultsToBeNotified) {
 
-        // Notify all Realmresults (async and synchronous).
-        for (Iterator<RealmResults<? extends RealmModel>> it = realmResultsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
+        // Notify all RealmResults (async and synchronous).
+        for (Iterator<RealmResults<? extends RealmModel>> it = realmResultsToBeNotified.iterator(); !realm.isClosed() && it.hasNext(); ) {
             RealmResults<? extends RealmModel> realmResults = it.next();
             realmResults.notifyChangeListeners(false);
         }
@@ -340,7 +340,7 @@ final class HandlerController implements Handler.Callback {
             }
         }
 
-        for (Iterator<RealmObjectProxy> it = objectsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
+        for (Iterator<RealmObjectProxy> it = objectsToBeNotified.iterator(); !realm.isClosed() && it.hasNext(); ) {
             RealmObjectProxy realmObject = it.next();
             realmObject.realmGet$proxyState().notifyChangeListeners$realm();
         }
