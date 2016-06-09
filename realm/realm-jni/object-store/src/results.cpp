@@ -529,7 +529,7 @@ bool Results::is_in_table_order() const
         case Mode::TableView:
             return m_table_view.is_in_table_order();
     }
-    return false; // keep gcc happy
+    REALM_UNREACHABLE(); // keep gcc happy
 }
 
 void Results::Internal::set_table_view(Results& results, realm::TableView &&tv)
