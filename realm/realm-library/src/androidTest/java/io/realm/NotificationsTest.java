@@ -1270,6 +1270,7 @@ public class NotificationsTest {
     //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
     //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
     // Step 5: Posted runnable called.
+    //
     @Test
     @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
     public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithPausedAsync() {
@@ -1289,7 +1290,6 @@ public class NotificationsTest {
                 // Step 5
                 assertFalse(asyncResults.isLoaded());
                 assertEquals(0, results.size());
-                realm.close();
                 looperThread.testComplete();
             }
         });
@@ -1306,6 +1306,17 @@ public class NotificationsTest {
             }
         });
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void warnIfMixingSyncWritesAndAsyncQueries() {
+        // If you mix
+
+
+
+
+    }
+
 
     @Test
     @RunTestInLooperThread
@@ -1342,7 +1353,6 @@ public class NotificationsTest {
             }
         });
     }
-
 
     // If RealmResults are updated just before their change listener are notified, one change listener might
     // reference another RealmResults that have been advance_read, but not yet called sync_if_needed.
