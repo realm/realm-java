@@ -408,20 +408,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
         m_sync_session->bind(server_url);
         std::thread m_sync_thread = std::thread(&sync::Client::run, m_sync_client.get());
 
-        return reinterpret_cast<jlong>(m_sync_session.release());
+        jlong val = reinterpret_cast<jlong>(m_sync_session.release());
+        TR(">>>>>>>>>>>>>>>>>>>>>>>>> release")
+        return val;
+
     } CATCH_STD()
     return 0;
 }
-
-/*
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStopSession
-  (JNIEnv* env, jobject, jlong nativeSessionPtr)
-{
-    TR_ENTER()
-    SyncSession *session = reinterpret_cast<SyncSession*>(nativeSessionPtr);
-    session->client.
-    std::shared_ptr<SyncClient> client = sync_client_for_user(sync_identity, sync_signature);
-    std::unique_ptr<SyncSession> sync_session = start_sync_session_for_client(client, config.path, *config.sync_server_url);
-    return reintrpret_cast<jlong>(sync_session.release());
-}
-*/
