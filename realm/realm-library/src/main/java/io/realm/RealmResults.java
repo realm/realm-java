@@ -615,6 +615,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
     }
 
+    /**
+     * Syncs this RealmResults, so it is up to date after `advance_read` has been called.
+     * Not doing so can leave detached accessors in the table view.
+     *
+     * By design, we should only call this on looper events.
+     *
+     * NOTE: Calling this is a prerequisite to calling {@link #notifyChangeListeners(boolean)}.
+     */
     void syncIfNeeded() {
         long newVersion = table.syncIfNeeded();
         viewUpdated = newVersion != currentTableViewVersion;
@@ -896,7 +904,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             // this should handle more complex use cases like retry, ignore etc
             table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
             asyncQueryCompleted = true;
-            notifyChangeListeners(false, true);
+            notifyChangeListeners(true);
         } catch (Exception e) {
             RealmLog.d(e.getMessage());
             return false;
@@ -993,15 +1001,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * Notifies all registered listeners.
+     *
+     * NOTE: Remember to call `syncIfNeeded` before calling this method.
      */
-    void notifyChangeListeners() {
-        notifyChangeListeners(true, false);
-    }
-
-    private void notifyChangeListeners(boolean syncBeforeNotifying, boolean forceNotify) {
-        if (syncBeforeNotifying) {
-            syncIfNeeded();
-        }
+    void notifyChangeListeners(boolean forceNotify) {
         if (!listeners.isEmpty()) {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
