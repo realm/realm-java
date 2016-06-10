@@ -4,6 +4,7 @@
 { ->
     try {
         node('docker') {
+            stage 'SCM'
             if (isPullRequest()) {
                 checkout([
                     $class: 'GitSCM',
@@ -18,60 +19,63 @@
                     refspec: "+refs/heads/master:refs/remotes/origin/master +refs/pull/${GITHUB_PR_NUMBER}/head:refs/remotes/origin/pull/${GITHUB_PR_NUMBER}/head",
                     url: 'https://github.com/realm/realm-java.git'
                     ]]
-                    ])
-                } else {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '*/master']],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions: [[$class: 'CleanCheckout']],
-                        gitTool: 'native git',
-                        submoduleCfg: [],
-                        userRemoteConfigs: [[url: 'https://github.com/realm/realm-java.git']]
-                        ])
-                }
+                ])
+            } else {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    gitTool: 'native git',
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[url: 'https://github.com/realm/realm-java.git']]
+                ])
+            }
 
-                def buildEnv = docker.build 'realm-java:snapshot'
-                buildEnv.inside {
-                 stage 'JVM tests'
-                 try {
+            stage 'Docker build'
+            def buildEnv = docker.build 'realm-java:snapshot'
+            buildEnv.inside('--privileged -v /dev/bus/usb:/dev/bus/usb') {
+                stage 'JVM tests'
+                try {
                     gradle 'assemble check javadoc'
-                    } finally {
-                     storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
-                 }
-                 if (env.BRANCH_NAME == 'master') {
-                     collectAarMetrics()
-                 }
+                } finally {
+                    storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
+                }
+                if (env.BRANCH_NAME == 'master') {
+                 collectAarMetrics()
+                }
                // TODO: add support for running monkey on the example apps
                //stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples'
 
-               dir('examples') {
-                  try {
-                      gradle 'check'
-                      } finally {
-                          storeJunitResults 'unitTestExample/build/test-results/**/TEST-*.xml'
-                      }
-                  }
+                dir('examples') {
+                    try {
+                        gradle 'check'
+                    } finally {
+                        storeJunitResults 'unitTestExample/build/test-results/**/TEST-*.xml'
+                    }
+                }
 
-                  stage 'static code analysis'
-                  try {
+                stage 'static code analysis'
+                try {
                     dir('realm') {
-                     gradle 'findbugs pmd checkstyle'
-                 }
-                 } finally {
+                        gradle 'findbugs pmd checkstyle'
+                    }
+                } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
                 }
 
-                stage 'build instrumented tests'
+                stage 'Run instrumented tests'
                 dir('realm') {
-                 gradle 'assembleDebugAndroidTest'
-                 dir('realm-library/build/outputs/apk') {
-                  stash name: 'test-apk', includes: 'realm-android-library-debug-androidTest-unaligned.apk'
-              }
-          }
-      }
-  }
+                    try {
+                        gradle 'connectedCheck'
+                    } finally {
+                        storeJunitResults 'realm-library/build/test-results/**/TEST-*.xml'
+                    }
+                }
+            }
+        }
+    }
 
 /*
         node('android-hub') {
@@ -109,18 +113,18 @@
             }
         }
         */
-        currentBuild.rawBuild.setResult(Result.SUCCESS)
-        } catch (Exception e) {
-            echo e.getMessage()
-            currentBuild.rawBuild.setResult(Result.FAILURE)
-            } finally {
-                if (isPullRequest()) {
-                    node {
-                        reportResultToGithub()
-                    }
-                }
+currentBuild.rawBuild.setResult(Result.SUCCESS)
+} catch (Exception e) {
+    echo e.getMessage()
+    currentBuild.rawBuild.setResult(Result.FAILURE)
+    } finally {
+        if (isPullRequest()) {
+            node {
+                reportResultToGithub()
             }
         }
+    }
+}
 
         def isPullRequest() {
             return binding.variables.containsKey('GITHUB_PR_NUMBER')
