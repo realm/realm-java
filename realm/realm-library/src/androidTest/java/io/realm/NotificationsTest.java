@@ -949,7 +949,7 @@ public class NotificationsTest {
         final Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange(Realm object) {
+            public void onChange(Realm realm) {
                 switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
                     case 1: {
                         // first commit

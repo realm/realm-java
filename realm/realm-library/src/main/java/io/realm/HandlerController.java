@@ -212,7 +212,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * INVARIANT: Should only be called from {@link #notifyAllListeners(List)}.
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
      */
     private void notifyGlobalListeners() {
         // notify strong reference listener
@@ -319,7 +319,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * INVARIANT: Should only be called from {@link #notifyAllListeners(List)}.
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
      */
     private void notifyRealmObjectCallbacks() {
         List<RealmObjectProxy> objectsToBeNotified = new ArrayList<RealmObjectProxy>();
