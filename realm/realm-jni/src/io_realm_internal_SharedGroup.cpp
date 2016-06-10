@@ -23,10 +23,11 @@
 
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
-
+#include <realm/util/logger.hpp>
 #include "io_realm_internal_SharedGroup.h"
 #include <mutex>
 #include <thread>
+#include <android/log.h>
 
 using namespace std;
 using namespace realm;
@@ -372,6 +373,17 @@ using namespace realm;
 using namespace realm::_impl;
 
 
+class AndroidLogger: public realm::util::Logger
+{
+public:
+    void do_log(std::string msg)
+    {
+        __android_log_print(ANDROID_LOG_INFO, "<SYNC>", "> %s", msg.c_str());
+    }
+};
+
+
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
   (JNIEnv* env, jobject, jstring jpath, jstring jserver_url)
 {
@@ -383,21 +395,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
         JStringAccessor server_url_tmp(env, jserver_url); // throws
         StringData server_url = StringData(server_url_tmp);
 
-        StringData user_token = StringData("user");
+        StringData user_token = StringData("ewoJImlkZW50aXR5IjogIk5hYmlsIiwKCSJhY2Nlc3MiOiBbInVwbG9hZCIsICJkb3dubG9hZCJdLAoJImFwcF9pZCI6ICJpby5yZWFsbS50ZXN0cyIKfQo=:");
 
-        sync::Client::LogLevel log_level = sync::Client::LogLevel::normal;
-        std::unique_ptr<sync::Client> m_sync_client = std::make_unique<sync::Client>(user_token, nullptr, log_level);
-        TR(">>>>>>>>>>>>>>>>>>>>>>>>> m_sync_client")
+        AndroidLogger base_logger;
+        sync::Client::LogLevel log_level = sync::Client::LogLevel::everything;
+        std::unique_ptr<sync::Client> m_sync_client = std::make_unique<sync::Client>(user_token, &base_logger, log_level);
         std::unique_ptr<sync::Session> m_sync_session = std::make_unique<sync::Session>(*m_sync_client, path);
-        TR(">>>>>>>>>>>>>>>>>>>>>>>>> m_sync_session")
 //        m_sync_session->set_sync_transact_callback([this] (sync::Session::version_type) {
 //            if (m_notifier)
  //               m_notifier->notify_others();
 //        });
         m_sync_session->bind(server_url);
-        TR(">>>>>>>>>>>>>>>>>>>>>>>>> server_url")
         std::thread m_sync_thread = std::thread(&sync::Client::run, m_sync_client.get());
-        TR(">>>>>>>>>>>>>>>>>>>>>>>>> m_sync_thread")
 
         return reinterpret_cast<jlong>(m_sync_session.release());
     } CATCH_STD()
