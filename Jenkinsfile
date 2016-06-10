@@ -75,7 +75,6 @@
                 }
             }
         }
-    }
 
 /*
         node('android-hub') {
