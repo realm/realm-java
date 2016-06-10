@@ -5,6 +5,7 @@
 * Fixed a crash when calling Table.toString() in debugger (#2429).
 * Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).
 * Fixed a crash that RealmResults was not updated in Realm's change listener by adjusting the calling orders of listeners on Realm, RealmObject and RealmResults (#2926).
+* Updated ProGuard configuration in order not to depend on Android's default configuraion (#2972).
 
 ### Enhancements
 
