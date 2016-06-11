@@ -308,8 +308,28 @@ abstract class BaseRealm implements Closeable {
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
      * <p>
-     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the Realm in the case of
-     * pending updates from other threads.
+     * Writing to a Realm always happen on the latest version of the data. So before beginning a transaction, this
+     * instance of Realm is updated to the latest version that include changes from all threads. This update does not
+     * trigger any registered {@link RealmChangeListener}.
+     * <p>
+     * For that reason, it is best practise to query for any data that should be modified from inside the
+     * transaction, otherwise there is a risk those data have been deleted when the transaction begins.
+     * <p>
+     * <pre>
+     * {@code
+     * // Don't do this
+     * RealResults<Person> persons = realm.where(Person.class).findAll();
+     * realm.beginTransaction();
+     * persons.first().setName("John");
+     * realm.commitTransaction;
+     *
+     * // But this
+     * realm.beginTransaction();
+     * RealResults<Person> persons = realm.where(Person.class).findAll();
+     * persons.first().setName("John");
+     * realm.commitTransaction;
+     * }
+     * </pre>
      * <p>
      * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
      * thrown.
