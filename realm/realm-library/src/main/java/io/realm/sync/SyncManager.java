@@ -11,7 +11,7 @@ public class SyncManager {
     public static SyncSession apply(SyncConfiguration config) {
 
         SharedGroup realm = new SharedGroup(config);
-        long nativeSessionPointer = realm.startSession(config.getUserToken(), config.getServer());
+        long nativeSessionPointer = realm.startSession(config.getServer());
         SyncSession session = new SyncSessionImpl(config, nativeSessionPointer);
         config.getSyncPolicy().apply(session);
         return session;

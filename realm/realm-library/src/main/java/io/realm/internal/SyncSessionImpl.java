@@ -15,7 +15,7 @@ public class SyncSessionImpl implements SyncSession {
 
     @Override
     public void start() {
-        nativeStartSync(nativeSyncSessionPtr);
+       // nativeStartSync(nativeSyncSessionPtr);
     }
 
     @Override

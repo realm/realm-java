@@ -202,12 +202,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChang
 
 /*
  * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeInitSyncClient
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeInitSyncClient
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
  * Method:    nativeStartSession
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
-  (JNIEnv *, jobject, jstring, jstring);
-
+        (JNIEnv *, jobject, jlong, jstring, jstring);
 
 
 #ifdef __cplusplus

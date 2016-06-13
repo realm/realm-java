@@ -130,8 +130,15 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public long startSession (String userToken, String serverUrl) {
-        return nativeStartSession(path, serverUrl);
+
+    long syncClientPtr = 0;
+
+    public long startSession (String serverUrl) {
+        if (syncClientPtr == 0) {
+            syncClientPtr = nativeInitSyncClient();
+        }
+
+        return nativeStartSession(syncClientPtr, serverUrl, path);
     }
 
     void advanceRead() {
@@ -368,7 +375,8 @@ public class SharedGroup implements Closeable {
                                                              int durability, byte[] key);
     private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
     private native long nativeCreateSyncReplication(String databaseFile);
-    private native long nativeStartSession(String userToken, String serverUrl);
+    private native long nativeInitSyncClient();
+    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
 
     private native long nativeBeginImplicit(long nativePtr);

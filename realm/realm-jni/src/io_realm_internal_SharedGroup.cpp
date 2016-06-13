@@ -27,6 +27,9 @@
 #include "io_realm_internal_SharedGroup.h"
 #include <mutex>
 #include <thread>
+#include <vector>
+#include <chrono>
+#include <functional>
 #include <android/log.h>
 
 using namespace std;
@@ -383,34 +386,52 @@ public:
 };
 
 
+// maintain a reference to the threads to prevent deallocation
+// after Java_io_realm_internal_SharedGroup_nativeStartSession completes.
+// To be released later, maybe on JNI_OnUnload
+std::vector<std::thread*> threads;
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeInitSyncClient
+  (JNIEnv* env, jobject)
+{
+    TR_ENTER()
+    try {
+        // to generate a valid token run this script
+        // https://realmio.slack.com/files/af/F1FSVND47/generate-realm-sync-credentials.sh
+        StringData user_token = StringData("ewoJImlkZW50aXR5IjogIk5hYmlsIiwKCSJhY2Nlc3MiOiBbInVwbG9hZCIsICJkb3dubG9hZCJdLAoJImFwcF9pZCI6ICJpby5yZWFsbS50ZXN0cyIKfQo=:");
+
+        AndroidLogger* base_logger = new AndroidLogger();//FIXME find a way to delete it when we delete the client
+        sync::Client* m_sync_client = new sync::Client(user_token,
+                                                       base_logger, sync::Client::LogLevel::everything);
+        std::thread* m_sync_thread = new std::thread(&sync::Client::run, m_sync_client);
+        threads.push_back(m_sync_thread);//TODO maybe use a Map with sync_client as key & thread as value
+                                         //so we can delete/stop the thread when we delete the client
+
+        return reinterpret_cast<jlong>(m_sync_client);
+
+    } CATCH_STD()
+    return 0;
+}
+
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
-  (JNIEnv* env, jobject, jstring jpath, jstring jserver_url)
+        (JNIEnv* env, jobject, jlong jsync_client_ptr, jstring jserver_url, jstring jpath)
 {
     TR_ENTER()
     try {
         JStringAccessor path_tmp(env, jpath); // throws
         StringData path = StringData(path_tmp);
 
+        sync::Client* m_sync_client = reinterpret_cast<sync::Client*>(jsync_client_ptr);
+
         JStringAccessor server_url_tmp(env, jserver_url); // throws
         StringData server_url = StringData(server_url_tmp);
 
-        StringData user_token = StringData("ewoJImlkZW50aXR5IjogIk5hYmlsIiwKCSJhY2Nlc3MiOiBbInVwbG9hZCIsICJkb3dubG9hZCJdLAoJImFwcF9pZCI6ICJpby5yZWFsbS50ZXN0cyIKfQo=:");
+        sync::Session* m_sync_session = new sync::Session(*m_sync_client, path);
 
-        AndroidLogger base_logger;
-        sync::Client::LogLevel log_level = sync::Client::LogLevel::everything;
-        std::unique_ptr<sync::Client> m_sync_client = std::make_unique<sync::Client>(user_token, &base_logger, log_level);
-        std::unique_ptr<sync::Session> m_sync_session = std::make_unique<sync::Session>(*m_sync_client, path);
-//        m_sync_session->set_sync_transact_callback([this] (sync::Session::version_type) {
-//            if (m_notifier)
- //               m_notifier->notify_others();
-//        });
         m_sync_session->bind(server_url);
-        std::thread m_sync_thread = std::thread(&sync::Client::run, m_sync_client.get());
 
-        jlong val = reinterpret_cast<jlong>(m_sync_session.release());
-        TR(">>>>>>>>>>>>>>>>>>>>>>>>> release")
-        return val;
+        return reinterpret_cast<jlong>(m_sync_session);
 
     } CATCH_STD()
     return 0;
