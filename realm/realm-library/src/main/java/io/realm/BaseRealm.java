@@ -313,7 +313,7 @@ abstract class BaseRealm implements Closeable {
      * trigger any registered {@link RealmChangeListener}.
      * <p>
      * For that reason, it is best practise to query for any data that should be modified from inside the
-     * transaction, otherwise there is a risk those data have been deleted when the transaction begins.
+     * transaction, otherwise there is a risk those data have been deleted or modified when the transaction begins.
      * <p>
      * <pre>
      * {@code
