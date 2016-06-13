@@ -215,7 +215,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * INVARIANT: Should only be called from {@link #notifyAllListeners(List)}.
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
      */
     private void notifyGlobalListeners() {
         // notify strong reference listener
@@ -322,7 +322,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * INVARIANT: Should only be called from {@link #notifyAllListeners(List)}.
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
      */
     private void notifyRealmObjectCallbacks() {
         List<RealmObjectProxy> objectsToBeNotified = new ArrayList<RealmObjectProxy>();
@@ -414,6 +414,7 @@ final class HandlerController implements Handler.Callback {
             // localCommit && !threadContainsAsyncQueries
             // !localCommit && !threadContainsAsyncQueries
             realm.sharedGroupManager.advanceRead();
+
             List<RealmResults<? extends RealmModel>> resultsToBeNotified = new ArrayList<RealmResults<? extends RealmModel>>();
             collectAsyncRealmResultsCallbacks(resultsToBeNotified);
             collectSyncRealmResultsCallbacks(resultsToBeNotified);

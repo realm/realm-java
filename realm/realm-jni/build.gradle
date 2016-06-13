@@ -262,17 +262,9 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
             from tarTree(project.coreArchiveFile)
             into project.coreDir
         }
-        for (target in targets) {
-            exec {
-                commandLine = [
-                        'make',
-                        '-C', "${projectDir}/src",
-                        "BASE_DENOM=${target.name}",
-                        'LIB_SUFFIX_SHARED=.so',
-                        'clean'
-                ]
-            }
-        }
+	exec {
+	    commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
+	}
     }
 }
 
