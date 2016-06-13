@@ -308,8 +308,8 @@ abstract class BaseRealm implements Closeable {
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
      * <p>
-     * Writing to a Realm always happen on the latest version of the data. So before beginning a transaction, this
-     * instance of Realm is updated to the latest version that include changes from all threads. This update does not
+     * Writing to a Realm always happens on the latest version of the data. So before beginning a transaction, this
+     * instance of Realm is updated to the latest version that includes changes from all threads. This update does not
      * trigger any registered {@link RealmChangeListener}.
      * <p>
      * For that reason, it is best practise to query for any data that should be modified from inside the
@@ -323,7 +323,7 @@ abstract class BaseRealm implements Closeable {
      * persons.first().setName("John");
      * realm.commitTransaction;
      *
-     * // But this
+     * // Do this instead
      * realm.beginTransaction();
      * RealResults<Person> persons = realm.where(Person.class).findAll();
      * persons.first().setName("John");
