@@ -473,12 +473,12 @@ public final class RealmConfiguration {
          * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
          * with the new Realm schema.
          *
-         * <p>This cannot be configured to use an asset file at the same time by calling
-         * {@link #assetFile(Context, String)} as the provided asset file will be cleared in migrations.
+         * <p>This cannot be configured to have an asset file at the same time by calling
+         * {@link #assetFile(Context, String)} as the provided asset file will be deleted in migrations.
          *
          * <b>WARNING!</b> This will result in loss of data.
          *
-         * @throws IllegalStateException if configured to use an asset file by calling assetFile() previously.
+         * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(Context, String)} previously.
          */
         public Builder deleteRealmIfMigrationNeeded() {
             if (this.assetFilePath != null || this.assetFilePath.length() != 0) {
@@ -563,14 +563,14 @@ public final class RealmConfiguration {
          * the Realm file will be copied from the provided asset file and used instead.
          *
          * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
-         * as doing so will delete the copied asset schema.
+         * at the same time as doing so will delete the copied asset schema.
          *
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param context Android application context.
          * @param assetFile path to the asset database file.
-         * @throws IllegalStateException if this is configured to clear its schema by calling deleteRealmIfMigrationNeeded().
+         * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(Context context, final String assetFile) {
             if (context == null) {
