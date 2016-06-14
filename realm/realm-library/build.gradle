@@ -51,7 +51,9 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         cmake {
             arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
-            abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+            // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might drop it or
+            // use the new NDK clang to compile it.
+            abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
         }
     }
 
