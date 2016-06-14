@@ -6,6 +6,7 @@
 * Fixed a race condition which would cause some `RealmResults` to not be properly updated inside a `RealmChangeListener`. This could result in crashes when accessing items from those results (#2926/#2951).
 * Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).lts (#2926).
 * Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
+* Fixed a bug that allows both `RealmConfiguration.Builder.assetFile()`/`deleteRealmIfMigrationNeeded()` to be called at the same time which leads to delete the provided asset file in migrations (#2933).
 
 ### Enhancements
 

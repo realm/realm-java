@@ -342,6 +342,26 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void deleteRealmIfMigrationNeeded_failsWhenAssetFileProvided() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .assetFile(context, "asset_file.realm")
+                    .deleteRealmIfMigrationNeeded();
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot clear its schema when previously configured to use an asset file.",
+                    expected.getMessage());
+        }
+    }
+
+    @Test
     public void upgradeVersionWithNoMigration() {
         realm = Realm.getInstance(defaultConfig);
         assertEquals(0, realm.getVersion());
@@ -854,6 +874,26 @@ public class RealmConfigurationTests {
 
         Realm.deleteRealm(configuration);
         assertFalse(realmFile.exists());
+    }
+
+    @Test
+    public void assetFile_failsWhenDeleteRealmIfMigrationNeededCalled() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .deleteRealmIfMigrationNeeded()
+                    .assetFile(context, "asset_file.realm");
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().",
+                    expected.getMessage());
+        }
     }
 
     private static class MigrationWithNoEquals implements RealmMigration {
