@@ -55,7 +55,7 @@
                     }
                 }
 
-                stage 'static code analysis'
+                stage 'Static code analysis'
                 try {
                     dir('realm') {
                         gradle 'findbugs pmd checkstyle'
