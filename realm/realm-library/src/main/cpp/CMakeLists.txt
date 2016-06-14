@@ -51,7 +51,10 @@ add_library(lib_realm_core STATIC IMPORTED)
 set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH})
 
 # build application's shared lib
-include_directories(${REALM_CORE_DIST_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/jni_include)
+include_directories(${REALM_CORE_DIST_DIR}/include
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/jni_include
+    ${CMAKE_SOURCE_DIR}/object-store/src)
 
 # Set compile flags
 # TODO: Is this correct?
@@ -80,7 +83,10 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS
 file(GLOB jni_SRC
     "*.cpp"
 )
-add_library(realm-jni SHARED ${jni_SRC})
+file(GLOB objectstore_SRC
+    "object-store/src/*.cpp"
+)
+add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC})
 add_dependencies(realm-jni jni_headers)
 target_link_libraries(realm-jni log android lib_realm_core)
 
