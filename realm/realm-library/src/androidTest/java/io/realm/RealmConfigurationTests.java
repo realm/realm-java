@@ -345,9 +345,6 @@ public class RealmConfigurationTests {
     public void deleteRealmIfMigrationNeeded_failsWhenAssetFileProvided() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
 
-        // Ensure that there is no data
-        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
-
         // have a builder instance to isolate codepath
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
         try {
@@ -877,11 +874,8 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void assetFile_failsWhenDeleteRealmIfMigrationNeededCalled() {
+    public void assetFile_failsWhenDeleteRealmIfMigrationNeededConfigured() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
-
-        // Ensure that there is no data
-        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         // have a builder instance to isolate codepath
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
