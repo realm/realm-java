@@ -47,31 +47,25 @@
                // TODO: add support for running monkey on the example apps
                //stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples'
 
-                dir('examples') {
-                    try {
-                        gradle 'check'
-                    } finally {
-                        storeJunitResults 'unitTestExample/build/test-results/**/TEST-*.xml'
-                    }
+                try {
+                    sh 'cd examples && ./gradlew check --stacktrace'
+                } finally {
+                    storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
                 }
 
                 stage 'Static code analysis'
                 try {
-                    dir('realm') {
-                        gradle 'findbugs pmd checkstyle'
-                    }
+                    sh 'cd realm && ./gradlew gradle findbugs pmd checkstyle --stacktrace'
                 } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
                 }
 
                 stage 'Run instrumented tests'
-                dir('realm') {
-                    try {
-                        gradle 'connectedCheck'
-                    } finally {
-                        storeJunitResults 'realm-library/build/test-results/**/TEST-*.xml'
-                    }
+                try {
+                    sh 'cd realm && ./gradlew connectedCheck --stacktrace'
+                } finally {
+                    storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
                 }
             }
         }
