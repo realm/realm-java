@@ -481,8 +481,8 @@ public final class RealmConfiguration {
          * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(Context, String)} previously.
          */
         public Builder deleteRealmIfMigrationNeeded() {
-            if (this.assetFilePath != null || this.assetFilePath.length() != 0) {
-                throw new IllegalStateException("Realm cannot clear its schema when previously configured to use an asset file.");
+            if (this.assetFilePath != null && this.assetFilePath.length() != 0) {
+                throw new IllegalStateException("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().");
             }
 
             this.deleteRealmIfMigrationNeeded = true;

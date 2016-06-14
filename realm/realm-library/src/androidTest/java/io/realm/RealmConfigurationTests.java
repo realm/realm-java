@@ -353,7 +353,7 @@ public class RealmConfigurationTests {
                     .deleteRealmIfMigrationNeeded();
             fail();
         } catch (IllegalStateException expected) {
-            assertEquals("Realm cannot clear its schema when previously configured to use an asset file.",
+            assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
                     expected.getMessage());
         }
     }
