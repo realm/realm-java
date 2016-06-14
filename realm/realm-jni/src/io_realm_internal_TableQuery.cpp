@@ -1067,7 +1067,7 @@ std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong query
 
 // queryPtr would be owned and released by this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover(
-    JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong fromTableRow)
+    JNIEnv* env, jclass, jlong bgSharedGroupPtr, jlong queryPtr, jlong fromTableRow)
 {
     TR_ENTER()
     try {
@@ -1119,7 +1119,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
 
 // queryPtr would be owned and released by this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit)
+  (JNIEnv* env, jclass, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit)
   {
       TR_ENTER()
       try {
@@ -1136,7 +1136,7 @@ enum query_type {QUERY_TYPE_FIND_ALL = 0, QUERY_TYPE_DISTINCT = 4, QUERY_TYPE_FI
 
 // batch update of async queries
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
-        (JNIEnv *env, jobject, jlong bgSharedGroupPtr,
+        (JNIEnv *env, jclass, jlong bgSharedGroupPtr,
          jlongArray  handover_queries_array /*list of handover queries*/,
          jobjectArray  query_param_matrix /*type & params of the query to be updated*/,
          jobjectArray  multi_sorted_indices_matrix,
@@ -1256,7 +1256,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
-        (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong columnIndex)
+        (JNIEnv *env, jclass, jlong bgSharedGroupPtr, jlong queryPtr, jlong columnIndex)
 {
     TR_ENTER()
     try {
@@ -1267,7 +1267,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewW
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
+  (JNIEnv *env, jclass, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
   {
       TR_ENTER()
       try {
@@ -1278,7 +1278,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
   }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
+  (JNIEnv *env, jclass, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
   {
       TR_ENTER()
       try {
@@ -1697,7 +1697,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
   }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup
-  (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
+  (JNIEnv *env, jclass, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
       TR_ENTER_PTR(handoverPtr)
       SharedGroup::Handover<Row> *handoverRowPtr = HO(Row, handoverPtr);
@@ -1732,7 +1732,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
-  (JNIEnv *, jobject, jlong nativeHandoverQuery)
+  (JNIEnv *, jclass, jlong nativeHandoverQuery)
   {
     TR_ENTER_PTR(nativeHandoverQuery)
     delete HO(Query, nativeHandoverQuery);
