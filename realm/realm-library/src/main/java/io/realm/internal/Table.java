@@ -1577,7 +1577,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public static native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
     public static native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
     public static native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
-    public static  native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     private native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);

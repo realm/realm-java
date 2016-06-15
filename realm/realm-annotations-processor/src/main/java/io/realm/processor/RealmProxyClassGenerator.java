@@ -942,14 +942,11 @@ public class RealmProxyClassGenerator {
                 "Realm", "realm", className, "object", "Map<RealmModel,Long>", "cache" // Argument type & argument name
         );
 
-        if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("throw new UnsupportedOperationException(\"No Primary Key available, call insert instead\")");
-        } else {
-
-            writer.emitStatement("Table table = realm.getTable(%s.class)", className);
-            writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
-            writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)"
-                    , columnInfoClassName(), columnInfoClassName(), className);
+        writer.emitStatement("Table table = realm.getTable(%s.class)", className);
+        writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
+        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)"
+                , columnInfoClassName(), columnInfoClassName(), className);
+        if (metadata.hasPrimaryKey()) {
             writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
 
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
@@ -990,68 +987,70 @@ public class RealmProxyClassGenerator {
             writer
                     .beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)")
                     .emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
-                    if (Utils.isString(metadata.getPrimaryKey())) {
-                        writer.beginControlFlow("if (primaryKeyValue != null)");
-                        writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue)");
-                        writer.endControlFlow();
-                    } else {
-                        writer.beginControlFlow("if (primaryKeyValue != null)");
-                        writer.emitStatement("Table.nativeSetLong(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
-                        writer.endControlFlow();
-                    }
-
-            writer.endControlFlow();
-
-            writer.emitStatement("cache.put(object, rowIndex)");
-
-            for (VariableElement field : metadata.getFields()) {
-                String fieldName = field.getSimpleName().toString();
-                String fieldType = field.asType().toString();
-                String getter = metadata.getGetter(fieldName);
-
-                if (Utils.isRealmModel(field)) {
-                    writer
-                            .emitEmptyLine()
-                            .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
-                            .beginControlFlow("if (%sObj != null)", fieldName)
-                                .emitStatement("Long cache%s = cache.get(%sObj)", fieldName, fieldName)
-                                .beginControlFlow("if (cache%s == null)", fieldName)
-                                    .emitStatement("cache%s = %s.insertOrUpdate(realm, %sObj, cache)",
-                                            fieldName,
-                                            Utils.getProxyClassSimpleName(field),
-                                            fieldName)
-                                .endControlFlow()
-                                .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%sIndex, rowIndex, cache%s)", fieldName, fieldName)
-                            .nextControlFlow("else")
-                                    // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                            .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                            .endControlFlow();
-                } else if (Utils.isRealmList(field)) {
-                    writer
-                            .emitEmptyLine()
-                            .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
-                                    Utils.getGenericType(field), fieldName, interfaceName, getter)
-                            .beginControlFlow("if (%sList != null)", fieldName)
-                            .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                            .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
-                            .beginControlFlow("for (%s %sItem : %sList)", Utils.getGenericType(field), fieldName, fieldName)
-                            .emitStatement("Long cacheItemIndex%s = cache.get(%sItem)", fieldName, fieldName)
-                            .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                            .emitStatement("cacheItemIndex%s = %s.insertOrUpdate(realm, %sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                            .endControlFlow()
-                            .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
-                            .endControlFlow()
-                            .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
-                            .endControlFlow()
-                            .emitEmptyLine();
-
-                } else {
-                    setTableValues(writer, fieldType, fieldName, interfaceName, getter, true);
-                }
+            if (Utils.isString(metadata.getPrimaryKey())) {
+                writer.beginControlFlow("if (primaryKeyValue != null)");
+                writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue)");
+                writer.endControlFlow();
+            } else {
+                writer.beginControlFlow("if (primaryKeyValue != null)");
+                writer.emitStatement("Table.nativeSetLong(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
+                writer.endControlFlow();
             }
 
-            writer.emitStatement("return rowIndex");
+            writer.endControlFlow();
+            writer.emitStatement("cache.put(object, rowIndex)");
+        } else {
+            writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            writer.emitStatement("cache.put(object, rowIndex)");
         }
+
+        for (VariableElement field : metadata.getFields()) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldType = field.asType().toString();
+            String getter = metadata.getGetter(fieldName);
+
+            if (Utils.isRealmModel(field)) {
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sObj != null)", fieldName)
+                            .emitStatement("Long cache%s = cache.get(%sObj)", fieldName, fieldName)
+                            .beginControlFlow("if (cache%s == null)", fieldName)
+                                .emitStatement("cache%s = %s.insertOrUpdate(realm, %sObj, cache)",
+                                        fieldName,
+                                        Utils.getProxyClassSimpleName(field),
+                                        fieldName)
+                            .endControlFlow()
+                            .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%sIndex, rowIndex, cache%s)", fieldName, fieldName)
+                        .nextControlFlow("else")
+                                // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
+                        .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                        .endControlFlow();
+            } else if (Utils.isRealmList(field)) {
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
+                                Utils.getGenericType(field), fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sList != null)", fieldName)
+                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
+                        .beginControlFlow("for (%s %sItem : %sList)", Utils.getGenericType(field), fieldName, fieldName)
+                        .emitStatement("Long cacheItemIndex%s = cache.get(%sItem)", fieldName, fieldName)
+                        .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                        .emitStatement("cacheItemIndex%s = %s.insertOrUpdate(realm, %sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                        .endControlFlow()
+                        .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
+                        .endControlFlow()
+                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
+                        .endControlFlow()
+                        .emitEmptyLine();
+
+            } else {
+                setTableValues(writer, fieldType, fieldName, interfaceName, getter, true);
+            }
+        }
+
+        writer.emitStatement("return rowIndex");
 
         writer.endMethod();
         writer.emitEmptyLine();
@@ -1064,21 +1063,20 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", "Iterator<? extends RealmModel>", "objects", "Map<RealmModel,Long>", "cache" // Argument type & argument name
         );
-
-        if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("throw new UnsupportedOperationException(\"No Primary Key available, call insert instead\")");
-        } else {
-
-            writer.emitStatement("Table table = realm.getTable(%s.class)", className);
-            writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
-            writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)"
-                    , columnInfoClassName(), columnInfoClassName(), className);
+        boolean hasPrimaryKey = metadata.hasPrimaryKey();
+        writer.emitStatement("Table table = realm.getTable(%s.class)", className);
+        writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
+        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)"
+                , columnInfoClassName(), columnInfoClassName(), className);
+        if (hasPrimaryKey) {
             writer.emitStatement("long pkColumnIndex = table.getPrimaryKey()");
-            writer.emitStatement("%s object = null", className);
+        }
+        writer.emitStatement("%s object = null", className);
 
-            writer.beginControlFlow("while(objects.hasNext())");
-            writer.emitStatement("object = (%s) objects.next()", className);
+        writer.beginControlFlow("while(objects.hasNext())");
+        writer.emitStatement("object = (%s) objects.next()", className);
 
+        if (hasPrimaryKey) {
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             VariableElement primaryKeyElement = metadata.getPrimaryKey();
             if (metadata.isNullable(primaryKeyElement)) {
@@ -1129,54 +1127,59 @@ public class RealmProxyClassGenerator {
 
             writer.emitStatement("cache.put(object, rowIndex)");
 
-            for (VariableElement field : metadata.getFields()) {
-                String fieldName = field.getSimpleName().toString();
-                String fieldType = field.asType().toString();
-                String getter = metadata.getGetter(fieldName);
-
-                if (Utils.isRealmModel(field)) {
-                    writer
-                            .emitEmptyLine()
-                            .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
-                            .beginControlFlow("if (%sObj != null)", fieldName)
-                            .emitStatement("Long cache%s = cache.get(%sObj)", fieldName, fieldName)
-                            .beginControlFlow("if (cache%s == null)", fieldName)
-                            .emitStatement("cache%s = %s.insertOrUpdate(realm, %sObj, cache)",
-                                    fieldName,
-                                    Utils.getProxyClassSimpleName(field),
-                                    fieldName)
-                            .endControlFlow()
-                            .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%sIndex, rowIndex, cache%s)", fieldName, fieldName)
-                            .nextControlFlow("else")
-                                    // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                            .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                            .endControlFlow();
-                } else if (Utils.isRealmList(field)) {
-                    writer
-                            .emitEmptyLine()
-                            .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
-                                    Utils.getGenericType(field), fieldName, interfaceName, getter)
-                            .beginControlFlow("if (%sList != null)", fieldName)
-                            .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                            .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
-                            .beginControlFlow("for (%s %sItem : %sList)", Utils.getGenericType(field), fieldName, fieldName)
-                            .emitStatement("Long cacheItemIndex%s = cache.get(%sItem)", fieldName, fieldName)
-                            .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                            .emitStatement("cacheItemIndex%s = %s.insertOrUpdate(realm, %sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                            .endControlFlow()
-                            .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
-                            .endControlFlow()
-                            .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
-                            .endControlFlow()
-                            .emitEmptyLine();
-
-                } else {
-                    setTableValues(writer, fieldType, fieldName, interfaceName, getter, true);
-                }
-            }
-
-            writer.endControlFlow();
+        } else {
+            writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            writer.emitStatement("cache.put(object, rowIndex)");
         }
+
+        for (VariableElement field : metadata.getFields()) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldType = field.asType().toString();
+            String getter = metadata.getGetter(fieldName);
+
+            if (Utils.isRealmModel(field)) {
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sObj != null)", fieldName)
+                        .emitStatement("Long cache%s = cache.get(%sObj)", fieldName, fieldName)
+                        .beginControlFlow("if (cache%s == null)", fieldName)
+                        .emitStatement("cache%s = %s.insertOrUpdate(realm, %sObj, cache)",
+                                fieldName,
+                                Utils.getProxyClassSimpleName(field),
+                                fieldName)
+                        .endControlFlow()
+                        .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%sIndex, rowIndex, cache%s)", fieldName, fieldName)
+                        .nextControlFlow("else")
+                                // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
+                        .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                        .endControlFlow();
+            } else if (Utils.isRealmList(field)) {
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
+                                Utils.getGenericType(field), fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sList != null)", fieldName)
+                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
+                        .beginControlFlow("for (%s %sItem : %sList)", Utils.getGenericType(field), fieldName, fieldName)
+                        .emitStatement("Long cacheItemIndex%s = cache.get(%sItem)", fieldName, fieldName)
+                        .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                        .emitStatement("cacheItemIndex%s = %s.insertOrUpdate(realm, %sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                        .endControlFlow()
+                        .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
+                        .endControlFlow()
+                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
+                        .endControlFlow()
+                        .emitEmptyLine();
+
+            } else {
+                setTableValues(writer, fieldType, fieldName, interfaceName, getter, true);
+            }
+        }
+
+        writer.endControlFlow();
+
 
         writer.endMethod();
         writer.emitEmptyLine();

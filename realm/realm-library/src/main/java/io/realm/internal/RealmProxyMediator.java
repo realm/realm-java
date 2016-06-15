@@ -105,13 +105,13 @@ public abstract class RealmProxyMediator {
      */
     public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
 
-    public abstract void insertToRealm(Realm realm, RealmModel object);
+    public abstract void insertToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
-    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object);
+    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
-    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, int size);
+    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, Map<RealmModel, Long> cache);
 
-    public abstract void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, int size);
+    public abstract void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, Map<RealmModel, Long> cache);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.

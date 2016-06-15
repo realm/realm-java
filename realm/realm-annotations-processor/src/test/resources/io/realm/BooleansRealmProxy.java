@@ -318,11 +318,32 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static long insertOrUpdate(Realm realm, Booleans object, Map<RealmModel,Long> cache) {
-        throw new UnsupportedOperationException("No Primary Key available, call insert instead");
+        Table table = realm.getTable(Booleans.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(Booleans.class);
+        long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+        cache.put(object, rowIndex);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted());
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean());
+        return rowIndex;
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
-        throw new UnsupportedOperationException("No Primary Key available, call insert instead");
+        Table table = realm.getTable(Booleans.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(Booleans.class);
+        Booleans object = null;
+        while(objects.hasNext()) {
+            object = (Booleans) objects.next();
+            long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+            cache.put(object, rowIndex);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted());
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean());
+        }
     }
 
     public static Booleans createDetachedCopy(Booleans realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {

@@ -796,14 +796,15 @@ public final class Realm extends BaseRealm {
     public void insertToRealm(Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
+        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
         if (iterator.hasNext()) {
             // access the first element to figure out the type
             object = iterator.next();
-            configuration.getSchemaMediator().insertToRealm(this, object);
+            configuration.getSchemaMediator().insertToRealm(this, object, cache);
         }
 
         if (iterator.hasNext()) {
-            configuration.getSchemaMediator().insertToRealm(this, object, iterator, objects.size() - 1);
+            configuration.getSchemaMediator().insertToRealm(this, object, iterator, cache);
         }
     }
 
@@ -817,7 +818,8 @@ public final class Realm extends BaseRealm {
      * @param object RealmObjects to insert.
      */
     public void insertToRealm(RealmModel object) {
-        configuration.getSchemaMediator().insertToRealm(this, object);
+        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        configuration.getSchemaMediator().insertToRealm(this, object, cache);
     }
 
     /**
@@ -832,14 +834,15 @@ public final class Realm extends BaseRealm {
     public void insertOrUpdateToRealm(Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
+        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
         if (iterator.hasNext()) {
             // access the first element to figure out the type
             object = iterator.next();
-            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object);
+            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, cache);
         }
 
         if (iterator.hasNext()) {
-            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, iterator, objects.size() - 1);
+            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, iterator, cache);
         }
     }
 
@@ -853,7 +856,8 @@ public final class Realm extends BaseRealm {
      * @param object RealmObjects to insert.
      */
     public void insertOrUpdateToRealm(RealmModel object) {
-        configuration.getSchemaMediator().insertOrUpdateToRealm(this, object);
+        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, cache);
     }
 
     /**
@@ -931,7 +935,7 @@ public final class Realm extends BaseRealm {
         }
 
         ArrayList<E> unmanagedObjects = new ArrayList<E>();
-        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new IdentityHashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
+        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
             unmanagedObjects.add(createDetachedCopy(object, maxDepth, listCache));
@@ -985,7 +989,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> E copyFromRealm(E realmObject, int maxDepth) {
         checkMaxDepth(maxDepth);
         checkValidObjectForDetach(realmObject);
-        return createDetachedCopy(realmObject, maxDepth, new IdentityHashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
+        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
     }
 
     /**
@@ -1234,7 +1238,7 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     private <E extends RealmModel> E copyOrUpdate(E object, boolean update) {
         checkIfValid();
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new IdentityHashMap<RealmModel, RealmObjectProxy>());
+        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmModel, RealmObjectProxy>());
     }
 
     private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
