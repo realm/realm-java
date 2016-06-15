@@ -8,7 +8,6 @@
 * Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
 * Fixed a race condition between Realms notifications and other UI events. This could e.g. cause ListView to crash.
 
-
 ### Enhancements
 
 * Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
