@@ -1179,7 +1179,6 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
     public void realmListener_localChangeShouldBeSendAtFrontOfTheQueue() {
-        final AtomicInteger changeCounter = new AtomicInteger(0);
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(1, results.size());

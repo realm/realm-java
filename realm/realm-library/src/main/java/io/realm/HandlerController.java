@@ -399,6 +399,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void realmChanged(boolean localCommit) {
+        RealmLog.d((localCommit ? "LOCAL_COMMIT" : "REALM_CHANGED") + " : realm:" + HandlerController.this);
         deleteWeakReferences();
         boolean threadContainsAsyncQueries = threadContainsAsyncQueries();
 
