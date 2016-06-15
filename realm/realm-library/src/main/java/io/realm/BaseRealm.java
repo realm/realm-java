@@ -380,6 +380,7 @@ abstract class BaseRealm implements Closeable {
                     Message msg = Message.obtain();
                     msg.what = HandlerController.LOCAL_COMMIT;
                     if (!handler.hasMessages(HandlerController.LOCAL_COMMIT)) {
+                        handler.removeMessages(HandlerController.REALM_CHANGED);
                         messageHandled = handler.sendMessageAtFrontOfQueue(msg);
                     }
                 } else {

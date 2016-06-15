@@ -939,10 +939,10 @@ public class NotificationsTest {
         TestHelper.exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
-    // The presence of async RealmResults block any `REALM_CHANGE` notification . We make sure in this test that all
+    // The presence of async RealmResults blocks any `REALM_CHANGE` notification . We make sure in this test that all
     // Realm listeners will be notified regardless of the presence of an async RealmObject. RealmObjects are special
-    // in the sense that once you got an row accessor to that object, it is automatically up to date as soon as you
-    // advance_read.
+    // in the sense that once you got a row accessor to that object, it is automatically up to date as soon as you
+    // call advance_read().
     @Test
     @RunTestInLooperThread
     public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
@@ -1172,7 +1172,7 @@ public class NotificationsTest {
     // Step 1: Populate the db
     // Step 2: Post a runnable to caller thread.
     //         Event Queue: |Posted Runnable| <- TOP
-    // Step 3: Delete object which will make the results contain a invalid object at this moment
+    // Step 3: Delete object which will make the results contain an invalid object at this moment
     //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
     //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
     // Step 4: Posted runnable called.
