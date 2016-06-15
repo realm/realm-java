@@ -51,6 +51,8 @@ final class HandlerController implements Handler.Callback {
     static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
     static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
     static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    static final int LOCAL_COMMIT = 165580141;
+
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
     // Keep a strong reference to the registered RealmChangeListener
@@ -112,8 +114,9 @@ final class HandlerController implements Handler.Callback {
             QueryUpdateTask.Result result;
             switch (message.what) {
 
+                case LOCAL_COMMIT:
                 case REALM_CHANGED:
-                    realmChanged();
+                    realmChanged(message.what == LOCAL_COMMIT);
                     break;
 
                 case COMPLETED_ASYNC_REALM_RESULTS:
@@ -312,8 +315,12 @@ final class HandlerController implements Handler.Callback {
                 // Sync the RealmResult so it is completely up to date.
                 // This is a prerequisite to calling the listener, so when the listener is finally triggered, all
                 // RealmResults will be up to date.
-                realmResults.syncIfNeeded();
-                resultsToBeNotified.add(realmResults);
+                // Local commits can accidentially cause async RealmResults to be notified, so we only want to
+                // include those that are actually done loading.
+                if (realmResults.isLoaded()) {
+                    realmResults.syncIfNeeded();
+                    resultsToBeNotified.add(realmResults);
+                }
             }
         }
     }
@@ -391,12 +398,27 @@ final class HandlerController implements Handler.Callback {
         }
     }
 
-    private void realmChanged() {
+    private void realmChanged(boolean localCommit) {
+        RealmLog.d((localCommit ? "LOCAL_COMMIT" : "REALM_CHANGED") + " : realm:" + HandlerController.this);
         deleteWeakReferences();
-        if (threadContainsAsyncQueries()) {
+        boolean threadContainsAsyncQueries = threadContainsAsyncQueries();
+
+        // Mixing local transactions and async queries has unavoidable race conditions
+        if (localCommit && threadContainsAsyncQueries) {
+            RealmLog.w("Mixing asynchronous queries with local writes should be avoided. " +
+                    "Realm will convert any async queries to synchronous in order to remain consistent. Use " +
+                    "asynchronous writes instead. You can read more here: " +
+                    "https://realm.io/docs/java/latest/#asynchronous-transactions");
+        }
+
+        if (!localCommit && threadContainsAsyncQueries) {
+            // For changes from other threads, swallow the change and re-run async queries first.
             updateAsyncQueries();
         } else {
-            RealmLog.d("REALM_CHANGED realm:" + HandlerController.this + " no async queries, advance_read");
+            // Following cases handled by this:
+            // localCommit && threadContainsAsyncQueries (this is the case the warning above is about)
+            // localCommit && !threadContainsAsyncQueries
+            // !localCommit && !threadContainsAsyncQueries
             realm.sharedGroupManager.advanceRead();
 
             List<RealmResults<? extends RealmModel>> resultsToBeNotified = new ArrayList<RealmResults<? extends RealmModel>>();
