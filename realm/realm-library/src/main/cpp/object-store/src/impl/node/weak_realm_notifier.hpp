@@ -16,19 +16,32 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef REALM_WEAK_REALM_NOTIFIER_HPP
-#define REALM_WEAK_REALM_NOTIFIER_HPP
+#include "impl/weak_realm_notifier_base.hpp"
 
-#include <realm/util/features.h>
+typedef struct uv_async_s uv_async_t;
 
-#if REALM_PLATFORM_NODE
-#include "impl/node/weak_realm_notifier.hpp"
-#elif REALM_PLATFORM_APPLE
-#include "impl/apple/weak_realm_notifier.hpp"
-#elif REALM_ANDROID
-#include "impl/android/weak_realm_notifier.hpp"
-#else
-#include "impl/generic/weak_realm_notifier.hpp"
-#endif
+namespace realm {
+class Realm;
 
-#endif // REALM_WEAK_REALM_NOTIFIER_HPP
+namespace _impl {
+
+class WeakRealmNotifier : public WeakRealmNotifierBase {
+public:
+    WeakRealmNotifier(const std::shared_ptr<Realm>& realm, bool cache);
+    ~WeakRealmNotifier();
+
+    WeakRealmNotifier(WeakRealmNotifier&&);
+    WeakRealmNotifier& operator=(WeakRealmNotifier&&);
+
+    WeakRealmNotifier(const WeakRealmNotifier&) = delete;
+    WeakRealmNotifier& operator=(const WeakRealmNotifier&) = delete;
+
+    // Asynchronously call notify() on the Realm on the main thread.
+    void notify();
+
+private:
+    uv_async_t* m_handle;
+};
+
+} // namespace _impl
+} // namespace realm

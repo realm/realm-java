@@ -21,9 +21,10 @@
 #include "impl/list_notifier.hpp"
 #include "impl/realm_coordinator.hpp"
 #include "results.hpp"
+#include "shared_realm.hpp"
 #include "util/format.hpp"
 
-#include <stdexcept>
+#include <realm/link_view.hpp>
 
 using namespace realm;
 using namespace realm::_impl;
@@ -49,11 +50,17 @@ Query List::get_query() const
     return m_link_view->get_target_table().where(m_link_view);
 }
 
+size_t List::get_origin_row_index() const
+{
+    verify_attached();
+    return m_link_view->get_origin_row_index();
+}
+
 void List::verify_valid_row(size_t row_ndx, bool insertion) const
 {
     size_t size = m_link_view->size();
     if (row_ndx > size || (!insertion && row_ndx == size)) {
-        throw std::out_of_range(util::format("Index %1 is outside of range 0...%2.", row_ndx, size));
+        throw OutOfBoundsIndexException{row_ndx, size + insertion};
     }
 }
 
@@ -66,7 +73,7 @@ bool List::is_valid() const
 void List::verify_attached() const
 {
     if (!is_valid()) {
-        throw std::runtime_error("LinkView is not attached");
+        throw InvalidatedException{};
     }
 }
 
@@ -89,6 +96,11 @@ RowExpr List::get(size_t row_ndx) const
     verify_attached();
     verify_valid_row(row_ndx);
     return m_link_view->get(row_ndx);
+}
+
+size_t List::get_unchecked(size_t row_ndx) const noexcept
+{
+    return m_link_view->get(row_ndx).get_index();
 }
 
 size_t List::find(ConstRow const& row) const
@@ -191,3 +203,7 @@ NotificationToken List::add_notification_callback(CollectionChangeCallback cb)
     }
     return {m_notifier, m_notifier->add_callback(std::move(cb))};
 }
+
+List::OutOfBoundsIndexException::OutOfBoundsIndexException(size_t r, size_t c)
+: std::out_of_range(util::format("Requested index %1 greater than max %2", r, c))
+, requested(r), valid_count(c) {}

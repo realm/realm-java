@@ -114,7 +114,7 @@ TEST_CASE("Transaction log parsing") {
         config.schema = std::make_unique<Schema>(Schema{
             {"table", "", {
                 {"unindexed", PropertyType::Int},
-                {"indexed", PropertyType::Int, "", false, true}
+                {"indexed", PropertyType::Int, "", "", false, true}
             }},
         });
         auto r = Realm::get_shared_realm(config);
@@ -807,7 +807,7 @@ TEST_CASE("DeepChangeChecker") {
     config.schema = std::make_unique<Schema>(Schema{
         {"table", "", {
             {"int", PropertyType::Int},
-            {"link", PropertyType::Object, "table", false, false, true},
+            {"link", PropertyType::Object, "table", "", false, false, true},
             {"array", PropertyType::Array, "table"}
         }},
     });

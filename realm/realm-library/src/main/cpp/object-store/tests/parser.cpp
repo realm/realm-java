@@ -10,6 +10,7 @@ static std::vector<std::string> valid_queries = {
     "falsepredicate",
     " TRUEPREDICATE ",
     " FALSEPREDICATE ",
+    "truepredicates = falsepredicates", // keypaths
 
     // characters/strings
     "\"\" = ''",
@@ -25,6 +26,9 @@ static std::vector<std::string> valid_queries = {
     "10. = -.034",
     "10.0 = 5.034",
     "true = false",
+    "truelove = false",
+    "true = falsey",
+    "nullified = null",
     "_ = a",
     "_a = _.aZ",
     "a09._br.z = __-__.Z-9",
@@ -34,10 +38,13 @@ static std::vector<std::string> valid_queries = {
     // operators
     "0=0",
     "0 = 0",
+    "0 =[c] 0",
     "0!=0",
     "0 != 0",
     "0==0",
     "0 == 0",
+    "0==[c]0",
+    "0 == [c] 0",
     "0>0",
     "0 > 0",
     "0>=0",
@@ -47,6 +54,9 @@ static std::vector<std::string> valid_queries = {
     "0<=0",
     "0 <= 0",
     "0 contains 0",
+    "a CONTAINS[c] b",
+    "a contains [c] b",
+    "'a'CONTAINS[c]b",
     "0 BeGiNsWiTh 0",
     "0 ENDSWITH 0",
     "contains contains 'contains'",
@@ -66,6 +76,9 @@ static std::vector<std::string> valid_queries = {
     "!(0=0)",
     "! (0=0)",
     "NOT0=0",   // keypath NOT0
+    "NOT0.a=0", // keypath NOT0
+    "NOT0a.b=0", // keypath NOT0a
+    "not-1=1",
     "not 0=0",
     "NOT(0=0)",
     "not (0=0)",
@@ -100,7 +113,6 @@ static std::vector<std::string> invalid_queries = {
     "1.0. = 1",
     "1-0 = 1",
     "0x = 1",
-    "truey = false",
     "- = a",
     "a..b = a",
     "a$a = a",
@@ -113,6 +125,7 @@ static std::vector<std::string> invalid_queries = {
     "0===>0",
     "0 <> 0",
     "0 contains1",
+    "a contains_something",
     "endswith 0",
 
     // atoms/groups
@@ -121,6 +134,7 @@ static std::vector<std::string> invalid_queries = {
     "(0=0))",
     "! =0",
     "NOTNOT(0=0)",
+    "not.a=0",
     "(!!0=0)",
     "0=0 !",
 
@@ -130,7 +144,10 @@ static std::vector<std::string> invalid_queries = {
     "a==a &| a==a",
     "a==a && OR a==a",
     "a==aORa==a",
-    //"a=1ANDNOT b=2",
+    "a==a ORa==a",
+    "a==a AND==a",
+    "a==a ANDa==a",
+    "a=1ANDNOT b=2",
 
     "truepredicate &&",
     "truepredicate & truepredicate",

@@ -245,6 +245,9 @@
         ["QueryCount", 1, "LinkObject", "linkCol == $0", [0, "linkCol"]],
         ["QueryCount", 1, "LinkObject", "$0 == linkCol", [1, "linkCol"]],
         ["QueryCount", 2, "LinkObject", "linkCol != $0", [0, "linkCol"]],
+        ["QueryCount", 1, "LinkObject", "linkCol = null"],
+        ["QueryCount", 2, "LinkObject", "linkCol != NULL"],
+        ["QueryCount", 1, "LinkObject", "linkCol = $0", null],
 
         ["QueryThrows", "LinkObject", "linkCol > $0", [0, "linkCol"]],
         ["QueryThrows", "LinkObject", "intCol = $0", [0, "linkCol"]]
@@ -316,6 +319,62 @@
         ["ObjectSet", [0, 2], "LinkTypesObject", "basicLink.floatCol == 0.1"],
         ["ObjectSet", [1],    "LinkTypesObject", "linkLink.basicLink.floatCol == 0.1"],
         ["ObjectSet", [1, 3], "LinkTypesObject", "linkLink.basicLink.floatCol > 0"]
+    ]
+},
+
+"optionalTests" : {
+    "schema" : [
+    { 
+        "name": "OptionalTypesObject",  
+        "primaryKey": "primaryKey",
+        "properties": [
+            { "name": "primaryKey", "type": "int" },
+            { "name": "intCol",     "type": "int",      "optional": true },
+            { "name": "floatCol",   "type": "float",    "optional": true },
+            { "name": "doubleCol",  "type": "double",   "optional": true },
+            { "name": "stringCol",  "type": "string",   "optional": true },
+            { "name": "dateCol",    "type": "date",     "optional": true },
+            { "name": "dataCol",    "type": "data",     "optional": true }
+        ]
+    }, 
+    {
+        "name": "LinkTypesObject",
+        "primaryKey": "primaryKey",
+        "properties": [
+            { "name": "primaryKey", "type": "int" },
+            { "name": "basicLink",  "type": "object", "objectType": "OptionalTypesObject" }
+        ]
+    }],
+    "objects": [
+        { "type": "LinkTypesObject", "value": [0, [0, 1, 0.1, 0.001, "1", 1, [1, 10, 100]]] },
+        { "type": "LinkTypesObject", "value": [1, [1, null, null, null, null, null, null]] }
+    ],
+    "tests": [
+        ["ObjectSet", [1], "OptionalTypesObject", "intCol == null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "null == intCol"],
+        ["ObjectSet", [0], "OptionalTypesObject", "intCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "floatCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "floatCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "doubleCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "doubleCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "stringCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "stringCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "dateCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "dateCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "dataCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "dataCol != null"],
+
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.intCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.intCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.floatCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.floatCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.doubleCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.doubleCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.stringCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.stringCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.dateCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.dateCol != null"],
+        ["QueryThrows", "LinkTypesObject", "basicLink.dataCol == null"]
     ]
 }
 

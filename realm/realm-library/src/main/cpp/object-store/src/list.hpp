@@ -37,10 +37,6 @@ class Realm;
 class Results;
 struct SortOrder;
 
-namespace _impl {
-    class BackgroundCollection;
-}
-
 class List {
 public:
     List() noexcept;
@@ -55,6 +51,7 @@ public:
     const std::shared_ptr<Realm>& get_realm() const { return m_realm; }
     Query get_query() const;
     const ObjectSchema& get_object_schema() const { return *m_object_schema; }
+    size_t get_origin_row_index() const;
 
     bool is_valid() const;
     void verify_attached() const;
@@ -62,6 +59,7 @@ public:
 
     size_t size() const;
     RowExpr get(size_t row_ndx) const;
+    size_t get_unchecked(size_t row_ndx) const noexcept;
     size_t find(ConstRow const& row) const;
 
     void add(size_t target_row_ndx);
@@ -90,6 +88,20 @@ public:
 
     template <typename ValueType, typename ContextType>
     void set(ContextType ctx, ValueType value, size_t list_ndx);
+
+    // The List object has been invalidated (due to the Realm being invalidated,
+    // or the containing object being deleted)
+    // All non-noexcept functions can throw this
+    struct InvalidatedException : public std::runtime_error {
+        InvalidatedException() : std::runtime_error("Access to invalidated List object") {}
+    };
+
+    // The input index parameter was out of bounds
+    struct OutOfBoundsIndexException : public std::out_of_range {
+        OutOfBoundsIndexException(size_t r, size_t c);
+        size_t requested;
+        size_t valid_count;
+    };
 
 private:
     std::shared_ptr<Realm> m_realm;

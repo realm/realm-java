@@ -188,6 +188,9 @@ public:
         static void set_table_view(Results& results, TableView&& tv);
     };
 
+    // Returns if this Results class is still valid
+    bool is_valid() const;
+    
 private:
     SharedRealm m_realm;
     const ObjectSchema *m_object_schema;

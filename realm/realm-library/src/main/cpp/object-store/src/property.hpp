@@ -33,12 +33,14 @@ namespace realm {
         Date   = 8,
         Object = 12,
         Array  = 13,
+        LinkingObjects  = 14,
     };
 
     struct Property {
         std::string name;
         PropertyType type;
         std::string object_type;
+        std::string link_origin_property_name;
         bool is_primary = false;
         bool is_indexed = false;
         bool is_nullable = false;
@@ -55,11 +57,13 @@ namespace realm {
 
 #if __GNUC__ < 5
         // GCC 4.9 does not support C++14 braced-init with NSDMIs
-        Property(std::string name="", PropertyType type=PropertyType::Int, std::string object_type="",
+        Property(std::string name="", PropertyType type=PropertyType::Int,
+                 std::string object_type="", std::string link_origin_property_name="",
                  bool is_primary=false, bool is_indexed=false, bool is_nullable=false)
         : name(std::move(name))
         , type(type)
         , object_type(std::move(object_type))
+        , link_origin_property_name(std::move(link_origin_property_name))
         , is_primary(is_primary)
         , is_indexed(is_indexed)
         , is_nullable(is_nullable)

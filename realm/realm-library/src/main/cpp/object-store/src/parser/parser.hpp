@@ -28,7 +28,7 @@ class Schema;
 namespace parser {
 struct Expression
 {
-    enum class Type { None, Number, String, KeyPath, Argument, True, False } type;
+    enum class Type { None, Number, String, KeyPath, Argument, True, False, Null } type;
     std::string s;
     Expression(Type t = Type::None, std::string s = "") : type(t), s(s) {}
 };
