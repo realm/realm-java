@@ -1,0 +1,14 @@
+# CMake
+.ninja_deps
+.ninja_log
+CMakeCache.txt
+CMakeFiles/
+Makefile
+build.ninja
+cmake_install.cmake
+rules.ninja
+
+# Build products
+src/librealm-object-store.dylib
+src/librealm-object-store-static.a
+tests/tests
