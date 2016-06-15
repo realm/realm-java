@@ -7,6 +7,7 @@
 * Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829).lts (#2926).
 * Fixed a bug that prevented some devices from finding async related JNI methods correctly.
 * Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
+* Fixed a bug that allowed both `RealmConfiguration.Builder.assetFile()`/`deleteRealmIfMigrationNeeded()` to be configured at the same time, which leads to the asset file accidentally being deleted in migrations (#2933).
 
 ### Enhancements
 
