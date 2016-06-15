@@ -1,6 +1,5 @@
 #!groovy
 
-
 { ->
     try {
         node('docker') {
@@ -67,49 +66,18 @@
                 } finally {
                     storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
                 }
+
+                if (env.BRANCH_NAME == 'master') {
+                    stage 'Publish to OJO'
+                    sh 'chmod +x gradlew && ./gradlew assemble ojoUpload'
+                }
             }
         }
 
-/*
-        node('android-hub') {
-            stage 'run instrumented tests'
-            sh 'rm -rf *'
-            unstash 'test-apk'
-
-            sh 'adb devices | tee devices.txt'
-            def adbDevices = readFile('devices.txt')
-            def devices = getDeviceNames(adbDevices)
-
-            if (!devices) {
-                throw new IllegalStateException('No devices were found')
-            }
-
-            def parallelSteps = [:]
-            devices.each { device ->
-                parallelSteps[device] = transformIntoStep(device)
-            }
-
-            parallel parallelSteps
-            storeJunitResults 'test_result_*.xml'
-
-            // TODO: add support for running monkey on the example apps
-            // stage 'monkey examples'
-            // sh 'rm -rf *'
-            // unstash 'examples'
-        }
-
-        if (env.BRANCH_NAME == 'master') {
-            node('FastLinux') {
-                stage 'publish to OJO'
-                unstash 'java'
-                sh 'chmod +x gradlew && ./gradlew assemble ojoUpload'
-            }
-        }
-        */
-currentBuild.rawBuild.setResult(Result.SUCCESS)
-} catch (Exception e) {
-    echo e.getMessage()
-    currentBuild.rawBuild.setResult(Result.FAILURE)
+        currentBuild.rawBuild.setResult(Result.SUCCESS)
+    } catch (Exception e) {
+        echo "The job failed with the following exception: ${e.getMessage()}"
+        currentBuild.rawBuild.setResult(Result.FAILURE)
     } finally {
         if (isPullRequest()) {
             node {
@@ -119,71 +87,71 @@ currentBuild.rawBuild.setResult(Result.SUCCESS)
     }
 }
 
-        def isPullRequest() {
-            return binding.variables.containsKey('GITHUB_PR_NUMBER')
+def isPullRequest() {
+    return binding.variables.containsKey('GITHUB_PR_NUMBER')
+}
+
+def reportResultToGithub() {
+    step([
+        $class: 'GitHubPRBuildStatusPublisher',
+        statusMsg: [content: "${GITHUB_PR_COND_REF} run ended"],
+        unstableAs: 'FAILURE'
+    ])
+}
+
+def sendMetrics(String metric, String value) {
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
+        sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
+    }
+}
+
+def sendTaggedMetric(String metric, String value, String tagName, String tagValue) {
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
+        sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric},${tagName}=${tagValue} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
+    }
+}
+
+def storeJunitResults(String path) {
+    step([
+        $class: 'JUnitResultArchiver',
+        testResults: path
+    ])
+}
+
+def collectAarMetrics() {
+    dir('realm/realm-library/build/outputs/aar') {
+        sh '''set -xe
+        unzip realm-android-library-release.aar -d unzipped
+        find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
+        $(cat dx) --dex --output=temp.dex unzipped/classes.jar
+        cat temp.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 "%d"' > methods
+        '''
+        sendMetrics('methods', readFile('methods'))
+
+        sendMetrics('aar_size', new File('realm-android-library-release.aar').length())
+
+        def rootFolder = new File('unzipped/jni')
+        rootFolder.traverse (type: DIRECTORIES) { folder ->
+            def abiName = folder.name()
+            def libSize = new File(folder, 'librealm-jni.so').size() as String
+            sendTaggedMetric('abi_size', libSize, 'type', abiName)
         }
+    }
+}
 
-        def reportResultToGithub() {
-            step([
-                $class: 'GitHubPRBuildStatusPublisher',
-                statusMsg: [content: "${GITHUB_PR_COND_REF} run ended"],
-                unstableAs: 'FAILURE'
-                ])
-        }
+def gradle(String commands) {
+    sh "chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
 
-        def sendMetrics(String metric, String value) {
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-                sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
-            }
-        }
+@NonCPS
+def getDeviceNames(String commandOutput) {
+    return commandOutput
+    .split('\n')
+    .findAll { it.contains('\t') }
+    .collect { it.split('\t')[0].trim() }
+}
 
-        def sendTaggedMetric(String metric, String value, String tagName, String tagValue) {
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-                sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric},${tagName}=${tagValue} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
-            }
-        }
-
-        def storeJunitResults(String path) {
-            step([
-                $class: 'JUnitResultArchiver',
-                testResults: path
-                ])
-        }
-
-        def collectAarMetrics() {
-            dir('realm/realm-library/build/outputs/aar') {
-                sh '''set -xe
-                unzip realm-android-library-release.aar -d unzipped
-                find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
-                $(cat dx) --dex --output=temp.dex unzipped/classes.jar
-                cat temp.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 "%d"' > methods
-                '''
-                sendMetrics('methods', readFile('methods'))
-
-                sendMetrics('aar_size', new File('realm-android-library-release.aar').length())
-
-                def rootFolder = new File('unzipped/jni')
-                rootFolder.traverse (type: DIRECTORIES) { folder ->
-                    def abiName = folder.name()
-                    def libSize = new File(folder, 'librealm-jni.so').size() as String
-                    sendTaggedMetric('abi_size', libSize, 'type', abiName)
-                }
-            }
-        }
-
-        def gradle(String commands) {
-            sh "chmod +x gradlew && ./gradlew ${commands} --stacktrace"
-        }
-
-        @NonCPS
-        def getDeviceNames(String commandOutput) {
-            return commandOutput
-            .split('\n')
-            .findAll { it.contains('\t') }
-            .collect { it.split('\t')[0].trim() }
-        }
-
-        def transformIntoStep(device) {
+def transformIntoStep(device) {
     // We need to wrap what we return in a Groovy closure, or else it's invoked
     // when this method is called, not when we pass it to parallel.
     // To do this, you need to wrap the code below in { }, and either return
