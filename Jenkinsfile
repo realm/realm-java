@@ -64,6 +64,7 @@
                 try {
                     sh 'cd realm && ./gradlew connectedCheck --stacktrace'
                 } finally {
+                    sh 'ls -l realm/realm-library/build/test-results'
                     storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
                 }
 
@@ -141,28 +142,4 @@ def collectAarMetrics() {
 
 def gradle(String commands) {
     sh "chmod +x gradlew && ./gradlew ${commands} --stacktrace"
-}
-
-@NonCPS
-def getDeviceNames(String commandOutput) {
-    return commandOutput
-    .split('\n')
-    .findAll { it.contains('\t') }
-    .collect { it.split('\t')[0].trim() }
-}
-
-def transformIntoStep(device) {
-    // We need to wrap what we return in a Groovy closure, or else it's invoked
-    // when this method is called, not when we pass it to parallel.
-    // To do this, you need to wrap the code below in { }, and either return
-    // that explicitly, or use { -> } syntax.
-    return {
-        sh "adb -s ${device} shell getprop ro.product.model | tee model-name.txt"
-        def modelName = readFile('model-name.txt').trim().replaceAll(' ', '_')
-
-        sh "adb -s ${device} uninstall io.realm.test"
-        sh "adb -s ${device} install realm-android-library-debug-androidTest-unaligned.apk"
-        sh "adb -s ${device} shell am instrument -w -r io.realm.test/android.support.test.runner.AndroidJUnitRunner > test_result_${modelName}_${device}.txt"
-        sh "java -jar /opt/log-converter.jar test_result_${modelName}_${device}.txt"
-    }
 }
