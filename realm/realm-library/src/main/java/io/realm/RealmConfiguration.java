@@ -476,7 +476,7 @@ public final class RealmConfiguration {
          * <p>This cannot be configured to have an asset file at the same time by calling
          * {@link #assetFile(Context, String)} as the provided asset file will be deleted in migrations.
          *
-         * <b>WARNING!</b> This will result in loss of data.
+         * <p><b>WARNING!</b> This will result in loss of data.
          *
          * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(Context, String)} previously.
          */
