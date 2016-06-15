@@ -46,7 +46,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import dk.ilios.spanner.All;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.log.Logger;
@@ -942,7 +941,7 @@ public class NotificationsTest {
 
     // The presence of async RealmResults block any `REALM_CHANGE` notification . We make sure in this test that all
     // Realm listeners will be notified regardless of the presence of an async RealmObject. RealmObjects are special
-    // in the sense that once you got an row accessor to that object, it is trivially up to date as soon as we
+    // in the sense that once you got an row accessor to that object, it is automatically up to date as soon as you
     // advance_read.
     @Test
     @RunTestInLooperThread
@@ -1337,29 +1336,6 @@ public class NotificationsTest {
         });
     }
 
-    // If RealmResults are updated just before their change listener are notified, one change listener might
-    // reference another RealmResults that have been advance_read, but not yet called sync_if_needed.
-    // This can result in accessing detached rows and other errors.
-    @Test
-    @RunTestInLooperThread
-    public void accessingSyncRealmResultsInsideAnotherResultListener() {
-        final Realm realm = looperThread.realm;
-        final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
-        final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
-        syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
-            @Override
-            public void onChange(RealmResults<AllTypes> element) {
-                assertEquals(1, syncResults1.size());
-                assertEquals(1, syncResults2.size()); // If syncResults2 is not in sync yet, this will fail.
-                looperThread.testComplete();
-            }
-        });
-
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-    }
-
     @Test
     @RunTestInLooperThread
     public void accessingSyncRealmResultInsideAsyncResultListener() {
@@ -1395,4 +1371,28 @@ public class NotificationsTest {
             }
         });
     }
+
+    // If RealmResults are updated just before their change listener are notified, one change listener might
+    // reference another RealmResults that have been advance_read, but not yet called sync_if_needed.
+    // This can result in accessing detached rows and other errors.
+    @Test
+    @RunTestInLooperThread
+    public void accessingSyncRealmResultsInsideAnotherResultListener() {
+        final Realm realm = looperThread.realm;
+        final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
+        final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
+        syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                assertEquals(1, syncResults1.size());
+                assertEquals(1, syncResults2.size()); // If syncResults2 is not in sync yet, this will fail.
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
 }
