@@ -3,6 +3,7 @@
 ### Enhancements
 
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+* Ehhanced `RealmConfiguration.Builder` to have a constructor with Context and a custom folder path (#2900).
 
 ## 1.0.1
 
