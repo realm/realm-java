@@ -1,0 +1,381 @@
+{
+
+"dateTests" : {
+    "schema" : [{ 
+        "name": "DateObject",
+        "properties": [{ "name": "date", "type": "date" }]
+    }],
+    "objects": [
+        { "type": "DateObject", "value": [10000] },
+        { "type": "DateObject", "value": [10001] },
+        { "type": "DateObject", "value": [10002] }
+    ],
+    "tests": [
+        ["QueryCount", 2, "DateObject", "date <  $0", [2, "date"]],
+        ["QueryCount", 3, "DateObject", "date <= $0", [2, "date"]],
+        ["QueryCount", 2, "DateObject", "date >  $0", [0, "date"]],
+        ["QueryCount", 3, "DateObject", "date >= $0", [0, "date"]],
+        ["QueryCount", 1, "DateObject", "date == $0", [0, "date"]],
+        ["QueryCount", 2, "DateObject", "date != $0", [0, "date"]],
+
+        ["QueryThrows", "DateObject", "date == 'not a date'"],
+        ["QueryThrows", "DateObject", "date == 1"],
+        ["QueryThrows", "DateObject", "date == $0", 1]
+    ]
+},
+
+"boolTests" : {
+      "schema" : [{ 
+        "name": "BoolObject",
+        "properties": [{ "name": "boolCol", "type": "bool" }]
+    }],
+    "objects": [
+        { "type": "BoolObject", "value": [false] },
+        { "type": "BoolObject", "value": [true] },
+        { "type": "BoolObject", "value": [true] }
+    ],
+    "tests": [
+        ["QueryCount", 2, "BoolObject", "boolCol == true"],
+        ["QueryCount", 1, "BoolObject", "boolCol==false"],
+        ["QueryCount", 1, "BoolObject", "boolCol != true"],
+        ["QueryCount", 2, "BoolObject", "true == boolCol"],
+        ["QueryCount", 2, "BoolObject", "boolCol == TRUE"],
+        ["QueryCount", 1, "BoolObject", "boolCol == FALSE"],
+        ["QueryCount", 2, "BoolObject", "boolCol == $0", true],
+        ["QueryCount", 1, "BoolObject", "boolCol == $0", false],
+        ["QueryCount", 0, "BoolObject", "boolCol == true && boolCol == false"],
+        ["QueryCount", 3, "BoolObject", "boolCol == true || boolCol == false"],
+
+        ["QueryThrows", "BoolObject", "boolCol == 0"],
+        ["QueryThrows", "BoolObject", "boolCol == 1"],
+        ["QueryThrows", "BoolObject", "boolCol == 'not a bool'"],
+        ["QueryThrows", "BoolObject", "boolCol == $0", "not a bool"],
+        ["QueryThrows", "BoolObject", "boolCol >  true"],
+        ["QueryThrows", "BoolObject", "boolCol >= true"],
+        ["QueryThrows", "BoolObject", "boolCol <  true"],
+        ["QueryThrows", "BoolObject", "boolCol <= true"],
+        ["QueryThrows", "BoolObject", "boolCol BEGINSWITH true"],
+        ["QueryThrows", "BoolObject", "boolCol CONTAINS true"],
+        ["QueryThrows", "BoolObject", "boolCol ENDSWITH true"]
+    ]  
+},
+
+"intTests" : {
+    "schema" : [{ 
+        "name": "IntObject",
+        "properties": [{ "name": "intCol", "type": "int" }]
+    }],
+    "objects": [
+        { "type": "IntObject", "value": [-1] },
+        { "type": "IntObject", "value": [0] },
+        { "type": "IntObject", "value": [100] }
+    ],
+    "tests": [
+        ["QueryCount", 1, "IntObject", "intCol == -1"],
+        ["QueryCount", 1, "IntObject", "intCol==0"],
+        ["QueryCount", 0, "IntObject", "1 == intCol"],
+        ["QueryCount", 2, "IntObject", "intCol != 0"],
+        ["QueryCount", 2, "IntObject", "intCol > -1"],
+        ["QueryCount", 3, "IntObject", "intCol >= -1"],
+        ["QueryCount", 2, "IntObject", "intCol < 100"],
+        ["QueryCount", 3, "IntObject", "intCol <= 100"],
+        ["QueryCount", 1, "IntObject", "intCol > 0x1F"],
+        ["QueryCount", 1, "IntObject", "intCol == $0", 100],
+
+        ["QueryThrows", "IntObject", "intCol == 'not an int'"],
+        ["QueryThrows", "IntObject", "intCol == true"],
+        ["QueryThrows", "IntObject", "intCol == $0", "not an int"],
+        ["QueryThrows", "IntObject", "intCol BEGINSWITH 1"],
+        ["QueryThrows", "IntObject", "intCol CONTAINS 1"],
+        ["QueryThrows", "IntObject", "intCol ENDSWITH 1"]
+    ]
+},
+
+"floatTests" : {
+    "schema" : [{ 
+        "name": "FloatObject",
+        "properties": [{ "name": "floatCol", "type": "float" }]
+    }],
+    "objects": [
+        { "type": "FloatObject", "value": [-1.001] },
+        { "type": "FloatObject", "value": [0.0] },
+        { "type": "FloatObject", "value": [100.2] }
+    ],
+    "tests": [
+        ["QueryCount", 1, "FloatObject", "floatCol == -1.001"],
+        ["QueryCount", 1, "FloatObject", "floatCol = 0"],
+        ["QueryCount", 0, "FloatObject", "1 == floatCol"],
+        ["QueryCount", 2, "FloatObject", "floatCol != 0"],
+        ["QueryCount", 2, "FloatObject", "floatCol > -1.001"],
+        ["QueryCount", 3, "FloatObject", "floatCol >= -1.001"],
+        ["QueryCount", 2, "FloatObject", "floatCol < 100.2"],
+        ["QueryCount", 3, "FloatObject", "floatCol <= 100.2"],
+        ["QueryCount", 1, "FloatObject", "floatCol > 0x1F"],
+        ["QueryCount", 1, "FloatObject", "floatCol == $0", 100.2],
+
+        ["QueryThrows", "FloatObject", "floatCol == 'not a float'"],
+        ["QueryThrows", "FloatObject", "floatCol == true"],
+        ["QueryThrows", "FloatObject", "floatCol == $0", "not a float"],
+        ["QueryThrows", "FloatObject", "floatCol BEGINSWITH 1"],
+        ["QueryThrows", "FloatObject", "floatCol CONTAINS 1"],
+        ["QueryThrows", "FloatObject", "floatCol ENDSWITH 1"],
+
+        ["Disabled", "QueryThrows", "FloatObject", "floatCol = 3.5e+38"],
+        ["Disabled", "QueryThrows", "FloatObject", "floatCol = -3.5e+38"]
+    ]
+},
+
+"doubleTests" : {
+    "schema" : [{ 
+        "name": "DoubleObject",
+        "properties": [{ "name": "doubleCol", "type": "double" }]
+    }],
+    "objects": [
+        { "type": "DoubleObject", "value": [-1.001] },
+        { "type": "DoubleObject", "value": [0.0] },
+        { "type": "DoubleObject", "value": [100.2] }
+    ],
+    "tests": [
+        ["QueryCount", 1, "DoubleObject", "doubleCol == -1.001"],
+        ["QueryCount", 1, "DoubleObject", "doubleCol == 0"],
+        ["QueryCount", 0, "DoubleObject", "1 == doubleCol"],
+        ["QueryCount", 2, "DoubleObject", "doubleCol != 0"],
+        ["QueryCount", 2, "DoubleObject", "doubleCol > -1.001"],
+        ["QueryCount", 3, "DoubleObject", "doubleCol >= -1.001"],
+        ["QueryCount", 2, "DoubleObject", "doubleCol < 100.2"],
+        ["QueryCount", 3, "DoubleObject", "doubleCol <= 100.2"],
+        ["QueryCount", 1, "DoubleObject", "doubleCol > 0x1F"],
+        ["QueryCount", 1, "DoubleObject", "doubleCol == $0", 100.2],
+
+        ["QueryThrows", "DoubleObject", "doubleCol == 'not a double'"],
+        ["QueryThrows", "DoubleObject", "doubleCol == true"],
+        ["QueryThrows", "DoubleObject", "doubleCol == $0", "not a double"],
+        ["QueryThrows", "DoubleObject", "doubleCol BEGINSWITH 1"],
+        ["QueryThrows", "DoubleObject", "doubleCol CONTAINS 1"],
+        ["QueryThrows", "DoubleObject", "doubleCol ENDSWITH 1"]
+    ]
+},
+
+"stringTests" : {
+    "schema" : [{ 
+        "name": "StringObject",
+        "properties": [{ "name": "stringCol", "type": "string" }]
+    }],
+    "objects": [
+        { "type": "StringObject", "value": ["A"] },
+        { "type": "StringObject", "value": ["a"] },
+        { "type": "StringObject", "value": ["a"] },
+        { "type": "StringObject", "value": ["C"] },
+        { "type": "StringObject", "value": ["c"] },
+        { "type": "StringObject", "value": ["abc"] },
+        { "type": "StringObject", "value": ["ABC"] },
+        { "type": "StringObject", "value": [""] },
+        { "type": "StringObject", "value": ["\\\"\\n\\0\\r\\\\'"] }
+    ],
+    "tests": [
+        ["QueryCount", 2, "StringObject", "stringCol == 'a'"],
+        ["QueryCount", 1, "StringObject", "'c' == stringCol"],
+        ["QueryCount", 2, "StringObject", "stringCol == \"a\""],
+        ["QueryCount", 1, "StringObject", "stringCol=='abc'"],
+        ["QueryCount", 1, "StringObject", "stringCol == ''"],
+        ["QueryCount", 8, "StringObject", "stringCol != ''"],
+        ["QueryCount", 1, "StringObject", "stringCol == \"\\\"\\n\\0\\r\\\\'\""],
+        ["QueryCount", 3, "StringObject", "stringCol BEGINSWITH 'a'"],
+        ["QueryCount", 1, "StringObject", "stringCol beginswith 'ab'"],
+        ["QueryCount", 0, "StringObject", "stringCol BEGINSWITH 'abcd'"],
+        ["QueryCount", 2, "StringObject", "stringCol BEGINSWITH 'A'"],
+        ["QueryCount", 2, "StringObject", "stringCol ENDSWITH 'c'"],
+        ["QueryCount", 1, "StringObject", "stringCol endswith 'bc'"],
+        ["QueryCount", 9, "StringObject", "stringCol ENDSWITH ''"],
+        ["QueryCount", 1, "StringObject", "stringCol CONTAINS 'b'"],
+        ["QueryCount", 2, "StringObject", "stringCol contains 'c'"],
+        ["QueryCount", 9, "StringObject", "stringCol CONTAINS ''"],
+        ["QueryCount", 2, "StringObject", "stringCol == $0", "a"],
+        ["QueryCount", 2, "StringObject", "stringCol ENDSWITH $0", "c"],
+
+        ["QueryThrows", "StringObject", "stringCol == true"],
+        ["QueryThrows", "StringObject", "stringCol == 123"],
+        ["QueryThrows", "StringObject", "stringCol CONTAINS $0", 1],
+
+        ["QueryCount", 3, "StringObject", "stringCol ==[c] 'a'"],
+        ["QueryCount", 5, "StringObject", "stringCol BEGINSWITH[c] 'A'"],
+        ["QueryCount", 4, "StringObject", "stringCol ENDSWITH[c] 'c'"],
+        ["QueryCount", 2, "StringObject", "stringCol CONTAINS[c] 'B'"]
+    ]
+},
+
+"binaryTests" : {
+    "schema" : [{ 
+        "name": "BinaryObject",
+        "properties": [{ "name": "binaryCol", "type": "data" }]
+    }],
+    "objects": [
+        { "type": "BinaryObject", "value": [[1, 100, 233, 255, 0]] },
+        { "type": "BinaryObject", "value": [[1, 100]] },
+        { "type": "BinaryObject", "value": [[100]] },
+        { "type": "BinaryObject", "value": [[]] },
+        { "type": "BinaryObject", "value": [[255, 0]] }
+    ],
+    "tests": [
+        ["QueryCount", 1, "BinaryObject", "binaryCol == $0", [1, "binaryCol"]],
+        ["QueryCount", 1, "BinaryObject", "$0 == binaryCol", [2, "binaryCol"]],
+        ["QueryCount", 4, "BinaryObject", "binaryCol != $0", [0, "binaryCol"]],
+        ["QueryCount", 1, "BinaryObject", "binaryCol BEGINSWITH $0", [0, "binaryCol"]],
+        ["QueryCount", 2, "BinaryObject", "binaryCol BEGINSWITH $0", [1, "binaryCol"]],
+        ["QueryCount", 2, "BinaryObject", "binaryCol ENDSWITH $0", [4, "binaryCol"]],
+        ["QueryCount", 3, "BinaryObject", "binaryCol CONTAINS $0", [2, "binaryCol"]]
+    ]
+},
+
+"objectTests" : {
+    "schema" : [
+        { "name": "IntObject",  "properties": [
+            { "name": "intCol",  "type": "int" }
+        ]},
+        { "name": "LinkObject", "properties": [
+            { "name": "linkCol", "type": "object", "objectType": "IntObject" }
+        ]}
+    ],
+    "objects": [
+        { "type": "LinkObject", "value": [[1]] },
+        { "type": "LinkObject", "value": [[2]] },
+        { "type": "LinkObject", "value": [null] }
+    ],
+    "tests": [
+        ["QueryCount", 1, "LinkObject", "linkCol == $0", [0, "linkCol"]],
+        ["QueryCount", 1, "LinkObject", "$0 == linkCol", [1, "linkCol"]],
+        ["QueryCount", 2, "LinkObject", "linkCol != $0", [0, "linkCol"]],
+        ["QueryCount", 1, "LinkObject", "linkCol = null"],
+        ["QueryCount", 2, "LinkObject", "linkCol != NULL"],
+        ["QueryCount", 1, "LinkObject", "linkCol = $0", null],
+
+        ["QueryThrows", "LinkObject", "linkCol > $0", [0, "linkCol"]],
+        ["QueryThrows", "LinkObject", "intCol = $0", [0, "linkCol"]]
+    ]
+},
+
+"compoundTests" : {
+    "schema" : [
+        { "name": "IntObject",  
+          "properties": [{ "name": "intCol",  "type": "int" }],
+          "primaryKey" : "intCol" }
+    ],
+    "objects": [
+        { "type": "IntObject", "value": [0] },
+        { "type": "IntObject", "value": [1] },
+        { "type": "IntObject", "value": [2] },    
+        { "type": "IntObject", "value": [3] }
+    ],
+    "tests": [
+        ["ObjectSet", [],       "IntObject", "intCol == 0 && intCol == 1"],
+        ["ObjectSet", [0, 1],   "IntObject", "intCol == 0 || intCol == 1"],
+        ["ObjectSet", [0],      "IntObject", "intCol == 0 && intCol != 1"],
+        ["ObjectSet", [2, 3],   "IntObject", "intCol >= 2 && intCol < 4"],
+        ["ObjectSet", [0],      "IntObject", "intCol == 0 && NOT intCol != 0"],
+        ["ObjectSet", [0, 3],   "IntObject", "intCol == 0 || NOT (intCol == 1 || intCol == 2)"],
+        ["ObjectSet", [1],      "IntObject", "(intCol == 0 || intCol == 1) && intCol >= 1"],
+        ["ObjectSet", [1],      "IntObject", "intCol >= 1 && (intCol == 0 || intCol == 1)"],
+        ["ObjectSet", [0, 1],   "IntObject", "intCol == 0 || (intCol == 1 && intCol >= 1)"],
+        ["ObjectSet", [0, 1],   "IntObject", "(intCol == 1 && intCol >= 1) || intCol == 0"],
+        ["ObjectSet", [0, 1],   "IntObject", "intCol == 0 || intCol == 1 && intCol >= 1"],
+        ["ObjectSet", [0, 1, 2],"IntObject", "intCol == 0 || intCol == 1 || intCol <= 2"],
+        ["ObjectSet", [0, 1],   "IntObject", "intCol == 1 && intCol >= 1 || intCol == 0"],
+        ["ObjectSet", [0, 1],   "IntObject", "intCol == 1 || intCol == 0 && intCol <= 0 && intCol >= 0"],
+        ["ObjectSet", [0, 1],   "IntObject", "intCol == 0 || NOT (intCol == 3 && intCol >= 0) && intCol == 1"]   
+    ]
+},
+
+"keyPathTests" : {
+    "schema" : [
+    { 
+        "name": "BasicTypesObject",  
+        "properties": [
+            { "name": "intCol",     "type": "int" },
+            { "name": "floatCol",   "type": "float" },
+            { "name": "doubleCol",  "type": "double" },
+            { "name": "stringCol",  "type": "string" },
+            { "name": "dateCol",    "type": "date" },
+            { "name": "dataCol",    "type": "data" }
+        ]
+    }, 
+    {
+        "name": "LinkTypesObject",
+        "primaryKey": "primaryKey",
+        "properties": [
+            { "name": "primaryKey", "type": "int" },
+            { "name": "basicLink",  "type": "object", "objectType": "BasicTypesObject" },
+            { "name": "linkLink",   "type": "object", "objectType": "LinkTypesObject" }
+        ]
+    }],
+    "objects": [
+        { "type": "LinkTypesObject", "value": [0, [1, 0.1, 0.001, "1", 1, [1, 10, 100]], null] },
+        { "type": "LinkTypesObject", "value": [1, null, [2, [1, 0.1, 0.001, "1", 1, [1, 10, 100]], null]] },
+        { "type": "LinkTypesObject", "value": [3, null, [4, [2, 0.2, 0.002, "2", 2, [2, 20, 200]], null]] }
+    ],
+    "tests": [
+        ["ObjectSet", [0, 2], "LinkTypesObject", "basicLink.intCol == 1"],
+        ["ObjectSet", [1],    "LinkTypesObject", "linkLink.basicLink.intCol == 1"],
+        ["ObjectSet", [1, 3], "LinkTypesObject", "linkLink.basicLink.intCol > 0"],
+        ["ObjectSet", [0, 2], "LinkTypesObject", "basicLink.floatCol == 0.1"],
+        ["ObjectSet", [1],    "LinkTypesObject", "linkLink.basicLink.floatCol == 0.1"],
+        ["ObjectSet", [1, 3], "LinkTypesObject", "linkLink.basicLink.floatCol > 0"]
+    ]
+},
+
+"optionalTests" : {
+    "schema" : [
+    { 
+        "name": "OptionalTypesObject",  
+        "primaryKey": "primaryKey",
+        "properties": [
+            { "name": "primaryKey", "type": "int" },
+            { "name": "intCol",     "type": "int",      "optional": true },
+            { "name": "floatCol",   "type": "float",    "optional": true },
+            { "name": "doubleCol",  "type": "double",   "optional": true },
+            { "name": "stringCol",  "type": "string",   "optional": true },
+            { "name": "dateCol",    "type": "date",     "optional": true },
+            { "name": "dataCol",    "type": "data",     "optional": true }
+        ]
+    }, 
+    {
+        "name": "LinkTypesObject",
+        "primaryKey": "primaryKey",
+        "properties": [
+            { "name": "primaryKey", "type": "int" },
+            { "name": "basicLink",  "type": "object", "objectType": "OptionalTypesObject" }
+        ]
+    }],
+    "objects": [
+        { "type": "LinkTypesObject", "value": [0, [0, 1, 0.1, 0.001, "1", 1, [1, 10, 100]]] },
+        { "type": "LinkTypesObject", "value": [1, [1, null, null, null, null, null, null]] }
+    ],
+    "tests": [
+        ["ObjectSet", [1], "OptionalTypesObject", "intCol == null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "null == intCol"],
+        ["ObjectSet", [0], "OptionalTypesObject", "intCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "floatCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "floatCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "doubleCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "doubleCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "stringCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "stringCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "dateCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "dateCol != null"],
+        ["ObjectSet", [1], "OptionalTypesObject", "dataCol == null"],
+        ["ObjectSet", [0], "OptionalTypesObject", "dataCol != null"],
+
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.intCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.intCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.floatCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.floatCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.doubleCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.doubleCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.stringCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.stringCol != null"],
+        ["ObjectSet", [1], "LinkTypesObject", "basicLink.dateCol == null"],
+        ["ObjectSet", [0], "LinkTypesObject", "basicLink.dateCol != null"],
+        ["QueryThrows", "LinkTypesObject", "basicLink.dataCol == null"]
+    ]
+}
+
+}
