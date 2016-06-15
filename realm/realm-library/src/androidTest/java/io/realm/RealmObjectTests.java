@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.ConflictingFieldName;
@@ -1185,7 +1186,7 @@ public class RealmObjectTests {
     public void getter_afterDeleteFromOtherThreadThrows() {
         final CountDownLatch bgRealmDone = new CountDownLatch(1);
         realm.beginTransaction();
-        final AllTypes obj = realm.createObject(AllTypes.class);
+        final AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         realm.commitTransaction();
 
         new Thread(new Runnable() {
@@ -1193,7 +1194,7 @@ public class RealmObjectTests {
             public void run() {
                 Realm bgRealm = Realm.getInstance(realm.getConfiguration());
                 bgRealm.beginTransaction();
-                bgRealm.delete(AllTypes.class);
+                bgRealm.delete(AllJavaTypes.class);
                 bgRealm.commitTransaction();
                 bgRealm.close();
                 bgRealmDone.countDown();
@@ -1205,7 +1206,7 @@ public class RealmObjectTests {
         // Object should no longer be available
         assertFalse(obj.isValid());
         try {
-            obj.getColumnLong();
+            obj.getFieldDate();
             fail();
         } catch (IllegalStateException ignored) {
         }
