@@ -389,6 +389,22 @@ public final class RealmConfiguration {
             initializeBuilder(context.getFilesDir());
         }
 
+        /**
+         * Creates an instance of the Builder for the RealmConfiguration.
+         * <p>
+         * The Realm file will be saved in the provided folder, and it might require additional permissions.
+         *
+         * @param folder the folder to save Realm file in. Folder must be writable.
+         * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
+         */
+        public Builder(Context context, File folder) {
+            if (context == null) {
+                throw new IllegalArgumentException("A non-null Context must be provided");
+            }
+            RealmCore.loadLibrary(context);
+            initializeBuilder(folder);
+        }
+
         // Setup builder in its initial state
         private void initializeBuilder(File folder) {
             if (folder == null || !folder.isDirectory()) {
