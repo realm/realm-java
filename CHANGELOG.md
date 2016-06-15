@@ -3,7 +3,11 @@
 ### Enhancements
 
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
-* Ehhanced `RealmConfiguration.Builder` to have a constructor with Context and a custom folder path (#2900).
+* Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
+
+### Deprecated
+
+* `RealmConfiguration.Builder(File)`. Use `RealmConfiguration.Builder(Context, File)` instead.
 
 ## 1.0.1
 

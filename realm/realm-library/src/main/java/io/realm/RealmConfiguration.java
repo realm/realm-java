@@ -367,6 +367,7 @@ public final class RealmConfiguration {
          * @param folder the folder to save Realm file in. Folder must be writable.
          * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
          */
+        @Deprecated
         public Builder(File folder) {
             RealmCore.loadLibrary();
             initializeBuilder(folder);
