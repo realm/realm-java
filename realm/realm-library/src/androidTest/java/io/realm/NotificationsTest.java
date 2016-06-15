@@ -46,6 +46,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import dk.ilios.spanner.All;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.log.Logger;
@@ -81,6 +82,7 @@ public class NotificationsTest {
 
     @After
     public void tearDown() {
+        Realm.asyncTaskExecutor.resume();
         if (realm != null) {
             realm.close();
         }
@@ -938,9 +940,10 @@ public class NotificationsTest {
         TestHelper.exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
-    // The presence of async RealmResults block any `REALM_CHANGE` notification causing historically the Realm
-    // to advance to the latest version. We make sure in this test that all Realm listeners will be notified
-    // regardless of the presence of an async RealmObject that will delay the `REALM_CHANGE` sometimes
+    // The presence of async RealmResults block any `REALM_CHANGE` notification . We make sure in this test that all
+    // Realm listeners will be notified regardless of the presence of an async RealmObject. RealmObjects are special
+    // in the sense that once you got an row accessor to that object, it is trivially up to date as soon as we
+    // advance_read.
     @Test
     @RunTestInLooperThread
     public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
@@ -949,7 +952,7 @@ public class NotificationsTest {
         final Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange(Realm realm) {
+            public void onChange(final Realm realm) {
                 switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
                     case 1: {
                         // first commit
@@ -964,11 +967,11 @@ public class NotificationsTest {
                         new Thread() {
                             @Override
                             public void run() {
-                                Realm realm = Realm.getInstance(looperThread.realmConfiguration);
-                                realm.beginTransaction();
-                                realm.createObject(Dog.class);
-                                realm.commitTransaction();
-                                realm.close();
+                                Realm threadRealm = Realm.getInstance(realm.getConfiguration());
+                                threadRealm.beginTransaction();
+                                threadRealm.createObject(Dog.class);
+                                threadRealm.commitTransaction();
+                                threadRealm.close();
                                 signalClosedRealm.countDown();
                             }
                         }.start();
@@ -1238,7 +1241,6 @@ public class NotificationsTest {
                             // Step 5
                             assertEquals(0, asyncResults.size());
                             assertEquals(0, results.size());
-                            realm.close();
                             looperThread.testComplete();
                         }
                     });
@@ -1309,11 +1311,30 @@ public class NotificationsTest {
     @Test
     @RunTestInLooperThread
     public void warnIfMixingSyncWritesAndAsyncQueries() {
-        // If you mix
+        final Realm realm = looperThread.realm;
+        final AtomicBoolean warningLogged = new AtomicBoolean(false);
+        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger() {
+            @Override
+            public void w(String message) {
+                assertTrue(message.contains("Mixing asynchronous queries with local writes should be avoided."));
+                warningLogged.set(true);
+            }
+        };
+        RealmLog.add(testLogger);
 
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
 
-
-
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                RealmLog.remove(testLogger);
+                assertTrue(warningLogged.get());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // If RealmResults are updated just before their change listener are notified, one change listener might

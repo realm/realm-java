@@ -19,6 +19,7 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
@@ -315,8 +316,12 @@ final class HandlerController implements Handler.Callback {
                 // Sync the RealmResult so it is completely up to date.
                 // This is a prerequisite to calling the listener, so when the listener is finally triggered, all
                 // RealmResults will be up to date.
-                realmResults.syncIfNeeded();
-                resultsToBeNotified.add(realmResults);
+                // Local commits can accidentially cause async RealmResults to be notified, so we only want to
+                // include those that are actually done loading.
+                if (realmResults.isLoaded()) {
+                    realmResults.syncIfNeeded();
+                    resultsToBeNotified.add(realmResults);
+                }
             }
         }
     }
@@ -401,7 +406,8 @@ final class HandlerController implements Handler.Callback {
         // Mixing local transactions and async queries has unavoidable race conditions
         if (localCommit && threadContainsAsyncQueries) {
             RealmLog.w("Mixing asynchronous queries with local writes should be avoided. " +
-                    "Consider using asynchronous writes instead. You can read more here: " +
+                    "Realm will convert any async queries to synchronous in order to remain consistent. Use " +
+                    "asynchronous writes instead. You can read more here: " +
                     "https://realm.io/docs/java/latest/#asynchronous-transactions");
         }
 
