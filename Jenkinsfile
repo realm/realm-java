@@ -64,8 +64,7 @@
                 try {
                     sh 'cd realm && ./gradlew connectedCheck --stacktrace'
                 } finally {
-                    sh 'ls -l realm/realm-library/build/test-results'
-                    storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
+                    storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
                 if (env.BRANCH_NAME == 'master') {
