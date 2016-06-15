@@ -40,11 +40,6 @@
                 } finally {
                     storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
                 }
-                if (env.BRANCH_NAME == 'master') {
-                 collectAarMetrics()
-                }
-               // TODO: add support for running monkey on the example apps
-               //stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples'
 
                 try {
                     sh 'cd examples && ./gradlew unitTestExample:check --stacktrace'
@@ -67,7 +62,12 @@
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
+               // TODO: add support for running monkey on the example apps
+
                 if (env.BRANCH_NAME == 'master') {
+                    stage 'Collect metrics'
+                    collectAarMetrics()
+
                     stage 'Publish to OJO'
                     sh 'chmod +x gradlew && ./gradlew assemble ojoUpload'
                 }

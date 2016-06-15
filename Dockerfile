@@ -41,6 +41,3 @@ RUN cd /opt/android-ndk-tmp && wget -q http://dl.google.com/android/ndk/android-
 RUN cd /opt/android-ndk-tmp && chmod a+x ./android-ndk.bin && ./android-ndk.bin
 RUN cd /opt/android-ndk-tmp && mv ./android-ndk-r10e /opt/android-ndk
 RUN rm -rf /opt/android-ndk-tmp
-
-ADD * /opt/realm-java/
-WORKDIR /opt/realm-java
