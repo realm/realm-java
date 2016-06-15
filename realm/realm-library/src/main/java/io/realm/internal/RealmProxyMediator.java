@@ -109,9 +109,9 @@ public abstract class RealmProxyMediator {
 
     public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object);
 
-    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects);
+    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, int size);
 
-    public abstract void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects);
+    public abstract void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, int size);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.

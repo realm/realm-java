@@ -105,9 +105,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects) {
+    public void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, int size) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insertToRealm(realm, object, objects);
+        mediator.insertToRealm(realm, object, objects, size);
     }
 
     @Override
@@ -117,9 +117,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, RealmModel type, Iterator<? extends RealmModel> objects) {
+    public void insertOrUpdateToRealm(Realm realm, RealmModel type, Iterator<? extends RealmModel> objects, int size) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(type.getClass()));
-        mediator.insertOrUpdateToRealm(realm, type, objects);
+        mediator.insertOrUpdateToRealm(realm, type, objects, size);
     }
 
     @Override

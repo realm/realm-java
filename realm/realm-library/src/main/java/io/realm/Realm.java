@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -792,7 +793,7 @@ public final class Realm extends BaseRealm {
      *
      * @param objects RealmObjects to insert.
      */
-    public void insertToRealm(Iterable<? extends RealmModel> objects) {
+    public void insertToRealm(Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
         if (iterator.hasNext()) {
@@ -802,7 +803,7 @@ public final class Realm extends BaseRealm {
         }
 
         if (iterator.hasNext()) {
-            configuration.getSchemaMediator().insertToRealm(this, object, iterator);
+            configuration.getSchemaMediator().insertToRealm(this, object, iterator, objects.size() - 1);
         }
     }
 
@@ -828,7 +829,7 @@ public final class Realm extends BaseRealm {
      *
      * @param objects RealmObjects to insert.
      */
-    public void insertOrUpdateToRealm(Iterable<? extends RealmModel> objects) {
+    public void insertOrUpdateToRealm(Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
         if (iterator.hasNext()) {
@@ -838,7 +839,7 @@ public final class Realm extends BaseRealm {
         }
 
         if (iterator.hasNext()) {
-            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, iterator);
+            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, iterator, objects.size() - 1);
         }
     }
 
