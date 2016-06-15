@@ -33,7 +33,7 @@
 
             stage 'Docker build'
             def buildEnv = docker.build 'realm-java:snapshot'
-            buildEnv.inside('--privileged -v /dev/bus/usb:/dev/bus/usb') {
+            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle") {
                 stage 'JVM tests'
                 try {
                     gradle 'assemble check javadoc'
@@ -47,7 +47,7 @@
                //stash includes: 'examples/*/build/outputs/apk/*debug.apk', name: 'examples'
 
                 try {
-                    sh 'cd examples && ./gradlew check --stacktrace'
+                    sh 'cd examples && ./gradlew unitTestExample:check --stacktrace'
                 } finally {
                     storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
                 }
