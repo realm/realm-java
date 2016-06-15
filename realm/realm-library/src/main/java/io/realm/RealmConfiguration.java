@@ -473,9 +473,18 @@ public final class RealmConfiguration {
          * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
          * with the new Realm schema.
          *
-         * <b>WARNING!</b> This will result in loss of data.
+         * <p>This cannot be configured to have an asset file at the same time by calling
+         * {@link #assetFile(Context, String)} as the provided asset file will be deleted in migrations.
+         *
+         * <p><b>WARNING!</b> This will result in loss of data.
+         *
+         * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(Context, String)} previously.
          */
         public Builder deleteRealmIfMigrationNeeded() {
+            if (this.assetFilePath != null && this.assetFilePath.length() != 0) {
+                throw new IllegalStateException("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().");
+            }
+
             this.deleteRealmIfMigrationNeeded = true;
             return this;
         }
@@ -551,12 +560,17 @@ public final class RealmConfiguration {
          * Copies the Realm file from the given asset file path.
          * <p>
          * When opening the Realm for the first time, instead of creating an empty file,
-         * the Realm file will be copied from the provided assets file and used instead.
+         * the Realm file will be copied from the provided asset file and used instead.
+         *
+         * <p>This cannot be configured to clear and recreate schema by calling {@link #deleteRealmIfMigrationNeeded()}
+         * at the same time as doing so will delete the copied asset schema.
+         *
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
          * @param context Android application context.
          * @param assetFile path to the asset database file.
+         * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(Context context, final String assetFile) {
             if (context == null) {
@@ -567,6 +581,9 @@ public final class RealmConfiguration {
             }
             if (durability == SharedGroup.Durability.MEM_ONLY) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
+            }
+            if (this.deleteRealmIfMigrationNeeded) {
+                throw new IllegalStateException("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().");
             }
 
             this.contextWeakRef = new WeakReference<>(context);
