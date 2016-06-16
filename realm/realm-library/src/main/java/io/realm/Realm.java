@@ -785,7 +785,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Bulk insert of a list of RealmObjects, this is faster than {@link #copyToRealm(Iterable)} since it
+     * Bulk insert of a list of RealmObjects, this is generally faster than {@link #copyToRealm(Iterable)} since it
      * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
      * <p>
      * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
@@ -809,7 +809,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Insert of a RealmObject, this is faster than {@link #copyToRealm(RealmModel)} since it
+     * Insert of a RealmObject, this is generally faster than {@link #copyToRealm(RealmModel)} since it
      * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
      * <p>
      * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
@@ -823,7 +823,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Bulk insert or update of a list of RealmObjects, this is faster than {@link #copyToRealmOrUpdate(Iterable)} since it
+     * Bulk insert or update of a list of RealmObjects, this is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
      * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
      * <p>
      * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
@@ -847,7 +847,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Insert or update a RealmObject, this is faster than {@link #copyOrUpdate(RealmModel, boolean)}} since it
+     * Insert or update a RealmObject, this is generally faster than {@link #copyOrUpdate(RealmModel, boolean)}} since it
      * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
      * <p>
      * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be

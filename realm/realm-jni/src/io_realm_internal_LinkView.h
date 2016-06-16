@@ -37,7 +37,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetRowIndex
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeAdd
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_LinkView
@@ -77,7 +77,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemove
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClear
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     io_realm_internal_LinkView

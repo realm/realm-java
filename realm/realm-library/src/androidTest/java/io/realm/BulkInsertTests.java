@@ -150,9 +150,9 @@ public class BulkInsertTests {
             realm.insertToRealm(invalidRealmModel);
             fail("Expected Missing Proxy Class Exception");
         } catch (RealmException ignored) {
+        } finally {
+            realm.commitTransaction();
         }
-
-        realm.commitTransaction();
     }
 
     @Test
