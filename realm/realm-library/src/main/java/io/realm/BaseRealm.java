@@ -317,14 +317,14 @@ abstract class BaseRealm implements Closeable {
      * <pre>
      * {@code
      * // Don't do this
-     * RealResults<Person> persons = realm.where(Person.class).findAll();
+     * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * realm.beginTransaction();
      * persons.first().setName("John");
      * realm.commitTransaction;
      *
      * // Do this instead
      * realm.beginTransaction();
-     * RealResults<Person> persons = realm.where(Person.class).findAll();
+     * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * persons.first().setName("John");
      * realm.commitTransaction;
      * }
