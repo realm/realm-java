@@ -1240,7 +1240,6 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                     ThrowException(env, FatalError, "Unknown type of query.");
                     return NULL;
             }
-            delete query_param_array;
         }
 
         jlongArray exported_handover_tableview = env->NewLongArray(number_of_queries);
