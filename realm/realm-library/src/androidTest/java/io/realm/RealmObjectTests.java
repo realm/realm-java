@@ -1186,7 +1186,7 @@ public class RealmObjectTests {
     public void getter_afterDeleteFromOtherThreadThrows() {
         final CountDownLatch bgRealmDone = new CountDownLatch(1);
         realm.beginTransaction();
-        final AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
         new Thread(new Runnable() {
@@ -1194,7 +1194,7 @@ public class RealmObjectTests {
             public void run() {
                 Realm bgRealm = Realm.getInstance(realm.getConfiguration());
                 bgRealm.beginTransaction();
-                bgRealm.delete(AllJavaTypes.class);
+                bgRealm.delete(AllTypes.class);
                 bgRealm.commitTransaction();
                 bgRealm.close();
                 bgRealmDone.countDown();
@@ -1206,7 +1206,7 @@ public class RealmObjectTests {
         // Object should no longer be available
         assertFalse(obj.isValid());
         try {
-            obj.getFieldDate();
+            obj.getColumnLong();
             fail();
         } catch (IllegalStateException ignored) {
         }
