@@ -905,8 +905,8 @@ public class TableView implements TableOrView, Closeable {
     private native String nativeToJson(long nativeViewPtr);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
-    private native long nativeDistinct(long nativeViewPtr, long columnIndex);
+    private native void nativeDistinct(long nativeViewPtr, long columnIndex);
     private native long nativeSyncIfNeeded(long nativeTablePtr);
-    private native long nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
+    private native void nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
 }

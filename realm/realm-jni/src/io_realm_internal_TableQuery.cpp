@@ -830,7 +830,7 @@ enum StringPredicate {
 };
 
 
-void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
+static void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
     JniLongArray arr(env, columnIndexes);
     jsize arr_len = arr.len();
     try {
@@ -1039,7 +1039,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
 
 // Returns a pointer to query on the worker SharedGroup or throw a BadVersion if the SharedGroup version required
 // for the handover is no longer available.
-std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong queryPtr, bool advanceToLatestVersion)
+static std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong queryPtr, bool advanceToLatestVersion)
 {
     SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
