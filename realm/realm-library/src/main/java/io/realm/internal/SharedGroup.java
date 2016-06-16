@@ -30,8 +30,8 @@ public class SharedGroup implements Closeable {
 
     // Keep these public so we can ask users to experiment with these values if needed.
     // Should be locked down as soon as possible.
-    public static long[] INCREMENTAL_BACKOFF_MS = new long[] {1, 3, 10, 20}; // Will keep re-using last value until LIMIT is hit
-    public static long INCREMENTAL_BACKOFF_LIMIT_MS = 1000;
+    public static long[] INCREMENTAL_BACKOFF_MS = new long[] {1, 10, 20, 50, 100, 200, 400}; // Will keep re-using last value until LIMIT is hit
+    public static long INCREMENTAL_BACKOFF_LIMIT_MS = 3000;
 
     public static final boolean IMPLICIT_TRANSACTION = true;
     public static final boolean EXPLICIT_TRANSACTION = false;
