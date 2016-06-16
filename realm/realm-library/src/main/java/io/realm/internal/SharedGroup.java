@@ -114,7 +114,7 @@ public class SharedGroup implements Closeable {
     }
 
     // Returns the time to sleep before retrying opening the SharedGroup.
-    private long getSleepTime(int tries) {
+    private static long getSleepTime(int tries) {
         if (INCREMENTAL_BACKOFF_MS == null) {
             return 0;
         } else {

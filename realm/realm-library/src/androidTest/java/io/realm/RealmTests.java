@@ -3348,8 +3348,8 @@ public class RealmTests {
             // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
             DynamicRealm.getInstance(realm.getConfiguration());
             fail();
-        } catch (RealmError e) {
-            assertTrue(e.getMessage().contains("Info size doesn't match"));
+        } catch (RealmError expected) {
+            assertTrue(expected.getMessage().contains("Info size doesn't match"));
         } finally {
             lockFile.delete();
         }

@@ -9,7 +9,7 @@
 * Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
 * Fixed a race condition between Realms notifications and other UI events. This could e.g. cause ListView to crash (#2990).
 * Fixed a bug that allowed both `RealmConfiguration.Builder.assetFile()`/`deleteRealmIfMigrationNeeded()` to be configured at the same time, which leads to the asset file accidentally being deleted in migrations (#2933).
-* In case of two processes opening the same Realm file, Realm will now optimistically retry opening for 1 second before throwing an Error. Previously it crashed outright (#2459).
+* Realm crashed outright when the same Realm file was opened in two processes. Realm will now optimistically retry opening for 1 second before throwing an Error (#2459).
 
 ### Enhancements
 
