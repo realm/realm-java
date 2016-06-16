@@ -91,10 +91,15 @@ public class SharedGroup implements Closeable {
         long start = System.nanoTime();
         RuntimeException lastError = null;
         while (TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) < INCREMENTAL_BACKOFF_LIMIT_MS) {
-            i++;
             try {
-                return createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
+                long nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
+                if (i > 0) {
+                    RealmLog.w("IncompatibleLockFile was detected. Error was resolved after " + i + " retries");
+                }
+                return nativePtr;
+
             } catch (IncompatibleLockFileException e) {
+                i++;
                 lastError = e;
                 try {
                     Thread.sleep(getSleepTime(i));
