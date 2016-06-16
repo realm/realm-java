@@ -88,7 +88,7 @@ public class SharedGroup implements Closeable {
         // happens we assume the overlap is really small so instead of failing outright we retry using incremental
         // backoff.
         int i = 0;
-        long start = System.nanoTime();
+        final long start = System.nanoTime();
         RuntimeException lastError = null;
         while (TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) < INCREMENTAL_BACKOFF_LIMIT_MS) {
             try {
@@ -97,7 +97,6 @@ public class SharedGroup implements Closeable {
                     RealmLog.w("IncompatibleLockFile was detected. Error was resolved after " + i + " retries");
                 }
                 return nativePtr;
-
             } catch (IncompatibleLockFileException e) {
                 i++;
                 lastError = e;
