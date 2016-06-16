@@ -20,13 +20,13 @@
 
 using namespace realm;
 
-jclass GetClassMixed(JNIEnv* env)
+static jclass GetClassMixed(JNIEnv* env)
 {
     static jclass jMixedClass = GetClass(env, "io/realm/internal/Mixed");
     return jMixedClass;
 }
 
-jmethodID GetMixedMethodID(JNIEnv* env, const char* methodStr, const char* typeStr)
+static jmethodID GetMixedMethodID(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
     jclass myClass = GetClassMixed(env);
     if (myClass == NULL)

@@ -7,20 +7,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef io_realm_internal_Table_TABLE_MAX_LENGTH
+#define io_realm_internal_Table_TABLE_MAX_LENGTH 56L
 #undef io_realm_internal_Table_INFINITE
 #define io_realm_internal_Table_INFINITE -1LL
 #undef io_realm_internal_Table_INTEGER_DEFAULT_VALUE
 #define io_realm_internal_Table_INTEGER_DEFAULT_VALUE 0LL
+#undef io_realm_internal_Table_NULLABLE
+#define io_realm_internal_Table_NULLABLE 1L
+#undef io_realm_internal_Table_NOT_NULLABLE
+#define io_realm_internal_Table_NOT_NULLABLE 0L
 #undef io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX
 #define io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
 #undef io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX
 #define io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX 1LL
 #undef io_realm_internal_Table_NO_PRIMARY_KEY
 #define io_realm_internal_Table_NO_PRIMARY_KEY -2LL
-#undef io_realm_internal_Table_NULLABLE
-#define io_realm_internal_Table_NULLABLE 1L
-#undef io_realm_internal_Table_NOT_NULLABLE
-#define io_realm_internal_Table_NOT_NULLABLE 0L
+#undef io_realm_internal_Table_DEBUG
+#define io_realm_internal_Table_DEBUG 0L
 /*
  * Class:     io_realm_internal_Table
  * Method:    createNative
@@ -71,19 +75,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeRemoveColumn
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeRenameColumn
  * Signature: (JJLjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
   (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeRemoveColumn
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -399,19 +403,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeSetByteArray
- * Signature: (JJJ[B)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeSetNull
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull
   (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeSetByteArray
+ * Signature: (JJJ[B)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
 
 /*
  * Class:     io_realm_internal_Table
@@ -688,7 +692,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeFindFirstNull
- * Signature: (J)J
+ * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull
   (JNIEnv *, jobject, jlong, jlong);
@@ -808,11 +812,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeVersion
- * Signature: (JJ)Z
+ * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
-        JNIEnv*, jobject, jlong);
-
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

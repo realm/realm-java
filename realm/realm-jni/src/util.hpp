@@ -72,7 +72,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
     catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), \
                 std::string(e.what()) + " path: " + e.get_path()); \
-    }
+    } \
+    catch (realm::IncompatibleLockFile& e) { \
+        ThrowException(env, LockFileError, std::string(e.what())); \
+    } \
+
+
 
 #define CATCH_STD() \
     catch (...) { \
@@ -125,7 +130,8 @@ enum ExceptionKind {
     RuntimeError = 12,
     RowInvalid = 13,
     CrossTableLink = 15,
-    BadVersion = 16
+    BadVersion = 16,
+    LockFileError = 17
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
