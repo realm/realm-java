@@ -173,6 +173,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, BadVersion, "parm1", "parm2");
             break;
+        case InvalidDb:
+            expect = "io.realm.exceptions.RealmInvalidDatabaseException: parm1";
+            if (dotest)
+                ThrowException(env, InvalidDb, "parm1");
+            break;
 
     }
     if (dotest) {

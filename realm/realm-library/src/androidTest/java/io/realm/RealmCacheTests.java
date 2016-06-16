@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmInvalidDatabaseException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -105,7 +106,7 @@ public class RealmCacheTests {
         realm.close();
         try {
             Realm.getInstance(configB); // Try to open with key 2
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmInvalidDatabaseException ignored) {
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
@@ -152,7 +153,7 @@ public class RealmCacheTests {
         try {
             Realm.getInstance(wrongConfig);
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmInvalidDatabaseException ignored) {
         }
 
         // Try again with proper key

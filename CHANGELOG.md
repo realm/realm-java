@@ -1,5 +1,9 @@
 ## 1.1.0
 
+### Breaking changes
+
+* A `RealmInvalidDatabaseException` is thrown instead of `IllegalStateException` when opening a corrupted Realm file, a non-Realm file, a Realm file created by newer version of Realm, or an encrypted Realm file with a wrong key.
+
 ### Enhancements
 
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).

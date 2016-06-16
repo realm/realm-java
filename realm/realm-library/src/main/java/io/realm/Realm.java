@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.os.Build;
 import android.os.Looper;
 import android.util.JsonReader;
@@ -43,6 +42,7 @@ import java.util.concurrent.Future;
 
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmInvalidDatabaseException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
@@ -50,7 +50,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -167,6 +166,8 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      *         RealmObject classes or version has has changed so a migration is required.
+     * @throws RealmInvalidDatabaseException if the existing Realm file is corrupted, a non-Realm file, a Realm file
+     *         created by a newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
@@ -185,6 +186,8 @@ public final class Realm extends BaseRealm {
      *         classes or version has has changed so a migration is required.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
+     * @throws RealmInvalidDatabaseException if the existing Realm file is corrupted, a non-Realm file, a Realm file
+     *         created by a newer version of Realm, or a wrong key is supplied to open an encrypted Realm file.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
