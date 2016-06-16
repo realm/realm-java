@@ -32,7 +32,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_String_2I(
-    JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray keyArray)
+    JNIEnv* env, jobject, jstring jFileName, jint mode)
 {
     TR_ENTER()
 
@@ -52,12 +52,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
             return 0;
         }
 
-        KeyBuffer key(env, keyArray);
-#ifdef REALM_ENABLE_ENCRYPTION
-        pGroup = new Group(file_name, key.data(), openmode);
-#else
         pGroup = new Group(file_name, NULL, openmode);
-#endif
 
         TR("group: %p", VOID_PTR(pGroup))
         return reinterpret_cast<jlong>(pGroup);
@@ -241,26 +236,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Group_nativeWriteToMem(
     return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Group_nativeWriteToByteBuffer(
-    JNIEnv* env, jobject, jlong nativeGroupPtr)
-{
-    TR_ENTER_PTR(nativeGroupPtr)
-    BinaryData buffer;
-    try {
-        buffer = G(nativeGroupPtr)->write_to_mem();
-        if (util::int_less_than_or_equal(buffer.size(), MAX_JLONG)) {
-            return env->NewDirectByteBuffer(const_cast<char*>(buffer.data()), static_cast<jlong>(buffer.size()));
-            // Data is now owned by the Java DirectByteBuffer - so we must not free it.
-        }
-        else {
-            ThrowException(env, IndexOutOfBounds, "Group too big to write.");
-            return NULL;
-        }
-    }
-    CATCH_STD()
-    return NULL;
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeCommit(
     JNIEnv*, jobject, jlong nativeGroupPtr)
 {
@@ -298,17 +273,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToString(
         return to_jstring(env, str);
     } CATCH_STD()
     return 0;
-}
-
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeEquals(
-    JNIEnv* env, jobject, jlong nativeGroupPtr, jlong nativeGroupToComparePtr)
-{
-    Group* grp = G(nativeGroupPtr);
-    Group* grpToCompare = G(nativeGroupToComparePtr);
-    try {
-        return (*grp == *grpToCompare);
-    } CATCH_STD()
-    return false;
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeIsEmpty(
