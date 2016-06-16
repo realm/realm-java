@@ -366,6 +366,7 @@ public final class RealmConfiguration {
          *
          * @param folder the folder to save Realm file in. Folder must be writable.
          * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
+         * @deprecated Please use {@link #Builder(Context, File)} instead.
          */
         @Deprecated
         public Builder(File folder) {
