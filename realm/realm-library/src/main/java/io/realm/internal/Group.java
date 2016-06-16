@@ -281,7 +281,6 @@ public class Group implements Closeable {
     protected native boolean nativeHasTable(long nativeGroupPtr, String name);
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray) throws IOException;
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
-    protected native long nativeLoadFromMem(byte[] buffer);
     protected native byte[] nativeWriteToMem(long nativeGroupPtr);
     protected native String nativeToJson(long nativeGroupPtr);
     protected native void nativeCommit(long nativeGroupPtr);

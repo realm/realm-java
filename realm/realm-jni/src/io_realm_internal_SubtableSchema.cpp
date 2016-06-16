@@ -20,7 +20,7 @@
 using namespace realm;
 using namespace std;
 
-void arrayToVector(JNIEnv* env, jlongArray path, vector<size_t>& nativePath)
+static void arrayToVector(JNIEnv* env, jlongArray path, vector<size_t>& nativePath)
 {
     jsize size = env->GetArrayLength(path);
     nativePath.reserve(size+1);
