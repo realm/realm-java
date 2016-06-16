@@ -686,7 +686,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("Long %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -694,10 +694,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("java.lang.Integer".equals(fieldType)) {
             writer
-                    .emitStatement("Integer %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("Integer %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -705,10 +705,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("java.lang.Short".equals(fieldType)) {
             writer
-                    .emitStatement("Short %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("Short %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -716,10 +716,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("java.lang.Byte".equals(fieldType)) {
             writer
-                    .emitStatement("Byte %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("Byte %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -730,10 +730,10 @@ public class RealmProxyClassGenerator {
 
         } else if("java.lang.Double".equals(fieldType)) {
             writer
-                    .emitStatement("Double %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("Double %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -744,10 +744,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("java.lang.Float".equals(fieldType)) {
             writer
-                    .emitStatement("Float %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("Float %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -761,7 +761,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("Boolean %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -769,10 +769,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("byte[]".equals(fieldType)) {
             writer
-                    .emitStatement("byte[] %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("byte[] %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -781,10 +781,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("java.util.Date".equals(fieldType)) {
             writer
-                    .emitStatement("java.util.Date %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("java.util.Date %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.getTime())", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -792,10 +792,10 @@ public class RealmProxyClassGenerator {
 
         } else if ("java.lang.String".equals(fieldType)) {
             writer
-                    .emitStatement("String %s =  ((%s)object).%s()", getter, interfaceName, getter)
+                    .emitStatement("String %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
                     .emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
-                    if(isUpdate) {
+                    if (isUpdate) {
                         writer.nextControlFlow("else")
                                 .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
                     }
@@ -881,7 +881,7 @@ public class RealmProxyClassGenerator {
                 , columnInfoClassName(), columnInfoClassName(), className);
         writer.emitStatement("%s object = null", className);
 
-        writer.beginControlFlow("while(objects.hasNext())");
+        writer.beginControlFlow("while (objects.hasNext())");
         writer.emitStatement("object = (%s) objects.next()", className);
 
         writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
@@ -1073,7 +1073,7 @@ public class RealmProxyClassGenerator {
         }
         writer.emitStatement("%s object = null", className);
 
-        writer.beginControlFlow("while(objects.hasNext())");
+        writer.beginControlFlow("while (objects.hasNext())");
         writer.emitStatement("object = (%s) objects.next()", className);
 
         if (hasPrimaryKey) {
