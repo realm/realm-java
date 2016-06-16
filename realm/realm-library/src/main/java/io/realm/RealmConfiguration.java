@@ -381,7 +381,7 @@ public final class RealmConfiguration {
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
-         * @param context an Android context.
+         * @param context the Android application context.
          */
         public Builder(Context context) {
             if (context == null) {
@@ -396,7 +396,7 @@ public final class RealmConfiguration {
          * <p>
          * The Realm file will be saved in the provided folder, and it might require additional permissions.
          *
-         * @param context the Android context.
+         * @param context the Android application context.
          * @param folder the folder to save Realm file in. Folder must be writable.
          * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
          */
