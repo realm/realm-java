@@ -366,7 +366,9 @@ public final class RealmConfiguration {
          *
          * @param folder the folder to save Realm file in. Folder must be writable.
          * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
+         * @deprecated Please use {@link #Builder(Context, File)} instead.
          */
+        @Deprecated
         public Builder(File folder) {
             RealmCore.loadLibrary();
             initializeBuilder(folder);
@@ -379,7 +381,7 @@ public final class RealmConfiguration {
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
          *
-         * @param context an Android context.
+         * @param context the Android application context.
          */
         public Builder(Context context) {
             if (context == null) {
@@ -387,6 +389,23 @@ public final class RealmConfiguration {
             }
             RealmCore.loadLibrary(context);
             initializeBuilder(context.getFilesDir());
+        }
+
+        /**
+         * Creates an instance of the Builder for the RealmConfiguration.
+         * <p>
+         * The Realm file will be saved in the provided folder, and it might require additional permissions.
+         *
+         * @param context the Android application context.
+         * @param folder the folder to save Realm file in. Folder must be writable.
+         * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
+         */
+        public Builder(Context context, File folder) {
+            if (context == null) {
+                throw new IllegalArgumentException("A non-null Context must be provided");
+            }
+            RealmCore.loadLibrary(context);
+            initializeBuilder(folder);
         }
 
         // Setup builder in its initial state
