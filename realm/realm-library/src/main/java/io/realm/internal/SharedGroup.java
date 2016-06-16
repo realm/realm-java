@@ -87,30 +87,25 @@ public class SharedGroup implements Closeable {
         // compatible across two versions of Android. See https://github.com/realm/realm-java/issues/2459. If this
         // happens we assume the overlap is really small so instead of failing outright we retry using incremental
         // backoff.
-        long nativePtr = -1;
         int i = 0;
         long start = System.nanoTime();
-        Exception lastError = null;
-        while (nativePtr < 0 && TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) < INCREMENTAL_BACKOFF_LIMIT_MS) {
+        RuntimeException lastError = null;
+        while (TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) < INCREMENTAL_BACKOFF_LIMIT_MS) {
             i++;
             try {
-                nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
+                return createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
             } catch (IncompatibleLockFileException e) {
                 lastError = e;
                 try {
                     Thread.sleep(getSleepTime(i));
                     RealmLog.d("Waiting for another process to release the Realm file: " + path);
-                } catch (InterruptedException e1) {
-                    RealmLog.d("Waiting for Realm to open interrupted.", e1);
+                } catch (InterruptedException ignored) {
+                    RealmLog.d("Waiting for Realm to open interrupted: " + path);
                 }
             }
         }
 
-        if (nativePtr == -1) {
-            throw new RealmError("Failed to open the Realm. " + lastError.getMessage());
-        }
-
-        return nativePtr;
+        throw new RealmError("Could not open the Realm file: " + lastError.getMessage());
     }
 
     // Returns the time to sleep before retrying opening the SharedGroup.

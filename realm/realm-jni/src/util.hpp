@@ -74,8 +74,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
                 std::string(e.what()) + " path: " + e.get_path()); \
     } \
     catch (realm::IncompatibleLockFile& e) { \
-        ThrowException(env, LockFileError, string(fileName), \
-                std::string(e.what())); \
+        ThrowException(env, LockFileError, std::string(e.what())); \
     } \
 
 

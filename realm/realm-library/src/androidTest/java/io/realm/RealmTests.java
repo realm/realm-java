@@ -85,7 +85,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.IncompatibleLockFileException;
+import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
@@ -3345,12 +3345,12 @@ public class RealmTests {
         fooStream.close();
 
         try {
-            DynamicRealm.getInstance(realmConfig);
+            // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
+            DynamicRealm.getInstance(realm.getConfiguration());
             fail();
-        } catch (IncompatibleLockFileException ignored) {
-
+        } catch (RealmError e) {
+            assertTrue(e.getMessage().contains("Info size doesn't match"));
         } finally {
-            realm.close();
             lockFile.delete();
         }
     }
