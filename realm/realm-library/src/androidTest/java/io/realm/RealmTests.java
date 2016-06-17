@@ -89,6 +89,7 @@ import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -3009,6 +3010,51 @@ public class RealmTests {
         assertEquals(0, realm.where(Owner.class).count());
         assertEquals(0, realm.where(Cat.class).count());
         assertTrue(realm.isEmpty());
+    }
+
+
+    private void doClearTables(final Table[] tables) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Cat cat = realm.createObject(Cat.class);
+                RealmList<Dog> dogs = new RealmList<Dog>();
+                dogs.add(realm.createObject(Dog.class));
+                Owner owner = realm.createObject(Owner.class);
+                owner.setCat(cat);
+                owner.setDogs(dogs);
+            }
+        });
+
+        assertEquals(1, realm.where(Owner.class).count());
+        assertEquals(1, realm.where(Cat.class).count());
+        assertEquals(1, realm.where(Dog.class).count());
+        assertNotNull(realm.where(Owner.class).findFirst().getCat());
+        assertEquals(1, realm.where(Owner.class).findFirst().getDogs().size());
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                for (Table table : tables) {
+                    table.clear();
+                }
+            }
+        });
+
+        assertEquals(0, realm.where(Owner.class).count());
+        assertEquals(0, realm.where(Cat.class).count());
+        assertEquals(0, realm.where(Dog.class).count());
+        assertTrue((realm.isEmpty()));
+    }
+
+    @Test
+    public void clearTables() {
+        doClearTables(new Table[]{realm.getTable(Owner.class), realm.getTable(Cat.class), realm.getTable(Dog.class)});
+        doClearTables(new Table[]{realm.getTable(Owner.class), realm.getTable(Dog.class), realm.getTable(Cat.class)});
+        doClearTables(new Table[]{realm.getTable(Cat.class), realm.getTable(Owner.class), realm.getTable(Dog.class)});
+        doClearTables(new Table[]{realm.getTable(Cat.class), realm.getTable(Dog.class), realm.getTable(Owner.class)});
+        doClearTables(new Table[]{realm.getTable(Dog.class), realm.getTable(Cat.class), realm.getTable(Owner.class)});
+        doClearTables(new Table[]{realm.getTable(Dog.class), realm.getTable(Owner.class), realm.getTable(Cat.class)});
     }
 
     @Test
