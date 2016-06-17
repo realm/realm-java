@@ -42,6 +42,16 @@
         <Field name="minDepth" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+    <Match>
+        <Class name="io.realm.internal.SharedGroup" />
+        <Field name="INCREMENTAL_BACKOFF_MS" />
+        <Bug pattern="MS_FINAL_PKGPROTECT" />
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.SharedGroup" />
+        <Field name="INCREMENTAL_BACKOFF_LIMIT_MS" />
+        <Bug pattern="MS_SHOULD_BE_FINAL" />
+    </Match>
 
     <!-- Unit tests -->
     <Match>

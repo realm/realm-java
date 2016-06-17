@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,17 @@ package io.realm.exceptions;
 import io.realm.internal.Keep;
 
 /**
- * Class for reporting problems with Realm files.
+ * Triggered from the JNI level when there was something wrong with the lock file.
+ * This can happen if two different versions of Realm tries to access the same file concurrently.
  */
 @Keep
-public class RealmIOException extends RuntimeException {
+public class IncompatibleLockFileException extends RealmIOException {
 
-    public RealmIOException(Throwable cause) {
-        super(cause);
+    public IncompatibleLockFileException(String detailMessage) {
+        super(detailMessage);
     }
 
-    public RealmIOException() {
+    public IncompatibleLockFileException(String detailMessage, Throwable exception) {
+        super(detailMessage, exception);
     }
-
-    public RealmIOException(String message) {
-        super(message);
-    }
-
-    public RealmIOException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }
