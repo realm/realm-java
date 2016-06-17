@@ -35,6 +35,8 @@
             def buildEnv = docker.build 'realm-java:snapshot'
             buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle") {
                 stage 'JVM tests'
+                // Start ADB daemon before Gradle runs. Tries to prevent Gradle because it could not find devices.
+                sh 'adb devices' 
                 try {
                     gradle 'assemble check javadoc'
                 } finally {
