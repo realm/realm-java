@@ -32,6 +32,7 @@ import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
@@ -69,7 +70,8 @@ class PluginTest {
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
 
         assertTrue(containsTransform(project.android.transforms, RealmTransformer.class))
-        assertTrue(containsTransform(project.android.transforms, RealmOptionalAPITransformer.class))
+        // Disabled because of https://github.com/realm/realm-java/issues/3022
+        assertFalse(containsTransform(project.android.transforms, RealmOptionalAPITransformer.class))
     }
 
     @Test

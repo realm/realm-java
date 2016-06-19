@@ -9,6 +9,12 @@
 
 * `RealmConfiguration.Builder(File)`. Use `RealmConfiguration.Builder(Context, File)` instead.
 
+## 1.0.2
+
+### Bug fixes
+
+* Disabled the optional API transformer since it has problems with DexGuard (3022).
+
 ## 1.0.1
 
 ### Bug fixes
