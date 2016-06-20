@@ -36,7 +36,7 @@ import java.util.concurrent.Future;
 import io.realm.internal.IdentitySet;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedGroup;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
@@ -439,7 +439,7 @@ final class HandlerController implements Handler.Callback {
                 RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] realm:"+ HandlerController.this + " RealmResults GC'd ignore results");
 
             } else {
-                SharedGroup.VersionID callerVersionID = realm.sharedRealm.getVersionID();
+                SharedRealm.VersionID callerVersionID = realm.sharedRealm.getVersionID();
                 int compare = callerVersionID.compareTo(result.versionID);
                 if (compare == 0) {
                     // if the RealmResults is empty (has not completed yet) then use the value
@@ -497,7 +497,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void completedAsyncQueriesUpdate(QueryUpdateTask.Result result) {
-        SharedGroup.VersionID callerVersionID = realm.sharedRealm.getVersionID();
+        SharedRealm.VersionID callerVersionID = realm.sharedRealm.getVersionID();
         int compare = callerVersionID.compareTo(result.versionID);
         if (compare > 0) {
             // if the caller thread is more advanced than the worker thread, it means it did a local commit.
@@ -564,7 +564,7 @@ final class HandlerController implements Handler.Callback {
             RealmObjectProxy proxy = realmObjectWeakReference.get();
 
             if (proxy != null) {
-                SharedGroup.VersionID callerVersionID = realm.sharedRealm.getVersionID();
+                SharedRealm.VersionID callerVersionID = realm.sharedRealm.getVersionID();
                 int compare = callerVersionID.compareTo(result.versionID);
                 // we always query on the same version
                 // only two use cases could happen 1. we're on the same version or 2. the caller has advanced in the meanwhile

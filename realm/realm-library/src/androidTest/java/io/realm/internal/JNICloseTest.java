@@ -30,49 +30,6 @@ import io.realm.TestHelper;
 
 public class JNICloseTest extends AndroidTestCase {
 
-    public void testCloseable() {
-
-        String testFile = new File(
-                this.getContext().getFilesDir(),
-                "closeableTest.realm").toString();
-        File f = new File(testFile);
-        if (f.exists()) {
-            boolean result = f.delete();
-            if (!result) {
-                fail();
-            }
-        }
-
-        List<Closeable> resources = new ArrayList<Closeable>();
-
-        SharedGroup sg = new SharedGroup(testFile);
-        resources.add(sg);
-
-        WriteTransaction wt = sg.beginWrite();
-        resources.add(wt);
-        try {
-            Table t = wt.getTable("test");
-            resources.add(t);
-            t.addColumn(RealmFieldType.STRING, "StringColumn");
-
-            t.add("abc");
-            t.add("cba");
-
-            wt.commit();
-
-        } catch(Throwable t) {
-            wt.rollback();
-        } finally {
-            for (Closeable c : resources) {
-                try {
-                    c.close();
-                } catch(java.io.IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     public void testShouldCloseTable() throws Throwable {
         Table table = new Table();
         table.close();
@@ -143,45 +100,4 @@ public class JNICloseTest extends AndroidTestCase {
 
         // TODO - add all methods from view
     }
-
-// TODO: this test is crashing
-/*    public void testShouldThrowWhenAccessingViewAfterTableIsDetached() {
-        final String testFile = "closetest.realm";
-        SharedGroup db;
-        File f = new File(this.getContext().getFilesDir(), testFile);
-        if (f.exists()) {
-            boolean result = f.delete();
-            if (!result) {
-                fail("Could not delete test file");
-            }
-        }
-        db = new SharedGroup(f.toString());
-
-        WriteTransaction trans = db.beginWrite();
-        Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(RealmFieldType.STRING, "name");
-        tbl.addColumn(RealmFieldType.INTEGER, "number");
-        TableView view = tbl.where().findAll();
-
-        trans.commit();
-
-        //methods below should throw exception, as table is invalid after commit
-        try { view.size();                       fail(); } catch (IllegalStateException e){}
-        try { view.getBinaryByteArray(0, 0);     fail(); } catch (IllegalStateException e){}
-        try { view.getBoolean(1, 0);             fail(); } catch (IllegalStateException e){}
-        try { view.getDate(2, 0);                fail(); } catch (IllegalStateException e){}
-        try { view.getDouble(3, 0);              fail(); } catch (IllegalStateException e){}
-        try { view.getFloat(4, 0);               fail(); } catch (IllegalStateException e){}
-        try { view.getLong(5, 0);                fail(); } catch (IllegalStateException e){}
-        try { view.getMixed(6, 0);               fail(); } catch (IllegalStateException e){}
-        try { view.getString(7, 0);              fail(); } catch (IllegalStateException e){}
-        // TODO: Add more methods
-
-        db.close();
-        boolean result = f.delete();
-        if (!result) {
-            fail("Could not delete test file");
-        }
-    }*/
-
 }

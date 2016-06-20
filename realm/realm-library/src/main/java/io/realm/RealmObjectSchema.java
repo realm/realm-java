@@ -17,8 +17,6 @@
 package io.realm;
 
 import io.realm.annotations.Required;
-import io.realm.internal.ImplicitTransaction;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
@@ -69,7 +67,6 @@ public final class RealmObjectSchema {
 
     private final BaseRealm realm;
     final Table table;
-    //private final ImplicitTransaction transaction;
     private final Map<String, Long> columnIndices;
 
     /**

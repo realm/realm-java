@@ -137,10 +137,6 @@ public class Context {
         Group.nativeClose(nativePointer);
     }
 
-    public void asyncDisposeSharedGroup(long nativePointer) {
-        SharedGroup.nativeClose(nativePointer);
-    }
-
     public void asyncDisposeSharedRealm(long nativePointer) {
         SharedRealm.nativeCloseSharedRealm(nativePointer);
     }

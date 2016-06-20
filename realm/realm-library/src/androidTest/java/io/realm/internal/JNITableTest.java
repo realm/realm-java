@@ -21,6 +21,8 @@ import android.test.AndroidTestCase;
 import java.io.File;
 import java.util.Date;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.TestHelper;
@@ -261,64 +263,23 @@ public class JNITableTest extends AndroidTestCase {
         try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException ignored) { }
     }
 
-    public void testImmutableInsertNotAllowed() {
-
-        String FILENAME = new File(this.getContext().getFilesDir(), "only-test-file.realm").toString();
-        String TABLENAME = "tableName";
-
-        new File(FILENAME).delete();
-        new File(FILENAME+".lock").delete();
-        SharedGroup group = new SharedGroup(FILENAME);
-
-        // Write transaction must be run so we are sure a db exists with the correct table
-        WriteTransaction wt = group.beginWrite();
-        try {
-            Table table = wt.getTable(TABLENAME);
-            table.addColumn(RealmFieldType.STRING, "col0");
-            table.add("value0");
-            table.add("value1");
-            table.add("value2");
-
-            wt.commit();
-        } catch (Throwable t) {
-            wt.rollback();
-        }
-
-        ReadTransaction rt = group.beginRead();
-        try {
-            Table table = rt.getTable(TABLENAME);
-
-            try {
-                table.addEmptyRow();
-                fail("Exception expected when inserting in read transaction");
-            } catch (IllegalStateException ignored) {
-            }
-
-        } finally {
-            rt.endRead();
-        }
-    }
 
     public void testGetName() {
-        String FILENAME = new File(this.getContext().getFilesDir(), "only-test-file.realm").toString();
-        String TABLENAME = "tableName";
+        String TABLE_NAME = "tableName";
+        RealmConfiguration configuration = new RealmConfiguration.Builder(getContext())
+                .name("only-test-file.realm")
+                .build();
+        Realm.deleteRealm(configuration);
 
-        new File(FILENAME).delete();
-        new File(FILENAME+".lock").delete();
-        SharedGroup group = new SharedGroup(FILENAME);
+        SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
 
         // Write transaction must be run so we are sure a db exists with the correct table
-        WriteTransaction wt = group.beginWrite();
-        try {
-            wt.getTable(TABLENAME);
-            wt.commit();
-        } catch (Throwable t) {
-            wt.rollback();
-        }
+        sharedRealm.beginTransaction();
+        sharedRealm.getTable(TABLE_NAME);
+        sharedRealm.commitTransaction();
 
-        ReadTransaction rt = group.beginRead();
-        Table table = rt.getTable(TABLENAME);
-        assertEquals(TABLENAME, table.getName());
+        Table table = sharedRealm.getTable(TABLE_NAME);
+        assertEquals(TABLE_NAME, table.getName());
     }
 
     public void testShouldThrowWhenSetIndexOnWrongRealmFieldType() {

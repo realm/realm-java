@@ -27,7 +27,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.SharedGroup;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
@@ -68,31 +68,28 @@ public class QueryUpdateTask implements Runnable {
 
     @Override
     public void run() {
-        SharedGroup sharedGroup = null;
+        SharedRealm sharedRealm = null;
         try {
-            sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                    SharedGroup.IMPLICIT_TRANSACTION,
-                    realmConfiguration.getDurability(),
-                    realmConfiguration.getEncryptionKey());
+            sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
             Result result;
             boolean updateSuccessful;
             if (updateMode == MODE_UPDATE_REALM_RESULTS) {
                 result = Result.newRealmResultsResponse();
                 AlignedQueriesParameters alignedParameters = prepareQueriesParameters();
-                long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedGroup.getNativePointer(),
+                long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedRealm.getSharedGroupNative(),
                         alignedParameters.handoverQueries,
                         alignedParameters.queriesParameters,
                         alignedParameters.multiSortColumnIndices,
                         alignedParameters.multiSortOrder);
                 swapPointers(result, handoverTableViewPointer);
                 updateSuccessful = true;
-                result.versionID = sharedGroup.getVersion();
+                result.versionID = sharedRealm.getVersionID();
 
             } else {
                 result = Result.newRealmObjectResponse();
-                updateSuccessful = updateRealmObjectQuery(sharedGroup, result);
-                result.versionID = sharedGroup.getVersion();
+                updateSuccessful = updateRealmObjectQuery(sharedRealm, result);
+                result.versionID = sharedRealm.getVersionID();
             }
 
             Handler handler = callerHandler.get();
@@ -104,8 +101,8 @@ public class QueryUpdateTask implements Runnable {
             RealmLog.e(e.getMessage(), e);
 
         } finally {
-            if (sharedGroup != null) {
-                sharedGroup.close();
+            if (sharedRealm != null) {
+                sharedRealm.close();
             }
         }
     }
@@ -174,12 +171,12 @@ public class QueryUpdateTask implements Runnable {
         }
     }
 
-    private boolean updateRealmObjectQuery(SharedGroup sharedGroup, Result result) {
+    private boolean updateRealmObjectQuery(SharedRealm sharedRealm, Result result) {
         if (!isTaskCancelled()) {
             switch (realmObjectEntry.queryArguments.type) {
                 case ArgumentsHolder.TYPE_FIND_FIRST: {
                     long handoverRowPointer = TableQuery.
-                            nativeFindWithHandover(sharedGroup.getNativePointer(),
+                            nativeFindWithHandover(sharedRealm.getSharedGroupNative(),
                                     realmObjectEntry.handoverQueryPointer, 0);
                     result.updatedRow.put(realmObjectEntry.element, handoverRowPointer);
                     break;
@@ -207,7 +204,7 @@ public class QueryUpdateTask implements Runnable {
     public static class Result {
         public IdentityHashMap<WeakReference<RealmResults<? extends RealmModel>>, Long> updatedTableViews;
         public IdentityHashMap<WeakReference<RealmObjectProxy>, Long> updatedRow;
-        public SharedGroup.VersionID versionID;
+        public SharedRealm.VersionID versionID;
 
         public static Result newRealmResultsResponse() {
             Result result = new Result();

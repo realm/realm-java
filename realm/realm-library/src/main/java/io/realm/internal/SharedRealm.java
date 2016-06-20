@@ -7,6 +7,65 @@ import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
 
+    public enum Durability {
+        FULL(0),
+        MEM_ONLY(1);
+        //ASYNC(2); // TODO: re-enable when possible
+
+        final int value;
+
+        Durability(int value) {
+            this.value = value;
+        }
+    }
+
+    public static class VersionID implements Comparable<VersionID> {
+        final long version;
+        final long index;
+
+        VersionID(long version, long index) {
+            this.version = version;
+            this.index = index;
+        }
+
+        @Override
+        public int compareTo(VersionID another) {
+            if (version > another.version) {
+                return 1;
+            } else if (version < another.version) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "VersionID{" +
+                    "version=" + version +
+                    ", index=" + index +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (this == object) return true;
+            if (object == null || getClass() != object.getClass()) return false;
+            if (!super.equals(object)) return false;
+
+            VersionID versionID = (VersionID) object;
+            return (version == versionID.version && index == versionID.index);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (int) (version ^ (version >>> 32));
+            result = 31 * result + (int) (index ^ (index >>> 32));
+            return result;
+        }
+    }
+
     private long nativePtr;
     private RealmConfiguration configuration;
     private Context context;
@@ -22,7 +81,7 @@ public final class SharedRealm implements Closeable {
                 config.getPath(),
                 config.getEncryptionKey(),
                 false,
-                config.getDurability() == SharedGroup.Durability.MEM_ONLY,
+                config.getDurability() == Durability.MEM_ONLY,
                 false,
                 false,
                 false);
@@ -95,13 +154,13 @@ public final class SharedRealm implements Closeable {
         nativeRefresh(nativePtr);
     }
 
-    public void refresh(SharedGroup.VersionID version) throws BadVersionException {
+    public void refresh(SharedRealm.VersionID version) throws BadVersionException {
         nativeRefresh(nativePtr, version.version, version.index);
     }
 
-    public SharedGroup.VersionID getVersionID() {
+    public SharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID (nativePtr);
-        return new SharedGroup.VersionID(versionId[0], versionId[1]);
+        return new SharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
     public boolean isClosed() {
@@ -120,7 +179,7 @@ public final class SharedRealm implements Closeable {
     protected void finalize() throws Throwable {
         synchronized (context) {
             if (nativePtr != 0) {
-                context.asyncDisposeSharedGroup(nativePtr);
+                context.asyncDisposeSharedRealm(nativePtr);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
         }
