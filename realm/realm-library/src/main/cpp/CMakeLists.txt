@@ -22,9 +22,9 @@ create_javah(TARGET jni_headers
   io.realm.internal.Version io.realm.internal.UncheckedRow io.realm.internal.TableQuery
   io.realm.internal.SharedRealm
 
-  CLASSPATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/
+  CLASSPATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
-  DEPENDS ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/
+  DEPENDS ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/
 )
 
 # TODO: Ideally the debug build should link with core's debug build. But core dbg lib has
