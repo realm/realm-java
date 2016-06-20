@@ -263,9 +263,9 @@ public class RealmCacheTests {
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         RealmCache.release(realmA);
-        assertNotNull(realmA.sharedGroupManager);
+        assertNotNull(realmA.sharedRealm);
         RealmCache.release(realmB);
-        assertNull(realmB.sharedGroupManager);
+        assertNull(realmB.sharedRealm);
         // No crash but warning in the log
         RealmCache.release(realmB);
 
@@ -275,9 +275,9 @@ public class RealmCacheTests {
         DynamicRealm dynamicRealmB = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
         RealmCache.release(dynamicRealmA);
-        assertNotNull(dynamicRealmA.sharedGroupManager);
+        assertNotNull(dynamicRealmA.sharedRealm);
         RealmCache.release(dynamicRealmB);
-        assertNull(dynamicRealmB.sharedGroupManager);
+        assertNull(dynamicRealmB.sharedRealm);
         // No crash but warning in the log
         RealmCache.release(dynamicRealmB);
 
@@ -285,8 +285,8 @@ public class RealmCacheTests {
         realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig, DynamicRealm.class);
         RealmCache.release(realmA);
-        assertNull(realmA.sharedGroupManager);
+        assertNull(realmA.sharedRealm);
         RealmCache.release(dynamicRealmA);
-        assertNull(realmA.sharedGroupManager);
+        assertNull(realmA.sharedRealm);
     }
 }

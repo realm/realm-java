@@ -31,9 +31,9 @@ import java.util.Set;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
@@ -57,15 +57,15 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction) {
+    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.createTable(clazz, transaction);
+        return mediator.createTable(clazz, sharedRealm);
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.validateTable(clazz, transaction);
+        return mediator.validateTable(clazz, sharedRealm);
     }
 
     @Override

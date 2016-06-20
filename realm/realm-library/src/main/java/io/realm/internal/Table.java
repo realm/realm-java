@@ -1138,6 +1138,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    // This checking should be moved to SharedRealm level
+    @Deprecated
     void checkImmutable() {
         if (isImmutable()) {
             throwImmutable();

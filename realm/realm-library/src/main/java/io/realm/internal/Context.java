@@ -141,6 +141,10 @@ public class Context {
         SharedGroup.nativeClose(nativePointer);
     }
 
+    public void asyncDisposeSharedRealm(long nativePointer) {
+        SharedRealm.nativeCloseSharedRealm(nativePointer);
+    }
+
     protected void finalize() throws Throwable {
         synchronized (this) {
             isFinalized = true;

@@ -150,12 +150,14 @@ public final class Realm extends BaseRealm {
 
     @Override
     protected void finalize() throws Throwable {
+        /*
         if (sharedGroupManager != null && sharedGroupManager.isOpen()) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
                             "Realm " + configuration.getPath() + " is being finalized without being closed, " +
                             "this can lead to running out of native memory."
             );
         }
+        */
         super.finalize();
     }
 
@@ -292,9 +294,11 @@ public final class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
+                    //mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
+                    mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
+                //columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
 
@@ -1269,7 +1273,8 @@ public final class Realm extends BaseRealm {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            //table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            table = sharedRealm.getTable(configuration.getSchemaMediator().getTableName(clazz));
             classToTable.put(clazz, table);
         }
         return table;

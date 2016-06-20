@@ -437,7 +437,7 @@ void Realm::notify()
     }
 }
 
-bool Realm::refresh()
+bool Realm::refresh(SharedGroup::VersionID version)
 {
     verify_thread();
     check_read_write(this);
@@ -453,7 +453,7 @@ bool Realm::refresh()
     }
 
     if (m_group) {
-        transaction::advance(*m_shared_group, m_binding_context.get());
+        transaction::advance(*m_shared_group, m_binding_context.get(), version);
         m_coordinator->process_available_async(*this);
     }
     else {

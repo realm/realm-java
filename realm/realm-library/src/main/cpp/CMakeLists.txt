@@ -20,9 +20,11 @@ create_javah(TARGET jni_headers
   io.realm.internal.CheckedRow io.realm.internal.SharedGroup io.realm.internal.Group
   io.realm.internal.SubtableSchema io.realm.internal.LinkView io.realm.internal.Util
   io.realm.internal.Version io.realm.internal.UncheckedRow io.realm.internal.TableQuery
+  io.realm.internal.SharedRealm
 
   CLASSPATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
+  DEPENDS ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/
 )
 
 # TODO: Ideally the debug build should link with core's debug build. But core dbg lib has
@@ -85,6 +87,9 @@ file(GLOB jni_SRC
 )
 file(GLOB objectstore_SRC
     "object-store/src/*.cpp"
+    "object-store/src/impl/*.cpp"
+    "object-store/src/impl/android/*.cpp"
+    "object-store/src/util/*.cpp"
 )
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC})
 add_dependencies(realm-jni jni_headers)

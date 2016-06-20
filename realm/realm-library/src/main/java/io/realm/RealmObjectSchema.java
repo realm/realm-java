@@ -18,6 +18,7 @@ package io.realm;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
@@ -68,7 +69,7 @@ public final class RealmObjectSchema {
 
     private final BaseRealm realm;
     final Table table;
-    private final ImplicitTransaction transaction;
+    //private final ImplicitTransaction transaction;
     private final Map<String, Long> columnIndices;
 
     /**
@@ -80,7 +81,6 @@ public final class RealmObjectSchema {
      */
     RealmObjectSchema(BaseRealm realm, Table table, Map<String, Long> columnIndices) {
         this.realm = realm;
-        this.transaction = realm.sharedGroupManager.getTransaction();
         this.table = table;
         this.columnIndices = columnIndices;
     }
@@ -108,10 +108,10 @@ public final class RealmObjectSchema {
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
-        if (transaction.hasTable(internalTableName)) {
+        if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
-        transaction.renameTable(table.getName(), internalTableName);
+        realm.sharedRealm.renameTable(table.getName(), internalTableName);
         return this;
     }
 
@@ -169,7 +169,7 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
@@ -184,7 +184,7 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 

@@ -1140,7 +1140,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.getSharedGroupNative());
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
@@ -1449,7 +1449,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.getSharedGroupNative());
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL);
@@ -1572,7 +1572,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.getSharedGroupNative());
 
         // we need to use the same configuration to open a background SharedGroup to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1618,11 +1618,12 @@ public final class RealmQuery<E extends RealmModel> {
                         RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
+                        /*
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
                                 weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
-
+*/
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
                             sharedGroup.close();
@@ -1735,7 +1736,7 @@ public final class RealmQuery<E extends RealmModel> {
             final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
             // Handover the query (to be used by a worker thread)
-            final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+            final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.getSharedGroupNative());
 
             // We need to use the same configuration to open a background SharedGroup to perform the query
             final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1881,7 +1882,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.getSharedGroupNative());
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_FIRST);
@@ -2039,6 +2040,6 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the exported handover pointer for this RealmQuery.
      */
     long handoverQueryPointer() {
-        return query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        return query.handoverQuery(realm.sharedRealm.getSharedGroupNative());
     }
 }

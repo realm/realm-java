@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "realm/group_shared.hpp"
 
 namespace realm {
     class BinaryData;
@@ -119,7 +120,8 @@ namespace realm {
         bool is_in_transaction() const noexcept;
         bool is_in_read_transaction() const { return !!m_group; }
 
-        bool refresh();
+        // FIXME: The param should not be needed.
+        bool refresh(SharedGroup::VersionID version = {});
         void set_auto_refresh(bool auto_refresh) { m_auto_refresh = auto_refresh; }
         bool auto_refresh() const { return m_auto_refresh; }
         void notify();
@@ -147,6 +149,11 @@ namespace realm {
 
         void init(std::shared_ptr<_impl::RealmCoordinator> coordinator);
         Realm(Config config);
+
+        // FIXME: Java still needs the SharedGroup pointers for some places.
+        //        Remove this after the final clean up.
+        SharedGroup& get_shared_group() { return *m_shared_group; }
+
 
         // Expose some internal functionality to other parts of the ObjectStore
         // without making it public to everyone

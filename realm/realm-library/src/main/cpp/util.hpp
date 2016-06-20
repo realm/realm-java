@@ -112,6 +112,8 @@ std::string num_to_string(T pNumber)
 #define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
 #define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
+#define RC(ptr) reinterpret_cast<realm::Realm::Config*>(ptr)
+#define SR(ptr) reinterpret_cast<realm::SharedRealm*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
@@ -528,6 +530,15 @@ public:
         else {
             return realm::StringData(m_data.get(), m_size);
         }
+    }
+
+    // FIXME: Replace m_data with std::string to avoid memcpy
+    operator std::string() const noexcept
+    {
+        if (m_is_null) {
+            return std::string();
+        }
+        return std::string(m_data.get(), m_size);
     }
 
 private:

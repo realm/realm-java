@@ -24,7 +24,7 @@ import io.realm.RealmFieldType;
  * Wrapper around a Row in Realm Core.
  *
  * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the annotation
- * processor and {@link RealmProxyMediator#validateTable(Class, ImplicitTransaction)} which is called before the typed
+ * processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm)} which is called before the typed
  * API can be used.
  *
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.

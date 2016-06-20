@@ -94,6 +94,13 @@ public class Group implements Closeable {
         this.immutable = immutable;
     }
 
+    // FIXME: All functions needed here should be directly implemented in SharedRealm JNI.
+    // This constructor is only for temporary usage, th
+    Group(Context context, long nativePointer) {
+        this.context = context;
+        this.nativePtr = nativePointer;
+    }
+
     // If close() is called, no penalty is paid for delayed disposal
     // via the context
     public void close() {
@@ -115,12 +122,16 @@ public class Group implements Closeable {
     }
 
     protected void finalize() {
+        // FIXME: All functions needed here should be directly implemented in SharedRealm JNI.
+        // the lifecycle of group is controlled by SharedGroup in JNI, no need to dispose
+        /*
         synchronized (context) {
             if (nativePtr != 0) {
                 context.asyncDisposeGroup(nativePtr);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
         }
+        */
     }
 
     private void verifyGroupIsValid() {
