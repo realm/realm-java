@@ -6,14 +6,6 @@
 
 using namespace realm;
 
-static std::vector<char> jbytearray_to_vector(JNIEnv *env, jbyteArray bytes) {
-    std::vector<char> v(env->GetArrayLength(bytes));
-    jbyte *ptr = env->GetByteArrayElements(bytes, NULL);
-    std::copy_n(ptr, v.size(), v.begin());
-    env->ReleaseByteArrayElements(bytes, ptr, JNI_ABORT);
-    return v;
-}
-
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig
 (JNIEnv *env, jclass, jstring realm_path, jbyteArray key, jboolean read_only, jboolean in_memory,
