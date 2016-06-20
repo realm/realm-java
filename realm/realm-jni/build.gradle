@@ -20,7 +20,7 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 // To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
 ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
 
-def commonCflags = [ '-Os', '-std=c++14' ]
+def commonCflags = [ '-Os', '-std=c++14', '-Wmissing-declarations' , '-Werror']
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
     commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -263,17 +263,9 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
             from tarTree(project.coreArchiveFile)
             into project.coreDir
         }
-        for (target in targets) {
-            exec {
-                commandLine = [
-                        'make',
-                        '-C', "${projectDir}/src",
-                        "BASE_DENOM=${target.name}",
-                        'LIB_SUFFIX_SHARED=.so',
-                        'clean'
-                ]
-            }
-        }
+	exec {
+	    commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
+	}
     }
 }
 

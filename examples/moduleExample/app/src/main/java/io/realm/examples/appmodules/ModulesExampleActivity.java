@@ -60,7 +60,7 @@ public class ModulesExampleActivity extends Activity {
         // configuration would know about the following classes: { Cow, Pig, Snake, Spider }
         RealmConfiguration defaultConfig = new RealmConfiguration.Builder(this).build();
 
-        // It is possible to extend the default schema by adding additional Realm modules using setModule(). This can
+        // It is possible to extend the default schema by adding additional Realm modules using modules(). This can
         // also be Realm modules from libraries. The below Realm contains the following classes: { Cow, Pig, Snake,
         // Spider, Cat, Dog }
         RealmConfiguration farmAnimalsConfig = new RealmConfiguration.Builder(this)

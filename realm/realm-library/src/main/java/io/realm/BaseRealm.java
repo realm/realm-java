@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -181,6 +183,7 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public abstract Observable asObservable();
 
     /**
@@ -306,8 +309,27 @@ abstract class BaseRealm implements Closeable {
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
      * <p>
-     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the Realm in the case of
-     * pending updates from other threads.
+     * Before beginning a transaction, the Realm instance is updated to the latest version in order to include all
+     * changes from other threads. This update does not trigger any registered {@link RealmChangeListener}.
+     * <p>
+     * It is therefore recommended to query for the items that should be modified from inside the transaction. Otherwise
+     * there is a risk that some of the results have been deleted or modified when the transaction begins.
+     * <p>
+     * <pre>
+     * {@code
+     * // Don't do this
+     * RealmResults<Person> persons = realm.where(Person.class).findAll();
+     * realm.beginTransaction();
+     * persons.first().setName("John");
+     * realm.commitTransaction;
+     *
+     * // Do this instead
+     * realm.beginTransaction();
+     * RealmResults<Person> persons = realm.where(Person.class).findAll();
+     * persons.first().setName("John");
+     * realm.commitTransaction;
+     * }
+     * </pre>
      * <p>
      * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
      * thrown.
@@ -357,13 +379,38 @@ abstract class BaseRealm implements Closeable {
             // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
-            if (
-                    realmPath.equals(configuration.getPath())                           // It's the right realm
-                            && !handler.hasMessages(HandlerController.REALM_CHANGED)    // The right message
-                            && handler.getLooper().getThread().isAlive()                // The receiving thread is alive
-                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                        "to prevent this.");
+            Looper looper = handler.getLooper();
+            if (realmPath.equals(configuration.getPath())  // It's the right realm
+                    && looper.getThread().isAlive()) {     // The receiving thread is alive
+
+                boolean messageHandled = true;
+                if (looper == Looper.myLooper()) {
+                    // Force any updates on the current thread to the front the queue. Doing this is mostly
+                    // relevant on the UI thread where it could otherwise process a motion event before the
+                    // REALM_CHANGED event. This could in turn cause a UI component like ListView to crash. See
+                    // https://github.com/realm/realm-android-adapters/issues/11 for such a case.
+                    // Other Looper threads could process similar events. For that reason all looper threads will
+                    // prioritize local commits.
+                    //
+                    // If a user is doing commits inside a RealmChangeListener this can cause the Looper thread to get
+                    // event starved as it only starts handling Realm events instead. This is an acceptable risk as
+                    // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
+                    // be responsive.
+                    Message msg = Message.obtain();
+                    msg.what = HandlerController.LOCAL_COMMIT;
+                    if (!handler.hasMessages(HandlerController.LOCAL_COMMIT)) {
+                        handler.removeMessages(HandlerController.REALM_CHANGED);
+                        messageHandled = handler.sendMessageAtFrontOfQueue(msg);
+                    }
+                } else {
+                    if (!handler.hasMessages(HandlerController.REALM_CHANGED)) {
+                        messageHandled = handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+                    }
+                }
+                if (!messageHandled) {
+                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                            "to prevent this.");
+                }
             }
         }
     }

@@ -257,7 +257,7 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void setModules_nonRealmModulesThrows() {
+    public void modules_nonRealmModulesThrows() {
         // Test first argument
         try {
             new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
@@ -339,6 +339,23 @@ public class RealmConfigurationTests {
                 .build();
         realm = Realm.getInstance(config);
         assertEquals(0, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void deleteRealmIfMigrationNeeded_failsWhenAssetFileProvided() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .assetFile(context, "asset_file.realm")
+                    .deleteRealmIfMigrationNeeded();
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
+                    expected.getMessage());
+        }
     }
 
     @Test
@@ -854,6 +871,23 @@ public class RealmConfigurationTests {
 
         Realm.deleteRealm(configuration);
         assertFalse(realmFile.exists());
+    }
+
+    @Test
+    public void assetFile_failsWhenDeleteRealmIfMigrationNeededConfigured() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .deleteRealmIfMigrationNeeded()
+                    .assetFile(context, "asset_file.realm");
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().",
+                    expected.getMessage());
+        }
     }
 
     private static class MigrationWithNoEquals implements RealmMigration {

@@ -69,10 +69,19 @@ task check(type:GradleBuild) {
     }
 }
 
+task integrationTestsConnectedCheck(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the integration tests of the Realm project'
+    dependsOn installTransformer
+    buildFile = file('integration-tests/build.gradle')
+    tasks = ['connectedCheck']
+}
+
 task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
+    dependsOn integrationTestsConnectedCheck
     buildFile = file('realm/build.gradle')
     tasks = ['connectedUnitTests']
     if (project.hasProperty('buildTargetABIs')) {

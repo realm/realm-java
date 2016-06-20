@@ -490,9 +490,9 @@ public final class RealmObjectSchema {
                 }
 
                 if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
-                    addIndex(fieldName);
-                    indexAdded = true;
+                    // Note : adding primary key implies application of FieldAttribute.INDEXED attribute.
                     addPrimaryKey(fieldName);
+                    indexAdded = true;
                 }
 
                 // REQUIRED is being handled when adding the column using addField through the nullable parameter.

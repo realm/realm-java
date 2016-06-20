@@ -1,13 +1,31 @@
+## 1.1.0
+
+### Enhancements
+
+* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+* Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
+
+### Deprecated
+
+* `RealmConfiguration.Builder(File)`. Use `RealmConfiguration.Builder(Context, File)` instead.
+
 ## 1.0.1
 
 ### Bug fixes
 
 * Fixed a crash when calling `Table.toString()` in debugger (#2429).
+* Fixed a race condition which would cause some `RealmResults` to not be properly updated inside a `RealmChangeListener`. This could result in crashes when accessing items from those results (#2926/#2951).
 * Revised `RealmResults.isLoaded()` description (#2895).
+* Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829/#2926).
+* Fixed a bug that prevented some devices from finding async related JNI methods correctly.
+* Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
+* Fixed a race condition between Realms notifications and other UI events. This could e.g. cause ListView to crash (#2990).
+* Fixed a bug that allowed both `RealmConfiguration.Builder.assetFile()`/`deleteRealmIfMigrationNeeded()` to be configured at the same time, which leads to the asset file accidentally being deleted in migrations (#2933).
+* Realm crashed outright when the same Realm file was opened in two processes. Realm will now optimistically retry opening for 1 second before throwing an Error (#2459).
 
 ### Enhancements
 
-* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
 
 ## 1.0.0
 
