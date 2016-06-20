@@ -38,7 +38,7 @@ public class Person extends RealmObject {
     @Ignore
     private int tempReference;
 
-    private long id;
+    public long id;
 
     // The standard getters and setters your IDE generates are fine.
     // Realm will overload them and code inside them is ignored.
@@ -82,13 +82,5 @@ public class Person extends RealmObject {
 
     public void setTempReference(int tempReference) {
         this.tempReference = tempReference;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }
