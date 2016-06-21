@@ -17,11 +17,8 @@
 #include <sstream>
 
 #include "util.hpp"
-#include "mixedutil.hpp"
 #include "io_realm_internal_Table.h"
-#include "columntypeutil.hpp"
 #include "java_lang_List_Util.hpp"
-#include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
 
 using namespace std;
@@ -514,16 +511,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
-{
-    if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
-        return;
-    try {
-        tbl_nativeDoMixed(&Table::set_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
-    } CATCH_STD()
-}
-
 // ----------------- Get cell
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLong(
@@ -603,29 +590,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(
         return NULL;
 
     return tbl_GetByteArray<Table>(env, nativeTablePtr, columnIndex, rowIndex);  // noexcept
-}
-
-JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetMixedType(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Mixed))
-        return 0;
-
-    DataType mixedType = TBL(nativeTablePtr)->get_mixed_type( S(columnIndex), S(rowIndex));  // noexcept
-    return static_cast<jint>(mixedType);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetMixed(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Mixed))
-        return NULL;
-
-    Mixed value = TBL(nativeTablePtr)->get_mixed( S(columnIndex), S(rowIndex));  // noexcept
-    try {
-        return CreateJMixedFromMixed(env, value);
-    } CATCH_STD();
-    return NULL;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink
