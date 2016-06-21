@@ -49,9 +49,7 @@ class Realm implements Plugin<Project> {
         }
 
         project.android.registerTransform(new RealmTransformer(project))
-        if (!isAndroidLib) {
-            project.android.registerTransform(new RealmOptionalAPITransformer())
-        }
+
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
