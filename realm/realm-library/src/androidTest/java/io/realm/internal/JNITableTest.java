@@ -85,7 +85,7 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string");
 
         assertEquals(-1, t.findFirstBoolean(1, false));
         // FIXME: reenable when core implements find_first_timestamp(): assertEquals(-1, t.findFirstDate(2, new Date(138442314986l)));
@@ -99,9 +99,9 @@ public class JNITableTest extends AndroidTestCase {
         final int TEST_SIZE = 10;
         Table t = TestHelper.getTableWithAllColumnTypes();
         for (int i = 0; i < TEST_SIZE; i++) {
-            t.add(new byte[]{1,2,3}, true, new Date(i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
+            t.add(new byte[]{1,2,3}, true, new Date(i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i);
         }
-        t.add(new byte[]{1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "");
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -161,11 +161,6 @@ public class JNITableTest extends AndroidTestCase {
         try { t.getString(-1, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
         try { t.getString(-10, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
         try { t.getString(9, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-
-        try { t.getSubtable(-1, 0);                 fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getSubtable(-10, 0);                fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getSubtable(9, 0);                  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-
     }
 
     public void testGetNonExistingColumn() {
