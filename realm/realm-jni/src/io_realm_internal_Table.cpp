@@ -20,11 +20,9 @@
 #include "mixedutil.hpp"
 #include "io_realm_internal_Table.h"
 #include "columntypeutil.hpp"
-#include "TableSpecUtil.hpp"
 #include "java_lang_List_Util.hpp"
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
-#include "tablequery.hpp"
 
 using namespace std;
 using namespace realm;
@@ -405,49 +403,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsRootTable
     return !TBL(nativeTablePtr)->has_shared_type();
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUpdateFromSpec(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    TR("nativeUpdateFromSpec(tblPtr %p, spec %p)", VOID_PTR(pTable), VOID_PTR(jTableSpec))
-    if (!TABLE_VALID(env, pTable))
-        return;
-    if (pTable->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "It is not allowed to update a subtable from spec.");
-        return;
-    }
-    try {
-        DescriptorRef desc = pTable->get_descriptor(); // Throws
-        set_descriptor(env, *desc, jTableSpec);
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetTableSpec(
-    JNIEnv* env, jobject, jlong nativeTablePtr)
-{
-    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
-        return 0;
-
-    TR_ENTER_PTR(nativeTablePtr)
-    static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
-    if (jTableSpecConsId) {
-        try {
-            // Create a new TableSpec object in Java
-            const Table* pTable = TBL(nativeTablePtr);
-            ConstDescriptorRef desc = pTable->get_descriptor(); // noexcept
-            jobject jTableSpec = env->NewObject(GetClassTableSpec(env), jTableSpecConsId);
-            if (jTableSpec) {
-                get_descriptor(env, *desc, jTableSpec); // Throws
-                return jTableSpec;
-            }
-        }
-        CATCH_STD()
-    }
-    return 0;
-}
-
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(
     JNIEnv* env, jobject, jlong nativeTablePtr)
 {
@@ -704,45 +659,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable(
-    JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
-        return 0;
-    try {
-        Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
-            S(columnIndex), S(rowIndex)));
-        TR("nativeGetSubtable(jTableBase:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ") : %p",
-            VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
-        return (jlong)pSubtable;
-    } CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInsert(
-    JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
-        return 0;
-    try {
-        Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
-            TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
-        TR("nativeGetSubtableDuringInsert(jTableBase:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ") : %p",
-           VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
-        return (jlong)pSubtable;
-    } CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableSize(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
-        return 0;
-
-    return TBL(nativeTablePtr)->get_subtable_size( S(columnIndex), S(rowIndex)); // noexcept
-}
-
 
 // ----------------- Set cell
 
@@ -864,16 +780,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
         return;
     try {
         pTable->set_null(S(columnIndex), S(rowIndex));
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClearSubtable(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
-        return;
-    try {
-        TBL(nativeTablePtr)->clear_subtable( S(columnIndex), S(rowIndex));
     } CATCH_STD()
 }
 
@@ -1171,8 +1077,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
     try {
-        Query query = TBL(nativeTablePtr)->where();
-        TableQuery* queryPtr = new TableQuery(query);
+        Query *queryPtr = new Query(std::move(TBL(nativeTablePtr)->where()));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;

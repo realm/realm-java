@@ -15,7 +15,6 @@
  */
 
 #include "io_realm_internal_LinkView.h"
-#include "tablequery.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -178,8 +177,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
     try {
         LinkViewRef *lv = LV(nativeLinkViewPtr);
         LinkViewRef lvr = *lv;
-        Query query = lvr->get_target_table().where(LinkViewRef(lvr));
-        TableQuery* queryPtr = new TableQuery(query);
+        Query *queryPtr = new Query(std::move(lvr->get_target_table().where(LinkViewRef(lvr))));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;
