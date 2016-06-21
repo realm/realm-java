@@ -99,9 +99,9 @@ final class HandlerController implements Handler.Callback {
     final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
             new ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object>();
 
-    // List of onSuccess callbacks from async transactions. We need to track all callbacks REALM_CHANGED events as
-    // notifying listeners might be delayed due to the presence of async queries. This can mean that multiple async
-    // transactions can complete before we are ready to notify all of them.
+    // List of onSuccess callbacks from async transactions. We need to track all callbacks as notifying listeners might
+    // be delayed due to the presence of async queries. This can mean that multiple async transactions can complete
+    // before we are ready to notify all of them.
     private final List<Runnable> pendingOnSuccessAsyncTransactionCallbacks = new ArrayList<Runnable>();
 
     public HandlerController(BaseRealm realm) {
@@ -152,13 +152,14 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * Properly handles when a async transaction completes. This will properly re-run any async queries before calling
-     * the onSuccess callback.
+     * Properly handles when a async transaction completes. This will be treated as a REALM_CHANGED event when
+     * determining which queries to re-run and when to notify listeners.
      *
-     * NOTE: A async transaction completing should be treated as a REALM_CHANGED event, expect it is not possible to mix
-     * message `what` with a callback. For that reason we need a special method for this case.
+     * NOTE: This is needed as it is not possible to combine a `Message.what` value and a callback runnable. So instead
+     * of posting two messages, we post a runnable that runs this method. This means it is possible to interpret
+     * `REALM_CHANGED + Runnable` as one atomic message.
      *
-     * @param onSuccess
+     * @param onSuccess onSuccess callback to run for the async transaction that completed.
      */
     public void handleAsyncTransactionCompleted(Runnable onSuccess) {
         if (onSuccess != null) {
@@ -783,12 +784,4 @@ final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
-    /**
-     * Notifies current that a
-     * @param runnable
-     */
-    public void sendAsyncTransactionCompleted(Runnable runnable) {
-
-
-    }
 }

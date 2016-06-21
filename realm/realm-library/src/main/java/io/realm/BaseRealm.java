@@ -350,7 +350,8 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Commits an async transaction. This will not trigger any change events. Caller is responsible for handling that.
+     * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
+     * that.
      */
     void commitAsyncTransaction(Runnable runAfterCommit) {
         commitTransaction(false, false, runAfterCommit);

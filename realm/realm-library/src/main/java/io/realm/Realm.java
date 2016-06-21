@@ -1107,7 +1107,7 @@ public final class Realm extends BaseRealm {
                             });
                         }
 
-                        // Schedule errors
+                        // Send errors directly to the looper, so they don't get intercepted by the HandlerController.
                         if (backgroundException != null) {
                             if (onError != null) {
                                 handler.post(new Runnable() {
