@@ -152,9 +152,9 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * Properly handles when a async transaction completes. This will be treated as a REALM_CHANGED event when
+     * Properly handles when an async transaction completes. This will be treated as a REALM_CHANGED event when
      * determining which queries to re-run and when to notify listeners.
-     *
+     * <p>
      * NOTE: This is needed as it is not possible to combine a `Message.what` value and a callback runnable. So instead
      * of posting two messages, we post a runnable that runs this method. This means it is possible to interpret
      * `REALM_CHANGED + Runnable` as one atomic message.
@@ -287,7 +287,8 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * This method calls all registered listeners on Realm, RealmResults and RealmObjects and async transactions.
+     * This method calls all registered listeners for Realm, RealmResults and RealmObjects, and callbacks for async
+     * transactions.
      *
      * PREREQUISITE: Only call this method after all objects are up to date. This means:
      * - `advance_read` was called on the Realm.
@@ -584,12 +585,13 @@ final class HandlerController implements Handler.Callback {
 
     /**
      * Trigger onSuccess for all completed async transaction.
+     * <p>
      * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
      */
     private void notifyAsyncTransactionCallbacks() {
         if (!pendingOnSuccessAsyncTransactionCallbacks.isEmpty()) {
             for (Runnable callback : pendingOnSuccessAsyncTransactionCallbacks) {
-                realm.handler.post(callback);
+                callback.run();
             }
             pendingOnSuccessAsyncTransactionCallbacks.clear();
         }
