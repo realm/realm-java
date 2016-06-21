@@ -150,12 +150,6 @@ public interface TableOrView {
 
     RealmFieldType getMixedType(long columnIndex, long rowIndex);
 
-    Table getSubtable(long columnIndex, long rowIndex);
-
-    void clearSubtable(long columnIndex, long rowIndex);
-
-    long getSubtableSize(long columnIndex, long rowIndex);
-
     /**
      * Sets the long value for a particular cell identified by columnIndex and rowIndex of that cell.
      *

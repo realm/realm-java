@@ -280,32 +280,6 @@ public class TableView implements TableOrView, Closeable {
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
     }
 
-    @Override
-    public Table getSubtable(long columnIndex, long rowIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
-        try {
-            // Copy context reference from parent
-            return new Table(context, this.parent, nativeSubtablePtr);
-        }
-        catch (RuntimeException e) {
-            Table.nativeClose(nativeSubtablePtr);
-            throw e;
-        }
-    }
-
-    @Override
-    public long getSubtableSize(long columnIndex, long rowIndex) {
-        return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
-    }
-
-    @Override
-    public void clearSubtable(long columnIndex, long rowIndex) {
-        if (parent.isImmutable()) throwImmutable();
-        nativeClearSubtable(nativePtr, columnIndex, rowIndex);
-    }
-
     // Methods for setting values.
 
     /**
@@ -856,9 +830,6 @@ public class TableView implements TableOrView, Closeable {
     private native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
     private native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
     private native long nativeGetLink(long nativeViewPtr, long columnIndex, long rowIndex);
-    private native long nativeGetSubtable(long nativeViewPtr, long columnIndex, long rowIndex);
-    private native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
-    private native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
     private native void nativeSetLong(long nativeViewPtr, long columnIndex, long rowIndex, long value);
     private native void nativeSetBoolean(long nativeViewPtr, long columnIndex, long rowIndex, boolean value);
     private native void nativeSetFloat(long nativeViewPtr, long columnIndex, long rowIndex, float value);

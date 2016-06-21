@@ -18,7 +18,6 @@
 #include "io_realm_internal_TableView.h"
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
-#include "tablequery.hpp"
 #include "realm/array.hpp"
 #include <ostream>
 
@@ -352,41 +351,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetLink
             return 0;
     } CATCH_STD()
     return TV(nativeViewPtr)->get_link( S(columnIndex), S(rowIndex));  // noexcept
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSubtableSize(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Table))
-            return 0;
-    } CATCH_STD()
-    return TV(nativeViewPtr)->get_subtable_size( S(columnIndex), S(rowIndex));  // noexcept
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSubtable(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID_MIXED(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Table))
-            return 0;
-        Table* pSubtable = LangBindHelper::get_subtable_ptr(TV(nativeViewPtr), S(columnIndex), S(rowIndex));
-        return reinterpret_cast<jlong>(pSubtable);
-    } CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClearSubtable(
-   JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Table))
-            return;
-    } CATCH_STD()
-    TV(nativeViewPtr)->clear_subtable(S(columnIndex), S(rowIndex));  // noexcept
 }
 
 // Setters
@@ -1035,8 +999,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
 
-        Query query = TV(nativeViewPtr)->get_parent().where(TV(nativeViewPtr));
-        TableQuery* queryPtr = new TableQuery(query);
+        Query *queryPtr = new Query(std::move(TV(nativeViewPtr)->get_parent().where(TV(nativeViewPtr))));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;

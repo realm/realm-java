@@ -115,14 +115,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeUpdateFromSpec
- * Signature: (JLio/realm/internal/TableSpec;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUpdateFromSpec
-  (JNIEnv *, jobject, jlong, jobject);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeSize
  * Signature: (J)J
  */
@@ -143,14 +135,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnCount
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetTableSpec
- * Signature: (J)Lio/realm/internal/TableSpec;
- */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetTableSpec
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -312,38 +296,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget
   (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetSubtable
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetSubtableDuringInsert
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInsert
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetSubtableSize
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableSize
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeClearSubtable
- * Signature: (JJJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClearSubtable
-  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
