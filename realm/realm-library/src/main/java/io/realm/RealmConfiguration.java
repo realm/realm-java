@@ -17,6 +17,9 @@
 package io.realm;
 
 import android.content.Context;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -122,6 +125,7 @@ public final class RealmConfiguration {
         return realmFileName;
     }
 
+    @Nullable
     public byte[] getEncryptionKey() {
         return key == null ? null : Arrays.copyOf(key, key.length);
     }
@@ -134,6 +138,7 @@ public final class RealmConfiguration {
         return migration;
     }
 
+    @CheckResult
     public boolean shouldDeleteRealmIfMigrationNeeded() {
         return deleteRealmIfMigrationNeeded;
     }
@@ -203,6 +208,7 @@ public final class RealmConfiguration {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @return the factory instance used to create Rx Observables.
      */
+    @NonNull
     public RxObservableFactory getRxFactory() {
         // Since RxJava doesn't exist, rxObservableFactory is not initialized.
         if (rxObservableFactory == null) {
@@ -214,7 +220,7 @@ public final class RealmConfiguration {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
 
@@ -301,6 +307,7 @@ public final class RealmConfiguration {
     }
 
     @Override
+    @NonNull
     public String toString() {
         //noinspection StringBufferReplaceableByString
         StringBuilder stringBuilder = new StringBuilder();
@@ -369,7 +376,7 @@ public final class RealmConfiguration {
          * @deprecated Please use {@link #Builder(Context, File)} instead.
          */
         @Deprecated
-        public Builder(File folder) {
+        public Builder(@NonNull File folder) {
             RealmCore.loadLibrary();
             initializeBuilder(folder);
         }
@@ -383,7 +390,8 @@ public final class RealmConfiguration {
          *
          * @param context the Android application context.
          */
-        public Builder(Context context) {
+        public Builder(@NonNull Context context) {
+            //noinspection ConstantConditions
             if (context == null) {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
@@ -400,7 +408,8 @@ public final class RealmConfiguration {
          * @param folder the folder to save Realm file in. Folder must be writable.
          * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
          */
-        public Builder(Context context, File folder) {
+        public Builder(@NonNull Context context, @NonNull File folder) {
+            //noinspection ConstantConditions
             if (context == null) {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
@@ -433,7 +442,9 @@ public final class RealmConfiguration {
         /**
          * Sets the filename for the Realm.
          */
-        public Builder name(String filename) {
+        @NonNull
+        public Builder name(@NonNull String filename) {
+            //noinspection ConstantConditions
             if (filename == null || filename.isEmpty()) {
                 throw new IllegalArgumentException("A non-empty filename must be provided");
             }
@@ -445,7 +456,9 @@ public final class RealmConfiguration {
         /**
          * Sets the 64 bit key used to encrypt and decrypt the Realm file.
          */
-        public Builder encryptionKey(byte[] key) {
+        @NonNull
+        public Builder encryptionKey(@NonNull byte[] key) {
+            //noinspection ConstantConditions
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
@@ -466,6 +479,7 @@ public final class RealmConfiguration {
          *
          * @see #migration(RealmMigration)
          */
+        @NonNull
         public Builder schemaVersion(long schemaVersion) {
             if (schemaVersion < 0) {
                 throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
@@ -479,7 +493,9 @@ public final class RealmConfiguration {
          * upgrade the on-disc schema to the runtime schema, a {@link io.realm.exceptions.RealmMigrationNeededException}
          * will be thrown.
          */
-        public Builder migration(RealmMigration migration) {
+        @NonNull
+        public Builder migration(@NonNull RealmMigration migration) {
+            //noinspection ConstantConditions
             if (migration == null) {
                 throw new IllegalArgumentException("A non-null migration must be provided");
             }
@@ -499,6 +515,7 @@ public final class RealmConfiguration {
          *
          * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(Context, String)} previously.
          */
+        @NonNull
         public Builder deleteRealmIfMigrationNeeded() {
             if (this.assetFilePath != null && this.assetFilePath.length() != 0) {
                 throw new IllegalStateException("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().");
@@ -516,6 +533,7 @@ public final class RealmConfiguration {
          * Note that because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
+        @NonNull
         public Builder inMemory() {
             if (!TextUtils.isEmpty(assetFilePath)) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
@@ -541,7 +559,8 @@ public final class RealmConfiguration {
          * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */
-        public Builder modules(Object baseModule, Object... additionalModules) {
+        @NonNull
+        public Builder modules(@Nullable Object baseModule, @Nullable Object... additionalModules) {
             modules.clear();
             addModule(baseModule);
             if (additionalModules != null) {
@@ -559,7 +578,8 @@ public final class RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder rxFactory(RxObservableFactory factory) {
+        @NonNull
+        public Builder rxFactory(@Nullable RxObservableFactory factory) {
             rxFactory = factory;
             return this;
         }
@@ -570,7 +590,8 @@ public final class RealmConfiguration {
          *
          * @param transaction transaction to execute.
          */
-        public Builder initialData(Realm.Transaction transaction) {
+        @NonNull
+        public Builder initialData(@Nullable Realm.Transaction transaction) {
             initialDataTransaction = transaction;
             return this;
         }
@@ -591,7 +612,9 @@ public final class RealmConfiguration {
          * @param assetFile path to the asset database file.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
-        public Builder assetFile(Context context, final String assetFile) {
+        @NonNull
+        public Builder assetFile(@NonNull Context context, @NonNull final String assetFile) {
+            //noinspection ConstantConditions
             if (context == null) {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
@@ -611,7 +634,7 @@ public final class RealmConfiguration {
             return this;
         }
 
-        private void addModule(Object module) {
+        private void addModule(@Nullable Object module) {
             if (module != null) {
                 checkModule(module);
                 modules.add(module);
@@ -642,6 +665,7 @@ public final class RealmConfiguration {
          *
          * @return the created {@link RealmConfiguration}.
          */
+        @NonNull
         public RealmConfiguration build() {
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();

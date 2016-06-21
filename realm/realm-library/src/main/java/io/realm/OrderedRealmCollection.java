@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.support.annotation.NonNull;
+
 import java.util.List;
 
 /**
@@ -52,7 +54,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an unmanaged collection.
      */
-    RealmResults<E> sort(String fieldName);
+    RealmResults<E> sort(@NonNull String fieldName);
 
     /**
      * Sorts a collection based on the provided field and sort order.
@@ -65,7 +67,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an unmanaged collection.
      */
-    RealmResults<E> sort(String fieldName, Sort sortOrder);
+    RealmResults<E> sort(@NonNull String fieldName, Sort sortOrder);
 
     /**
      * Sorts a collection based on the provided fields and sort orders.
@@ -81,7 +83,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an unmanaged collection.
      */
-    RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2);
+    RealmResults<E> sort(@NonNull String fieldName1, Sort sortOrder1, @NonNull String fieldName2, Sort sortOrder2);
 
     /**
      * Sorts a collection based on the provided fields and sort orders.
@@ -94,7 +96,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an unmanaged collection.
      */
-    RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders);
+    RealmResults<E> sort(@NonNull String[] fieldNames, @NonNull Sort[] sortOrders);
 
     /**
      * Deletes the object at the given index from the Realm. This also removes it from the collection.

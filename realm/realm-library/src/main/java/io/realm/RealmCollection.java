@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.Collection;
 import java.util.Date;
 
@@ -40,6 +43,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws IllegalStateException if the Realm instance has been closed or queries are not otherwise available.
      * @see io.realm.RealmQuery
      */
+    @NonNull
     RealmQuery<E> where();
 
     /**
@@ -52,7 +56,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
-    Number min(String fieldName);
+    @Nullable
+    Number min(@NonNull String fieldName);
 
     /**
      * Finds the maximum value of a field.
@@ -64,7 +69,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
-    Number max(String fieldName);
+    @Nullable
+    Number max(@NonNull String fieldName);
 
     /**
      * Calculates the sum of a given field.
@@ -75,7 +81,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
-    Number sum(String fieldName);
+    @NonNull
+    Number sum(@NonNull String fieldName);
 
     /**
      * Returns the average of a given field.
@@ -87,7 +94,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
-    double average(String fieldName);
+    double average(@NonNull String fieldName);
 
     /**
      * Finds the maximum date.
@@ -100,7 +107,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
-    Date maxDate(String fieldName);
+    @Nullable
+    Date maxDate(@NonNull String fieldName);
 
     /**
      * Finds the minimum date.
@@ -113,7 +121,8 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
-    Date minDate(String fieldName);
+    @Nullable
+    Date minDate(@NonNull String fieldName);
 
     /**
      * This deletes all objects in the collection from the underlying Realm as well as from the collection.

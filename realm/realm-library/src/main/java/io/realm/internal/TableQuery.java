@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.io.Closeable;
 import java.util.Date;
 
@@ -283,7 +286,8 @@ public class TableQuery implements Closeable {
 
     private final static String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
 
-    public TableQuery equalTo(long columnIndex[], Date value){
+    @NonNull
+    public TableQuery equalTo(long columnIndex[], @Nullable Date value){
         if (value == null) {
             nativeIsNull(nativePtr, columnIndex);
         } else {
@@ -293,7 +297,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery notEqualTo(long columnIndex[], Date value){
+    @NonNull
+    public TableQuery notEqualTo(long columnIndex[], @NonNull Date value){
+        //noinspection ConstantConditions
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeNotEqualTimestamp(nativePtr, columnIndex, value.getTime());
@@ -301,7 +307,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery greaterThan(long columnIndex[], Date value){
+    @NonNull
+    public TableQuery greaterThan(long columnIndex[], @NonNull Date value){
+        //noinspection ConstantConditions
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeGreaterTimestamp(nativePtr, columnIndex, value.getTime());
@@ -309,7 +317,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery greaterThanOrEqual(long columnIndex[], Date value){
+    @NonNull
+    public TableQuery greaterThanOrEqual(long columnIndex[], @NonNull Date value){
+        //noinspection ConstantConditions
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeGreaterEqualTimestamp(nativePtr, columnIndex, value.getTime());
@@ -317,7 +327,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery lessThan(long columnIndex[], Date value){
+    @NonNull
+    public TableQuery lessThan(long columnIndex[], @NonNull Date value){
+        //noinspection ConstantConditions
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeLessTimestamp(nativePtr, columnIndex, value.getTime());
@@ -325,7 +337,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery lessThanOrEqual(long columnIndex[], Date value){
+    @NonNull
+    public TableQuery lessThanOrEqual(long columnIndex[], @NonNull Date value){
+        //noinspection ConstantConditions
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeLessEqualTimestamp(nativePtr, columnIndex, value.getTime());
@@ -333,7 +347,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery between(long columnIndex[], Date value1, Date value2){
+    @NonNull
+    public TableQuery between(long columnIndex[], @NonNull Date value1, @NonNull Date value2){
+        //noinspection ConstantConditions
         if (value1 == null || value2 == null)
             throw new IllegalArgumentException("Date values in query criteria must not be null."); // Different text
         nativeBetweenTimestamp(nativePtr, columnIndex, value1.getTime(), value2.getTime());

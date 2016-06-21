@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.List;
 
 import io.realm.annotations.RealmClass;
@@ -90,7 +93,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @see #isValid()
      */
-    public static <E extends RealmModel> void deleteFromRealm(E object) {
+    public static <E extends RealmModel> void deleteFromRealm(@NonNull E object) {
         if (!(object instanceof RealmObjectProxy)) {
             // TODO What type of exception IllegalArgument/IllegalState?
             throw new IllegalArgumentException("Object not managed by Realm, so it cannot be removed.");
@@ -139,7 +142,7 @@ public abstract class RealmObject implements RealmModel {
      * @param object RealmObject to check validity for.
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is an unmanaged object.
      */
-    public static <E extends RealmModel> boolean isValid(E object) {
+    public static <E extends RealmModel> boolean isValid(@Nullable E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             Row row = proxy.realmGet$proxyState().getRow$realm();
@@ -170,7 +173,7 @@ public abstract class RealmObject implements RealmModel {
      * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
      * progress.
      */
-    public static <E extends RealmModel> boolean isLoaded(E object) {
+    public static <E extends RealmModel> boolean isLoaded(@Nullable E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
@@ -199,7 +202,7 @@ public abstract class RealmObject implements RealmModel {
      * @param object RealmObject to force load.
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
-    public static <E extends RealmModel> boolean load(E object) {
+    public static <E extends RealmModel> boolean load(@Nullable E object) {
         if (RealmObject.isLoaded(object)) {
             return true;
         } else {
@@ -220,7 +223,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
      */
-    public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
+    public final <E extends RealmModel> void addChangeListener(@NonNull RealmChangeListener<E> listener) {
         RealmObject.addChangeListener((E) this, listener);
     }
 
@@ -233,10 +236,12 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
      * @throws IllegalStateException if you try to add a listener from a non-Looper Thread.
      */
-    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
+    public static <E extends RealmModel> void addChangeListener(@NonNull E object, @NonNull RealmChangeListener<E> listener) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -270,7 +275,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
-    public final void removeChangeListener(RealmChangeListener listener) {
+    public final void removeChangeListener(@NonNull RealmChangeListener listener) {
         RealmObject.removeChangeListener(this, listener);
     }
 
@@ -283,10 +288,12 @@ public abstract class RealmObject implements RealmModel {
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
-    public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener listener) {
+    public static <E extends RealmModel> void removeChangeListener(@NonNull E object, @NonNull RealmChangeListener listener) {
+        //noinspection ConstantConditions
         if (object == null) {
             throw new IllegalArgumentException("Object should not be null");
         }
+        //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -312,7 +319,7 @@ public abstract class RealmObject implements RealmModel {
      * @param object RealmObject to remove all listeners from.
      * @throws IllegalArgumentException if object is {@code null} or isn't managed by Realm.
      */
-    public static <E extends RealmModel> void removeChangeListeners(E object) {
+    public static <E extends RealmModel> void removeChangeListeners(@NonNull E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
@@ -384,7 +391,7 @@ public abstract class RealmObject implements RealmModel {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public static <E extends RealmModel> Observable<E> asObservable(E object) {
+    public static <E extends RealmModel> Observable<E> asObservable(@NonNull E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();

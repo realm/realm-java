@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.os.Looper;
+import android.support.annotation.NonNull;
 
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
@@ -61,7 +62,9 @@ public final class DynamicRealm extends BaseRealm {
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
      */
-    public static DynamicRealm getInstance(RealmConfiguration configuration) {
+    @NonNull
+    public static DynamicRealm getInstance(@NonNull RealmConfiguration configuration) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -75,7 +78,7 @@ public final class DynamicRealm extends BaseRealm {
      * @return the new object.
      * @throws RealmException if the object could not be created.
      */
-    public DynamicRealmObject createObject(String className) {
+    public DynamicRealmObject createObject(@NonNull String className) {
         checkIfValid();
         Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
@@ -93,7 +96,8 @@ public final class DynamicRealm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      *                                  expectd value.
      */
-    public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
+    @NonNull
+    public DynamicRealmObject createObject(@NonNull String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
@@ -108,7 +112,8 @@ public final class DynamicRealm extends BaseRealm {
      * @see io.realm.RealmQuery
      * @throws IllegalArgumentException if the class doesn't exist.
      */
-    public RealmQuery<DynamicRealmObject> where(String className) {
+    @NonNull
+    public RealmQuery<DynamicRealmObject> where(@NonNull String className) {
         checkIfValid();
         if (!sharedGroupManager.hasTable(Table.TABLE_PREFIX + className)) {
             throw new IllegalArgumentException("Class does not exist in the Realm and cannot be queried: " + className);
@@ -134,7 +139,7 @@ public final class DynamicRealm extends BaseRealm {
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
      */
-    public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
+    public void addChangeListener(@NonNull RealmChangeListener<DynamicRealm> listener) {
         super.addListener(listener);
     }
 
@@ -143,7 +148,7 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @param className the class for which all objects should be removed.
      */
-    public void delete(String className) {
+    public void delete(@NonNull String className) {
         checkIfValid();
         schema.getTable(className).clear();
     }
@@ -156,7 +161,8 @@ public final class DynamicRealm extends BaseRealm {
      * @param transaction {@link io.realm.DynamicRealm.Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      */
-    public void executeTransaction(Transaction transaction) {
+    public void executeTransaction(@NonNull Transaction transaction) {
+        //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
