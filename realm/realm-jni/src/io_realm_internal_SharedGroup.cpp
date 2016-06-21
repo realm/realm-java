@@ -204,11 +204,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
-  (JNIEnv *env, jobject, jlong native_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr, jlong sync_session_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
+        SharedGroup::version_type new_version = LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
+        if (sync_session_ptr != 0) { //sync enabled
+            sync::Session* m_sync_session = reinterpret_cast<sync::Session*>(sync_session_ptr);
+            m_sync_session->nonsync_transact_notify(new_version);
+        }
     }
     CATCH_STD()
 }
@@ -386,19 +390,23 @@ public:
 };
 
 
-// maintain a reference to the threads to prevent deallocation
+// maintain a reference to the threads allocated dynamically, to prevent deallocation
 // after Java_io_realm_internal_SharedGroup_nativeStartSession completes.
 // To be released later, maybe on JNI_OnUnload
 std::vector<std::thread*> threads;
+JavaVM* jvm;
+jobject globalHandler;//the Handler need to be global, since it's going to be invoked in another
+// thread (outside of the local JNI scope nativeStartSession)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeInitSyncClient
-  (JNIEnv* env, jobject)
+  (JNIEnv* env, jobject, jstring juser_token)
 {
     TR_ENTER()
     try {
-        // to generate a valid token run this script
-        // https://realmio.slack.com/files/af/F1FSVND47/generate-realm-sync-credentials.sh
-        StringData user_token = StringData("ewoJImlkZW50aXR5IjogIk5hYmlsIiwKCSJhY2Nlc3MiOiBbInVwbG9hZCIsICJkb3dubG9hZCJdLAoJImFwcF9pZCI6ICJpby5yZWFsbS50ZXN0cyIKfQo=:");
+        env->GetJavaVM(&jvm);
+
+        JStringAccessor token_tmp(env, juser_token); // throws
+        StringData user_token = StringData(token_tmp);
 
         AndroidLogger* base_logger = new AndroidLogger();//FIXME find a way to delete it when we delete the client
         sync::Client* m_sync_client = new sync::Client(user_token,
@@ -415,10 +423,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeInitSyncClient
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
-        (JNIEnv* env, jobject, jlong jsync_client_ptr, jstring jserver_url, jstring jpath)
+        (JNIEnv* env, jobject, jlong jsync_client_ptr, jstring jserver_url, jstring jpath, jobject jhandler)
 {
     TR_ENTER()
     try {
+        globalHandler = reinterpret_cast<jobject>(env->NewGlobalRef(jhandler));
         JStringAccessor path_tmp(env, jpath); // throws
         StringData path = StringData(path_tmp);
 
@@ -428,6 +437,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
         StringData server_url = StringData(server_url_tmp);
 
         sync::Session* m_sync_session = new sync::Session(*m_sync_client, path);
+
+
+        if (jhandler != NULL) {
+            std::function<sync::Session::SyncTransactCallback> m_sync_transact_callback = [&](sync::Session::version_type v) {
+                __android_log_print(ANDROID_LOG_INFO, "<SYNC>", "> >>>>>>>>>>>> SyncTransactCallback notiying Handler");
+
+                JNIEnv* myNewEnv;
+                JavaVMAttachArgs args;
+                args.version = JNI_VERSION_1_6;
+                args.name = NULL; // java thread a name
+                args.group = NULL; // java thread group
+                jvm->AttachCurrentThread(&myNewEnv, &args);//FIXME attach 1 time & find a timing the detach
+
+                jclass cls = myNewEnv->FindClass("android/os/Handler");//FIXME cache
+                jmethodID method = myNewEnv->GetMethodID(cls, "sendEmptyMessage", "(I)Z");//FIXME cache
+
+                jboolean sent = myNewEnv->CallBooleanMethod(globalHandler, method, 14930352);//REALM_CHANGE
+            };
+            m_sync_session->set_sync_transact_callback(m_sync_transact_callback);
+        }
 
         m_sync_session->bind(server_url);
 

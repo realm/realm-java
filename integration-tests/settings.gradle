@@ -1,4 +1,4 @@
-include ':optionalAPIRemoved', ':optionalAPIExists'
+include ':optionalAPIRemoved', ':optionalAPIExists', ':sync'
 
 rootProject.name = 'integration-tests'
 

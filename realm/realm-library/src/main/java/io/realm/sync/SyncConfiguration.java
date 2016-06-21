@@ -1,8 +1,5 @@
 package io.realm.sync;
 
-import java.net.URL;
-
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 public class SyncConfiguration {

@@ -24,5 +24,6 @@ public class SyncSessionImpl implements SyncSession {
     }
 
     private native void nativeStartSync(long nativeSyncSessionPtr);
+    //TODO just delete the pointer nativeSyncSessionPtr to stop syncing
     private native void nativeStopSync(long nativeSyncSessionPtr);
 }

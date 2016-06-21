@@ -65,10 +65,10 @@ abstract class BaseRealm implements Closeable {
 
     final long threadId;
     protected RealmConfiguration configuration;
-    protected SharedGroupManager sharedGroupManager;
+    public SharedGroupManager sharedGroupManager;
     RealmSchema schema;
-    Handler handler;
-    HandlerController handlerController;
+    public Handler handler;
+    public HandlerController handlerController;
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -77,16 +77,20 @@ abstract class BaseRealm implements Closeable {
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
-        this.sharedGroupManager = new SharedGroupManager(configuration);
-        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         this.handlerController = new HandlerController(this);
         if (Looper.myLooper() == null) {
             if (autoRefresh) {
                 throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
             }
+            if (configuration.isSyncEnabled()) {
+                throw new IllegalStateException("Cannot use Sync in a Thread without a Looper");
+            }
         } else {
-            setAutoRefresh(autoRefresh);
+            setAutoRefresh(autoRefresh, false);
         }
+        configuration.handler = handler;
+        this.sharedGroupManager = new SharedGroupManager(configuration);
+        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
     }
 
     /**
@@ -101,7 +105,14 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if called from a non-Looper thread.
      */
     public void setAutoRefresh(boolean autoRefresh) {
-        checkIfValid();
+        setAutoRefresh(autoRefresh, true);
+    }
+
+    private void setAutoRefresh(boolean autoRefresh, boolean performCheck) {
+        if (performCheck) {
+            checkIfValid();
+        }
+
         if (Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }

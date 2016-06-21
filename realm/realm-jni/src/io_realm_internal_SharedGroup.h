@@ -62,7 +62,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -206,7 +206,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChang
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeInitSyncClient
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -214,7 +214,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeInitSyncClient
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeStartSession
-        (JNIEnv *, jobject, jlong, jstring, jstring);
+        (JNIEnv *, jobject, jlong, jstring, jstring, jobject);
 
 
 #ifdef __cplusplus

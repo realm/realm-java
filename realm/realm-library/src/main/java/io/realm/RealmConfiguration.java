@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Handler;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -99,8 +100,9 @@ public final class RealmConfiguration {
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
     private final WeakReference<Context> contextWeakRef;
-    private final URL syncServerUrl;
+    private final String syncServerUrl;
     private final String syncUserToken;
+    public Handler handler;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -225,7 +227,7 @@ public final class RealmConfiguration {
      * @return {@code true} if synchronisation is enabled, {@code false} otherwise.
      */
     public boolean isSyncEnabled() {
-        return syncServerUrl != null;
+        return syncServerUrl != null && syncServerUrl.length() > 0;
     }
 
     /**
@@ -233,7 +235,7 @@ public final class RealmConfiguration {
      *
      * @return URL of the Realm Sync server.
      */
-    public URL getSyncServerUrl() {
+    public String getSyncServerUrl() {
         return syncServerUrl;
     }
 
@@ -403,7 +405,7 @@ public final class RealmConfiguration {
         private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
-        private URL syncServerUrl;
+        private String syncServerUrl;
         private String syncUserToken;
 
         /**
@@ -625,14 +627,10 @@ public final class RealmConfiguration {
          * Enable server side synchronization for this Realm. The URL should point to an endpoint exposed by a
          * Realm Sync server.
          *
-         * @param url Realm Sync server url.
+         * @param serverUrl Realm Sync server url.
          */
-        public Builder syncServerUrl(String url) {
-            try {
-                syncServerUrl = new URL(url);
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Url was not valid", e);
-            }
+        public Builder withSync(String serverUrl) {
+            syncServerUrl = serverUrl;
             return this;
         }
 
