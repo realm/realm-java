@@ -369,8 +369,8 @@ public class BulkInsertTests {
         objB_no_pk.setColumnString("B");
 
         PrimaryKeyWithNoPrimaryKeyObjectRelation objA_pk = new PrimaryKeyWithNoPrimaryKeyObjectRelation();
-        objA_pk.columnString = "A";
-        objA_pk.columnRealmObjectNoPK = objB_no_pk;
+        objA_pk.setColumnString("A");
+        objA_pk.setColumnRealmObjectNoPK(objB_no_pk);
 
         realm.beginTransaction();
         realm.insertToRealm(objA_pk);
@@ -378,13 +378,13 @@ public class BulkInsertTests {
 
         RealmResults<PrimaryKeyWithNoPrimaryKeyObjectRelation> all = realm.where(PrimaryKeyWithNoPrimaryKeyObjectRelation.class).findAll();
         assertEquals(1, all.size());
-        assertEquals("A", all.get(0).columnString);
-        assertEquals(8, all.get(0).columnInt);
-        assertNotNull(all.get(0).columnRealmObjectNoPK);
-        assertEquals("B", all.get(0).columnRealmObjectNoPK.getColumnString());
+        assertEquals("A", all.get(0).getColumnString());
+        assertEquals(8, all.get(0).getColumnInt());
+        assertNotNull(all.get(0).getColumnRealmObjectNoPK());
+        assertEquals("B", all.get(0).getColumnRealmObjectNoPK().getColumnString());
         assertEquals(1, realm.where(AllTypes.class).findAll().size());
 
-        objA_pk.columnInt = 42;
+        objA_pk.setColumnInt(42);
         objB_no_pk.setColumnString("updated B");
 
         realm.beginTransaction();
@@ -393,10 +393,10 @@ public class BulkInsertTests {
 
         all = realm.where(PrimaryKeyWithNoPrimaryKeyObjectRelation.class).findAll();
         assertEquals(1, all.size());
-        assertEquals("A", all.get(0).columnString);
-        assertEquals(42, all.get(0).columnInt);
-        assertNotNull(all.get(0).columnRealmObjectNoPK);
-        assertEquals("updated B", all.get(0).columnRealmObjectNoPK.getColumnString());
+        assertEquals("A", all.get(0).getColumnString());
+        assertEquals(42, all.get(0).getColumnInt());
+        assertNotNull(all.get(0).getColumnRealmObjectNoPK());
+        assertEquals("updated B", all.get(0).getColumnRealmObjectNoPK().getColumnString());
         // since AllTypes doesn't have a PK we now have two instances
         assertEquals(2, realm.where(AllTypes.class).findAll().size());
     }
@@ -409,8 +409,8 @@ public class BulkInsertTests {
         objB_pk.setColumnString("B");
 
         NoPrimaryKeyWithPrimaryKeyObjectRelation objA_no_pk = new NoPrimaryKeyWithPrimaryKeyObjectRelation();
-        objA_no_pk.columnRealmObjectPK = objB_pk;
-        objA_no_pk.columnString = "A";
+        objA_no_pk.setColumnRealmObjectPK(objB_pk);
+        objA_no_pk.setColumnString("A");
 
         realm.beginTransaction();
         realm.insertToRealm(objA_no_pk);
@@ -418,15 +418,15 @@ public class BulkInsertTests {
 
         RealmResults<NoPrimaryKeyWithPrimaryKeyObjectRelation> all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAll();
         assertEquals(1, all.size());
-        assertEquals("A", all.get(0).columnString);
-        assertEquals(8, all.get(0).columnInt);
-        assertNotNull(all.get(0).columnRealmObjectPK);
-        assertEquals(7, all.get(0).columnRealmObjectPK.getColumnLong());
-        assertEquals("B", all.get(0).columnRealmObjectPK.getColumnString());
+        assertEquals("A", all.get(0).getColumnString());
+        assertEquals(8, all.get(0).getColumnInt());
+        assertNotNull(all.get(0).getColumnRealmObjectPK());
+        assertEquals(7, all.get(0).getColumnRealmObjectPK().getColumnLong());
+        assertEquals("B", all.get(0).getColumnRealmObjectPK().getColumnString());
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).findAll().size());
 
-        objA_no_pk.columnString = "different A";
-        objA_no_pk.columnInt = 42;//should insert a new instance
+        objA_no_pk.setColumnString("different A");
+        objA_no_pk.setColumnInt(42);//should insert a new instance
         // update (since it has a PK) now both AllTypesPrimaryKey points to the same objB_pk instance
         objB_pk.setColumnString("updated B");
 
@@ -436,27 +436,27 @@ public class BulkInsertTests {
 
         all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAllSorted("columnString");
         assertEquals(2, all.size());
-        assertEquals("A", all.get(0).columnString);
-        assertEquals(8, all.get(0).columnInt);
-        assertEquals("different A", all.get(1).columnString);
-        assertEquals(42, all.get(1).columnInt);
+        assertEquals("A", all.get(0).getColumnString());
+        assertEquals(8, all.get(0).getColumnInt());
+        assertEquals("different A", all.get(1).getColumnString());
+        assertEquals(42, all.get(1).getColumnInt());
 
-        assertNotNull(all.get(0).columnRealmObjectPK);
-        assertNotNull(all.get(1).columnRealmObjectPK);
+        assertNotNull(all.get(0).getColumnRealmObjectPK());
+        assertNotNull(all.get(1).getColumnRealmObjectPK());
 
-        assertEquals(7, all.get(0).columnRealmObjectPK.getColumnLong());
-        assertEquals(7, all.get(1).columnRealmObjectPK.getColumnLong());
-        assertEquals("updated B", all.get(0).columnRealmObjectPK.getColumnString());
-        assertEquals("updated B", all.get(1).columnRealmObjectPK.getColumnString());
+        assertEquals(7, all.get(0).getColumnRealmObjectPK().getColumnLong());
+        assertEquals(7, all.get(1).getColumnRealmObjectPK().getColumnLong());
+        assertEquals("updated B", all.get(0).getColumnRealmObjectPK().getColumnString());
+        assertEquals("updated B", all.get(1).getColumnRealmObjectPK().getColumnString());
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).findAll().size());
     }
 
     @Test
     public void insertOrUpdate_mixingPrimaryAndNoPrimaryKeyList() {
         NoPrimaryKeyWithPrimaryKeyObjectRelation objA_no_pk = new NoPrimaryKeyWithPrimaryKeyObjectRelation();
-        objA_no_pk.columnString = "A";
+        objA_no_pk.setColumnString("A");
         NoPrimaryKeyWithPrimaryKeyObjectRelation objB_no_pk = new NoPrimaryKeyWithPrimaryKeyObjectRelation();
-        objB_no_pk.columnString = "B";
+        objB_no_pk.setColumnString("B");
         AllTypesPrimaryKey objC_pk = new AllTypesPrimaryKey();
         objC_pk.setColumnLong(7);
         objC_pk.setColumnString("C");
@@ -464,8 +464,8 @@ public class BulkInsertTests {
         objD_pk.setColumnLong(7);
         objD_pk.setColumnString("D");
 
-        objA_no_pk.columnRealmObjectPK = objC_pk;
-        objB_no_pk.columnRealmObjectPK = objD_pk;
+        objA_no_pk.setColumnRealmObjectPK(objC_pk);
+        objB_no_pk.setColumnRealmObjectPK(objD_pk);
 
         ArrayList<NoPrimaryKeyWithPrimaryKeyObjectRelation> objects = new ArrayList<NoPrimaryKeyWithPrimaryKeyObjectRelation>(2);
         objects.add(objA_no_pk);
@@ -477,14 +477,14 @@ public class BulkInsertTests {
 
         RealmResults<NoPrimaryKeyWithPrimaryKeyObjectRelation> all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAllSorted("columnString", Sort.DESCENDING);
         assertEquals(2, all.size());
-        assertEquals("B", all.get(0).columnString);
-        assertEquals("A", all.get(1).columnString);
+        assertEquals("B", all.get(0).getColumnString());
+        assertEquals("A", all.get(1).getColumnString());
 
-        assertNotNull(all.get(0).columnRealmObjectPK);
-        assertNotNull(all.get(1).columnRealmObjectPK);
+        assertNotNull(all.get(0).getColumnRealmObjectPK());
+        assertNotNull(all.get(1).getColumnRealmObjectPK());
 
-        assertEquals("D", all.get(0).columnRealmObjectPK.getColumnString());
-        assertEquals("D", all.get(1).columnRealmObjectPK.getColumnString());
+        assertEquals("D", all.get(0).getColumnRealmObjectPK().getColumnString());
+        assertEquals("D", all.get(1).getColumnRealmObjectPK().getColumnString());
 
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).findAll().size());
     }

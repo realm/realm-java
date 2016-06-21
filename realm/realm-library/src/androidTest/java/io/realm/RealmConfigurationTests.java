@@ -848,7 +848,10 @@ public class RealmConfigurationTests {
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm")
+        RealmConfiguration configuration = new RealmConfiguration
+                .Builder(context)
+                .schema(Owner.class, Cat.class)
+                .assetFile(context, "asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
 

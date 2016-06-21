@@ -23,10 +23,33 @@ public class NoPrimaryKeyWithPrimaryKeyObjectRelation extends RealmObject {
 
     public static final String CLASS_NAME = "NoPrimaryKeyWithPrimaryKeyObjectRelation";
 
-    public String columnString;
+    private String columnString;
 
-    public AllTypesPrimaryKey columnRealmObjectPK;
+    private AllTypesPrimaryKey columnRealmObjectPK;
 
-    public int columnInt = 8;
+    private int columnInt = 8;
 
+    public String getColumnString() {
+        return columnString;
+    }
+
+    public void setColumnString(String columnString) {
+        this.columnString = columnString;
+    }
+
+    public AllTypesPrimaryKey getColumnRealmObjectPK() {
+        return columnRealmObjectPK;
+    }
+
+    public void setColumnRealmObjectPK(AllTypesPrimaryKey columnRealmObjectPK) {
+        this.columnRealmObjectPK = columnRealmObjectPK;
+    }
+
+    public int getColumnInt() {
+        return columnInt;
+    }
+
+    public void setColumnInt(int columnInt) {
+        this.columnInt = columnInt;
+    }
 }
