@@ -1,8 +1,65 @@
-## 0.90.2
+## 1.0.2
 
 ### Bug fixes
 
+* Disabled the optional API transformer since it has problems with DexGuard (3022).
 * `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
+
+## 1.0.1
+
+### Bug fixes
+
+* Fixed a crash when calling `Table.toString()` in debugger (#2429).
+* Fixed a race condition which would cause some `RealmResults` to not be properly updated inside a `RealmChangeListener`. This could result in crashes when accessing items from those results (#2926/#2951).
+* Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829/#2926).
+* Fixed a bug that prevented some devices from finding async related JNI methods correctly.
+* Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
+* Fixed a race condition between Realms notifications and other UI events. This could e.g. cause ListView to crash (#2990).
+* Fixed a bug that allowed both `RealmConfiguration.Builder.assetFile()`/`deleteRealmIfMigrationNeeded()` to be configured at the same time, which leads to the asset file accidentally being deleted in migrations (#2933).
+* Realm crashed outright when the same Realm file was opened in two processes. Realm will now optimistically retry opening for 1 second before throwing an Error (#2459).
+
+### Enhancements
+
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+
+## 1.0.0
+
+No changes since 0.91.1.
+
+## 0.91.1
+
+* Updated Realm Core to 1.0.1.
+
+### Bug fixes
+
+* Fixed a bug when opening a Realm cause a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported". 
+
+## 0.91.0
+
+* Updated Realm Core to 1.0.0.
+
+### Breaking changes
+
+* Removed all `@Deprecated` methods.
+* Calling `Realm.setAutoRefresh()` or `DynamicRealm.setAutoRefresh()` from non-Looper thread throws `IllegalStateException` even if the `autoRefresh` is false (#2820).
+
+### Bug fixes
+
+* Calling RealmResults.deleteAllFromRealm() might lead to native crash (#2759).
+* The annotation processor now correctly reports an error if trying to reference interfaces in model classes (#2808).
+* Added null check to `addChangeListener` and `removeChangeListener` in `Realm` and `DynamicRealm` (#2772).
+* Calling `RealmObjectSchema.addPrimaryKey()` adds an index to the primary key field, and calling `RealmObjectSchema.removePrimaryKey()` removes the index from the field (#2832).
+* Log files are not deleted when calling `Realm.deleteRealm()` (#2834).
+
+### Enhancements
+
+* Upgrading to OpenSSL 1.0.1t. From July 11, 2016, Google Play only accept apps using OpenSSL 1.0.1r or later (https://support.google.com/faqs/answer/6376725, #2749).
+* Added support for automatically copying an initial database from assets using `RealmConfiguration.Builder.assetFile()`.
+* Better error messages when certain file operations fail.
+
+### Credits
+
+* Paweł Surówka (@thesurix) for adding the `RealmConfiguration.Builder.assetFile()`.
 
 ## 0.90.1
 
@@ -17,7 +74,7 @@
 
 ### Enhancements
 
-* Prints path when file related exceptions thrown.
+* Prints path when file related exceptions are thrown.
 
 ## 0.90.0
 
@@ -276,7 +333,7 @@
 * BREAKING CHANGE: Realm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
 * Added Realm.isEmpty().
-* Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
+* Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (unmanaged, removed, closed, from different Realm) object (#1749).
 * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
 * The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
 * Updated Realm Core to 0.95.
@@ -371,7 +428,7 @@
 * Deprecated Realm.migrateRealmAtPath(). It has been replaced by Realm.migrateRealm(RealmConfiguration).
 * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
 * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
-* RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
+* RealmList.add(), RealmList.addAt() and RealmList.set() now copy unmanaged objects transparently into Realm.
 * Realm now works with Kotlin (M12+). (Thank you @cypressious)
 * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
 * Added a check to give a better error message when null is used as value for a primary key.
@@ -459,7 +516,7 @@
 * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and extending RealmResults.sort() for multi-field sorting.
 * Added more logging capabilities at the JNI level.
 * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
-* Added support for standalone objects and custom constructors.
+* Added support for unmanaged objects and custom constructors.
 * Added more precise imports in proxy classes to avoid ambiguous references.
 * Added support for executing a transaction with a closure using Realm.executeTransaction().
 * Added RealmObject.isValid() to test if an object is still accessible.

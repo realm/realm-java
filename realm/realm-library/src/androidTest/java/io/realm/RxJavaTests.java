@@ -187,7 +187,7 @@ public class RxJavaTests {
     @UiThreadTest
     public void realmResults_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        final RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         subscription = results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> rxResults) {
@@ -204,7 +204,7 @@ public class RxJavaTests {
     public void dynamicRealmResults_emittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        final RealmResults<DynamicRealmObject> results = dynamicRealm.allObjects(AllTypes.CLASS_NAME);
+        final RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
             @Override
             public void call(RealmResults<DynamicRealmObject> rxResults) {
@@ -222,7 +222,7 @@ public class RxJavaTests {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         Realm realm = looperThread.realm;
         realm.beginTransaction();
-        RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         realm.commitTransaction();
 
         subscription = results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
@@ -245,7 +245,7 @@ public class RxJavaTests {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         final DynamicRealm dynamicRealm = DynamicRealm.createInstance(looperThread.realmConfiguration);
         dynamicRealm.beginTransaction();
-        RealmResults<DynamicRealmObject> results = dynamicRealm.allObjects(AllTypes.CLASS_NAME);
+        RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         dynamicRealm.commitTransaction();
 
         results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
@@ -491,7 +491,7 @@ public class RxJavaTests {
     @Test
     @UiThreadTest
     public void realmResults_closeInDoOnUnsubscribe() {
-        Observable<RealmResults<AllTypes>> observable = realm.allObjects(AllTypes.class).asObservable()
+        Observable<RealmResults<AllTypes>> observable = realm.where(AllTypes.class).findAll().asObservable()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -514,7 +514,7 @@ public class RxJavaTests {
     public void dynamicRealmResults_closeInDoOnUnsubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
 
-        Observable<RealmResults<DynamicRealmObject>> observable = dynamicRealm.allObjects(AllTypes.CLASS_NAME).asObservable()
+        Observable<RealmResults<DynamicRealmObject>> observable = dynamicRealm.where(AllTypes.CLASS_NAME).findAll().asObservable()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -539,7 +539,7 @@ public class RxJavaTests {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        Observable<AllTypes> observable = realm.allObjects(AllTypes.class).first().<AllTypes>asObservable()
+        Observable<AllTypes> observable = realm.where(AllTypes.class).findFirst().<AllTypes>asObservable()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -565,7 +565,7 @@ public class RxJavaTests {
         realm.commitTransaction();
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
 
-        Observable<DynamicRealmObject> observable = dynamicRealm.allObjects(AllTypes.CLASS_NAME).first().<DynamicRealmObject>asObservable()
+        Observable<DynamicRealmObject> observable = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst().<DynamicRealmObject>asObservable()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {

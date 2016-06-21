@@ -37,7 +37,7 @@ public abstract class CollectionTests {
         MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS
     }
 
-    // Enumerate all current supported collections that can be in un-managed mode.
+    // Enumerate all current supported collections that can be in unmanaged mode.
     protected enum UnManagedCollection {
         UNMANAGED_REALMLIST
     }
@@ -190,16 +190,16 @@ public abstract class CollectionTests {
         realm.beginTransaction();
         realm.deleteAll();
         switch (collectionClass) {
-            case MANAGED_REALMLIST:
+            case REALMRESULTS:
                 int id = 0;
                 for (String arg : args) {
                     AllJavaTypes obj = realm.createObject(AllJavaTypes.class, id++);
                     obj.setFieldString(arg);
                 }
                 realm.commitTransaction();
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
 
-            case REALMRESULTS:
+            case MANAGED_REALMLIST:
                 AllJavaTypes first = realm.createObject(AllJavaTypes.class);
                 first.setFieldString(args[0]);
                 first.getFieldList().add(first);

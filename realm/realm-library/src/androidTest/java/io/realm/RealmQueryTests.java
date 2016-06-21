@@ -639,7 +639,7 @@ public class RealmQueryTests {
         RealmResults<StringOnly> stringOnlies1 = realm.where(StringOnly.class).contains("chars", "მთავარი").findAll();
         assertEquals(1, stringOnlies1.size());
 
-        RealmResults<StringOnly> stringOnlies2 = realm.allObjects(StringOnly.class);
+        RealmResults<StringOnly> stringOnlies2 = realm.where(StringOnly.class).findAll();
         stringOnlies2 = stringOnlies2.sort("chars");
         for (int i = 0; i < stringOnlies2.size(); i++) {
             assertEquals(sorted[i], stringOnlies2.get(i).getChars());
@@ -1722,7 +1722,7 @@ public class RealmQueryTests {
                         public void run() {
                             RealmConfiguration realmConfig = configFactory.createConfiguration();
                             Realm realm = Realm.getInstance(realmConfig);
-                            RealmResults<StringOnly> realmResults = realm.allObjects(StringOnly.class);
+                            RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).findAll();
                             int n = 0;
                             for (StringOnly ignored : realmResults) {
                                 n = n + 1;

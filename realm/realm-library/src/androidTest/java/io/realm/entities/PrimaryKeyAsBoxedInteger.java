@@ -30,11 +30,18 @@ public class PrimaryKeyAsBoxedInteger extends RealmObject implements NullPrimary
 
     private String name;
 
+    public PrimaryKeyAsBoxedInteger() {}
+    public PrimaryKeyAsBoxedInteger(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     @Override
     public Integer getId() {
         return id;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -44,6 +51,7 @@ public class PrimaryKeyAsBoxedInteger extends RealmObject implements NullPrimary
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

@@ -7,6 +7,28 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef io_realm_internal_Group_MODE_READONLY
+#define io_realm_internal_Group_MODE_READONLY 0L
+#undef io_realm_internal_Group_MODE_READWRITE
+#define io_realm_internal_Group_MODE_READWRITE 1L
+#undef io_realm_internal_Group_MODE_READWRITE_NOCREATE
+#define io_realm_internal_Group_MODE_READWRITE_NOCREATE 2L
+/*
+ * Class:     io_realm_internal_Group
+ * Method:    nativeRemoveTable
+ * Signature: (JLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRemoveTable
+  (JNIEnv *, jobject, jlong, jstring);
+
+/*
+ * Class:     io_realm_internal_Group
+ * Method:    nativeRenameTable
+ * Signature: (JLjava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRenameTable
+  (JNIEnv *, jobject, jlong, jstring, jstring);
+
 /*
  * Class:     io_realm_internal_Group
  * Method:    createNative
@@ -57,14 +79,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeSize
 
 /*
  * Class:     io_realm_internal_Group
- * Method:    nativeHasTable
- * Signature: (JLjava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeHasTable
-  (JNIEnv *, jobject, jlong, jstring);
-
-/*
- * Class:     io_realm_internal_Group
  * Method:    nativeGetTableName
  * Signature: (JI)Ljava/lang/String;
  */
@@ -73,26 +87,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeGetTableName
 
 /*
  * Class:     io_realm_internal_Group
- * Method:    nativeRemoveTable
- * Signature: (JLjava/lang/String;)V
+ * Method:    nativeHasTable
+ * Signature: (JLjava/lang/String;)Z
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRemoveTable
-  (JNIEnv *, jobject, jlong, jstring);
-
-/*
- * Class:     io_realm_internal_Group
- * Method:    nativeRenameTable
- * Signature: (JLjava/lang/String;Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRenameTable
-  (JNIEnv *, jobject, jlong, jstring, jstring);
-
-/*
- * Class:     io_realm_internal_Group
- * Method:    nativeGetTableNativePtr
- * Signature: (JLjava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeHasTable
   (JNIEnv *, jobject, jlong, jstring);
 
 /*
@@ -105,11 +103,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile
 
 /*
  * Class:     io_realm_internal_Group
- * Method:    nativeLoadFromMem
- * Signature: ([B)J
+ * Method:    nativeGetTableNativePtr
+ * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeLoadFromMem
-  (JNIEnv *, jclass, jbyteArray);
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr
+  (JNIEnv *, jobject, jlong, jstring);
 
 /*
  * Class:     io_realm_internal_Group
@@ -148,8 +146,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToString
  * Method:    nativeIsEmpty
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeIsEmpty(
-    JNIEnv*, jobject, jlong nativeGroupPtr);
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeIsEmpty
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

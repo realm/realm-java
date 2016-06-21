@@ -79,7 +79,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync() throws Throwable {
         final Realm realm = looperThread.realm;
-        assertEquals(0, realm.allObjects(Owner.class).size());
+        assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -90,7 +90,7 @@ public class RealmAsyncQueryTests {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                assertEquals(1, realm.allObjects(Owner.class).size());
+                assertEquals(1, realm.where(Owner.class).count());
                 assertEquals("Owner", realm.where(Owner.class).findFirst().getName());
                 looperThread.testComplete();
             }
@@ -107,7 +107,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync_onSuccess() throws Throwable {
         final Realm realm = looperThread.realm;
-        assertEquals(0, realm.allObjects(Owner.class).size());
+        assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -118,7 +118,7 @@ public class RealmAsyncQueryTests {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                assertEquals(1, realm.allObjects(Owner.class).size());
+                assertEquals(1, realm.where(Owner.class).count());
                 assertEquals("Owner", realm.where(Owner.class).findFirst().getName());
                 looperThread.testComplete();
             }
@@ -129,7 +129,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync_onError() throws Throwable {
         final Realm realm = looperThread.realm;
-        assertEquals(0, realm.allObjects(Owner.class).size());
+        assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -139,7 +139,7 @@ public class RealmAsyncQueryTests {
         }, new Realm.Transaction.OnError() {
             @Override
             public void onError(Throwable error) {
-                assertEquals(0, realm.allObjects(Owner.class).size());
+                assertEquals(0, realm.where(Owner.class).count());
                 assertNull(realm.where(Owner.class).findFirst());
                 looperThread.testComplete();
             }
@@ -150,7 +150,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync_NoCallbacks() throws Throwable {
         final Realm realm = looperThread.realm;
-        assertEquals(0, realm.allObjects(Owner.class).size());
+        assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -177,7 +177,7 @@ public class RealmAsyncQueryTests {
 
         final Realm realm = looperThread.realm;
 
-        assertEquals(0, realm.allObjects(Owner.class).size());
+        assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -408,7 +408,7 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
-    public void standaloneObjectAsyncBehaviour() {
+    public void unmanagedObjectAsyncBehaviour() {
         Dog dog = new Dog();
         dog.setName("Akamaru");
         dog.setAge(10);
@@ -1577,10 +1577,10 @@ public class RealmAsyncQueryTests {
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        final RealmResults<AnnotationIndexTypes> distinctBool = realm.distinctAsync(AnnotationIndexTypes.class, "indexBoolean");
-        final RealmResults<AnnotationIndexTypes> distinctLong = realm.distinctAsync(AnnotationIndexTypes.class, "indexLong");
-        final RealmResults<AnnotationIndexTypes> distinctDate = realm.distinctAsync(AnnotationIndexTypes.class, "indexDate");
-        final RealmResults<AnnotationIndexTypes> distinctString = realm.distinctAsync(AnnotationIndexTypes.class, "indexString");
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctAsync("indexBoolean");
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinctAsync("indexLong");
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinctAsync("indexDate");
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinctAsync("indexString");
 
         assertFalse(distinctBool.isLoaded());
         assertTrue(distinctBool.isValid());
@@ -1651,7 +1651,7 @@ public class RealmAsyncQueryTests {
 
         for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
             try {
-                realm.distinctAsync(AnnotationIndexTypes.class, "notIndex" + fieldName);
+                realm.where(AnnotationIndexTypes.class).distinctAsync("notIndex" + fieldName);
                 fail("notIndex" + fieldName);
             } catch (IllegalArgumentException ignored) {
             }
@@ -1663,12 +1663,13 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync_noneExistingField() throws Throwable {
+        Realm realm = looperThread.realm;
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-        populateForDistinct(looperThread.realm, numberOfBlocks, numberOfObjects, false);
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
-            looperThread.realm.distinctAsync(AnnotationIndexTypes.class, "doesNotExist");
+            realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
             fail();
         } catch (IllegalArgumentException ignored) {
             looperThread.testComplete();
@@ -1678,26 +1679,27 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void batchUpdateDifferentTypeOfQueries() {
-        looperThread.realm.beginTransaction();
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
         for (int i = 0; i < 5; ) {
-            AllTypes allTypes = looperThread.realm.createObject(AllTypes.class);
+            AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnLong(i);
             allTypes.setColumnString("data " + i % 3);
 
-            allTypes = looperThread.realm.createObject(AllTypes.class);
+            allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnLong(i);
             allTypes.setColumnString("data " + (++i % 3));
         }
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-        looperThread.realm.commitTransaction();
-        populateForDistinct(looperThread.realm, numberOfBlocks, numberOfObjects, false);
+        realm.commitTransaction();
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        RealmResults<AllTypes> findAllAsync = looperThread.realm.where(AllTypes.class).findAllAsync();
-        RealmResults<AllTypes> findAllSorted = looperThread.realm.where(AllTypes.class).findAllSortedAsync("columnString", Sort.ASCENDING);
-        RealmResults<AllTypes> findAllSortedMulti = looperThread.realm.where(AllTypes.class).findAllSortedAsync(new String[]{"columnString", "columnLong"},
+        RealmResults<AllTypes> findAllAsync = realm.where(AllTypes.class).findAllAsync();
+        RealmResults<AllTypes> findAllSorted = realm.where(AllTypes.class).findAllSortedAsync("columnString", Sort.ASCENDING);
+        RealmResults<AllTypes> findAllSortedMulti = realm.where(AllTypes.class).findAllSortedAsync(new String[]{"columnString", "columnLong"},
                 new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
-        RealmResults<AnnotationIndexTypes> findDistinct = looperThread.realm.distinctAsync(AnnotationIndexTypes.class, "indexString");
+        RealmResults<AnnotationIndexTypes> findDistinct = realm.where(AnnotationIndexTypes.class).distinctAsync("indexString");
 
         looperThread.keepStrongReference.add(findAllAsync);
         looperThread.keepStrongReference.add(findAllSorted);
@@ -1791,7 +1793,7 @@ public class RealmAsyncQueryTests {
             public void run() {
                 try {
                     queriesCompleted.await();
-                    Realm bgRealm = Realm.getInstance(looperThread.realm.getConfiguration());
+                    Realm bgRealm = Realm.getInstance(realm.getConfiguration());
 
                     bgRealm.beginTransaction();
                     bgRealm.createObject(AllTypes.class);
@@ -1840,8 +1842,8 @@ public class RealmAsyncQueryTests {
                         break;
 
                     case 2:
-                        assertEquals(1, realm.allObjects(Dog.class).size());
-                        assertEquals(1, realm.allObjects(Owner.class).size());
+                        assertEquals(1, realm.where(Dog.class).count());
+                        assertEquals(1, realm.where(Owner.class).count());
                         assertEquals(1, allAsync.size());
                         assertTrue(allAsync.isLoaded());
                         assertTrue(allAsync.isValid());

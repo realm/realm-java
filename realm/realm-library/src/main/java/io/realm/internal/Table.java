@@ -191,20 +191,82 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Removes a column in the table dynamically.
+     * Removes a column in the table dynamically. if {@code columnIndex} is smaller than the primary
+     * key column index, {@link #invalidateCachedPrimaryKeyIndex()} will be called to recalculate the
+     * primary key column index.
+     *
+     * <p>It should be noted if {@code columnIndex} is the same as the primary key column index,
+     * the primary key column is removed from the meta table.
+     *
+     * @param columnIndex the column index to be removed.
      */
     @Override
     public void removeColumn(long columnIndex) {
+        // Check the PK column index before removing a column. We don't know if we're hitting a PK col,
+        // but it should be noted that once a column is removed, there is no way we can find whether
+        // a PK exists or not.
+        final long oldPkColumnIndex = getPrimaryKey();
+
+        // firstly remove a column. If there is no error, we can proceed. Otherwise, it will stop here.
         nativeRemoveColumn(nativePtr, columnIndex);
+
+        // Check if a PK exists and take actions if there is. This is same as hasPrimaryKey(), but
+        // this relies on the local cache.
+        if (oldPkColumnIndex >= 0) {
+
+            // In case we're hitting PK column, we should remove the PK as it is either 1) a user has
+            // forgotten to remove PK or 2) removeColumn gets called before setPrimaryKey(null) is called.
+            // Since there is no danger in removing PK twice, we'll do it here to be on safe side.
+            if (oldPkColumnIndex == columnIndex) {
+                setPrimaryKey(null);
+
+            // But if you remove a column with a smaller index than that of PK column, you need to
+            // recalculate the PK column index as core could have changed its column index.
+            } else if (oldPkColumnIndex > columnIndex) {
+                invalidateCachedPrimaryKeyIndex();
+            }
+        }
     }
 
     /**
-     * Renames a column in the table.
+     * Renames a column in the table. If the column is a primary key column, the corresponding entry
+     * in PrimaryKeyTable will be renamed accordingly.
+     *
+     * @param columnIndex the column index to be renamed.
+     * @param newName a new name replacing the old column name.
+     * @throws {@link IllegalArgumentException} if {@code newFieldName} is an empty string, or exceeds field name length limit.
+     * @throws {@link IllegalStateException} if a PrimaryKey column name could not be found in the meta table, but {@link #getPrimaryKey()} returns an index.
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
+        // get the old column name. We'll assume that the old column name is *NOT* an empty string.
+        final String oldName = nativeGetColumnName(nativePtr, columnIndex);
+        // also old pk index. Once a column name changes, there is no way you can find the column name
+        // by old name.
+        final long oldPkColumnIndex = getPrimaryKey();
+
+        // then let's try to rename a column. If an error occurs for some reasons, we'll throw.
         nativeRenameColumn(nativePtr, columnIndex, newName);
+
+        // Rename a primary key. At this point, renaming the column name should have been fine.
+        if (oldPkColumnIndex == columnIndex) {
+            try {
+                String className = tableNameToClassName(getName());
+                Table pkTable = getPrimaryKeyTable();
+                long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
+                if (pkRowIndex != NO_MATCH) {
+                    pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName);
+                } else {
+                    throw new IllegalStateException("Non-existent PrimaryKey column cannot be renamed");
+                }
+            } catch (Exception e) {
+                // we failed to rename the pk meta table. roll back the column name, not pk meta table
+                // then rethrow.
+                nativeRenameColumn(nativePtr, columnIndex, oldName);
+                throw e;
+            }
+        }
     }
 
     /**
@@ -1025,6 +1087,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return pkTable;
     }
 
+    /**
+     * Invalidating a cached primary key column index for the table.
+     */
+    private void invalidateCachedPrimaryKeyIndex() {
+        cachedPrimaryKeyColumnIndex = NO_MATCH;
+    }
+
     /*
      * 1) Migration required to fix https://github.com/realm/realm-java/issues/1059
      * This will convert INTEGER column to the corresponding STRING column if needed.
@@ -1380,17 +1449,30 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, INFINITE);
-    }
+        long columnCount = getColumnCount();
+        String name = getName();
+        StringBuilder stringBuilder = new StringBuilder("The Table ");
+        if (name != null && !name.isEmpty()) {
+            stringBuilder.append(getName());
+            stringBuilder.append(" ");
+        }
+        stringBuilder.append("contains ");
+        stringBuilder.append(columnCount);
+        stringBuilder.append(" columns: ");
 
-    @Override
-    public String toString(long maxRows) {
-        return nativeToString(nativePtr, maxRows);
-    }
+        for (int i = 0; i < columnCount; i++) {
+            if (i != 0) {
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append(getColumnName(i));
+        }
+        stringBuilder.append(".");
 
-    @Override
-    public String rowToString(long rowIndex) {
-        return nativeRowToString(nativePtr, rowIndex);
+        stringBuilder.append(" And ");
+        stringBuilder.append(size());
+        stringBuilder.append(" rows.");
+
+        return stringBuilder.toString();
     }
 
     @Override
@@ -1537,8 +1619,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native String nativeGetName(long nativeTablePtr);
     private native void nativeOptimize(long nativeTablePtr);
     private native String nativeToJson(long nativeTablePtr);
-    private native String nativeToString(long nativeTablePtr, long maxRows);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
-    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
 }

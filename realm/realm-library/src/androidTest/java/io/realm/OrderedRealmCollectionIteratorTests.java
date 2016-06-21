@@ -94,14 +94,14 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
             case UNMANAGED_REALMLIST:
                 populateRealm(realm, sampleSize);
-                RealmResults<AllJavaTypes> objects = realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                RealmResults<AllJavaTypes> objects = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
                 RealmList<AllJavaTypes> inMemoryList = new RealmList<AllJavaTypes>();
                 inMemoryList.addAll(objects);
                 return inMemoryList;
 
             case REALMRESULTS:
                 populateRealm(realm, sampleSize);
-                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -263,7 +263,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        // un-managed objects are always invalid, but cannot be GC'ed while we have a reference.
+        // Unmanaged objects are always invalid, but cannot be GC'ed while we have a reference.
         // managed objects should not be deleted (= invalid).
         assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
         assertTrue(obj.isValid());
@@ -286,7 +286,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 assertEquals(TEST_SIZE - 1, collection.size());
                 break;
 
-            // Un-managed collections are not affected by changes to Realm and RealmResult should maintain a stable
+            // Unmanaged collections are not affected by changes to Realm and RealmResult should maintain a stable
             // view until next time sync_if_needed is called.
             case UNMANAGED_REALMLIST:
             case REALMRESULTS:
@@ -311,99 +311,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
         thrown.expect(IllegalStateException.class);
         it.remove();
-    }
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    public void iterator_refreshWhileIterating_nonLooper() {
-        final CountDownLatch bgDone = new CountDownLatch(1);
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
-                appendElementToCollection(realm, collectionClass);
-                realm.close();
-                bgDone.countDown();
-            }
-        }).start();
-        TestHelper.awaitOrFail(bgDone);
-
-        realm.refresh();
-        switch (collectionClass) {
-            case UNMANAGED_REALMLIST:
-                assertEquals(TEST_SIZE, collection.size());
-                break;
-
-            case MANAGED_REALMLIST:
-            case REALMRESULTS:
-                assertEquals(TEST_SIZE + 1, collection.size());
-                break;
-
-            default:
-                fail("Unknown class: " + collectionClass);
-        }
-    }
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    @UiThreadTest
-    public void iterator_refreshWhileIterating_looper() {
-        final CountDownLatch bgDone = new CountDownLatch(1);
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
-                appendElementToCollection(realm, collectionClass);
-                realm.close();
-                bgDone.countDown();
-            }
-        }).start();
-        TestHelper.awaitOrFail(bgDone);
-
-        realm.refresh();
-        switch (collectionClass) {
-            case MANAGED_REALMLIST:
-            case UNMANAGED_REALMLIST:
-            case REALMRESULTS:
-                assertEquals(TEST_SIZE, collection.size());
-                break;
-
-            default:
-                fail("Unknown class: " + collectionClass);
-        }
-    }
-
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    public void iterator_refreshClearsDeletedObjects() {
-        if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
-            return;
-        }
-
-        assertEquals(0, collection.iterator().next().getFieldLong());
-        realm.beginTransaction();
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next(); // First item is a cyclic reference, avoid deleting that
-        AllJavaTypes obj = it.next();
-        assertEquals(1, obj.getFieldLong());
-        obj.deleteFromRealm();
-        realm.commitTransaction();
-        realm.refresh(); // Force a refresh of all Collections
-
-        assertEquals(TEST_SIZE - 1, collection.size());
-
-        it = collection.iterator();
-        it.next();
-        obj = it.next(); // Iterator can no longer access the deleted object
-        assertTrue(obj.isValid());
-        assertEquals(2, obj.getFieldLong());
     }
 
     @Test
@@ -557,31 +464,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
-    public void listIterator_refreshClearsDeletedObjects() {
-        if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
-            return;
-        }
-
-        assertEquals(0, collection.iterator().next().getFieldLong());
-        realm.beginTransaction();
-        Iterator<AllJavaTypes> it = collection.listIterator();
-        it.next(); // First item is a cyclic reference, avoid deleting that
-        AllJavaTypes obj = it.next();
-        assertEquals(1, obj.getFieldLong());
-        obj.deleteFromRealm();
-        realm.commitTransaction();
-        realm.refresh(); // Refresh forces a refresh of all Collections
-
-        assertEquals(TEST_SIZE - 1, collection.size());
-
-        it = collection.iterator();
-        it.next();
-        obj = it.next(); // Iterator can no longer access the deleted object
-        assertTrue(obj.isValid());
-        assertEquals(2, obj.getFieldLong());
-    }
-
-    @Test
     public void listIterator_closedRealm_methods() {
         if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
             return;
@@ -627,72 +509,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
         } catch (UnsupportedOperationException ignored) {
             assertEquals(CollectionClass.REALMRESULTS, collectionClass);
-        }
-    }
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    public void listIterator_refreshWhileIterating_nonLooper() {
-        final CountDownLatch bgDone = new CountDownLatch(1);
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
-                appendElementToCollection(realm, collectionClass);
-                realm.close();
-                bgDone.countDown();
-            }
-        }).start();
-        TestHelper.awaitOrFail(bgDone);
-
-        realm.refresh();
-        switch (collectionClass) {
-            case UNMANAGED_REALMLIST:
-                assertEquals(TEST_SIZE, collection.size());
-                break;
-
-            case MANAGED_REALMLIST:
-            case REALMRESULTS:
-                assertEquals(TEST_SIZE + 1, collection.size());
-                break;
-
-            default:
-                fail("Unknown class: " + collectionClass);
-        }
-    }
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    @UiThreadTest
-    public void listIterator_refreshWhileIterating_looper() {
-        final CountDownLatch bgDone = new CountDownLatch(1);
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
-                appendElementToCollection(realm, collectionClass);
-                realm.close();
-                bgDone.countDown();
-            }
-        }).start();
-        TestHelper.awaitOrFail(bgDone);
-
-        realm.refresh();
-        switch (collectionClass) {
-            case MANAGED_REALMLIST:
-            case UNMANAGED_REALMLIST:
-            case REALMRESULTS:
-                assertEquals(TEST_SIZE, collection.size());
-                break;
-
-            default:
-                fail("Unknown class: " + collectionClass);
         }
     }
 
@@ -962,11 +778,20 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
         // Verify that ConcurrentModification is correctly detected on non-looper threads
         Iterator<AllJavaTypes> it = collection.iterator();
-        realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class, TEST_SIZE);
-        realm.commitTransaction();
-        realm.refresh();
-
+        final CountDownLatch bgDone = new CountDownLatch(1);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                bgRealm.createObject(AllJavaTypes.class, TEST_SIZE);
+                bgRealm.commitTransaction();
+                bgRealm.close();
+                bgDone.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(bgDone);
+        realm.waitForChange();
         try {
             it.next();
             fail();
