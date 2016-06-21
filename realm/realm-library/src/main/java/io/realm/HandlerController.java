@@ -99,7 +99,10 @@ final class HandlerController implements Handler.Callback {
     final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
             new ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object>();
 
-    final List<Runnable> asyncTransactionCallbacks = new ArrayList<Runnable>();
+    // List of onSuccess callbacks from async transactions. We need to track all callbacks REALM_CHANGED events as
+    // notifying listeners might be delayed due to the presence of async queries. This can mean that multiple async
+    // transactions can complete before we are ready to notify all of them.
+    private final List<Runnable> pendingOnSuccessAsyncTransactionCallbacks = new ArrayList<Runnable>();
 
     public HandlerController(BaseRealm realm) {
         this.realm = realm;
@@ -146,6 +149,22 @@ final class HandlerController implements Handler.Callback {
             }
         }
         return true;
+    }
+
+    /**
+     * Properly handles when a async transaction completes. This will properly re-run any async queries before calling
+     * the onSuccess callback.
+     *
+     * NOTE: A async transaction completing should be treated as a REALM_CHANGED event, expect it is not possible to mix
+     * message `what` with a callback. For that reason we need a special method for this case.
+     *
+     * @param onSuccess
+     */
+    public void handleAsyncTransactionCompleted(Runnable onSuccess) {
+        if (onSuccess != null) {
+            pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
+        }
+        realmChanged(false);
     }
 
     void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
@@ -267,7 +286,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * This method calls all registered listeners on Realm, RealmResults and RealmObjects.
+     * This method calls all registered listeners on Realm, RealmResults and RealmObjects and async transactions.
      *
      * PREREQUISITE: Only call this method after all objects are up to date. This means:
      * - `advance_read` was called on the Realm.
@@ -291,6 +310,9 @@ final class HandlerController implements Handler.Callback {
         if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
             updateAsyncEmptyRealmObject();
         }
+
+        // Notify any completed async transactions
+        notifyAsyncTransactionCallbacks();
 
         // Trigger global listeners last.
         // Note that NotificationTest.callingOrdersOfListeners will fail if orders change.
@@ -557,16 +579,18 @@ final class HandlerController implements Handler.Callback {
 
             updateAsyncQueriesTask = null;
         }
-
-        executeAsyncTransactionCallbacks();
     }
 
-    void executeAsyncTransactionCallbacks() {
-        if (!asyncTransactionCallbacks.isEmpty()) {
-            for (Runnable transactionCallback : asyncTransactionCallbacks) {
-                realm.handler.post(transactionCallback);
+    /**
+     * Trigger onSuccess for all completed async transaction.
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
+     */
+    private void notifyAsyncTransactionCallbacks() {
+        if (!pendingOnSuccessAsyncTransactionCallbacks.isEmpty()) {
+            for (Runnable callback : pendingOnSuccessAsyncTransactionCallbacks) {
+                realm.handler.post(callback);
             }
-            asyncTransactionCallbacks.clear();
+            pendingOnSuccessAsyncTransactionCallbacks.clear();
         }
     }
 
@@ -637,7 +661,7 @@ final class HandlerController implements Handler.Callback {
      * @return {@code true} if there is at least one (non GC'ed) instance of {@link RealmResults} {@code false}
      * otherwise.
      */
-    boolean threadContainsAsyncQueries() {
+    private boolean threadContainsAsyncQueries() {
         boolean isEmpty = true;
         Iterator<Map.Entry<WeakReference<RealmResults<? extends RealmModel>>, RealmQuery<?>>> iterator = asyncRealmResults.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -757,5 +781,14 @@ final class HandlerController implements Handler.Callback {
 
     public boolean isAutoRefreshEnabled() {
         return autoRefresh;
+    }
+
+    /**
+     * Notifies current that a
+     * @param runnable
+     */
+    public void sendAsyncTransactionCompleted(Runnable runnable) {
+
+
     }
 }

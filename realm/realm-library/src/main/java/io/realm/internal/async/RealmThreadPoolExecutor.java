@@ -16,10 +16,6 @@
 
 package io.realm.internal.async;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -27,6 +23,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import io.realm.Realm;
 
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
@@ -42,7 +40,6 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     private boolean isPaused;
     private ReentrantLock pauseLock = new ReentrantLock();
     private Condition unpaused = pauseLock.newCondition();
-    private List<Future<?>> transactions = Collections.synchronizedList(new ArrayList<Future<?>>());
 
     /**
      * Creates a default RealmThreadPool that is bounded by the number of available cores.
@@ -70,9 +67,8 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
      * @param task the task to submit
      * @return a future representing pending completion of the task
      */
-    public Future<?> submitTransaction(Runnable task) {
+    public Future<?> submitTransaction(Realm realm, Runnable task) {
         Future<?> future = super.submit(new BgPriorityRunnable(task));
-        transactions.add(future);
         return future;
     }
 
@@ -104,6 +100,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
      */
     @Override
     protected void beforeExecute(Thread t, Runnable r) {
+        super.beforeExecute(t, r);
         pauseLock.lock();
         try {
             while (isPaused) unpaused.await();
@@ -111,39 +108,6 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
             t.interrupt();
         } finally {
             pauseLock.unlock();
-        }
-        super.beforeExecute(t, r);
-    }
-
-    /**
-     * Method invoked upon completion of execution to clean up pending transactions.
-     *
-     * @param r the thread that will run task r
-     * @param t the exception that caused termination, or null if execution completed normally
-     */
-    @Override
-    protected void afterExecute(Runnable r, Throwable t) {
-        super.afterExecute(r, t);
-        cleanupTransactions();
-    }
-
-    /**
-     * Checks whether there are pending transactions.
-     *
-     * @return true if there are pending transactions
-     */
-    public boolean hasPendingTransactions() {
-        cleanupTransactions();
-        return !transactions.isEmpty();
-    }
-
-    private void cleanupTransactions() {
-        Iterator<Future<?>> iterator = transactions.iterator();
-        if (iterator.hasNext()) {
-            Future<?> future = iterator.next();
-            if (future.isCancelled() || future.isDone()) {
-                iterator.remove();
-            }
         }
     }
 
@@ -160,7 +124,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     /**
-     * Resumes the executor. The executor will start executing new tasks.
+     * Resume executing any scheduled tasks.
      */
     public void resume() {
         pauseLock.lock();

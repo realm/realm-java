@@ -346,7 +346,14 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, null);
+        commitTransaction(true, true, null);
+    }
+
+    /**
+     * Commits an async transaction. This will not trigger any change events. Caller is responsible for handling that.
+     */
+    void commitAsyncTransaction(Runnable runAfterCommit) {
+        commitTransaction(false, false, runAfterCommit);
     }
 
     /**
@@ -357,7 +364,7 @@ abstract class BaseRealm implements Closeable {
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
      * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads, Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
 
@@ -372,6 +379,12 @@ abstract class BaseRealm implements Closeable {
             // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
             // file will make a commit in order to create the schema. Users should not be notified about that.
             if (!notifyLocalThread && handler.equals(this.handler)) {
+                continue;
+            }
+
+            // Sometimes we don't want to notify other threads about changes because we need a custom message, e.g. when
+            // doing async transactions.
+            if (!notifyOtherThreads && !handler.equals(this.handler)) {
                 continue;
             }
 
@@ -496,11 +509,6 @@ abstract class BaseRealm implements Closeable {
      * Closes the Realm instances and all its resources without checking the {@link RealmCache}.
      */
     void doClose() {
-        if (asyncTaskExecutor.hasPendingTransactions() || !handlerController.asyncTransactionCallbacks.isEmpty()) {
-            String canonicalPath = getPath();
-            RealmLog.w("Realm " + canonicalPath + " will be closed with pending async transactions or callbacks.");
-        }
-
         if (sharedGroupManager != null) {
             sharedGroupManager.close();
             sharedGroupManager = null;

@@ -196,7 +196,7 @@ public class RealmAsyncQueryTests {
             @Override
             public void onError(Throwable error) {
                 // Ensure we are giving developers quality messages in the logs.
-                assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.previousMessage);
+                assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
                 RealmLog.remove(testLogger);
                 looperThread.testComplete();
             }
@@ -309,56 +309,6 @@ public class RealmAsyncQueryTests {
                 fail();
             }
         });
-    }
-
-    // Test case for https://github.com/realm/realm-java/issues/1893
-    // Ensure that Realm.close() logs a warning if you close a Realm with pending transactions.
-    @Test
-    @UiThreadTest
-    public void executeTransactionAsync_closeWithPendingTransaction() throws NoSuchFieldException, IllegalAccessException {
-        RealmConfiguration config = configFactory.createConfiguration();
-        Realm realm = Realm.getInstance(config);
-
-        final CountDownLatch closeLatch = new CountDownLatch(1);
-        final CountDownLatch waitAsyncTransaction = new CountDownLatch(1);
-
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                TestHelper.awaitOrFail(closeLatch);
-                realm.close(); // It is for avoiding java.lang.IllegalStateException: It's not allowed to delete the file associated with an open Realm.
-                waitAsyncTransaction.countDown();
-            }
-        });
-
-        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
-        RealmLog.add(testLogger);
-        realm.close();
-        RealmLog.remove(testLogger);
-        assertThat(testLogger.message, containsString("be closed with pending async transactions or callbacks."));
-        closeLatch.countDown();
-        TestHelper.awaitOrFail(waitAsyncTransaction);
-    }
-
-    // Test case for https://github.com/realm/realm-java/issues/1893
-    // Ensure that Realm.close() logs a warning if you close a Realm with pending callbacks.
-    @Test
-    @UiThreadTest
-    public void executeTransactionAsync_closeWithPendingTransactionCallback() {
-        RealmConfiguration config = configFactory.createConfiguration();
-        Realm realm = Realm.getInstance(config);
-
-        realm.handlerController.asyncTransactionCallbacks.add(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
-
-        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
-        RealmLog.add(testLogger);
-        realm.close();
-        RealmLog.remove(testLogger);
-        assertThat(testLogger.message, containsString("be closed with pending async transactions or callbacks."));
     }
 
     // ************************************
