@@ -1048,7 +1048,7 @@ public final class Realm extends BaseRealm {
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
-        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(this, new Runnable() {
+        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
             @Override
             public void run() {
                 if (Thread.currentThread().isInterrupted()) {

@@ -67,7 +67,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
      * @param task the task to submit
      * @return a future representing pending completion of the task
      */
-    public Future<?> submitTransaction(Realm realm, Runnable task) {
+    public Future<?> submitTransaction(Runnable task) {
         Future<?> future = super.submit(new BgPriorityRunnable(task));
         return future;
     }
