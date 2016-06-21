@@ -277,22 +277,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeHasChanged
     return SG(native_ptr)->has_changed();   // noexcept
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultReplicationDatabaseFileName(
-    JNIEnv* env, jclass)
-{
-    TR_ENTER()
-#ifdef REALM_ENABLE_REPLICATION
-    ThrowException(env, UnsupportedOperation,
-                   "Replication is not currently supported by the Java language binding.");
-    return 0;
-//    return to_jstring(env, Replication::get_path_to_database_file());
-#else
-    ThrowException(env, UnsupportedOperation,
-                   "Replication was disable in the native library at compile time");
-    return 0;
-#endif
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
     JNIEnv* env, jobject, jlong native_ptr)
 {

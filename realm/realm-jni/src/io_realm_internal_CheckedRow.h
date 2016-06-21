@@ -215,14 +215,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetLink
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeNullifyLink
   (JNIEnv *, jobject, jlong, jlong);
 
-/*
- * Class:     io_realm_internal_CheckedRow
- * Method:    nativeIsNull
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNull
-  (JNIEnv *, jobject, jlong, jlong);
-
 #ifdef __cplusplus
 }
 #endif
