@@ -661,4 +661,41 @@ public class DynamicRealmTests {
             }
         });
     }
+
+    @Test
+    public void realmClose_treatRealmResultsAsEmptyListAfterward() {
+        final String SCHEMA_NAME = "KingsAndQueens";
+
+        // create a schema and one object
+        realm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                RealmSchema schema = realm.getSchema();
+                // Create Person class with two fields: age and name
+                schema.create(SCHEMA_NAME)
+                        .addField("age", long.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("name", String.class);
+
+                // create an object
+                DynamicRealmObject person = realm.createObject(SCHEMA_NAME);
+                person.setLong("age", 13);
+                person.setString("name", "John");
+            }
+        });
+
+        // make sure we have only one object
+        RealmResults<DynamicRealmObject> results = realm.where(SCHEMA_NAME).findAll();
+        assertEquals(results.size(), 1);
+
+        // delete schema
+        realm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                realm.getSchema().remove(SCHEMA_NAME);
+            }
+        });
+
+        // now the result should be empty
+        assertTrue(results.isEmpty());
+    }
 }
