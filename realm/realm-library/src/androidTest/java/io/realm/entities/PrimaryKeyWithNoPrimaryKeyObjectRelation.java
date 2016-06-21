@@ -20,10 +20,6 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyWithNoPrimaryKeyObjectRelation extends RealmObject {
-
-    public static final String CLASS_NAME = "PrimaryKeyWithNoPrimaryKeyObjectRelation";
-    public static final String FIELD_PRIMARY_KEY = "columnString";
-
     @PrimaryKey
     private String columnString;
 

@@ -17,12 +17,8 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
 public class NoPrimaryKeyWithPrimaryKeyObjectRelation extends RealmObject {
-
-    public static final String CLASS_NAME = "NoPrimaryKeyWithPrimaryKeyObjectRelation";
-
     private String columnString;
 
     private AllTypesPrimaryKey columnRealmObjectPK;
