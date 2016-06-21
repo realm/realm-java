@@ -287,7 +287,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync_asyncQuery() {
         final Realm realm = looperThread.realm;
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         assertEquals(0, results.size());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -298,7 +298,8 @@ public class RealmAsyncQueryTests {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                assertEquals(realm.where(AllTypes.class).count(), 1);
+                assertEquals(1, realm.where(AllTypes.class).count());
+                assertEquals(1, results.size());
                 looperThread.testComplete();
             }
         }, new Realm.Transaction.OnError() {
