@@ -17,6 +17,7 @@
 package io.realm;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -121,6 +122,30 @@ public final class RealmSchema {
     }
 
     /**
+     * When a Table is removed or renamed, its corresponding cache entries should also be removed
+     * properly to ensure derived {@link RealmResults} or {@link RealmList} to have correct values.
+     *
+     * @param table a Table to be removed from cache
+     */
+    private void removeTableFromTableCache(final Table table) {
+        // firstly remove the entry from dynamic cache
+        for (Iterator<Map.Entry<String, Table>> itr = dynamicClassToTable.entrySet().iterator(); itr.hasNext();) {
+            Map.Entry<String, Table> entry = itr.next();
+            if(entry.getValue().equals(table)) {
+                itr.remove();
+            }
+        }
+
+        // then remove the entry from typed cache
+        for (Iterator<Map.Entry<Class<? extends RealmModel>, Table>> itr = classToTable.entrySet().iterator(); itr.hasNext();) {
+            Map.Entry<Class<? extends RealmModel>, Table> entry = itr.next();
+            if(entry.getValue().equals(table)) {
+                itr.remove();
+            }
+        }
+    }
+
+    /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
      * to it will throw an {@link IllegalStateException}. Remove those classes or fields first.
      *
@@ -135,6 +160,9 @@ public final class RealmSchema {
             table.setPrimaryKey(null);
         }
         transaction.removeTable(internalTableName);
+
+        // remove corresponding table from cache if exists
+        removeTableFromTableCache(table);
     }
 
     /**
@@ -164,6 +192,9 @@ public final class RealmSchema {
 
         transaction.renameTable(oldInternalName, newInternalName);
         Table table = transaction.getTable(newInternalName);
+
+        // make sure old table name is flushed from cache
+        removeTableFromTableCache(oldTable);
 
         // Set the primary key for the new class if necessary
         if (pkField != null) {

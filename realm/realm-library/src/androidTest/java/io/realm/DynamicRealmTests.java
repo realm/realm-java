@@ -696,6 +696,6 @@ public class DynamicRealmTests {
         });
 
         // now the result should be empty
-        assertTrue(results.isEmpty());
+        assertEquals(0, results.size());
     }
 }
