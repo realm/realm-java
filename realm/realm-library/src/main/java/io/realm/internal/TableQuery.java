@@ -115,18 +115,6 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery subtable(long columnIndex) {
-        nativeSubtable(nativePtr, columnIndex);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery endSubtable() {
-        nativeParent(nativePtr);
-        queryValidated = false;
-        return this;
-    }
-
     public TableQuery or() {
         nativeOr(nativePtr);
         queryValidated = false;
@@ -745,8 +733,6 @@ public class TableQuery implements Closeable {
     private native void nativeTableview(long nativeQueryPtr, long nativeTableViewPtr);
     private native void nativeGroup(long nativeQueryPtr);
     private native void nativeEndGroup(long nativeQueryPtr);
-    private native void nativeSubtable(long nativeQueryPtr, long columnIndex);
-    private native void nativeParent(long nativeQueryPtr);
     private native void nativeOr(long nativeQueryPtr);
     private native void nativeNot(long nativeQueryPtr);
     private native void nativeEqual(long nativeQueryPtr, long columnIndex[], long value);

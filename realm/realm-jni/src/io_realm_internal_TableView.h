@@ -147,30 +147,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetLink
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeGetSubtable
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSubtable
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableView
- * Method:    nativeGetSubtableSize
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSubtableSize
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableView
- * Method:    nativeClearSubtable
- * Signature: (JJJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClearSubtable
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableView
  * Method:    nativeSetLong
  * Signature: (JJJJ)V
  */
