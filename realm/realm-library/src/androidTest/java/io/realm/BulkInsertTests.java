@@ -99,7 +99,7 @@ public class BulkInsertTests {
         allTypes.setFieldList(list);
 
         realm.beginTransaction();
-        realm.insertToRealm(allTypes);
+        realm.insert(allTypes);
         realm.commitTransaction();
 
         AllJavaTypes realmTypes = realm.where(AllJavaTypes.class).findFirst();
@@ -136,7 +136,7 @@ public class BulkInsertTests {
         allTypes.columnByte = 0b0010_1010;
 
         realm.beginTransaction();
-        realm.insertToRealm(allTypes);
+        realm.insert(allTypes);
         realm.commitTransaction();
 
         AllTypesRealmModel first = realm.where(AllTypesRealmModel.class).findFirst();
@@ -156,7 +156,7 @@ public class BulkInsertTests {
 
         realm.beginTransaction();
         try {
-            realm.insertToRealm(invalidRealmModel);
+            realm.insert(invalidRealmModel);
             fail("Expected Missing Proxy Class Exception");
         } catch (RealmException ignored) {
         } finally {
@@ -176,7 +176,7 @@ public class BulkInsertTests {
         nullTypes1.setFieldDateNull(new Date(12345));
 
         realm.beginTransaction();
-        realm.insertToRealm(nullTypes1);
+        realm.insert(nullTypes1);
         realm.commitTransaction();
 
         NullTypes first = realm.where(NullTypes.class).findFirst();
@@ -213,7 +213,7 @@ public class BulkInsertTests {
         collection.add(nullTypes3);
 
         realm.beginTransaction();
-        realm.insertOrUpdateToRealm(collection);
+        realm.insertOrUpdate(collection);
         realm.commitTransaction();
 
         first = realm.where(NullTypes.class).equalTo("id", 1).findFirst();
@@ -240,7 +240,7 @@ public class BulkInsertTests {
         anotherCyclicType.setObject(oneCyclicType);
 
         realm.beginTransaction();
-        realm.insertToRealm(oneCyclicType);
+        realm.insert(oneCyclicType);
         realm.commitTransaction();
 
         CyclicType realmObject = realm.where(CyclicType.class).findFirst();
@@ -255,7 +255,7 @@ public class BulkInsertTests {
         primaryKeyAsString.setId(19);
 
         realm.beginTransaction();
-        realm.insertOrUpdateToRealm(primaryKeyAsString);
+        realm.insertOrUpdate(primaryKeyAsString);
         realm.commitTransaction();
 
         primaryKeyAsString = realm.where(PrimaryKeyAsString.class).isNull("name").findFirst();
@@ -266,7 +266,7 @@ public class BulkInsertTests {
         primaryKeyAsShort.setName("42");
 
         realm.beginTransaction();
-        realm.insertOrUpdateToRealm(primaryKeyAsShort);
+        realm.insertOrUpdate(primaryKeyAsShort);
         realm.commitTransaction();
 
         primaryKeyAsShort = realm.where(PrimaryKeyAsBoxedShort.class).isNull("id").findFirst();
@@ -290,7 +290,7 @@ public class BulkInsertTests {
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
                 obj.setColumnBoxedBoolean(true);
-                realm.insertToRealm(obj);
+                realm.insert(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
                 obj2.setColumnString("Bar");
@@ -303,7 +303,7 @@ public class BulkInsertTests {
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
                 obj2.setColumnBoxedBoolean(false);
-                realm.insertOrUpdateToRealm(obj2);
+                realm.insertOrUpdate(obj2);
             }
         });
 
@@ -335,7 +335,7 @@ public class BulkInsertTests {
         list.addAll(Arrays.asList(dog1, dog2));
 
         realm.beginTransaction();
-        realm.insertToRealm(list);
+        realm.insert(list);
         realm.commitTransaction();
 
 
@@ -364,7 +364,7 @@ public class BulkInsertTests {
                 obj3.setId(1);
                 obj3.setName("Baz");
 
-                realm.insertOrUpdateToRealm(Arrays.asList(obj2, obj3));
+                realm.insertOrUpdate(Arrays.asList(obj2, obj3));
             }
         });
 
@@ -382,7 +382,7 @@ public class BulkInsertTests {
         objA_pk.setColumnRealmObjectNoPK(objB_no_pk);
 
         realm.beginTransaction();
-        realm.insertToRealm(objA_pk);
+        realm.insert(objA_pk);
         realm.commitTransaction();
 
         RealmResults<PrimaryKeyWithNoPrimaryKeyObjectRelation> all = realm.where(PrimaryKeyWithNoPrimaryKeyObjectRelation.class).findAll();
@@ -397,7 +397,7 @@ public class BulkInsertTests {
         objB_no_pk.setColumnString("updated B");
 
         realm.beginTransaction();
-        realm.insertOrUpdateToRealm(objA_pk);
+        realm.insertOrUpdate(objA_pk);
         realm.commitTransaction();
 
         all = realm.where(PrimaryKeyWithNoPrimaryKeyObjectRelation.class).findAll();
@@ -422,7 +422,7 @@ public class BulkInsertTests {
         objA_no_pk.setColumnString("A");
 
         realm.beginTransaction();
-        realm.insertToRealm(objA_no_pk);
+        realm.insert(objA_no_pk);
         realm.commitTransaction();
 
         RealmResults<NoPrimaryKeyWithPrimaryKeyObjectRelation> all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAll();
@@ -440,7 +440,7 @@ public class BulkInsertTests {
         objB_pk.setColumnString("updated B");
 
         realm.beginTransaction();
-        realm.insertOrUpdateToRealm(objA_no_pk);
+        realm.insertOrUpdate(objA_no_pk);
         realm.commitTransaction();
 
         all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAllSorted("columnString");
@@ -481,7 +481,7 @@ public class BulkInsertTests {
         objects.add(objB_no_pk);
 
         realm.beginTransaction();
-        realm.insertOrUpdateToRealm(objects);
+        realm.insertOrUpdate(objects);
         realm.commitTransaction();
 
         RealmResults<NoPrimaryKeyWithPrimaryKeyObjectRelation> all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAllSorted("columnString", Sort.DESCENDING);
@@ -506,7 +506,7 @@ public class BulkInsertTests {
 
         realm.beginTransaction();
         try {
-            realm.insertToRealm(nullObject);
+            realm.insert(nullObject);
             fail("Should trigger NullPointerException");
         } catch (NullPointerException ignore) {
 
@@ -521,7 +521,7 @@ public class BulkInsertTests {
 
         realm.beginTransaction();
         try {
-            realm.insertToRealm(nullObjects);
+            realm.insert(nullObjects);
             fail("Should trigger NullPointerException");
         } catch (NullPointerException ignore) {
 
@@ -541,7 +541,7 @@ public class BulkInsertTests {
 
         realm.beginTransaction();
         try {
-            realm.insertToRealm(list);
+            realm.insert(list);
         } catch (NullPointerException ignore) {
 
         } finally {
@@ -568,7 +568,7 @@ public class BulkInsertTests {
         managedAllJavaTypes.setFieldObject(filedObject);
         managedAllJavaTypes.setFieldString("updated");
 
-        realm.insertOrUpdateToRealm(managedAllJavaTypes);
+        realm.insertOrUpdate(managedAllJavaTypes);
         realm.commitTransaction();
 
         AllJavaTypes first = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 42).findFirst();

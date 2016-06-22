@@ -2,6 +2,7 @@
 
 ### Enhancements
 
+* Add `insert(RealmModel obj)`, `insertOrUpdate(RealmModel obj)`, `insert(Collection<RealmModel> collection)` and `insertOrUpdate(Collection<RealmModel> collection)` to perform batch inserts (#1684)
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
 * Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
 
@@ -43,7 +44,7 @@ No changes since 0.91.1.
 
 ### Bug fixes
 
-* Fixed a bug when opening a Realm cause a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported". 
+* Fixed a bug when opening a Realm cause a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported".
 
 ## 0.91.0
 

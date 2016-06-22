@@ -793,7 +793,7 @@ public final class Realm extends BaseRealm {
      *
      * @param objects RealmObjects to insert.
      */
-    public void insertToRealm(Collection<? extends RealmModel> objects) {
+    public void insert(Collection<? extends RealmModel> objects) {
         configuration.getSchemaMediator().insertToRealm(this, objects);
     }
 
@@ -807,7 +807,7 @@ public final class Realm extends BaseRealm {
      *
      * @param object RealmObjects to insert.
      */
-    public void insertToRealm(RealmModel object) {
+    public void insert(RealmModel object) {
         Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insertToRealm(this, object, cache);
     }
@@ -822,7 +822,7 @@ public final class Realm extends BaseRealm {
      *
      * @param objects RealmObjects to insert.
      */
-    public void insertOrUpdateToRealm(Collection<? extends RealmModel> objects) {
+    public void insertOrUpdate(Collection<? extends RealmModel> objects) {
         configuration.getSchemaMediator().insertOrUpdateToRealm(this, objects);
     }
 
@@ -836,7 +836,7 @@ public final class Realm extends BaseRealm {
      *
      * @param object RealmObjects to insert.
      */
-    public void insertOrUpdateToRealm(RealmModel object) {
+    public void insertOrUpdate(RealmModel object) {
         Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, cache);
     }
