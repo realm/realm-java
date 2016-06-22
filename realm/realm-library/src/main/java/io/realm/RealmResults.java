@@ -647,6 +647,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * NOTE: Calling this is a prerequisite to calling {@link #notifyChangeListeners(boolean)}.
      */
     void syncIfNeeded() {
+        if (!isTableExist()) {
+            return;
+        }
         long newVersion = table.syncIfNeeded();
         viewUpdated = newVersion != currentTableViewVersion;
         currentTableViewVersion = newVersion;
