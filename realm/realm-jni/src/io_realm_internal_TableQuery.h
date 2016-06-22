@@ -49,22 +49,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndGroup
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeSubtable
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeSubtable
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableQuery
- * Method:    nativeParent
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeParent
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_TableQuery
  * Method:    nativeOr
  * Signature: (J)V
  */
