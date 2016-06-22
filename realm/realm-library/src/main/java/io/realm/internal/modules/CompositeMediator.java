@@ -22,9 +22,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -105,9 +105,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, Map<RealmModel, Long> cache) {
-        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insertToRealm(realm, object, objects, cache);
+    public void insertToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(Util.getOriginalModelClass(objects.iterator().next().getClass())));
+        mediator.insertToRealm(realm, objects);
     }
 
     @Override
@@ -117,9 +117,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, RealmModel type, Iterator<? extends RealmModel> objects, Map<RealmModel, Long> cache) {
-        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(type.getClass()));
-        mediator.insertOrUpdateToRealm(realm, type, objects, cache);
+    public void insertOrUpdateToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(Util.getOriginalModelClass(objects.iterator().next().getClass())));
+        mediator.insertOrUpdateToRealm(realm, objects);
     }
 
     @Override

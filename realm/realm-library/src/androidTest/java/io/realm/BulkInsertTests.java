@@ -27,7 +27,9 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.CyclicType;
@@ -75,43 +77,50 @@ public class BulkInsertTests {
 
     @Test
     public void insertToRealm() {
-        Date date = new Date();
-        Dog dog = new Dog();
-        dog.setName("Fido");
-        RealmList<Dog> list = new RealmList<Dog>();
-        list.add(dog);
+        AllJavaTypes obj = new AllJavaTypes();
+        obj.setFieldIgnored("cookie");
+        obj.setFieldLong(42);
+        obj.setFieldString("obj1");
 
-        AllTypes allTypes = new AllTypes();
-        allTypes.setColumnString("String");
-        allTypes.setColumnLong(1l);
-        allTypes.setColumnFloat(1f);
-        allTypes.setColumnDouble(1d);
-        allTypes.setColumnBoolean(true);
-        allTypes.setColumnDate(date);
-        allTypes.setColumnBinary(new byte[]{1, 2, 3});
-        allTypes.setColumnRealmObject(dog);
-        allTypes.setColumnRealmList(list);
+        RealmList<AllJavaTypes> list = new RealmList<AllJavaTypes>();
+        list.add(obj);
+
+        Date date = new Date();
+
+        AllJavaTypes allTypes = new AllJavaTypes();
+        allTypes.setFieldString("String");
+        allTypes.setFieldLong(1l);
+        allTypes.setFieldFloat(1f);
+        allTypes.setFieldDouble(1d);
+        allTypes.setFieldBoolean(true);
+        allTypes.setFieldDate(date);
+        allTypes.setFieldBinary(new byte[]{1, 2, 3});
+        allTypes.setFieldObject(obj);
+        allTypes.setFieldList(list);
 
         realm.beginTransaction();
         realm.insertToRealm(allTypes);
         realm.commitTransaction();
 
-        AllTypes realmTypes = realm.where(AllTypes.class).findFirst();
+        AllJavaTypes realmTypes = realm.where(AllJavaTypes.class).findFirst();
 
         assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
-        assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data
-        assertEquals(allTypes.getColumnLong(), realmTypes.getColumnLong());
-        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat(), 0);
-        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble(), 0);
-        assertEquals(allTypes.isColumnBoolean(), realmTypes.isColumnBoolean());
-        assertEquals(allTypes.getColumnDate(), realmTypes.getColumnDate());
-        assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
-        assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
-        assertEquals(list.size(), realmTypes.getColumnRealmList().size());
-        assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
+        assertEquals(allTypes.getFieldString(), realmTypes.getFieldString()); // But they contain the same data
+        assertEquals(allTypes.getFieldLong(), realmTypes.getFieldLong());
+        assertEquals(allTypes.getFieldFloat(), realmTypes.getFieldFloat(), 0);
+        assertEquals(allTypes.getFieldDouble(), realmTypes.getFieldDouble(), 0);
+        assertEquals(allTypes.isFieldBoolean(), realmTypes.isFieldBoolean());
+        assertEquals(allTypes.getFieldDate(), realmTypes.getFieldDate());
+        assertArrayEquals(allTypes.getFieldBinary(), realmTypes.getFieldBinary());
+        assertEquals(allTypes.getFieldObject().getFieldString(), obj.getFieldString());
+        assertEquals(list.size(), realmTypes.getFieldList().size());
+        assertEquals(list.get(0).getFieldString(), realmTypes.getFieldList().get(0).getFieldString());
+        assertEquals(list.get(0).getFieldLong(), realmTypes.getFieldList().get(0).getFieldLong());
+        assertNull(realmTypes.getFieldList().get(0).getFieldIgnored());
+
 
         // make sure Dog was not inserted twice in the recursive process
-        assertEquals(1, realm.where(Dog.class).findAll().size());
+        assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
     }
 
     @Test
@@ -151,7 +160,7 @@ public class BulkInsertTests {
             fail("Expected Missing Proxy Class Exception");
         } catch (RealmException ignored) {
         } finally {
-            realm.commitTransaction();
+            realm.cancelTransaction();
         }
     }
 
@@ -487,5 +496,89 @@ public class BulkInsertTests {
         assertEquals("D", all.get(1).getColumnRealmObjectPK().getColumnString());
 
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).findAll().size());
+    }
+
+    //any omitted argument should not end in a SIGSEGV but an exception
+
+    @Test
+    public void testObjectNull() {
+        AllTypes nullObject = null;
+
+        realm.beginTransaction();
+        try {
+            realm.insertToRealm(nullObject);
+            fail("Should trigger NullPointerException");
+        } catch (NullPointerException ignore) {
+
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void testListNull() {
+        List<AllTypes> nullObjects = null;
+
+        realm.beginTransaction();
+        try {
+            realm.insertToRealm(nullObjects);
+            fail("Should trigger NullPointerException");
+        } catch (NullPointerException ignore) {
+
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void testListNullElement() {
+        Dog dog1 = new Dog();
+        dog1.setName("Dog 1");
+        Dog dog2 = new Dog();
+        dog2.setName("Dog 2");
+        ArrayList<Dog> list = new ArrayList<Dog>();
+        list.addAll(Arrays.asList(dog1, null, dog2));
+
+        realm.beginTransaction();
+        try {
+            realm.insertToRealm(list);
+        } catch (NullPointerException ignore) {
+
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void testManagedObject() {
+        AllJavaTypes obj = new AllJavaTypes();
+        obj.setFieldIgnored("cookie");
+        obj.setFieldLong(42);
+        obj.setFieldString("obj1");
+
+        realm.beginTransaction();
+        AllJavaTypes managedAllJavaTypes = realm.copyToRealm(obj);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+
+        AllJavaTypes filedObject = new AllJavaTypes();
+        filedObject.setFieldLong(8);
+        filedObject = realm.copyToRealm(filedObject);
+        managedAllJavaTypes.setFieldObject(filedObject);
+        managedAllJavaTypes.setFieldString("updated");
+
+        realm.insertOrUpdateToRealm(managedAllJavaTypes);
+        realm.commitTransaction();
+
+        AllJavaTypes first = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 42).findFirst();
+        assertNotNull(first);
+        assertEquals(42, first.getFieldLong(), 0);
+        assertEquals("updated", first.getFieldString());
+        assertNull(first.getFieldIgnored());
+        assertNotNull(first.getFieldObject());
+        assertEquals(8, first.getFieldObject().getFieldLong());
+
+        assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
     }
 }

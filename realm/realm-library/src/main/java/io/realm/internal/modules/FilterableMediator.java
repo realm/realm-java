@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,9 +120,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertToRealm(Realm realm, RealmModel object, Iterator<? extends RealmModel> objects, Map<RealmModel, Long> cache) {
-        checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insertToRealm(realm, object, objects, cache);
+    public void insertToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+        checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
+        originalMediator.insertToRealm(realm, objects);
     }
 
     @Override
@@ -133,9 +132,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, RealmModel type, Iterator<? extends RealmModel> objects, Map<RealmModel, Long> cache) {
-        checkSchemaHasClass(Util.getOriginalModelClass(type.getClass()));
-        originalMediator.insertOrUpdateToRealm(realm, type, objects, cache);
+    public void insertOrUpdateToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+        checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
+        originalMediator.insertOrUpdateToRealm(realm, objects);
     }
 
     @Override

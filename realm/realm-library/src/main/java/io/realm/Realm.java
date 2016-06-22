@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -785,34 +784,25 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Bulk insert of a list of RealmObjects, this is generally faster than {@link #copyToRealm(Iterable)} since it
-     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * Bulk insert of a list of unmanaged RealmObjects, this is generally faster than {@link #copyToRealm(Iterable)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
-     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * Please note, this doesn't check if the object is already managed or not.
+     * Copying an object will copy all field values. Any unset field in the object and child objects will be
      * set to their default value if not provided.
      *
      * @param objects RealmObjects to insert.
      */
     public void insertToRealm(Collection<? extends RealmModel> objects) {
-        Iterator<? extends RealmModel> iterator = objects.iterator();
-        RealmModel object = null;
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
-        if (iterator.hasNext()) {
-            // access the first element to figure out the type
-            object = iterator.next();
-            configuration.getSchemaMediator().insertToRealm(this, object, cache);
-        }
-
-        if (iterator.hasNext()) {
-            configuration.getSchemaMediator().insertToRealm(this, object, iterator, cache);
-        }
+        configuration.getSchemaMediator().insertToRealm(this, objects);
     }
 
     /**
-     * Insert of a RealmObject, this is generally faster than {@link #copyToRealm(RealmModel)} since it
-     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * Insert of unmanaged RealmObject, this is generally faster than {@link #copyToRealm(RealmModel)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
-     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * Please note, this doesn't check if the object is already managed or not.
+     * Copying an object will copy all field values. Any unset field in the object and child objects will be
      * set to their default value if not provided.
      *
      * @param object RealmObjects to insert.
@@ -823,34 +813,25 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Bulk insert or update of a list of RealmObjects, this is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
-     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * Bulk insert or update of a list of unmanaged RealmObjects, this is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
-     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * Please note, this doesn't check if the object is already managed or not.
+     * Copying an object will copy all field values. Any unset field in the object and child objects will be
      * set to their default value if not provided.
      *
      * @param objects RealmObjects to insert.
      */
     public void insertOrUpdateToRealm(Collection<? extends RealmModel> objects) {
-        Iterator<? extends RealmModel> iterator = objects.iterator();
-        RealmModel object = null;
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
-        if (iterator.hasNext()) {
-            // access the first element to figure out the type
-            object = iterator.next();
-            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, cache);
-        }
-
-        if (iterator.hasNext()) {
-            configuration.getSchemaMediator().insertOrUpdateToRealm(this, object, iterator, cache);
-        }
+        configuration.getSchemaMediator().insertOrUpdateToRealm(this, objects);
     }
 
     /**
-     * Insert or update a RealmObject, this is generally faster than {@link #copyOrUpdate(RealmModel, boolean)}} since it
-     * doesn't return the inserted elements, and doesn't perform checks (threads, parameters etc.).
+     * Insert or update an unmanaged RealmObject, this is generally faster than {@link #copyOrUpdate(RealmModel, boolean)}} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
-     * Please note, copying an object will copy all field values. Any unset field in the object and child objects will be
+     * Please note, this doesn't check if the object is already managed or not.
+     * Copying an object will copy all field values. Any unset field in the object and child objects will be
      * set to their default value if not provided.
      *
      * @param object RealmObjects to insert.
