@@ -56,7 +56,7 @@
                 }
 
                 stage 'Run instrumented tests'
-                var backgroundPid
+                String backgroundPid
                 try {
                     backgroundPid = startLogCatCollector()
                     sh 'realm && ./gradlew connectedUnitTests --stacktrace'
