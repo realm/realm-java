@@ -25,9 +25,9 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
     && apt-get clean
 
 # Install the Android SDK
-RUN cd /opt && wget -q https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz -O android-sdk.tgz
-RUN cd /opt && tar -xvzf android-sdk.tgz
-RUN cd /opt && rm -f android-sdk.tgz
+RUN cd /opt && wget -q https://dl.google.com/android/repository/tools_r25.1.7-linux.zip -O android-tools-linux.zip
+RUN cd /opt && unzip android-tools-linux.zip -d ${ANDROID_HOME}
+RUN cd /opt && rm -f android-tools-linux.zip
 
 # Grab what's needed in the SDK
 RUN echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
@@ -41,3 +41,9 @@ RUN cd /opt/android-ndk-tmp && wget -q http://dl.google.com/android/ndk/android-
 RUN cd /opt/android-ndk-tmp && chmod a+x ./android-ndk.bin && ./android-ndk.bin
 RUN cd /opt/android-ndk-tmp && mv ./android-ndk-r10e /opt/android-ndk
 RUN rm -rf /opt/android-ndk-tmp
+
+# Install cmake
+RUN cd /opt && wget -q https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip -O cmake-linux.zip
+RUN cd /opt && unzip cmake-linux.zip -d ${ANDROID_HOME}/cmake
+RUN cd /opt && rm -f cmake-linux.zip
+
