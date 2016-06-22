@@ -177,7 +177,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
     try {
         LinkViewRef *lv = LV(nativeLinkViewPtr);
         LinkViewRef lvr = *lv;
-        Query *queryPtr = new Query(std::move(lvr->get_target_table().where(LinkViewRef(lvr))));
+        Query *queryPtr = new Query(lvr->get_target_table().where(LinkViewRef(lvr)));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;
