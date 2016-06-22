@@ -90,9 +90,9 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv, jclass, jlong shared_realm_ptr) {
+Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv *, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
-    return ObjectStore::is_empty((*SR(shared_realm_ptr))->read_group());
+    return JB(ObjectStore::is_empty((*SR(shared_realm_ptr))->read_group()));
 }
 
 JNIEXPORT jlong JNICALL
@@ -143,3 +143,67 @@ Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv *, jclass, jlong shared
     return static_cast<jboolean>((*SR(shared_realm_ptr))->is_closed());
 }
 
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                  jstring table_name) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        JStringAccessor name(env, table_name); // throws
+        Table* pTable = LangBindHelper::get_or_add_table(*(*SR(shared_realm_ptr))->read_group(), name);
+        return reinterpret_cast<jlong>(pTable);
+    } CATCH_STD()
+
+    return NULL;
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_realm_internal_SharedRealm_nativeGetTableName(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                      jint index) {
+
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        return to_jstring(env, (*SR(shared_realm_ptr))->read_group()->get_table_name(S(index)));
+    } CATCH_STD()
+    return NULL;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeHasTable(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                  jstring table_name) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        JStringAccessor name(env, table_name);
+        return JB((*SR(shared_realm_ptr))->read_group()->has_table(name));
+    } CATCH_STD()
+    return JB(false);
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                     jstring old_table_name, jstring new_table_name) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        JStringAccessor old_name(env, old_table_name);
+        JStringAccessor new_name(env, new_table_name);
+        (*SR(shared_realm_ptr))->read_group()->rename_table(old_name, new_name);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                     jstring table_name) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        JStringAccessor name(env, table_name);
+        (*SR(shared_realm_ptr))->read_group()->remove_table(name);
+    } CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeSize(JNIEnv *env, jclass, jlong shared_realm_ptr) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        (*SR(shared_realm_ptr))->read_group()->size();
+    } CATCH_STD()
+}

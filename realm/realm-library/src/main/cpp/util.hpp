@@ -102,6 +102,7 @@ std::string num_to_string(T pNumber)
 // Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
 #define B(x)    static_cast<bool>(x)
+#define JB(x)   static_cast<jboolean>(x)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<realm::Table*>(x)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)

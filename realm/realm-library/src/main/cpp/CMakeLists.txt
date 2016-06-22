@@ -15,16 +15,22 @@ include (UseJava)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/)
+else()
+    set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/)
+endif()
+
 create_javah(TARGET jni_headers
   CLASSES io.realm.internal.Table io.realm.internal.TableView
-  io.realm.internal.CheckedRow io.realm.internal.Group
+  io.realm.internal.CheckedRow
   io.realm.internal.LinkView io.realm.internal.Util
   io.realm.internal.Version io.realm.internal.UncheckedRow io.realm.internal.TableQuery
   io.realm.internal.SharedRealm
 
-  CLASSPATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/
+  CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
-  DEPENDS ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/
+  DEPENDS ${classes_PATH}
 )
 
 # TODO: Ideally the debug build should link with core's debug build. But core dbg lib has
@@ -71,7 +77,7 @@ if (${ANDROID_ABI} STREQUAL "armeabi")
 elseif (${ANDROID_ABI} STREQUAL "armeabi-v7a")
     set(ABI_CXX_FLAGS "-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16")
 endif()
-set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros ")
+set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros -Wmissing-declarations")
 set(REALM_COMMON_CXX_FLAGS " -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG -flto")
 set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Os -DNDEBUG")

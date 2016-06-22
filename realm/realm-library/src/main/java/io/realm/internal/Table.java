@@ -51,7 +51,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final long NO_PRIMARY_KEY = -2;
 
     protected long nativePtr;
-    protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
@@ -69,7 +68,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
-        this.parent = null; // No parent in free-standing table
         this.context = new Context();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
@@ -82,11 +80,23 @@ public class Table implements TableOrView, TableSchema, Closeable {
             tableNo = tableCount.incrementAndGet();
             RealmLog.d("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
         }
+        sharedRealm = null;
     }
 
-    Table(Context context, Object parent, long nativePointer) {
+    Table(Context context, Table parent, long nativePointer) {
         this.context = context;
-        this.parent  = parent;
+        this.nativePtr = nativePointer;
+        if (DEBUG) {
+            tableNo = tableCount.incrementAndGet();
+            RealmLog.d("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
+        }
+        this.sharedRealm = parent.sharedRealm;
+    }
+
+    final SharedRealm sharedRealm;
+    Table(SharedRealm sharedRealm, long nativePointer) {
+        this.context = sharedRealm.context;
+        this.sharedRealm = sharedRealm;
         this.nativePtr = nativePointer;
         if (DEBUG) {
             tableNo = tableCount.incrementAndGet();
@@ -119,8 +129,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
-                boolean isRoot = (parent == null);
-                context.asyncDisposeTable(nativePtr, isRoot);
+                // FIXME: CHECK the ref
+                context.asyncDisposeTable(nativePtr, false);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
         }
@@ -803,7 +813,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this.parent, nativeTablePointer);
+            // FIXME: CHECK THIS, I am not sure if they still need to hold a ref to parent.
+            return new Table(this.sharedRealm, nativeTablePointer);
         }
         catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
@@ -983,17 +994,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private Table getPrimaryKeyTable() {
-        Group group = getTableGroup();
-        if (group == null) {
+        if (sharedRealm == null) {
             return null;
         }
-
-        Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
+        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {
             pkTable.addColumn(RealmFieldType.STRING, PRIMARY_KEY_CLASS_COLUMN_NAME);
             pkTable.addColumn(RealmFieldType.STRING, PRIMARY_KEY_FIELD_COLUMN_NAME);
         } else {
-            migratePrimaryKeyTableIfNeeded(group, pkTable);
+            migratePrimaryKeyTableIfNeeded(sharedRealm.getGroupNative(), pkTable);
         }
 
         return pkTable;
@@ -1015,19 +1024,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * This will remove the prefix "class_" from all table names in the pk_column
      * Any database created on Realm-Java 0.84.1 and below will have this error.
      */
-    private void migratePrimaryKeyTableIfNeeded(Group group, Table pkTable) {
-        nativeMigratePrimaryKeyTableIfNeeded(group.nativePtr, pkTable.nativePtr);
-    }
-
-    // Recursively look at parents until either a Group or null is found
-    Group getTableGroup() {
-        if (parent instanceof Group)  {
-            return (Group) parent;
-        } else if (parent instanceof Table) {
-            return ((Table) parent).getTableGroup();
-        } else {
-            return null; // Free table
-        }
+    private void migratePrimaryKeyTableIfNeeded(long groupNativePtr, Table pkTable) {
+        nativeMigratePrimaryKeyTableIfNeeded(groupNativePtr, pkTable.nativePtr);
     }
 
     public boolean hasSearchIndex(long columnIndex) {
@@ -1043,11 +1041,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     boolean isImmutable() {
-        if (!(parent instanceof Table)) {
-            return parent != null && ((Group) parent).immutable;
-        } else {
-            return ((Table)parent).isImmutable();
-        }
+        return sharedRealm != null && !sharedRealm.isInTransaction();
     }
 
     // This checking should be moved to SharedRealm level

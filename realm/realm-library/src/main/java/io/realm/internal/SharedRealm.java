@@ -68,7 +68,7 @@ public final class SharedRealm implements Closeable {
 
     private long nativePtr;
     private RealmConfiguration configuration;
-    private Context context;
+    final Context context;
 
     private SharedRealm(long nativePtr, RealmConfiguration configuration) {
         this.nativePtr = nativePtr;
@@ -110,32 +110,33 @@ public final class SharedRealm implements Closeable {
         return nativeGetVersion(nativePtr);
     }
 
-    private Group readGroup() {
-        return new Group(context, nativeReadGroup(nativePtr));
+    // FIXME: This should be removed, or at least should be private
+    public long getGroupNative() {
+        return nativeReadGroup(nativePtr);
     }
 
     public boolean hasTable(String name) {
-        return readGroup().hasTable(name);
+        return nativeHasTable(nativePtr, name);
     }
 
     public Table getTable(String name) {
-        return readGroup().getTable(name);
+        return new Table(this, nativeGetTable(nativePtr, name));
     }
 
     public void renameTable(String oldName, String newName) {
-        readGroup().renameTable(oldName, newName);
+        nativeRenameTable(nativePtr, oldName, newName);
     }
 
     public void removeTable(String name) {
-        readGroup().removeTable(name);
+        nativeRemoveTable(nativePtr, name);
     }
 
     public String getTableName(int index) {
-        return readGroup().getTableName(index);
+        return nativeGetTableName(nativePtr, index);
     }
 
     public long size() {
-        return readGroup().size();
+        return nativeSize(nativePtr);
     }
 
     public String getPath() {
@@ -197,7 +198,7 @@ public final class SharedRealm implements Closeable {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
-    private static native long nativeReadGroup(long nativeSharedRealmPtr);
+    static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr, long version, long index);
@@ -206,4 +207,11 @@ public final class SharedRealm implements Closeable {
     // Implement the relevant API in a better way without exposing the pointers.
     private static native long nativeGetSharedGroup(long nativeSharedRealmPtr);
     private static native long[]  nativeGetVersionID(long nativeSharedRealmPtr);
+
+    private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
+    private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
+    private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
+    private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
+    private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
+    private static native long nativeSize(long nativeSharedRealmPtr);
 }

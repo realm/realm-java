@@ -41,20 +41,6 @@ public class JNICloseTest extends AndroidTestCase {
         // TODO: Test all methods...
     }
 
-    // TODO: Much more testing needed.
-    // Verify that methods make exceptions when Tables are invalidated.
-    // Verify subtables are invalidated when table is changed/updated in any way.
-    // Check that Group.close works
-
-    public void testShouldCloseGroup() {
-
-        Group group = new Group();
-        group.close();
-
-        try { group.getTable("t");    fail("Group is closed"); } catch (IllegalStateException e) { }
-        try { group.size();                     fail("Group is closed"); } catch (IllegalStateException e) { }
-    }
-
     /**
      * Make sure, that it's possible to use the query on a closed table
      */
