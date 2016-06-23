@@ -63,7 +63,7 @@
                     sh './gradlew connectedUnitTests --stacktrace'
                     archiveLog = false;
                 } finally {
-                    stopLogCatCollector(backgroundPid, archiveLog)
+                    stopLogCatCollector(archiveLog)
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
@@ -99,7 +99,7 @@ def startLogCatCollector() {
     '''
 }
 
-def stopLogCatCollector(String pid, boolean archiveLog) {
+def stopLogCatCollector(boolean archiveLog) {
     sh '''jobs
        kill %1'
        '''
