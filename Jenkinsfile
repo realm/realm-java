@@ -95,7 +95,8 @@
 
 def String startLogCatCollector() {
     sh '''adb logcat -c
-    `adb logcat > "logcat.txt" &` & echo $1 > pid
+    adb logcat > "logcat.txt" &
+    echo $! > pid
     '''
     return readFile("pid").trim()
 }
