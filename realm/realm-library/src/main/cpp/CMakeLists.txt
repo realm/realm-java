@@ -15,14 +15,21 @@ include (UseJava)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/)
+else()
+    set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/)
+endif()
+
 create_javah(TARGET jni_headers
   CLASSES io.realm.internal.Table io.realm.internal.TableView
   io.realm.internal.CheckedRow io.realm.internal.SharedGroup io.realm.internal.Group
   io.realm.internal.LinkView io.realm.internal.Util
   io.realm.internal.Version io.realm.internal.UncheckedRow io.realm.internal.TableQuery
 
-  CLASSPATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/debug/
+  CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
+  DEPENDS ${classes_PATH}
 )
 
 # TODO: Ideally the debug build should link with core's debug build. But core dbg lib has

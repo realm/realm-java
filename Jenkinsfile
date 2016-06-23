@@ -33,7 +33,7 @@
 
             stage 'Docker build'
             def buildEnv = docker.build 'realm-java:snapshot'
-            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle") {
+            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
                 stage 'JVM tests'
                 try {
                     gradle 'assemble check javadoc'
@@ -49,6 +49,7 @@
 
                 stage 'Static code analysis'
                 try {
+                    sh 'adb devices'
                     sh 'cd realm && ./gradlew findbugs pmd checkstyle --stacktrace'
                 } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
