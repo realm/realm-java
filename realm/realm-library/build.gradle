@@ -11,12 +11,12 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.0'
+    compileSdkVersion 24
+    buildToolsVersion '24.0.0'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 23
+        targetSdkVersion 24
         project.archivesBaseName = "realm-android-library"
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -61,7 +61,7 @@ dependencies {
     compile 'com.getkeepsafe.relinker:relinker:1.2.1'
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
-    androidTestCompile 'com.android.support:support-annotations:23.1.1'
+    androidTestCompile 'com.android.support:support-annotations:24.0.0'
     androidTestCompile 'com.android.support.test:runner:0.4.1'
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'

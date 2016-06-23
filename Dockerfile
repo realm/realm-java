@@ -32,8 +32,8 @@ RUN cd /opt && rm -f android-sdk.tgz
 # Grab what's needed in the SDK
 RUN echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter extra-android-support | grep 'package installed'
-RUN echo y | android update sdk --no-ui --all --filter android-23 | grep 'package installed'
-RUN echo y | android update sdk --no-ui --all --filter build-tools-23.0.0 | grep 'package installed'
+RUN echo y | android update sdk --no-ui --all --filter android-24 | grep 'package installed'
+RUN echo y | android update sdk --no-ui --all --filter build-tools-24.0.0 | grep 'package installed'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp
