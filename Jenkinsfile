@@ -56,14 +56,14 @@
                 }
 
                 stage 'Run instrumented tests'
+                boolean archiveLog = true;
                 try {
                     sh 'cd realm'
                     startLogCatCollector()
                     sh './gradlew connectedUnitTests --stacktrace'
-                    stopLogCatCollector(backgroundPid, false)
-                } catch (Exception e) {
-                    stopLogCatCollector(backgroundPid, true)
+                    archiveLog = false;
                 } finally {
+                    stopLogCatCollector(backgroundPid, archiveLog)
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
