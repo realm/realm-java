@@ -3354,9 +3354,4 @@ public class RealmTests {
             lockFile.delete();
         }
     }
-
-    @Test
-    public void testFailureLog() {
-        fail();
-    }
 }
