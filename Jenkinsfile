@@ -56,14 +56,15 @@
                 }
 
                 stage 'Run instrumented tests'
-                boolean archiveLog = true;
+                boolean archiveLog = true
+                String backgroundPid
                 try {
                     sh 'cd realm'
-                    startLogCatCollector()
+                    backgroundPid = startLogCatCollector()
                     sh './gradlew connectedUnitTests --stacktrace'
                     archiveLog = false;
                 } finally {
-                    stopLogCatCollector(archiveLog)
+                    stopLogCatCollector(backgroundPid, archiveLog)
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
@@ -92,16 +93,15 @@
     }
 }
 
-def startLogCatCollector() {
+def String startLogCatCollector() {
     sh '''adb logcat -c
-    adb logcat > "logcat.txt" &
+    `adb logcat > "logcat.txt" &` & echo $1 > pid
     '''
+    return readFile("pid").trim()
 }
 
-def stopLogCatCollector(boolean archiveLog) {
-    sh '''jobs
-       kill %1
-       '''
+def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
+    sh 'kill $backgroundPid'
     if (archiveLog) {
         zip([
             'zipFile': 'logcat.zip',
