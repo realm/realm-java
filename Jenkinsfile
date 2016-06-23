@@ -107,7 +107,7 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
         zip([
             'zipFile': 'logcat.zip',
             'archive': true,
-            'glob' : 'realm/logcat.txt'
+            'glob' : '**/logcat.txt'
         ])
     }
     sh 'rm logcat.txt '
