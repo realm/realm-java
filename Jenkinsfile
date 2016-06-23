@@ -102,7 +102,7 @@ def String startLogCatCollector() {
 }
 
 def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
-    sh 'kill $backgroundPid'
+    sh "kill ${backgroundPid}"
     if (archiveLog) {
         zip([
             'zipFile': 'logcat.zip',
