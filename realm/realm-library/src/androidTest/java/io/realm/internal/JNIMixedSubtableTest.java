@@ -25,7 +25,6 @@ import io.realm.RealmFieldType;
 public class JNIMixedSubtableTest extends TestCase {
 
     public void testGetSubtableFromMixedColumnTest() {
-        Util.setDebugLevel(2);
         Table table = new Table();
 
         table.addColumn(RealmFieldType.INTEGER, "num");
