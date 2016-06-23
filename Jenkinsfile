@@ -93,10 +93,10 @@
 
 def startLogCatCollector() {
     dir('realm/realm-library') {
-        sh 'rm -f logcat.txt'
-        sh 'adb logcat -c'
-        sh 'adb logcat > "logcat.txt" &'
-        return pid
+        sh '''rm -f logcat.txt
+        adb logcat -c
+        adb logcat > "logcat.txt" &
+        '''
     }
 }
 
