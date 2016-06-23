@@ -61,7 +61,7 @@
                     startLogCatCollector()
                     sh './gradlew connectedUnitTests --stacktrace'
                     stopLogCatCollector(backgroundPid, false)
-                } catch (Exception ) {
+                } catch (Exception e) {
                     stopLogCatCollector(backgroundPid, true)
                 } finally {
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
