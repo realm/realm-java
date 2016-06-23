@@ -187,6 +187,18 @@ public class RealmTests {
         Realm.getInstance(new RealmConfiguration.Builder(folder).build());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getInstance_nullContextWithCustomDirThrows() {
+        Realm.getInstance(new RealmConfiguration.Builder((Context) null, configFactory.getRoot()).build());
+    }
+
+    @Test
+    public void getInstance_writeProtectedDirWithContext() {
+        File folder = new File("/");
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstance(new RealmConfiguration.Builder(context, folder).build());
+    }
+
     @Test
     public void getInstance_writeProtectedFile() throws IOException {
         String REALM_FILE = "readonly.realm";
@@ -198,6 +210,19 @@ public class RealmTests {
 
         thrown.expect(RealmIOException.class);
         Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+    }
+
+    @Test
+    public void getInstance_writeProtectedFileWithContext() throws IOException {
+        String REALM_FILE = "readonly.realm";
+        File folder = configFactory.getRoot();
+        File realmFile = new File(folder, REALM_FILE);
+        assertFalse(realmFile.exists());
+        assertTrue(realmFile.createNewFile());
+        assertTrue(realmFile.setWritable(false));
+
+        thrown.expect(RealmIOException.class);
+        Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
     }
 
     @Test
