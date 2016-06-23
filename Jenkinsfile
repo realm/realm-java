@@ -59,9 +59,8 @@
                 boolean archiveLog = true
                 String backgroundPid
                 try {
-                    sh 'cd realm'
                     backgroundPid = startLogCatCollector()
-                    sh './gradlew connectedUnitTests --stacktrace'
+                    sh 'cd realm && ./gradlew connectedUnitTests --stacktrace'
                     archiveLog = false;
                 } finally {
                     stopLogCatCollector(backgroundPid, archiveLog)
@@ -107,7 +106,7 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
         zip([
             'zipFile': 'logcat.zip',
             'archive': true,
-            'glob' : '**/logcat.txt'
+            'glob' : 'logcat.txt'
         ])
     }
     sh 'rm logcat.txt '
