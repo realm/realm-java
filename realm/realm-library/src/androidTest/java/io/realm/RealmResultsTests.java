@@ -48,6 +48,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1026,5 +1027,174 @@ public class RealmResultsTests extends CollectionTests {
         realm.commitTransaction();
 
         assertEquals(0, realm.where(StringOnly.class).findAll().size());
+    }
+
+    // initialize DynamicRealm to test RealmResults as an empty list
+    private DynamicRealm initializeDynamicRealm(final String className) {
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
+
+        // create a class and one object
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                RealmSchema schema = realm.getSchema();
+                // Create Person class with two fields: age and name
+                schema.create(className)
+                        .addField("age", long.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("name", String.class);
+
+                // create an object
+                DynamicRealmObject object = realm.createObject(className);
+                object.setLong("age", 13);
+                object.setString("name", "John");
+            }
+        });
+        return dynamicRealm;
+    }
+
+    private void removeClassFromDynamicRealm(final DynamicRealm realm, final String className) {
+        // delete schema
+        realm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                realm.getSchema().remove(className);
+            }
+        });
+    }
+
+    @Test
+    public void size_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // make sure we have only one object
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.size(), 1);
+
+        // delete schema
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        // now the result should be empty
+        assertEquals(0, results.size());
+        realm.close();
+    }
+
+    @Test
+    public void contains_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // make sure we have an object in RealmResults
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        DynamicRealmObject object = results.first();
+        assertTrue(results.contains(object));
+
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        // now the result should be empty
+        assertFalse(results.contains(object));
+        realm.close();
+    }
+
+    @Test
+    public void get_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // the first object is at 0th index
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        final DynamicRealmObject object = results.first();
+        assertEquals(results.get(0).get("name"), object.get("name"));
+
+        // delete schema
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        // now the result should be empty
+        assertNull(results.get(0));
+        realm.close();
+    }
+
+    @Test
+    public void first_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // the first object
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        final DynamicRealmObject object = results.first();
+        assertEquals(results.first().get("name"), object.get("name"));
+        assertNotEquals(results.first(), null);
+
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        try {
+            results.first();
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results were found.", expected.getMessage());
+        }
+        realm.close();
+    }
+
+    @Test
+    public void last_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // the first object is equal to the last one
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        final DynamicRealmObject object = results.first();
+        assertEquals(results.last().get("name"), object.get("name"));
+
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        try {
+            results.last();
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results were found.", expected.getMessage());
+        }
+        realm.close();
+    }
+
+    @Test
+    public void deleteFromRealm_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertFalse(results.isEmpty());
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        realm.beginTransaction();
+        try {
+            results.deleteFromRealm(0);
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results to be deleted", expected.getMessage());
+        } finally {
+            realm.cancelTransaction();
+        }
+        realm.close();
+    }
+
+    @Test
+    public void deleteAllFromRealm_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertFalse(results.isEmpty());
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+
+        realm.beginTransaction();
+        try {
+            results.deleteAllFromRealm();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results to be deleted", expected.getMessage());
+        } finally {
+            realm.cancelTransaction();
+        }
+        realm.close();
     }
 }

@@ -131,7 +131,7 @@ public final class RealmSchema {
         // firstly remove the entry from dynamic cache
         for (Iterator<Map.Entry<String, Table>> itr = dynamicClassToTable.entrySet().iterator(); itr.hasNext();) {
             Map.Entry<String, Table> entry = itr.next();
-            if(entry.getValue().equals(table)) {
+            if (entry.getValue().equals(table)) {
                 itr.remove();
             }
         }
@@ -139,7 +139,7 @@ public final class RealmSchema {
         // then remove the entry from typed cache
         for (Iterator<Map.Entry<Class<? extends RealmModel>, Table>> itr = classToTable.entrySet().iterator(); itr.hasNext();) {
             Map.Entry<Class<? extends RealmModel>, Table> entry = itr.next();
-            if(entry.getValue().equals(table)) {
+            if (entry.getValue().equals(table)) {
                 itr.remove();
             }
         }

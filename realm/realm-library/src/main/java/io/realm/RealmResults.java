@@ -154,14 +154,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Check if backing {@link Table} exists in schema.
+     * Check if the underlying {@link Table} exists.
      *
      * @return {@code true} if the backing Table is valid, {@code false} otherwise.
      */
     private boolean isTableValid() {
         boolean tableValid = false;
         if (classSpec != null) {
-            String clazzName = realm.configuration.getSchemaMediator().getTableName(classSpec);
+            String clazzName = classSpec.getSimpleName();
             tableValid = realm.schema.contains(clazzName);
         } else {
             tableValid = realm.schema.contains(className);
@@ -261,7 +261,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
         if (isTableValid()) {
-            return;
+            throw new IndexOutOfBoundsException("No results to be deleted.");
         }
         TableOrView table = getTable();
         table.remove(location);
