@@ -56,9 +56,8 @@
                 }
 
                 stage 'Run instrumented tests'
-                String backgroundPid
                 try {
-                    backgroundPid = startLogCatCollector()
+                    startLogCatCollector()
                     sh 'realm && ./gradlew connectedUnitTests --stacktrace'
                     stopLogCatCollector(backgroundPid, false)
                 } catch (Exception ) {
@@ -92,20 +91,19 @@
     }
 }
 
-def String startLogCatCollector() {
+def startLogCatCollector() {
     dir('realm/realm-library') {
         sh 'rm -f logcat.txt'
         sh 'adb logcat -c'
-        sh '''adb logcat > "logcat.txt" &
-            echo $! > backgroundjob'''
-        String pid = readFile("backgroundjob").trim()
-        sh 'rm backgroundjob'
+        sh 'adb logcat > "logcat.txt" &'
         return pid
     }
 }
 
 def stopLogCatCollector(String pid, boolean archiveLog) {
-    sh 'kill $pid'
+    sh '''jobs
+       kill %1'
+       '''
     if (archiveLog) {
         zip([
             'zipFile': 'logcat.zip',
