@@ -153,15 +153,20 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
     }
 
-    private boolean isTableExist() {
-        boolean tableExist = false;
+    /**
+     * Check if backing {@link Table} exists in schema.
+     *
+     * @return {@code true} if the backing Table is valid, {@code false} otherwise.
+     */
+    private boolean isTableValid() {
+        boolean tableValid = false;
         if (classSpec != null) {
             String clazzName = realm.configuration.getSchemaMediator().getTableName(classSpec);
-            tableExist = realm.schema.contains(clazzName);
+            tableValid = realm.schema.contains(clazzName);
         } else {
-            tableExist = realm.schema.contains(className);
+            tableValid = realm.schema.contains(className);
         }
-        return tableExist;
+        return tableValid;
     }
 
     /**
@@ -191,7 +196,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
+        if (isLoaded() && isTableValid() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
                 contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
@@ -211,7 +216,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
-        if (!isTableExist()) {
+        if (!isTableValid()) {
             return null;
         }
         TableOrView table = getTable();
@@ -255,7 +260,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
-        if (isTableExist()) {
+        if (isTableValid()) {
             return;
         }
         TableOrView table = getTable();
@@ -286,7 +291,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public Iterator<E> iterator() {
-        if (!isLoaded() || !isTableExist()) {
+        if (!isLoaded() || !isTableValid()) {
             // Collections.emptyIterator(); is only available since API 19
             return Collections.<E>emptyList().iterator();
         }
@@ -302,7 +307,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public ListIterator<E> listIterator() {
-        if (!isLoaded() || !isTableExist()) {
+        if (!isLoaded() || !isTableValid()) {
             // Collections.emptyListIterator() is only available since API 19
             return Collections.<E>emptyList().listIterator();
         }
@@ -320,7 +325,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public ListIterator<E> listIterator(int location) {
-        if (!isLoaded() || !isTableExist()) {
+        if (!isLoaded() || !isTableValid()) {
             // Collections.emptyListIterator() is only available since API 19
             return Collections.<E>emptyList().listIterator(location);
         }
@@ -337,7 +342,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }
-        if (!isTableExist()) {
+        if (!isTableValid()) {
             return TableOrView.NO_MATCH;
         }
         long columnIndex = table.getColumnIndex(fieldName);
@@ -388,7 +393,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public int size() {
-        if (!isLoaded() || !isTableExist()) {
+        if (!isLoaded() || !isTableValid()) {
             return 0;
         } else {
             long size = getTable().size();
@@ -401,6 +406,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
+        if (!isTableValid()) {
+            return null;
+        }
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -419,6 +427,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Date minDate(String fieldName) {
         realm.checkIfValid();
+        if (!isTableValid()) {
+            return null;
+        }
         long columnIndex = getColumnIndexForSort(fieldName);
         if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
             return table.minimumDate(columnIndex);
@@ -433,6 +444,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
+        if (!isTableValid()) {
+            return null;
+        }
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -458,8 +472,11 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
+        if (!isTableValid()) {
+            return null;
+        }
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (table.getColumnType(columnIndex) == RealmFieldType.DATE && isTableExist()) {
+        if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
             return table.maximumDate(columnIndex);
         }
         else {
@@ -473,6 +490,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
+        if (!isTableValid()) {
+            return null;
+        }
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -491,6 +511,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public double average(String fieldName) {
         realm.checkIfValid();
+        if (!isTableValid()) {
+            return 0;
+        }
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -516,7 +539,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
-        if (!isTableExist()) {
+        if (!isTableValid()) {
             return this;
         }
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
@@ -647,7 +670,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * NOTE: Calling this is a prerequisite to calling {@link #notifyChangeListeners(boolean)}.
      */
     void syncIfNeeded() {
-        if (!isTableExist()) {
+        if (!isTableValid()) {
             return;
         }
         long newVersion = table.syncIfNeeded();
@@ -877,7 +900,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     void setPendingQuery(Future<Long> pendingQuery) {
         this.pendingQuery = pendingQuery;
-        if (isLoaded() && isTableExist()) {
+        if (isLoaded() && isTableValid()) {
             // the query completed before RealmQuery
             // had a chance to call setPendingQuery to register the pendingQuery (used
             // to determine isLoaded behaviour)
@@ -908,7 +931,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public boolean load() {
         //noinspection SimplifiableIfStatement
-        if (isLoaded() && isTableExist()) {
+        if (isLoaded() && isTableValid()) {
             return true;
         } else {
             // doesn't guarantee to correctly import the result (because the user may have advanced)
@@ -951,6 +974,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
+        if (!isTableValid()) {
+            throw new IllegalStateException("You can't register a listener when no data is available.");
+        }
         if (realm.handler == null) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
         }
