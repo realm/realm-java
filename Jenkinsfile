@@ -93,15 +93,14 @@
 }
 
 def startLogCatCollector() {
-    sh '''rm -f logcat.txt
-    adb logcat -c
+    sh '''adb logcat -c
     adb logcat > "logcat.txt" &
     '''
 }
 
 def stopLogCatCollector(boolean archiveLog) {
     sh '''jobs
-       kill %1'
+       kill %1
        '''
     if (archiveLog) {
         zip([
