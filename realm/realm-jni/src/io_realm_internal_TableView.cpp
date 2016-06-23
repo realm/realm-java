@@ -999,7 +999,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
 
-        Query *queryPtr = new Query(std::move(TV(nativeViewPtr)->get_parent().where(TV(nativeViewPtr))));
+        Query *queryPtr = new Query(TV(nativeViewPtr)->get_parent().where(TV(nativeViewPtr)));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;
