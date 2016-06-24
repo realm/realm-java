@@ -260,7 +260,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
-        if (isTableValid()) {
+        if (!isTableValid()) {
             throw new IndexOutOfBoundsException("No results to be deleted.");
         }
         TableOrView table = getTable();
@@ -512,7 +512,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public double average(String fieldName) {
         realm.checkIfValid();
         if (!isTableValid()) {
-            return 0;
+            return 0.0;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {

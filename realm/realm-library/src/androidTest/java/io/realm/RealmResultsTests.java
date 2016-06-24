@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +49,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -126,12 +127,22 @@ public class RealmResultsTests extends CollectionTests {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
             try {
                 switch (method) {
-                    case ADD_OBJECT: collection.add(new AllTypes());
-                    case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllTypes())); break;
-                    case CLEAR: collection.clear(); break;
-                    case REMOVE_OBJECT: collection.remove(new AllTypes());
-                    case REMOVE_ALL: collection.removeAll(Collections.singletonList(new AllTypes())); break;
-                    case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllTypes())); break;
+                    case ADD_OBJECT:
+                        collection.add(new AllTypes());
+                    case ADD_ALL_OBJECTS:
+                        collection.addAll(Collections.singletonList(new AllTypes()));
+                        break;
+                    case CLEAR:
+                        collection.clear();
+                        break;
+                    case REMOVE_OBJECT:
+                        collection.remove(new AllTypes());
+                    case REMOVE_ALL:
+                        collection.removeAll(Collections.singletonList(new AllTypes()));
+                        break;
+                    case RETAIN_ALL:
+                        collection.retainAll(Collections.singletonList(new AllTypes()));
+                        break;
 
                     // Supported methods
                     case DELETE_ALL:
@@ -145,10 +156,18 @@ public class RealmResultsTests extends CollectionTests {
         for (OrderedCollectionMutatorMethod method : OrderedCollectionMutatorMethod.values()) {
             try {
                 switch (method) {
-                    case ADD_INDEX: collection.add(0, new AllTypes()); break;
-                    case ADD_ALL_INDEX: collection.addAll(0, Collections.singletonList(new AllTypes())); break;
-                    case SET: collection.set(0, new AllTypes()); break;
-                    case REMOVE_INDEX: collection.remove(0); break;
+                    case ADD_INDEX:
+                        collection.add(0, new AllTypes());
+                        break;
+                    case ADD_ALL_INDEX:
+                        collection.addAll(0, Collections.singletonList(new AllTypes()));
+                        break;
+                    case SET:
+                        collection.set(0, new AllTypes());
+                        break;
+                    case REMOVE_INDEX:
+                        collection.remove(0);
+                        break;
 
                     // Supported methods
                     case DELETE_INDEX:
@@ -648,7 +667,7 @@ public class RealmResultsTests extends CollectionTests {
         }
         // (String)null makes varargs a null array.
         try {
-            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
+            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // Two (String)null for first and varargs fields
@@ -1041,20 +1060,23 @@ public class RealmResultsTests extends CollectionTests {
                 RealmSchema schema = realm.getSchema();
                 // Create Person class with two fields: age and name
                 schema.create(className)
-                        .addField("age", long.class, FieldAttribute.PRIMARY_KEY)
-                        .addField("name", String.class);
+                        .addField("age", long.class, FieldAttribute.INDEXED)
+                        .addField("name", String.class)
+                        .addField("birth", Date.class);
 
                 // create an object
                 DynamicRealmObject object = realm.createObject(className);
-                object.setLong("age", 13);
+                object.setLong("age", 12);
                 object.setString("name", "John");
+                object.setDate("birth",new Date(1234));
+
             }
         });
         return dynamicRealm;
     }
 
     private void removeClassFromDynamicRealm(final DynamicRealm realm, final String className) {
-        // delete schema
+        // delete class
         realm.executeTransaction(new DynamicRealm.Transaction() {
             @Override
             public void execute(DynamicRealm realm) {
@@ -1072,11 +1094,10 @@ public class RealmResultsTests extends CollectionTests {
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertEquals(results.size(), 1);
 
-        // delete schema
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
-
         // now the result should be empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertEquals(0, results.size());
+        assertTrue(results.isEmpty());
         realm.close();
     }
 
@@ -1090,9 +1111,8 @@ public class RealmResultsTests extends CollectionTests {
         DynamicRealmObject object = results.first();
         assertTrue(results.contains(object));
 
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
-
         // now the result should be empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertFalse(results.contains(object));
         realm.close();
     }
@@ -1104,51 +1124,36 @@ public class RealmResultsTests extends CollectionTests {
 
         // the first object is at 0th index
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        final DynamicRealmObject object = results.first();
+        DynamicRealmObject object = results.first();
         assertEquals(results.get(0).get("name"), object.get("name"));
 
-        // delete schema
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
-
         // now the result should be empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertNull(results.get(0));
         realm.close();
     }
 
     @Test
-    public void first_asEmptyListAfterClassRemoved() {
+    public void firstAndLast_asEmptyListAfterClassRemoved() {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
-        // the first object
+        // the first object is not null
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        final DynamicRealmObject object = results.first();
-        assertEquals(results.first().get("name"), object.get("name"));
-        assertNotEquals(results.first(), null);
+        assertEquals(results.first().get("name"), results.last().get("name"));
+        assertNotNull(results.first().get("name"));
+        assertNotNull(results.last().get("name"));
 
+        // result is empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
-
+        // first
         try {
             results.first();
             fail();
         } catch (IndexOutOfBoundsException expected) {
             assertEquals("No results were found.", expected.getMessage());
         }
-        realm.close();
-    }
-
-    @Test
-    public void last_asEmptyListAfterClassRemoved() {
-        final String CLASS_NAME = "KingsAndQueens";
-        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
-
-        // the first object is equal to the last one
-        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        final DynamicRealmObject object = results.first();
-        assertEquals(results.last().get("name"), object.get("name"));
-
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
-
+        // last
         try {
             results.last();
             fail();
@@ -1165,36 +1170,121 @@ public class RealmResultsTests extends CollectionTests {
 
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertFalse(results.isEmpty());
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
 
+        // result is empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+        // delete from an index
         realm.beginTransaction();
         try {
             results.deleteFromRealm(0);
+            fail();
         } catch (IndexOutOfBoundsException expected) {
-            assertEquals("No results to be deleted", expected.getMessage());
+            assertEquals("No results to be deleted.", expected.getMessage());
         } finally {
             realm.cancelTransaction();
         }
+        // delete all
+        realm.beginTransaction();
+        assertFalse(results.deleteAllFromRealm());
+        realm.cancelTransaction();
         realm.close();
     }
 
     @Test
-    public void deleteAllFromRealm_asEmptyListAfterClassRemoved() {
+    public void deleteFirstAndLast_asEmptyListAfterClassRemoved() {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertFalse(results.isEmpty());
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
 
+        // result is empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
         realm.beginTransaction();
-        try {
-            results.deleteAllFromRealm();
-        } catch (IndexOutOfBoundsException expected) {
-            assertEquals("No results to be deleted", expected.getMessage());
-        } finally {
-            realm.cancelTransaction();
-        }
+        assertFalse(results.deleteFirstFromRealm());
+        assertFalse(results.deleteLastFromRealm());
+        realm.cancelTransaction();
+        realm.close();
+    }
+
+    @Test
+    public void iterator_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertTrue(results.iterator().hasNext());
+        assertTrue(results.listIterator().hasNext());
+        assertTrue(results.listIterator(0).hasNext());
+
+        // result is empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+        assertFalse(results.iterator().hasNext());
+        // result is empty when default index is 0
+        assertFalse(results.listIterator().hasNext());
+        // result is empty for other index
+        assertFalse(results.listIterator(0).hasNext());
+        realm.close();
+    }
+
+    @Test
+    public void numericalValues_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.min("age"), Long.valueOf(12));
+        assertEquals(results.max("age"), Long.valueOf(12));
+        assertEquals(results.sum("age"), Long.valueOf(12));
+        assertEquals(results.average("age"), 12.0, 0);
+
+        // result is empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+        assertEquals(results.min("age"), null);
+        assertEquals(results.max("age"), null);
+        assertEquals(results.sum("age"), null);
+        assertEquals(results.average("age"), 0.0, 0);
+        realm.close();
+    }
+
+    @Test
+    public void minAndMaxDate_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.minDate("birth"), new Date(1234));
+        assertEquals(results.maxDate("birth"), new Date(1234));
+
+        // result is empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+        assertEquals(results.minDate("birth"), null);
+        assertEquals(results.maxDate("birth"), null);
+        realm.close();
+    }
+
+    @Test
+    public void distinct_asEmptyListAfterClassRemoved() {
+        final String CLASS_NAME = "KingsAndQueens";
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        realm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                // create an object
+                DynamicRealmObject object = realm.createObject(CLASS_NAME);
+                object.setLong("age", 12);
+                object.setString("name", "Mary");
+                object.setDate("birth",new Date(4321));
+            }
+        });
+
+        // distinct works as intended
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.distinct("age").size(), 1);
+
+        // result is empty
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+        assertEquals(results.distinct("age").size(), 0);
         realm.close();
     }
 }
