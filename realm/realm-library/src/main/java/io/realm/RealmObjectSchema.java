@@ -16,10 +16,7 @@
 
 package io.realm;
 
-import io.realm.annotations.Required;
-import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -27,6 +24,11 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.realm.annotations.Required;
+import io.realm.internal.Property;
+import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -68,6 +70,8 @@ public final class RealmObjectSchema {
     private final BaseRealm realm;
     final Table table;
     private final Map<String, Long> columnIndices;
+    private final ArrayList<Property> properties;
+    private final long nativePtr; // pointer to ObjectSchema (C++)
 
     /**
      * Creates a schema object for a given Realm class.
@@ -80,6 +84,8 @@ public final class RealmObjectSchema {
         this.realm = realm;
         this.table = table;
         this.columnIndices = columnIndices;
+        this.properties = new ArrayList<>();
+        this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getSharedGroupNative());
     }
 
     /**
@@ -152,6 +158,12 @@ public final class RealmObjectSchema {
             table.removeColumn(columnIndex);
             throw e;
         }
+
+        Property property = new Property(fieldName, metadata.realmType,
+                containsAttribute(attributes, FieldAttribute.PRIMARY_KEY),
+                containsAttribute(attributes, FieldAttribute.INDEXED),
+                        nullable);
+        properties.add(property);
         return this;
     }
 
@@ -750,4 +762,10 @@ public final class RealmObjectSchema {
             throw new UnsupportedOperationException();
         }
     }
+
+    private static native long nativeCreateObjectSchema(long nativeSharedGroupPtr);
+    private static native void nativeClose(long nativePtr);
+    private static native long nativeGetPropertyByName(long nativePtr, String name);
+    private static native long nativeRemovePropertyByName(long nativePtr, String name);
+
 }

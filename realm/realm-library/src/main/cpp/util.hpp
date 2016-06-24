@@ -668,6 +668,10 @@ private:
     jint                m_releaseMode;
 };
 
+inline bool to_bool(jboolean b) {
+    return (b == JNI_TRUE);
+}
+
 extern jclass java_lang_long;
 extern jmethodID java_lang_long_init;
 extern jclass java_lang_float;
