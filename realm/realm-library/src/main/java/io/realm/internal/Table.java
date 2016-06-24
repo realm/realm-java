@@ -574,16 +574,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throw new IllegalArgumentException("Null Date is not allowed.");
                 nativeSetTimestamp(nativePtr, columnIndex, rowIndex, ((Date) value).getTime());
                 break;
-            case UNSUPPORTED_MIXED:
-                if (value == null)
-                    throw new IllegalArgumentException("Null Mixed data is not allowed");
-                nativeSetMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
-                break;
             case BINARY:
                 if (value == null)
                     throw new IllegalArgumentException("Null Array is not allowed");
                 nativeSetByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
+            case UNSUPPORTED_MIXED:
             case UNSUPPORTED_TABLE:
             default:
                 throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
@@ -787,16 +783,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
 
-    @Override
-    public Mixed getMixed(long columnIndex, long rowIndex) {
-        return nativeGetMixed(nativePtr, columnIndex, rowIndex);
-    }
-
-    @Override
-    public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
-    }
-
     public long getLink(long columnIndex, long rowIndex) {
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
     }
@@ -934,21 +920,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         checkImmutable();
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
-    }
-
-    /**
-     * Sets the value for a (mixed typed) cell.
-     *
-     * @param columnIndex column index of the cell.
-     * @param rowIndex row index of the cell.
-     * @param data the value.
-     */
-    @Override
-    public void setMixed(long columnIndex, long rowIndex, Mixed data) {
-        checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException();
-        nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
     }
 
     public void setLink(long columnIndex, long rowIndex, long value) {
@@ -1472,8 +1443,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native long nativeGetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex);
     private native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
-    private native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
-    private native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
     private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
     public static native long nativeGetLinkView(long nativePtr, long columnIndex, long rowIndex);
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
@@ -1486,7 +1455,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-    private native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
     private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);

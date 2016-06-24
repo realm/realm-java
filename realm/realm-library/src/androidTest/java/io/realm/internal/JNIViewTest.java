@@ -43,14 +43,11 @@ public class JNIViewTest extends TestCase {
         t.addColumn(RealmFieldType.INTEGER,    "Age");
         t.addColumn(RealmFieldType.DATE,   "Birthday");
 
-        // Add unsupported column types
-        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED,  "Unsupported3");
-
         //Add data
-        t.add("cc", true,  24, date1, 0);
-        t.add("dd", false, 35, date2, 0);
-        t.add("bb", true,  22, date3, 0);
-        t.add("aa", false, 22, date4, 0);
+        t.add("cc", true,  24, date1);
+        t.add("dd", false, 35, date2);
+        t.add("bb", true,  22, date3);
+        t.add("aa", false, 22, date4);
 
         assertEquals(date1, t.getDate(3, 0));
         assertEquals(date2, t.getDate(3, 1));
@@ -150,7 +147,7 @@ public class JNIViewTest extends TestCase {
 
     public void testFindFirstNonExisting() {
         Table tt = TestHelper.getTableWithAllColumnTypes();
-        tt.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string");
+        tt.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, "string");
         TableView v = tt.where().findAll();
 
         assertEquals(-1, v.findFirstBoolean(1, false));
@@ -158,7 +155,6 @@ public class JNIViewTest extends TestCase {
         assertEquals(-1, v.findFirstDouble(3, 1.0d));
         assertEquals(-1, v.findFirstFloat(4, 1.0f));
         assertEquals(-1, v.findFirstLong(5, 50));
-        assertEquals(-1, v.findFirstString(7, "other string"));
     }
 
 
@@ -189,10 +185,6 @@ public class JNIViewTest extends TestCase {
         try { view.getLong(-1, 0);              fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getLong(-10, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getLong(100, 0);             fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
-
-        try { view.getMixed(-1, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getMixed(-10, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getMixed(100, 0);            fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
 
         try { view.getString(-1, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getString(-10, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }

@@ -267,22 +267,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeGetMixedType
- * Signature: (JJJ)I
- */
-JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetMixedType
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetMixed
- * Signature: (JJJ)Lio/realm/internal/Mixed;
- */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetMixed
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeGetLink
  * Signature: (JJJ)J
  */
@@ -377,14 +361,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
   (JNIEnv *, jclass, jlong, jlong, jlong, jbyteArray);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeSetMixed
- * Signature: (JJJLio/realm/internal/Mixed;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed
-  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
  * Class:     io_realm_internal_Table

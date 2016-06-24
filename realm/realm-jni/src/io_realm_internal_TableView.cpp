@@ -15,9 +15,8 @@
  */
 
 #include "util.hpp"
-#include "io_realm_internal_TableView.h"
-#include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
+#include "io_realm_internal_TableView.h"
 #include "realm/array.hpp"
 #include <ostream>
 
@@ -292,19 +291,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeGetString(
     return NULL;
 }
 
-/*
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeGetBinary(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!VIEW_VALID(env, nativeViewPtr) ||
-        !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
-        return NULL;
-    // TODO: Does the native binary get freed?
-    BinaryData bin = TV(nativeViewPtr)->get_binary( S(columnIndex), S(rowIndex));  // noexcept
-    return env->NewDirectByteBuffer(const_cast<char*>(bin.data()),  static_cast<jlong>(bin.size()));
-}
-*/
-
 JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_TableView_nativeGetByteArray(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
@@ -313,31 +299,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_TableView_nativeGetByteArray
             !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
             return NULL;
         return tbl_GetByteArray<TableView>(env, nativeViewPtr, columnIndex, rowIndex);
-    } CATCH_STD()
-    return NULL;
-}
-
-JNIEXPORT jint JNICALL Java_io_realm_internal_TableView_nativeGetMixedType(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Mixed))
-            return 0;
-    } CATCH_STD()
-    DataType mixedType = TV(nativeViewPtr)->get_mixed_type( S(columnIndex), S(rowIndex));  // noexcept
-    return static_cast<jint>(mixedType);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeGetMixed(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Mixed))
-            return NULL;
-        Mixed value = TV(nativeViewPtr)->get_mixed( S(columnIndex), S(rowIndex));   // noexcept
-        return CreateJMixedFromMixed(env, value);
     } CATCH_STD()
     return NULL;
 }
@@ -426,19 +387,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetString(
     } CATCH_STD()
 }
 
-/*
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetBinary(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
-{
-    if (!VIEW_VALID(env, nativeViewPtr) ||
-        !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
-        return;
-    try {
-        tbl_nativeDoBinary(&TableView::set_binary, TV(nativeViewPtr), env, columnIndex, rowIndex, byteBuffer);
-    } CATCH_STD()
-}
-*/
-
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetByteArray(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jbyteArray byteArray)
 {
@@ -447,17 +395,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetByteArray(
             !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
             return;
         tbl_nativeDoByteArray(&TableView::set_binary, TV(nativeViewPtr), env, columnIndex, rowIndex, byteArray);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetMixed(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex))
-            return;
-        tbl_nativeDoMixed(&TableView::set_mixed, TV(nativeViewPtr), env, columnIndex, rowIndex, jMixedValue);
     } CATCH_STD()
 }
 
