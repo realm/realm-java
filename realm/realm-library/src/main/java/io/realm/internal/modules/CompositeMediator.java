@@ -99,27 +99,27 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insertToRealm(realm, object, cache);
+        mediator.insert(realm, object, cache);
     }
 
     @Override
-    public void insertToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+    public void insert(Realm realm, Collection<? extends RealmModel> objects) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(Util.getOriginalModelClass(objects.iterator().next().getClass())));
-        mediator.insertToRealm(realm, objects);
+        mediator.insert(realm, objects);
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insertOrUpdateToRealm(realm, object, cache);
+        mediator.insertOrUpdate(realm, object, cache);
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+    public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(Util.getOriginalModelClass(objects.iterator().next().getClass())));
-        mediator.insertOrUpdateToRealm(realm, objects);
+        mediator.insertOrUpdate(realm, objects);
     }
 
     @Override

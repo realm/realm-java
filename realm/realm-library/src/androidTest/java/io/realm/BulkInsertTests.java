@@ -33,6 +33,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.CyclicType;
+import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NoPrimaryKeyWithPrimaryKeyObjectRelation;
@@ -240,13 +241,42 @@ public class BulkInsertTests {
         anotherCyclicType.setObject(oneCyclicType);
 
         realm.beginTransaction();
-        realm.insert(oneCyclicType);
+        realm.insert(Arrays.asList(oneCyclicType, anotherCyclicType));
         realm.commitTransaction();
 
-        CyclicType realmObject = realm.where(CyclicType.class).findFirst();
-        assertEquals("One", realmObject.getName());
-        assertEquals("Two", realmObject.getObject().getName());
-        assertEquals(2, realm.where(CyclicType.class).count());
+        RealmResults<CyclicType> realmObjects = realm.where(CyclicType.class).findAllSorted(CyclicType.FIELD_NAME);
+        assertNotNull(realmObjects);
+        assertEquals(2, realmObjects.size());
+        assertEquals("One", realmObjects.get(0).getName());
+        assertEquals("Two", realmObjects.get(0).getObject().getName());
+    }
+
+    @Test
+    public void insertOrUpdateToRealm_CyclicType() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1, "One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2, "Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        realm.beginTransaction();
+        realm.insertOrUpdate(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+
+        RealmResults<CyclicTypePrimaryKey> realmObjects = realm.where(CyclicTypePrimaryKey.class).findAllSorted("name");
+        assertNotNull(realmObjects);
+        assertEquals(2, realmObjects.size());
+        assertEquals("One", realmObjects.get(0).getName());
+        assertEquals("Two", realmObjects.get(0).getObject().getName());
+
+        CyclicTypePrimaryKey updatedCyclicType = new CyclicTypePrimaryKey(2, "updated");
+
+        realm.beginTransaction();
+        realm.insertOrUpdate(updatedCyclicType);
+        realm.commitTransaction();
+
+        assertEquals("One", realmObjects.get(0).getName());
+        assertEquals("updated", realmObjects.get(0).getObject().getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
     }
 
     @Test
@@ -542,6 +572,7 @@ public class BulkInsertTests {
         realm.beginTransaction();
         try {
             realm.insert(list);
+            fail("Should trigger NullPointerException");
         } catch (NullPointerException ignore) {
 
         } finally {
@@ -549,6 +580,7 @@ public class BulkInsertTests {
         }
     }
 
+    //Inserting a managed object will result in it being copied or updated again
     @Test
     public void testManagedObject() {
         AllJavaTypes obj = new AllJavaTypes();

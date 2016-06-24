@@ -1143,6 +1143,50 @@ public class RealmTests {
         assertEquals("One", realmObject.getName());
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicType.class).count());
+
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicType.class).count());
+
+        realm.beginTransaction();
+        List<CyclicType> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicType.class).count());
+    }
+
+    @Test
+    public void copyToRealm_cyclicObjectReferencesWithPK() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1, "One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2, "Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        realm.beginTransaction();
+        CyclicTypePrimaryKey realmObject = realm.copyToRealm(oneCyclicType);
+        realm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals("Two", realmObject.getObject().getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
+
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicTypePrimaryKey.class).count());
+
+        realm.beginTransaction();
+        List<CyclicTypePrimaryKey> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
     }
 
     @Test

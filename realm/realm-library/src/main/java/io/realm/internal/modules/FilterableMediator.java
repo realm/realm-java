@@ -114,27 +114,27 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insertToRealm(realm, object, cache);
+        originalMediator.insert(realm, object, cache);
     }
 
     @Override
-    public void insertToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+    public void insert(Realm realm, Collection<? extends RealmModel> objects) {
         checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
-        originalMediator.insertToRealm(realm, objects);
+        originalMediator.insert(realm, objects);
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insertOrUpdateToRealm(realm, object, cache);
+        originalMediator.insertOrUpdate(realm, object, cache);
     }
 
     @Override
-    public void insertOrUpdateToRealm(Realm realm, Collection<? extends RealmModel> objects) {
+    public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
         checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
-        originalMediator.insertOrUpdateToRealm(realm, objects);
+        originalMediator.insertOrUpdate(realm, objects);
     }
 
     @Override

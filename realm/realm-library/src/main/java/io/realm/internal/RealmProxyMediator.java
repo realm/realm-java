@@ -113,7 +113,7 @@ public abstract class RealmProxyMediator {
      * @param object RealmObjects to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
-    public abstract void insertToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Insert or update a RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
@@ -123,7 +123,7 @@ public abstract class RealmProxyMediator {
      * @param object RealmObjects to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
-    public abstract void insertOrUpdateToRealm(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Insert or update a RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
@@ -132,7 +132,7 @@ public abstract class RealmProxyMediator {
      * @param realm RealmObjects to insert.
      * @param objects Collection of RealmObjects to insert or update.
      */
-    public abstract void insertOrUpdateToRealm(Realm realm, Collection<? extends RealmModel> objects);
+    public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
      * Insert of a RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
@@ -141,7 +141,7 @@ public abstract class RealmProxyMediator {
      * @param realm RealmObjects to insert.
      * @param objects Collection of RealmObjects to insert or update.
      */
-    public abstract void insertToRealm(Realm realm, Collection<? extends RealmModel> objects);
+    public abstract void insert(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.
