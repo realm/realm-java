@@ -785,7 +785,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Insert of a list of unmanaged RealmObjects. This is generally faster than {@link #copyToRealm(Iterable)} since it
+     * Insert a list of an unmanaged RealmObjects. This is generally faster than {@link #copyToRealm(Iterable)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
      * Please note, this doesn't check if the object is already managed or not, so inserting a managed object will duplicate it unlike {@link #copyToRealm(Iterable)}
@@ -799,7 +799,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Insert of unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel)} since it
+     * Insert of an unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
      * Please note, this doesn't check if the object is already managed or not, so inserting a managed object will duplicate it unlike {@link #copyToRealm(RealmModel)}
@@ -814,7 +814,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Insert or update of a list of unmanaged RealmObjects. This is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
+     * Insert or update a list of an unmanaged RealmObjects. This is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      * <p>
      * Please note, this doesn't check if the object is already managed or not, so inserting a managed object might duplicate it unlike {@link #copyToRealmOrUpdate(Iterable)}

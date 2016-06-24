@@ -819,10 +819,10 @@ public class AllTypesRealmProxy extends AllTypes
             Table.nativeNullifyLink(tableNativePtr, columnInfo.columnObjectIndex, rowIndex);
         }
 
+        long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
+        LinkView.nativeClear(nativeLinkViewPtr);
         RealmList<AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
         if (columnRealmListList != null) {
-            long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
-            LinkView.nativeClear(nativeLinkViewPtr);
             for (AllTypes columnRealmListItem : columnRealmListList) {
                 Long cacheItemIndexcolumnRealmList = cache.get(columnRealmListItem);
                 if (cacheItemIndexcolumnRealmList == null) {
@@ -830,8 +830,8 @@ public class AllTypesRealmProxy extends AllTypes
                 }
                 LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
-            LinkView.nativeClose(nativeLinkViewPtr);
         }
+        LinkView.nativeClose(nativeLinkViewPtr);
 
         return rowIndex;
     }
@@ -893,10 +893,10 @@ public class AllTypesRealmProxy extends AllTypes
                     Table.nativeNullifyLink(tableNativePtr, columnInfo.columnObjectIndex, rowIndex);
                 }
 
+                long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
+                LinkView.nativeClear(nativeLinkViewPtr);
                 RealmList<AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
                 if (columnRealmListList != null) {
-                    long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.columnRealmListIndex, rowIndex);
-                    LinkView.nativeClear(nativeLinkViewPtr);
                     for (AllTypes columnRealmListItem : columnRealmListList) {
                         Long cacheItemIndexcolumnRealmList = cache.get(columnRealmListItem);
                         if (cacheItemIndexcolumnRealmList == null) {
@@ -904,8 +904,8 @@ public class AllTypesRealmProxy extends AllTypes
                         }
                         LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
-                    LinkView.nativeClose(nativeLinkViewPtr);
                 }
+                LinkView.nativeClose(nativeLinkViewPtr);
 
             }
         }

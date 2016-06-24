@@ -1144,6 +1144,8 @@ public class RealmTests {
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicType.class).count());
 
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();
@@ -1174,6 +1176,8 @@ public class RealmTests {
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
 
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();

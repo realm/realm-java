@@ -340,7 +340,7 @@ public class BulkInsertTests {
         assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
         AllTypesPrimaryKey obj = realm.where(AllTypesPrimaryKey.class).findFirst();
 
-        // Check that the the only element has all its properties updated
+        // Check that the only element has all its properties updated
         assertEquals("Bar", obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(2.23F, obj.getColumnFloat(), 0);

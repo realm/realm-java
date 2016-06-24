@@ -106,39 +106,39 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
 
     /**
-     * Insert of an unmanaged RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * Insert an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      *
-     * @param realm RealmObjects to insert.
-     * @param object RealmObjects to insert.
+     * @param realm the reference to {@link Realm} where to create the object.
+     * @param object RealmObject to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
     public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Insert or update a RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      *
-     * @param realm RealmObjects to insert.
-     * @param object RealmObjects to insert.
+     * @param realm the reference to {@link Realm} where to create the object.
+     * @param object RealmObject to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
     public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Insert or update a RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      *
-     * @param realm RealmObjects to insert.
+     * @param realm the reference to {@link Realm} where to create the object.
      * @param objects Collection of RealmObjects to insert or update.
      */
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
-     * Insert of a RealmObject, this is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * Insert a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      *
-     * @param realm RealmObjects to insert.
+     * @param realm the reference to {@link Realm} where to create the object.
      * @param objects Collection of RealmObjects to insert or update.
      */
     public abstract void insert(Realm realm, Collection<? extends RealmModel> objects);

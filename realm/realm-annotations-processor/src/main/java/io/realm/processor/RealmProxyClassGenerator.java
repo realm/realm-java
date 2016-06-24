@@ -806,14 +806,14 @@ public class RealmProxyClassGenerator {
                         .emitEmptyLine()
                         .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sObj != null)", fieldName)
-                        .emitStatement("Long cache%1$s = cache.get(%1$sObj)", fieldName)
-                        .beginControlFlow("if (cache%s == null)", fieldName)
-                        .emitStatement("cache%s = %s.insert(realm, %sObj, cache)",
-                                fieldName,
-                                Utils.getProxyClassSimpleName(field),
-                                fieldName)
-                        .endControlFlow()
-                        .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
+                            .emitStatement("Long cache%1$s = cache.get(%1$sObj)", fieldName)
+                            .beginControlFlow("if (cache%s == null)", fieldName)
+                                .emitStatement("cache%s = %s.insert(realm, %sObj, cache)",
+                                        fieldName,
+                                        Utils.getProxyClassSimpleName(field),
+                                        fieldName)
+                            .endControlFlow()
+                           .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
                         .endControlFlow();
             } else if (Utils.isRealmList(field)) {
                 writer
@@ -821,15 +821,15 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                        .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
-                        .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
-                        .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                        .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                        .endControlFlow()
-                        .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
-                        .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
+                            .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                            .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
+                                .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
+                             .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                             .endControlFlow()
+                             .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
+                            .endControlFlow()
+                            .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
                         .endControlFlow()
                         .emitEmptyLine();
 
@@ -874,13 +874,13 @@ public class RealmProxyClassGenerator {
                         .emitEmptyLine()
                         .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sObj != null)", fieldName)
-                        .emitStatement("Long cache%1$s = cache.get(%1$sObj)", fieldName)
-                        .beginControlFlow("if (cache%s == null)", fieldName)
-                        .emitStatement("cache%s = %s.insert(realm, %sObj, cache)",
-                                fieldName,
-                                Utils.getProxyClassSimpleName(field),
-                                fieldName)
-                        .endControlFlow()
+                            .emitStatement("Long cache%1$s = cache.get(%1$sObj)", fieldName)
+                         .beginControlFlow("if (cache%s == null)", fieldName)
+                                .emitStatement("cache%s = %s.insert(realm, %sObj, cache)",
+                                        fieldName,
+                                        Utils.getProxyClassSimpleName(field),
+                                        fieldName)
+                                .endControlFlow()
                         .emitStatement("table.setLink(columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
                         .endControlFlow();
             } else if (Utils.isRealmList(field)) {
@@ -889,14 +889,14 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                        .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
-                        .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
-                        .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                        .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                        .endControlFlow()
-                        .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
-                        .endControlFlow()
+                            .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                          .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
+                                .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
+                             .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                    .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                             .endControlFlow()
+                                .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
+                          .endControlFlow()
                         .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
                         .endControlFlow()
                         .emitEmptyLine();
@@ -935,18 +935,18 @@ public class RealmProxyClassGenerator {
                             .emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                             .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                             .beginControlFlow("if (primaryKeyValue == null)")
-                            .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                                .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                             .nextControlFlow("else")
-                            .emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue)")
+                                .emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue)")
                             .endControlFlow();
                 } else {
                     writer
                             .emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                             .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                             .beginControlFlow("if (primaryKeyValue == null)")
-                            .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                                .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                             .nextControlFlow("else")
-                            .emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                                .emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                             .endControlFlow();
                 }
             } else {
@@ -1001,25 +1001,25 @@ public class RealmProxyClassGenerator {
                             .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
                         .nextControlFlow("else")
                                 // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                        .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                            .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
                         .endControlFlow();
             } else if (Utils.isRealmList(field)) {
                 writer
                         .emitEmptyLine()
+                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
-                        .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
-                        .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
-                        .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                        .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                        .endControlFlow()
-                        .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
+                            .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
+                                .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
+                                .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                    .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                .endControlFlow()
+                                .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
+                            .endControlFlow()
                         .endControlFlow()
                         .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
-                        .endControlFlow()
                         .emitEmptyLine();
 
             } else {
@@ -1055,108 +1055,108 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("object = (%s) objects.next()", className);
         writer.beginControlFlow("if(!cache.containsKey(object))");
 
-            if (hasPrimaryKey) {
-                String primaryKeyGetter = metadata.getPrimaryKeyGetter();
-                VariableElement primaryKeyElement = metadata.getPrimaryKey();
-                if (metadata.isNullable(primaryKeyElement)) {
-                    if (Utils.isString(primaryKeyElement)) {
-                        writer
-                                .emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                                .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+        if (hasPrimaryKey) {
+            String primaryKeyGetter = metadata.getPrimaryKeyGetter();
+            VariableElement primaryKeyElement = metadata.getPrimaryKey();
+            if (metadata.isNullable(primaryKeyElement)) {
+                if (Utils.isString(primaryKeyElement)) {
+                    writer
+                            .emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                            .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                                 .beginControlFlow("if (primaryKeyValue == null)")
-                                .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
-                                .nextControlFlow("else")
+                            .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                            .nextControlFlow("else")
                                 .emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue)")
-                                .endControlFlow();
-                    } else {
-                        writer
-                                .emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                                .emitStatement("long rowIndex = TableOrView.NO_MATCH")
-                                .beginControlFlow("if (primaryKeyValue == null)")
+                            .endControlFlow();
+                } else {
+                    writer
+                            .emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                            .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                            .beginControlFlow("if (primaryKeyValue == null)")
                                 .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
-                                .nextControlFlow("else")
+                            .nextControlFlow("else")
                                 .emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter)
-                                .endControlFlow();
-                    }
-                } else {
-                    writer.emitStatement("long rowIndex = TableOrView.NO_MATCH");
-                    writer.emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                            .beginControlFlow("if (primaryKeyValue != null)");
-                    if (Utils.isString(metadata.getPrimaryKey())) {
-                        writer.emitStatement("rowIndex = table.findFirstString(pkColumnIndex, (String)primaryKeyValue)");
-                    } else {
-                        writer.emitStatement("rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
-                    }
-                    writer.endControlFlow();
+                            .endControlFlow();
                 }
-
-                writer
-                        .beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)")
-                        .emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            } else {
+                writer.emitStatement("long rowIndex = TableOrView.NO_MATCH");
+                writer.emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                        .beginControlFlow("if (primaryKeyValue != null)");
                 if (Utils.isString(metadata.getPrimaryKey())) {
-                    writer.beginControlFlow("if (primaryKeyValue != null)");
-                        writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
-                    writer.endControlFlow();
+                    writer.emitStatement("rowIndex = table.findFirstString(pkColumnIndex, (String)primaryKeyValue)");
                 } else {
-                    writer.beginControlFlow("if (primaryKeyValue != null)");
-                        writer.emitStatement("Table.nativeSetLong(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
-                    writer.endControlFlow();
+                    writer.emitStatement("rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
                 }
                 writer.endControlFlow();
-
-                writer.emitStatement("cache.put(object, rowIndex)");
-
-            } else {
-                writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
-                writer.emitStatement("cache.put(object, rowIndex)");
             }
 
-            for (VariableElement field : metadata.getFields()) {
-                String fieldName = field.getSimpleName().toString();
-                String fieldType = field.asType().toString();
-                String getter = metadata.getGetter(fieldName);
+            writer
+                    .beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)")
+                    .emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            if (Utils.isString(metadata.getPrimaryKey())) {
+                writer.beginControlFlow("if (primaryKeyValue != null)");
+                    writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
+                writer.endControlFlow();
+            } else {
+                writer.beginControlFlow("if (primaryKeyValue != null)");
+                    writer.emitStatement("Table.nativeSetLong(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
+                writer.endControlFlow();
+            }
+            writer.endControlFlow();
 
-                if (Utils.isRealmModel(field)) {
-                    writer
-                            .emitEmptyLine()
-                            .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
-                            .beginControlFlow("if (%sObj != null)", fieldName)
+            writer.emitStatement("cache.put(object, rowIndex)");
+
+        } else {
+            writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            writer.emitStatement("cache.put(object, rowIndex)");
+        }
+
+        for (VariableElement field : metadata.getFields()) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldType = field.asType().toString();
+            String getter = metadata.getGetter(fieldName);
+
+            if (Utils.isRealmModel(field)) {
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sObj != null)", fieldName)
                             .emitStatement("Long cache%1$s = cache.get(%1$sObj)", fieldName)
                             .beginControlFlow("if (cache%s == null)", fieldName)
-                            .emitStatement("cache%1$s = %2$s.insertOrUpdate(realm, %1$sObj, cache)",
-                                    fieldName,
-                                    Utils.getProxyClassSimpleName(field))
-                            .endControlFlow()
+                                .emitStatement("cache%1$s = %2$s.insertOrUpdate(realm, %1$sObj, cache)",
+                                        fieldName,
+                                        Utils.getProxyClassSimpleName(field))
+                                    .endControlFlow()
                             .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
-                            .nextControlFlow("else")
-                                    // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
+                        .nextControlFlow("else")
+                                // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                             .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                            .endControlFlow();
-                } else if (Utils.isRealmList(field)) {
-                    writer
-                            .emitEmptyLine()
-                            .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
-                                    Utils.getGenericType(field), fieldName, interfaceName, getter)
-                            .beginControlFlow("if (%sList != null)", fieldName)
-                            .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
-                            .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
+                        .endControlFlow();
+            } else if (Utils.isRealmList(field)) {
+                writer
+                        .emitEmptyLine()
+                        .emitStatement("long nativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
+                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr)")
+                        .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
+                                Utils.getGenericType(field), fieldName, interfaceName, getter)
+                        .beginControlFlow("if (%sList != null)", fieldName)
                             .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
-                            .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
+                                .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
                             .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                            .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                            .endControlFlow()
+                                    .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                .endControlFlow()
                             .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr, cacheItemIndex%s)", fieldName)
                             .endControlFlow()
-                            .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
-                            .endControlFlow()
-                            .emitEmptyLine();
+                        .endControlFlow()
+                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr)")
+                        .emitEmptyLine();
 
-                } else {
-                    setTableValues(writer, fieldType, fieldName, interfaceName, getter, true);
-                }
+            } else {
+                setTableValues(writer, fieldType, fieldName, interfaceName, getter, true);
             }
-                writer.endControlFlow();
+        }
             writer.endControlFlow();
+        writer.endControlFlow();
 
         writer.endMethod();
         writer.emitEmptyLine();
