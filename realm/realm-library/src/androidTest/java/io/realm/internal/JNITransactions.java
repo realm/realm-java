@@ -273,7 +273,6 @@ public class JNITransactions {
         try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addSearchIndex(0);              fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         TableQuery q = table.where();
@@ -289,7 +288,6 @@ public class JNITransactions {
         try { v.setDate(0, 0, new Date());          fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setLong(0, 0, 0);                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setString(0,0,"");                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setMixed(0, 0, null);               fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         t.endRead();
     }
