@@ -1077,7 +1077,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
     try {
-        Query *queryPtr = new Query(std::move(TBL(nativeTablePtr)->where()));
+        Query *queryPtr = new Query(TBL(nativeTablePtr)->where());
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;
