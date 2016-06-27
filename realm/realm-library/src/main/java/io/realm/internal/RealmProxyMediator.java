@@ -97,6 +97,7 @@ public abstract class RealmProxyMediator {
      * Copies an unmanaged {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
      * any changes to the original object will not be persisted.
      *
+     * @param realm reference to the {@link Realm} where the object will be copied.
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
@@ -108,9 +109,10 @@ public abstract class RealmProxyMediator {
     /**
      * Insert an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original object will not be persisted.
      *
-     * @param realm the reference to {@link Realm} where to create the object.
-     * @param object RealmObject to insert.
+     * @param realm reference to the {@link Realm} where the object will be inserted.
+     * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
     public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
@@ -118,9 +120,10 @@ public abstract class RealmProxyMediator {
     /**
      * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original object will not be persisted.
      *
-     * @param realm the reference to {@link Realm} where to create the object.
-     * @param object RealmObject to insert.
+     * @param realm reference to the {@link Realm} where the objecs will be inserted.
+     * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
     public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
@@ -128,18 +131,19 @@ public abstract class RealmProxyMediator {
     /**
      * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original objects will not be persisted.
      *
-     * @param realm the reference to {@link Realm} where to create the object.
-     * @param objects Collection of RealmObjects to insert or update.
+     * @param realm reference to the {@link Realm} where the objects will be inserted.
+     * @param objects Collection of {@link RealmObject} to insert or update.
      */
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
      * Insert a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original objects will not be persisted.
      *
-     * @param realm the reference to {@link Realm} where to create the object.
-     * @param objects Collection of RealmObjects to insert or update.
+     * @param realm reference to the {@link Realm} where the objects will be inserted.
+     * @param objects Collection of {@link RealmObject} to insert or update.
      */
     public abstract void insert(Realm realm, Collection<? extends RealmModel> objects);
 

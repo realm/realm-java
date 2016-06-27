@@ -538,7 +538,7 @@ public class BulkInsertTests {
         try {
             realm.insert(nullObject);
             fail("Should trigger NullPointerException");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
 
         } finally {
             realm.cancelTransaction();
@@ -553,7 +553,7 @@ public class BulkInsertTests {
         try {
             realm.insert(nullObjects);
             fail("Should trigger NullPointerException");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
 
         } finally {
             realm.cancelTransaction();
@@ -612,5 +612,26 @@ public class BulkInsertTests {
         assertEquals(8, first.getFieldObject().getFieldLong());
 
         assertEquals(2, realm.where(AllJavaTypes.class).findAll().size());
+    }
+
+    @Test
+    public void linkingManagedToUnmanagedObject() {
+        realm.beginTransaction();
+        AllJavaTypes managedAllJavaTypes = realm.createObject(AllJavaTypes.class, 42);
+        realm.commitTransaction();
+
+        AllJavaTypes unmanagedObject = new AllJavaTypes(8);
+        unmanagedObject.setFieldObject(managedAllJavaTypes);//Linking managed object to unmanaged object
+
+        realm.beginTransaction();
+        realm.insertOrUpdate(unmanagedObject);
+        realm.commitTransaction();
+
+        AllJavaTypes first = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 8).findFirst();
+        assertNotNull(first);
+        assertEquals(8, first.getFieldLong(), 0);
+        assertNotNull(first.getFieldObject());
+        assertEquals(42, first.getFieldObject().getFieldLong());
+        assertEquals(2, realm.where(AllJavaTypes.class).count());
     }
 }
