@@ -27,12 +27,12 @@ public class MigrationFieldTypeToInt extends RealmObject implements MigrationPri
     public static long DEFAULT_FIELDS_COUNT = 5;
     public static long DEFAULT_PRIMARY_INDEX = 4;
 
-    public static String FIELD_PRIMARY = "fieldModifiedPrimary";
+    public static String FIELD_PRIMARY = "fieldIntPrimary";
 
     private Byte fieldFirst;
     private Short fieldSecond;
     @PrimaryKey
-    private int fieldModifiedPrimary;
+    private int fieldIntPrimary;
     private Integer fieldFourth;
     private Long fieldFifth;
 
@@ -52,12 +52,12 @@ public class MigrationFieldTypeToInt extends RealmObject implements MigrationPri
         return this.fieldSecond;
     }
 
-    public void setFieldModifiedPrimary(int fieldModifiedPrimary) {
-        this.fieldModifiedPrimary = fieldModifiedPrimary;
+    public void setFieldIntPrimary(int fieldIntPrimary) {
+        this.fieldIntPrimary = fieldIntPrimary;
     }
 
-    public int getFieldModifiedPrimary() {
-        return this.fieldModifiedPrimary;
+    public int getFieldIntPrimary() {
+        return this.fieldIntPrimary;
     }
 
     public void setFieldFourth(Integer fieldFourth) {

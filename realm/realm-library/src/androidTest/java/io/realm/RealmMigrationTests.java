@@ -409,8 +409,8 @@ public class RealmMigrationTests {
                                 if (fieldValue != null && fieldValue.length() != 0) {
                                     obj.setInt("temp_id", Integer.valueOf(fieldValue).intValue());
                                 } else {
-                                    // since this cannot be accepted with proper pk value, we'll delete it.
-                                    // *you can modify with some other value such as 0, but that's not
+                                    // Since this cannot be accepted as proper pk value, we'll delete it.
+                                    // *You can modify with some other value such as 0, but that's not
                                     // counted in this scenario.
                                     obj.deleteFromRealm();
                                 }
@@ -486,17 +486,14 @@ public class RealmMigrationTests {
         assertEquals(2, realm.where(MigrationFieldTypeToInteger.class).count());
 
         // not-null value
-        assertEquals(Integer.valueOf(12),
-                realm.where(MigrationFieldTypeToInteger.class)
-                        .notEqualTo(MigrationFieldTypeToInteger.FIELD_PRIMARY, (Integer) null)
-                        .findFirst()
-                        .getFieldIntegerPrimary());
+        assertEquals(1, realm.where(MigrationFieldTypeToInteger.class)
+                             .equalTo(MigrationFieldTypeToInteger.FIELD_PRIMARY, Integer.valueOf(12))
+                             .count());
 
         // null value
-        assertNull(realm.where(MigrationFieldTypeToInteger.class)
-                        .equalTo(MigrationFieldTypeToInteger.FIELD_PRIMARY, (Integer) null)
-                        .findFirst()
-                        .getFieldIntegerPrimary());
+        assertEquals(1, realm.where(MigrationFieldTypeToInteger.class)
+                             .equalTo(MigrationFieldTypeToInteger.FIELD_PRIMARY, (Integer) null)
+                             .count());
     }
 
     @Test

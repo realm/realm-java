@@ -52,8 +52,8 @@ public class MigrationFieldTypeToInteger extends RealmObject implements Migratio
         return this.fieldSecond;
     }
 
-    public void setFieldIntegerPrimary(Integer fieldModifiedPrimary) {
-        this.fieldIntegerPrimary = fieldModifiedPrimary;
+    public void setFieldIntegerPrimary(Integer fieldIntegerPrimary) {
+        this.fieldIntegerPrimary = fieldIntegerPrimary;
     }
 
     public Integer getFieldIntegerPrimary() {
