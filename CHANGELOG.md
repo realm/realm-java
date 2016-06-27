@@ -4,10 +4,6 @@
 
 * Disabled the optional API transformer since it has problems with DexGuard (#3022).
 
-### Enhancements
-
-* Unit tests for checking proper migration of primary key field type change from `String` to `Integer`/`int` (#3068).
-
 ## 1.0.1
 
 ### Bug fixes

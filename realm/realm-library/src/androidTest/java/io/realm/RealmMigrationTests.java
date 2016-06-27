@@ -36,6 +36,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
+import io.realm.entities.migration.MigrationClassRenamed;
+import io.realm.entities.migration.MigrationFieldRenamed;
+import io.realm.entities.migration.MigrationFieldTypeToInt;
+import io.realm.entities.migration.MigrationFieldTypeToInteger;
+import io.realm.entities.migration.MigrationPosteriorIndexOnly;
+import io.realm.entities.migration.MigrationPriorIndexOnly;
+import io.realm.migration.MigrationPrimaryKey;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
@@ -47,15 +54,8 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.entities.migration.MigrationClassRenamed;
-import io.realm.entities.migration.MigrationFieldRenamed;
-import io.realm.entities.migration.MigrationFieldTypeToInt;
-import io.realm.entities.migration.MigrationFieldTypeToInteger;
-import io.realm.entities.migration.MigrationPosteriorIndexOnly;
-import io.realm.entities.migration.MigrationPriorIndexOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.Table;
-import io.realm.migration.MigrationPrimaryKey;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -437,7 +437,7 @@ public class RealmMigrationTests {
         assertFalse(objectSchema.hasField(MigrationPrimaryKey.FIELD_PRIMARY));
         assertEquals(MigrationFieldTypeToInt.FIELD_PRIMARY, objectSchema.getPrimaryKey());
         assertEquals(1, realm.where(MigrationFieldTypeToInt.class).count());
-        assertEquals(12, realm.where(MigrationFieldTypeToInt.class).findFirst().getFieldModifiedPrimary());
+        assertEquals(12, realm.where(MigrationFieldTypeToInt.class).findFirst().getFieldIntPrimary());
     }
 
     // This is to test how PK type can change to nullable Integer in migration
