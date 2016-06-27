@@ -26,7 +26,6 @@
 #include "realm/group_shared.hpp"
 
 namespace realm {
-    class BinaryData;
     class BindingContext;
     class Group;
     class Realm;
@@ -128,7 +127,7 @@ namespace realm {
 
         void invalidate();
         bool compact();
-        void write_copy(StringData path, BinaryData encryption_key);
+        void write_copy(const std::string &path, const std::vector<char> &key = {});
 
         std::thread::id thread_id() const { return m_thread_id; }
         void verify_thread() const;

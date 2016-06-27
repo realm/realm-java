@@ -230,9 +230,8 @@ abstract class BaseRealm implements Closeable {
      * the last transaction was committed.
      *
      * @param destination file to save the Realm to.
-     * @throws java.io.IOException if any write operation fails.
      */
-    public void writeCopyTo(File destination) throws java.io.IOException {
+    public void writeCopyTo(File destination) {
         writeEncryptedCopyTo(destination, null);
     }
 
@@ -247,16 +246,14 @@ abstract class BaseRealm implements Closeable {
      *
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
-     * @throws java.io.IOException if any write operation fails.
      * @throws IllegalArgumentException if destination argument is null.
      */
-    public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
+    public void writeEncryptedCopyTo(File destination, byte[] key) {
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        //sharedGroupManager.copyToFile(destination, key);
-        throw new RuntimeException("TODO");
+        sharedRealm.writeCopy(destination, key);
     }
 
     /**

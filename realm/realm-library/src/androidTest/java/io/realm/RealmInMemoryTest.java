@@ -127,7 +127,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
     }
 
     // Test if an in-memory Realm can be written to disk with/without encryption
-    public void testWriteCopyTo() throws IOException {
+    public void testWriteCopyTo() {
         byte[] key = TestHelper.getRandomKey();
         String fileName = IDENTIFIER + ".realm";
         String encFileName = IDENTIFIER + ".enc.realm";

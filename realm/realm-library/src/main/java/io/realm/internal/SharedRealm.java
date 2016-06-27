@@ -168,6 +168,16 @@ public final class SharedRealm implements Closeable {
         return nativePtr == 0 || nativeIsClosed(nativePtr);
     }
 
+    public void writeCopy(File file, byte[] key) {
+        if (file.isFile() && file.exists()) {
+            throw new IllegalArgumentException("The destination file must not exist");
+        }
+        if (key != null && key.length != 64) {
+            throw new IllegalArgumentException("Realm AES keys must be 64 bytes long");
+        }
+        nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
+    }
+
     @Override
     public void close() {
         if (nativePtr != 0) {
@@ -214,4 +224,5 @@ public final class SharedRealm implements Closeable {
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
     private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
     private static native long nativeSize(long nativeSharedRealmPtr);
+    private static native long nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
 }

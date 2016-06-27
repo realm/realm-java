@@ -403,7 +403,7 @@ bool Realm::compact()
     return m_shared_group->compact();
 }
 
-void Realm::write_copy(StringData path, BinaryData key)
+void Realm::write_copy(const std::string &path, const std::vector<char> &key)
 {
     REALM_ASSERT(!key.data() || key.size() == 64);
     verify_thread();

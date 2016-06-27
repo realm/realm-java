@@ -689,6 +689,10 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 extern const std::string TABLE_PREFIX;
 
 inline std::vector<char> jbytearray_to_vector(JNIEnv *env, jbyteArray bytes) {
+    if (bytes == nullptr) {
+        return {};
+    }
+
     std::vector<char> v(env->GetArrayLength(bytes));
     jbyte *ptr = env->GetByteArrayElements(bytes, NULL);
     std::copy_n(ptr, v.size(), v.begin());

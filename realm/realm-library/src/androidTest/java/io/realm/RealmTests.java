@@ -1781,11 +1781,7 @@ public class RealmTests {
 
         // Write encrypted copy from a unencrypted Realm
         File destination = new File(encryptedRealmConfig.getPath());
-        try {
-            realm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+        realm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
 
         Realm encryptedRealm = null;
         try {
@@ -1795,11 +1791,7 @@ public class RealmTests {
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
             destination = new File(reEncryptedRealmConfig.getPath());
-            try {
-                encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
-            } catch (Exception e) {
-                fail(e.getMessage());
-            }
+            encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
 
             // Verify re-encrypted copy
             Realm reEncryptedRealm = null;
@@ -1817,11 +1809,7 @@ public class RealmTests {
 
             // Write non-encrypted copy from the encrypted version
             destination = new File(decryptedRealmConfig.getPath());
-            try {
-                encryptedRealm.writeEncryptedCopyTo(destination, null);
-            } catch (Exception e) {
-                fail(e.getMessage());
-            }
+            encryptedRealm.writeEncryptedCopyTo(destination, null);
 
             // Verify decrypted Realm and cleanup
             Realm decryptedRealm = null;

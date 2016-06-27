@@ -14,9 +14,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig
     JStringAccessor path(env, realm_path);
     Realm::Config *config = new Realm::Config();
     config->path = path;
-    if (key != nullptr) {
-        config->encryption_key = jbytearray_to_vector(env, key);
-    }
+    config->encryption_key = jbytearray_to_vector(env, key);
     config->read_only = read_only;
     config->in_memory = in_memory;
     config->cache = cache;
@@ -208,5 +206,17 @@ Java_io_realm_internal_SharedRealm_nativeSize(JNIEnv *env, jclass, jlong shared_
     TR_ENTER_PTR(shared_realm_ptr)
     try {
         (*SR(shared_realm_ptr))->read_group()->size();
+    } CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv *env, jclass,
+        jlong shared_realm_ptr, jstring path, jbyteArray key) {
+    TR_ENTER_PTR(shared_realm_ptr);
+
+    JStringAccessor path_str(env, path);
+    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        shared_realm->write_copy(path_str, jbytearray_to_vector(env, key));
     } CATCH_STD()
 }
