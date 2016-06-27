@@ -16,8 +16,6 @@
 
 #include "io_realm_internal_UncheckedRow.h"
 #include "util.hpp"
-#include "mixedutil.hpp"
-#include "tablebase_tpl.hpp"
 
 using namespace realm;
 
@@ -162,31 +160,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
     }
 }
 
-JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixedType
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr)))
-        return 0;
-
-    DataType mixedType = ROW(nativeRowPtr)->get_mixed_type( S(columnIndex) );  // noexcept
-    return static_cast<jint>(mixedType);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr)))
-        return 0;
-
-    Mixed value = ROW(nativeRowPtr)->get_mixed( S(columnIndex) );  // noexcept
-    try {
-        return CreateJMixedFromMixed(env, value);
-    } CATCH_STD();
-    return NULL;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLink
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
@@ -329,18 +302,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray
     if (bytePtr) {
         env->ReleaseByteArrayElements(value, bytePtr, JNI_ABORT);
     }
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jobject jMixedValue)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr)))
-        return;
-
-    try {
-        row_nativeSetMixed(ROW(nativeRowPtr), env, columnIndex, jMixedValue);
-    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLink
