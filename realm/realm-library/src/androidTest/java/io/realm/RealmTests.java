@@ -3360,8 +3360,10 @@ public class RealmTests {
             // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
             DynamicRealm.getInstance(realm.getConfiguration());
             fail();
-        } catch (RealmError expected) {
-            assertTrue(expected.getMessage().contains("Info size doesn't match"));
+        } catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().contains("Realm file is currently open in another process which cannot" +
+                    " share access with this process." +
+                    " All processes sharing a single file must be the same architecture."));
         } finally {
             lockFile.delete();
         }
