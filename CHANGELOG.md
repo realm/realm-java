@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Disabled the optional API transformer since it has problems with DexGuard (3022).
+* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
 
 ## 1.0.1
 
