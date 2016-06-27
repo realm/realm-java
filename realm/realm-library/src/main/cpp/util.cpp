@@ -22,6 +22,7 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
+#include "shared_realm.hpp"
 
 using namespace std;
 using namespace realm;
@@ -57,11 +58,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
-    catch (File::AccessError& e) {
-        ss << e.what() << " path: " << e.get_path() << " in " << file << " line " << line;
+    catch (RealmFileException& e) {
+        ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch (exception& e) {
+    } catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
     }

@@ -34,10 +34,13 @@ Java_io_realm_internal_SharedRealm_nativeCloseConfig
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeGetSharedRealm
-(JNIEnv *, jclass, jlong config_ptr) {
+(JNIEnv *env, jclass, jlong config_ptr) {
     TR_ENTER_PTR(config_ptr)
-    SharedRealm shared_realm = Realm::get_shared_realm(*RC(config_ptr));
-    return reinterpret_cast<jlong>(new SharedRealm(shared_realm));
+    try {
+        SharedRealm shared_realm = Realm::get_shared_realm(*RC(config_ptr));
+        return reinterpret_cast<jlong>(new SharedRealm(shared_realm));
+    } CATCH_STD()
+    return NULL;
 }
 
 JNIEXPORT void JNICALL

@@ -56,29 +56,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 // Exception handling
-
-#define CATCH_FILE(fileName) \
-    catch (InvalidDatabase&) { \
-        ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
-    } \
-    catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path()); \
-    } \
-    catch (util::File::NotFound& e) { \
-        ThrowException(env, FileNotFound, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path());    \
-    } \
-    catch (util::File::AccessError& e) { \
-        ThrowException(env, FileAccessError, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path()); \
-    } \
-    catch (realm::IncompatibleLockFile& e) { \
-        ThrowException(env, LockFileError, std::string(e.what())); \
-    } \
-
-
-
 #define CATCH_STD() \
     catch (...) { \
         ConvertException(env, __FILE__, __LINE__); \
