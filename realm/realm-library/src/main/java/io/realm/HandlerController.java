@@ -99,6 +99,11 @@ final class HandlerController implements Handler.Callback {
     final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
             new ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object>();
 
+    // List of onSuccess callbacks from async transactions. We need to track all callbacks as notifying listeners might
+    // be delayed due to the presence of async queries. This can mean that multiple async transactions can complete
+    // before we are ready to notify all of them.
+    private final List<Runnable> pendingOnSuccessAsyncTransactionCallbacks = new ArrayList<Runnable>();
+
     public HandlerController(BaseRealm realm) {
         this.realm = realm;
     }
@@ -144,6 +149,23 @@ final class HandlerController implements Handler.Callback {
             }
         }
         return true;
+    }
+
+    /**
+     * Properly handles when an async transaction completes. This will be treated as a REALM_CHANGED event when
+     * determining which queries to re-run and when to notify listeners.
+     * <p>
+     * NOTE: This is needed as it is not possible to combine a `Message.what` value and a callback runnable. So instead
+     * of posting two messages, we post a runnable that runs this method. This means it is possible to interpret
+     * `REALM_CHANGED + Runnable` as one atomic message.
+     *
+     * @param onSuccess onSuccess callback to run for the async transaction that completed.
+     */
+    public void handleAsyncTransactionCompleted(Runnable onSuccess) {
+        if (onSuccess != null) {
+            pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
+        }
+        realmChanged(false);
     }
 
     void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
@@ -250,7 +272,7 @@ final class HandlerController implements Handler.Callback {
             Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<?>> next = iterator.next();
             if (next.getKey().get() != null) {
                 Realm.asyncTaskExecutor
-                        .submit(QueryUpdateTask.newBuilder()
+                        .submitQueryUpdate(QueryUpdateTask.newBuilder()
                                 .realmConfiguration(realm.getConfiguration())
                                 .addObject(next.getKey(),
                                         next.getValue().handoverQueryPointer(),
@@ -265,7 +287,8 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * This method calls all registered listeners on Realm, RealmResults and RealmObjects.
+     * This method calls all registered listeners for Realm, RealmResults and RealmObjects, and callbacks for async
+     * transactions.
      *
      * PREREQUISITE: Only call this method after all objects are up to date. This means:
      * - `advance_read` was called on the Realm.
@@ -289,6 +312,9 @@ final class HandlerController implements Handler.Callback {
         if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
             updateAsyncEmptyRealmObject();
         }
+
+        // Notify any completed async transactions
+        notifyAsyncTransactionCallbacks();
 
         // Trigger global listeners last.
         // Note that NotificationTest.callingOrdersOfListeners will fail if orders change.
@@ -394,7 +420,7 @@ final class HandlerController implements Handler.Callback {
             QueryUpdateTask queryUpdateTask = realmResultsQueryStep
                     .sendToHandler(realm.handler, COMPLETED_UPDATE_ASYNC_QUERIES)
                     .build();
-            updateAsyncQueriesTask = Realm.asyncTaskExecutor.submit(queryUpdateTask);
+            updateAsyncQueriesTask = Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
         }
     }
 
@@ -478,7 +504,7 @@ final class HandlerController implements Handler.Callback {
                                 .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_RESULTS)
                                 .build();
 
-                        Realm.asyncTaskExecutor.submit(queryUpdateTask);
+                        Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
 
                     } else {
                         // UC covered by this test: RealmAsyncQueryTests#testFindAllCallerIsAdvanced
@@ -557,6 +583,20 @@ final class HandlerController implements Handler.Callback {
         }
     }
 
+    /**
+     * Trigger onSuccess for all completed async transaction.
+     * <p>
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
+     */
+    private void notifyAsyncTransactionCallbacks() {
+        if (!pendingOnSuccessAsyncTransactionCallbacks.isEmpty()) {
+            for (Runnable callback : pendingOnSuccessAsyncTransactionCallbacks) {
+                callback.run();
+            }
+            pendingOnSuccessAsyncTransactionCallbacks.clear();
+        }
+    }
+
     private void completedAsyncRealmObject(QueryUpdateTask.Result result) {
         Set<WeakReference<RealmObjectProxy>> updatedRowKey = result.updatedRow.keySet();
         if (updatedRowKey.size() > 0) {
@@ -606,7 +646,7 @@ final class HandlerController implements Handler.Callback {
                                 .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_OBJECT)
                                 .build();
 
-                        Realm.asyncTaskExecutor.submit(queryUpdateTask);
+                        Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
                     }
                 } else {
                     // should not happen, since the the background thread position itself against the provided version
@@ -745,4 +785,5 @@ final class HandlerController implements Handler.Callback {
     public boolean isAutoRefreshEnabled() {
         return autoRefresh;
     }
+
 }
