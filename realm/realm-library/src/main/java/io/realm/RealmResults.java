@@ -161,8 +161,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     private boolean isTableValid() {
         boolean tableValid = false;
         if (classSpec != null) {
-            String clazzName = classSpec.getSimpleName();
-            tableValid = realm.schema.contains(clazzName);
+            tableValid = realm.schema.contains(classSpec.getSimpleName());
         } else {
             tableValid = realm.schema.contains(className);
         }

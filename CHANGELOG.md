@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Disabled the optional API transformer since it has problems with DexGuard (3022).
+* Fixed a crash that did not treat an existing `RealmResult` as an empty list when its originating `RealmObject` class was removed (#2953).
 
 ## 1.0.1
 
