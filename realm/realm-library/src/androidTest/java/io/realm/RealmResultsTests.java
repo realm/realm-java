@@ -127,22 +127,12 @@ public class RealmResultsTests extends CollectionTests {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
             try {
                 switch (method) {
-                    case ADD_OBJECT:
-                        collection.add(new AllTypes());
-                    case ADD_ALL_OBJECTS:
-                        collection.addAll(Collections.singletonList(new AllTypes()));
-                        break;
-                    case CLEAR:
-                        collection.clear();
-                        break;
-                    case REMOVE_OBJECT:
-                        collection.remove(new AllTypes());
-                    case REMOVE_ALL:
-                        collection.removeAll(Collections.singletonList(new AllTypes()));
-                        break;
-                    case RETAIN_ALL:
-                        collection.retainAll(Collections.singletonList(new AllTypes()));
-                        break;
+                    case ADD_OBJECT: collection.add(new AllTypes());
+                    case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllTypes())); break;
+                    case CLEAR: collection.clear(); break;
+                    case REMOVE_OBJECT: collection.remove(new AllTypes());
+                    case REMOVE_ALL: collection.removeAll(Collections.singletonList(new AllTypes())); break;
+                    case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllTypes())); break;
 
                     // Supported methods
                     case DELETE_ALL:
@@ -156,18 +146,10 @@ public class RealmResultsTests extends CollectionTests {
         for (OrderedCollectionMutatorMethod method : OrderedCollectionMutatorMethod.values()) {
             try {
                 switch (method) {
-                    case ADD_INDEX:
-                        collection.add(0, new AllTypes());
-                        break;
-                    case ADD_ALL_INDEX:
-                        collection.addAll(0, Collections.singletonList(new AllTypes()));
-                        break;
-                    case SET:
-                        collection.set(0, new AllTypes());
-                        break;
-                    case REMOVE_INDEX:
-                        collection.remove(0);
-                        break;
+                    case ADD_INDEX: collection.add(0, new AllTypes()); break;
+                    case ADD_ALL_INDEX: collection.addAll(0, Collections.singletonList(new AllTypes())); break;
+                    case SET: collection.set(0, new AllTypes()); break;
+                    case REMOVE_INDEX: collection.remove(0); break;
 
                     // Supported methods
                     case DELETE_INDEX:
@@ -667,7 +649,7 @@ public class RealmResultsTests extends CollectionTests {
         }
         // (String)null makes varargs a null array.
         try {
-            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null);
+            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
         } catch (IllegalArgumentException ignored) {
         }
         // Two (String)null for first and varargs fields
