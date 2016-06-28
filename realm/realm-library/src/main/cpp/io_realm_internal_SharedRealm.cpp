@@ -215,8 +215,9 @@ Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv *env, jclass,
     TR_ENTER_PTR(shared_realm_ptr);
 
     JStringAccessor path_str(env, path);
+    KeyBuffer key_buffer(env, key);
     SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        shared_realm->write_copy(path_str, jbytearray_to_vector(env, key));
+        shared_realm->write_copy(path_str, key_buffer);
     } CATCH_STD()
 }

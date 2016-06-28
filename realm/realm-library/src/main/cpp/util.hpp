@@ -545,8 +545,13 @@ public:
 #endif
     }
 
-    const char *data() const {
-        return reinterpret_cast<const char *>(m_ptr);
+    operator realm::BinaryData() const noexcept
+    {
+        if (m_ptr) {
+            return realm::BinaryData(reinterpret_cast<const char *>(m_ptr), 64);
+        }
+
+        return realm::BinaryData();
     }
 
     ~KeyBuffer() {
