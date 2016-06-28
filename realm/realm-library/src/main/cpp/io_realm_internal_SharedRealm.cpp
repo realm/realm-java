@@ -257,9 +257,12 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeSize(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
+    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        (*SR(shared_realm_ptr))->read_group()->size();
+        return shared_realm->read_group()->size();
     } CATCH_STD()
+
+    return 0;
 }
 
 JNIEXPORT jlong JNICALL
