@@ -1100,42 +1100,27 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void get_asEmptyListAfterClassRemoved() {
+    public void getValue_asEmptyListAfterClassRemoved() {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
-        // the first object is at 0th index
+        // Make sure we have expected values
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        DynamicRealmObject object = results.first();
-        assertEquals(results.get(0).get("name"), object.get("name"));
+        assertEquals(results.get(0).get("name"),  "John");
+        assertEquals(results.first().get("name"), "John");
+        assertEquals(results.last().get("name"),  "John");
 
-        // now the result should be empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
+        // indexed get
         assertNull(results.get(0));
-        realm.close();
-    }
-
-    @Test
-    public void firstAndLast_asEmptyListAfterClassRemoved() {
-        final String CLASS_NAME = "KingsAndQueens";
-        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
-
-        // the first object is not null
-        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        assertEquals(results.first().get("name"), results.last().get("name"));
-        assertNotNull(results.first().get("name"));
-        assertNotNull(results.last().get("name"));
-
-        // result is empty
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
-        // first
+        // get first
         try {
             results.first();
             fail();
         } catch (IndexOutOfBoundsException expected) {
             assertEquals("No results were found.", expected.getMessage());
         }
-        // last
+        // get last
         try {
             results.last();
             fail();
@@ -1146,16 +1131,15 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void deleteFromRealm_asEmptyListAfterClassRemoved() {
+    public void delete_asEmptyListAfterClassRemoved() {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertFalse(results.isEmpty());
 
-        // result is empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
-        // delete from an index
+        // delete with an index
         realm.beginTransaction();
         try {
             results.deleteFromRealm(0);
@@ -1165,26 +1149,17 @@ public class RealmResultsTests extends CollectionTests {
         } finally {
             realm.cancelTransaction();
         }
+        // delete first from Realm
+        realm.beginTransaction();
+        assertFalse(results.deleteFirstFromRealm());
+        realm.cancelTransaction();
+        // delete last from Realm
+        realm.beginTransaction();
+        assertFalse(results.deleteFirstFromRealm());
+        realm.cancelTransaction();
         // delete all
         realm.beginTransaction();
         assertFalse(results.deleteAllFromRealm());
-        realm.cancelTransaction();
-        realm.close();
-    }
-
-    @Test
-    public void deleteFirstAndLast_asEmptyListAfterClassRemoved() {
-        final String CLASS_NAME = "KingsAndQueens";
-        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
-
-        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        assertFalse(results.isEmpty());
-
-        // result is empty
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
-        realm.beginTransaction();
-        assertFalse(results.deleteFirstFromRealm());
-        assertFalse(results.deleteLastFromRealm());
         realm.cancelTransaction();
         realm.close();
     }
@@ -1199,7 +1174,6 @@ public class RealmResultsTests extends CollectionTests {
         assertTrue(results.listIterator().hasNext());
         assertTrue(results.listIterator(0).hasNext());
 
-        // result is empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertFalse(results.iterator().hasNext());
         // result is empty when default index is 0
@@ -1219,27 +1193,14 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(results.max("age"), Long.valueOf(12));
         assertEquals(results.sum("age"), Long.valueOf(12));
         assertEquals(results.average("age"), 12.0, 0);
+        assertEquals(results.minDate("birth"), new Date(1234));
+        assertEquals(results.maxDate("birth"), new Date(1234));
 
-        // result is empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertEquals(results.min("age"), null);
         assertEquals(results.max("age"), null);
         assertEquals(results.sum("age"), null);
         assertEquals(results.average("age"), 0.0, 0);
-        realm.close();
-    }
-
-    @Test
-    public void minAndMaxDate_asEmptyListAfterClassRemoved() {
-        final String CLASS_NAME = "KingsAndQueens";
-        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
-
-        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        assertEquals(results.minDate("birth"), new Date(1234));
-        assertEquals(results.maxDate("birth"), new Date(1234));
-
-        // result is empty
-        removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertEquals(results.minDate("birth"), null);
         assertEquals(results.maxDate("birth"), null);
         realm.close();
@@ -1252,7 +1213,7 @@ public class RealmResultsTests extends CollectionTests {
         realm.executeTransaction(new DynamicRealm.Transaction() {
             @Override
             public void execute(DynamicRealm realm) {
-                // create an object
+                // create another object with same age
                 DynamicRealmObject object = realm.createObject(CLASS_NAME);
                 object.setLong("age", 12);
                 object.setString("name", "Mary");
