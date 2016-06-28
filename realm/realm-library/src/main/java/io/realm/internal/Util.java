@@ -48,44 +48,6 @@ public class Util {
     }
     static native String nativeGetTablePrefix();
 
-
-    // Testcases run in nativeCode
-    public enum Testcase {
-        Exception_ClassNotFound(0),
-        Exception_NoSuchField(1),
-        Exception_NoSuchMethod(2),
-        Exception_IllegalArgument(3),
-        Exception_IOFailed(4),
-        Exception_FileNotFound(5),
-        Exception_FileAccessError(6),
-        Exception_IndexOutOfBounds(7),
-        Exception_TableInvalid(8),
-        Exception_UnsupportedOperation(9),
-        Exception_OutOfMemory(10),
-        Exception_FatalError(11),
-        Exception_RuntimeError(12),
-        Exception_RowInvalid(13),
-        Exception_EncryptionNotSupported(14),
-        Exception_CrossTableLink(15),
-        Exception_BadVersion(16),
-        Exception_IncompatibleLockFile(17),
-        Exception_IllegalState(18);
-
-        private final int nativeTestcase;
-        Testcase(int nativeValue) {
-            this.nativeTestcase = nativeValue;
-        }
-
-        public String expectedResult(long parm1) {
-            return nativeTestcase(nativeTestcase, false, parm1);
-        }
-        public String execute(long parm1) {
-            return nativeTestcase(nativeTestcase, true, parm1);
-        }
-    }
-
-    static native String nativeTestcase(int testcase, boolean dotest, long parm1);
-
     /**
      * Normalizes a input class to it's original RealmObject class so it is transparent whether or not the input class
      * was a RealmProxy class.

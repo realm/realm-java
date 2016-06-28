@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,15 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+class TestUtil {
 
-public class JNI_nativeTests extends TestCase {
-
-    public void testNativeExceptions() {
-        String expect = "";
-        for (Util.Testcase test : Util.Testcase.values()) {
-            expect = test.expectedResult(0);
-            try {
-                test.execute(0);
-            } catch (Exception e) {
-                assertEquals(expect, e.toString());
-            } catch (Error e) {
-                assertEquals(expect, e.toString());
-            }
-
-        }
+    static {
+        // Any internal class with static native methods that uses Realm Core must load the Realm Core library
+        // themselves as it otherwise might not have been loaded.
+        RealmCore.loadLibrary();
     }
+
+    public native static long getMaxExceptionNumber();
+    public native static String getExpectedMessage(long exceptionKind);
+    public native static void testThrowExceptions(long exceptionKind);
 }

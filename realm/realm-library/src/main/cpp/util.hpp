@@ -95,27 +95,28 @@ std::string num_to_string(T pNumber)
 
 // Exception handling
 // FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
-// FIXME: Consider to use generated const value in jni header instead of define them twice.
 enum ExceptionKind {
     ClassNotFound = 0,
-    NoSuchField = 1,
-    NoSuchMethod = 2,
-    IllegalArgument = 3,
-    IOFailed = 4,
-    FileNotFound = 5,
-    FileAccessError = 6,
-    IndexOutOfBounds = 7,
-    TableInvalid = 8,
-    UnsupportedOperation = 9,
-    OutOfMemory = 10,
-    FatalError = 11,
-    RuntimeError = 12,
-    RowInvalid = 13,
-    CrossTableLink = 15,
-    BadVersion = 16,
-    LockFileError = 17,
-    IllegalState = 18
-// NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
+    NoSuchField,
+    NoSuchMethod,
+    IllegalArgument,
+    IOFailed,
+    FileNotFound,
+    FileAccessError,
+    IndexOutOfBounds,
+    TableInvalid,
+    UnsupportedOperation,
+    OutOfMemory,
+    FatalError,
+    RuntimeError,
+    RowInvalid,
+    CrossTableLink,
+    BadVersion,
+    LockFileError,
+    IllegalState,
+    // NOTE!!!!: Please also add test cases to io_realm_internal_TestUtil when introducing a
+    // new exception kind.
+    ExceptionKindMax
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);
