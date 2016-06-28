@@ -37,7 +37,7 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm
     TR_ENTER_PTR(config_ptr)
 
     try {
-        SharedRealm shared_realm = Realm::get_shared_realm(*RC(config_ptr));
+        auto shared_realm = Realm::get_shared_realm(*RC(config_ptr));
         return reinterpret_cast<jlong>(new SharedRealm(shared_realm));
     } CATCH_STD()
     return NULL;
@@ -48,7 +48,8 @@ Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm
 (JNIEnv *, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    delete SR(shared_realm_ptr);
+    auto ptr = reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+    delete ptr;
 }
 
 JNIEXPORT void JNICALL
@@ -56,7 +57,7 @@ Java_io_realm_internal_SharedRealm_nativeBeginTransaction
 (JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->begin_transaction();
     } CATCH_STD()
@@ -67,7 +68,7 @@ Java_io_realm_internal_SharedRealm_nativeCommitTransaction
 (JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->commit_transaction();
     } CATCH_STD()
@@ -78,7 +79,7 @@ Java_io_realm_internal_SharedRealm_nativeCancelTransaction
 (JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->cancel_transaction();
     } CATCH_STD()
@@ -90,7 +91,7 @@ JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeIsInTransaction(JNIEnv *, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     return shared_realm->is_in_transaction();
 }
 
@@ -99,7 +100,7 @@ Java_io_realm_internal_SharedRealm_nativeReadGroup
 (JNIEnv *, jclass , jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     return reinterpret_cast<jlong>(shared_realm->read_group());
 }
 
@@ -108,7 +109,7 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion
 (JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
@@ -121,7 +122,7 @@ JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         return static_cast<jboolean>(ObjectStore::is_empty(shared_realm->read_group()));
     } CATCH_STD()
@@ -132,7 +133,7 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeGetSharedGroup(JNIEnv *, jclass , jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     return reinterpret_cast<jlong>(&shared_realm->get_shared_group());
 }
 
@@ -140,7 +141,7 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeRefresh__J(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->refresh();
     } CATCH_STD()
@@ -151,7 +152,7 @@ Java_io_realm_internal_SharedRealm_nativeRefresh__JJJ(JNIEnv *env, jclass, jlong
                                                       jlong version, jlong index) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     SharedGroup::VersionID versionID(version, index);
     try {
         shared_realm->refresh(versionID);
@@ -162,7 +163,7 @@ JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass type, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         SharedGroup::VersionID version_id = shared_realm->get_shared_group().get_version_of_current_transaction();
 
@@ -187,7 +188,7 @@ JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv *, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     return static_cast<jboolean>(shared_realm->is_closed());
 }
 
@@ -197,9 +198,10 @@ Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv *env, jclass, jlong sha
                                                   jstring table_name) {
     TR_ENTER_PTR(shared_realm_ptr)
 
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor name(env, table_name); // throws
-        Table* pTable = LangBindHelper::get_or_add_table(*(*SR(shared_realm_ptr))->read_group(), name);
+        Table* pTable = LangBindHelper::get_or_add_table(*shared_realm->read_group(), name);
         return reinterpret_cast<jlong>(pTable);
     } CATCH_STD()
 
@@ -212,8 +214,9 @@ Java_io_realm_internal_SharedRealm_nativeGetTableName(JNIEnv *env, jclass, jlong
 
     TR_ENTER_PTR(shared_realm_ptr)
 
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        return to_jstring(env, (*SR(shared_realm_ptr))->read_group()->get_table_name(S(index)));
+        return to_jstring(env, shared_realm->read_group()->get_table_name(S(index)));
     } CATCH_STD()
     return NULL;
 }
@@ -223,9 +226,10 @@ Java_io_realm_internal_SharedRealm_nativeHasTable(JNIEnv *env, jclass, jlong sha
                                                   jstring table_name) {
     TR_ENTER_PTR(shared_realm_ptr)
 
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor name(env, table_name);
-        return JB((*SR(shared_realm_ptr))->read_group()->has_table(name));
+        return JB(shared_realm->read_group()->has_table(name));
     } CATCH_STD()
     return JB(false);
 }
@@ -235,10 +239,11 @@ Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong 
                                                      jstring old_table_name, jstring new_table_name) {
     TR_ENTER_PTR(shared_realm_ptr)
 
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor old_name(env, old_table_name);
         JStringAccessor new_name(env, new_table_name);
-        (*SR(shared_realm_ptr))->read_group()->rename_table(old_name, new_name);
+        shared_realm->read_group()->rename_table(old_name, new_name);
     } CATCH_STD()
 }
 
@@ -247,9 +252,10 @@ Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv *env, jclass, jlong 
                                                      jstring table_name) {
     TR_ENTER_PTR(shared_realm_ptr)
 
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor name(env, table_name);
-        (*SR(shared_realm_ptr))->read_group()->remove_table(name);
+        shared_realm->read_group()->remove_table(name);
     } CATCH_STD()
 }
 
@@ -257,7 +263,7 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeSize(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         return shared_realm->read_group()->size();
     } CATCH_STD()
@@ -272,7 +278,7 @@ Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv *env, jclass,
 
     JStringAccessor path_str(env, path);
     KeyBuffer key_buffer(env, key);
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->write_copy(path_str, key_buffer);
     } CATCH_STD()
@@ -282,7 +288,7 @@ JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeWaitForChange(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr);
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         return static_cast<jboolean>(shared_realm->get_shared_group().wait_for_change());
     } CATCH_STD()
@@ -295,7 +301,7 @@ Java_io_realm_internal_SharedRealm_nativeStopWaitForChange(JNIEnv *env, jclass, 
 
     TR_ENTER_PTR(shared_realm_ptr);
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->get_shared_group().wait_for_change_release();
     } CATCH_STD()
@@ -305,7 +311,7 @@ JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr);
 
-    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         return static_cast<jboolean>(shared_realm->compact());
     } CATCH_STD()
