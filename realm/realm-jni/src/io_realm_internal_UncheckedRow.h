@@ -239,6 +239,15 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     io_realm_internal_UncheckedRow
+ * Method:    nativeGetBacklinkView
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetBacklinkView
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+
 #ifdef __cplusplus
 }
 #endif

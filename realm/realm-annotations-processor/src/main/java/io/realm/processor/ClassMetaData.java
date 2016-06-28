@@ -39,6 +39,7 @@ import javax.lang.model.util.Types;
 
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
+import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
@@ -52,7 +53,8 @@ public class ClassMetaData {
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
+    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all user persisted fields in the class.
+    private List<Backlink> backlinkFields = new ArrayList<Backlink>(); // List of all fields maintained by Realm (RealmResults)
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private boolean containsToString;
@@ -160,7 +162,7 @@ public class ClassMetaData {
 
     private boolean checkListTypes() {
         for (VariableElement field : fields) {
-            if (Utils.isRealmList(field)) {
+            if (Utils.isRealmList(field) || Utils.isRealmResults(field)) {
                 // Check for missing generic (default back to Object)
                 if (Utils.getGenericType(field) == null) {
                     Utils.error("No generic type supplied for field", field);
@@ -297,7 +299,38 @@ public class ClassMetaData {
                     }
                 }
 
+                // Check @LinkingObjects last since it is not allowed to be either @Index, @Required or @PrimaryKey
+                if (variableElement.getAnnotation(LinkingObjects.class) != null) {
+
+                    if (!Utils.isRealmResults(variableElement)) {
+                        Utils.error(String.format("@LinkingObjects is only allowed on RealmResults. Field %s was %s",
+                                variableElement.getSimpleName().toString(), variableElement.asType().toString()));
+                        return false;
+                    }
+                    // Since @LinkingObjects might reference a type from a library project that is not
+                    // part of this processing round, we can only do basic type checking here.
+                    // Real validation must be done at runtime.
+                    String backlinkField = variableElement.getAnnotation(LinkingObjects.class).value();
+                    if (backlinkField == null || backlinkField.equals("")) {
+                        Utils.error(String.format("@LinkingObjects is missing a non-empty field parameter: %s",
+                                variableElement.getSimpleName().toString()));
+                        return false;
+                    }
+
+                    // Using link syntax to try to reference a linked field is not possible.
+                    if (backlinkField.contains(".")) {
+                        Utils.error("Only fields in the @LinkingObjects class can be be used. Using '.' to specify " +
+                                "fields in referenced classes is not possible.");
+                        return false;
+                    }
+
+                    backlinkFields.add(new Backlink(variableElement, Utils.getGenericType(variableElement), backlinkField));
+                    continue;
+                }
+
+                // Standard field that appear valid (more fine grained checks might fail later).
                 fields.add(variableElement);
+
             } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
                 hasDefaultConstructor =  hasDefaultConstructor || Utils.isDefaultConstructor(element);
 
@@ -336,8 +369,12 @@ public class ClassMetaData {
         return packageName + "." + className;
     }
 
-    public List<VariableElement> getFields() {
+    public List<VariableElement> getPersistedFields() {
         return fields;
+    }
+
+    public List<Backlink> getBacklinkFields() {
+        return backlinkFields;
     }
 
     public String getGetter(String fieldName) {
@@ -392,6 +429,21 @@ public class ClassMetaData {
 
     public boolean containsHashCode() {
         return containsHashCode;
+    }
+
+    /**
+     * Wrapper class for representing backlinks.
+     */
+    static class Backlink {
+        public final String backlinkQualifiedType; //The type of backlink (fully qualified)
+        public final String backlinkFieldName; // The field name in the backlink type
+        public final VariableElement field; // The field name in the class defining the backlink
+
+        public Backlink(VariableElement field, String backlinkQualifiedType, String backlinkFieldName) {
+            this.field = field;
+            this.backlinkQualifiedType = backlinkQualifiedType;
+            this.backlinkFieldName = backlinkFieldName;
+        }
     }
 }
 

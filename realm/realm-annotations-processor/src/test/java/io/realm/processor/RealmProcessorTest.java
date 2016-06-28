@@ -460,4 +460,45 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
+
+    @Test
+    public void compileBacklinks() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks.java"))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void failOnLinkingObjectsWithInvalidFieldType() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_InvalidFieldType.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void failsOnLinkingObjectsMissingFieldName() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_MissingField.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void failsOnLinkingObjectsMissingGeneric() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_MissingGeneric.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void failsOnLinkingObjectsWithLinkedFields() {
+        ASSERT.about(javaSource())
+                .that(JavaFileObjects.forResource("some/test/Backlinks_LinkedFields.java"))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
 }
