@@ -513,7 +513,7 @@ public class RealmTests {
             realm.beginTransaction();
             fail();
         } catch (IllegalStateException e) {
-            assertEquals("The Realm is already in a write transaction", e.getMessage());
+            assertTrue(e.getMessage().startsWith("The Realm is already in a write transaction"));
         }
         realm.commitTransaction();
     }
