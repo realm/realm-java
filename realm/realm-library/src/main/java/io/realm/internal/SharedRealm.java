@@ -185,6 +185,10 @@ public final class SharedRealm implements Closeable {
         nativeStopWaitForChange(nativePtr);
     }
 
+    public boolean compact() {
+        return nativeCompact(nativePtr);
+    }
+
     @Override
     public void close() {
         if (nativePtr != 0) {
@@ -234,4 +238,5 @@ public final class SharedRealm implements Closeable {
     private static native long nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeStopWaitForChange(long nativeSharedRealmPtr);
+    private static native boolean nativeCompact(long nativeSharedRealmPtr);
 }

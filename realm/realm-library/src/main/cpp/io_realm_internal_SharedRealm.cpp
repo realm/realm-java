@@ -297,3 +297,15 @@ Java_io_realm_internal_SharedRealm_nativeStopWaitForChange(JNIEnv *env, jclass, 
         shared_realm->get_shared_group().wait_for_change_release();
     } CATCH_STD()
 }
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shared_realm_ptr) {
+    TR_ENTER_PTR(shared_realm_ptr);
+
+    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        return static_cast<jboolean>(shared_realm->compact());
+    } CATCH_STD()
+
+    return static_cast<jboolean>(false);
+}

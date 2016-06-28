@@ -706,11 +706,14 @@ abstract class BaseRealm implements Closeable {
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
+        // FIXME: Move this check to OS?
         if (configuration.getEncryptionKey() != null) {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
-
-        throw new RuntimeException("TODO");
+        SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
+        Boolean result = sharedRealm.compact();
+        sharedRealm.close();
+        return result;
     }
 
     /**
