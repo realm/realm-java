@@ -266,7 +266,6 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      */
     public boolean waitForChange() {
-        /*
         checkIfValid();
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
@@ -274,15 +273,13 @@ abstract class BaseRealm implements Closeable {
         if (Looper.myLooper() != null) {
             throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
         }
-        boolean hasChanged = sharedGroupManager.getSharedGroup().waitForChange();
+        boolean hasChanged = sharedRealm.waitForChange();
         if (hasChanged) {
             // Since this Realm instance has been waiting for change, advance realm & refresh realm.
-            sharedGroupManager.advanceRead();
+            sharedRealm.refresh();
             handlerController.refreshSynchronousTableViews();
         }
         return hasChanged;
-        */
-        throw new RuntimeException("TODO");
     }
 
     /**
@@ -295,19 +292,16 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
      */
     public void stopWaitForChange() {
-        /*
         RealmCache.invokeWithLock(new RealmCache.Callback0() {
             @Override
             public void onCall() {
                 // Check if the Realm instance has been closed
-                if (sharedGroupManager == null || !sharedGroupManager.isOpen() || sharedGroupManager.getSharedGroup().isClosed()) {
+                if (sharedRealm == null || sharedRealm.isClosed()) {
                     throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
                 }
-                sharedGroupManager.getSharedGroup().stopWaitForChange();
+                sharedRealm.stopWaitForChange();
             }
         });
-        */
-        throw new RuntimeException("TODO");
     }
 
     /**

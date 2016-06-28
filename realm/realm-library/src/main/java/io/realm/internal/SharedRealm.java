@@ -10,7 +10,6 @@ public final class SharedRealm implements Closeable {
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
-        //ASYNC(2); // TODO: re-enable when possible
 
         final int value;
 
@@ -178,6 +177,14 @@ public final class SharedRealm implements Closeable {
         nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
     }
 
+    public boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    public void stopWaitForChange() {
+        nativeStopWaitForChange(nativePtr);
+    }
+
     @Override
     public void close() {
         if (nativePtr != 0) {
@@ -225,4 +232,6 @@ public final class SharedRealm implements Closeable {
     private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
     private static native long nativeSize(long nativeSharedRealmPtr);
     private static native long nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
+    private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
+    private static native boolean nativeStopWaitForChange(long nativeSharedRealmPtr);
 }

@@ -221,3 +221,26 @@ Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv *env, jclass,
         shared_realm->write_copy(path_str, key_buffer);
     } CATCH_STD()
 }
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeWaitForChange(JNIEnv *env, jclass, jlong shared_realm_ptr) {
+    TR_ENTER_PTR(shared_realm_ptr);
+
+    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        return static_cast<jboolean>(shared_realm->get_shared_group().wait_for_change());
+    } CATCH_STD()
+
+    return static_cast<jboolean>(false);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeStopWaitForChange(JNIEnv *env, jclass, jlong shared_realm_ptr) {
+
+    TR_ENTER_PTR(shared_realm_ptr);
+
+    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        shared_realm->get_shared_group().wait_for_change_release();
+    } CATCH_STD()
+}
