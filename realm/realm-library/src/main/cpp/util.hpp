@@ -532,17 +532,11 @@ public:
     , m_array(arr)
     , m_ptr(0)
     {
-#ifdef REALM_ENABLE_ENCRYPTION
         if (arr) {
             if (env->GetArrayLength(m_array) != 64)
                 ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");
             m_ptr = env->GetByteArrayElements(m_array, NULL);
         }
-#else
-        if (arr)
-            ThrowException(env, UnsupportedOperation,
-                           "Encryption was disabled in the native library at compile time.");
-#endif
     }
 
     operator realm::BinaryData() const noexcept
