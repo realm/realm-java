@@ -801,6 +801,7 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
+     * @see #copyToRealm(Iterable)
      */
     public void insert(Collection<? extends RealmModel> objects) {
         checkIfValid();
@@ -826,6 +827,7 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
+     * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
         checkIfValid();
@@ -852,6 +854,7 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
+     * @see #copyToRealmOrUpdate(Iterable)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
         checkIfValid();
@@ -877,6 +880,7 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
+     * @see #copyToRealmOrUpdate(RealmModel)
      */
     public void insertOrUpdate(RealmModel object) {
         checkIfValid();

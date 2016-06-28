@@ -552,7 +552,7 @@ public class BulkInsertTests {
         realm.beginTransaction();
         try {
             realm.insert(nullObjects);
-            fail("Should trigger NullPointerException");
+            fail("Should trigger IllegalArgumentException");
         } catch (IllegalArgumentException ignore) {
 
         } finally {
@@ -572,7 +572,7 @@ public class BulkInsertTests {
         realm.beginTransaction();
         try {
             realm.insert(list);
-            fail("Should trigger NullPointerException");
+            fail("Should trigger IllegalArgumentException");
         } catch (NullPointerException ignore) {
 
         } finally {
