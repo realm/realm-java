@@ -208,7 +208,9 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        thrown.expect(RealmIOException.class);
+        // FIXME: Why do we throw RealmIOException for this case, but IAE for other cases when opening Realm?
+        //thrown.expect(RealmIOException.class);
+        thrown.expect(IllegalArgumentException.class);
         Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
     }
 
@@ -221,7 +223,9 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        thrown.expect(RealmIOException.class);
+        // FIXME: Why do we throw RealmIOException for this case, but IAE for other cases when opening Realm?
+        //thrown.expect(RealmIOException.class);
+        thrown.expect(IllegalArgumentException.class);
         Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
     }
 
@@ -509,7 +513,7 @@ public class RealmTests {
             realm.beginTransaction();
             fail();
         } catch (IllegalStateException e) {
-            assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
+            assertEquals("The Realm is already in a write transaction", e.getMessage());
         }
         realm.commitTransaction();
     }
