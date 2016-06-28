@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* Added `insert(RealmModel obj)`, `insertOrUpdate(RealmModel obj)`, `insert(Collection<RealmModel> collection)` and `insertOrUpdate(Collection<RealmModel> collection)` to perform batch inserts (#1684)
+* Added `insert(RealmModel obj)`, `insertOrUpdate(RealmModel obj)`, `insert(Collection<RealmModel> collection)` and `insertOrUpdate(Collection<RealmModel> collection)` to perform batch inserts (#1684).
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
 * Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
 * Changed `targetSdkVersion` of `realm-library` to 24.
