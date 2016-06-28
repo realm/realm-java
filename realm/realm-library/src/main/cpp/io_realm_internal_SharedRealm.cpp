@@ -64,9 +64,14 @@ Java_io_realm_internal_SharedRealm_nativeCommitTransaction
 
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeCancelTransaction
-(JNIEnv *, jclass, jlong shared_realm_ptr) {
+(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
-    (*SR(shared_realm_ptr))->cancel_transaction();
+
+    SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        shared_realm->cancel_transaction();
+    } CATCH_STD()
+
 }
 
 

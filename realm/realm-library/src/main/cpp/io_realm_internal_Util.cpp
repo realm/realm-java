@@ -178,8 +178,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, LockFileError, "parm1", "parm2");
             break;
-
-
+        case IllegalState:
+            expect = "java.lang.IllegalStateException: Illegal State: parm1";
+            if (dotest)
+                ThrowException(env, LockFileError, "parm1");
+            break;
     }
     if (dotest) {
         return NULL;

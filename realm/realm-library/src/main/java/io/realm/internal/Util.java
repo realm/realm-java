@@ -68,7 +68,8 @@ public class Util {
         Exception_EncryptionNotSupported(14),
         Exception_CrossTableLink(15),
         Exception_BadVersion(16),
-        Exception_IncompatibleLockFile(17);
+        Exception_IncompatibleLockFile(17),
+        Exception_IllegalState(18);
 
         private final int nativeTestcase;
         Testcase(int nativeValue) {

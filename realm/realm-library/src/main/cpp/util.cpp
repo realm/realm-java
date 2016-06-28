@@ -61,6 +61,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (RealmFileException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (InvalidTransactionException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
     } catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -166,6 +170,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = classStr;
             break;
 
+        case IllegalState:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());

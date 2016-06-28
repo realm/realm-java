@@ -94,6 +94,8 @@ std::string num_to_string(T pNumber)
 #define SR(ptr) reinterpret_cast<realm::SharedRealm*>(ptr)
 
 // Exception handling
+// FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
+// FIXME: Consider to use generated const value in jni header instead of define them twice.
 enum ExceptionKind {
     ClassNotFound = 0,
     NoSuchField = 1,
@@ -111,7 +113,8 @@ enum ExceptionKind {
     RowInvalid = 13,
     CrossTableLink = 15,
     BadVersion = 16,
-    LockFileError = 17
+    LockFileError = 17,
+    IllegalState = 18
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
