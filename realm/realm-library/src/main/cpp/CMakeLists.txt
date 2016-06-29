@@ -21,6 +21,7 @@ create_javah(TARGET jni_headers
   io.realm.internal.SubtableSchema io.realm.internal.LinkView io.realm.internal.Util
   io.realm.internal.Version io.realm.internal.UncheckedRow io.realm.internal.TableQuery
   io.realm.internal.SharedRealm io.realm.RealmObjectSchema io.realm.internal.Property
+  io.realm.RealmSchema
 
   CLASSPATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include

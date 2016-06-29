@@ -30,6 +30,10 @@ public class Property {
         this.nativePtr = nativeCreateProperty(name, type.ordinal(), isPrimary, isIndexed, !isRequired);
     }
 
+    public Property(String name, RealmFieldType type, String linkedToName) {
+        this.nativePtr = nativeCreateProperty(name, type.ordinal(), linkedToName);
+    }
+
     protected Property(long nativePtr) {
         this.nativePtr = nativePtr;
     }
@@ -47,6 +51,7 @@ public class Property {
     }
 
     private static native long nativeCreateProperty(String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
+    private static native long nativeCreateProperty(String name, int type, String linkedToName);
     private static native boolean nativeIsIndexable(long nativePtr);
     private static native boolean nativeRequiresIndex(long nativePtr);
     private static native void nativeClose(long nativePtr);

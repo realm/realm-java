@@ -51,6 +51,8 @@ public:
     using base::end;
     using base::empty;
     using base::size;
+    using base::push_back;
+    using base::erase;
 };
 }
 

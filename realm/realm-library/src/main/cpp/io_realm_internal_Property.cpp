@@ -26,8 +26,22 @@ Java_io_realm_internal_Property_nativeCreateProperty
     TR_ENTER()
     try {
         JStringAccessor str(env, name);
-        PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
+        PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type)); // FIXME: is validation done by object store?
         Property *property = new Property(str, p_type, nullptr, nullptr, to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable));
+        return reinterpret_cast<jlong>(property);
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Property_nativeCreateProperty(JNIEnv *env, jstring j_name, jint type, jstring j_link_name) {
+    TR_ENTER()
+    try {
+        JStringAccessor name(env, j_name);
+        JStringAccessor link_name(env, j_link_name);
+        auto  p_type = static_cast<PropertyType>(static_cast<int>(type)); // FIXME: is validation done by object store?
+        auto *property = new Property(name, p_type, link_name, nullptr, false, false, false);
         return reinterpret_cast<jlong>(property);
     }
     CATCH_STD()
