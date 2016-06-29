@@ -28,6 +28,7 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeCloseConfig
 (JNIEnv *, jclass, jlong config_ptr) {
     TR_ENTER_PTR(config_ptr)
+
     delete RC(config_ptr);
 }
 
@@ -38,7 +39,7 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm
 
     try {
         auto shared_realm = Realm::get_shared_realm(*RC(config_ptr));
-        return reinterpret_cast<jlong>(new SharedRealm(shared_realm));
+        return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm)));
     } CATCH_STD()
     return NULL;
 }
@@ -145,8 +146,8 @@ Java_io_realm_internal_SharedRealm_nativeRefresh__JJJ(JNIEnv *env, jclass, jlong
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    SharedGroup::VersionID versionID(reinterpret_cast<SharedGroup::version_type>(version),
-                                     reinterpret_cast<uint32_t>(index));
+    SharedGroup::VersionID versionID(static_cast<SharedGroup::version_type>(version),
+                                     static_cast<uint32_t>(index));
     try {
         shared_realm->refresh(versionID);
     } CATCH_STD()
