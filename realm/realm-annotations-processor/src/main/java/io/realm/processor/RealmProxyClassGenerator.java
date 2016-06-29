@@ -791,8 +791,8 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", className);
         writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
-        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)"
-                ,columnInfoClassName(), columnInfoClassName(), className);
+        writer.emitStatement("%s columnInfo = (%s) realm.schema.getColumnInfo(%s.class)",
+                columnInfoClassName(), columnInfoClassName(), className);
         writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
         writer.emitStatement("cache.put(object, rowIndex)");
 
