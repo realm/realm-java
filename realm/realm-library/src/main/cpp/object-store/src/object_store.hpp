@@ -80,22 +80,30 @@ namespace realm {
         template< typename T >
         static std::unique_ptr<T> import_from_handover(SharedRealm& shared_realm,
                                                        std::unique_ptr<SharedGroup::Handover<T>> handover) {
-            return shared_realm->get_shared_group().import_from_handover(std::move(handover));
+            return Realm::Internal::get_shared_group(*shared_realm).import_from_handover(std::move(handover));
         }
         template< typename T >
         static std::unique_ptr<SharedGroup::Handover<T>> export_for_handover(SharedRealm& shared_realm, T& accessor,
                                                                              MutableSourcePayload mode) {
-            return shared_realm->get_shared_group().export_for_handover(accessor, mode);
+            return Realm::Internal::get_shared_group(*shared_realm).export_for_handover(accessor, mode);
         }
         template< typename T >
         static std::unique_ptr<SharedGroup::Handover<T>> export_for_handover(SharedRealm& shared_realm, T& accessor,
                                                                              ConstSourcePayload mode) {
-            return shared_realm->get_shared_group().export_for_handover(accessor, mode);
+            return Realm::Internal::get_shared_group(*shared_realm).export_for_handover(accessor, mode);
         }
         template<typename T>
         static std::unique_ptr<SharedGroup::Handover<BasicRow<T>>> export_for_handover(SharedRealm& shared_realm,
                                                                                        const BasicRow<T>& accessor) {
-            return shared_realm->get_shared_group().export_for_handover(accessor);
+            return Realm::Internal::get_shared_group(*shared_realm).export_for_handover(accessor);
+        }
+
+        // Wrappers for core's wait for change
+        static bool wait_for_change(SharedRealm& shared_realm) {
+            return Realm::Internal::get_shared_group(*shared_realm).wait_for_change();
+        }
+        static void wait_for_change_release(SharedRealm& shared_realm) {
+            Realm::Internal::get_shared_group(*shared_realm).wait_for_change_release();
         }
 
     private:

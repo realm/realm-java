@@ -231,8 +231,8 @@ public final class SharedRealm implements Closeable {
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
     private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
     private static native long nativeSize(long nativeSharedRealmPtr);
-    private static native long nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
+    private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
-    private static native boolean nativeStopWaitForChange(long nativeSharedRealmPtr);
+    private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
 }

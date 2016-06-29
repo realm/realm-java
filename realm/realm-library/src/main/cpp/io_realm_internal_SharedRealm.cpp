@@ -92,7 +92,7 @@ Java_io_realm_internal_SharedRealm_nativeIsInTransaction(JNIEnv *, jclass, jlong
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    return shared_realm->is_in_transaction();
+    return static_cast<jboolean>(shared_realm->is_in_transaction());
 }
 
 JNIEXPORT jlong JNICALL
@@ -145,19 +145,20 @@ Java_io_realm_internal_SharedRealm_nativeRefresh__JJJ(JNIEnv *env, jclass, jlong
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    SharedGroup::VersionID versionID(version, index);
+    SharedGroup::VersionID versionID(reinterpret_cast<SharedGroup::version_type>(version),
+                                     reinterpret_cast<uint32_t>(index));
     try {
         shared_realm->refresh(versionID);
     } CATCH_STD()
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass type, jlong shared_realm_ptr) {
+Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        SharedGroup::VersionID version_id = shared_realm->get_shared_group().get_version_of_current_transaction();
+        SharedGroup::VersionID version_id = shared_realm->get_version_of_current_transaction();
 
         jlong version_array [2];
         version_array[0] = static_cast<jlong>(version_id.version);
@@ -263,7 +264,7 @@ Java_io_realm_internal_SharedRealm_nativeSize(JNIEnv *env, jclass, jlong shared_
     return 0;
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv *env, jclass,
         jlong shared_realm_ptr, jstring path, jbyteArray key) {
     TR_ENTER_PTR(shared_realm_ptr);
@@ -282,20 +283,20 @@ Java_io_realm_internal_SharedRealm_nativeWaitForChange(JNIEnv *env, jclass, jlon
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        return static_cast<jboolean>(shared_realm->get_shared_group().wait_for_change());
+        return static_cast<jboolean>(ObjectStore::wait_for_change(shared_realm));
     } CATCH_STD()
 
     return static_cast<jboolean>(false);
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeStopWaitForChange(JNIEnv *env, jclass, jlong shared_realm_ptr) {
 
     TR_ENTER_PTR(shared_realm_ptr);
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        shared_realm->get_shared_group().wait_for_change_release();
+        ObjectStore::wait_for_change_release(shared_realm);
     } CATCH_STD()
 }
 
