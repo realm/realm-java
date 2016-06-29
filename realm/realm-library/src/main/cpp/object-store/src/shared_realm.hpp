@@ -118,6 +118,9 @@ namespace realm {
         void cancel_transaction();
         bool is_in_transaction() const noexcept;
         bool is_in_read_transaction() const { return !!m_group; }
+        SharedGroup::VersionID get_version_of_current_transaction() const {
+            return m_shared_group->get_version_of_current_transaction();
+        }
 
         // FIXME: The param should not be needed.
         bool refresh(SharedGroup::VersionID version = {});
@@ -149,11 +152,6 @@ namespace realm {
         void init(std::shared_ptr<_impl::RealmCoordinator> coordinator);
         Realm(Config config);
 
-        // FIXME: Java still needs the SharedGroup pointers for some places.
-        //        Remove this after the final clean up.
-        SharedGroup& get_shared_group() { return *m_shared_group; }
-
-
         // Expose some internal functionality to other parts of the ObjectStore
         // without making it public to everyone
         class Internal {
@@ -161,6 +159,7 @@ namespace realm {
             friend class _impl::ListNotifier;
             friend class _impl::RealmCoordinator;
             friend class _impl::ResultsNotifier;
+            friend class ObjectStore;
 
             // ResultsNotifier and ListNotifier need access to the SharedGroup
             // to be able to call the handover functions, which are not very wrappable
@@ -199,6 +198,14 @@ namespace realm {
 
         // FIXME private
         Group *read_group();
+        // FIXME Needed by java async query right now. Remove it when possible.
+        // It is equivalent to terminating the current read transaction (if there is one),
+        // and initiating a new one with a specific version
+        // It is different from advance_read():
+        // 1. It can read both forwards and backwards.
+        // 2. All subordinate accessors might be deattached if the the current version is
+        //    different. Java is using it for worker thread only, so this won't be an issue.
+        Group *read_group_to(SharedGroup::VersionID version);
     };
 
     class RealmFileException : public std::runtime_error {

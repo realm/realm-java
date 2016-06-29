@@ -211,6 +211,16 @@ Group *Realm::read_group()
     return m_group;
 }
 
+Group *Realm::read_group_to(SharedGroup::VersionID version) {
+    if (!m_group) {
+        m_group = &const_cast<Group&>(m_shared_group->begin_read(version));
+    } else if (version != m_shared_group->get_version_of_current_transaction()) {
+        m_shared_group->end_read();
+        m_group = &const_cast<Group&>(m_shared_group->begin_read(version));
+    }
+    return m_group;
+}
+
 SharedRealm Realm::get_shared_realm(Config config)
 {
     auto coordinator = RealmCoordinator::get_coordinator(config.path);

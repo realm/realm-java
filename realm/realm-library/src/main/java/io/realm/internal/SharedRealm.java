@@ -65,7 +65,8 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    private long nativePtr;
+    // FIXME: This is used in ProxyState.java
+    public long nativePtr;
     private RealmConfiguration configuration;
     final Context context;
 
@@ -109,7 +110,7 @@ public final class SharedRealm implements Closeable {
         return nativeGetVersion(nativePtr);
     }
 
-    // FIXME: This should be removed, or at least should be private
+    // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
     public long getGroupNative() {
         return nativeReadGroup(nativePtr);
     }
@@ -144,10 +145,6 @@ public final class SharedRealm implements Closeable {
 
     public boolean isEmpty() {
         return nativeIsEmpty(nativePtr);
-    }
-
-    public long getSharedGroupNative() {
-        return nativeGetSharedGroup(nativePtr);
     }
 
     public void refresh() {
@@ -226,7 +223,6 @@ public final class SharedRealm implements Closeable {
 
     // FIXME: Below APIs may not be needed
     // Implement the relevant API in a better way without exposing the pointers.
-    private static native long nativeGetSharedGroup(long nativeSharedRealmPtr);
     private static native long[]  nativeGetVersionID(long nativeSharedRealmPtr);
 
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);

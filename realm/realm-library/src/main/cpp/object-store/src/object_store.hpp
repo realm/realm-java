@@ -21,6 +21,7 @@
 
 #include "schema.hpp"
 #include "property.hpp"
+#include "shared_realm.hpp"
 
 #include <realm/table_ref.hpp>
 
@@ -74,6 +75,28 @@ namespace realm {
 
         static std::string table_name_for_object_type(StringData class_name);
         static StringData object_type_for_table_name(StringData table_name);
+
+        // Those are needed by java for the async query
+        template< typename T >
+        static std::unique_ptr<T> import_from_handover(SharedRealm& shared_realm,
+                                                       std::unique_ptr<SharedGroup::Handover<T>> handover) {
+            return shared_realm->get_shared_group().import_from_handover(std::move(handover));
+        }
+        template< typename T >
+        static std::unique_ptr<SharedGroup::Handover<T>> export_for_handover(SharedRealm& shared_realm, T& accessor,
+                                                                             MutableSourcePayload mode) {
+            return shared_realm->get_shared_group().export_for_handover(accessor, mode);
+        }
+        template< typename T >
+        static std::unique_ptr<SharedGroup::Handover<T>> export_for_handover(SharedRealm& shared_realm, T& accessor,
+                                                                             ConstSourcePayload mode) {
+            return shared_realm->get_shared_group().export_for_handover(accessor, mode);
+        }
+        template<typename T>
+        static std::unique_ptr<SharedGroup::Handover<BasicRow<T>>> export_for_handover(SharedRealm& shared_realm,
+                                                                                       const BasicRow<T>& accessor) {
+            return shared_realm->get_shared_group().export_for_handover(accessor);
+        }
 
     private:
         // set a new schema version

@@ -91,7 +91,6 @@ std::string num_to_string(T pNumber)
 #define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 #define RC(ptr) reinterpret_cast<realm::Realm::Config*>(ptr)
-#define SR(ptr) reinterpret_cast<realm::SharedRealm*>(ptr)
 
 // Exception handling
 // FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.

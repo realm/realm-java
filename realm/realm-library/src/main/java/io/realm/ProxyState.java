@@ -133,7 +133,7 @@ public final class ProxyState<E extends RealmModel> {
         } else if (!isCompleted || row == Row.EMPTY_ROW) {
             isCompleted = true;
             long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer,
-                    realm.sharedRealm.getSharedGroupNative());
+                    realm.sharedRealm.nativePtr);
             Table table = getTable();
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
         }// else: already loaded query no need to import again the pointer

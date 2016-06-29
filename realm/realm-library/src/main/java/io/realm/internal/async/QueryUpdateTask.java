@@ -77,7 +77,7 @@ public class QueryUpdateTask implements Runnable {
             if (updateMode == MODE_UPDATE_REALM_RESULTS) {
                 result = Result.newRealmResultsResponse();
                 AlignedQueriesParameters alignedParameters = prepareQueriesParameters();
-                long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedRealm.getSharedGroupNative(),
+                long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedRealm.nativePtr,
                         alignedParameters.handoverQueries,
                         alignedParameters.queriesParameters,
                         alignedParameters.multiSortColumnIndices,
@@ -176,7 +176,7 @@ public class QueryUpdateTask implements Runnable {
             switch (realmObjectEntry.queryArguments.type) {
                 case ArgumentsHolder.TYPE_FIND_FIRST: {
                     long handoverRowPointer = TableQuery.
-                            nativeFindWithHandover(sharedRealm.getSharedGroupNative(),
+                            nativeFindWithHandover(sharedRealm.nativePtr,
                                     realmObjectEntry.handoverQueryPointer, 0);
                     result.updatedRow.put(realmObjectEntry.element, handoverRowPointer);
                     break;

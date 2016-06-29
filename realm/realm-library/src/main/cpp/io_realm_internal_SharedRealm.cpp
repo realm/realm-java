@@ -129,14 +129,6 @@ Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv *env, jclass, jlong shar
     return static_cast<jboolean>(false);
 }
 
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetSharedGroup(JNIEnv *, jclass , jlong shared_realm_ptr) {
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    return reinterpret_cast<jlong>(&shared_realm->get_shared_group());
-}
-
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeRefresh__J(JNIEnv *env, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
