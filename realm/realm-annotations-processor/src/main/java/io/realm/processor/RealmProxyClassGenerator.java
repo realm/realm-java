@@ -821,15 +821,15 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                            .emitStatement("long nativeLinkViewPtr%1$s = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
+                            .emitStatement("long %1$sNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
                             .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
                                 .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
                              .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                 .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                              .endControlFlow()
-                             .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr%1$s, cacheItemIndex%1$s)", fieldName)
+                             .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                             .endControlFlow()
-                            .emitStatement("LinkView.nativeClose(nativeLinkViewPtr%s)", fieldName)
+                            .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .endControlFlow()
                         .emitEmptyLine();
 
@@ -889,15 +889,15 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
-                            .emitStatement("long nativeLinkViewPtr%1$s = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
+                            .emitStatement("long %1$sNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
                           .beginControlFlow("for (%1$s %2$sItem : %2$sList)", Utils.getGenericType(field), fieldName)
                                 .emitStatement("Long cacheItemIndex%1$s = cache.get(%1$sItem)", fieldName)
                              .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                     .emitStatement("cacheItemIndex%1$s = %2$s.insert(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                              .endControlFlow()
-                                .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr%1$s, cacheItemIndex%1$s)", fieldName)
+                                .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                           .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr%s)", fieldName)
+                        .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .endControlFlow()
                         .emitEmptyLine();
 
@@ -1006,8 +1006,8 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmList(field)) {
                 writer
                         .emitEmptyLine()
-                        .emitStatement("long nativeLinkViewPtr%1$s = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
-                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr%s)", fieldName)
+                        .emitStatement("long %1$sNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
+                        .emitStatement("LinkView.nativeClear(%sNativeLinkViewPtr)", fieldName)
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
@@ -1016,10 +1016,10 @@ public class RealmProxyClassGenerator {
                                 .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                     .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                 .endControlFlow()
-                                .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr%1$s, cacheItemIndex%1$s)", fieldName)
+                                .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                             .endControlFlow()
                         .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr%s)", fieldName)
+                        .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .emitEmptyLine();
 
             } else {
@@ -1135,8 +1135,8 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmList(field)) {
                 writer
                         .emitEmptyLine()
-                        .emitStatement("long nativeLinkViewPtr%1$s = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
-                        .emitStatement("LinkView.nativeClear(nativeLinkViewPtr%s)", fieldName)
+                        .emitStatement("long %1$sNativeLinkViewPtr = Table.nativeGetLinkView(tableNativePtr, columnInfo.%1$sIndex, rowIndex)", fieldName)
+                        .emitStatement("LinkView.nativeClear(%sNativeLinkViewPtr)", fieldName)
                         .emitStatement("RealmList<%s> %sList = ((%s) object).%s()",
                                 Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("if (%sList != null)", fieldName)
@@ -1145,10 +1145,10 @@ public class RealmProxyClassGenerator {
                             .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                     .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                 .endControlFlow()
-                            .emitStatement("LinkView.nativeAdd(nativeLinkViewPtr%1$s, cacheItemIndex%1$s)", fieldName)
+                            .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                             .endControlFlow()
                         .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(nativeLinkViewPtr%s)", fieldName)
+                        .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .emitEmptyLine();
 
             } else {
