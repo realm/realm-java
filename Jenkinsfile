@@ -2,7 +2,7 @@
 
 node('docker') {
     stage 'SCM'
-    sh 'git reset --hard && git clean -ffdx -e ".jenkins-*/"'
+    scm.extensions.add(new hudson.plugins.git.extensions.impl.CleanBeforeCheckout())
     checkout scm
 
     stage 'Docker build'
