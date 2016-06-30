@@ -1839,6 +1839,14 @@ public class RealmTests {
     }
 
     @Test
+    public void writeEncryptedCopyTo_wrongKeyLength() {
+        byte[]  wrongLentKey = new byte[42];
+        File destination = new File(configFactory.getRoot(), "wrong_key.realm");
+        thrown.expect(IllegalArgumentException.class);
+        realm.writeEncryptedCopyTo(destination, wrongLentKey);
+    }
+
+    @Test
     public void deleteRealm_failures() {
         final String OTHER_REALM_NAME = "yetAnotherRealm.realm";
 

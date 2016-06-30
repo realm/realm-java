@@ -13,9 +13,10 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig
     TR_ENTER()
 
     JStringAccessor path(env, realm_path);
+    JniByteArray key_array(env, key);
     Realm::Config *config = new Realm::Config();
     config->path = path;
-    config->encryption_key = jbytearray_to_vector(env, key);
+    config->encryption_key = key_array;
     config->read_only = read_only;
     config->in_memory = in_memory;
     config->cache = cache;
@@ -271,7 +272,7 @@ Java_io_realm_internal_SharedRealm_nativeWriteCopy(JNIEnv *env, jclass,
     TR_ENTER_PTR(shared_realm_ptr);
 
     JStringAccessor path_str(env, path);
-    KeyBuffer key_buffer(env, key);
+    JniByteArray key_buffer(env, key);
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->write_copy(path_str, key_buffer);

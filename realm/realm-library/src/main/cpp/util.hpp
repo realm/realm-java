@@ -513,7 +513,6 @@ public:
         }
     }
 
-    // FIXME: Replace m_data with std::string to avoid memcpy
     operator std::string() const noexcept
     {
         if (m_is_null) {
@@ -528,30 +527,29 @@ private:
     std::size_t m_size;
 };
 
-class KeyBuffer {
+class JniByteArray {
 public:
-    KeyBuffer(JNIEnv* env, jbyteArray arr)
+    JniByteArray(JNIEnv* env, jbyteArray arr)
     : m_env(env)
+    , m_size(arr ? env->GetArrayLength(m_array) : 0)
     , m_array(arr)
-    , m_ptr(0)
-    {
-        if (arr) {
-            if (env->GetArrayLength(m_array) != 64)
-                ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");
-            m_ptr = env->GetByteArrayElements(m_array, NULL);
-        }
+    , m_ptr(arr ? env->GetByteArrayElements(m_array, NULL) : 0) {}
+
+    operator realm::BinaryData() const noexcept {
+        return realm::BinaryData(reinterpret_cast<const char *>(m_ptr), m_size);
     }
 
-    operator realm::BinaryData() const noexcept
-    {
-        if (m_ptr) {
-            return realm::BinaryData(reinterpret_cast<const char *>(m_ptr), 64);
+    operator std::vector<char>() const noexcept {
+        if (m_array == nullptr) {
+            return {};
         }
 
-        return realm::BinaryData();
+        std::vector<char> v(m_size);
+        std::copy_n(m_ptr, v.size(), v.begin());
+        return v;
     }
 
-    ~KeyBuffer() {
+    ~JniByteArray() {
         if (m_ptr)
             m_env->ReleaseByteArrayElements(m_array, m_ptr, JNI_ABORT);
     }
@@ -559,6 +557,7 @@ public:
 private:
     JNIEnv* m_env;
     jbyteArray m_array;
+    jsize m_size;
     jbyte* m_ptr;
 };
 

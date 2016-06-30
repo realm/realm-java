@@ -65,7 +65,12 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (InvalidTransactionException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
-    } catch (exception& e) {
+    }
+    catch (InvalidEncryptionKeyException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
     }

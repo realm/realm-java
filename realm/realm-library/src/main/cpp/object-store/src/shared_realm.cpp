@@ -31,6 +31,10 @@
 using namespace realm;
 using namespace realm::_impl;
 
+namespace {
+    const size_t c_keyLength = 64;
+}
+
 Realm::Config::Config(const Config& c)
 : path(c.path)
 , encryption_key(c.encryption_key)
@@ -123,7 +127,7 @@ void Realm::open_with_config(const Config& config,
                              std::unique_ptr<Group>& read_only_group,
                              Realm *realm)
 {
-    if (config.encryption_key.data() && config.encryption_key.size() != 64) {
+    if (config.encryption_key.data() && config.encryption_key.size() != c_keyLength) {
         throw InvalidEncryptionKeyException();
     }
     try {
@@ -415,7 +419,9 @@ bool Realm::compact()
 
 void Realm::write_copy(StringData path, BinaryData key)
 {
-    REALM_ASSERT(!key.data() || key.size() == 64);
+    if (key.data() && key.size() != c_keyLength) {
+        throw InvalidEncryptionKeyException();
+    }
     verify_thread();
     try {
         read_group()->write(path, key.data());

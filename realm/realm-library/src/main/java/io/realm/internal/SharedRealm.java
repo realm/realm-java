@@ -168,9 +168,6 @@ public final class SharedRealm implements Closeable {
         if (file.isFile() && file.exists()) {
             throw new IllegalArgumentException("The destination file must not exist");
         }
-        if (key != null && key.length != 64) {
-            throw new IllegalArgumentException("Realm AES keys must be 64 bytes long");
-        }
         nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
     }
 
