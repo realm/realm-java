@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <realm/unicode.hpp>
-
 #include "util.hpp"
 #include "tablebase_tpl.hpp"
 #include "io_realm_internal_TableView.h"
