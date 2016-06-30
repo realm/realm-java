@@ -2,7 +2,7 @@
 
 node('docker') {
     stage 'SCM'
-    scm.extensions.add(new hudson.plugins.git.extensions.impl.CleanBeforeCheckout())
+    scm.extensions.add(new CleanAfterCheckout())
     checkout scm
 
     stage 'Docker build'
