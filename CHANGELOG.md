@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* A number of bugs fixed in the storage engine related to memory management. The symptom of these bugs is corrupted Realm files.
+* A number of bug fixes in the storage engine related to memory management in rare cases when a Realm has been compacted.
 
 ### Enhancements
 
