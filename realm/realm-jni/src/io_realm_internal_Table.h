@@ -115,14 +115,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeUpdateFromSpec
- * Signature: (JLio/realm/internal/TableSpec;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUpdateFromSpec
-  (JNIEnv *, jobject, jlong, jobject);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeSize
  * Signature: (J)J
  */
@@ -143,14 +135,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnCount
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetTableSpec
- * Signature: (J)Lio/realm/internal/TableSpec;
- */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetTableSpec
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -207,7 +191,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -283,22 +267,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeGetMixedType
- * Signature: (JJJ)I
- */
-JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetMixedType
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetMixed
- * Signature: (JJJ)Lio/realm/internal/Mixed;
- */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetMixed
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeGetLink
  * Signature: (JJJ)J
  */
@@ -307,43 +275,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeGetLinkView
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkView
+        (JNIEnv *, jclass, jlong, jlong, jlong);
+
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeGetLinkTarget
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget
   (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetSubtable
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetSubtableDuringInsert
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInsert
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeGetSubtableSize
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableSize
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeClearSubtable
- * Signature: (JJJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClearSubtable
-  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -359,7 +304,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr
  * Signature: (JJJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -367,7 +312,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong
  * Signature: (JJJZ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean
-  (JNIEnv *, jobject, jlong, jlong, jlong, jboolean);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     io_realm_internal_Table
@@ -375,7 +320,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean
  * Signature: (JJJF)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetFloat
-  (JNIEnv *, jobject, jlong, jlong, jlong, jfloat);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jfloat);
 
 /*
  * Class:     io_realm_internal_Table
@@ -383,7 +328,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetFloat
  * Signature: (JJJD)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble
-  (JNIEnv *, jobject, jlong, jlong, jlong, jdouble);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jdouble);
 
 /*
  * Class:     io_realm_internal_Table
@@ -391,7 +336,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble
  * Signature: (JJJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -399,7 +344,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp
  * Signature: (JJJLjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString
-  (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jstring);
 
 /*
  * Class:     io_realm_internal_Table
@@ -407,7 +352,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -415,15 +360,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull
  * Signature: (JJJ[B)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeSetMixed
- * Signature: (JJJLio/realm/internal/Mixed;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed
-  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jbyteArray);
 
 /*
  * Class:     io_realm_internal_Table
@@ -431,7 +368,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed
  * Signature: (JJJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -487,7 +424,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNullLink
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeNullifyLink
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -647,7 +584,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstInt
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
@@ -687,7 +624,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp
  * Signature: (JJLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString
-  (JNIEnv *, jobject, jlong, jlong, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jstring);
 
 /*
  * Class:     io_realm_internal_Table

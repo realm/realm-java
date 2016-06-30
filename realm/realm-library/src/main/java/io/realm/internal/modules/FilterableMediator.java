@@ -114,6 +114,30 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+        checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
+        originalMediator.insert(realm, object, cache);
+    }
+
+    @Override
+    public void insert(Realm realm, Collection<? extends RealmModel> objects) {
+        checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
+        originalMediator.insert(realm, objects);
+    }
+
+    @Override
+    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+        checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
+        originalMediator.insertOrUpdate(realm, object, cache);
+    }
+
+    @Override
+    public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
+        checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
+        originalMediator.insertOrUpdate(realm, objects);
+    }
+
+    @Override
     public <E extends RealmModel> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
         checkSchemaHasClass(clazz);
         return originalMediator.createOrUpdateUsingJsonObject(clazz, realm, json, update);

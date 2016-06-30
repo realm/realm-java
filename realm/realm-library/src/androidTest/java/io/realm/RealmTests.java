@@ -187,6 +187,18 @@ public class RealmTests {
         Realm.getInstance(new RealmConfiguration.Builder(folder).build());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getInstance_nullContextWithCustomDirThrows() {
+        Realm.getInstance(new RealmConfiguration.Builder((Context) null, configFactory.getRoot()).build());
+    }
+
+    @Test
+    public void getInstance_writeProtectedDirWithContext() {
+        File folder = new File("/");
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstance(new RealmConfiguration.Builder(context, folder).build());
+    }
+
     @Test
     public void getInstance_writeProtectedFile() throws IOException {
         String REALM_FILE = "readonly.realm";
@@ -198,6 +210,19 @@ public class RealmTests {
 
         thrown.expect(RealmIOException.class);
         Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+    }
+
+    @Test
+    public void getInstance_writeProtectedFileWithContext() throws IOException {
+        String REALM_FILE = "readonly.realm";
+        File folder = configFactory.getRoot();
+        File realmFile = new File(folder, REALM_FILE);
+        assertFalse(realmFile.exists());
+        assertTrue(realmFile.createNewFile());
+        assertTrue(realmFile.setWritable(false));
+
+        thrown.expect(RealmIOException.class);
+        Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
     }
 
     @Test
@@ -1069,7 +1094,6 @@ public class RealmTests {
     @Test
     public void copyToRealm() {
         Date date = new Date();
-        date.setTime(1000); // Remove ms. precision as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
         RealmList<Dog> list = new RealmList<Dog>();
@@ -1119,6 +1143,54 @@ public class RealmTests {
         assertEquals("One", realmObject.getName());
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicType.class).count());
+
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicType.class).count());
+
+        realm.beginTransaction();
+        List<CyclicType> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicType.class).count());
+    }
+
+    @Test
+    public void copyToRealm_cyclicObjectReferencesWithPK() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1, "One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2, "Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        realm.beginTransaction();
+        CyclicTypePrimaryKey realmObject = realm.copyToRealm(oneCyclicType);
+        realm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals("Two", realmObject.getObject().getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
+
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicTypePrimaryKey.class).count());
+
+        realm.beginTransaction();
+        List<CyclicTypePrimaryKey> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
     }
 
     @Test
