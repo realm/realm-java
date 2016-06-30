@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <realm/unicode.hpp>
+
 #include "util.hpp"
 #include "tablebase_tpl.hpp"
 #include "io_realm_internal_TableView.h"
@@ -833,7 +835,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumTimestam
 }
 
 // sort
-
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jboolean ascending)
 {

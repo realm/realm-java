@@ -1,5 +1,9 @@
 ## 1.1.0
 
+### Bug fixes
+
+* A number of bugs fixed in the storage engine related to memory management. The symptom of these bugs is corrupted Realm files.
+
 ### Enhancements
 
 * Added `insert(RealmModel obj)`, `insertOrUpdate(RealmModel obj)`, `insert(Collection<RealmModel> collection)` and `insertOrUpdate(Collection<RealmModel> collection)` to perform batch inserts (#1684).
@@ -10,6 +14,10 @@
 ### Deprecated
 
 * `RealmConfiguration.Builder(File)`. Use `RealmConfiguration.Builder(Context, File)` instead.
+
+### Internal
+
+* Updated Realm Core to 1.2.0.
 
 ## 1.0.2
 
