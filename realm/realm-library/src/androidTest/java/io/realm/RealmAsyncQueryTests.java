@@ -281,6 +281,35 @@ public class RealmAsyncQueryTests {
         }, transactionCallback);
     }
 
+    // Test case for https://github.com/realm/realm-java/issues/1893
+    // Ensure that onSuccess is called with the correct Realm version for async transaction.
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_asyncQuery() {
+        final Realm realm = looperThread.realm;
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        assertEquals(0, results.size());
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                assertEquals(1, realm.where(AllTypes.class).count());
+                assertEquals(1, results.size());
+                looperThread.testComplete();
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                fail();
+            }
+        });
+    }
+
     // ************************************
     // *** promises based async queries ***
     // ************************************

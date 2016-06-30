@@ -4,6 +4,7 @@
 
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
 * Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
+* Changed `targetSdkVersion` of `realm-library` to 24.
 
 ### Deprecated
 
@@ -14,6 +15,7 @@
 ### Bug fixes
 
 * Disabled the optional API transformer since it has problems with DexGuard (3022).
+* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
 
 ## 1.0.1
 

@@ -57,9 +57,14 @@
                 }
 
                 stage 'Run instrumented tests'
+                boolean archiveLog = true
+                String backgroundPid
                 try {
-                    sh 'cd realm && ./gradlew connectedCheck --stacktrace'
+                    backgroundPid = startLogCatCollector()
+                    sh 'cd realm && ./gradlew connectedUnitTests --stacktrace'
+                    archiveLog = false;
                 } finally {
+                    stopLogCatCollector(backgroundPid, archiveLog)
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
@@ -86,6 +91,26 @@
             }
         }
     }
+}
+
+def String startLogCatCollector() {
+    sh '''adb logcat -c
+    adb logcat > "logcat.txt" &
+    echo $! > pid
+    '''
+    return readFile("pid").trim()
+}
+
+def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
+    sh "kill ${backgroundPid}"
+    if (archiveLog) {
+        zip([
+            'zipFile': 'logcat.zip',
+            'archive': true,
+            'glob' : 'logcat.txt'
+        ])
+    }
+    sh 'rm logcat.txt '
 }
 
 def isPullRequest() {

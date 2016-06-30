@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId "io.realm.tests.optionalapiexists"
         minSdkVersion 9
-        targetSdkVersion 23
+        targetSdkVersion rootProject.sdkVersion
         versionCode 1
         versionName "1.0"
     }
