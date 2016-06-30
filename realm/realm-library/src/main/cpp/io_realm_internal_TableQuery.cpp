@@ -1128,12 +1128,12 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         std::vector<std::unique_ptr<Query>> queries(number_of_queries);
 
         // import the first query
-        queries[0] = std::move(ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery)));
+        queries[0] = ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery));
 
         // import the rest of the queries
         for (size_t i = 1; i < number_of_queries; ++i) {
             std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(HO(Query, handover_queries_pointer_array[i]));
-            queries[i] = std::move(ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery)));
+            queries[i] = ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery));
         }
 
         // Step2: Bring the queries into the latest shared group version

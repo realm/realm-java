@@ -1162,7 +1162,7 @@ public final class RealmQuery<E extends RealmModel> {
 
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1466,7 +1466,7 @@ public final class RealmQuery<E extends RealmModel> {
 
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1581,7 +1581,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults =
                 realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1752,7 +1752,7 @@ public final class RealmQuery<E extends RealmModel> {
 
             final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-            final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
+            final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
                 @Override
                 public Long call() throws Exception {
                     if (!Thread.currentThread().isInterrupted()) {
@@ -1889,7 +1889,7 @@ public final class RealmQuery<E extends RealmModel> {
         proxy.realmGet$proxyState().setRealm$realm(realm);
         proxy.realmGet$proxyState().setRow$realm(Row.EMPTY_ROW);
 
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {

@@ -159,16 +159,6 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     @Override
-    public Mixed getMixed(long columnIndex) {
-        return nativeGetMixed(nativePointer, columnIndex);
-    }
-
-    @Override
-    public RealmFieldType getMixedType(long columnIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePointer, columnIndex));
-    }
-
-    @Override
     public long getLink(long columnIndex) {
         return nativeGetLink(nativePointer, columnIndex);
     }
@@ -246,15 +236,6 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     @Override
-    public void setMixed(long columnIndex, Mixed data) {
-        parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null data is not allowed");
-        }
-        nativeSetMixed(nativePointer, columnIndex, data);
-    }
-
-    @Override
     public void setLink(long columnIndex, long value) {
         parent.checkImmutable();
         nativeSetLink(nativePointer, columnIndex, value);
@@ -315,8 +296,6 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex);
-    protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
     protected native long nativeGetLinkView(long nativePtr, long columnIndex);
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
@@ -326,7 +305,6 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
-    protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
     static native void nativeClose(long nativeRowPtr);

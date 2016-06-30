@@ -17,9 +17,9 @@
 package io.realm;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.os.Build;
 import android.os.Looper;
+import android.os.Message;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -50,7 +50,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -297,7 +296,7 @@ public final class Realm extends BaseRealm {
             }
         } finally {
             if (commitNeeded) {
-                realm.commitTransaction(false, null);
+                realm.commitTransaction(false, true, null);
             } else {
                 realm.cancelTransaction();
             }
@@ -1040,7 +1039,7 @@ public final class Realm extends BaseRealm {
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
-        final Future<?> pendingTransaction= asyncTaskExecutor.submit(new Runnable() {
+        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
             @Override
             public void run() {
                 if (Thread.currentThread().isInterrupted()) {
@@ -1055,7 +1054,7 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitTransaction(false, new Runnable() {
+                        bgRealm.commitAsyncTransaction(new Runnable() {
                             @Override
                             public void run() {
                                 // The bgRealm needs to be closed before post event to caller's handler to avoid
@@ -1083,15 +1082,23 @@ public final class Realm extends BaseRealm {
                     if (handler != null
                             && !Thread.currentThread().isInterrupted()
                             && handler.getLooper().getThread().isAlive()) {
-                        if (onSuccess != null && transactionCommitted) {
+
+                        if (transactionCommitted) {
+                            // This will be treated like a special REALM_CHANGED event
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    onSuccess.onSuccess();
+                                    handlerController.handleAsyncTransactionCompleted(onSuccess != null ? new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            onSuccess.onSuccess();
+                                        }
+                                    } : null);
                                 }
                             });
                         }
 
+                        // Send errors directly to the looper, so they don't get intercepted by the HandlerController.
                         if (backgroundException != null) {
                             if (onError != null) {
                                 handler.post(new Runnable() {
@@ -1115,6 +1122,7 @@ public final class Realm extends BaseRealm {
                                 });
                             }
                         }
+
                     } else {
                         // Throw exception in the worker thread if the caller thread terminated
                         if (backgroundException != null) {
