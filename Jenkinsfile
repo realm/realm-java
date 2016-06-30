@@ -14,6 +14,7 @@ node('docker') {
                 gradle 'assemble check javadoc'
             } finally {
                 storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
+                step([$class: 'LintPublisher'])
             }
 
             try {
