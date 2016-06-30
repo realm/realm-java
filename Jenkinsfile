@@ -16,14 +16,14 @@ try {
             }
 
             try {
-                sh 'cd examples && ./gradlew unitTestExample:check --stacktrace'
+                sh 'cd examples && chmod +x gradlew && ./gradlew unitTestExample:check --stacktrace'
             } finally {
                 storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
             }
 
             stage 'Static code analysis'
             try {
-                sh 'cd realm && ./gradlew findbugs pmd checkstyle --stacktrace'
+                sh 'cd realm && chmod +x gradlew  && ./gradlew findbugs pmd checkstyle --stacktrace'
             } finally {
                 publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                 publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
@@ -34,7 +34,7 @@ try {
             String backgroundPid
             try {
                 backgroundPid = startLogCatCollector()
-                sh 'cd realm && ./gradlew connectedUnitTests --stacktrace'
+                sh 'cd realm && chmod +x gradlew  && ./gradlew connectedUnitTests --stacktrace'
                 archiveLog = false;
             } finally {
                 stopLogCatCollector(backgroundPid, archiveLog)
@@ -48,7 +48,7 @@ try {
                 collectAarMetrics()
 
                 stage 'Publish to OJO'
-                sh 'chmod +x gradlew && ./gradlew assemble ojoUpload'
+                gradle 'assemble ojoUpload'
             }
         }
     }
