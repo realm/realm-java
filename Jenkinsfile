@@ -2,8 +2,8 @@
 
 node('docker') {
     stage 'SCM'
+    sh 'git reset --hard && git clean -ffdx -e ".jenkins-*/"'
     checkout scm
-    sh 'git clean -xfd'
 
     stage 'Docker build'
     def buildEnv = docker.build 'realm-java:snapshot'
