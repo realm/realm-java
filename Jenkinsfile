@@ -2,8 +2,8 @@
 
 node('docker') {
     stage 'SCM'
-    scm.extensions.add(new hudson.plugins.git.extensions.impl.CleanCheckout())
     checkout scm
+    sh 'git clean -ffdx -e .????????'
 
     stage 'Docker build'
     def buildEnv = docker.build 'realm-java:snapshot'
