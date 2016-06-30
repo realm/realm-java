@@ -5,6 +5,10 @@
 * Disabled the optional API transformer since it has problems with DexGuard (3022).
 * `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
 
+### Enhancements
+
+* Logs warning if `DynamicRealm` is not closed when GC happens as it does for `Realm`.
+
 ## 1.0.1
 
 ### Bug fixes

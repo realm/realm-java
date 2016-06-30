@@ -147,17 +147,6 @@ public final class Realm extends BaseRealm {
         return configuration.getRxFactory().from(this);
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        if (sharedGroupManager != null && sharedGroupManager.isOpen()) {
-            RealmLog.w("Remember to call close() on all Realm instances. " +
-                            "Realm " + configuration.getPath() + " is being finalized without being closed, " +
-                            "this can lead to running out of native memory."
-            );
-        }
-        super.finalize();
-    }
-
     /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
