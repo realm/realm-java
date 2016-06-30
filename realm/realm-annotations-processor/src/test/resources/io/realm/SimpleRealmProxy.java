@@ -23,9 +23,8 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import some.test.Simple;
 
-public class SimpleRealmProxy extends Simple
+public class SimpleRealmProxy extends some.test.Simple
         implements RealmObjectProxy, SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
@@ -57,7 +56,7 @@ public class SimpleRealmProxy extends Simple
 
     SimpleRealmProxy(ColumnInfo columnInfo) {
         this.columnInfo = (SimpleColumnInfo) columnInfo;
-        this.proxyState = new ProxyState(Simple.class, this);
+        this.proxyState = new ProxyState(some.test.Simple.class, this);
     }
 
     @SuppressWarnings("cast")
@@ -143,9 +142,9 @@ public class SimpleRealmProxy extends Simple
     }
 
     @SuppressWarnings("cast")
-    public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
+    public static some.test.Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        Simple obj = realm.createObject(Simple.class);
+        some.test.Simple obj = realm.createObject(some.test.Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
                 ((SimpleRealmProxyInterface) obj).realmSet$name(null);
@@ -164,9 +163,9 @@ public class SimpleRealmProxy extends Simple
     }
 
     @SuppressWarnings("cast")
-    public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
+    public static some.test.Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        Simple obj = realm.createObject(Simple.class);
+        some.test.Simple obj = realm.createObject(some.test.Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -192,7 +191,7 @@ public class SimpleRealmProxy extends Simple
         return obj;
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.Simple copyOrUpdate(Realm realm, some.test.Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().threadId != realm.threadId) {
             throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
@@ -201,18 +200,18 @@ public class SimpleRealmProxy extends Simple
         }
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
-            return (Simple) cachedRealmObject;
+            return (some.test.Simple) cachedRealmObject;
         } else {
             return copy(realm, object, update, cache);
         }
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.Simple copy(Realm realm, some.test.Simple newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
-            return (Simple) cachedRealmObject;
+            return (some.test.Simple) cachedRealmObject;
         } else {
-            Simple realmObject = realm.createObject(Simple.class);
+            some.test.Simple realmObject = realm.createObject(some.test.Simple.class);
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
             ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface) newObject).realmGet$age());
@@ -220,10 +219,10 @@ public class SimpleRealmProxy extends Simple
         }
     }
 
-    public static long insert(Realm realm, Simple object, Map<RealmModel,Long> cache) {
-        Table table = realm.getTable(Simple.class);
+    public static long insert(Realm realm, some.test.Simple object, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativeTablePointer();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
@@ -235,12 +234,12 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
-        Table table = realm.getTable(Simple.class);
+        Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativeTablePointer();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
-        Simple object = null;
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        some.test.Simple object = null;
         while (objects.hasNext()) {
-            object = (Simple) objects.next();
+            object = (some.test.Simple) objects.next();
             if(!cache.containsKey(object)) {
                 long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 cache.put(object, rowIndex);
@@ -253,10 +252,10 @@ public class SimpleRealmProxy extends Simple
         }
     }
 
-    public static long insertOrUpdate(Realm realm, Simple object, Map<RealmModel,Long> cache) {
-        Table table = realm.getTable(Simple.class);
+    public static long insertOrUpdate(Realm realm, some.test.Simple object, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativeTablePointer();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
@@ -270,12 +269,12 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
-        Table table = realm.getTable(Simple.class);
+        Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativeTablePointer();
-        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
-        Simple object = null;
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(some.test.Simple.class);
+        some.test.Simple object = null;
         while (objects.hasNext()) {
-            object = (Simple) objects.next();
+            object = (some.test.Simple) objects.next();
             if(!cache.containsKey(object)) {
                 long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 cache.put(object, rowIndex);
@@ -290,22 +289,22 @@ public class SimpleRealmProxy extends Simple
         }
     }
 
-    public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
+    public static some.test.Simple createDetachedCopy(some.test.Simple realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
-        Simple unmanagedObject;
+        some.test.Simple unmanagedObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
-                return (Simple)cachedObject.object;
+                return (some.test.Simple)cachedObject.object;
             } else {
-                unmanagedObject = (Simple)cachedObject.object;
+                unmanagedObject = (some.test.Simple)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {
-            unmanagedObject = new Simple();
+            unmanagedObject = new some.test.Simple();
             cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
         }
         ((SimpleRealmProxyInterface) unmanagedObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
