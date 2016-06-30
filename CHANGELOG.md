@@ -18,6 +18,7 @@
 * Disabled the optional API transformer since it has problems with DexGuard (3022).
 * `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
 * Fixed a bug in `copyToRealm` causing a cyclic dependency objects being duplicated.
+* Fixed a build failure when model class has a conflicting name such as `Map`, `List`, `String`, ... (#3077).
 
 ## 1.0.1
 
