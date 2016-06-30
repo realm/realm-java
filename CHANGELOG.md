@@ -6,6 +6,10 @@
 * `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
 * Fixed a build failure when model class has a conflicting name such as `Map`, `List`, `String`, ... (#3077).
 
+### Enhancements
+
+* Logs warning if `DynamicRealm` is not closed when GC happens as it does for `Realm`.
+
 ## 1.0.1
 
 ### Bug fixes
