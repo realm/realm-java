@@ -3,6 +3,10 @@
 ### Bug fixes
 
 * A number of bug fixes in the storage engine related to memory management in rare cases when a Realm has been compacted.
+* Disabled the optional API transformer since it has problems with DexGuard (#3022).
+* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
+* Fixed a bug in `copyToRealm()` causing a cyclic dependency objects being duplicated.
+* Fixed a build failure when model class has a conflicting name such as `Map`, `List`, `String`, ... (#3077).
 
 ### Enhancements
 
@@ -10,6 +14,7 @@
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
 * Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
 * Changed `targetSdkVersion` of `realm-library` to 24.
+* Logs warning if `DynamicRealm` is not closed when GC happens as it does for `Realm`.
 
 ### Deprecated
 
@@ -18,19 +23,6 @@
 ### Internal
 
 * Updated Realm Core to 1.2.0.
-
-## 1.0.2
-
-### Bug fixes
-
-* Disabled the optional API transformer since it has problems with DexGuard (3022).
-* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
-* Fixed a bug in `copyToRealm` causing a cyclic dependency objects being duplicated.
-* Fixed a build failure when model class has a conflicting name such as `Map`, `List`, `String`, ... (#3077).
-
-### Enhancements
-
-* Logs warning if `DynamicRealm` is not closed when GC happens as it does for `Realm`.
 
 ## 1.0.1
 
