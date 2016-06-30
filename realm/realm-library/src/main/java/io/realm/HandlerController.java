@@ -745,4 +745,17 @@ final class HandlerController implements Handler.Callback {
     public boolean isAutoRefreshEnabled() {
         return autoRefresh;
     }
+
+    void invalidateRemovedTableView(String clazzName) {
+        Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
+        while (iterator.hasNext()) {
+            WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();
+            RealmResults<? extends RealmModel> realmResults = weakRealmResults.get();
+            if (realmResults != null && realmResults.isFromSameClass(clazzName)) {
+                realmResults.setTableEmpty();
+            } else if (realmResults == null) {
+                iterator.remove();
+            }
+        }
+    }
 }

@@ -385,4 +385,347 @@ public interface TableOrView {
      * @return the version number for the updated TableView.
      */
     long syncIfNeeded();
+
+    TableOrView EMPTY_TABLEORVIEW = new TableOrView() {
+
+        @Override
+        public void clear() {
+        }
+
+        @Override
+        public Table getTable() {
+            return null;
+        }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public long size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public void remove(long index) {
+        }
+
+        @Override
+        public void removeLast() {
+        }
+
+        @Override
+        public long getColumnCount() {
+            return 0;
+        }
+
+        @Override
+        public String getColumnName(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long getColumnIndex(String name) {
+            return 0;
+        }
+
+        @Override
+        public RealmFieldType getColumnType(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long getLong(long columnIndex, long rowIndex) {
+            return 0;
+        }
+
+        @Override
+        public boolean getBoolean(long columnIndex, long rowIndex) {
+            return false;
+        }
+
+        @Override
+        public float getFloat(long columnIndex, long rowIndex) {
+            return 0.0f;
+        }
+
+        @Override
+        public double getDouble(long columnIndex, long rowIndex) {
+            return 0.0;
+        }
+
+        @Override
+        public String getString(long columnIndex, long rowIndex) {
+            return null;
+        }
+
+        @Override
+        public Date getDate(long columnIndex, long rowIndex) {
+            return null;
+        }
+
+        @Override
+        public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
+            return null;
+        }
+
+        @Override
+        public Mixed getMixed(long columnIndex, long rowIndex) {
+            return null;
+        }
+
+        @Override
+        public long getLink(long columnIndex, long rowIndex) {
+            return 0;
+        }
+
+        @Override
+        public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
+            return null;
+        }
+
+        @Override
+        public Table getSubtable(long columnIndex, long rowIndex) {
+            return null;
+        }
+
+        @Override
+        public void clearSubtable(long columnIndex, long rowIndex) {
+        }
+
+        @Override
+        public long getSubtableSize(long columnIndex, long rowIndex) {
+            return 0;
+        }
+
+        @Override
+        public void setLong(long columnIndex, long rowIndex, long value) {
+        }
+
+        @Override
+        public void setBoolean(long columnIndex, long rowIndex, boolean value) {
+        }
+
+        @Override
+        public void setFloat(long columnIndex, long rowIndex, float value) {
+        }
+
+        @Override
+        public void setDouble(long columnIndex, long rowIndex, double value) {
+        }
+
+        @Override
+        public void setString(long columnIndex, long rowIndex, String value) {
+        }
+
+        @Override
+        public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
+        }
+
+        @Override
+        public void setDate(long columnIndex, long rowIndex, Date date) {
+        }
+
+        @Override
+        public void setMixed(long columnIndex, long rowIndex, Mixed data) {
+        }
+
+        @Override
+        public boolean isNullLink(long columnIndex, long rowIndex) {
+            return false;
+        }
+
+        @Override
+        public void nullifyLink(long columnIndex, long rowIndex) {
+        }
+
+        @Override
+        public void setLink(long columnIndex, long rowIndex, long value) {
+        }
+
+        @Override
+        public long sumLong(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public Long maximumLong(long columnIndex) {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public Long minimumLong(long columnIndex) {
+            return Long.MIN_VALUE;
+        }
+
+        @Override
+        public double averageLong(long columnIndex) {
+            return 0.0;
+        }
+
+        @Override
+        public double sumFloat(long columnIndex) {
+            return 0.0;
+        }
+
+        @Override
+        public Float maximumFloat(long columnIndex) {
+            return Float.MAX_VALUE;
+        }
+
+        @Override
+        public Float minimumFloat(long columnIndex) {
+            return Float.MIN_VALUE;
+        }
+
+        @Override
+        public double averageFloat(long columnIndex) {
+            return Long.valueOf(0);
+        }
+
+        @Override
+        public double sumDouble(long columnIndex) {
+            return 0.0;
+        }
+
+        @Override
+        public Double maximumDouble(long columnIndex) {
+            return Double.MAX_VALUE;
+        }
+
+        @Override
+        public Double minimumDouble(long columnIndex) {
+            return Double.MIN_VALUE;
+        }
+
+        @Override
+        public double averageDouble(long columnIndex) {
+            return 0.0;
+        }
+
+        @Override
+        public Date maximumDate(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public Date minimumDate(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long findFirstLong(long columnIndex, long value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long findFirstBoolean(long columnIndex, boolean value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long findFirstFloat(long columnIndex, float value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long findFirstDouble(long columnIndex, double value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long findFirstDate(long columnIndex, Date value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long findFirstString(long columnIndex, String value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long lowerBoundLong(long columnIndex, long value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long upperBoundLong(long columnIndex, long value) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public TableView findAllLong(long columnIndex, long value) {
+            return null;
+        }
+
+        @Override
+        public TableView findAllBoolean(long columnIndex, boolean value) {
+            return null;
+        }
+
+        @Override
+        public TableView findAllFloat(long columnIndex, float value) {
+            return null;
+        }
+
+        @Override
+        public TableView findAllDouble(long columnIndex, double value) {
+            return null;
+        }
+
+        @Override
+        public TableView findAllString(long columnIndex, String value) {
+            return null;
+        }
+
+        @Override
+        public String toJson() {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return "Empty TableOrView";
+        }
+
+        @Override
+        public TableQuery where() {
+            return null;
+        }
+
+        @Override
+        public long sourceRowIndex(long rowIndex) {
+            return NO_MATCH;
+        }
+
+        @Override
+        public long count(long columnIndex, String value) {
+            return 0;
+        }
+
+        @Override
+        public long getVersion() {
+            return 0;
+        }
+
+        @Override
+        public void removeFirst() {
+        }
+
+        @Override
+        public Table pivot(long stringCol, long intCol, PivotType pivotType) {
+            return null;
+        }
+
+        @Override
+        public long syncIfNeeded() {
+            return 0;
+        }
+    };
+
 }

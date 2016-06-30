@@ -163,6 +163,10 @@ public final class RealmSchema {
 
         // remove corresponding table from cache if exists
         removeTableFromTableCache(table);
+
+        // invalidate all the RealmResults related to this class
+        realm.handlerController.invalidateRemovedTableView(className);
+
     }
 
     /**
