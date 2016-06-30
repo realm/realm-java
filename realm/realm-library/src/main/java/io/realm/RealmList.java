@@ -33,13 +33,13 @@ import io.realm.internal.RealmObjectProxy;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
- * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted inside a Realm, in
- * non-managed mode it works as a normal ArrayList.
+ * RealmList has two modes: A managed and unmanaged mode. In managed mode all objects are persisted inside a Realm, in
+ * unmanaged mode it works as a normal ArrayList.
  * <p>
  * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the content whenever the
  * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.RealmObject}.
  * <p>
- * Unmanaged RealmLists can be created by the user and can contain both managed and non-managed RealmObjects. This is
+ * Unmanaged RealmLists can be created by the user and can contain both managed and unmanaged RealmObjects. This is
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
  * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
  * <p>
@@ -63,7 +63,7 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     private List<E> unmanagedList;
 
     /**
-     * Creates a RealmList in non-managed mode, where the elements are not controlled by a Realm.
+     * Creates a RealmList in unmanaged mode, where the elements are not controlled by a Realm.
      * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible to query
      * the objects in this state.
      * <p>
@@ -75,11 +75,11 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     }
 
     /**
-     * Creates a RealmList in non-managed mode with an initial list of elements.
-     * A RealmList in non-managed mode function as a {@link java.util.ArrayList} and it is not possible to query the
+     * Creates a RealmList in unmanaged mode with an initial list of elements.
+     * A RealmList in unmanaged mode function as a {@link java.util.ArrayList} and it is not possible to query the
      * objects in this state.
      * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all non-managed elements in Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all unmanaged elements in Realm.
      *
      * @param objects initial objects in the list.
      */

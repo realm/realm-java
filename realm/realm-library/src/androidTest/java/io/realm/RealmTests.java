@@ -1094,7 +1094,6 @@ public class RealmTests {
     @Test
     public void copyToRealm() {
         Date date = new Date();
-        date.setTime(1000); // Remove ms. precision as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
         RealmList<Dog> list = new RealmList<Dog>();
@@ -1144,6 +1143,54 @@ public class RealmTests {
         assertEquals("One", realmObject.getName());
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicType.class).count());
+
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicType.class).count());
+
+        realm.beginTransaction();
+        List<CyclicType> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicType.class).count());
+    }
+
+    @Test
+    public void copyToRealm_cyclicObjectReferencesWithPK() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1, "One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2, "Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        realm.beginTransaction();
+        CyclicTypePrimaryKey realmObject = realm.copyToRealm(oneCyclicType);
+        realm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals("Two", realmObject.getObject().getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
+
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicTypePrimaryKey.class).count());
+
+        realm.beginTransaction();
+        List<CyclicTypePrimaryKey> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
     }
 
     @Test

@@ -9,7 +9,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -18,9 +17,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -200,15 +199,95 @@ public class SimpleRealmProxy extends Simple
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
-        return copy(realm, object, update, cache);
+        RealmObjectProxy cachedRealmObject = cache.get(object);
+        if (cachedRealmObject != null) {
+            return (Simple) cachedRealmObject;
+        } else {
+            return copy(realm, object, update, cache);
+        }
     }
 
     public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
-        Simple realmObject = realm.createObject(Simple.class);
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-        ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
-        ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface) newObject).realmGet$age());
-        return realmObject;
+        RealmObjectProxy cachedRealmObject = cache.get(newObject);
+        if (cachedRealmObject != null) {
+            return (Simple) cachedRealmObject;
+        } else {
+            Simple realmObject = realm.createObject(Simple.class);
+            cache.put(newObject, (RealmObjectProxy) realmObject);
+            ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
+            ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface) newObject).realmGet$age());
+            return realmObject;
+        }
+    }
+
+    public static long insert(Realm realm, Simple object, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(Simple.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+        cache.put(object, rowIndex);
+        String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
+        if (realmGet$name != null) {
+            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+        }
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+        return rowIndex;
+    }
+
+    public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(Simple.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        Simple object = null;
+        while (objects.hasNext()) {
+            object = (Simple) objects.next();
+            if(!cache.containsKey(object)) {
+                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                cache.put(object, rowIndex);
+                String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
+                if (realmGet$name != null) {
+                    Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+                }
+                Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+            }
+        }
+    }
+
+    public static long insertOrUpdate(Realm realm, Simple object, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(Simple.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+        cache.put(object, rowIndex);
+        String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
+        if (realmGet$name != null) {
+            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+        } else {
+            Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex);
+        }
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+        return rowIndex;
+    }
+
+    public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
+        Table table = realm.getTable(Simple.class);
+        long tableNativePtr = table.getNativeTablePointer();
+        SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.schema.getColumnInfo(Simple.class);
+        Simple object = null;
+        while (objects.hasNext()) {
+            object = (Simple) objects.next();
+            if(!cache.containsKey(object)) {
+                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                cache.put(object, rowIndex);
+                String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
+                if (realmGet$name != null) {
+                    Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+                } else {
+                    Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex);
+                }
+                Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+            }
+        }
     }
 
     public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {

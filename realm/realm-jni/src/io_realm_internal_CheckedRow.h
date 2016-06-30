@@ -109,7 +109,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetByteArra
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLinkView
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_CheckedRow
