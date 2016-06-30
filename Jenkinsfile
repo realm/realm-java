@@ -1,63 +1,57 @@
 #!groovy
 
-try {
-    node('docker') {
-        stage 'SCM'
-        checkout scm
+node('docker') {
+    stage 'SCM'
+    checkout scm
 
-        stage 'Docker build'
-        def buildEnv = docker.build 'realm-java:snapshot'
-        buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
-            stage 'JVM tests'
-            try {
-                gradle 'assemble check javadoc'
-            } finally {
-                storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
-            }
+    stage 'Docker build'
+    def buildEnv = docker.build 'realm-java:snapshot'
+    buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+        stage 'JVM tests'
+        try {
+            gradle 'assemble check javadoc'
+        } finally {
+            storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
+        }
 
-            try {
-                sh 'cd examples && chmod +x gradlew && ./gradlew unitTestExample:check --stacktrace'
-            } finally {
-                storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-            }
+        try {
+            sh 'cd examples && chmod +x gradlew && ./gradlew unitTestExample:check --stacktrace'
+        } finally {
+            storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+        }
 
-            stage 'Static code analysis'
-            try {
-                sh 'cd realm && chmod +x gradlew  && ./gradlew findbugs pmd checkstyle --stacktrace'
-            } finally {
-                publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-            }
+        stage 'Static code analysis'
+        try {
+            sh 'cd realm && chmod +x gradlew  && ./gradlew findbugs pmd checkstyle --stacktrace'
+        } finally {
+            publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+            publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+        }
 
-            stage 'Run instrumented tests'
-            boolean archiveLog = true
-            String backgroundPid
-            try {
-                backgroundPid = startLogCatCollector()
-                sh 'cd realm && chmod +x gradlew  && ./gradlew connectedUnitTests --stacktrace'
-                archiveLog = false;
-            } finally {
-                stopLogCatCollector(backgroundPid, archiveLog)
-                storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
-            }
+        stage 'Run instrumented tests'
+        boolean archiveLog = true
+        String backgroundPid
+        try {
+            backgroundPid = startLogCatCollector()
+            sh 'cd realm && chmod +x gradlew  && ./gradlew connectedUnitTests --stacktrace'
+            archiveLog = false;
+        } finally {
+            stopLogCatCollector(backgroundPid, archiveLog)
+            storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
+        }
 
-           // TODO: add support for running monkey on the example apps
+       // TODO: add support for running monkey on the example apps
 
-            if (env.BRANCH_NAME == 'master') {
-                stage 'Collect metrics'
-                collectAarMetrics()
+        if (env.BRANCH_NAME == 'master') {
+            stage 'Collect metrics'
+            collectAarMetrics()
 
-                stage 'Publish to OJO'
-                gradle 'assemble ojoUpload'
-            }
+            stage 'Publish to OJO'
+            gradle 'assemble ojoUpload'
         }
     }
-
-    currentBuild.rawBuild.setResult(Result.SUCCESS)
-} catch (Exception e) {
-    currentBuild.rawBuild.setResult(Result.FAILURE)
-    throw(e)
 }
+
 
 def String startLogCatCollector() {
     sh '''adb logcat -c
