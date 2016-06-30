@@ -57,12 +57,6 @@ try {
 } catch (Exception e) {
     echo "The job failed with the following exception: ${e.getMessage()}"
     currentBuild.rawBuild.setResult(Result.FAILURE)
-} finally {
-    if (isPullRequest()) {
-        node {
-            reportResultToGithub()
-        }
-    }
 }
 
 def String startLogCatCollector() {
@@ -83,10 +77,6 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
         ])
     }
     sh 'rm logcat.txt '
-}
-
-def isPullRequest() {
-    return binding.variables.containsKey('GITHUB_PR_NUMBER')
 }
 
 def reportResultToGithub() {
