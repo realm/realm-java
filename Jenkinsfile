@@ -55,8 +55,8 @@ try {
 
     currentBuild.rawBuild.setResult(Result.SUCCESS)
 } catch (Exception e) {
-    echo "The job failed with the following exception: ${e.getMessage()}"
     currentBuild.rawBuild.setResult(Result.FAILURE)
+    throw(e)
 }
 
 def String startLogCatCollector() {
