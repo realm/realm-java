@@ -3,6 +3,7 @@
 node('docker') {
     stage 'SCM'
     checkout scm
+    sh 'git clean -xfd'
 
     stage 'Docker build'
     def buildEnv = docker.build 'realm-java:snapshot'
