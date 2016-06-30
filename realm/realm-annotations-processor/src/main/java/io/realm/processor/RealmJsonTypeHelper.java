@@ -86,7 +86,9 @@ public class RealmJsonTypeHelper {
             }
 
             @Override
-            public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException {
+            public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
+                                                         String qualifiedRealmObjectProxyClass,
+                                                         String fieldName, JavaWriter writer) throws IOException {
                 throw new IllegalArgumentException("Date is not allowed as a primary key value.");
             }
         });
@@ -121,17 +123,21 @@ public class RealmJsonTypeHelper {
             }
 
             @Override
-            public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException {
+            public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
+                                                         String qualifiedRealmObjectProxyClass,
+                                                         String fieldName, JavaWriter writer) throws IOException {
                 throw new IllegalArgumentException("byte[] is not allowed as a primary key value.");
             }
         });
     }
 
-    public static void emitCreateObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String qualifiedFieldType,
+    public static void emitCreateObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
+                                                           String qualifiedRealmObjectProxyClass,
+                                                           String qualifiedFieldType,
                                                            String fieldName, JavaWriter writer) throws IOException {
         JsonToRealmFieldTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
         if (typeEmitter != null) {
-            typeEmitter.emitGetObjectWithPrimaryKeyValue(qualifiedRealmObjectClass, fieldName, writer);
+            typeEmitter.emitGetObjectWithPrimaryKeyValue(qualifiedRealmObjectClass, qualifiedRealmObjectProxyClass, fieldName, writer);
         }
     }
 
@@ -278,20 +284,24 @@ public class RealmJsonTypeHelper {
         }
 
         @Override
-        public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException {
+        public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
+                                                     String qualifiedRealmObjectProxyClass,
+                                                     String fieldName, JavaWriter writer) throws IOException {
             // No error checking is done here for valid primary key types. This should be done by the annotation
             // processor
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                     .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                        .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class, null)", qualifiedRealmObjectClass)
+                        .emitStatement("obj = (%1$s) realm.createObject(%2$s.class, null)",
+                                qualifiedRealmObjectProxyClass, qualifiedRealmObjectClass)
                     .nextControlFlow("else")
-                        .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class, json.get%2$s(\"%3$s\"))",
-                                qualifiedRealmObjectClass, jsonType, fieldName)
+                        .emitStatement("obj = (%1$s) realm.createObject(%2$s.class, json.get%3$s(\"%4$s\"))",
+                                qualifiedRealmObjectProxyClass, qualifiedRealmObjectClass, jsonType, fieldName)
                     .endControlFlow()
                 .nextControlFlow("else")
-                    .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class)", qualifiedRealmObjectClass)
-                .endControlFlow();
+                    .emitStatement("obj = (%1$s) realm.createObject(%2$s.class)",
+                            qualifiedRealmObjectProxyClass, qualifiedRealmObjectClass)
+                    .endControlFlow();
         }
     }
 
@@ -300,6 +310,8 @@ public class RealmJsonTypeHelper {
                 writer) throws IOException;
         void emitStreamTypeConversion(String interfaceName, String setter, String fieldName, String fieldType,
                                       JavaWriter writer) throws IOException;
-        void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException;
+        void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
+                                              String qualifiedRealmObjectProxyClass,
+                                              String fieldName, JavaWriter writer) throws IOException;
     }
 }
