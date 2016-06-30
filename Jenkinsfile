@@ -2,7 +2,7 @@
 
 node('docker') {
     stage 'SCM'
-    sh 'ls -la .*'
+    sh 'git clean -ffdx -e .*'
     checkout scm
 
     stage 'Docker build'
