@@ -14,13 +14,8 @@ node('docker') {
                 gradle 'assemble check javadoc'
             } finally {
                 storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
-                step([$class: 'LintPublisher'])
-            }
-
-            try {
-                sh 'cd examples && chmod +x gradlew && ./gradlew unitTestExample:check --stacktrace'
-            } finally {
                 storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+                step([$class: 'LintPublisher'])
             }
 
             stage 'Static code analysis'
