@@ -72,7 +72,7 @@ try {
 } finally {
     node {
         withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-            notifySlack(SLACK_URL, env.BUILD_URL, env.BRANCH_NAME, buildSuccess)
+            notifySlack(env.SLACK_URL, env.BUILD_URL, env.BRANCH_NAME, buildSuccess)
         }
     }
 }
@@ -147,7 +147,7 @@ def gradle(String relativePath, String commands) {
 }
 
 def notifySlack(slackURL, buildUrl, branch, isOk) {
-    echo buildUrl
+    echo slackURL
     def payload = JsonOutput.toJson([
         icon_emoji: ':jenkins:',
         attachment: [
