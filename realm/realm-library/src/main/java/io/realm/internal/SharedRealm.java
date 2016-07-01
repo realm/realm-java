@@ -82,7 +82,7 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    long nativePtr;
+    private long nativePtr;
     private RealmConfiguration configuration;
     final Context context;
 
@@ -104,6 +104,10 @@ public final class SharedRealm implements Closeable {
         SharedRealm sharedRealm = new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
         nativeCloseConfig(nativeConfigPtr);
         return sharedRealm;
+    }
+
+    long getNativePtr() {
+        return nativePtr;
     }
 
     public void beginTransaction() {
@@ -222,7 +226,8 @@ public final class SharedRealm implements Closeable {
     }
 
     private static native long nativeCreateConfig(String realmPath, byte[] key, boolean readonly, boolean inMemory,
-                                                  boolean cache, boolean disableFormatUpgrade, boolean autoChangeNotification);
+                                                  boolean cache, boolean disableFormatUpgrade,
+                                                  boolean autoChangeNotification);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
@@ -232,13 +237,11 @@ public final class SharedRealm implements Closeable {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
-    static native long nativeReadGroup(long nativeSharedRealmPtr);
+    private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr, long version, long index);
     private static native long[]  nativeGetVersionID(long nativeSharedRealmPtr);
-
-    // FIXME: Below APIs may not be needed
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);

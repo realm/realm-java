@@ -425,7 +425,7 @@ public class TableQuery implements Closeable {
      */
     public static long findWithHandover(SharedRealm sharedRealm, long ptrQuery) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
-        return nativeFindWithHandover(sharedRealm.nativePtr, ptrQuery, 0);
+        return nativeFindWithHandover(sharedRealm.getNativePtr(), ptrQuery, 0);
     }
 
     public TableView findAll(long start, long end, long limit) {
@@ -460,26 +460,26 @@ public class TableQuery implements Closeable {
     // this will use a background SharedGroup to import the query (using the handover object)
     // run the query, and return the table view to the caller SharedGroup using the handover object.
     public static long findAllWithHandover(SharedRealm sharedRealm, long ptrQuery) throws BadVersionException {
-        return nativeFindAllWithHandover(sharedRealm.nativePtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE);
+        return nativeFindAllWithHandover(sharedRealm.getNativePtr(), ptrQuery, 0, Table.INFINITE, Table.INFINITE);
     }
 
     public static long findDistinctWithHandover(SharedRealm sharedRealm, long ptrQuery, long columnIndex) throws BadVersionException {
-        return nativeGetDistinctViewWithHandover(sharedRealm.nativePtr, ptrQuery, columnIndex);
+        return nativeGetDistinctViewWithHandover(sharedRealm.getNativePtr(), ptrQuery, columnIndex);
     }
 
     public static long findAllSortedWithHandover(SharedRealm sharedRealm, long ptrQuery, long columnIndex, Sort sortOrder) throws BadVersionException {
-        return nativeFindAllSortedWithHandover(sharedRealm.nativePtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndex, sortOrder.getValue());
+        return nativeFindAllSortedWithHandover(sharedRealm.getNativePtr(), ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndex, sortOrder.getValue());
     }
 
     public static long findAllMultiSortedWithHandover(SharedRealm sharedRealm, long ptrQuery, long[] columnIndices, Sort[] sortOrders) throws BadVersionException {
         boolean[] ascendings = getNativeSortOrderValues(sortOrders);
-        return nativeFindAllMultiSortedWithHandover(sharedRealm.nativePtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndices, ascendings);
+        return nativeFindAllMultiSortedWithHandover(sharedRealm.getNativePtr(), ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndices, ascendings);
     }
 
     public static long[] batchUpdateQueries(SharedRealm sharedRealm, long[] handoverQueries, long[][] parameters,
                                             long[][] queriesParameters, boolean[][] multiSortOrder)
             throws BadVersionException {
-        return nativeBatchUpdateQueries(sharedRealm.nativePtr, handoverQueries, parameters, queriesParameters,
+        return nativeBatchUpdateQueries(sharedRealm.getNativePtr(), handoverQueries, parameters, queriesParameters,
                 multiSortOrder);
     }
     /**
@@ -491,7 +491,7 @@ public class TableQuery implements Closeable {
      * @throws BadVersionException if the worker thread and caller thread are not at the same version.
      */
     public TableView importHandoverTableView(long handoverPtr, SharedRealm sharedRealm) throws BadVersionException {
-        long nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, sharedRealm.nativePtr);
+        long nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, sharedRealm.getNativePtr());
         try {
             return new TableView(this.context, this.table, nativeTvPtr);
         } catch (RuntimeException e) {
@@ -510,7 +510,7 @@ public class TableQuery implements Closeable {
      * @return the row pointer on the caller thread.
      */
     public static long importHandoverRow(long handoverRowPtr, SharedRealm sharedRealm) {
-        return nativeImportHandoverRowIntoSharedGroup(handoverRowPtr, sharedRealm.nativePtr);
+        return nativeImportHandoverRowIntoSharedGroup(handoverRowPtr, sharedRealm.getNativePtr());
     }
 
     /**
@@ -520,7 +520,7 @@ public class TableQuery implements Closeable {
      * @return native pointer to the handover query
      */
     public long handoverQuery(SharedRealm sharedRealm) {
-        return nativeHandoverQuery(sharedRealm.nativePtr, nativePtr);
+        return nativeHandoverQuery(sharedRealm.getNativePtr(), nativePtr);
     }
 
     //
