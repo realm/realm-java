@@ -20,7 +20,7 @@ node('docker') {
 
             stage 'Static code analysis'
             try {
-                sh 'cd realm && chmod +x gradlew  && ./gradlew findbugs pmd checkstyle --stacktrace'
+                gradle('realm', 'findbugs pmd checkstyle')
             } finally {
                 publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                 publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
@@ -38,7 +38,7 @@ node('docker') {
             String backgroundPid
             try {
                 backgroundPid = startLogCatCollector()
-                sh 'cd realm && chmod +x gradlew  && ./gradlew connectedUnitTests --stacktrace'
+                gradle('realm', 'connectedUnitTests')
                 archiveLog = false;
             } finally {
                 stopLogCatCollector(backgroundPid, archiveLog)
@@ -121,4 +121,8 @@ def collectAarMetrics() {
 
 def gradle(String commands) {
     sh "chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def gradle(String relativePath, String commands) {
+    sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
 }
