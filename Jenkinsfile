@@ -72,7 +72,15 @@ try {
 } finally {
     node {
         withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-            notifySlack(env.SLACK_URL, env.BUILD_URL, env.BRANCH_NAME, buildSuccess)
+            def payload = JsonOutput.toJson([
+                icon_emoji: ':jenkins:',
+                attachment: [
+                    'title': "The ${env.BRANCH_NAME} branch is ${isOk?'healthy.':'broken!'}",
+                    'text': "<${env.BUILD_URL}|Click here> to check the build.",
+                    'color': "${isOk?'good':'danger'}"
+                ]
+            ])
+            sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
         }
     }
 }
@@ -144,18 +152,4 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
     sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
-}
-
-@NonCPS
-def notifySlack(slackUrl, buildUrl, branch, isOk) {
-    echo slackUrl
-    def payload = JsonOutput.toJson([
-        icon_emoji: ':jenkins:',
-        attachment: [
-            'title': "The ${branch} branch is ${isOk?'healthy.':'broken!'}",
-            'text': "<${buildUrl}|Click here> to check the build.",
-            'color': "${isOk?'good':'danger'}"
-        ]
-    ])
-    sh "curl -X POST --data-urlencode \'payload=${payload}\' ${slackUrl}"
 }
