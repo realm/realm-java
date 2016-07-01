@@ -22,6 +22,7 @@ import java.io.IOError;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
+import io.realm.sync.SyncManager;
 
 public class SharedGroup implements Closeable {
 
@@ -35,7 +36,7 @@ public class SharedGroup implements Closeable {
 
     private final String path;
     private long nativePtr;
-    private long syncClientPtr = 0;
+//    private long syncClientPtr = 0;
     private long sessionPtr = 0;
     private long nativeReplicationPtr;
     private boolean implicitTransactionsEnabled = false;
@@ -94,13 +95,7 @@ public class SharedGroup implements Closeable {
 
         if (syncEnabled) {
             //TODO client is thread-safe & it should be global & reused across different RealmConfiguration
-            if (syncClientPtr == 0) {
-                syncClientPtr = nativeInitSyncClient(config.getSyncUserToken());
-            }
-
-            // start sync session
-            //TODO use the sync token
-            sessionPtr = nativeStartSession(syncClientPtr, config.getSyncServerUrl(), path, config.handler);
+            sessionPtr = SyncManager.getSession(config.getSyncUserToken(), config.getPath(), config.getSyncServerUrl());
         }
     }
 
@@ -365,8 +360,8 @@ public class SharedGroup implements Closeable {
                                                              int durability, byte[] key);
     private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
     private native long nativeCreateSyncReplication(String databaseFile);
-    private native long nativeInitSyncClient(String userToken);
-    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
+//    private native long nativeInitSyncClient(String userToken);
+//    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
     private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
 
     private native long nativeBeginImplicit(long nativePtr);

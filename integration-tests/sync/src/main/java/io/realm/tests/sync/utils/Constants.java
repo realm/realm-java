@@ -20,5 +20,5 @@ public class Constants {
     // to generate a valid token run this script
     // https://realmio.slack.com/files/af/F1FSVND47/generate-realm-sync-credentials.sh
     public static String USER_TOKEN = "ewoJImlkZW50aXR5IjogIk5hYmlsIiwKCSJhY2Nlc3MiOiBbInVwbG9hZCIsICJkb3dubG9hZCJdLAoJImFwcF9pZCI6ICJpby5yZWFsbS50ZXN0cyIKfQo=:";
-    public static String SYNC_SERVER_URL = "realm://127.0.0.1/tests";
+    public static String SYNC_SERVER_URL = "realm://127.0.0.1/public/tests";
 }

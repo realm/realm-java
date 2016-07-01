@@ -28,12 +28,15 @@ using namespace realm;
 using namespace realm::util;
 
 // Caching classes and constructors for boxed types.
+JavaVM* g_vm;
 jclass java_lang_long;
 jmethodID java_lang_long_init;
 jclass java_lang_float;
 jmethodID java_lang_float_init;
 jclass java_lang_double;
 jmethodID java_lang_double_init;
+jclass sync_manager;
+jmethodID sync_manager_notify_handler;
 
 void ConvertException(JNIEnv* env, const char *file, int line)
 {

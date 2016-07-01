@@ -32,7 +32,7 @@ dispatcher.onGet("/start", function(req, res) {
     temp.mkdir('naruto', function(err, path) {
       if (!err) {
         console.log("Starting sync server in ", path);
-        syncServerChildProcess = spawn(syncServerBinaryDir + '/realm-server-noinst', ['-r', path, '-L', '127.0.0.1', '-l', '2']);
+        syncServerChildProcess = spawn(syncServerBinaryDir + '/realm-server-noinst', ['-r', path, '-L', '127.0.0.1', '-l', 'all']);
 
         syncServerChildProcess.stdout.on('data', (data) => {
           console.log(`stdout: ${data}`);

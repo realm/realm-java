@@ -40,7 +40,6 @@ import io.realm.tests.sync.service.SendOneCommit;
 import io.realm.tests.sync.utils.Constants;
 import io.realm.tests.sync.utils.HttpUtils;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 @RunWith(AndroidJUnit4.class)
@@ -64,28 +63,34 @@ public class ProcessCommitTests {
         service.submit(new Runnable() {
             @Override
             public void run() {
-                Looper.prepare();
-                Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-                final RealmConfiguration syncConfig = new RealmConfiguration
-                        .Builder(targetContext)
-                        .name("main_process")
-                        .withSync(Constants.SYNC_SERVER_URL)
-                        .syncUserToken(Constants.USER_TOKEN)
-                        .build();
-                final Realm realm = Realm.getInstance(syncConfig);
-                Intent intent = new Intent(targetContext, SendOneCommit.class);
-                targetContext.startService(intent);
+                try {
+                    Looper.prepare();
+                    Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                    final RealmConfiguration syncConfig = new RealmConfiguration
+                            .Builder(targetContext)
+                            .name("main_process")
+                            .withSync(Constants.SYNC_SERVER_URL)
+                            .syncUserToken(Constants.USER_TOKEN)
+                            .build();
+                    final Realm realm = Realm.getInstance(syncConfig);
+                    Intent intent = new Intent(targetContext, SendOneCommit.class);
+                    targetContext.startService(intent);
 
-                final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
-                all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
-                    @Override
-                    public void onChange(RealmResults<ProcessInfo> element) {
-                        assertNotEquals(0, all.size());
-                        testFinished.countDown();
-                    }
-                });
+                    final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
+                    all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
+                        @Override
+                        public void onChange(RealmResults<ProcessInfo> element) {
+                            assertNotEquals(0, all.size());
+                            testFinished.countDown();
+                        }
+                    });
 
-                Looper.loop();
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+
             }
         });
         testFinished.await();
