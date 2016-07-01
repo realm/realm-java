@@ -1,3 +1,9 @@
+## 1.1.1
+
+### Bug fixes
+
+* Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
+
 ## 1.1.0
 
 ### Bug fixes

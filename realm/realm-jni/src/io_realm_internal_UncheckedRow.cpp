@@ -184,7 +184,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNullLink
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+  (JNIEnv* env, jclass, jlong nativeRowPtr, jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
