@@ -70,8 +70,10 @@ try {
     buildSuccess = false
     throw e
 } finally {
-    withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-        notifySlack(env.SLACK_URL, env.BRANCH_NAME, buildSuccess)
+    node {
+        withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
+            notifySlack(env.SLACK_URL, env.BRANCH_NAME, buildSuccess)
+        }
     }
 }
 
