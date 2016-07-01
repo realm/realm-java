@@ -74,7 +74,7 @@ try {
         withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
             def payload = JsonOutput.toJson([
                 icon_emoji: ':jenkins:',
-                attachment: [
+                attachments: [
                     'title': "The ${env.BRANCH_NAME} branch is ${isOk?'healthy.':'broken!'}",
                     'text': "<${env.BUILD_URL}|Click here> to check the build.",
                     'color': "${isOk?'good':'danger'}"
