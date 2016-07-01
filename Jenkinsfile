@@ -147,6 +147,7 @@ def gradle(String relativePath, String commands) {
 }
 
 def notifySlack(slackURL, buildUrl, branch, isOk) {
+    echo buildUrl
     def payload = JsonOutput.toJson([
         icon_emoji: ':jenkins:',
         attachment: [
