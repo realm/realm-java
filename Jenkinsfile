@@ -146,8 +146,9 @@ def gradle(String relativePath, String commands) {
     sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
 }
 
-def notifySlack(slackURL, buildUrl, branch, isOk) {
-    echo slackURL
+@NonCPS
+def notifySlack(slackUrl, buildUrl, branch, isOk) {
+    echo slackUrl
     def payload = JsonOutput.toJson([
         icon_emoji: ':jenkins:',
         attachment: [
@@ -156,5 +157,5 @@ def notifySlack(slackURL, buildUrl, branch, isOk) {
             'color': "${isOk?'good':'danger'}"
         ]
     ])
-    sh "curl -X POST --data-urlencode \'payload=${payload}\' ${slackURL}"
+    sh "curl -X POST --data-urlencode \'payload=${payload}\' ${slackUrl}"
 }
