@@ -40,6 +40,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -84,6 +85,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
@@ -185,6 +187,18 @@ public class RealmTests {
         Realm.getInstance(new RealmConfiguration.Builder(folder).build());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getInstance_nullContextWithCustomDirThrows() {
+        Realm.getInstance(new RealmConfiguration.Builder((Context) null, configFactory.getRoot()).build());
+    }
+
+    @Test
+    public void getInstance_writeProtectedDirWithContext() {
+        File folder = new File("/");
+        thrown.expect(IllegalArgumentException.class);
+        Realm.getInstance(new RealmConfiguration.Builder(context, folder).build());
+    }
+
     @Test
     public void getInstance_writeProtectedFile() throws IOException {
         String REALM_FILE = "readonly.realm";
@@ -196,6 +210,19 @@ public class RealmTests {
 
         thrown.expect(RealmIOException.class);
         Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+    }
+
+    @Test
+    public void getInstance_writeProtectedFileWithContext() throws IOException {
+        String REALM_FILE = "readonly.realm";
+        File folder = configFactory.getRoot();
+        File realmFile = new File(folder, REALM_FILE);
+        assertFalse(realmFile.exists());
+        assertTrue(realmFile.createNewFile());
+        assertTrue(realmFile.setWritable(false));
+
+        thrown.expect(RealmIOException.class);
+        Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
     }
 
     @Test
@@ -1067,7 +1094,6 @@ public class RealmTests {
     @Test
     public void copyToRealm() {
         Date date = new Date();
-        date.setTime(1000); // Remove ms. precision as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
         RealmList<Dog> list = new RealmList<Dog>();
@@ -1117,6 +1143,54 @@ public class RealmTests {
         assertEquals("One", realmObject.getName());
         assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, realm.where(CyclicType.class).count());
+
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicType.class).count());
+
+        realm.beginTransaction();
+        List<CyclicType> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicType.class).count());
+    }
+
+    @Test
+    public void copyToRealm_cyclicObjectReferencesWithPK() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1, "One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2, "Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        realm.beginTransaction();
+        CyclicTypePrimaryKey realmObject = realm.copyToRealm(oneCyclicType);
+        realm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals("Two", realmObject.getObject().getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
+
+        // testing copyToRealm overload that uses the Iterator
+        // making sure we reuse the same graph cache Map to avoid duplicates
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(CyclicTypePrimaryKey.class).count());
+
+        realm.beginTransaction();
+        List<CyclicTypePrimaryKey> cyclicTypes = realm.copyToRealm(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+        assertEquals(2, cyclicTypes.size());
+        assertEquals("One", cyclicTypes.get(0).getName());
+        assertEquals("Two", cyclicTypes.get(1).getName());
+        assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
     }
 
     @Test
@@ -3331,5 +3405,25 @@ public class RealmTests {
         thread.end();
         TestHelper.awaitOrFail(bgRealmFished);
         assertFalse(bgRealmChangeResult.get());
+    }
+
+    @Test
+    public void incompatibleLockFile() throws IOException {
+        // Replace .lock file with a corrupted one
+        File lockFile = new File(realmConfig.getPath() + ".lock");
+        assertTrue(lockFile.exists());
+        FileOutputStream fooStream = new FileOutputStream(lockFile, false);
+        fooStream.write("Boom".getBytes());
+        fooStream.close();
+
+        try {
+            // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
+            DynamicRealm.getInstance(realm.getConfiguration());
+            fail();
+        } catch (RealmError expected) {
+            assertTrue(expected.getMessage().contains("Info size doesn't match"));
+        } finally {
+            lockFile.delete();
+        }
     }
 }

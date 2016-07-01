@@ -35,6 +35,7 @@ import java.util.Set;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
+import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
@@ -339,6 +340,23 @@ public class RealmConfigurationTests {
                 .build();
         realm = Realm.getInstance(config);
         assertEquals(0, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void deleteRealmIfMigrationNeeded_failsWhenAssetFileProvided() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .assetFile(context, "asset_file.realm")
+                    .deleteRealmIfMigrationNeeded();
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
+                    expected.getMessage());
+        }
     }
 
     @Test
@@ -771,6 +789,7 @@ public class RealmConfigurationTests {
 
         Realm.Transaction transaction = mock(Realm.Transaction.class);
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .modules(new AssetFileModule())
                 .initialData(transaction)
                 .build();
 
@@ -831,7 +850,10 @@ public class RealmConfigurationTests {
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm")
+        RealmConfiguration configuration = new RealmConfiguration
+                .Builder(context)
+                .modules(new AssetFileModule())
+                .assetFile(context, "asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
 
@@ -854,6 +876,23 @@ public class RealmConfigurationTests {
 
         Realm.deleteRealm(configuration);
         assertFalse(realmFile.exists());
+    }
+
+    @Test
+    public void assetFile_failsWhenDeleteRealmIfMigrationNeededConfigured() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .deleteRealmIfMigrationNeeded()
+                    .assetFile(context, "asset_file.realm");
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().",
+                    expected.getMessage());
+        }
     }
 
     private static class MigrationWithNoEquals implements RealmMigration {

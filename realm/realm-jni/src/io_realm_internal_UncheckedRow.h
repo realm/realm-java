@@ -113,27 +113,11 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
 
 /*
  * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeGetMixedType
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixedType
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeGetMixed
- * Signature: (JJ)Lio/realm/internal/Mixed;
- */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_UncheckedRow
  * Method:    nativeGetLinkView
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_UncheckedRow
@@ -198,14 +182,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetString
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray
   (JNIEnv *, jobject, jlong, jlong, jbyteArray);
-
-/*
- * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeSetMixed
- * Signature: (JJLio/realm/internal/Mixed;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed
-  (JNIEnv *, jobject, jlong, jlong, jobject);
 
 /*
  * Class:     io_realm_internal_UncheckedRow

@@ -22,7 +22,7 @@ import io.realm.internal.Keep;
  * Class for reporting problems with Realm files.
  */
 @Keep
-public final class RealmIOException extends RuntimeException {
+public class RealmIOException extends RuntimeException {
 
     public RealmIOException(Throwable cause) {
         super(cause);

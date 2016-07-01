@@ -17,6 +17,7 @@
 #include <jni.h>
 
 #include <realm/string_data.hpp>
+#include <realm/unicode.hpp>
 
 #include "util.hpp"
 #include "mem_usage.hpp"
@@ -50,6 +51,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
         java_lang_double      = GetClass(env, "java/lang/Double");
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
+
+        // Core 1.1.2 introduces a new sort order.
+        // In order not to have an API breaking change, we forward port
+        // the pre-1.1.2 sort order using a callback string comparison function.
+        realm::set_string_compare_method(realm::STRING_COMPARE_CALLBACK, &string_compare_callback_func);
     }
 
     return JNI_VERSION_1_6;
@@ -173,6 +179,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, BadVersion, "parm1", "parm2");
             break;
+        case LockFileError:
+            expect = "io.realm.exceptions.IncompatibleLockFileException: parm1";
+            if (dotest)
+                ThrowException(env, LockFileError, "parm1", "parm2");
+            break;
+
 
     }
     if (dotest) {

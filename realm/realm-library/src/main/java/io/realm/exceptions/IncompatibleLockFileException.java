@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package io.realm.internal.test;
+package io.realm.exceptions;
 
-import io.realm.internal.DefineTable;
+import io.realm.internal.Keep;
 
 /**
- * A helper class containing model(s) for simple code generation tests.
+ * Triggered from the JNI level when there was something wrong with the lock file.
+ * This can happen if two different versions of Realm tries to access the same file concurrently.
  */
-class CodeGenTest {
+@Keep
+public class IncompatibleLockFileException extends RealmIOException {
 
-    @DefineTable // this is enabled only for occasional local tests
-    class someModel {
-        String name;
-        int age;
+    public IncompatibleLockFileException(String detailMessage) {
+        super(detailMessage);
     }
 
+    public IncompatibleLockFileException(String detailMessage, Throwable exception) {
+        super(detailMessage, exception);
+    }
 }

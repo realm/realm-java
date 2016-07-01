@@ -110,9 +110,7 @@ public class TestHelper {
         t.addColumn(RealmFieldType.DOUBLE, "double");
         t.addColumn(RealmFieldType.FLOAT, "float");
         t.addColumn(RealmFieldType.INTEGER, "long");
-        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
         t.addColumn(RealmFieldType.STRING, "string");
-        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");
 
         return t;
     }

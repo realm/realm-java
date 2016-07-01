@@ -128,7 +128,6 @@ public class JNICloseTest extends AndroidTestCase {
         TableView view = query.findAll();
         //Closes the table, it should be allowed to access the view thereafter (table is ref-counted)
         table.close();
-        table = null;
 
         // Accessing methods should be ok.
         view.size();
@@ -138,8 +137,6 @@ public class JNICloseTest extends AndroidTestCase {
         view.getDouble(3, 0);
         view.getFloat(4, 0);
         view.getLong(5, 0);
-        view.getMixed(6, 0);
-        view.getString(7, 0);
 
         // TODO - add all methods from view
     }
@@ -173,7 +170,6 @@ public class JNICloseTest extends AndroidTestCase {
         try { view.getDouble(3, 0);              fail(); } catch (IllegalStateException e){}
         try { view.getFloat(4, 0);               fail(); } catch (IllegalStateException e){}
         try { view.getLong(5, 0);                fail(); } catch (IllegalStateException e){}
-        try { view.getMixed(6, 0);               fail(); } catch (IllegalStateException e){}
         try { view.getString(7, 0);              fail(); } catch (IllegalStateException e){}
         // TODO: Add more methods
 

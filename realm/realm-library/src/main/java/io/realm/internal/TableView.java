@@ -266,44 +266,8 @@ public class TableView implements TableOrView, Closeable {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
 
-    @Override
-    public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
-    }
-
-    @Override
-    public Mixed getMixed(long columnIndex, long rowIndex){
-        return nativeGetMixed(nativePtr, columnIndex, rowIndex);
-    }
-
     public long getLink(long columnIndex, long rowIndex){
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
-    }
-
-    @Override
-    public Table getSubtable(long columnIndex, long rowIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
-        try {
-            // Copy context reference from parent
-            return new Table(context, this.parent, nativeSubtablePtr);
-        }
-        catch (RuntimeException e) {
-            Table.nativeClose(nativeSubtablePtr);
-            throw e;
-        }
-    }
-
-    @Override
-    public long getSubtableSize(long columnIndex, long rowIndex) {
-        return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
-    }
-
-    @Override
-    public void clearSubtable(long columnIndex, long rowIndex) {
-        if (parent.isImmutable()) throwImmutable();
-        nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
 
     // Methods for setting values.
@@ -407,19 +371,6 @@ public class TableView implements TableOrView, Closeable {
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
         if (parent.isImmutable()) throwImmutable();
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
-    }
-
-    /**
-     * Sets the value for a particular (mixed typed) cell.
-     *
-     * @param columnIndex column index of the cell.
-     * @param rowIndex row index of the cell.
-     * @param data the value.
-     */
-    @Override
-    public void setMixed(long columnIndex, long rowIndex, Mixed data){
-        if (parent.isImmutable()) throwImmutable();
-        nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
     }
 
     public void setLink(long columnIndex, long rowIndex, long value){
@@ -853,12 +804,7 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeGetTimestamp(long nativeViewPtr, long columnIndex, long rowIndex);
     private native String nativeGetString(long nativeViewPtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
-    private native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
-    private native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
     private native long nativeGetLink(long nativeViewPtr, long columnIndex, long rowIndex);
-    private native long nativeGetSubtable(long nativeViewPtr, long columnIndex, long rowIndex);
-    private native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
-    private native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
     private native void nativeSetLong(long nativeViewPtr, long columnIndex, long rowIndex, long value);
     private native void nativeSetBoolean(long nativeViewPtr, long columnIndex, long rowIndex, boolean value);
     private native void nativeSetFloat(long nativeViewPtr, long columnIndex, long rowIndex, float value);
@@ -866,7 +812,6 @@ public class TableView implements TableOrView, Closeable {
     private native void nativeSetTimestampValue(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
     private native void nativeSetString(long nativeViewPtr, long columnIndex, long rowIndex, String value);
     private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-    private native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
     private native void nativeSetLink(long nativeViewPtr, long columnIndex, long rowIndex, long value);
     private native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
     private native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
@@ -905,8 +850,8 @@ public class TableView implements TableOrView, Closeable {
     private native String nativeToJson(long nativeViewPtr);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
-    private native long nativeDistinct(long nativeViewPtr, long columnIndex);
+    private native void nativeDistinct(long nativeViewPtr, long columnIndex);
     private native long nativeSyncIfNeeded(long nativeTablePtr);
-    private native long nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
+    private native void nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
 }

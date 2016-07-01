@@ -265,7 +265,6 @@ public class JNITransactions {
         try { table.addEmptyRow();                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addEmptyRows(1);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.clear();                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.clearSubtable(0,0);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.optimize();                     fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.remove(0);                      fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.removeLast();                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -274,9 +273,7 @@ public class JNITransactions {
         try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addSearchIndex(0);              fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.updateFromSpec(null);           fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         TableQuery q = table.where();
         try { q.remove();                           fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -284,7 +281,6 @@ public class JNITransactions {
 
         TableView v = q.findAll();
         try { v.clear();                            fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.clearSubtable(0, 0);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.remove(0);                          fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.removeLast();                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setBinaryByteArray(0, 0, null);     fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -292,7 +288,6 @@ public class JNITransactions {
         try { v.setDate(0, 0, new Date());          fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setLong(0, 0, 0);                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setString(0,0,"");                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setMixed(0, 0, null);               fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         t.endRead();
     }

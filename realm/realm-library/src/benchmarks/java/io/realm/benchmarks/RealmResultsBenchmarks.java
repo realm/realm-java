@@ -106,4 +106,11 @@ public class RealmResultsBenchmarks {
             Number sum = results.sum(AllTypes.FIELD_LONG);
         }
     }
+
+    @Benchmark
+    public void sort(long reps) {
+        for (long i = 0; i < reps; i++) {
+            RealmResults<AllTypes> sorted = results.sort(AllTypes.FIELD_STRING);
+        }
+    }
 }

@@ -51,6 +51,8 @@ final class HandlerController implements Handler.Callback {
     static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
     static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
     static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    static final int LOCAL_COMMIT = 165580141;
+
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
     // Keep a strong reference to the registered RealmChangeListener
@@ -97,6 +99,11 @@ final class HandlerController implements Handler.Callback {
     final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
             new ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object>();
 
+    // List of onSuccess callbacks from async transactions. We need to track all callbacks as notifying listeners might
+    // be delayed due to the presence of async queries. This can mean that multiple async transactions can complete
+    // before we are ready to notify all of them.
+    private final List<Runnable> pendingOnSuccessAsyncTransactionCallbacks = new ArrayList<Runnable>();
+
     public HandlerController(BaseRealm realm) {
         this.realm = realm;
     }
@@ -112,8 +119,9 @@ final class HandlerController implements Handler.Callback {
             QueryUpdateTask.Result result;
             switch (message.what) {
 
+                case LOCAL_COMMIT:
                 case REALM_CHANGED:
-                    realmChanged();
+                    realmChanged(message.what == LOCAL_COMMIT);
                     break;
 
                 case COMPLETED_ASYNC_REALM_RESULTS:
@@ -141,6 +149,23 @@ final class HandlerController implements Handler.Callback {
             }
         }
         return true;
+    }
+
+    /**
+     * Properly handles when an async transaction completes. This will be treated as a REALM_CHANGED event when
+     * determining which queries to re-run and when to notify listeners.
+     * <p>
+     * NOTE: This is needed as it is not possible to combine a `Message.what` value and a callback runnable. So instead
+     * of posting two messages, we post a runnable that runs this method. This means it is possible to interpret
+     * `REALM_CHANGED + Runnable` as one atomic message.
+     *
+     * @param onSuccess onSuccess callback to run for the async transaction that completed.
+     */
+    public void handleAsyncTransactionCompleted(Runnable onSuccess) {
+        if (onSuccess != null) {
+            pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
+        }
+        realmChanged(false);
     }
 
     void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
@@ -184,6 +209,7 @@ final class HandlerController implements Handler.Callback {
         }
     }
 
+    @SuppressWarnings("unused")
     void removeWeakChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
         List<WeakReference<RealmChangeListener<? extends BaseRealm>>> toRemoveList = null;
         for (int i = 0; i < weakChangeListeners.size(); i++) {
@@ -210,17 +236,20 @@ final class HandlerController implements Handler.Callback {
         changeListeners.clear();
     }
 
+    /**
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
+     */
     private void notifyGlobalListeners() {
         // notify strong reference listener
         Iterator<RealmChangeListener<? extends BaseRealm>> iteratorStrongListeners = changeListeners.iterator();
-        while (iteratorStrongListeners.hasNext() && !realm.isClosed()) { // every callback could close the realm
+        while (!realm.isClosed() && iteratorStrongListeners.hasNext()) { // every callback could close the realm
             RealmChangeListener listener = iteratorStrongListeners.next();
             listener.onChange(realm);
         }
         // notify weak reference listener (internals)
         Iterator<WeakReference<RealmChangeListener<? extends BaseRealm>>> iteratorWeakListeners = weakChangeListeners.iterator();
         List<WeakReference<RealmChangeListener<? extends BaseRealm>>> toRemoveList = null;
-        while (iteratorWeakListeners.hasNext() && !realm.isClosed()) {
+        while (!realm.isClosed() && iteratorWeakListeners.hasNext()) {
             WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef = iteratorWeakListeners.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
@@ -243,7 +272,7 @@ final class HandlerController implements Handler.Callback {
             Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<?>> next = iterator.next();
             if (next.getKey().get() != null) {
                 Realm.asyncTaskExecutor
-                        .submit(QueryUpdateTask.newBuilder()
+                        .submitQueryUpdate(QueryUpdateTask.newBuilder()
                                 .realmConfiguration(realm.getConfiguration())
                                 .addObject(next.getKey(),
                                         next.getValue().handoverQueryPointer(),
@@ -257,58 +286,74 @@ final class HandlerController implements Handler.Callback {
         }
     }
 
-    void notifyAllListeners() {
-        notifyTypeBasedListeners();
+    /**
+     * This method calls all registered listeners for Realm, RealmResults and RealmObjects, and callbacks for async
+     * transactions.
+     *
+     * PREREQUISITE: Only call this method after all objects are up to date. This means:
+     * - `advance_read` was called on the Realm.
+     * - `RealmResults.syncIfNeeded()` was called when collecting RealmResults listeners.
+     *
+     * @param realmResultsToBeNotified list of all RealmResults listeners that can be notified.
+     */
+    void notifyAllListeners(List<RealmResults<? extends RealmModel>> realmResultsToBeNotified) {
 
-        // empty async RealmObject shouldn't block the realm to advance
-        // they're empty so no risk for running into a corrupt state
-        // where the pointer (Row) is using one version of a Realm, whereas the
-        // current Realm is advancing to a newer version (they're empty anyway)
+        // Notify all RealmResults (async and synchronous).
+        for (Iterator<RealmResults<? extends RealmModel>> it = realmResultsToBeNotified.iterator(); !realm.isClosed() && it.hasNext(); ) {
+            RealmResults<? extends RealmModel> realmResults = it.next();
+            realmResults.notifyChangeListeners(false);
+        }
+
+        // Notify all loaded RealmObjects
+        notifyRealmObjectCallbacks();
+
+        // Re-run any async single objects that are still not loaded.
+        // TODO: Why is this here? This was not called in `completedAsyncQueriesUpdate()`. Problem?
         if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
             updateAsyncEmptyRealmObject();
         }
-        // It is very important to notify the global listeners last.
-        // We don't sync RealmResults in realmChanged, instead, they are synced in notifySyncRealmResultsCallbacks.
-        // This is because of we need to compare the TableView version in order to decide if it changes. Thus, we cannot
-        // sync the RealmResults together with advance read - the result's listener won't get called.
-        // NotificationTest.callingOrdersOfListeners will fail if orders change.
+
+        // Notify any completed async transactions
+        notifyAsyncTransactionCallbacks();
+
+        // Trigger global listeners last.
+        // Note that NotificationTest.callingOrdersOfListeners will fail if orders change.
         notifyGlobalListeners();
     }
 
-    private void notifyTypeBasedListeners() {
-        notifyAsyncRealmResultsCallbacks();
-        notifySyncRealmResultsCallbacks();
-        notifyRealmObjectCallbacks();
+    private void collectAsyncRealmResultsCallbacks(List<RealmResults<? extends RealmModel>> resultsToBeNotified) {
+        collectRealmResultsCallbacks(asyncRealmResults.keySet().iterator(), resultsToBeNotified);
     }
 
-    private void notifyAsyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(asyncRealmResults.keySet().iterator());
+    private void collectSyncRealmResultsCallbacks(List<RealmResults<? extends RealmModel>> resultsToBeNotified) {
+        collectRealmResultsCallbacks(syncRealmResults.keySet().iterator(), resultsToBeNotified);
     }
 
-    private void notifySyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator());
-    }
 
-    private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator) {
-        List<RealmResults<? extends RealmModel>> resultsToBeNotified =
-                new ArrayList<RealmResults<? extends RealmModel>>();
+    private void collectRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator,
+                                              List<RealmResults<? extends RealmModel>> resultsToBeNotified) {
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();
             RealmResults<? extends RealmModel> realmResults = weakRealmResults.get();
             if (realmResults == null) {
                 iterator.remove();
             } else {
-                // It should be legal to modify asyncRealmResults and syncRealmResults in the listener
-                resultsToBeNotified.add(realmResults);
+                // Sync the RealmResult so it is completely up to date.
+                // This is a prerequisite to calling the listener, so when the listener is finally triggered, all
+                // RealmResults will be up to date.
+                // Local commits can accidentially cause async RealmResults to be notified, so we only want to
+                // include those that are actually done loading.
+                if (realmResults.isLoaded()) {
+                    realmResults.syncIfNeeded();
+                    resultsToBeNotified.add(realmResults);
+                }
             }
-        }
-
-        for (Iterator<RealmResults<? extends RealmModel>> it = resultsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
-            RealmResults<? extends RealmModel> realmResults = it.next();
-            realmResults.notifyChangeListeners();
         }
     }
 
+    /**
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
+     */
     private void notifyRealmObjectCallbacks() {
         List<RealmObjectProxy> objectsToBeNotified = new ArrayList<RealmObjectProxy>();
         Iterator<WeakReference<RealmObjectProxy>> iterator = realmObjects.keySet().iterator();
@@ -328,7 +373,7 @@ final class HandlerController implements Handler.Callback {
             }
         }
 
-        for (Iterator<RealmObjectProxy> it = objectsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
+        for (Iterator<RealmObjectProxy> it = objectsToBeNotified.iterator(); !realm.isClosed() && it.hasNext(); ) {
             RealmObjectProxy realmObject = it.next();
             realmObject.realmGet$proxyState().notifyChangeListeners$realm();
         }
@@ -375,19 +420,37 @@ final class HandlerController implements Handler.Callback {
             QueryUpdateTask queryUpdateTask = realmResultsQueryStep
                     .sendToHandler(realm.handler, COMPLETED_UPDATE_ASYNC_QUERIES)
                     .build();
-            updateAsyncQueriesTask = Realm.asyncTaskExecutor.submit(queryUpdateTask);
+            updateAsyncQueriesTask = Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
         }
     }
 
-    private void realmChanged() {
+    private void realmChanged(boolean localCommit) {
+        RealmLog.d((localCommit ? "LOCAL_COMMIT" : "REALM_CHANGED") + " : realm:" + HandlerController.this);
         deleteWeakReferences();
-        if (threadContainsAsyncQueries()) {
-            updateAsyncQueries();
+        boolean threadContainsAsyncQueries = threadContainsAsyncQueries();
 
+        // Mixing local transactions and async queries has unavoidable race conditions
+        if (localCommit && threadContainsAsyncQueries) {
+            RealmLog.w("Mixing asynchronous queries with local writes should be avoided. " +
+                    "Realm will convert any async queries to synchronous in order to remain consistent. Use " +
+                    "asynchronous writes instead. You can read more here: " +
+                    "https://realm.io/docs/java/latest/#asynchronous-transactions");
+        }
+
+        if (!localCommit && threadContainsAsyncQueries) {
+            // For changes from other threads, swallow the change and re-run async queries first.
+            updateAsyncQueries();
         } else {
-            RealmLog.d("REALM_CHANGED realm:" + HandlerController.this + " no async queries, advance_read");
+            // Following cases handled by this:
+            // localCommit && threadContainsAsyncQueries (this is the case the warning above is about)
+            // localCommit && !threadContainsAsyncQueries
+            // !localCommit && !threadContainsAsyncQueries
             realm.sharedGroupManager.advanceRead();
-            notifyAllListeners();
+
+            List<RealmResults<? extends RealmModel>> resultsToBeNotified = new ArrayList<RealmResults<? extends RealmModel>>();
+            collectAsyncRealmResultsCallbacks(resultsToBeNotified);
+            collectSyncRealmResultsCallbacks(resultsToBeNotified);
+            notifyAllListeners(resultsToBeNotified);
         }
     }
 
@@ -412,7 +475,8 @@ final class HandlerController implements Handler.Callback {
                         // swap pointer
                         realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
                         // notify callbacks
-                        realmResults.notifyChangeListeners();
+                        realmResults.syncIfNeeded();
+                        realmResults.notifyChangeListeners(false);
                     } else {
                         RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] , realm:"+ HandlerController.this + " ignoring result the RealmResults (is already loaded)");
                     }
@@ -440,7 +504,7 @@ final class HandlerController implements Handler.Callback {
                                 .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_RESULTS)
                                 .build();
 
-                        Realm.asyncTaskExecutor.submit(queryUpdateTask);
+                        Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
 
                     } else {
                         // UC covered by this test: RealmAsyncQueryTests#testFindAllCallerIsAdvanced
@@ -462,7 +526,9 @@ final class HandlerController implements Handler.Callback {
         SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
         int compare = callerVersionID.compareTo(result.versionID);
         if (compare > 0) {
-            // if the caller thread is advanced i.e it already sent a REALM_CHANGE that will update the queries
+            // if the caller thread is more advanced than the worker thread, it means it did a local commit.
+            // This should also have put a REALM_CHANGED event on the Looper queue, so ignoring this result should
+            // be safe as all async queries will be rerun when processing the REALM_CHANGED event.
             RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, Looper will updates queries");
 
         } else {
@@ -487,8 +553,10 @@ final class HandlerController implements Handler.Callback {
                 }
             }
 
-            ArrayList<RealmResults<? extends RealmModel>> callbacksToNotify = new ArrayList<RealmResults<? extends RealmModel>>(result.updatedTableViews.size());
-            // use updated TableViews pointers for the existing async RealmResults
+            // It's dangerous to notify the callback about new results before updating
+            // the pointers, because the callback may use another RealmResults not updated yet
+            // this is why we defer the notification until we're done updating all pointers.
+            ArrayList<RealmResults<? extends RealmModel>> resultsToBeNotified = new ArrayList<RealmResults<? extends RealmModel>>(result.updatedTableViews.size());
             for (Map.Entry<WeakReference<RealmResults<? extends RealmModel>>, Long> query : result.updatedTableViews.entrySet()) {
                 WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = query.getKey();
                 RealmResults<? extends RealmModel> realmResults = weakRealmResults.get();
@@ -499,27 +567,33 @@ final class HandlerController implements Handler.Callback {
                 } else {
                     // update the instance with the new pointer
                     realmResults.swapTableViewPointer(query.getValue());
-
-                    // it's dangerous to notify the callback about new results before updating
-                    // the pointers, because the callback may use another RealmResults not updated yet
-                    // this is why we defer the notification until we're done updating all pointers
-                    callbacksToNotify.add(realmResults);
+                    realmResults.syncIfNeeded();
+                    resultsToBeNotified.add(realmResults);
 
                     RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:"+ HandlerController.this + " updating RealmResults " + weakRealmResults);
                 }
             }
+            collectSyncRealmResultsCallbacks(resultsToBeNotified);
 
-            for (RealmResults<? extends RealmModel> query : callbacksToNotify) {
-                query.notifyChangeListeners();
-            }
-
-            // We need to notify the rest of listeners, since the original REALM_CHANGE
-            // was delayed/swallowed in order to be able to update async queries
-            notifyGlobalListeners();
-            notifySyncRealmResultsCallbacks();
-            notifyRealmObjectCallbacks();
+            // We need to notify all listeners, since the original REALM_CHANGE
+            // was delayed/swallowed in order to be able to update the async queries.
+            notifyAllListeners(resultsToBeNotified);
 
             updateAsyncQueriesTask = null;
+        }
+    }
+
+    /**
+     * Trigger onSuccess for all completed async transaction.
+     * <p>
+     * NOTE: Should only be called from {@link #notifyAllListeners(List)}.
+     */
+    private void notifyAsyncTransactionCallbacks() {
+        if (!pendingOnSuccessAsyncTransactionCallbacks.isEmpty()) {
+            for (Runnable callback : pendingOnSuccessAsyncTransactionCallbacks) {
+                callback.run();
+            }
+            pendingOnSuccessAsyncTransactionCallbacks.clear();
         }
     }
 
@@ -572,7 +646,7 @@ final class HandlerController implements Handler.Callback {
                                 .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_OBJECT)
                                 .build();
 
-                        Realm.asyncTaskExecutor.submit(queryUpdateTask);
+                        Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
                     }
                 } else {
                     // should not happen, since the the background thread position itself against the provided version
@@ -712,12 +786,4 @@ final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
-    /**
-     * Notifies the current thread that the Realm has changed. This will also trigger change listener asynchronously.
-     */
-    public void notifyCurrentThreadRealmChanged() {
-        if (realm != null) {
-            realm.handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
-        }
-    }
 }

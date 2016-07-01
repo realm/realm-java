@@ -2,7 +2,7 @@ import java.security.MessageDigest
 
 ext.coreVersion = '0.23.2' // Sync version
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '1bcfe9aa80820f8597b6ff377fa0f0d5b96077a7f0707edb6fd5b63957591471'
+ext.coreSha256Hash = 'd04111821f7b2c1bcf0d7da8a8acac045c95f92a970c35f667a3691a63cad50c'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -20,7 +20,7 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 // To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
 ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
 
-def commonCflags = [ '-Os', '-std=c++14' ]
+def commonCflags = [ '-Os', '-std=c++14', '-Wmissing-declarations' , '-Werror']
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
     commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -264,17 +264,9 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
             from tarTree(project.coreArchiveFile)
             into project.coreDir
         }
-        for (target in targets) {
-            exec {
-                commandLine = [
-                        'make',
-                        '-C', "${projectDir}/src",
-                        "BASE_DENOM=${target.name}",
-                        'LIB_SUFFIX_SHARED=.so',
-                        'clean'
-                ]
-            }
-        }
+	exec {
+	    commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
+	}
     }
 }
 

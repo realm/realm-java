@@ -18,12 +18,21 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmConfiguration;
+import io.realm.exceptions.IncompatibleLockFileException;
+import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
+import io.realm.internal.log.RealmLog;
 
 public class SharedGroup implements Closeable {
+
+    // Keep these public so we can ask users to experiment with these values if needed.
+    // Should be locked down as soon as possible.
+    public static long[] INCREMENTAL_BACKOFF_MS = new long[] {1, 10, 20, 50, 100, 200, 400}; // Will keep re-using last value until LIMIT is hit
+    public static long INCREMENTAL_BACKOFF_LIMIT_MS = 3000;
 
     public static final boolean IMPLICIT_TRANSACTION = true;
     public static final boolean EXPLICIT_TRANSACTION = false;
@@ -55,6 +64,7 @@ public class SharedGroup implements Closeable {
     }
 
     // TODO Only used by JNI tests -> Remove?
+    // TODO Only used by Unit tests. Remove?
     public SharedGroup(String databaseFile) {
         context = new Context();
         path = databaseFile;
@@ -116,19 +126,67 @@ public class SharedGroup implements Closeable {
             } else {
                 nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
             }
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr,
-                    durability.value, key);
+            nativePtr = openSharedGroupOrFail(durability, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
         }
         context = new Context();
-        path = canonicalPath;
+        path = canonicalPath;s
         checkNativePtrNotZero();
     }
 
+    private long openSharedGroupOrFail(Durability durability, byte[] key) {
+        // We have anecdotal evidence that on some versions of Android it is possible for two versions of an app
+        // to exist in two processes during an app upgrade. This is problematic since the lock file might not be
+        // compatible across two versions of Android. See https://github.com/realm/realm-java/issues/2459. If this
+        // happens we assume the overlap is really small so instead of failing outright we retry using incremental
+        // backoff.
+        int i = 0;
+        final long start = System.nanoTime();
+        RuntimeException lastError = null;
+        while (TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) < INCREMENTAL_BACKOFF_LIMIT_MS) {
+            try {
+                long nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
+                if (i > 0) {
+                    RealmLog.w("IncompatibleLockFile was detected. Error was resolved after " + i + " retries");
+                }
+                return nativePtr;
+            } catch (IncompatibleLockFileException e) {
+                i++;
+                lastError = e;
+                try {
+                    Thread.sleep(getSleepTime(i));
+                    RealmLog.d("Waiting for another process to release the Realm file: " + path);
+                } catch (InterruptedException ignored) {
+                    RealmLog.d("Waiting for Realm to open interrupted: " + path);
+                }
+            }
+        }
 
+        throw new RealmError("Could not open the Realm file: " + lastError.getMessage());
+    }
 
+    // Returns the time to sleep before retrying opening the SharedGroup.
+    private static long getSleepTime(int tries) {
+        if (INCREMENTAL_BACKOFF_MS == null) {
+            return 0;
+        } else {
+            if (tries > INCREMENTAL_BACKOFF_MS.length) {
+                return INCREMENTAL_BACKOFF_MS[INCREMENTAL_BACKOFF_MS.length - 1];
+            } else {
+                return INCREMENTAL_BACKOFF_MS[tries - 1];
+            }
+        }
+    }
+
+    // TODO Only used by Unit tests. Remove?
+    public SharedGroup(String canonicalPath, Durability durability, byte[] key) {
+        path = canonicalPath;
+        context = new Context();
+        nativePtr = nativeCreate(canonicalPath, durability.value, false, false, key);
+        checkNativePtrNotZero();
+    }
 
     void advanceRead() {
         nativeAdvanceRead(nativePtr);
@@ -363,14 +421,13 @@ public class SharedGroup implements Closeable {
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
                                                              int durability, byte[] key);
-    private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
-    private native long nativeCreateSyncReplication(String databaseFile);
+    private native long nativeCreateLocalReplication(String databaseFile);
+    private native long nativeCreateSyncReplication(String databaseFile, byte[] key);
     private native long nativeInitSyncClient(String userToken);
     private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
     private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
 
     private native long nativeBeginImplicit(long nativePtr);
-    private native String nativeGetDefaultReplicationDatabaseFileName();
 
     private native void nativeReserve(long nativePtr, long bytes);
     private native boolean nativeHasChanged(long nativePtr);
