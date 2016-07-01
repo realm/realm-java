@@ -1,6 +1,23 @@
+/*
+ * Copyright 2016 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
 
 import io.realm.RealmConfiguration;
 import io.realm.internal.async.BadVersionException;
@@ -110,7 +127,7 @@ public final class SharedRealm implements Closeable {
     }
 
     // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
-    public long getGroupNative() {
+    long getGroupNative() {
         return nativeReadGroup(nativePtr);
     }
 
@@ -193,19 +210,22 @@ public final class SharedRealm implements Closeable {
     @Override
     protected void finalize() throws Throwable {
         synchronized (context) {
-            if (nativePtr != 0) {
-                context.asyncDisposeSharedRealm(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
+            close();
+            // FIXME: Below is the original implementation of SharedGroup.finalize().
+            // And actually Context.asyncDisposeSharedGroup will simply call nativeClose which is not asyc at all.
+            // IMO since this implemented Closeable already, it makes no sense to implement finalize.
+            // Just keep the logic the same for now and make nativeClose private. Rethink about this when cleaning
+            // up finalizers.
+            //context.asyncDisposeSharedRealm(nativePtr);
         }
+        super.finalize();
     }
 
     private static native long nativeCreateConfig(String realmPath, byte[] key, boolean readonly, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade, boolean autoChangeNotification);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr);
-    // FIXME: Should be private
-    static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
+    private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
     private static native boolean nativeIsClosed(long nativeSharedRealmPtr);
     private static native void nativeBeginTransaction(long nativeSharedRealmPtr);
     private static native void nativeCommitTransaction(long nativeSharedRealmPtr);
@@ -216,11 +236,9 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr, long version, long index);
-
-    // FIXME: Below APIs may not be needed
-    // Implement the relevant API in a better way without exposing the pointers.
     private static native long[]  nativeGetVersionID(long nativeSharedRealmPtr);
 
+    // FIXME: Below APIs may not be needed
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
