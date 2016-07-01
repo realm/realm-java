@@ -65,8 +65,7 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    // FIXME: This is used in ProxyState.java
-    public long nativePtr;
+    long nativePtr;
     private RealmConfiguration configuration;
     final Context context;
 

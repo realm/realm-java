@@ -1140,7 +1140,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.nativePtr);
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
@@ -1171,8 +1171,8 @@ public final class RealmQuery<E extends RealmModel> {
                     try {
                         sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                        long handoverTableViewPointer = query.
-                                findDistinctWithHandover(sharedRealm.nativePtr,
+                        long handoverTableViewPointer = TableQuery.
+                                findDistinctWithHandover(sharedRealm,
                                         handoverQueryPointer,
                                         columnIndex);
 
@@ -1445,7 +1445,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.nativePtr);
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL);
@@ -1478,7 +1478,7 @@ public final class RealmQuery<E extends RealmModel> {
                         // Run the query & handover the table view for the caller thread
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
                         // to import it.
-                        long handoverTableViewPointer = query.findAllWithHandover(sharedRealm,
+                        long handoverTableViewPointer = TableQuery.findAllWithHandover(sharedRealm,
                                 handoverQueryPointer);
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
@@ -1565,7 +1565,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.nativePtr);
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
         // we need to use the same configuration to open a background SharedGroup to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1593,7 +1593,7 @@ public final class RealmQuery<E extends RealmModel> {
                         long columnIndex = getColumnIndexForSort(fieldName);
 
                         // run the query & handover the table view for the caller thread
-                        long handoverTableViewPointer = query.findAllSortedWithHandover(sharedRealm.nativePtr,
+                        long handoverTableViewPointer = TableQuery.findAllSortedWithHandover(sharedRealm,
                                  handoverQueryPointer, columnIndex, sortOrder);
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
@@ -1724,7 +1724,7 @@ public final class RealmQuery<E extends RealmModel> {
             final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
             // Handover the query (to be used by a worker thread)
-            final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.nativePtr);
+            final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
             // We need to use the same configuration to open a background SharedGroup to perform the query
             final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1762,7 +1762,7 @@ public final class RealmQuery<E extends RealmModel> {
                             sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
                             // run the query & handover the table view for the caller thread
-                            long handoverTableViewPointer = query.findAllMultiSortedWithHandover(sharedRealm.nativePtr,
+                            long handoverTableViewPointer = TableQuery.findAllMultiSortedWithHandover(sharedRealm,
                                     handoverQueryPointer, indices, sortOrders);
 
                             QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
@@ -1867,7 +1867,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm.nativePtr);
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_FIRST);
@@ -1898,8 +1898,7 @@ public final class RealmQuery<E extends RealmModel> {
                     try {
                         sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                        long handoverRowPointer = query.findWithHandover(sharedRealm.nativePtr,
-                                handoverQueryPointer);
+                        long handoverRowPointer = TableQuery.findWithHandover(sharedRealm, handoverQueryPointer);
                         if (handoverRowPointer == 0) { // empty row
                             realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
                             realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
@@ -2023,6 +2022,6 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the exported handover pointer for this RealmQuery.
      */
     long handoverQueryPointer() {
-        return query.handoverQuery(realm.sharedRealm.nativePtr);
+        return query.handoverQuery(realm.sharedRealm);
     }
 }
