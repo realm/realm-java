@@ -1,9 +1,11 @@
 #!groovy
 
 node('docker') {
+    // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
         stage 'SCM'
         checkout scm
+        // Make sure not to delete the folder that Jenkins allocates to store scripts
         sh 'git clean -ffdx -e .????????'
 
         stage 'Docker build'
