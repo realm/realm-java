@@ -73,7 +73,7 @@ try {
     node {
         withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
             def payload = JsonOutput.toJson([
-                username: 'Mr. Jenkins'
+                username: 'Mr. Jenkins',
                 icon_emoji: ':jenkins:',
                 attachments: [[
                     'title': "The ${env.BRANCH_NAME} branch is ${buildSuccess?'healthy.':'broken!'}",
