@@ -72,7 +72,7 @@ try {
 } finally {
     node {
         withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-            notifySlack(SLACK_URL, env.BRANCH_NAME, buildSuccess)
+            notifySlack(SLACK_URL, env.BUILD_URL, env.BRANCH_NAME, buildSuccess)
         }
     }
 }
@@ -146,12 +146,12 @@ def gradle(String relativePath, String commands) {
     sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
 }
 
-def notifySlack(slackURL, branch, isOk) {
+def notifySlack(slackURL, buildUrl, branch, isOk) {
     def payload = JsonOutput.toJson([
         icon_emoji: ':jenkins:',
         attachment: [
             'title': "The ${branch} branch is ${isOk?'healthy.':'broken!'}",
-            'text': '<https://ci.realm.io|Click here> to check the build.',
+            'text': "<${buildUrl}|Click here> to check the build.",
             'color': "${isOk?'good':'danger'}"
         ]
     ])
