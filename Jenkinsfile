@@ -1,62 +1,77 @@
 #!groovy
 
-node('docker') {
-    // Allocate a custom workspace to avoid having % in the path (it breaks ld)
-    ws('/tmp/realm-java') {
-        stage 'SCM'
-        checkout scm
-        // Make sure not to delete the folder that Jenkins allocates to store scripts
-        sh 'git clean -ffdx -e .????????'
+import groovy.json.JsonOutput
 
-        stage 'Docker build'
-        def buildEnv = docker.build 'realm-java:snapshot'
-        buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
-            stage 'JVM tests'
-            try {
-                gradle 'assemble check javadoc'
-            } finally {
-                storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
-                storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-                step([$class: 'LintPublisher'])
-            }
+def buildSuccess = false
+try {
+    node('docker') {
+        // Allocate a custom workspace to avoid having % in the path (it breaks ld)
+        ws('/tmp/realm-java') {
+            stage 'SCM'
+            checkout scm
+            // Make sure not to delete the folder that Jenkins allocates to store scripts
+            sh 'git clean -ffdx -e .????????'
 
-            stage 'Static code analysis'
-            try {
-                gradle('realm', 'findbugs pmd checkstyle')
-            } finally {
-                publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                step([$class: 'CheckStylePublisher',
-                    canComputeNew: false,
-                    defaultEncoding: '',
-                    healthy: '',
-                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-                    unHealthy: ''
-                ])
-            }
+            stage 'Docker build'
+            def buildEnv = docker.build 'realm-java:snapshot'
+            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+                stage 'JVM tests'
+                try {
+                    gradle 'assemble check javadoc'
+                } finally {
+                    storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
+                    storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+                    step([$class: 'LintPublisher'])
+                }
 
-            stage 'Run instrumented tests'
-            boolean archiveLog = true
-            String backgroundPid
-            try {
-                backgroundPid = startLogCatCollector()
-                gradle('realm', 'connectedUnitTests')
-                archiveLog = false;
-            } finally {
-                stopLogCatCollector(backgroundPid, archiveLog)
-                storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
-            }
+                stage 'Static code analysis'
+                try {
+                    gradle('realm', 'findbugs pmd checkstyle')
+                } finally {
+                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+                    step([$class: 'CheckStylePublisher',
+                        canComputeNew: false,
+                        defaultEncoding: '',
+                        healthy: '',
+                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+                        unHealthy: ''
+                    ])
+                }
 
-           // TODO: add support for running monkey on the example apps
+                stage 'Run instrumented tests'
+                boolean archiveLog = true
+                String backgroundPid
+                try {
+                    backgroundPid = startLogCatCollector()
+                    gradle('realm', 'connectedUnitTests')
+                    archiveLog = false;
+                } finally {
+                    stopLogCatCollector(backgroundPid, archiveLog)
+                    storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
+                }
 
-            if (env.BRANCH_NAME == 'master') {
-                stage 'Collect metrics'
-                collectAarMetrics()
+               // TODO: add support for running monkey on the example apps
 
-                stage 'Publish to OJO'
-                gradle 'assemble ojoUpload'
+                if (env.BRANCH_NAME == 'master') {
+                    stage 'Collect metrics'
+                    collectAarMetrics()
+
+                    stage 'Publish to OJO'
+                    gradle 'assemble ojoUpload'
+                }
             }
         }
+    }
+    currentBuild.rawBuild.setResult(Result.SUCCESS)
+    buildSuccess = true
+} catch(Exception e) {
+    currentBuild.rawBuild.setResult(Result.FAILURE)
+    buildSuccess = false
+    throw e
+} finally {
+    withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
+        notifySlack(env.SLACK_URL, env.BRANCH_NAME, buildSuccess)
     }
 }
 
@@ -127,4 +142,16 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
     sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def notifySlack(slackURL, branch, isOk) {
+    def payload = JsonOutput.toJson([
+        icon_emoji: ':jenkins:',
+        attachment: [
+            'title': "The ${branch} branch is ${isOk?'healthy.':'broken!'}",
+            'text': '<https://ci.realm.io|Click here> to check the build.',
+            'color': "${isOk?'good':'danger'}"
+        ]
+    ])
+    sh "curl -X POST --data-urlencode \'payload=${payload}\' ${slackURL}"
 }
