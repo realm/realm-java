@@ -2,6 +2,7 @@
 
 ### Bug fixes
 
+* Async query might block caller thread for disposing resources.
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
 
 ## 1.1.0
