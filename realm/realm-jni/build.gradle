@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '1.1.0'
+ext.coreVersion = '0.23.2' // Sync version
 // empty or comment out this to disable hash checking
-//ext.coreSha256Hash = 'e132f5824dc31e683353fb0be91eb45cac702f88f8cee819499a1dfa7936aeac'
+ext.coreSha256Hash = '1bcfe9aa80820f8597b6ff377fa0f0d5b96077a7f0707edb6fd5b63957591471'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -152,13 +152,15 @@ ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore() {
+    group = 'build setup'
+    description = 'Download the latest version of realm core'
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
     def calcSha256Hash = {File targetFile ->
-        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        MessageDigest sha = MessageDigest.getInstance("SHA-256")
         Formatter hexHash = new Formatter()
         sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
         return hexHash.toString()
@@ -188,13 +190,13 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
 
     doLast {
         if (shouldDownloadCore()) {
-            download {
-                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
-                dest project.coreArchiveFile
-                onlyIfNewer false
+            // CI artifacts are only available if on the internal network or VPN
+            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
+            println "Downloading ${downloadUrl}"
+            exec {
+                commandLine 's3cmd', '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
             }
             coreDownloaded = true
-
             if (isHashCheckingEnabled()) {
                 def calculatedHash = calcSha256Hash(project.coreArchiveFile)
                 if (!project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
@@ -311,7 +313,7 @@ targets.each { target ->
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-x86 -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
+            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-${target.name} -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}${getDebugExt()}.so"
         ]
