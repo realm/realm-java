@@ -44,6 +44,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         return JNI_ERR;
     }
     else {
+        g_vm = vm;
         // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
         java_lang_long        = GetClass(env, "java/lang/Long");
         java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");
@@ -56,6 +57,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         // In order not to have an API breaking change, we forward port
         // the pre-1.1.2 sort order using a callback string comparison function.
         realm::set_string_compare_method(realm::STRING_COMPARE_CALLBACK, &string_compare_callback_func);
+        sync_manager          = GetClass(env, "io/realm/sync/SyncManager");
+        sync_manager_notify_handler = env->GetStaticMethodID(sync_manager, "notifyHandlers", "(Ljava/lang/String;)V");
     }
 
     return JNI_VERSION_1_6;

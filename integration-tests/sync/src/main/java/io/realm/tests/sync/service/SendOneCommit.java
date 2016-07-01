@@ -47,6 +47,7 @@ public class SendOneCommit extends Service {
         processInfo.setPid(android.os.Process.myPid());
         processInfo.setThreadId(Thread.currentThread().getId());
         realm.commitTransaction();
+
         realm.close();//FIXME the close may not give a chance to the sync client to process/upload the changeset
     }
 

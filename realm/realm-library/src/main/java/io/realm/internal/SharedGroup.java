@@ -26,6 +26,7 @@ import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
+import io.realm.sync.SyncManager;
 
 public class SharedGroup implements Closeable {
 
@@ -44,7 +45,7 @@ public class SharedGroup implements Closeable {
 
     private final String path;
     private long nativePtr;
-    private long syncClientPtr = 0;
+//    private long syncClientPtr = 0;s
     private long sessionPtr = 0;
     private long nativeReplicationPtr;
     private boolean implicitTransactionsEnabled = false;
@@ -63,20 +64,11 @@ public class SharedGroup implements Closeable {
         }
     }
 
-    // TODO Only used by JNI tests -> Remove?
     // TODO Only used by Unit tests. Remove?
     public SharedGroup(String databaseFile) {
         context = new Context();
         path = databaseFile;
         nativePtr = nativeCreate(databaseFile, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, null);
-        checkNativePtrNotZero();
-    }
-
-    // TODO Only used by JNI tests -> Remove?
-    public SharedGroup(String canonicalPath, Durability durability, byte[] key) {
-        path = canonicalPath;
-        context = new Context();
-        nativePtr = nativeCreate(canonicalPath, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
 
@@ -92,9 +84,9 @@ public class SharedGroup implements Closeable {
         Durability durability = config.getDurability();
 
         if (syncEnabled) {
-            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath, encryptionKey);
         } else {
-            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, encryptionKey);
+            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath);
         }
         nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, encryptionKey);
         implicitTransactionsEnabled = true;
@@ -104,13 +96,7 @@ public class SharedGroup implements Closeable {
 
         if (syncEnabled) {
             //TODO client is thread-safe & it should be global & reused across different RealmConfiguration
-            if (syncClientPtr == 0) {
-                syncClientPtr = nativeInitSyncClient(config.getSyncUserToken());
-            }
-
-            // start sync session
-            //TODO use the sync token
-            sessionPtr = nativeStartSession(syncClientPtr, config.getSyncServerUrl(), path, config.handler);
+            sessionPtr = SyncManager.getSession(config.getSyncUserToken(), config.getPath(), config.getSyncServerUrl());
         }
     }
 
@@ -122,9 +108,9 @@ public class SharedGroup implements Closeable {
                        byte[] key) {
         if (enableImplicitTransactions) {
             if (enableSync) {
-                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath, key);
             } else {
-                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
+                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath);
             }
             nativePtr = openSharedGroupOrFail(durability, key);
             implicitTransactionsEnabled = true;
@@ -132,7 +118,7 @@ public class SharedGroup implements Closeable {
             nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
         }
         context = new Context();
-        path = canonicalPath;s
+        path = canonicalPath;
         checkNativePtrNotZero();
     }
 
@@ -423,8 +409,8 @@ public class SharedGroup implements Closeable {
                                                              int durability, byte[] key);
     private native long nativeCreateLocalReplication(String databaseFile);
     private native long nativeCreateSyncReplication(String databaseFile, byte[] key);
-    private native long nativeInitSyncClient(String userToken);
-    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
+//    private native long nativeInitSyncClient(String userToken);
+//    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
     private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
 
     private native long nativeBeginImplicit(long nativePtr);

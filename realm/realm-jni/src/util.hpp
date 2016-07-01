@@ -647,12 +647,15 @@ private:
     jint                m_releaseMode;
 };
 
+extern JavaVM* g_vm;
 extern jclass java_lang_long;
 extern jmethodID java_lang_long_init;
 extern jclass java_lang_float;
 extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
+extern jclass sync_manager;
+extern jmethodID sync_manager_notify_handler;
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {
