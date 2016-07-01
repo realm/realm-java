@@ -154,7 +154,7 @@ public class LinkView extends NativeObject {
         long nativeTablePointer = nativeGetTargetTable(nativePointer);
         try {
             // Copy context reference from parent
-            return new Table(context, this.parent, nativeTablePointer);
+            return new Table(this.parent, nativeTablePointer);
         } catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
             throw e;

@@ -18,13 +18,9 @@ package io.realm.internal;
 
 import android.test.AndroidTestCase;
 
-import java.io.Closeable;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
+
 
 // Tables get detached
 
@@ -32,9 +28,12 @@ public class JNICloseTest extends AndroidTestCase {
 
     public void testShouldCloseTable() throws Throwable {
         Table table = new Table();
-        table.close();
+        Table.nativeClose(table.nativePtr);
 
-        try { table.size();                            fail("Table is closed"); } catch (IllegalStateException e) { }
+        try {
+            table.size();                            fail("Table is closed");
+        } catch (IllegalStateException e) {
+        }
         try { table.getColumnCount();                  fail("Table is closed"); } catch (IllegalStateException e) { }
         try { table.addColumn(RealmFieldType.STRING, "");  fail("Table is closed"); } catch (IllegalStateException e) { }
 
@@ -51,8 +50,7 @@ public class JNICloseTest extends AndroidTestCase {
             table.setLong(5, i, i);
         TableQuery query = table.where();
         // Closes the table, it _should_ be allowed to access the query thereafter
-        table.close();
-        table = null;
+        Table.nativeClose(table.nativePtr);
         Table table2 = TestHelper.getTableWithAllColumnTypes();
         table2.addEmptyRows(10);
         for (int i=0; i<table2.size(); i++)
@@ -70,7 +68,7 @@ public class JNICloseTest extends AndroidTestCase {
         TableQuery query = table.where();
         TableView view = query.findAll();
         //Closes the table, it should be allowed to access the view thereafter (table is ref-counted)
-        table.close();
+        Table.nativeClose(table.nativePtr);
 
         // Accessing methods should be ok.
         view.size();

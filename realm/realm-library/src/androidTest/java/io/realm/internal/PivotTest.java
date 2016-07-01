@@ -19,6 +19,7 @@ package io.realm.internal;
 import junit.framework.TestCase;
 
 import io.realm.RealmFieldType;
+import io.realm.Sort;
 import io.realm.internal.TableOrView.PivotType;
 
 public class PivotTest extends TestCase {
@@ -63,7 +64,7 @@ public class PivotTest extends TestCase {
 
     public void testPivotTableView(){
 
-        TableView view = t.getSortedView(colIndexAge);
+        TableView view = t.getSortedView(new long[]{colIndexAge}, new Sort[]{Sort.ASCENDING});
 
         Table resultCount = view.pivot(colIndexSex, colIndexAge, PivotType.COUNT);
         assertEquals(2, resultCount.size());
