@@ -72,7 +72,7 @@ try {
 } finally {
     node {
         withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-            notifySlack(env.SLACK_URL, env.BRANCH_NAME, buildSuccess)
+            notifySlack(SLACK_URL, env.BRANCH_NAME, buildSuccess)
         }
     }
 }
