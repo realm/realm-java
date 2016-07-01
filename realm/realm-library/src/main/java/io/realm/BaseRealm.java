@@ -786,6 +786,17 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        if (sharedGroupManager != null && sharedGroupManager.isOpen()) {
+            RealmLog.w("Remember to call close() on all Realm instances. " +
+                    "Realm " + configuration.getPath() + " is being finalized without being closed, " +
+                    "this can lead to running out of native memory."
+            );
+        }
+        super.finalize();
+    }
+
     // Internal delegate for migrations
     protected interface MigrationCallback {
         void migrationComplete();
