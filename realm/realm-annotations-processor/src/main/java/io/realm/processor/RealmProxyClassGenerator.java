@@ -788,6 +788,11 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", className, "object", "Map<RealmModel,Long>", "cache" // Argument type & argument name
         );
+        // If object is already in the Realm there is nothing to update
+        writer
+                .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
+                .emitStatement("return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex()")
+                .endControlFlow();
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", className);
         writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
@@ -861,7 +866,14 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("object = (%s) objects.next()", className);
         writer.beginControlFlow("if(!cache.containsKey(object))");
 
-        writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+        writer.emitStatement("long rowIndex");
+        writer
+                .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
+                    .emitStatement("rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex()")
+                .nextControlFlow("else")
+                    .emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)")
+                .endControlFlow();
+
         writer.emitStatement("cache.put(object, rowIndex)");
 
         for (VariableElement field : metadata.getFields()) {
@@ -919,6 +931,12 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", className, "object", "Map<RealmModel,Long>", "cache" // Argument type & argument name
         );
+
+        // If object is already in the Realm there is nothing to update
+        writer
+                .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
+                .emitStatement("return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex()")
+                .endControlFlow();
 
         writer.emitStatement("Table table = realm.getTable(%s.class)", className);
         writer.emitStatement("long tableNativePtr = table.getNativeTablePointer()");
@@ -1055,6 +1073,12 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("object = (%s) objects.next()", className);
         writer.beginControlFlow("if(!cache.containsKey(object))");
 
+        writer.emitStatement("long rowIndex = TableOrView.NO_MATCH");
+        writer
+                .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
+                .emitStatement("rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex()")
+                .nextControlFlow("else");
+
         if (hasPrimaryKey) {
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             VariableElement primaryKeyElement = metadata.getPrimaryKey();
@@ -1062,7 +1086,6 @@ public class RealmProxyClassGenerator {
                 if (Utils.isString(primaryKeyElement)) {
                     writer
                             .emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                            .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                                 .beginControlFlow("if (primaryKeyValue == null)")
                             .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                             .nextControlFlow("else")
@@ -1071,7 +1094,6 @@ public class RealmProxyClassGenerator {
                 } else {
                     writer
                             .emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                            .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                             .beginControlFlow("if (primaryKeyValue == null)")
                                 .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                             .nextControlFlow("else")
@@ -1079,7 +1101,6 @@ public class RealmProxyClassGenerator {
                             .endControlFlow();
                 }
             } else {
-                writer.emitStatement("long rowIndex = TableOrView.NO_MATCH");
                 writer.emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         .beginControlFlow("if (primaryKeyValue != null)");
                 if (Utils.isString(metadata.getPrimaryKey())) {
@@ -1093,6 +1114,7 @@ public class RealmProxyClassGenerator {
             writer
                     .beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)")
                     .emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+
             if (Utils.isString(metadata.getPrimaryKey())) {
                 writer.beginControlFlow("if (primaryKeyValue != null)");
                     writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
@@ -1103,11 +1125,13 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
             }
             writer.endControlFlow();
+            writer.endControlFlow();
 
             writer.emitStatement("cache.put(object, rowIndex)");
 
         } else {
-            writer.emitStatement("long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            writer.emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
+            writer.endControlFlow();
             writer.emitStatement("cache.put(object, rowIndex)");
         }
 

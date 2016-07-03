@@ -299,6 +299,9 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static long insert(Realm realm, Booleans object, Map<RealmModel,Long> cache) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+        }
         Table table = realm.getTable(Booleans.class);
         long tableNativePtr = table.getNativeTablePointer();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(Booleans.class);
@@ -319,7 +322,12 @@ public class BooleansRealmProxy extends Booleans
         while (objects.hasNext()) {
             object = (Booleans) objects.next();
             if(!cache.containsKey(object)) {
-                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                long rowIndex;
+                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+                } else {
+                    rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                }
                 cache.put(object, rowIndex);
                 Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
                 Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
@@ -330,6 +338,9 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static long insertOrUpdate(Realm realm, Booleans object, Map<RealmModel,Long> cache) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+        }
         Table table = realm.getTable(Booleans.class);
         long tableNativePtr = table.getNativeTablePointer();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(Booleans.class);
@@ -350,7 +361,12 @@ public class BooleansRealmProxy extends Booleans
         while (objects.hasNext()) {
             object = (Booleans) objects.next();
             if(!cache.containsKey(object)) {
-                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                long rowIndex = TableOrView.NO_MATCH;
+                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+                } else {
+                    rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                }
                 cache.put(object, rowIndex);
                 Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
                 Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());

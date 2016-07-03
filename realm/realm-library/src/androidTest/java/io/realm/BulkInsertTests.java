@@ -634,4 +634,18 @@ public class BulkInsertTests {
         assertEquals(42, first.getFieldObject().getFieldLong());
         assertEquals(2, realm.where(AllJavaTypes.class).count());
     }
+
+    @Test
+    public void insertManagedObjectWillNotDuplicate() {
+        realm.beginTransaction();
+        Dog managedRealmObject = realm.createObject(Dog.class);
+        managedRealmObject.setName("dog1");
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        realm.insert(managedRealmObject);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(Dog.class).count());
+    }
 }

@@ -792,12 +792,11 @@ public final class Realm extends BaseRealm {
      * <p>
      * Please note:
      * <ul>
-     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object will duplicate it</li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
      * <p>
-     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(Iterable)}, otherwise if
+     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(Iterable)}, otherwise if
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
@@ -818,12 +817,11 @@ public final class Realm extends BaseRealm {
      * <p>
      * Please note:
      * <ul>
-     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object will duplicate it</li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
      * <p>
-     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
+     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
@@ -845,12 +843,11 @@ public final class Realm extends BaseRealm {
      * <p>
      * Please note:
      * <ul>
-     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it</li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
      * <p>
-     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(Iterable)}, otherwise if
+     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(Iterable)}, otherwise if
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
@@ -871,12 +868,11 @@ public final class Realm extends BaseRealm {
      * <p>
      * Please note:
      * <ul>
-     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it</li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
      * <p>
-     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
+     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
