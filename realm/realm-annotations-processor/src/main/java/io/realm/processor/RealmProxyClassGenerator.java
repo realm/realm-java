@@ -1179,7 +1179,6 @@ public class RealmProxyClassGenerator {
             writer.endControlFlow();
         writer.endControlFlow();
 
-        writer.emitStatement("return realmObject");
         writer.endMethod();
         writer.emitEmptyLine();
     }
