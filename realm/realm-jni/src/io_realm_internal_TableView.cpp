@@ -833,7 +833,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumTimestam
 }
 
 // sort
-
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jboolean ascending)
 {

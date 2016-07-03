@@ -1,4 +1,19 @@
+## 1.1.1
+
+### Bug fixes
+
+* Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
+* Fixed bug in `Realm.insert` and `Realm.insertOrUpdate` methods causing a `RealmList` to be cleared when inserting a managed `RealmModel` (#3105).
+
 ## 1.1.0
+
+### Bug fixes
+
+* A number of bug fixes in the storage engine related to memory management in rare cases when a Realm has been compacted.
+* Disabled the optional API transformer since it has problems with DexGuard (#3022).
+* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
+* Fixed a bug in `copyToRealm()` causing a cyclic dependency objects being duplicated.
+* Fixed a build failure when model class has a conflicting name such as `Map`, `List`, `String`, ... (#3077).
 
 ### Enhancements
 
@@ -6,18 +21,15 @@
 * Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
 * Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
 * Changed `targetSdkVersion` of `realm-library` to 24.
+* Logs warning if `DynamicRealm` is not closed when GC happens as it does for `Realm`.
 
 ### Deprecated
 
 * `RealmConfiguration.Builder(File)`. Use `RealmConfiguration.Builder(Context, File)` instead.
 
-## 1.0.2
+### Internal
 
-### Bug fixes
-
-* Disabled the optional API transformer since it has problems with DexGuard (3022).
-* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
-* Fixed a bug in `copyToRealm` causing a cyclic dependency objects being duplicated.
+* Updated Realm Core to 1.2.0.
 
 ## 1.0.1
 
