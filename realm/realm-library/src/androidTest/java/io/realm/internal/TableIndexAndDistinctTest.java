@@ -142,24 +142,6 @@ public class TableIndexAndDistinctTest extends TestCase {
         }
     }
 
-    /**
-     * Is used to run a test multiple times,
-     * that corresponds to the number of columns in the Table generated
-     * in TestHelper.getTableWithAllColumnTypes
-     * @return
-     */
-
-// TODO: parametric test
-/*    @DataProvider(name = "columnIndex")
-    public Iterator<Object[]> mixedValuesProvider() {
-        Long[] values = {
-               0L,1L,2L,3L,4L,5L,6L,7L,8L
-        };
-
-        List<?> mixedValues = Arrays.asList(values);
-        return DataProviderUtil.allCombinations(mixedValues);
-    }*/
-
     public void testRemoveSearchIndex() {
         init();
         table.addSearchIndex(1);

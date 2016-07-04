@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.internal.test;
+package io.realm.entities.conflict;
 
-public class PhoneData {
+import io.realm.RealmList;
+import io.realm.RealmObject;
 
-    public String type;
-    public String number;
+public class List extends RealmObject {
+    public RealmList<Map> mapList;
+    public Map map;
 
-    public PhoneData(String type, String number) {
-        this.type = type;
-        this.number = number;
-    }
-
+    public java.lang.String str;
+    public String strObj;
+    public RealmList<String> strList;
 }

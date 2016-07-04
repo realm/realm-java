@@ -137,8 +137,6 @@ public interface TableOrView {
 
     byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
-    Mixed getMixed(long columnIndex, long rowIndex);
-
     /**
      * Gets the link index of a cell of the table/view identified by the columnIndex and rowIndex.
      *
@@ -147,14 +145,6 @@ public interface TableOrView {
      * @return
      */
     long getLink(long columnIndex, long rowIndex);
-
-    RealmFieldType getMixedType(long columnIndex, long rowIndex);
-
-    Table getSubtable(long columnIndex, long rowIndex);
-
-    void clearSubtable(long columnIndex, long rowIndex);
-
-    long getSubtableSize(long columnIndex, long rowIndex);
 
     /**
      * Sets the long value for a particular cell identified by columnIndex and rowIndex of that cell.
@@ -214,8 +204,6 @@ public interface TableOrView {
     void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
 
     void setDate(long columnIndex, long rowIndex, Date date);
-
-    void setMixed(long columnIndex, long rowIndex, Mixed data);
 
     boolean isNullLink(long columnIndex, long rowIndex);
 

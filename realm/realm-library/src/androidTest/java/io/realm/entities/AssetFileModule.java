@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.internal.test;
+package io.realm.entities;
 
-import io.realm.RealmFieldType;
+import io.realm.annotations.RealmModule;
 
-public class MixedData {
-
-    public RealmFieldType type;
-
-    public Object value;
-
-    public MixedData(RealmFieldType type, Object value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return "MixedData [type=" + type + ", value=" + value + "]";
-    }
-
+/**
+ * module definition for "asset_file.realm"
+ */
+@RealmModule(classes = {Owner.class, Cat.class, Dog.class, DogPrimaryKey.class})
+public class AssetFileModule {
 }

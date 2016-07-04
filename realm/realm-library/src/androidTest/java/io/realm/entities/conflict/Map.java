@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef REALM_COLUMN_TYPE_UTIL_H
-#define REALM_COLUMN_TYPE_UTIL_H
+package io.realm.entities.conflict;
 
-#include <jni.h>
-#include <realm.hpp>
+import io.realm.RealmList;
+import io.realm.RealmModel;
+import io.realm.annotations.RealmClass;
 
-#ifdef __cplusplus
+@RealmClass
+public class Map implements RealmModel {
 
-using realm::DataType;
-
-extern "C" {
-
-#endif
-
-DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType);
-jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType);
-
-#ifdef __cplusplus
+    public Map Map;
+    public RealmList<Map> mapList;
 }
-#endif
-
-#endif

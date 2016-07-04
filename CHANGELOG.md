@@ -1,9 +1,35 @@
-## 1.0.2
+## 1.1.1
 
 ### Bug fixes
 
-* Disabled the optional API transformer since it has problems with DexGuard (3022).
 * Fixed a crash that did not treat an existing `RealmResult` as an empty list when its originating `RealmObject` class was removed (#2953).
+* Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
+
+## 1.1.0
+
+### Bug fixes
+
+* A number of bug fixes in the storage engine related to memory management in rare cases when a Realm has been compacted.
+* Disabled the optional API transformer since it has problems with DexGuard (#3022).
+* `OnSuccess.OnSuccess()` might not be called with the correct Realm version for async transaction (#1893).
+* Fixed a bug in `copyToRealm()` causing a cyclic dependency objects being duplicated.
+* Fixed a build failure when model class has a conflicting name such as `Map`, `List`, `String`, ... (#3077).
+
+### Enhancements
+
+* Added `insert(RealmModel obj)`, `insertOrUpdate(RealmModel obj)`, `insert(Collection<RealmModel> collection)` and `insertOrUpdate(Collection<RealmModel> collection)` to perform batch inserts (#1684).
+* Enhanced `Table.toString()` to show a PrimaryKey field details (#2903).
+* Enabled ReLinker when loading a Realm from a custom path by adding a `RealmConfiguration.Builder(Context, File)` constructor (#2900).
+* Changed `targetSdkVersion` of `realm-library` to 24.
+* Logs warning if `DynamicRealm` is not closed when GC happens as it does for `Realm`.
+
+### Deprecated
+
+* `RealmConfiguration.Builder(File)`. Use `RealmConfiguration.Builder(Context, File)` instead.
+
+### Internal
+
+* Updated Realm Core to 1.2.0.
 
 ## 1.0.1
 
@@ -11,6 +37,7 @@
 
 * Fixed a crash when calling `Table.toString()` in debugger (#2429).
 * Fixed a race condition which would cause some `RealmResults` to not be properly updated inside a `RealmChangeListener`. This could result in crashes when accessing items from those results (#2926/#2951).
+* Revised `RealmResults.isLoaded()` description (#2895).
 * Fixed a bug that could cause Realm to lose track of primary key when using `RealmObjectSchema.removeField()` and `RealmObjectSchema.renameField()` (#2829/#2926).
 * Fixed a bug that prevented some devices from finding async related JNI methods correctly.
 * Updated ProGuard configuration in order not to depend on Android's default configuration (#2972).
@@ -32,7 +59,7 @@ No changes since 0.91.1.
 
 ### Bug fixes
 
-* Fixed a bug when opening a Realm cause a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported". 
+* Fixed a bug when opening a Realm causes a staled memory mapping. Symptoms are error messages like "Bad or incompatible history type", "File format version doesn't match", and "Encrypted interprocess sharing is currently unsupported".
 
 ## 0.91.0
 

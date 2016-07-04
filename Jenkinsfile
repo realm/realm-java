@@ -33,7 +33,7 @@
 
             stage 'Docker build'
             def buildEnv = docker.build 'realm-java:snapshot'
-            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle") {
+            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
                 stage 'JVM tests'
                 try {
                     gradle 'assemble check javadoc'
@@ -56,9 +56,14 @@
                 }
 
                 stage 'Run instrumented tests'
+                boolean archiveLog = true
+                String backgroundPid
                 try {
-                    sh 'cd realm && ./gradlew connectedCheck --stacktrace'
+                    backgroundPid = startLogCatCollector()
+                    sh 'cd realm && ./gradlew connectedUnitTests --stacktrace'
+                    archiveLog = false;
                 } finally {
+                    stopLogCatCollector(backgroundPid, archiveLog)
                     storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
                 }
 
@@ -85,6 +90,26 @@
             }
         }
     }
+}
+
+def String startLogCatCollector() {
+    sh '''adb logcat -c
+    adb logcat > "logcat.txt" &
+    echo $! > pid
+    '''
+    return readFile("pid").trim()
+}
+
+def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
+    sh "kill ${backgroundPid}"
+    if (archiveLog) {
+        zip([
+            'zipFile': 'logcat.zip',
+            'archive': true,
+            'glob' : 'logcat.txt'
+        ])
+    }
+    sh 'rm logcat.txt '
 }
 
 def isPullRequest() {

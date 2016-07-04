@@ -21,8 +21,6 @@ import io.realm.RealmFieldType;
 
 public interface TableSchema {
 
-    TableSchema getSubtableSchema(long columnIndex);
-
     long addColumn(RealmFieldType type, String name);
 
     void removeColumn(long columnIndex);
