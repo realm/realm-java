@@ -970,3 +970,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
     } CATCH_STD()
     return -1;
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_TableView_nativeIsAttached
+    (JNIEnv*, jobject, jlong nativeViewPtr)
+{
+    TR_ENTER_PTR(nativeViewPtr);
+    if (TV(nativeViewPtr) == NULL) {
+        return jboolean(false);
+    }
+    return jboolean(TV(nativeViewPtr)->is_attached());
+}

@@ -374,11 +374,23 @@ public interface TableOrView {
      */
     long syncIfNeeded();
 
+
+    /**
+     * From the classes which are based on {@link TableView}, it makes task straight-forward to check
+     * if the originating {@link Table} is alive rather than querying to Group::has_table().
+     *
+     * @return {@code true} if the originating {@link Table} is alive, {@code false} otherwise.
+     */
+    boolean isAttached();
+
+    /**
+     * This is a void manifestation of {@link TableOrView} that takes calls and does nothing or returns
+     * {@code null} value to imitate an empty {@link TableView}.
+     */
     TableOrView EMPTY_TABLEORVIEW = new TableOrView() {
 
         @Override
-        public void clear() {
-        }
+        public void clear() {}
 
         @Override
         public Table getTable() {
@@ -386,8 +398,7 @@ public interface TableOrView {
         }
 
         @Override
-        public void close() {
-        }
+        public void close() {}
 
         @Override
         public long size() {
@@ -400,12 +411,10 @@ public interface TableOrView {
         }
 
         @Override
-        public void remove(long index) {
-        }
+        public void remove(long index) {}
 
         @Override
-        public void removeLast() {
-        }
+        public void removeLast() {}
 
         @Override
         public long getColumnCount() {
@@ -463,65 +472,30 @@ public interface TableOrView {
         }
 
         @Override
-        public Mixed getMixed(long columnIndex, long rowIndex) {
-            return null;
-        }
-
-        @Override
         public long getLink(long columnIndex, long rowIndex) {
             return 0;
         }
 
         @Override
-        public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
-            return null;
-        }
+        public void setLong(long columnIndex, long rowIndex, long value) {}
 
         @Override
-        public Table getSubtable(long columnIndex, long rowIndex) {
-            return null;
-        }
+        public void setBoolean(long columnIndex, long rowIndex, boolean value) {}
 
         @Override
-        public void clearSubtable(long columnIndex, long rowIndex) {
-        }
+        public void setFloat(long columnIndex, long rowIndex, float value) {}
 
         @Override
-        public long getSubtableSize(long columnIndex, long rowIndex) {
-            return 0;
-        }
+        public void setDouble(long columnIndex, long rowIndex, double value) {}
 
         @Override
-        public void setLong(long columnIndex, long rowIndex, long value) {
-        }
+        public void setString(long columnIndex, long rowIndex, String value) {}
 
         @Override
-        public void setBoolean(long columnIndex, long rowIndex, boolean value) {
-        }
+        public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {}
 
         @Override
-        public void setFloat(long columnIndex, long rowIndex, float value) {
-        }
-
-        @Override
-        public void setDouble(long columnIndex, long rowIndex, double value) {
-        }
-
-        @Override
-        public void setString(long columnIndex, long rowIndex, String value) {
-        }
-
-        @Override
-        public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
-        }
-
-        @Override
-        public void setDate(long columnIndex, long rowIndex, Date date) {
-        }
-
-        @Override
-        public void setMixed(long columnIndex, long rowIndex, Mixed data) {
-        }
+        public void setDate(long columnIndex, long rowIndex, Date date) {}
 
         @Override
         public boolean isNullLink(long columnIndex, long rowIndex) {
@@ -529,12 +503,10 @@ public interface TableOrView {
         }
 
         @Override
-        public void nullifyLink(long columnIndex, long rowIndex) {
-        }
+        public void nullifyLink(long columnIndex, long rowIndex) {}
 
         @Override
-        public void setLink(long columnIndex, long rowIndex, long value) {
-        }
+        public void setLink(long columnIndex, long rowIndex, long value) {}
 
         @Override
         public long sumLong(long columnIndex) {
@@ -702,8 +674,7 @@ public interface TableOrView {
         }
 
         @Override
-        public void removeFirst() {
-        }
+        public void removeFirst() {}
 
         @Override
         public Table pivot(long stringCol, long intCol, PivotType pivotType) {
@@ -714,6 +685,12 @@ public interface TableOrView {
         public long syncIfNeeded() {
             return 0;
         }
+
+        @Override
+        public boolean isAttached() {
+            return false;
+        }
+
     };
 
 }

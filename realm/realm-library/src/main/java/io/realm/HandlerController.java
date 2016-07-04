@@ -786,6 +786,13 @@ final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
+
+    /**
+     * When a Class is removed while {@link RealmResults} derived from the class exist, it is required
+     * for the RealmResults to be reconciled with the removal by voiding their backing TableView.
+     *
+     * @param clazzName to invalidate the {@link RealmResults} from which are derived.
+     */
     void invalidateRemovedTableView(String clazzName) {
         Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
         while (iterator.hasNext()) {

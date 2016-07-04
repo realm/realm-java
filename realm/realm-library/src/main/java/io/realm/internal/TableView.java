@@ -790,6 +790,11 @@ public class TableView implements TableOrView, Closeable {
         return version;
     }
 
+    @Override
+    public boolean isAttached() {
+        return nativeIsAttached(nativePtr);
+    }
+
     static native void nativeClose(long nativeViewPtr);
     private native long nativeSize(long nativeViewPtr);
     private native long nativeGetSourceRowIndex(long nativeViewPtr, long rowIndex);
@@ -854,4 +859,5 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeSyncIfNeeded(long nativeTablePtr);
     private native void nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
+    private native boolean nativeIsAttached(long nativeTablePtr);
 }

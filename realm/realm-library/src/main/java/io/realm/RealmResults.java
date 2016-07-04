@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.annotations.Index;
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
@@ -158,17 +159,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      *
      * @return {@code true} if the backing Table is valid, {@code false} otherwise.
      */
-    private boolean isTableEmpty() {
-        if (this.table == TableOrView.EMPTY_TABLEORVIEW) {
-            return true;
+    private boolean isTablePresent() {
+        if (table != null) {
+            return table.isAttached();
         }
-        boolean tableValid;
+        boolean tableExists;
         if (classSpec != null) {
-            tableValid = realm.schema.contains(classSpec.getSimpleName());
+            tableExists = realm.schema.contains(classSpec.getSimpleName());
         } else {
-            tableValid = realm.schema.contains(className);
+            tableExists = realm.schema.contains(className);
         }
-        return tableValid;
+        return tableExists;
     }
 
     /**
@@ -224,7 +225,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && isTableEmpty() && object instanceof RealmObjectProxy) {
+        if (isLoaded() && isTablePresent() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
                 contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
@@ -244,6 +245,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
+        if (!isTablePresent()) {
+            return null;
+        }
         TableOrView table = getTable();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
@@ -285,6 +289,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
+        if (!isTablePresent()) {
+            throw new IndexOutOfBoundsException("No results to be deleted.");
+        }
         TableOrView table = getTable();
         table.remove(location);
     }
@@ -425,7 +432,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
+        if (!isTablePresent()) {
             return null;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
@@ -446,7 +453,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Date minDate(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
+        if (!isTablePresent()) {
             return null;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
@@ -463,7 +470,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
+        if (!isTablePresent()) {
             return null;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
@@ -491,8 +498,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
-            return new Date(0);
+        if (!isTablePresent()) {
+            return null;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
         if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
@@ -509,7 +516,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
+        if (!isTablePresent()) {
             return null;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
@@ -530,7 +537,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public double average(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
+        if (!isTablePresent()) {
             return 0.0;
         }
         long columnIndex = getColumnIndexForSort(fieldName);
@@ -558,7 +565,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
-        if (!isTableEmpty()) {
+        if (!isTablePresent()) {
             return this;
         }
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
@@ -988,8 +995,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (!isTableEmpty()) {
-            throw new IllegalStateException("You can't register a listener when no data is available.");
+        if (!isTablePresent()) {
+            throw new IllegalStateException("You can't register a listener to where no data is available.");
         }
         if (realm.handler == null) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
