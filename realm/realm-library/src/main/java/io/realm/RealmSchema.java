@@ -165,8 +165,7 @@ public final class RealmSchema {
         removeTableFromTableCache(table);
 
         // invalidate all the RealmResults related to this class
-        realm.handlerController.invalidateRemovedTableView(className);
-
+        RealmCache.invalidateRemovedClassFromCachedRealm(realm.getConfiguration(), className);
     }
 
     /**

@@ -786,10 +786,10 @@ final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
-
     /**
      * When a Class is removed while {@link RealmResults} derived from the class exist, it is required
      * for the RealmResults to be reconciled with the removal by voiding their backing TableView.
+     * This should be called in a propagated event from {@link RealmCache#invalidateRemovedClassFromCachedRealm}.
      *
      * @param clazzName to invalidate the {@link RealmResults} from which are derived.
      */
