@@ -213,6 +213,32 @@ install {
     }
 }
 
+publishing {
+    publications {
+        realmPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+    repositories {
+        maven {
+            credentials(AwsCredentials) {
+                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
+                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://realm-ci-artifacts/maven/snapshots/"
+            } else {
+                url "s3://realm-ci-artifacts/maven/releases/"
+            }
+        }
+    }
+}
+
 bintray {
     user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
     key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
@@ -220,7 +246,7 @@ bintray {
     dryRun = false
     publish = false
 
-    configurations = ['archives']
+    configurations = ['realmPublication']
 
     pkg {
         repo = 'maven'
@@ -245,14 +271,9 @@ artifactory {
             maven = true
         }
         defaults {
-            publishConfigs('archives')
+            publishConfigs('realmPublication')
             publishPom = true
             publishIvy = false
         }
     }
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }

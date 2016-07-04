@@ -332,6 +332,46 @@ task bintrayUpload {
     dependsOn bintrayTransformer
 }
 
+task s3Realm(type: GradleBuild) {
+    description = 'Publish the Realm AAR and AP to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('realm/build.gradle')
+    tasks = ['publish']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task s3Annotations(type: GradleBuild) {
+    description = 'Publish the Realm Annotations to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('realm-annotations/build.gradle')
+    tasks = ['publish']
+}
+
+task s3GradlePlugin(type: GradleBuild) {
+    description = 'Publish the Realm Gradle Plugin to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['publish']
+}
+
+task s3Transformer(type: GradleBuild) {
+    description = 'Publish the Realm Transformer to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['publish']
+}
+
+task s3Upload {
+    description = 'Publish all the Realm artifacts to the internal S3 maven repository.'
+    group = 'Publishing'
+    dependsOn s3Realm
+    dependsOn s3Annotations
+    dependsOn s3GradlePlugin
+    dependsOn s3Transformer
+}
+
 task ojoRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP SNAPSHOT to Bintray'
     group = 'Publishing'
