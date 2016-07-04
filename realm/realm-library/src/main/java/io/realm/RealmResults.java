@@ -29,7 +29,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.annotations.Index;
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
