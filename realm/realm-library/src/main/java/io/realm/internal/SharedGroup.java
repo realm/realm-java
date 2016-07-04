@@ -88,7 +88,7 @@ public class SharedGroup implements Closeable {
         } else {
             nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, encryptionKey);
         }
-        nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, encryptionKey);
+        nativePtr = openSharedGroupOrFail(nativeReplicationPtr, canonicalPath, durability, encryptionKey);
         implicitTransactionsEnabled = true;
         context = new Context();
         path = canonicalPath;
@@ -112,7 +112,7 @@ public class SharedGroup implements Closeable {
             } else {
                 nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
             }
-            nativePtr = openSharedGroupOrFail(durability, key);
+            nativePtr = openSharedGroupOrFail(nativeReplicationPtr, canonicalPath, durability, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
@@ -122,7 +122,7 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    private long openSharedGroupOrFail(Durability durability, byte[] key) {
+    private long openSharedGroupOrFail(long nativeReplicationPtr, String path, Durability durability, byte[] key) {
         // We have anecdotal evidence that on some versions of Android it is possible for two versions of an app
         // to exist in two processes during an app upgrade. This is problematic since the lock file might not be
         // compatible across two versions of Android. See https://github.com/realm/realm-java/issues/2459. If this
