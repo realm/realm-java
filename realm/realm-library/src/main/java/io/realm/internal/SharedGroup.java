@@ -84,9 +84,9 @@ public class SharedGroup implements Closeable {
         Durability durability = config.getDurability();
 
         if (syncEnabled) {
-            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath, encryptionKey);
+            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
         } else {
-            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath);
+            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, encryptionKey);
         }
         nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, encryptionKey);
         implicitTransactionsEnabled = true;
@@ -108,9 +108,9 @@ public class SharedGroup implements Closeable {
                        byte[] key) {
         if (enableImplicitTransactions) {
             if (enableSync) {
-                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath, key);
+                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
             } else {
-                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath);
+                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
             }
             nativePtr = openSharedGroupOrFail(durability, key);
             implicitTransactionsEnabled = true;
@@ -405,10 +405,9 @@ public class SharedGroup implements Closeable {
         nativeStopWaitForChange(nativePtr);
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
-                                                             int durability, byte[] key);
-    private native long nativeCreateLocalReplication(String databaseFile);
-    private native long nativeCreateSyncReplication(String databaseFile, byte[] key);
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
+    private native long nativeCreateSyncReplication(String databaseFile);
 //    private native long nativeInitSyncClient(String userToken);
 //    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
     private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
