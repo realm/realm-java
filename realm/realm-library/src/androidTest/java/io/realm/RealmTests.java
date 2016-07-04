@@ -89,6 +89,7 @@ import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -651,12 +652,14 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_null() {
+        SharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
         try {
             realm.executeTransaction(null);
             fail("null transaction should throw");
         } catch (IllegalArgumentException ignored) {
         }
-        //assertFalse(realm.hasChanged());
+        SharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
+        assertEquals(oldVersion, newVersion);
     }
 
     @Test

@@ -544,12 +544,6 @@ abstract class BaseRealm implements Closeable {
         return sharedRealm.isEmpty();
     }
 
-    // FIXME: This method doesn't seem to be needed anymore
-    boolean hasChanged() {
-        //return sharedGroupManager.hasChanged();
-        return false;
-    }
-
     // package protected so unit tests can access it
     void setVersion(long version) {
         Table metadataTable = sharedRealm.getTable(Table.METADATA_TABLE_NAME);
