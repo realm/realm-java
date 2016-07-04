@@ -60,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetRowIndex
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeAdd
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong rowIndex)
+  (JNIEnv* env, jclass, jlong nativeLinkViewPtr, jlong rowIndex)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     LinkViewRef *lv = LV(nativeLinkViewPtr);
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemove
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClear
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr)
+  (JNIEnv* env, jclass, jlong nativeLinkViewPtr)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {

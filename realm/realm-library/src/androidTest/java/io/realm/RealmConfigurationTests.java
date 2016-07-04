@@ -35,6 +35,7 @@ import java.util.Set;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
+import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
@@ -788,6 +789,7 @@ public class RealmConfigurationTests {
 
         Realm.Transaction transaction = mock(Realm.Transaction.class);
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .modules(new AssetFileModule())
                 .initialData(transaction)
                 .build();
 
@@ -848,7 +850,10 @@ public class RealmConfigurationTests {
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm")
+        RealmConfiguration configuration = new RealmConfiguration
+                .Builder(context)
+                .modules(new AssetFileModule())
+                .assetFile(context, "asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
 

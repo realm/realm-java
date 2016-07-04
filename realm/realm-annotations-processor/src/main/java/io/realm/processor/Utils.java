@@ -50,7 +50,7 @@ public class Utils {
 
     public static String getProxyClassSimpleName(VariableElement field) {
         if (typeUtils.isAssignable(field.asType(), realmList)) {
-            return getProxyClassName(getGenericType(field));
+            return getProxyClassName(getGenericTypeSimpleName(field));
         } else {
             return getProxyClassName(getFieldTypeSimpleName(field));
         }
@@ -157,36 +157,47 @@ public class Utils {
 
 
     /**
+     * @return the qualified type name for a field.
+     */
+    public static String getFieldTypeQualifiedName(VariableElement field) {
+        return field.asType().toString();
+    }
+
+    /**
      * @return the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {
-        String fieldTypeCanonicalName = field.asType().toString();
-        String fieldTypeName;
-        if (fieldTypeCanonicalName.contains(".")) {
-            fieldTypeName = fieldTypeCanonicalName.substring(fieldTypeCanonicalName.lastIndexOf('.') + 1);
-        } else {
-            fieldTypeName = fieldTypeCanonicalName;
+        String fieldTypeQualifiedName = getFieldTypeQualifiedName(field);
+        if (!fieldTypeQualifiedName.contains(".")) {
+            return fieldTypeQualifiedName;
         }
-        return fieldTypeName;
+        return fieldTypeQualifiedName.substring(fieldTypeQualifiedName.lastIndexOf('.') + 1);
     }
 
     /**
      * @return the generic type for Lists of the form {@code List<type>}
      */
-    public static String getGenericType(VariableElement field) {
+    public static String getGenericTypeQualifiedName(VariableElement field) {
         TypeMirror fieldType = field.asType();
         List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
         if (typeArguments.size() == 0) {
             return null;
         }
-        String genericCanonicalType = (String) typeArguments.get(0).toString();
-        String genericType;
-        if (genericCanonicalType.contains(".")) {
-            genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
-        } else {
-            genericType = genericCanonicalType;
+        return typeArguments.get(0).toString();
+    }
+
+    /**
+     * @return the generic type for Lists of the form {@code List<type>}
+     */
+    public static String getGenericTypeSimpleName(VariableElement field) {
+        final String genericTypeName = getGenericTypeQualifiedName(field);
+        if (genericTypeName == null) {
+            return null;
         }
-        return genericType;
+        if (!genericTypeName.contains(".")) {
+            return genericTypeName;
+        }
+        return genericTypeName.substring(genericTypeName.lastIndexOf('.') + 1);
     }
 
     /**

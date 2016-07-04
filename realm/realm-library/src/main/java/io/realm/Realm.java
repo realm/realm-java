@@ -34,7 +34,9 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -724,7 +726,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E copyToRealm(E object) {
         checkNotNullObject(object);
-        return copyOrUpdate(object, false);
+        return copyOrUpdate(object, false, new HashMap<RealmModel, RealmObjectProxy>());
     }
 
     /**
@@ -744,7 +746,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        return copyOrUpdate(object, true);
+        return copyOrUpdate(object, true, new HashMap<RealmModel, RealmObjectProxy>());
     }
 
     /**
@@ -764,13 +766,120 @@ public final class Realm extends BaseRealm {
         if (objects == null) {
             return new ArrayList<E>();
         }
-
+        Map<RealmModel, RealmObjectProxy> cache = new HashMap<RealmModel, RealmObjectProxy>();
         ArrayList<E> realmObjects = new ArrayList<E>();
         for (E object : objects) {
-            realmObjects.add(copyToRealm(object));
+            checkNotNullObject(object);
+            realmObjects.add(copyOrUpdate(object, false, cache));
         }
 
         return realmObjects;
+    }
+
+    /**
+     * Insert a list of an unmanaged RealmObjects. This is generally faster than {@link #copyToRealm(Iterable)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original objects will not be persisted.
+     * <p>
+     * Please note:
+     * <ul>
+     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object will duplicate it</li>
+     * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
+     * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
+     * </ul>
+     * <p>
+     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(Iterable)}, otherwise if
+     * you have a large number of object this method is generally faster.
+     *
+     * @param objects RealmObjects to insert.
+     * @see #copyToRealm(Iterable)
+     */
+    public void insert(Collection<? extends RealmModel> objects) {
+        checkIfValid();
+        if (objects == null) {
+            throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
+        }
+        configuration.getSchemaMediator().insert(this, objects);
+    }
+
+    /**
+     * Insert an unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original object will not be persisted.
+     * <p>
+     * Please note:
+     * <ul>
+     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object will duplicate it</li>
+     * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
+     * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
+     * </ul>
+     * <p>
+     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
+     * you have a large number of object this method is generally faster.
+     *
+     * @param object RealmObjects to insert.
+     * @see #copyToRealm(RealmModel)
+     */
+    public void insert(RealmModel object) {
+        checkIfValid();
+        if (object == null) {
+            throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
+        }
+        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        configuration.getSchemaMediator().insert(this, object, cache);
+    }
+
+    /**
+     * Insert or update a list of unmanaged RealmObjects. This is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original objects will not be persisted.
+     * <p>
+     * Please note:
+     * <ul>
+     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it</li>
+     * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
+     * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
+     * </ul>
+     * <p>
+     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(Iterable)}, otherwise if
+     * you have a large number of object this method is generally faster.
+     *
+     * @param objects RealmObjects to insert.
+     * @see #copyToRealmOrUpdate(Iterable)
+     */
+    public void insertOrUpdate(Collection<? extends RealmModel> objects) {
+        checkIfValid();
+        if (objects == null) {
+            throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
+        }
+        configuration.getSchemaMediator().insertOrUpdate(this, objects);
+    }
+
+    /**
+     * Insert or update an unmanaged RealmObject. This is generally faster than {@link #copyToRealmOrUpdate(RealmModel)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original object will not be persisted.
+     * <p>
+     * Please note:
+     * <ul>
+     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it</li>
+     * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
+     * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
+     * </ul>
+     * <p>
+     * If you want these checks and the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
+     * you have a large number of object this method is generally faster.
+     *
+     * @param object RealmObjects to insert.
+     * @see #copyToRealmOrUpdate(RealmModel)
+     */
+    public void insertOrUpdate(RealmModel object) {
+        checkIfValid();
+        if (object == null) {
+            throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
+        }
+        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        configuration.getSchemaMediator().insertOrUpdate(this, object, cache);
     }
 
     /**
@@ -791,9 +900,11 @@ public final class Realm extends BaseRealm {
             return new ArrayList<E>(0);
         }
 
+        Map<RealmModel, RealmObjectProxy> cache = new HashMap<RealmModel, RealmObjectProxy>();
         ArrayList<E> realmObjects = new ArrayList<E>();
         for (E object : objects) {
-            realmObjects.add(copyToRealmOrUpdate(object));
+            checkNotNullObject(object);
+            realmObjects.add(copyOrUpdate(object, true, cache));
         }
 
         return realmObjects;
@@ -1158,9 +1269,9 @@ public final class Realm extends BaseRealm {
 
 
     @SuppressWarnings("unchecked")
-    private <E extends RealmModel> E copyOrUpdate(E object, boolean update) {
+    private <E extends RealmModel> E copyOrUpdate(E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
         checkIfValid();
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmModel, RealmObjectProxy>());
+        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache);
     }
 
     private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {

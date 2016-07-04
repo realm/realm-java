@@ -124,7 +124,7 @@ public class CheckedRow extends UncheckedRow {
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+    public static native long nativeGetLinkView(long nativePtr, long columnIndex);
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);

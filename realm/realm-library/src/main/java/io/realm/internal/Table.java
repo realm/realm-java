@@ -89,6 +89,10 @@ public class Table implements TableOrView, TableSchema {
         return this;
     }
 
+    public long getNativeTablePointer() {
+        return nativePtr;
+    }
+
     @Override
     protected void finalize() throws Throwable {
         synchronized (context) {
@@ -1309,7 +1313,7 @@ public class Table implements TableOrView, TableSchema {
     private native void nativeRemove(long nativeTablePtr, long rowIndex);
     private native void nativeRemoveLast(long nativeTablePtr);
     private native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
-    private native long nativeAddEmptyRow(long nativeTablePtr, long rows);
+    public static native long nativeAddEmptyRow(long nativeTablePtr, long rows);
     private native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
     private native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
     private native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
@@ -1319,24 +1323,25 @@ public class Table implements TableOrView, TableSchema {
     private native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
     private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
+    public static native long nativeGetLinkView(long nativePtr, long columnIndex, long rowIndex);
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
     native long nativeGetRowPtr(long nativePtr, long index);
-    private native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
-    private native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
-    private native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
-    private native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
-    private native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
-    private native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
-    private native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
-    private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-    private native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    public static native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
+    public static native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
+    public static native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
+    public static native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
+    public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
+    public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
+    public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
     private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
     private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
     private native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
     private native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
     private native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
-    private native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
+    public static native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
     private native long nativeSumInt(long nativePtr, long columnIndex);
     private native long nativeMaximumInt(long nativePtr, long columnIndex);
     private native long nativeMinimumInt(long nativePtr, long columnIndex);
@@ -1356,12 +1361,12 @@ public class Table implements TableOrView, TableSchema {
     private native long nativeCountDouble(long nativePtr, long columnIndex, double value);
     private native long nativeCountString(long nativePtr, long columnIndex, String value);
     private native long nativeWhere(long nativeTablePtr);
-    private native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
+    public static native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
     private native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
     private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnIndex, long dateTimeValue);
-    private native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
+    public static native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
     private native long nativeFindFirstNull(long nativePtr, long columnIndex);
     private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
