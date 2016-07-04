@@ -690,7 +690,5 @@ public interface TableOrView {
         public boolean isAttached() {
             return false;
         }
-
     };
-
 }

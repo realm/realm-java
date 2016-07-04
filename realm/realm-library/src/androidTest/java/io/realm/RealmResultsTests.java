@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -66,12 +67,13 @@ public class RealmResultsTests extends CollectionTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    private RealmConfiguration realmConfig;
     private Realm realm;
     private RealmResults<AllTypes> collection;
 
     @Before
     public void setUp() {
-        RealmConfiguration realmConfig = configFactory.createConfiguration();
+        realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         populateTestRealm();
         collection = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG, Sort.ASCENDING);
@@ -1071,7 +1073,7 @@ public class RealmResultsTests extends CollectionTests {
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
         // make sure we have only one object
-        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertEquals(results.size(), 1);
 
         // now the result should be empty
@@ -1082,17 +1084,71 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    public void size_asEmptyListAfterClassRemovedInOtherThread() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // make sure we have only one object
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.size(), 1);
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
+        assertEquals(0, results.size());
+        assertTrue(results.isEmpty());
+        realm.close();
+    }
+
+    @Test
     public void contains_asEmptyListAfterClassRemoved() {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
-        // make sure we have an object in RealmResults
-        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        DynamicRealmObject object = results.first();
+        // make sure we contains an object in RealmResults
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        DynamicRealmObject object = realm.where(CLASS_NAME).findFirst();
         assertTrue(results.contains(object));
 
         // now the result should be empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
+        assertFalse(results.contains(object));
+        realm.close();
+    }
+
+    @Test
+    public void contains_asEmptyListAfterClassRemovedInOtherThread() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // make sure we contains an object in RealmResults
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        DynamicRealmObject object = realm.where(CLASS_NAME).findFirst();
+        assertTrue(results.contains(object));
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
         assertFalse(results.contains(object));
         realm.close();
     }
@@ -1103,17 +1159,15 @@ public class RealmResultsTests extends CollectionTests {
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
         // Make sure we have expected values
-        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
-        assertEquals(results.get(0).get("name"),  "John");
-        assertEquals(results.first().get("name"), "John");
-        assertEquals(results.last().get("name"),  "John");
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.get(0).getString("name"),  "John");
+        assertEquals(results.first().getString("name"), "John");
+        assertEquals(results.last().getString("name"),  "John");
 
         // remove the backing class
         removeClassFromDynamicRealm(realm, CLASS_NAME);
-
         // indexed get
         assertNull(results.get(0));
-
         // get first value
         try {
             results.first();
@@ -1121,8 +1175,50 @@ public class RealmResultsTests extends CollectionTests {
         } catch (IndexOutOfBoundsException expected) {
             assertEquals("No results were found.", expected.getMessage());
         }
+        // get last value
+        try {
+            results.last();
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results were found.", expected.getMessage());
+        }
+        realm.close();
+    }
 
-        // get last
+    @Test
+    public void getValue_asEmptyListAfterClassRemovedInOtherThread() throws Throwable {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        // Make sure we have expected values
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.get(0).getString("name"),  "John");
+        assertEquals(results.first().getString("name"), "John");
+        assertEquals(results.last().getString("name"),  "John");
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
+        // indexed get
+        assertNull(results.get(0));
+        // get first value
+        try {
+            results.first();
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results were found.", expected.getMessage());
+        }
+        // get last value
         try {
             results.last();
             fail();
@@ -1137,12 +1233,12 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
 
+        // make sure we have objects in RealmResults
         final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertFalse(results.isEmpty());
 
         // Clear the underlying class
         removeClassFromDynamicRealm(realm, CLASS_NAME);
-
         // delete with an index
         realm.beginTransaction();
         try {
@@ -1153,22 +1249,64 @@ public class RealmResultsTests extends CollectionTests {
         } finally {
             realm.cancelTransaction();
         }
-
         // delete first from Realm
         realm.beginTransaction();
         assertFalse(results.deleteFirstFromRealm());
         realm.cancelTransaction();
-
         // delete last from Realm
         realm.beginTransaction();
         assertFalse(results.deleteLastFromRealm());
         realm.cancelTransaction();
-
         // delete all
         realm.beginTransaction();
         assertFalse(results.deleteAllFromRealm());
         realm.cancelTransaction();
+        realm.close();
+    }
 
+    @Test
+    public void delete_asEmptyListAfterClassRemovedInOtherThread() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertFalse(results.isEmpty());
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
+        // delete with an index
+        realm.beginTransaction();
+        try {
+            results.deleteFromRealm(0);
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results to be deleted.", expected.getMessage());
+        } finally {
+            realm.cancelTransaction();
+        }
+        // delete first from Realm
+        realm.beginTransaction();
+        assertFalse(results.deleteFirstFromRealm());
+        realm.cancelTransaction();
+        // delete last from Realm
+        realm.beginTransaction();
+        assertFalse(results.deleteLastFromRealm());
+        realm.cancelTransaction();
+        // delete all
+        realm.beginTransaction();
+        assertFalse(results.deleteAllFromRealm());
+        realm.cancelTransaction();
         realm.close();
     }
 
@@ -1184,6 +1322,38 @@ public class RealmResultsTests extends CollectionTests {
 
         // clear underlying class
         removeClassFromDynamicRealm(realm, CLASS_NAME);
+        // results iterator is empty
+        assertFalse(results.iterator().hasNext());
+        // results iterator is empty when default index is 0
+        assertFalse(results.listIterator().hasNext());
+        // results iterator is empty for other index
+        assertFalse(results.listIterator(0).hasNext());
+        realm.close();
+    }
+
+    @Test
+    public void iterator_asEmptyListAfterClassRemovedInOtherThread() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertTrue(results.iterator().hasNext());
+        assertTrue(results.listIterator().hasNext());
+        assertTrue(results.listIterator(0).hasNext());
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
         // results iterator is empty
         assertFalse(results.iterator().hasNext());
         // results iterator is empty when default index is 0
@@ -1218,6 +1388,42 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    public void numericalValues_asEmptyListAfterClassRemovedInOtherThread() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+
+        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.min("age"), Long.valueOf(12));
+        assertEquals(results.max("age"), Long.valueOf(12));
+        assertEquals(results.sum("age"), Long.valueOf(12));
+        assertEquals(results.average("age"), 12.0, 0);
+        assertEquals(results.minDate("birth"), new Date(1234));
+        assertEquals(results.maxDate("birth"), new Date(1234));
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
+        assertEquals(results.min("age"), null);
+        assertEquals(results.max("age"), null);
+        assertEquals(results.sum("age"), null);
+        assertEquals(results.average("age"), 0.0, 0);
+        assertEquals(results.minDate("birth"), null);
+        assertEquals(results.maxDate("birth"), null);
+        realm.close();
+    }
+
+
+    @Test
     public void distinct_asEmptyListAfterClassRemoved() {
         final String CLASS_NAME = "KingsAndQueens";
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
@@ -1238,6 +1444,43 @@ public class RealmResultsTests extends CollectionTests {
 
         // results is empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
+        assertEquals(results.distinct("age").size(), 0);
+        realm.close();
+    }
+
+    @Test
+    public void distinct_asEmptyListAfterClassRemovedInOtherThread() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        // add a distinctive object
+        realm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                // create another object with same age
+                DynamicRealmObject object = realm.createObject(CLASS_NAME);
+                object.setLong("age", 12);
+                object.setString("name", "Mary");
+                object.setDate("birth",new Date(4321));
+            }
+        });
+
+        // distinct works as intended
+        final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
+        assertEquals(results.distinct("age").size(), 1);
+
+        // remove class in background
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
+                bgRealm.close();
+                bgRealmClosed.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgRealmClosed);
         assertEquals(results.distinct("age").size(), 0);
         realm.close();
     }
