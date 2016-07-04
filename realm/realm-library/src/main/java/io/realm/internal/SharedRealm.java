@@ -45,7 +45,10 @@ public final class SharedRealm implements Closeable {
         }
 
         @Override
-        public int compareTo(VersionID another) {
+        public int compareTo(@SuppressWarnings("NullableProblems") VersionID another) {
+            if (another == null) {
+                throw new IllegalArgumentException("Version cannot be compared to a null value.");
+            }
             if (version > another.version) {
                 return 1;
             } else if (version < another.version) {
@@ -101,9 +104,11 @@ public final class SharedRealm implements Closeable {
                 false,
                 false,
                 false);
-        SharedRealm sharedRealm = new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
-        nativeCloseConfig(nativeConfigPtr);
-        return sharedRealm;
+        try {
+            return new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
+        } finally {
+            nativeCloseConfig(nativeConfigPtr);
+        }
     }
 
     long getNativePtr() {
@@ -205,9 +210,11 @@ public final class SharedRealm implements Closeable {
 
     @Override
     public void close() {
-        if (nativePtr != 0) {
-            nativeCloseSharedRealm(nativePtr);
-            nativePtr = 0;
+        synchronized (context) {
+            if (nativePtr != 0) {
+                nativeCloseSharedRealm(nativePtr);
+                nativePtr = 0;
+            }
         }
     }
 

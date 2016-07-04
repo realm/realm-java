@@ -1496,7 +1496,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
     const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
 
-    Group* group = G(groupNativePtr);
+    auto group = reinterpret_cast<Group*>(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
 
     // Fix wrong types (string, int) -> (string, string)

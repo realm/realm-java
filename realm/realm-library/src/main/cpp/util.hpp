@@ -70,8 +70,6 @@ std::string num_to_string(T pNumber)
 }
 
 
-#define MAX_JLONG  0x7FFFFFFFFFFFFFFFLL
-#define MIN_JLONG -0x8000000000000000LL
 #define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
@@ -79,18 +77,13 @@ std::string num_to_string(T pNumber)
 // Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
 #define B(x)    static_cast<bool>(x)
-#define JB(x)   static_cast<jboolean>(x)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<realm::Table*>(x)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)
 #define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
-#define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
-#define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
-#define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
-#define RC(ptr) reinterpret_cast<realm::Realm::Config*>(ptr)
 
 // Exception handling
 // FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
@@ -678,17 +671,5 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 }
 
 extern const std::string TABLE_PREFIX;
-
-inline std::vector<char> jbytearray_to_vector(JNIEnv *env, jbyteArray bytes) {
-    if (bytes == nullptr) {
-        return {};
-    }
-
-    std::vector<char> v(env->GetArrayLength(bytes));
-    jbyte *ptr = env->GetByteArrayElements(bytes, NULL);
-    std::copy_n(ptr, v.size(), v.begin());
-    env->ReleaseByteArrayElements(bytes, ptr, JNI_ABORT);
-    return v;
-}
 
 #endif // REALM_JAVA_UTIL_HPP

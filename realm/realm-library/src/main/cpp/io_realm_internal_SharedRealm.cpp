@@ -30,7 +30,8 @@ Java_io_realm_internal_SharedRealm_nativeCloseConfig
 (JNIEnv *, jclass, jlong config_ptr) {
     TR_ENTER_PTR(config_ptr)
 
-    delete RC(config_ptr);
+    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    delete config;
 }
 
 JNIEXPORT jlong JNICALL
@@ -38,8 +39,9 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm
 (JNIEnv *env, jclass, jlong config_ptr) {
     TR_ENTER_PTR(config_ptr)
 
+    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
     try {
-        auto shared_realm = Realm::get_shared_realm(*RC(config_ptr));
+        auto shared_realm = Realm::get_shared_realm(*config);
         return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm)));
     } CATCH_STD()
     return NULL;
@@ -193,9 +195,15 @@ Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv *env, jclass, jlong sha
                                                   jstring table_name) {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor name(env, table_name); // throws
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        if (!shared_realm->read_group()->has_table(name) && !shared_realm->is_in_transaction()) {
+            std::ostringstream ss;
+            ss << "Table " << name << " doesn't exist and the shared realm is not in transaction.";
+            ThrowException(env, IllegalState, ss.str());
+            return NULL;
+        }
         Table* pTable = LangBindHelper::get_or_add_table(*shared_realm->read_group(), name);
         return reinterpret_cast<jlong>(pTable);
     } CATCH_STD()
@@ -224,9 +232,9 @@ Java_io_realm_internal_SharedRealm_nativeHasTable(JNIEnv *env, jclass, jlong sha
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor name(env, table_name);
-        return JB(shared_realm->read_group()->has_table(name));
+        return static_cast<jboolean >(shared_realm->read_group()->has_table(name));
     } CATCH_STD()
-    return JB(false);
+    return static_cast<jboolean >(false);
 }
 
 JNIEXPORT void JNICALL
@@ -237,6 +245,12 @@ Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor old_name(env, old_table_name);
+        if (!shared_realm->is_in_transaction()) {
+            std::ostringstream ss;
+            ss << "Table " << old_name << " cannot be removed when the shared realm is not in transaction.";
+            ThrowException(env, IllegalState, ss.str());
+            return;
+        }
         JStringAccessor new_name(env, new_table_name);
         shared_realm->read_group()->rename_table(old_name, new_name);
     } CATCH_STD()
@@ -250,6 +264,12 @@ Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv *env, jclass, jlong 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor name(env, table_name);
+        if (!shared_realm->is_in_transaction()) {
+            std::ostringstream ss;
+            ss << "Table " << name << " cannot be removed when the shared realm is not in transaction.";
+            ThrowException(env, IllegalState, ss.str());
+            return;
+        }
         shared_realm->read_group()->remove_table(name);
     } CATCH_STD()
 }
