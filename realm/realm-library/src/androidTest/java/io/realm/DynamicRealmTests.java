@@ -338,6 +338,7 @@ public class DynamicRealmTests {
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
         assertFalse(allTypes.isLoaded());
+        looperThread.keepStrongReference.add(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
             public void onChange(DynamicRealmObject object) {
