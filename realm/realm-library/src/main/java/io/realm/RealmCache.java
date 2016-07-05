@@ -200,9 +200,9 @@ final class RealmCache {
         refCount -= 1;
 
         if (refCount == 0) {
-
             //Before release realm from threadlocal, release it from global list.
             if (cache != null && refAndCount != null) {
+
                 BaseRealm localRealm = refAndCount.localRealm.get();
                 for (Iterator<WeakReference<BaseRealm>> itr = cache.globalBaseRealmReference.iterator(); itr.hasNext();) {
                     WeakReference<BaseRealm> realmRef = itr.next();
@@ -210,34 +210,34 @@ final class RealmCache {
                         itr.remove();
                     }
                 }
-            }
 
-            // The last instance in this thread.
-            // Clear local ref & counter
-            refAndCount.localCount.set(null);
-            refAndCount.localRealm.set(null);
+                // The last instance in this thread.
+                // Clear local ref & counter
+                refAndCount.localCount.set(null);
+                refAndCount.localRealm.set(null);
 
-            // Clear global counter
-            refAndCount.globalCount--;
-            if (refAndCount.globalCount < 0) {
-                // Should never happen.
-                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
-                        " got corrupted.");
-            }
+                // Clear global counter
+                refAndCount.globalCount--;
+                if (refAndCount.globalCount < 0) {
+                    // Should never happen.
+                    throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
+                            " got corrupted.");
+                }
 
-            // Clear the column indices cache if needed
-            if (realm instanceof Realm && refAndCount.globalCount == 0) {
-                // All typed Realm instances of this file are cleared from cache
-                cache.typedColumnIndices = null;
-            }
+                // Clear the column indices cache if needed
+                if (realm instanceof Realm && refAndCount.globalCount == 0) {
+                    // All typed Realm instances of this file are cleared from cache
+                    cache.typedColumnIndices = null;
+                }
 
-            int totalRefCount = 0;
-            for (RealmCacheType type : RealmCacheType.values()) {
-                totalRefCount += cache.refAndCountMap.get(type).globalCount;
-            }
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
-            if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
+                int totalRefCount = 0;
+                for (RealmCacheType type : RealmCacheType.values()) {
+                    totalRefCount += cache.refAndCountMap.get(type).globalCount;
+                }
+                // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
+                if (totalRefCount == 0) {
+                    cachesMap.remove(canonicalPath);
+                }
             }
 
             // No more local reference to this Realm in current thread, close the instance.
@@ -377,9 +377,9 @@ final class RealmCache {
        // Throw the exception if validation failed.
        cache.validateConfiguration(configuration);
        for (Iterator<WeakReference<BaseRealm>> itr = cache.globalBaseRealmReference.iterator(); itr.hasNext();) {
-           WeakReference<BaseRealm> realmRef = itr.next();
-           if (realmRef.get() != null) {
-               realmRef.get().handlerController.invalidateRemovedTableView(clazzName);
+           BaseRealm realm = itr.next().get();
+           if (realm != null) {
+               realm.handlerController.invalidateRemovedTableView(clazzName);
            }
        }
    }
