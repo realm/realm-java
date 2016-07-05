@@ -16,6 +16,10 @@
 
 package io.realm.internal;
 
+/**
+ * This class is to share some Android handler related constants between package {@link io.realm} and
+ * {@link io.realm.internal.async}.
+ */
 public final class HandlerControllerConstants {
     public static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     public static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;
