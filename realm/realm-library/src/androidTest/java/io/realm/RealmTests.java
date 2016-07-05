@@ -1964,6 +1964,7 @@ public class RealmTests {
 
         final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
 
+        final CountDownLatch bgThreadReadyLatch = new CountDownLatch(1);
         final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
         final CountDownLatch closedLatch = new CountDownLatch(1);
 
@@ -1973,6 +1974,7 @@ public class RealmTests {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(configuration);
+                bgThreadReadyLatch.countDown();
                 try {
                     readyToCloseLatch.await();
                 } catch (InterruptedException ignored) {
@@ -1985,6 +1987,10 @@ public class RealmTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
+
+        // Wait for bg thread's opening the same Realm.
+        TestHelper.awaitOrFail(bgThreadReadyLatch);
+
         // A core upgrade might change the location of the files
         assertTrue(tempDir.renameTo(tempDirRenamed));
         readyToCloseLatch.countDown();
