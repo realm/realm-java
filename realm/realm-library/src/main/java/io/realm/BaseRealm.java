@@ -37,7 +37,6 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
@@ -51,12 +50,12 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
+@SuppressWarnings("WeakerAccess")
 abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
-    private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
 
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -555,32 +554,6 @@ abstract class BaseRealm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
-    }
-
-    /**
-     * Sort a table using the given field names and sorting directions. If a field name does not
-     * exist in the table an {@link IllegalArgumentException} will be thrown.
-     */
-    protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
-        long columnIndices[] = new long[fieldNames.length];
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex == -1) {
-                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-            }
-            columnIndices[i] = columnIndex;
-        }
-
-        return table.getSortedView(columnIndices, sortOrders);
-    }
-
-    protected void checkAllObjectsSortedParameters(String[] fieldNames, Sort[] sortOrders) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrders must be provided.");
-        }
     }
 
     // Return all handlers registered for this Realm
