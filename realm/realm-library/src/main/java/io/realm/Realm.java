@@ -282,9 +282,11 @@ public final class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
+                    //mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
+                    mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
+                //columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
 
@@ -1144,7 +1146,7 @@ public final class Realm extends BaseRealm {
                     " and you provided a callback, we need a Handler to invoke your callback");
         }
 
-        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
@@ -1377,7 +1379,8 @@ public final class Realm extends BaseRealm {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            //table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            table = sharedRealm.getTable(configuration.getSchemaMediator().getTableName(clazz));
             classToTable.put(clazz, table);
         }
         return table;

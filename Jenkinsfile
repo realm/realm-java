@@ -49,6 +49,7 @@
 
                 stage 'Static code analysis'
                 try {
+                    sh 'adb devices'
                     sh 'cd realm && ./gradlew findbugs pmd checkstyle --stacktrace'
                 } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])

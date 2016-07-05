@@ -48,16 +48,16 @@ public abstract class RealmProxyMediator {
      * @param clazz the {@link RealmObject} model class to create backing table for.
      * @param transaction the read transaction for the Realm to create table in.
      */
-    public abstract Table createTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction);
+    public abstract Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to validate.
-     * @param transaction the read transaction for the Realm to validate against.
+     * @param sharedRealm the read transaction for the Realm to validate against.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction);
+    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.

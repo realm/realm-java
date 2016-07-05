@@ -16,19 +16,45 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class JNILinkTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
 
+@RunWith(AndroidJUnit4.class)
+public class JNILinkTest {
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    private SharedRealm sharedRealm;
+
+    @Before
+    public void setUp() {
+        RealmConfiguration config = configFactory.createConfiguration();
+        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm.beginTransaction();
+    }
+
+    @After
+    public void tearDown() {
+        sharedRealm.cancelTransaction();
+        sharedRealm.close();
+    }
+
+    @Test
     public void testLinkColumns() {
+        Table table1 = sharedRealm.getTable("table1");
 
-        Group group = new Group();
-
-        Table table1 = group.getTable("table1");
-
-        Table table2 = group.getTable("table2");
+        Table table2 = sharedRealm.getTable("table2");
         table2.addColumn(RealmFieldType.INTEGER, "int");
         table2.addColumn(RealmFieldType.STRING, "string");
 
@@ -53,18 +79,16 @@ public class JNILinkTest extends TestCase {
 
     }
 
+    @Test
     public void testLinkList() {
-
-        Group group = new Group();
-
-        Table table1 = group.getTable("table1");
+        Table table1 = sharedRealm.getTable("table1");
         table1.addColumn(RealmFieldType.INTEGER, "int");
         table1.addColumn(RealmFieldType.STRING, "string");
         table1.add(1, "c");
         table1.add(2, "b");
         table1.add(3, "a");
 
-        Table table2 = group.getTable("table2");
+        Table table2 = sharedRealm.getTable("table2");
 
         table2.addColumnLink(RealmFieldType.LIST, "LinkList", table1);
 
@@ -93,7 +117,5 @@ public class JNILinkTest extends TestCase {
 
         assertEquals(links.getUncheckedRow(0).getString(1), "a");
         assertEquals(links.size(), 1);
-
     }
-
 }

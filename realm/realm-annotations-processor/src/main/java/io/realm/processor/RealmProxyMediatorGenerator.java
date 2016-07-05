@@ -74,7 +74,7 @@ public class RealmProxyMediatorGenerator {
                 "java.util.Iterator",
                 "java.util.Collection",
                 "io.realm.internal.ColumnInfo",
-                "io.realm.internal.ImplicitTransaction",
+                "io.realm.internal.SharedRealm",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Table",
@@ -129,12 +129,12 @@ public class RealmProxyMediatorGenerator {
                 "Table",
                 "createTable",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "ImplicitTransaction", "transaction"
+                "Class<? extends RealmModel>", "clazz", "SharedRealm", "sharedRealm"
         );
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.initTable(transaction)", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return %s.initTable(sharedRealm)", qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();
@@ -147,12 +147,12 @@ public class RealmProxyMediatorGenerator {
                 "ColumnInfo",
                 "validateTable",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "ImplicitTransaction", "transaction"
+                "Class<? extends RealmModel>", "clazz", "SharedRealm", "sharedRealm"
         );
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.validateTable(transaction)", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return %s.validateTable(sharedRealm)", qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();
