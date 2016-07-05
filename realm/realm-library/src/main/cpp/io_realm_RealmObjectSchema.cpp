@@ -102,15 +102,9 @@ Java_io_realm_internal_RealmObjectSchema_nativeRemovePropertyByName
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
     try {
         JStringAccessor str(env, name);
-        auto iterator = object_schema->persisted_properties.begin();
-        while (iterator != object_schema->persisted_properties.end()) {
-            Property& property = *iterator;
-            if (str == property.name) {
-                object_schema->persisted_properties.erase(iterator);
-                break;
-            }
-            iterator++;
-        }
+        object_schema->persisted_properties.erase(std::remove_if(object_schema->persisted_properties.begin(),
+                                                                 object_schema->persisted_properties.end(),
+                                                                 [](Property p){ return p.name == str; }));
     }
     CATCH_STD()
 }

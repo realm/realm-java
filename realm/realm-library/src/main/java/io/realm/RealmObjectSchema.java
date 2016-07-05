@@ -89,6 +89,15 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Returns the native/C++ pointer.
+     *
+     * @return
+     */
+    public long getNativePtr() {
+        return this.nativePtr;
+    }
+
+    /**
      * Returns the name of the RealmObject class being represented by this schema.
      * <p>
      * <ul>

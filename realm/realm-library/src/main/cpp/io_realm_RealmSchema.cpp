@@ -75,8 +75,11 @@ io_realm_RealmSchema_nativeRemoveObjectSchemaByName(JNIEnv *env, jclass, jlong n
     auto *schema = reinterpret_cast<Schema*>(native_schema_ptr);
     try {
         JStringAccessor name(env, j_name);
-        auto object_schema = schema->find(name);
-        schema->erase(object_schema);
+        auto it = schema->find(name);
+        if (it == schema->end()) {
+            return;
+        }
+        schema->erase(it);
     }
     CATCH_STD()
 }
@@ -88,12 +91,12 @@ io_realm_RealmSchema_nativeGetObjectSchemaByName(JNIEnv *env, jclass, jlong nati
     auto *schema = reinterpret_cast<Schema*>(native_schema_ptr);
     try {
         JStringAccessor name(env, j_name);
-        auto object_schema_iterator = schema->find(name);
-        if (object_schema_iterator == schema->end()) {
+        auto it = schema->find(name);
+        if (it == schema->end()) {
             return nullptr;
         }
         else {
-            auto object_schema = *object_schema_iterator;
+            auto& object_schema = *it;
             return reinterpret_cast<jlong>(&object_schema);
         }
     }
