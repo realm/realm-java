@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.IdentitySet;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -44,16 +45,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-public final class HandlerController implements Handler.Callback {
-
-    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;
-    static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
-    static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
-    // TODO: public (and the public HandlerController) because of QueryUpdateTask. This needs some refactor, one idea is
-    // catching and forwarding throwable in BgPriorityRunnable for all background tasks.
-    public static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
-    static final int LOCAL_COMMIT = 165580141;
+final class HandlerController implements Handler.Callback {
 
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
@@ -121,28 +113,28 @@ public final class HandlerController implements Handler.Callback {
             QueryUpdateTask.Result result;
             switch (message.what) {
 
-                case LOCAL_COMMIT:
-                case REALM_CHANGED:
-                    realmChanged(message.what == LOCAL_COMMIT);
+                case HandlerControllerConstants.LOCAL_COMMIT:
+                case HandlerControllerConstants.REALM_CHANGED:
+                    realmChanged(message.what == HandlerControllerConstants.LOCAL_COMMIT);
                     break;
 
-                case COMPLETED_ASYNC_REALM_RESULTS:
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS:
                     result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncRealmResults(result);
                     break;
 
-                case COMPLETED_ASYNC_REALM_OBJECT:
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT:
                     result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncRealmObject(result);
                     break;
 
-                case COMPLETED_UPDATE_ASYNC_QUERIES:
+                case HandlerControllerConstants.COMPLETED_UPDATE_ASYNC_QUERIES:
                     // this is called once the background thread completed the update of the async queries
                     result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueriesUpdate(result);
                     break;
 
-                case REALM_ASYNC_BACKGROUND_EXCEPTION:
+                case HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION:
                     // Don't fail silently in the background in case of Core exception
                     throw (Error) message.obj;
 
@@ -279,7 +271,7 @@ public final class HandlerController implements Handler.Callback {
                                 .addObject(next.getKey(),
                                         next.getValue().handoverQueryPointer(),
                                         next.getValue().getArgument())
-                                .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_OBJECT)
+                                .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT)
                                 .build());
 
             } else {
@@ -420,7 +412,7 @@ public final class HandlerController implements Handler.Callback {
         }
         if (realmResultsQueryStep != null) {
             QueryUpdateTask queryUpdateTask = realmResultsQueryStep
-                    .sendToHandler(realm.handler, COMPLETED_UPDATE_ASYNC_QUERIES)
+                    .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_UPDATE_ASYNC_QUERIES)
                     .build();
             updateAsyncQueriesTask = Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
         }
@@ -503,7 +495,7 @@ public final class HandlerController implements Handler.Callback {
                                 .add(weakRealmResults,
                                         query.handoverQueryPointer(),
                                         query.getArgument())
-                                .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_RESULTS)
+                                .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS)
                                 .build();
 
                         Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
@@ -645,7 +637,7 @@ public final class HandlerController implements Handler.Callback {
                                 .addObject(realmObjectWeakReference,
                                         realmQuery.handoverQueryPointer(),
                                         realmQuery.getArgument())
-                                .sendToHandler(realm.handler, COMPLETED_ASYNC_REALM_OBJECT)
+                                .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT)
                                 .build();
 
                         Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);

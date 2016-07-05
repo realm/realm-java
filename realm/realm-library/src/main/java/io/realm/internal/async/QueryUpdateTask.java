@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import io.realm.HandlerController;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
@@ -101,11 +101,16 @@ public class QueryUpdateTask implements Runnable {
                 handler.obtainMessage(message, result).sendToTarget();
             }
 
+        } catch (BadVersionException e) {
+            // In some rare race conditions, this can happen. In that case, just ignore the error.
+            RealmLog.d("Query update task could not complete due to a BadVersionException. " +
+                    "Retry is scheduled by a REALM_CHANGED event.");
+
         } catch (Throwable e) {
             RealmLog.e(e.getMessage(), e);
             Handler handler = callerHandler.get();
             if (handler != null && handler.getLooper().getThread().isAlive()) {
-                handler.obtainMessage(HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e)).sendToTarget();
+                handler.obtainMessage(HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e)).sendToTarget();
             }
 
         } finally {
