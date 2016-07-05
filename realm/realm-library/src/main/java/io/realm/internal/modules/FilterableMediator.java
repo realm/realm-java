@@ -121,9 +121,6 @@ public class FilterableMediator extends RealmProxyMediator {
 
     @Override
     public void insert(Realm realm, Collection<? extends RealmModel> objects) {
-        if (objects.isEmpty()) {
-            return;
-        }
         checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
         originalMediator.insert(realm, objects);
     }
@@ -136,9 +133,6 @@ public class FilterableMediator extends RealmProxyMediator {
 
     @Override
     public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
-        if (objects.isEmpty()) {
-            return;
-        }
         checkSchemaHasClass(Util.getOriginalModelClass(objects.iterator().next().getClass()));
         originalMediator.insertOrUpdate(realm, objects);
     }

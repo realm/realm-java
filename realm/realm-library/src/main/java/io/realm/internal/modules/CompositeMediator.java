@@ -106,9 +106,6 @@ public class CompositeMediator extends RealmProxyMediator {
 
     @Override
     public void insert(Realm realm, Collection<? extends RealmModel> objects) {
-        if (objects.isEmpty()) {
-            return;
-        }
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(Util.getOriginalModelClass(objects.iterator().next().getClass())));
         mediator.insert(realm, objects);
     }
@@ -121,9 +118,6 @@ public class CompositeMediator extends RealmProxyMediator {
 
     @Override
     public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
-        if (objects.isEmpty()) {
-            return;
-        }
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(Util.getOriginalModelClass(objects.iterator().next().getClass())));
         mediator.insertOrUpdate(realm, objects);
     }
