@@ -29,50 +29,10 @@ public class MigrationFieldTypeToInt extends RealmObject implements MigrationPri
 
     public static String FIELD_PRIMARY = "fieldIntPrimary";
 
-    private Byte fieldFirst;
-    private Short fieldSecond;
+    public Byte fieldFirst;
+    public Short fieldSecond;
     @PrimaryKey
-    private int fieldIntPrimary;
-    private Integer fieldFourth;
-    private Long fieldFifth;
-
-    public void setFieldFirst(Byte fieldFirst) {
-        this.fieldFirst = fieldFirst;
-    }
-
-    public Byte getFieldFirst() {
-        return this.fieldFirst;
-    }
-
-    public void setFieldSecond(Short fieldSecond) {
-        this.fieldSecond = fieldSecond;
-    }
-
-    public Short getFieldSecond() {
-        return this.fieldSecond;
-    }
-
-    public void setFieldIntPrimary(int fieldIntPrimary) {
-        this.fieldIntPrimary = fieldIntPrimary;
-    }
-
-    public int getFieldIntPrimary() {
-        return this.fieldIntPrimary;
-    }
-
-    public void setFieldFourth(Integer fieldFourth) {
-        this.fieldFourth = fieldFourth;
-    }
-
-    public Integer getFieldFourth() {
-        return this.fieldFourth;
-    }
-
-    public void setFieldFifth(Long fieldFifth) {
-        this.fieldFifth = fieldFifth;
-    }
-
-    public Long getFieldFifth() {
-        return this.fieldFifth;
-    }
+    public int fieldIntPrimary;
+    public Integer fieldFourth;
+    public Long fieldFifth;
 }

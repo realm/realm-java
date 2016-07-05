@@ -378,21 +378,25 @@ public class RealmMigrationTests {
 
     private void createObjectsWithOldPrimaryKey(final String className, final boolean insertNullValue) {
         DynamicRealm realm = DynamicRealm.getInstance(configFactory.createConfigurationBuilder().build());
-        realm.executeTransaction(new DynamicRealm.Transaction() {
-            @Override
-            public void execute(DynamicRealm realm) {
-                realm.createObject(className).setString(MigrationPrimaryKey.FIELD_PRIMARY, "12");
-                if (insertNullValue) {
-                    realm.createObject(className).setString(MigrationPrimaryKey.FIELD_PRIMARY, null);
+        try {
+            realm.executeTransaction(new DynamicRealm.Transaction() {
+                @Override
+                public void execute(DynamicRealm realm) {
+                    realm.createObject(className).setString(MigrationPrimaryKey.FIELD_PRIMARY, "12");
+                    if (insertNullValue) {
+                        realm.createObject(className).setString(MigrationPrimaryKey.FIELD_PRIMARY, null);
+                    }
                 }
-            }
-        });
-        realm.close();
+            });
+        } finally {
+            realm.close();
+        }
     }
 
     // This is to test how PK type can change to non-nullable int in migration
     @Test
     public void modifyPrimaryKeyFieldTypeToIntInMigration() {
+        final String TEMP_FIELD_ID = "temp_id";
         buildInitialMigrationSchema(MigrationFieldTypeToInt.CLASS_NAME, false);
         // create objects with the schema provided
         createObjectsWithOldPrimaryKey(MigrationFieldTypeToInt.CLASS_NAME, true);
@@ -407,7 +411,7 @@ public class RealmMigrationTests {
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
                                 if (fieldValue != null && fieldValue.length() != 0) {
-                                    obj.setInt("temp_id", Integer.valueOf(fieldValue).intValue());
+                                    obj.setInt(TEMP_FIELD_ID, Integer.valueOf(fieldValue).intValue());
                                 } else {
                                     // Since this cannot be accepted as proper pk value, we'll delete it.
                                     // *You can modify with some other value such as 0, but that's not
@@ -417,7 +421,7 @@ public class RealmMigrationTests {
                             }
                         })
                         .removeField(MigrationPrimaryKey.FIELD_PRIMARY)
-                        .renameField("temp_id", MigrationFieldTypeToInt.FIELD_PRIMARY)
+                        .renameField(TEMP_FIELD_ID, MigrationFieldTypeToInt.FIELD_PRIMARY)
                         .addPrimaryKey(MigrationFieldTypeToInt.FIELD_PRIMARY);
             }
         };
@@ -437,12 +441,13 @@ public class RealmMigrationTests {
         assertFalse(objectSchema.hasField(MigrationPrimaryKey.FIELD_PRIMARY));
         assertEquals(MigrationFieldTypeToInt.FIELD_PRIMARY, objectSchema.getPrimaryKey());
         assertEquals(1, realm.where(MigrationFieldTypeToInt.class).count());
-        assertEquals(12, realm.where(MigrationFieldTypeToInt.class).findFirst().getFieldIntPrimary());
+        assertEquals(12, realm.where(MigrationFieldTypeToInt.class).findFirst().fieldIntPrimary);
     }
 
     // This is to test how PK type can change to nullable Integer in migration
     @Test
     public void modifyPrimaryKeyFieldTypeToIntegerInMigration() {
+        final String TEMP_FIELD_ID = "temp_id";
         buildInitialMigrationSchema(MigrationFieldTypeToInteger.CLASS_NAME, false);
         // create objects with the schema provided
         createObjectsWithOldPrimaryKey(MigrationFieldTypeToInteger.CLASS_NAME, true);
@@ -457,14 +462,14 @@ public class RealmMigrationTests {
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
                                 if (fieldValue != null && fieldValue.length() != 0) {
-                                    obj.setInt("temp_id", Integer.valueOf(fieldValue));
+                                    obj.setInt(TEMP_FIELD_ID, Integer.valueOf(fieldValue));
                                 } else {
-                                    obj.setNull("temp_id");
+                                    obj.setNull(TEMP_FIELD_ID);
                                 }
                             }
                         })
                         .removeField(MigrationPrimaryKey.FIELD_PRIMARY)
-                        .renameField("temp_id", MigrationFieldTypeToInteger.FIELD_PRIMARY)
+                        .renameField(TEMP_FIELD_ID, MigrationFieldTypeToInteger.FIELD_PRIMARY)
                         .addPrimaryKey(MigrationFieldTypeToInteger.FIELD_PRIMARY);
             }
         };
