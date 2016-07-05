@@ -1020,6 +1020,7 @@ public class NotificationsTest {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -1227,6 +1228,7 @@ public class NotificationsTest {
 
         assertEquals(1, results.size());
 
+        looperThread.keepStrongReference.add(asyncResults);
         asyncResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -1325,6 +1327,7 @@ public class NotificationsTest {
         realm.commitTransaction();
 
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -1344,6 +1347,7 @@ public class NotificationsTest {
         final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
 
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -1380,6 +1384,8 @@ public class NotificationsTest {
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
+
+        looperThread.keepStrongReference.add(syncResults1);
         syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
