@@ -100,7 +100,6 @@ public class RealmLinkTests {
         if (testRealm != null) {
             testRealm.close();
         }
-        Realm.deleteRealm(realmConfig);
     }
 
     @Test
