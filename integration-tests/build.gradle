@@ -15,8 +15,8 @@ allprojects {
             jcenter()
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:2.1.0'
-            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+            classpath 'com.android.tools.build:gradle:2.1.2'
+            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
             classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
             classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
