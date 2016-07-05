@@ -1,96 +1,58 @@
 #!groovy
 
-{ ->
-    try {
-        node('docker') {
-            stage 'SCM'
-            if (isPullRequest()) {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "origin/pull/${GITHUB_PR_NUMBER}/head"]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'CleanCheckout']],
-                    gitTool: 'native git',
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[
-                    credentialsId: '1642fb1a-1a82-4b10-a25e-f9e95f43c93f',
-                    name: 'origin',
-                    refspec: "+refs/heads/master:refs/remotes/origin/master +refs/pull/${GITHUB_PR_NUMBER}/head:refs/remotes/origin/pull/${GITHUB_PR_NUMBER}/head",
-                    url: 'https://github.com/realm/realm-java.git'
-                    ]]
-                ])
-            } else {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/master']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'CleanCheckout']],
-                    gitTool: 'native git',
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[url: 'https://github.com/realm/realm-java.git']]
-                ])
-            }
+node('docker') {
+    stage 'SCM'
+    checkout scm
+    sh 'git clean -ffdx -e .????????'
 
-            stage 'Docker build'
-            def buildEnv = docker.build 'realm-java:snapshot'
-            buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
-                stage 'JVM tests'
-                try {
-                    gradle 'assemble check javadoc'
-                } finally {
-                    storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
-                }
-
-                try {
-                    sh 'cd examples && ./gradlew unitTestExample:check --stacktrace'
-                } finally {
-                    storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-                }
-
-                stage 'Static code analysis'
-                try {
-                    sh 'cd realm && ./gradlew findbugs pmd checkstyle --stacktrace'
-                } finally {
-                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                }
-
-                stage 'Run instrumented tests'
-                boolean archiveLog = true
-                String backgroundPid
-                try {
-                    backgroundPid = startLogCatCollector()
-                    sh 'cd realm && ./gradlew connectedUnitTests --stacktrace'
-                    archiveLog = false;
-                } finally {
-                    stopLogCatCollector(backgroundPid, archiveLog)
-                    storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
-                }
-
-               // TODO: add support for running monkey on the example apps
-
-                if (env.BRANCH_NAME == 'master') {
-                    stage 'Collect metrics'
-                    collectAarMetrics()
-
-                    stage 'Publish to OJO'
-                    sh 'chmod +x gradlew && ./gradlew assemble ojoUpload'
-                }
-            }
+    stage 'Docker build'
+    def buildEnv = docker.build 'realm-java:snapshot'
+    buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+        stage 'JVM tests'
+        try {
+            gradle 'assemble check javadoc'
+        } finally {
+            storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
         }
 
-        currentBuild.rawBuild.setResult(Result.SUCCESS)
-    } catch (Exception e) {
-        echo "The job failed with the following exception: ${e.getMessage()}"
-        currentBuild.rawBuild.setResult(Result.FAILURE)
-    } finally {
-        if (isPullRequest()) {
-            node {
-                reportResultToGithub()
-            }
+        try {
+            sh 'cd examples && chmod +x gradlew && ./gradlew unitTestExample:check --stacktrace'
+        } finally {
+            storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+        }
+
+        stage 'Static code analysis'
+        try {
+            sh 'cd realm && chmod +x gradlew  && ./gradlew findbugs pmd checkstyle --stacktrace'
+        } finally {
+            publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+            publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+        }
+
+        stage 'Run instrumented tests'
+        boolean archiveLog = true
+        String backgroundPid
+        try {
+            backgroundPid = startLogCatCollector()
+            sh 'cd realm && chmod +x gradlew  && ./gradlew connectedUnitTests --stacktrace'
+            archiveLog = false;
+        } finally {
+            stopLogCatCollector(backgroundPid, archiveLog)
+            storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
+        }
+
+       // TODO: add support for running monkey on the example apps
+
+        if (env.BRANCH_NAME == 'master') {
+            stage 'Collect metrics'
+            collectAarMetrics()
+
+            stage 'Publish to OJO'
+            gradle 'assemble ojoUpload'
         }
     }
 }
+
 
 def String startLogCatCollector() {
     sh '''adb logcat -c
@@ -110,18 +72,6 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
         ])
     }
     sh 'rm logcat.txt '
-}
-
-def isPullRequest() {
-    return binding.variables.containsKey('GITHUB_PR_NUMBER')
-}
-
-def reportResultToGithub() {
-    step([
-        $class: 'GitHubPRBuildStatusPublisher',
-        statusMsg: [content: "${GITHUB_PR_COND_REF} run ended"],
-        unstableAs: 'FAILURE'
-    ])
 }
 
 def sendMetrics(String metric, String value) {
