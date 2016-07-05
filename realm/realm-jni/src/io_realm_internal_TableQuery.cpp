@@ -19,7 +19,6 @@
 #include <realm/commit_log.hpp>
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
-#include "tablequery.hpp"
 
 using namespace realm;
 
@@ -38,7 +37,7 @@ inline bool query_valid(JNIEnv* env, Query* pQuery)
 
 inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colIndex, DataType type)
 {
-    return TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TQ(nativeQueryPtr)->get_current_table().get(), colIndex, type);
+    return TBL_AND_COL_INDEX_AND_TYPE_VALID(env, Q(nativeQueryPtr)->get_table().get(), colIndex, type);
 }
 
 
@@ -979,40 +978,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNot(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeSubtable(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
-{
-    TableQuery* pTQuery = TQ(nativeQueryPtr);
-    if (!QUERY_VALID(env, pTQuery))
-        return;
-
-    try {
-        Table* pTable = pTQuery->get_current_table().get();
-        pTQuery->push_subtable(S(columnIndex));
-        if (!COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Table))
-            return;
-
-        pTQuery->subtable(S(columnIndex));
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeParent(
-    JNIEnv* env, jobject, jlong nativeQueryPtr)
-{
-    TableQuery* pTQuery = TQ(nativeQueryPtr);
-    if (!QUERY_VALID(env, pTQuery))
-        return;
-    try {
-        if (pTQuery->pop_subtable()) {
-            pTQuery->end_subtable();
-        }
-        else {
-            ThrowException(env, UnsupportedOperation, "No matching subtable().");
-        }
-    } CATCH_STD()
-}
-
-
 // Find --------------------------------------
 
 
@@ -1170,12 +1135,12 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         std::vector<std::unique_ptr<Query>> queries(number_of_queries);
 
         // import the first query
-        queries[0] = std::move(sg->import_from_handover(std::move(handoverQuery)));
+        queries[0] = sg->import_from_handover(std::move(handoverQuery));
 
         // import the rest of the queries
         for (size_t i = 1; i < number_of_queries; ++i) {
             std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(HO(Query, handover_queries_pointer_array[i]));
-            queries[i] = std::move(sg->import_from_handover(std::move(handoverQuery)));
+            queries[i] = sg->import_from_handover(std::move(handoverQuery));
         }
 
         // Step2: Bring the queries into the latest shared group version

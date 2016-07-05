@@ -5,4 +5,5 @@
     <issue id="GoogleAppIndexingWarning" severity="ignore" />
     <issue id="TrulyRandom" severity="ignore" />
     <issue id="PrngFix" severity="ignore" />
+    <issue id="LogNotTimber" severity="ignore" />
 </lint>

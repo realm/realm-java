@@ -16,9 +16,7 @@ android {
 
     defaultConfig {
         minSdkVersion 9
-        // keep targetSdkVersion 23 in order for 1.0.x compatibility
-        //noinspection OldTargetApi
-        targetSdkVersion 23
+        targetSdkVersion 24
         project.archivesBaseName = "realm-android-library"
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

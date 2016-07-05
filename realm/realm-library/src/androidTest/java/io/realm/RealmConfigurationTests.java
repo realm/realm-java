@@ -258,7 +258,7 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void setModules_nonRealmModulesThrows() {
+    public void modules_nonRealmModulesThrows() {
         // Test first argument
         try {
             new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
@@ -850,8 +850,10 @@ public class RealmConfigurationTests {
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm")
+        RealmConfiguration configuration = new RealmConfiguration
+                .Builder(context)
                 .modules(new AssetFileModule())
+                .assetFile(context, "asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
 
