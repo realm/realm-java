@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
+* Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
 
 ## 1.1.0
 

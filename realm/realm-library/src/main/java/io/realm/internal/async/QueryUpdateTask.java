@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
+import io.realm.HandlerController;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
@@ -100,8 +101,12 @@ public class QueryUpdateTask implements Runnable {
                 handler.obtainMessage(message, result).sendToTarget();
             }
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             RealmLog.e(e.getMessage(), e);
+            Handler handler = callerHandler.get();
+            if (handler != null && handler.getLooper().getThread().isAlive()) {
+                handler.obtainMessage(HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e)).sendToTarget();
+            }
 
         } finally {
             if (sharedGroup != null) {

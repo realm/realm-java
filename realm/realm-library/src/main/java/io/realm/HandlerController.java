@@ -44,13 +44,15 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-final class HandlerController implements Handler.Callback {
+public final class HandlerController implements Handler.Callback {
 
     static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     static final int COMPLETED_UPDATE_ASYNC_QUERIES = 24157817;
     static final int COMPLETED_ASYNC_REALM_RESULTS = 39088169;
     static final int COMPLETED_ASYNC_REALM_OBJECT = 63245986;
-    static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
+    // TODO: public (and the public HandlerController) because of QueryUpdateTask. This needs some refactor, one idea is
+    // catching and forwarding throwable in BgPriorityRunnable for all background tasks.
+    public static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
     static final int LOCAL_COMMIT = 165580141;
 
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
