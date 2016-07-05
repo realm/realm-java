@@ -70,7 +70,7 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (env.BRANCH_NAME in ['master', 'releases']) {
+  if (['master', 'releases'].contains(env.BRANCH_NAME)) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
