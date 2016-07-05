@@ -405,6 +405,98 @@ public class RealmQueryTests {
     }
 
     @Test
+    public void equalToAny_string() {
+        populateTestRealm(realm, 200);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_STRING, (String[]) null).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_STRING, new String[] {}).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_STRING, new String[] {"test data 15"}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_STRING, new String[] {"test data 15", "test data 117", "test data 30", "test data 199"}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_STRING, new String[] {"TEST data 15", "TEST data 117", "test DATA 30", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_STRING, new String[] {}).findAll();
+        assertEquals(200, resultList.size());
+    }
+
+    @Test
+    public void equalToAny_boolean() {
+        populateTestRealm(realm, 200);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_BOOLEAN, (boolean[]) null).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_BOOLEAN, new boolean[] {}).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_BOOLEAN, new boolean[] {false}).findAll();
+        assertEquals(133, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_BOOLEAN, new boolean[] {true}).findAll();
+        assertEquals(67, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_BOOLEAN, new boolean[] {true, false}).findAll();
+        assertEquals(200, resultList.size());
+    }
+
+    @Test
+    public void equalToAny_double() {
+        populateTestRealm(realm, 200);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_DOUBLE, (double[]) null).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_DOUBLE, new double[] {}).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_DOUBLE, new double[] {3.1415}).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_DOUBLE, new double[] {2.34}).findAll();
+        assertEquals(0, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_DOUBLE, new double[] {3.1415, 2.34}).findAll();
+        assertEquals(200, resultList.size());
+    }
+
+    @Test
+    public void equalToAny_float() {
+        populateTestRealm(realm, 200);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_FLOAT, (float[]) null).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_FLOAT, new float[] {}).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_FLOAT, new float[] {1.234567f}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_FLOAT, new float[] {1.234567f + 1}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_FLOAT, new float[] {1.234567f, 1.234567f + 1}).findAll();
+        assertEquals(2, resultList.size());
+    }
+
+    @Test
+    public void equalToAny_long() {
+        populateTestRealm(realm, 200);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_LONG, (long[]) null).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_LONG, new long[] {}).findAll();
+        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_LONG, new long[] {11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_LONG, new long[] {13}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).equalToAny(AllTypes.FIELD_LONG, new long[] {12, 13, 15, 99}).findAll();
+        assertEquals(4, resultList.size());
+    }
+
+    @Test
     public void notEqualTo() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(realm, TEST_OBJECTS_COUNT);

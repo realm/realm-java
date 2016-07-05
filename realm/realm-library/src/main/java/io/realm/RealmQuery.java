@@ -404,6 +404,191 @@ public final class RealmQuery<E extends RealmModel> {
         return this;
     }
 
+    // EqualToAny
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, String[] values) {
+        return equalToAny(fieldName, values, Case.SENSITIVE);
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, String[] values, Case casing) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0], casing);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i], casing);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, byte[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, short[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, int[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, long[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, double[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, float[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, boolean[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to-any comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param values the array of values to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalToAny(String fieldName, Date[] values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+        equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; ++i) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return this;
+    }
+
     // Not Equal
 
     /**
