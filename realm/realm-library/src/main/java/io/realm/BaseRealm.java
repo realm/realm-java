@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroupManager;
@@ -410,14 +411,14 @@ abstract class BaseRealm implements Closeable {
                     // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
                     // be responsive.
                     Message msg = Message.obtain();
-                    msg.what = HandlerController.LOCAL_COMMIT;
-                    if (!handler.hasMessages(HandlerController.LOCAL_COMMIT)) {
-                        handler.removeMessages(HandlerController.REALM_CHANGED);
+                    msg.what = HandlerControllerConstants.LOCAL_COMMIT;
+                    if (!handler.hasMessages(HandlerControllerConstants.LOCAL_COMMIT)) {
+                        handler.removeMessages(HandlerControllerConstants.REALM_CHANGED);
                         messageHandled = handler.sendMessageAtFrontOfQueue(msg);
                     }
                 } else {
-                    if (!handler.hasMessages(HandlerController.REALM_CHANGED)) {
-                        messageHandled = handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+                    if (!handler.hasMessages(HandlerControllerConstants.REALM_CHANGED)) {
+                        messageHandled = handler.sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
                     }
                 }
                 if (!messageHandled) {

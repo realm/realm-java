@@ -42,6 +42,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
@@ -488,7 +489,7 @@ public class RealmAsyncQueryTests {
                 switch (what) {
                     // 5. Intercept all messages from other threads. On the first complete, we advance the tread
                     // which will cause the async query to rerun instead of triggering the change listener.
-                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS:
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS:
                         if (intercepts == 1) {
                             // We advance the Realm so we can simulate a retry
                             realm.beginTransaction();
@@ -545,7 +546,7 @@ public class RealmAsyncQueryTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 int intercepts = numberOfIntercept.getAndIncrement();
-                if (what == HandlerController.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
+                if (what == HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
                     // 4. The first time the async queries complete we start an update from
                     // another background thread. This will cause queries to rerun when the
                     // background thread notifies this thread.
@@ -652,7 +653,7 @@ public class RealmAsyncQueryTests {
                 // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
-                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
                         // we advance the Realm so we can simulate a retry
                         if (intercepts == 1) {
                             realm.beginTransaction();
@@ -710,7 +711,7 @@ public class RealmAsyncQueryTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
-                    case HandlerController.REALM_CHANGED: {
+                    case HandlerControllerConstants.REALM_CHANGED: {
                         // should only intercept the first REALM_CHANGED coming from the
                         // background update thread
 
@@ -720,11 +721,11 @@ public class RealmAsyncQueryTests {
                         // upcoming REALM_CHANGED to batch update all async queries
                         return numberOfInterceptedChangeMessage.getAndIncrement() == 0;
                     }
-                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
                         if (numberOfCompletedAsyncQuery.incrementAndGet() == 2) {
                             // both queries have completed now (& their results should be ignored)
                             // now send the REALM_CHANGED event that should batch update all queries
-                            sendEmptyMessage(HandlerController.REALM_CHANGED);
+                            sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
                         }
                     }
                 }
@@ -944,7 +945,7 @@ public class RealmAsyncQueryTests {
             public boolean onInterceptInMessage(int what) {
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
-                    case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
                         if (intercepts == 1) {
                             // we advance the Realm so we can simulate a retry
                             realm.beginTransaction();
@@ -1040,7 +1041,7 @@ public class RealmAsyncQueryTests {
                 // In order [QueryCompleted, RealmChanged, QueryUpdated]
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
-                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
                         if (intercepts == 1) {
                             // We advance the Realm so we can simulate a retry before listeners are
                             // called.
@@ -1103,7 +1104,7 @@ public class RealmAsyncQueryTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
-                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
                         if (numberOfIntercept.incrementAndGet() == 1) {
                             // 6. The first time the async queries complete we start an update from
                             // another background thread. This will cause queries to rerun when the
@@ -1240,7 +1241,7 @@ public class RealmAsyncQueryTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 int intercepts = numberOfIntercept.incrementAndGet();
-                if (what == HandlerController.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
+                if (what == HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
                     // 6. The first time the async queries complete we start an update from
                     // another background thread. This will cause queries to rerun when the
                     // background thread notifies this thread.
