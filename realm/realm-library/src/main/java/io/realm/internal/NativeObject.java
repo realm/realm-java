@@ -19,8 +19,9 @@ package io.realm.internal;
 /**
  * This abstract class represents a native object from core.
  * It specifies the operations common to all such objects.
- * All Java classes wrapping a core class should extend NativeObject.
+ * All Java classes wrapping a core class should implement NativeObject.
  */
-public abstract class NativeObject {
-    long nativePointer;
+interface NativeObject {
+    long getNativePointer();
+    long getNativeFinalizer();
 }

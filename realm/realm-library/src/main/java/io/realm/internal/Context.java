@@ -67,8 +67,8 @@ public class Context {
 
     private boolean isFinalized = false;
 
-    public synchronized void addReference(int type, NativeObject referent) {
-        referencesPool.add(new NativeObjectReference(type, referent, referenceQueue, referencesPool.getFreeIndex()));
+    public synchronized void addReference(NativeObject referent) {
+        referencesPool.add(new NativeObjectReference(referent, referenceQueue, referencesPool.getFreeIndex()));
     }
 
     public synchronized void executeDelayedDisposal() {
@@ -131,14 +131,6 @@ public class Context {
         else {
             abandonedQueries.add(nativePointer);
         }
-    }
-
-    public void asyncDisposeGroup(long nativePointer) {
-        Group.nativeClose(nativePointer);
-    }
-
-    public void asyncDisposeSharedGroup(long nativePointer) {
-        SharedGroup.nativeClose(nativePointer);
     }
 
     protected void finalize() throws Throwable {

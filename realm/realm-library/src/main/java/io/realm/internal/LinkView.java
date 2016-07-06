@@ -21,11 +21,12 @@ import io.realm.RealmFieldType;
 /**
  * The LinkView class represents a core {@link RealmFieldType#LIST}.
  */
-public class LinkView extends NativeObject {
+public class LinkView implements NativeObject {
 
     private final Context context;
     final Table parent;
     final long columnIndexInParent;
+    private final long nativePointer;
 
     public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
@@ -34,7 +35,18 @@ public class LinkView extends NativeObject {
         this.nativePointer = nativeLinkViewPtr;
 
         context.executeDelayedDisposal();
-        context.addReference(NativeObjectReference.TYPE_LINK_VIEW, this);
+        context.addReference(this);
+    }
+
+
+    @Override
+    public long getNativePointer() {
+        return nativePointer;
+    }
+
+    @Override
+    public long getNativeFinalizer() {
+        return nativeGetFinalizer();
     }
 
     /**
@@ -184,4 +196,5 @@ public class LinkView extends NativeObject {
     private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
     private native long nativeGetTargetTable(long nativeLinkViewPtr);
+    private static native long nativeGetFinalizer();
 }

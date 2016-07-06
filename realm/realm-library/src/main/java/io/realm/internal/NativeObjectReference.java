@@ -23,26 +23,20 @@ import java.lang.ref.ReferenceQueue;
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
  */
-public final class NativeObjectReference extends PhantomReference<NativeObject> {
-
-    // Using int here instead of enum to make it faster since the cleanup needs to be called
-    // in a loop to dealloc every native reference.
-    public static final int TYPE_LINK_VIEW = 0;
-    public static final int TYPE_ROW = 1;
+final class NativeObjectReference extends PhantomReference<NativeObject> {
 
     // The pointer to the native object to be handled
-    final long nativePointer;
-    final int type;
+    private final long nativePtr;
+    private final long nativeFinalizerPtr;
     // Use boxed type to avoid box/un-box when access the freeIndexList
     final Integer refIndex;
 
-    NativeObjectReference(int type,
-                          NativeObject referent,
+    NativeObjectReference(NativeObject referent,
                           ReferenceQueue<? super NativeObject> referenceQueue,
                           Integer index) {
         super(referent, referenceQueue);
-        this.type = type;
-        this.nativePointer = referent.nativePointer;
+        this.nativePtr = referent.getNativePointer();
+        this.nativeFinalizerPtr = referent.getNativeFinalizer();
         refIndex = index;
     }
 
@@ -50,16 +44,8 @@ public final class NativeObjectReference extends PhantomReference<NativeObject> 
      * To dealloc native resources.
      */
     void cleanup() {
-        switch (type) {
-            case TYPE_LINK_VIEW:
-                LinkView.nativeClose(nativePointer);
-                break;
-            case TYPE_ROW:
-                UncheckedRow.nativeClose(nativePointer);
-                break;
-            default:
-                // Cannot get here.
-                throw new IllegalStateException("Unknown native reference type " + type + ".");
-        }
+        nativeCleanUp(nativeFinalizerPtr, nativePtr);
     }
+
+    private static native void nativeCleanUp(long nativeDestructor, long nativePointer);
 }

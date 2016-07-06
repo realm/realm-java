@@ -223,7 +223,7 @@ public class SharedGroup implements Closeable {
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
-                context.asyncDisposeSharedGroup(nativePtr);
+                nativeClose(nativePtr);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
                 if (implicitTransactionsEnabled && nativeReplicationPtr != 0) {
                     nativeCloseReplication(nativeReplicationPtr);

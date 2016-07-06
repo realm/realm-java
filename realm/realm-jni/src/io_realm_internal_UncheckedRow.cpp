@@ -19,6 +19,8 @@
 
 using namespace realm;
 
+static void finalize(jlong ptr);
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnCount
   (JNIEnv *, jobject, jlong nativeRowPtr)
 {
@@ -331,8 +333,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeNullifyLink
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeClose
   (JNIEnv *, jclass, jlong nativeRowPtr)
 {
-    TR_ENTER_PTR(nativeRowPtr)
-    delete ROW(nativeRowPtr);
+    finalize(nativeRowPtr);
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
@@ -366,3 +367,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
         ROW(nativeRowPtr)->set_null(columnIndex);
     } CATCH_STD()
 }
+
+static void finalize(jlong ptr) {
+    TR_ENTER_PTR(ptr)
+    delete ROW(ptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizer
+  (JNIEnv *, jclass) {
+    return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize));
+}
+
