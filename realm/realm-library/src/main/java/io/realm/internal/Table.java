@@ -263,6 +263,27 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
+     * When a {@link Table} is renamed, it is necessary to set the {@link Table#PRIMARY_KEY_CLASS_COLUMN_INDEX}
+     * entry of its primary Key table with a new class name to transfer the primary key.
+     *
+     * @param oldTableName the old table name to search its primary key.
+     * @param newTableName the new table name to reset the primary key
+     */
+    public void resetPrimaryKeyForRenamedClass(String oldTableName, String newTableName) {
+        // make sure the new table is suitable for column
+        verifyColumnName(newTableName);
+        String newClassName = tableNameToClassName(newTableName);
+        String oldClassName = tableNameToClassName(oldTableName);
+        Table pkTable = getPrimaryKeyTable();
+        long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, oldClassName);
+        if (pkRowIndex != NO_MATCH) {
+            pkTable.setString(PRIMARY_KEY_CLASS_COLUMN_INDEX, pkRowIndex, newClassName);
+        } else {
+            throw new IllegalStateException("Cannot rename " + oldClassName + " with PrimaryKey.");
+        }
+    }
+
+    /**
      * Checks whether the specific column is nullable?
      *
      * @param columnIndex the column index.

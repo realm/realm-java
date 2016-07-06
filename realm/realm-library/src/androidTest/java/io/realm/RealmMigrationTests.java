@@ -293,6 +293,35 @@ public class RealmMigrationTests {
         assertNull(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME));
     }
 
+    // Test to show renaming a class does not hinder its PK field's attribute
+    @Test
+    public void setClassName_transferPrimaryKey() {
+        buildInitialMigrationSchema(MigrationClassRenamed.CLASS_NAME, true);
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.getSchema()
+                        .get(MigrationPrimaryKey.CLASS_NAME)
+                        .setClassName(MigrationClassRenamed.CLASS_NAME);
+            }
+        };
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(MigrationClassRenamed.class)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        Table table = realm.getSchema().getTable(MigrationClassRenamed.class);
+        assertTrue(table.hasPrimaryKey());
+        assertEquals(MigrationClassRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
+        assertEquals(MigrationClassRenamed.DEFAULT_PRIMARY_INDEX, table.getPrimaryKey());
+        assertEquals(MigrationClassRenamed.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
+        //old schema does not exists
+        assertNull(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME));
+    }
+
     // Removing fields before a pk field does not affect the pk
     @Test
     public void removeFieldsBeforePrimaryKey() {

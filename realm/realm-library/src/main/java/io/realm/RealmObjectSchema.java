@@ -100,7 +100,8 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a new name for this RealmObject class. This is equivalent to renaming it.
+     * Sets a new name for this RealmObject class. This is equivalent to renaming it. When {@link RealmObjectSchema#table}
+     * has a primary key, this will transfer the primary key for the new class name.
      *
      * @param className the new name for this class.
      * @see RealmSchema#rename(String, String)
@@ -111,7 +112,24 @@ public final class RealmObjectSchema {
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
+        // in case if this table has a primary key, we need to transfer it after renaming the table.
+        String oldTableName = null;
+        String pkField = null;
+        if (table.hasPrimaryKey()) {
+            oldTableName = table.getName();
+            pkField = getPrimaryKey();
+        }
+        // this will throw when things go wrong
         transaction.renameTable(table.getName(), internalTableName);
+        if (pkField != null && !pkField.isEmpty()) {
+            try {
+                table.resetPrimaryKeyForRenamedClass(oldTableName, internalTableName);
+            } catch (Exception e) {
+                // revert the table name back when something goes wrong
+                transaction.renameTable(table.getName(), oldTableName);
+                throw e;
+            }
+        }
         return this;
     }
 
