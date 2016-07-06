@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1710,7 +1711,7 @@ public class RealmQueryTests {
         realm.delete(StringOnly.class);
         for (int i = 0; i < nObjects; i++) {
             StringOnly stringOnly = realm.createObject(StringOnly.class);
-            stringOnly.setChars(String.format("string %d", i));
+            stringOnly.setChars(String.format(Locale.getDefault(), "string %d", i));
         }
         realm.commitTransaction();
 

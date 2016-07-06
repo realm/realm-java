@@ -16,6 +16,7 @@
 
 package io.realm.services;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
@@ -64,6 +65,7 @@ public class RemoteProcessService extends Service {
     }
 
     public static final String BUNDLE_KEY_ERROR = "error";
+    @SuppressLint("UseSparseArrays")
     private static Map<Integer, Step> stepMap = new HashMap<Integer, Step>();
 
     private static RemoteProcessService thiz;

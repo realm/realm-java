@@ -449,7 +449,7 @@ public class TestHelper {
         byte idValue = (byte)iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedByte obj = new PrimaryKeyAsBoxedByte();
-            obj.setId(new Byte(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -482,7 +482,7 @@ public class TestHelper {
         short idValue = (short)iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedShort obj = new PrimaryKeyAsBoxedShort();
-            obj.setId(new Short(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -515,7 +515,7 @@ public class TestHelper {
         int idValue = iteratorBeginValue;
         for (int i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedInteger obj = new PrimaryKeyAsBoxedInteger();
-            obj.setId(new Integer(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }
@@ -548,7 +548,7 @@ public class TestHelper {
         long idValue = iteratorBeginValue;
         for (long i = 0; i < numberOfPopulation - 1; ++i, ++idValue) {
             PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong();
-            obj.setId(new Long(idValue));
+            obj.setId(idValue);
             obj.setName(String.valueOf(idValue));
             testRealm.copyToRealm(obj);
         }

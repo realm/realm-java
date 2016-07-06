@@ -59,10 +59,10 @@ public class JNIViewTest extends TestCase {
         //Get a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
-        try { view.upperBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
-        try { view.lowerBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
+        try { view.upperBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException ignore) { }
+        try { view.lowerBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException ignore) { }
       //  try { view.lookup("Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
-        try { view.count(0, "Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
+        try { view.count(0, "Some String"); fail("Not implemented yet"); } catch (RuntimeException ignore) { }
     }
 
 
@@ -139,9 +139,9 @@ public class JNIViewTest extends TestCase {
     public void testSortOnNonexistingColumn() {
         TableView view = t.where().findAll();
 
-        try { view.sort(-1); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.sort(-100); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.sort(100); fail("Column is 100, column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.sort(-1); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.sort(-100); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.sort(100); fail("Column is 100, column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
     }
 
 
@@ -162,33 +162,33 @@ public class JNIViewTest extends TestCase {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableView view = table.where().findAll();
 
-        try { view.getBinaryByteArray(-1, 0);   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getBinaryByteArray(-10, 0);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getBinaryByteArray(100, 0);  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getBinaryByteArray(-1, 0);   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getBinaryByteArray(-10, 0);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getBinaryByteArray(100, 0);  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
 
-        try { view.getBoolean(-1, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getBoolean(-10, 0);          fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getBoolean(100, 0);          fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getBoolean(-1, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getBoolean(-10, 0);          fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getBoolean(100, 0);          fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
 
-        try { view.getDate(-1, 0);              fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getDate(-10, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getDate(100, 0);             fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getDate(-1, 0);              fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getDate(-10, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getDate(100, 0);             fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
 
-        try { view.getDouble(-1, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getDouble(-10, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getDouble(100, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getDouble(-1, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getDouble(-10, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getDouble(100, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
 
-        try { view.getFloat(-1, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getFloat(-10, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getFloat(100, 0);            fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getFloat(-1, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getFloat(-10, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getFloat(100, 0);            fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
 
-        try { view.getLong(-1, 0);              fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getLong(-10, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getLong(100, 0);             fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getLong(-1, 0);              fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getLong(-10, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getLong(100, 0);             fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
 
-        try { view.getString(-1, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getString(-10, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getString(100, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getString(-1, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getString(-10, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignore) { }
+        try { view.getString(100, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignore) { }
     }
 
 
@@ -209,10 +209,10 @@ public class JNIViewTest extends TestCase {
         assertEquals(3, v.getSourceRowIndex(1));
 
         // Out of bound
-        try { assertEquals(0, v.getSourceRowIndex(2));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRowIndex(100));    fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRowIndex(-1));     fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRowIndex(-100));   fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(2));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
+        try { assertEquals(0, v.getSourceRowIndex(100));    fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
+        try { assertEquals(0, v.getSourceRowIndex(-1));     fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
+        try { assertEquals(0, v.getSourceRowIndex(-100));   fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
     }
 
 
@@ -225,8 +225,8 @@ public class JNIViewTest extends TestCase {
         TableView v = t.where().findAll();
 
         // Out of bound
-        try { assertEquals(0, v.getSourceRowIndex(0));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRowIndex(1));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(0));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
+        try { assertEquals(0, v.getSourceRowIndex(1));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
     }
 
 
@@ -236,8 +236,8 @@ public class JNIViewTest extends TestCase {
         TableView v = t.where().findAll();
 
         // Out of bound
-        try { assertEquals(0, v.getSourceRowIndex(0));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRowIndex(1));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(0));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
+        try { assertEquals(0, v.getSourceRowIndex(1));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException ignore) { }
     }
 
 
@@ -300,7 +300,7 @@ public class JNIViewTest extends TestCase {
         Table t = new Table();
         t.addColumn(RealmFieldType.INTEGER, "");
         TableView view = t.where().findAll();
-        try { view.getColumnIndex(null); fail("Getting null column"); } catch(IllegalArgumentException e) { }
+        try { view.getColumnIndex(null); fail("Getting null column"); } catch(IllegalArgumentException ignore) { }
     }
 
 
@@ -342,22 +342,22 @@ public class JNIViewTest extends TestCase {
 
     void accessingViewMustThrow(TableView view)
     {
-        try { view.size();              assert(false); } catch (IllegalStateException e) {}
-        try { view.isEmpty();           assert(false); } catch (IllegalStateException e) {}
-        try { view.getLong(0,0);        assert(false); } catch (IllegalStateException e) {}
-        try { view.getColumnCount();    assert(false); } catch (IllegalStateException e) {}
-        try { view.getColumnName(0);    assert(false); } catch (IllegalStateException e) {}
-        try { view.getColumnIndex("");  assert(false); } catch (IllegalStateException e) {}
-        try { view.getColumnType(0);    assert(false); } catch (IllegalStateException e) {}
-        try { view.averageLong(0);      assert(false); } catch (IllegalStateException e) {}
-        try { view.maximumLong(0);      assert(false); } catch (IllegalStateException e) {}
-        try { view.minimumLong(0);      assert(false); } catch (IllegalStateException e) {}
-        try { view.sumLong(0);          assert(false); } catch (IllegalStateException e) {}
-        try { view.findAllLong(0, 2);   assert(false); } catch (IllegalStateException e) {}
-        try { view.findFirstLong(0, 2); assert(false); } catch (IllegalStateException e) {}
-        try { view.where();             assert(false); } catch (IllegalStateException e) {}
-        try { view.toJson();            assert(false); } catch (IllegalStateException e) {}
-        try { view.toString();          assert(false); } catch (IllegalStateException e) {}
+        try { view.size();              fail(); } catch (IllegalStateException ignore) {}
+        try { view.isEmpty();           fail(); } catch (IllegalStateException ignore) {}
+        try { view.getLong(0,0);        fail(); } catch (IllegalStateException ignore) {}
+        try { view.getColumnCount();    fail(); } catch (IllegalStateException ignore) {}
+        try { view.getColumnName(0);    fail(); } catch (IllegalStateException ignore) {}
+        try { view.getColumnIndex("");  fail(); } catch (IllegalStateException ignore) {}
+        try { view.getColumnType(0);    fail(); } catch (IllegalStateException ignore) {}
+        try { view.averageLong(0);      fail(); } catch (IllegalStateException ignore) {}
+        try { view.maximumLong(0);      fail(); } catch (IllegalStateException ignore) {}
+        try { view.minimumLong(0);      fail(); } catch (IllegalStateException ignore) {}
+        try { view.sumLong(0);          fail(); } catch (IllegalStateException ignore) {}
+        try { view.findAllLong(0, 2);   fail(); } catch (IllegalStateException ignore) {}
+        try { view.findFirstLong(0, 2); fail(); } catch (IllegalStateException ignore) {}
+        try { view.where();             fail(); } catch (IllegalStateException ignore) {}
+        try { view.toJson();            fail(); } catch (IllegalStateException ignore) {}
+        try { view.toString();          fail(); } catch (IllegalStateException ignore) {}
     }
 
     public void testViewShouldInvalidate() {
