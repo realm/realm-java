@@ -397,11 +397,12 @@ public class DynamicRealmTests {
         });
     }
 
-    // Initialize a Dynamic Realm used by the *Async tests.
+    // Initialize a Dynamic Realm used by the *Async tests and keep it ref in the looperThread.
     private DynamicRealm initializeDynamicRealm() {
         RealmConfiguration defaultConfig = looperThread.realmConfiguration;
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         populateTestRealm(dynamicRealm, 10);
+        looperThread.keepStrongReference.add(dynamicRealm);
         return dynamicRealm;
     }
 
