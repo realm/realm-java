@@ -230,9 +230,8 @@ abstract class BaseRealm implements Closeable {
      * the last transaction was committed.
      *
      * @param destination file to save the Realm to.
-     * @throws java.io.IOException if any write operation fails.
      */
-    public void writeCopyTo(File destination) throws java.io.IOException {
+    public void writeCopyTo(File destination) {
         writeEncryptedCopyTo(destination, null);
     }
 
@@ -247,16 +246,14 @@ abstract class BaseRealm implements Closeable {
      *
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
-     * @throws java.io.IOException if any write operation fails.
      * @throws IllegalArgumentException if destination argument is null.
      */
-    public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
+    public void writeEncryptedCopyTo(File destination, byte[] key) {
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        //sharedGroupManager.copyToFile(destination, key);
-        throw new RuntimeException("TODO");
+        sharedRealm.writeCopy(destination, key);
     }
 
     /**
@@ -269,7 +266,6 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      */
     public boolean waitForChange() {
-        /*
         checkIfValid();
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
@@ -277,15 +273,13 @@ abstract class BaseRealm implements Closeable {
         if (Looper.myLooper() != null) {
             throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
         }
-        boolean hasChanged = sharedGroupManager.getSharedGroup().waitForChange();
+        boolean hasChanged = sharedRealm.waitForChange();
         if (hasChanged) {
             // Since this Realm instance has been waiting for change, advance realm & refresh realm.
-            sharedGroupManager.advanceRead();
+            sharedRealm.refresh();
             handlerController.refreshSynchronousTableViews();
         }
         return hasChanged;
-        */
-        throw new RuntimeException("TODO");
     }
 
     /**
@@ -298,19 +292,16 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
      */
     public void stopWaitForChange() {
-        /*
         RealmCache.invokeWithLock(new RealmCache.Callback0() {
             @Override
             public void onCall() {
                 // Check if the Realm instance has been closed
-                if (sharedGroupManager == null || !sharedGroupManager.isOpen() || sharedGroupManager.getSharedGroup().isClosed()) {
+                if (sharedRealm == null || sharedRealm.isClosed()) {
                     throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
                 }
-                sharedGroupManager.getSharedGroup().stopWaitForChange();
+                sharedRealm.stopWaitForChange();
             }
         });
-        */
-        throw new RuntimeException("TODO");
     }
 
     /**
@@ -355,7 +346,15 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, null);
+        commitTransaction(true, true, null);
+    }
+
+    /**
+     * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
+     * that.
+     */
+    void commitAsyncTransaction(Runnable runAfterCommit) {
+        commitTransaction(false, false, runAfterCommit);
     }
 
     /**
@@ -366,7 +365,7 @@ abstract class BaseRealm implements Closeable {
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
      * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads, Runnable runAfterCommit) {
         checkIfValid();
         sharedRealm.commitTransaction();
 
@@ -381,6 +380,12 @@ abstract class BaseRealm implements Closeable {
             // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
             // file will make a commit in order to create the schema. Users should not be notified about that.
             if (!notifyLocalThread && handler.equals(this.handler)) {
+                continue;
+            }
+
+            // Sometimes we don't want to notify other threads about changes because we need a custom message, e.g. when
+            // doing async transactions.
+            if (!notifyOtherThreads && !handler.equals(this.handler)) {
                 continue;
             }
 
@@ -441,12 +446,9 @@ abstract class BaseRealm implements Closeable {
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {
-        // Check if the Realm instance has been closed
-        /*
-        if (sharedGroupManager == null || !sharedGroupManager.isOpen()) {
+        if (sharedRealm == null || sharedRealm.isClosed()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
-        */
 
         // Check if we are in the right thread
         if (threadId != Thread.currentThread().getId()) {
@@ -540,12 +542,6 @@ abstract class BaseRealm implements Closeable {
     public boolean isEmpty() {
         checkIfValid();
         return sharedRealm.isEmpty();
-    }
-
-    // FIXME: This method doesn't seem to be needed anymore
-    boolean hasChanged() {
-        //return sharedGroupManager.hasChanged();
-        return false;
     }
 
     // package protected so unit tests can access it
@@ -718,11 +714,14 @@ abstract class BaseRealm implements Closeable {
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
+        // FIXME: Move this check to OS?
         if (configuration.getEncryptionKey() != null) {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
-
-        throw new RuntimeException("TODO");
+        SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
+        Boolean result = sharedRealm.compact();
+        sharedRealm.close();
+        return result;
     }
 
     /**
@@ -785,6 +784,17 @@ abstract class BaseRealm implements Closeable {
             throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
                     + configuration.getPath());
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (sharedRealm != null && !sharedRealm.isClosed()) {
+            RealmLog.w("Remember to call close() on all Realm instances. " +
+                    "Realm " + configuration.getPath() + " is being finalized without being closed, " +
+                    "this can lead to running out of native memory."
+            );
+        }
+        super.finalize();
     }
 
     // Internal delegate for migrations

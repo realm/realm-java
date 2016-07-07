@@ -27,7 +27,6 @@
         <Field name="minDepth" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
-    <Match>
 
     <!-- Unit tests -->
     <Match>

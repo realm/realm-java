@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,15 @@
 
 package io.realm.internal;
 
-@SuppressWarnings("serial")
-public class IllegalMixedTypeException extends RuntimeException {
+class TestUtil {
 
-    public IllegalMixedTypeException(Throwable cause) {
-        super(cause);
+    static {
+        // Any internal class with static native methods that uses Realm Core must load the Realm Core library
+        // themselves as it otherwise might not have been loaded.
+        RealmCore.loadLibrary();
     }
 
-    public IllegalMixedTypeException() {
-    }
-
-    public IllegalMixedTypeException(String message) {
-        super(message);
-    }
-
-    public IllegalMixedTypeException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+    public native static long getMaxExceptionNumber();
+    public native static String getExpectedMessage(long exceptionKind);
+    public native static void testThrowExceptions(long exceptionKind);
 }

@@ -31,6 +31,10 @@
 using namespace realm;
 using namespace realm::_impl;
 
+namespace {
+    const size_t c_keyLength = 64;
+}
+
 Realm::Config::Config(const Config& c)
 : path(c.path)
 , encryption_key(c.encryption_key)
@@ -123,7 +127,7 @@ void Realm::open_with_config(const Config& config,
                              std::unique_ptr<Group>& read_only_group,
                              Realm *realm)
 {
-    if (config.encryption_key.data() && config.encryption_key.size() != 64) {
+    if (config.encryption_key.data() && config.encryption_key.size() != c_keyLength) {
         throw InvalidEncryptionKeyException();
     }
     try {
@@ -207,6 +211,16 @@ Group *Realm::read_group()
 {
     if (!m_group) {
         m_group = &const_cast<Group&>(m_shared_group->begin_read());
+    }
+    return m_group;
+}
+
+Group *Realm::read_group_to(SharedGroup::VersionID version) {
+    if (!m_group) {
+        m_group = &const_cast<Group&>(m_shared_group->begin_read(version));
+    } else if (version != m_shared_group->get_version_of_current_transaction()) {
+        m_shared_group->end_read();
+        m_group = &const_cast<Group&>(m_shared_group->begin_read(version));
     }
     return m_group;
 }
@@ -405,7 +419,9 @@ bool Realm::compact()
 
 void Realm::write_copy(StringData path, BinaryData key)
 {
-    REALM_ASSERT(!key.data() || key.size() == 64);
+    if (key.data() && key.size() != c_keyLength) {
+        throw InvalidEncryptionKeyException();
+    }
     verify_thread();
     try {
         read_group()->write(path, key.data());

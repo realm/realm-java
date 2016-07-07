@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.internal.test;
+package io.realm.entities.conflict;
 
-import io.realm.internal.DefineTable;
+import io.realm.RealmList;
+import io.realm.RealmObject;
 
-/**
- * A helper class containing model(s) for simple code generation tests.
- */
-class CodeGenTest {
+public class String extends RealmObject {
+    public String str;
+    public RealmList<String> strList;
 
-    @DefineTable // this is enabled only for occasional local tests
-    class someModel {
-        String name;
-        int age;
-    }
-
+    public Map map;
+    public RealmList<Map> mapList;
 }

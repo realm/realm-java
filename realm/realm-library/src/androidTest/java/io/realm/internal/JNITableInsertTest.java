@@ -61,28 +61,6 @@ public class JNITableInsertTest {
         this.value = value;
     }
 
-    public void verifyRow(Table tbl, long rowIndex, Object[] values) {
-        assertTrue((Boolean) (values[0]) == tbl.getBoolean(0, rowIndex));
-        assertEquals(((Number) values[1]).longValue(), tbl.getLong(1, rowIndex));
-        assertEquals((String) values[2], tbl.getString(2, rowIndex));
-        if (values[3] instanceof byte[])
-            MoreAsserts.assertEquals((byte[]) values[3], tbl.getBinaryByteArray(3, rowIndex));
-        assertEquals(((Date) values[4]).getTime() / 1000, tbl.getDate(4, rowIndex).getTime() / 1000);
-
-        //      Mixed mix1 = Mixed.mixedValue(values[5]);
-        //      Mixed mix2 =  tbl.getMixed(5, rowIndex);
-        // TODO:        assertTrue(mix1.equals(mix2));
-
-        Table subtable = tbl.getSubtable(6, rowIndex);
-        Object[] subValues = (Object[]) values[6];
-        for (long i = 0; i < subtable.size(); i++) {
-            Object[] val = (Object[]) subValues[(int) i];
-            assertTrue(((Number) val[0]).longValue() == subtable.getLong(0, i));
-            assertEquals(((String) val[1]), subtable.getString(1, i));
-        }
-        assertTrue(tbl.isValid());
-    }
-
     @Test
     public void testShouldThrowExceptionWhenColumnNameIsTooLong() {
 

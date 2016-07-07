@@ -19,7 +19,6 @@ package io.realm;
 import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
-import io.realm.internal.Mixed;
 
 /**
  * List of the types used by Realm's underlying storage engine.
@@ -82,14 +81,6 @@ public enum RealmFieldType {
             case 2: return (obj instanceof String);
             case 4: return (obj instanceof byte[] || obj instanceof ByteBuffer);
             case 5: return (obj == null || obj instanceof Object[][]);
-            case 6: return (obj instanceof Mixed ||
-                    obj instanceof Long || obj instanceof Integer ||
-                    obj instanceof Short || obj instanceof Byte || obj instanceof Boolean ||
-                    obj instanceof Float || obj instanceof Double ||
-                    obj instanceof String ||
-                    obj instanceof byte[] || obj instanceof ByteBuffer ||
-                    obj == null || obj instanceof Object[][] ||
-                    obj instanceof java.util.Date);
             case 7: return (obj instanceof java.util.Date); // the unused DateTime
             case 8: return (obj instanceof java.util.Date);
             case 9: return (obj instanceof Float);

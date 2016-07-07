@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.internal.test;
+package io.realm.entities.conflict;
 
-public class TestValue {
+import io.realm.RealmList;
+import io.realm.RealmObject;
 
-    public Object value;
+public class List extends RealmObject {
+    public RealmList<Map> mapList;
+    public Map map;
 
-    public TestValue(Object value) {
-        this.value = value;
-    }
+    public java.lang.String str;
+    public String strObj;
+    public RealmList<String> strList;
 }
-

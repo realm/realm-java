@@ -154,7 +154,7 @@ public class LinkView extends NativeObject {
         long nativeTablePointer = nativeGetTargetTable(nativePointer);
         try {
             // Copy context reference from parent
-            return new Table(context, this.parent, nativeTablePointer);
+            return new Table(this.parent, nativeTablePointer);
         } catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
             throw e;
@@ -167,15 +167,15 @@ public class LinkView extends NativeObject {
         }
     }
 
-    static native void nativeClose(long nativeLinkViewPtr);
+    public static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
-    private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
+    public static native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
     private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
     private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);
     private native void nativeMove(long nativeLinkViewPtr, long oldPos, long newPos);
     private native void nativeRemove(long nativeLinkViewPtr, long pos);
-    private native void nativeClear(long nativeLinkViewPtr);
+    public static native void nativeClear(long nativeLinkViewPtr);
     private native long nativeSize(long nativeLinkViewPtr);
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
     protected native long nativeWhere(long nativeLinkViewPtr);

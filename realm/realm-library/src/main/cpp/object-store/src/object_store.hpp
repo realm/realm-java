@@ -21,6 +21,7 @@
 
 #include "schema.hpp"
 #include "property.hpp"
+#include "shared_realm.hpp"
 
 #include <realm/table_ref.hpp>
 
@@ -74,6 +75,36 @@ namespace realm {
 
         static std::string table_name_for_object_type(StringData class_name);
         static StringData object_type_for_table_name(StringData table_name);
+
+        // Those are needed by java for the async query
+        template< typename T >
+        static std::unique_ptr<T> import_from_handover(SharedRealm& shared_realm,
+                                                       std::unique_ptr<SharedGroup::Handover<T>> handover) {
+            return Realm::Internal::get_shared_group(*shared_realm).import_from_handover(std::move(handover));
+        }
+        template< typename T >
+        static std::unique_ptr<SharedGroup::Handover<T>> export_for_handover(SharedRealm& shared_realm, T& accessor,
+                                                                             MutableSourcePayload mode) {
+            return Realm::Internal::get_shared_group(*shared_realm).export_for_handover(accessor, mode);
+        }
+        template< typename T >
+        static std::unique_ptr<SharedGroup::Handover<T>> export_for_handover(SharedRealm& shared_realm, T& accessor,
+                                                                             ConstSourcePayload mode) {
+            return Realm::Internal::get_shared_group(*shared_realm).export_for_handover(accessor, mode);
+        }
+        template<typename T>
+        static std::unique_ptr<SharedGroup::Handover<BasicRow<T>>> export_for_handover(SharedRealm& shared_realm,
+                                                                                       const BasicRow<T>& accessor) {
+            return Realm::Internal::get_shared_group(*shared_realm).export_for_handover(accessor);
+        }
+
+        // Wrappers for core's wait for change
+        static bool wait_for_change(SharedRealm& shared_realm) {
+            return Realm::Internal::get_shared_group(*shared_realm).wait_for_change();
+        }
+        static void wait_for_change_release(SharedRealm& shared_realm) {
+            Realm::Internal::get_shared_group(*shared_realm).wait_for_change_release();
+        }
 
     private:
         // set a new schema version

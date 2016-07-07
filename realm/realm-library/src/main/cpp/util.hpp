@@ -56,29 +56,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 // Exception handling
-
-#define CATCH_FILE(fileName) \
-    catch (InvalidDatabase&) { \
-        ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
-    } \
-    catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path()); \
-    } \
-    catch (util::File::NotFound& e) { \
-        ThrowException(env, FileNotFound, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path());    \
-    } \
-    catch (util::File::AccessError& e) { \
-        ThrowException(env, FileAccessError, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path()); \
-    } \
-    catch (realm::IncompatibleLockFile& e) { \
-        ThrowException(env, LockFileError, std::string(e.what())); \
-    } \
-
-
-
 #define CATCH_STD() \
     catch (...) { \
         ConvertException(env, __FILE__, __LINE__); \
@@ -93,8 +70,6 @@ std::string num_to_string(T pNumber)
 }
 
 
-#define MAX_JLONG  0x7FFFFFFFFFFFFFFFLL
-#define MIN_JLONG -0x8000000000000000LL
 #define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
@@ -107,34 +82,33 @@ std::string num_to_string(T pNumber)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)
 #define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
-#define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
-#define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
-#define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
-#define RC(ptr) reinterpret_cast<realm::Realm::Config*>(ptr)
-#define SR(ptr) reinterpret_cast<realm::SharedRealm*>(ptr)
 
 // Exception handling
+// FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
 enum ExceptionKind {
     ClassNotFound = 0,
-    NoSuchField = 1,
-    NoSuchMethod = 2,
-    IllegalArgument = 3,
-    IOFailed = 4,
-    FileNotFound = 5,
-    FileAccessError = 6,
-    IndexOutOfBounds = 7,
-    TableInvalid = 8,
-    UnsupportedOperation = 9,
-    OutOfMemory = 10,
-    FatalError = 11,
-    RuntimeError = 12,
-    RowInvalid = 13,
-    CrossTableLink = 15,
-    BadVersion = 16,
-    LockFileError = 17
-// NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
+    NoSuchField,
+    NoSuchMethod,
+    IllegalArgument,
+    IOFailed,
+    FileNotFound,
+    FileAccessError,
+    IndexOutOfBounds,
+    TableInvalid,
+    UnsupportedOperation,
+    OutOfMemory,
+    FatalError,
+    RuntimeError,
+    RowInvalid,
+    CrossTableLink,
+    BadVersion,
+    LockFileError,
+    IllegalState,
+    // NOTE!!!!: Please also add test cases to io_realm_internal_TestUtil when introducing a
+    // new exception kind.
+    ExceptionKindMax
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);
@@ -195,10 +169,8 @@ extern const char* log_tag;
 #define INDEX_VALID(env,ptr,col,row)                            IndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    TblIndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             TblIndexInsertValid(env, ptr, col, row)
-#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              IndexAndTypeValid(env, ptr, col, row, type, false)
-#define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      TblIndexAndTypeValid(env, ptr, col, row, type, false)
-#define INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)        IndexAndTypeValid(env, ptr, col, row, type, true)
-#define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type) TblIndexAndTypeValid(env, ptr, col, row, type, true)
+#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              IndexAndTypeValid(env, ptr, col, row, type)
+#define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      TblIndexAndTypeValid(env, ptr, col, row, type)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) TblIndexAndTypeInsertValid(env, ptr, col, row, type)
 
 #define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     RowColIndexAndTypeValid(env, ptr, col, type)
@@ -222,8 +194,6 @@ extern const char* log_tag;
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             (true)
 #define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              (true)
 #define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      (true)
-#define INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)        (true)
-#define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type) (true)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) (true)
 
 #define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     (true)
@@ -393,16 +363,10 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
 }
 
 template <class T>
-inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
-    if (allowMixed) {
-        if (colType == realm::type_Mixed) {
-            size_t row = static_cast<size_t>(rowIndex);
-            colType = pTable->get_mixed_type(col, row);
-        }
-    }
     if (colType != expectColType) {
         TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
         ThrowException(env, IllegalArgument, "ColumnType invalid.");
@@ -452,7 +416,7 @@ template <class T>
 inline bool ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     return ColIndexValid(env, pTable, columnIndex)
-        && TypeValid(env, pTable, columnIndex, 0, expectColType, false);
+        && TypeValid(env, pTable, columnIndex, expectColType);
 }
 template <class T>
 inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
@@ -480,22 +444,22 @@ inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnI
 }
 
 template <class T>
-inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
     return IndexValid(env, pTable, columnIndex, rowIndex)
-        && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+        && TypeValid(env, pTable, columnIndex, expectColType);
 }
 template <class T>
-inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
-    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType);
 }
 
 template <class T>
 inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
     return TblIndexInsertValid(env, pTable, columnIndex, rowIndex)
-        && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, false);
+        && TypeValid(env, pTable, columnIndex, expectColType);
 }
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
@@ -532,7 +496,6 @@ public:
         }
     }
 
-    // FIXME: Replace m_data with std::string to avoid memcpy
     operator std::string() const noexcept
     {
         if (m_is_null) {
@@ -547,31 +510,29 @@ private:
     std::size_t m_size;
 };
 
-class KeyBuffer {
+class JniByteArray {
 public:
-    KeyBuffer(JNIEnv* env, jbyteArray arr)
+    JniByteArray(JNIEnv* env, jbyteArray arr)
     : m_env(env)
+    , m_size(arr ? env->GetArrayLength(m_array) : 0)
     , m_array(arr)
-    , m_ptr(0)
-    {
-#ifdef REALM_ENABLE_ENCRYPTION
-        if (arr) {
-            if (env->GetArrayLength(m_array) != 64)
-                ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");
-            m_ptr = env->GetByteArrayElements(m_array, NULL);
+    , m_ptr(arr ? env->GetByteArrayElements(m_array, NULL) : 0) {}
+
+    operator realm::BinaryData() const noexcept {
+        return realm::BinaryData(reinterpret_cast<const char *>(m_ptr), m_size);
+    }
+
+    operator std::vector<char>() const noexcept {
+        if (m_array == nullptr) {
+            return {};
         }
-#else
-        if (arr)
-            ThrowException(env, UnsupportedOperation,
-                           "Encryption was disabled in the native library at compile time.");
-#endif
+
+        std::vector<char> v(m_size);
+        std::copy_n(m_ptr, v.size(), v.begin());
+        return v;
     }
 
-    const char *data() const {
-        return reinterpret_cast<const char *>(m_ptr);
-    }
-
-    ~KeyBuffer() {
+    ~JniByteArray() {
         if (m_ptr)
             m_env->ReleaseByteArrayElements(m_array, m_ptr, JNI_ABORT);
     }
@@ -579,6 +540,7 @@ public:
 private:
     JNIEnv* m_env;
     jbyteArray m_array;
+    jsize m_size;
     jbyte* m_ptr;
 };
 
@@ -714,12 +676,6 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 
 extern const std::string TABLE_PREFIX;
 
-inline std::vector<char> jbytearray_to_vector(JNIEnv *env, jbyteArray bytes) {
-    std::vector<char> v(env->GetArrayLength(bytes));
-    jbyte *ptr = env->GetByteArrayElements(bytes, NULL);
-    std::copy_n(ptr, v.size(), v.begin());
-    env->ReleaseByteArrayElements(bytes, ptr, JNI_ABORT);
-    return v;
-}
+extern bool string_compare_callback_func(const char* string1, const char* string2);
 
 #endif // REALM_JAVA_UTIL_HPP

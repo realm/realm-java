@@ -18,10 +18,12 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+#include <realm/unicode.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
+#include "shared_realm.hpp"
 
 using namespace std;
 using namespace realm;
@@ -57,8 +59,16 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
-    catch (File::AccessError& e) {
-        ss << e.what() << " path: " << e.get_path() << " in " << file << " line " << line;
+    catch (RealmFileException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (InvalidTransactionException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
+    catch (InvalidEncryptionKeyException& e) {
+        ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (exception& e) {
@@ -166,6 +176,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = classStr;
             break;
 
+        case IllegalState:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
@@ -404,4 +418,103 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         }
         m_size = out_begin - m_data.get();
     }
+}
+
+// The string_compare_callback_func is a duplication of the code found in core.
+// But the collation_order is different since we need to use the
+// pre-1.1.2 sorting order.
+bool string_compare_callback_func(const char* string1, const char* string2)
+{
+    static const uint32_t collation_order[] = { 0, 2, 3, 4, 5, 6, 7,
+        8, 9, 33, 34, 35, 36, 37, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+        19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 38, 39, 40, 41, 42,
+        43, 29, 44, 45, 46, 76, 47, 30, 48, 49, 128, 132, 134, 137,
+        139, 140, 143, 144, 145, 146, 50, 51, 77, 78, 79, 52, 53, 148,
+        182, 191, 208, 229, 263, 267, 285, 295, 325, 333, 341, 360,
+        363, 385, 429, 433, 439, 454, 473, 491, 527, 531, 537, 539,
+        557, 54, 55, 56, 57, 58, 59, 147, 181, 190, 207 , 228, 262,
+        266, 284, 294, 324, 332, 340, 359, 362, 384, 428, 432, 438,
+        453, 472, 490, 526, 530, 536, 538, 556, 60, 61, 62, 63, 28,
+        96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108,
+        109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+        121, 122, 123, 124, 125, 126, 127, 32, 64, 72, 73, 74, 75, 65,
+        88, 66, 89, 149, 81, 90, 1, 91, 67, 92, 80, 136, 138, 68, 93,
+        94, 95, 69, 133, 386, 82, 129, 130, 131, 70, 153, 151, 157,
+        165, 575, 588, 570, 201, 233 , 231, 237, 239, 300, 298, 303,
+        305, 217, 371, 390, 388, 394, 402, 584, 83, 582, 495, 493,
+        497, 555, 541, 487, 470, 152, 150, 156, 164, 574, 587, 569,
+        200, 232, 230, 236, 238, 299, 297, 302, 304, 216, 370, 389,
+        387, 393, 401, 583, 84, 581, 494, 492, 496, 554, 540, 486,
+        544, 163, 162, 161, 160, 167, 166, 193, 192, 197, 196, 195,
+        194, 199, 198, 210, 209, 212, 211, 245, 244, 243, 242, 235,
+        234, 247, 246, 241, 240, 273, 272, 277, 276, 271, 270, 279,
+        278, 287, 286, 291, 290, 313, 312, 311, 310, 309 , 308, 315,
+        314, 301, 296, 323, 322, 328, 327, 337, 336, 434, 343, 342,
+        349, 348, 347, 346, 345, 344, 353, 352, 365, 364, 373, 372,
+        369, 368, 375, 383, 382, 400, 399, 398, 397, 586, 585, 425,
+        424, 442, 441, 446, 445, 444, 443, 456, 455, 458, 457, 462,
+        461, 460, 459, 477, 476, 475, 474, 489, 488, 505, 504, 503,
+        502, 501, 500, 507, 506, 549, 548, 509, 508, 533, 532, 543,
+        542, 545, 559, 558, 561, 560, 563, 562, 471, 183, 185, 187,
+        186, 189, 188, 206, 205, 204, 226, 215, 214, 213, 218, 257,
+        258, 259 , 265, 264, 282, 283, 292, 321, 316, 339, 338, 350,
+        354, 361, 374, 376, 405, 421, 420, 423, 422, 431, 430, 440,
+        468, 467, 466, 469, 480, 479, 478, 481, 524, 523, 525, 528,
+        553, 552, 565, 564, 571, 579, 578, 580, 135, 142, 141, 589,
+        534, 85, 86, 87, 71, 225, 224, 223, 357, 356, 355, 380, 379,
+        378, 159, 158, 307, 306, 396, 395, 499, 498, 518, 517, 512,
+        511, 516, 515, 514, 513, 256, 174, 173, 170, 169, 573, 572,
+        281, 280, 275, 274, 335, 334, 404, 403, 415, 414, 577, 576,
+        329, 222, 221, 220, 269 , 268, 293, 535, 367, 366, 172, 171,
+        180, 179, 411, 410, 176, 175, 178, 177, 253, 252, 255, 254,
+        318, 317, 320, 319, 417, 416, 419, 418, 450, 449, 452, 451,
+        520, 519, 522, 521, 464, 463, 483, 482, 261, 260, 289, 288,
+        377, 227, 427, 426, 567, 566, 155, 154, 249, 248, 409, 408,
+        413, 412, 392, 391, 407, 406, 547, 546, 358, 381, 485, 326,
+        219, 437, 168, 203, 202, 351, 484, 465, 568, 591, 590, 184,
+        510, 529, 251, 250, 331, 330, 436, 435, 448, 447, 551, 550 };
+
+    uint32_t char1;
+    uint32_t char2;
+    const char* s1 = string1;
+    const char* s2 = string2;
+    
+    do {
+        size_t remaining1 = strlen(string1) - (s1 - string1);
+        size_t remaining2 = strlen(string2) - (s2 - string2);
+
+        if ((remaining1 == 0) != (remaining2 == 0)) {
+            // exactly one of the strings have ended (not both or none; xor)
+            return (remaining1 == 0);
+        }
+        else if (remaining2 == 0 && remaining1 == 0) {
+            // strings are identical
+            return false;
+        }
+
+        // invalid utf8
+        if (remaining1 < sequence_length(s1[0]) || remaining2 < sequence_length(s2[0]))
+            return false;
+
+        char1 = utf8value(s1);
+        char2 = utf8value(s2);
+
+        if (char1 == char2) {
+            // Go to next characters for both strings
+            s1 += sequence_length(s1[0]);
+            s2 += sequence_length(s2[0]);
+        }
+        else {
+            // Test if above Latin Extended B
+            size_t collators = sizeof(collation_order) / sizeof(collation_order[0]);
+            if (char1 >= collators || char2 >= collators)
+                return char1 < char2;
+
+            uint32_t value1 = collation_order[char1];
+            uint32_t value2 = collation_order[char2];
+
+            return value1 < value2;
+        }
+
+    } while (true);
 }

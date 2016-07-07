@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package io.realm.internal.test;
-
-public class PhoneData {
-
-    public String type;
-    public String number;
-
-    public PhoneData(String type, String number) {
-        this.type = type;
-        this.number = number;
-    }
-
-}
+/**
+ * The classes in this package have conflicting name with classes used in Realm proxy classes.
+ *
+ * Those model classes test https://github.com/realm/realm-java/issues/3077
+ */
+package io.realm.entities.conflict;
