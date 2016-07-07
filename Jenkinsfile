@@ -58,7 +58,10 @@ try {
           collectAarMetrics()
 
           stage 'Publish to OJO'
-          gradle 'assemble ojoUpload'
+          withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_USER', usernameVariable: 'BINTRAY_KEY']]) {
+            sh "chmod +x gradlew && ./gradlew -DbintrayUser=${env.BINTRAY_USER} -DbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+            gradle 'assemble ojoUpload'
+          }
         }
       }
     }
@@ -109,12 +112,14 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
   sh 'rm logcat.txt '
 }
 
+@NonCPS
 def sendMetrics(String metric, String value) {
   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
     sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
   }
 }
 
+@NonCPS
 def sendTaggedMetric(String metric, String value, String tagName, String tagValue) {
   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
     sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric},${tagName}=${tagValue} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
@@ -128,6 +133,7 @@ def storeJunitResults(String path) {
   ])
 }
 
+@NonCPS
 def collectAarMetrics() {
   sh '''set -xe
   cd realm/realm-library/build/outputs/aar
@@ -136,11 +142,13 @@ def collectAarMetrics() {
   $(cat dx) --dex --output=temp.dex unzipped/classes.jar
   cat temp.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 "%d"' > methods
   '''
+
   sendMetrics('methods', readFile('realm/realm-library/build/outputs/aar/methods'))
 
-  sendMetrics('aar_size', new File('realm/realm-library/build/outputs/aar/realm-android-library-release.aar').length())
+  def aarFile = findFiles(glob: 'realm/realm-library/build/outputs/aar/realm-android-library-release.aar')[0]
+  sendMetrics('aar_size', String.valueOf(aarFile.length))
 
-  def rootFolder = new File('realm/realm-library/build/outputs/aar/unzipped/jni')
+  def rootFolder = findFiles(glob: 'realm/realm-library/build/outputs/aar/unzipped/jni')[0]
   rootFolder.traverse (type: DIRECTORIES) { folder ->
     def abiName = folder.name()
     def libSize = new File(folder, 'librealm-jni.so').size() as String
