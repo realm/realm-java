@@ -129,23 +129,22 @@ def storeJunitResults(String path) {
 }
 
 def collectAarMetrics() {
-  dir('realm/realm-library/build/outputs/aar') {
-    sh '''set -xe
-    unzip realm-android-library-release.aar -d unzipped
-    find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
-    $(cat dx) --dex --output=temp.dex unzipped/classes.jar
-    cat temp.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 "%d"' > methods
-    '''
-    sendMetrics('methods', readFile('methods'))
+  sh '''set -xe
+  cd realm/realm-library/build/outputs/aar
+  unzip realm-android-library-release.aar -d unzipped
+  find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
+  $(cat dx) --dex --output=temp.dex unzipped/classes.jar
+  cat temp.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 "%d"' > methods
+  '''
+  sendMetrics('methods', readFile('realm/realm-library/build/outputs/aar/methods'))
 
-    sendMetrics('aar_size', new File('realm-android-library-release.aar').length())
+  sendMetrics('aar_size', new File('realm/realm-library/build/outputs/aar/realm-android-library-release.aar').length())
 
-    def rootFolder = new File('unzipped/jni')
-    rootFolder.traverse (type: DIRECTORIES) { folder ->
-      def abiName = folder.name()
-      def libSize = new File(folder, 'librealm-jni.so').size() as String
-      sendTaggedMetric('abi_size', libSize, 'type', abiName)
-    }
+  def rootFolder = new File('realm/realm-library/build/outputs/aar/unzipped/jni')
+  rootFolder.traverse (type: DIRECTORIES) { folder ->
+    def abiName = folder.name()
+    def libSize = new File(folder, 'librealm-jni.so').size() as String
+    sendTaggedMetric('abi_size', libSize, 'type', abiName)
   }
 }
 
