@@ -301,12 +301,12 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                // Let us set a new class name
+                // Let us rename the old schema.
                 realm.getSchema()
                         .rename(MigrationPrimaryKey.CLASS_NAME, MigrationClassRenamed.CLASS_NAME);
 
-                // Then recreate the original schema to see if Realm is going to get confused
-                // Unlike the first time with buildInitialMigrationSchema(), we will not have a primary key
+                // Then recreate the original schema to see if Realm is going to get confused.
+                // Unlike the first time with buildInitialMigrationSchema(), we will not have a primary key.
                 realm.getSchema()
                         .create(MigrationPrimaryKey.CLASS_NAME)
                         .addField(MigrationPrimaryKey.FIELD_FIRST,   Byte.class)
@@ -314,7 +314,6 @@ public class RealmMigrationTests {
                         .addField(MigrationPrimaryKey.FIELD_PRIMARY, String.class)
                         .addField(MigrationPrimaryKey.FIELD_FOURTH,  Integer.class)
                         .addField(MigrationPrimaryKey.FIELD_FIFTH,   Long.class);
-
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
@@ -369,8 +368,8 @@ public class RealmMigrationTests {
                         .get(MigrationPrimaryKey.CLASS_NAME)
                         .setClassName(MigrationClassRenamed.CLASS_NAME);
 
-                // Then recreate the original schema to see if Realm is going to get confused
-                // Unlike the first time with buildInitialMigrationSchema(), we will not have a primary key
+                // Then recreate the original schema to see if Realm is going to get confused.
+                // Unlike the first time with buildInitialMigrationSchema(), we will not have a primary key.
                 realm.getSchema()
                         .create(MigrationPrimaryKey.CLASS_NAME)
                         .addField(MigrationPrimaryKey.FIELD_FIRST,   Byte.class)
@@ -378,7 +377,6 @@ public class RealmMigrationTests {
                         .addField(MigrationPrimaryKey.FIELD_PRIMARY, String.class)
                         .addField(MigrationPrimaryKey.FIELD_FOURTH,  Integer.class)
                         .addField(MigrationPrimaryKey.FIELD_FIFTH,   Long.class);
-
             }
         };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
