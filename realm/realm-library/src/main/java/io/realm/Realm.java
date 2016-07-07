@@ -275,6 +275,7 @@ public final class Realm extends BaseRealm {
                 realm.setVersion(realm.configuration.getSchemaVersion());
             }
 
+            ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
@@ -283,7 +284,7 @@ public final class Realm extends BaseRealm {
                 // Create and validate table
                 if (version == UNVERSIONED) {
                     //mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
-                    mediator.createTable(modelClass, realm.sharedRealm);
+                    realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, realm.sharedRealm));
                 }
                 //columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
@@ -975,7 +976,7 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
      * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects, and can potentially override changes made by other threads.
      *
@@ -996,9 +997,9 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
-     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed. 
-     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being 
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
      * reached. This can also potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy.

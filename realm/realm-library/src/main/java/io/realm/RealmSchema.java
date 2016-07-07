@@ -261,7 +261,7 @@ public final class RealmSchema {
 
     private static native long nativeCreateSchema();
     private static native void nativeClose(long nativePtr);
-    private static native void nativeAddObjectSchema(long nativePtr, long nativePtr, long nativeObjectSchemaPtr);
+    private static native void nativeAddObjectSchema(long nativePtr, long nativeObjectSchemaPtr);
     private static native void nativeHasObjectSchemaByName(long nativePtr, String name);
     private static native void nativeRemoveObjectSchemaByName(long nativePtr, String name);
     private static native long nativeGetObjectSchemaByName(long nativePtr, String name);

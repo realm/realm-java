@@ -23,7 +23,7 @@
 using namespace realm;
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeCreateObjectSchema
+Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema
 (JNIEnv *env, jclass) {
     TR_ENTER()
     try {
@@ -35,7 +35,7 @@ Java_io_realm_internal_RealmObjectSchema_nativeCreateObjectSchema
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeCreateObjectSchema(JNIEnv *env, jclass,
+Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema(JNIEnv *env, jclass,
     long native_shared_group_ptr) {
     TR_ENTER()
     auto* shared_group = reinterpret_cast<SharedGroup*>(native_shared_group_ptr);
@@ -48,7 +48,7 @@ Java_io_realm_internal_RealmObjectSchema_nativeCreateObjectSchema(JNIEnv *env, j
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeClose
+Java_io_realm_RealmObjectSchema_nativeClose
 (JNIEnv *, jclass, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -56,7 +56,7 @@ Java_io_realm_internal_RealmObjectSchema_nativeClose
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeGetPropertyByString
+Java_io_realm_RealmObjectSchema_nativeGetPropertyByString
 (JNIEnv *env, jclass, jlong native_ptr, jstring name) {
     TR_ENTER_PTR(native_ptr)
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -70,7 +70,7 @@ Java_io_realm_internal_RealmObjectSchema_nativeGetPropertyByString
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeGetPropertyByPrimaryKey
+Java_io_realm_RealmObjectSchema_nativeGetPropertyByPrimaryKey
 (JNIEnv *env, jclass, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -83,7 +83,7 @@ Java_io_realm_internal_RealmObjectSchema_nativeGetPropertyByPrimaryKey
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeAddProperty
+Java_io_realm_RealmObjectSchema_nativeAddProperty
 (JNIEnv *env, jclass, jlong native_ptr, jlong native_property_ptr) {
     TR_ENTER_PTR(native_ptr);
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -96,7 +96,7 @@ Java_io_realm_internal_RealmObjectSchema_nativeAddProperty
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_RealmObjectSchema_nativeRemovePropertyByName
+Java_io_realm_RealmObjectSchema_nativeRemovePropertyByName
 (JNIEnv *env, jclass, jlong native_ptr, jstring name) {
     TR_ENTER_PTR(native_ptr)
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);

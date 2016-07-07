@@ -39,7 +39,7 @@ JNIEXPORT void JNICALL
 io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
-    auto *schema = reinterpret_cast<Schema*>(native_ptr);
+    auto *schema  = reinterpret_cast<Schema*>(native_ptr);
     delete schema;
 }
 

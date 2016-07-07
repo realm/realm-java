@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal;
+package io.realm;
 
 
 import io.realm.RealmFieldType;

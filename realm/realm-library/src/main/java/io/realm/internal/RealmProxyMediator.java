@@ -29,6 +29,7 @@ import java.util.Set;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.RealmObjectSchema;
 import io.realm.exceptions.RealmException;
 
 /**
@@ -49,6 +50,16 @@ public abstract class RealmProxyMediator {
      * @param transaction the read transaction for the Realm to create table in.
      */
     public abstract Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
+
+    /**
+     * Creates the object schema for the given RealmObject class. It will create the backing table.
+     * This object schema will eventually be added to the Realm's schema.
+     *
+     * @param clazz the {@link RealmObject} model class to create backing table for.
+     * @param sharedRealm the underlaying Realm to create the table within.
+     * @return the object schema
+     */
+    public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.
@@ -153,7 +164,7 @@ public abstract class RealmProxyMediator {
      * @param clazz the type of {@link RealmObject}
      * @param realm the reference to {@link Realm} where to create the object.
      * @param json the JSON data
-     * @param update {@code true} if Realm should try to update a existing object. This requires that the RealmObject 
+     * @param update {@code true} if Realm should try to update a existing object. This requires that the RealmObject
      *               class has a @PrimaryKey.
      * @return RealmObject that has been created or updated.
      * @throws JSONException if the JSON mapping doesn't match the expected class.

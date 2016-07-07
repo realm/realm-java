@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.annotations.Required;
-import io.realm.internal.Property;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
@@ -85,7 +84,7 @@ public final class RealmObjectSchema {
         this.table = table;
         this.columnIndices = columnIndices;
         this.properties = new ArrayList<>();
-        this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getSharedGroupNative());
+        this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getNativePtr());
     }
 
     /**
