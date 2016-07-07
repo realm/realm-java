@@ -104,26 +104,30 @@ public final class RealmObjectSchema {
      * has a primary key, this will transfer the primary key for the new class name.
      *
      * @param className the new name for this class.
+     * @throws IllegalArgumentException if {@param className} is {@code null} or an empty string, or its length exceeds 57 characters.
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
+        if (57 < className.length()) {
+            throw new IllegalArgumentException("Class name length exceeds 57 characters.");
+        }
         String internalTableName = Table.TABLE_PREFIX + className;
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
-        // in case if this table has a primary key, we need to transfer it after renaming the table.
+        // in case this table has a primary key, we need to transfer it after renaming the table.
         String oldTableName = null;
         String pkField = null;
         if (table.hasPrimaryKey()) {
             oldTableName = table.getName();
             pkField = getPrimaryKey();
+            table.setPrimaryKey(null);
         }
-        // this will throw when things go wrong
         transaction.renameTable(table.getName(), internalTableName);
         if (pkField != null && !pkField.isEmpty()) {
             try {
-                table.resetPrimaryKeyForRenamedClass(oldTableName, internalTableName);
+                table.setPrimaryKey(pkField);
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
                 transaction.renameTable(table.getName(), oldTableName);
