@@ -30,7 +30,7 @@ import okhttp3.Response;
 public class HttpUtils {
     private final OkHttpClient client = new OkHttpClient();
     // adb reverse tcp:8888 tcp:8888
-    // will forward this query to the host, running the server on 8888
+    // will forward this query to the host, running the integration test server on 8888
     private final static String START_SERVER = "http://127.0.0.1:8888/start";
     private final static String STOP_SERVER = "http://127.0.0.1:8888/stop";
 
