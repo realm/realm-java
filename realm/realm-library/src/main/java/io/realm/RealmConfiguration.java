@@ -557,7 +557,7 @@ public final class RealmConfiguration {
         }
 
         /**
-         * Setting this will create an in-eq Realm instead of saving it to disk. In-memory Realms might still use
+         * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
          * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
          * Realm is closed.
          * <p>

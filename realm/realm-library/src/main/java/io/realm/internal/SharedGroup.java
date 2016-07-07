@@ -408,8 +408,6 @@ public class SharedGroup implements Closeable {
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
     private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
     private native long nativeCreateSyncReplication(String databaseFile);
-//    private native long nativeInitSyncClient(String userToken);
-//    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
     private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
 
     private native long nativeBeginImplicit(long nativePtr);

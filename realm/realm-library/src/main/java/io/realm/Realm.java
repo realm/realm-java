@@ -183,14 +183,6 @@ public final class Realm extends BaseRealm {
         }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
     }
-//
-//    public static Realm getSyncInstance(SyncConfig syncConfig) {
-//        //FIXME use corrrect SharedGroup
-//        if (syncConfig.getConfiguration() == null) {
-//            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
-//        }
-//        return RealmCache.createRealmOrGetFromCache(syncConfig.getConfiguration(), Realm.class);
-//    }
 
     /**
      * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}.
