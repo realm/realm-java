@@ -23,28 +23,63 @@ import java.lang.ref.ReferenceQueue;
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
  */
-final class NativeObjectReference extends PhantomReference<NativeObject> {
+public final class NativeObjectReference extends PhantomReference<NativeObject> {
+
+    private static class ReferencePool {
+        NativeObjectReference head;
+
+        synchronized void add(NativeObjectReference ref) {
+            ref.prev = null;
+            ref.next = head;
+            if (head != null) {
+                head.prev = ref;
+            }
+            head = ref;
+        }
+
+        synchronized void remove(NativeObjectReference ref) {
+            NativeObjectReference next = ref.next;
+            NativeObjectReference prev = ref.prev;
+            ref.next = null;
+            ref.prev = null;
+            if (prev != null) {
+                prev.next = next;
+            } else {
+                head = next;
+            }
+            if (next != null) {
+                next.prev = prev;
+            }
+        }
+    }
 
     // The pointer to the native object to be handled
     private final long nativePtr;
     private final long nativeFinalizerPtr;
-    // Use boxed type to avoid box/un-box when access the freeIndexList
-    final Integer refIndex;
+    private final Context context;
+    private NativeObjectReference prev;
+    private NativeObjectReference next;
 
-    NativeObjectReference(NativeObject referent,
-                          ReferenceQueue<? super NativeObject> referenceQueue,
-                          Integer index) {
+    private static ReferencePool referencePool = new ReferencePool();
+
+    NativeObjectReference(Context context,
+                          NativeObject referent,
+                          ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
         this.nativePtr = referent.getNativePointer();
         this.nativeFinalizerPtr = referent.getNativeFinalizer();
-        refIndex = index;
+        this.context = context;
+        referencePool.add(this);
     }
 
     /**
      * To dealloc native resources.
      */
     void cleanup() {
-        nativeCleanUp(nativeFinalizerPtr, nativePtr);
+        synchronized (context) {
+            nativeCleanUp(nativeFinalizerPtr, nativePtr);
+        }
+        referencePool.remove(this);
     }
 
     private static native void nativeCleanUp(long nativeDestructor, long nativePointer);

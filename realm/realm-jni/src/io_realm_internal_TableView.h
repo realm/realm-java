@@ -521,6 +521,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_TableView
+ * Method:    nativeGetFinalizer
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetFinalizer
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

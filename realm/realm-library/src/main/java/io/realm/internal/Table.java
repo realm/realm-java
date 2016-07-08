@@ -32,7 +32,7 @@ import io.realm.internal.log.RealmLog;
  * (define/insert/delete/update) a table has. All the native communications to the Realm C++ library are also handled by
  * this class.
  */
-public class Table implements TableOrView, TableSchema, Closeable {
+public class Table implements TableOrView, TableSchema, NativeObject {
 
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final String TABLE_PREFIX = Util.getTablePrefix();
@@ -82,6 +82,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             tableNo = tableCount.incrementAndGet();
             RealmLog.d("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
         }
+        context.addReference(this);
     }
 
     Table(Context context, Object parent, long nativePointer) {
@@ -92,6 +93,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
             tableNo = tableCount.incrementAndGet();
             RealmLog.d("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
+        //context.addReference(this);
+    }
+
+    @Override
+    public long getNativePointer() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizer() {
+        return nativeGetFinalizer();
     }
 
     @Override
@@ -101,36 +113,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public long getNativeTablePointer() {
         return nativePtr;
-    }
-
-    // If close() is called, no penalty is paid for delayed disposal
-    // via the context
-    @Override
-    public void close() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-                if (DEBUG) {
-                    tableCount.decrementAndGet();
-                    RealmLog.d("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
-                }
-                nativePtr = 0;
-            }
-        }
-    }
-
-    @Override
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                boolean isRoot = (parent == null);
-                context.asyncDisposeTable(nativePtr, isRoot);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
-        if (DEBUG) {
-            RealmLog.d("==== FINALIZE " + tableNo + "...");
-        }
     }
 
     /*
@@ -791,14 +773,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
-        try {
-            // Copy context reference from parent
-            return new Table(context, this.parent, nativeTablePointer);
-        }
-        catch (RuntimeException e) {
-            Table.nativeClose(nativeTablePointer);
-            throw e;
-        }
+        // Copy context reference from parent
+        Table table = new Table(context, this.parent, nativeTablePointer);
+        context.addReference(table);
+        return table;
     }
 
     /**
@@ -1146,13 +1124,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
-        try {
-            // Copy context reference from parent
-            return new TableQuery(this.context, this, nativeQueryPtr);
-        } catch (RuntimeException e) {
-            TableQuery.nativeClose(nativeQueryPtr);
-            throw e;
-        }
+        // Copy context reference from parent
+        return new TableQuery(this.context, this, nativeQueryPtr);
     }
 
     /**
@@ -1504,4 +1477,5 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native String nativeToJson(long nativeTablePtr);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
+    private static native long nativeGetFinalizer();
 }

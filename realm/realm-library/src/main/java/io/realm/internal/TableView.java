@@ -31,7 +31,7 @@ import io.realm.internal.log.RealmLog;
  * The view doesn't copy data from the table, but contains merely a list of row-references into the original table
  * with the real data.
  */
-public class TableView implements TableOrView, Closeable {
+public class TableView implements TableOrView, NativeObject {
     private static final boolean DEBUG = false; //true;
     // Don't convert this into local variable and don't remove this.
     // Core requests TableView to hold the Query reference.
@@ -51,6 +51,7 @@ public class TableView implements TableOrView, Closeable {
         this.parent = parent;
         this.nativePtr = nativePtr;
         this.query = null;
+        context.addReference(this);
     }
 
     /**
@@ -67,35 +68,22 @@ public class TableView implements TableOrView, Closeable {
         this.parent = parent;
         this.nativePtr = nativePtr;
         this.query = query;
+        context.addReference(this);
+    }
+
+    @Override
+    public long getNativePointer() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizer() {
+        return nativeGetFinalizer();
     }
 
     @Override
     public Table getTable() {
         return parent;
-    }
-
-    @Override
-    public void close() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-
-                if (DEBUG) {
-                    RealmLog.d("==== TableView CLOSE, ptr= " + nativePtr);
-                }
-                nativePtr = 0;
-            }
-        }
-    }
-
-    @Override
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                context.asyncDisposeTableView(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
     }
 
     /**
@@ -854,4 +842,5 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeSyncIfNeeded(long nativeTablePtr);
     private native void nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
+    private static native long nativeGetFinalizer();
 }

@@ -114,15 +114,6 @@ public class Group implements Closeable {
         return nativePtr == 0;
     }
 
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
-    }
-
     private void verifyGroupIsValid() {
         if (nativePtr == 0) {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");
@@ -196,14 +187,12 @@ public class Group implements Closeable {
 
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
-        try {
-            // Copy context reference from parent
-            return new Table(context, this, nativeTablePointer);
-        } catch (RuntimeException e) {
-            Table.nativeClose(nativeTablePointer);
-            throw e;
-        }
+        // Copy context reference from parent
+        Table table = new Table(context, this, nativeTablePointer);
+        context.addReference(table);
+        return table;
     }
 
     /**

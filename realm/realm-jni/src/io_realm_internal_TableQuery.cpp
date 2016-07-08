@@ -30,6 +30,8 @@ using namespace realm;
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
 
+static void finalize_table_query(jlong ptr);
+
 inline bool query_valid(JNIEnv* env, Query* pQuery)
 {
     return TABLE_VALID(env, pQuery->get_table().get());
@@ -46,8 +48,7 @@ const char* ERR_SORT_NOT_SUPPORTED = "Sort is not supported on binary data, obje
 //-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr) {
-    TR_ENTER_PTR(nativeQueryPtr)
-    delete Q(nativeQueryPtr);
+    finalize_table_query(nativeQueryPtr);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
@@ -1843,3 +1844,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
         }
     } CATCH_STD()
 }
+
+static void finalize_table_query(jlong ptr) {
+    TR_ENTER_PTR(ptr)
+    delete Q(ptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizer
+  (JNIEnv *, jclass) {
+    return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_table_query));
+}
+

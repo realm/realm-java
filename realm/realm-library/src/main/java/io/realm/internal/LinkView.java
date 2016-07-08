@@ -164,13 +164,9 @@ public class LinkView implements NativeObject {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetTargetTable(nativePointer);
-        try {
-            // Copy context reference from parent
-            return new Table(context, this.parent, nativeTablePointer);
-        } catch (RuntimeException e) {
-            Table.nativeClose(nativeTablePointer);
-            throw e;
-        }
+        Table table = new Table(context, this.parent, nativeTablePointer);
+        context.addReference(table);
+        return table;
     }
 
     private void checkImmutable() {

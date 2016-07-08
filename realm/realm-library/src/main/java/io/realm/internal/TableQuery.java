@@ -23,7 +23,7 @@ import io.realm.Case;
 import io.realm.Sort;
 import io.realm.internal.async.BadVersionException;
 
-public class TableQuery implements Closeable {
+public class TableQuery implements NativeObject {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
@@ -48,6 +48,7 @@ public class TableQuery implements Closeable {
         this.table = table;
         this.nativePtr = nativeQueryPtr;
         this.origin = null;
+        context.addReference(this);
     }
 
     public TableQuery(Context context, Table table, long nativeQueryPtr, TableOrView origin) {
@@ -58,28 +59,17 @@ public class TableQuery implements Closeable {
         this.table = table;
         this.nativePtr = nativeQueryPtr;
         this.origin = origin;
+        context.addReference(this);
     }
 
-    public void close() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-
-                if (DEBUG)
-                    System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
-
-                nativePtr = 0;
-            }
-        }
+    @Override
+    public long getNativePointer() {
+        return nativePtr;
     }
 
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                context.asyncDisposeQuery(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
+    @Override
+    public long getNativeFinalizer() {
+        return nativeGetFinalizer();
     }
 
     /**
@@ -801,4 +791,5 @@ public class TableQuery implements Closeable {
     public static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedGroupPtr);
     public static native void nativeCloseQueryHandover(long nativePtr);
     public static native long[] nativeBatchUpdateQueries(long bgSharedGroupPtr, long[] handoverQueries, long[][] parameters, long[][] queriesParameters, boolean[][] multiSortOrder) throws BadVersionException;
+    private static native long nativeGetFinalizer();
 }

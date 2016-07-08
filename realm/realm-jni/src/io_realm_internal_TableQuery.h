@@ -583,6 +583,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandove
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
   (JNIEnv *, jclass, jlong, jlongArray, jobjectArray, jobjectArray, jobjectArray);
 
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeGetFinalizer
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizer
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif
