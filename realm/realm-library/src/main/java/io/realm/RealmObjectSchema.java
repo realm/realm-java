@@ -87,6 +87,14 @@ public final class RealmObjectSchema {
         this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getNativePtr());
     }
 
+    RealmObjectSchema(BaseRealm realm, String className) {
+        this.realm = realm;
+        this.table = null;
+        this.columnIndices = null;
+        this.properties = null;
+        this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getNativePtr(), className);
+    }
+
     /**
      * Returns the native/C++ pointer.
      *
@@ -772,6 +780,7 @@ public final class RealmObjectSchema {
     }
 
     private static native long nativeCreateObjectSchema(long nativeSharedGroupPtr);
+    private static native long nativeCreateObjectSchema(long nativeSharedRealmPtr, String className);
     private static native void nativeClose(long nativePtr);
     private static native long nativeGetPropertyByName(long nativePtr, String name);
     private static native long nativeRemovePropertyByName(long nativePtr, String name);

@@ -43,18 +43,6 @@ io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr)
     delete schema;
 }
 
-JNIEXPORT void JNICALL
-io_realm_RealmSchema_nativeAddObjectSchema(JNIEnv *env, jclass, jlong native_schema_ptr, jlong native_object_schema_ptr)
-{
-    TR_ENTER_PTR(native_schema_ptr)
-    auto *schema = reinterpret_cast<Schema*>(native_schema_ptr);
-    auto object_schema = *reinterpret_cast<ObjectSchema*>(native_object_schema_ptr);
-    try {
-        schema->push_back(object_schema);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jboolean JNICALL
 io_realm_RealmSchema_nativeHasObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
 {
@@ -68,22 +56,6 @@ io_realm_RealmSchema_nativeHasObjectSchemaByName(JNIEnv *env, jclass, jlong nati
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL
-io_realm_RealmSchema_nativeRemoveObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
-{
-    TR_ENTER_PTR(native_schema_ptr)
-    auto *schema = reinterpret_cast<Schema*>(native_schema_ptr);
-    try {
-        JStringAccessor name(env, j_name);
-        auto it = schema->find(name);
-        if (it == schema->end()) {
-            return;
-        }
-        schema->erase(it);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jlong JNICALL
 io_realm_RealmSchema_nativeGetObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
 {
@@ -93,7 +65,7 @@ io_realm_RealmSchema_nativeGetObjectSchemaByName(JNIEnv *env, jclass, jlong nati
         JStringAccessor name(env, j_name);
         auto it = schema->find(name);
         if (it == schema->end()) {
-            return nullptr;
+            return 0;
         }
         else {
             auto& object_schema = *it;

@@ -24,13 +24,18 @@ import io.realm.RealmFieldType;
  */
 
 public class Property {
+    public static boolean PRIMARY_KEY = true;
+    public static boolean REQUIRED    = true;
+    public static boolean INDEXED     = true;
+
     private long nativePtr;
 
     public Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
         this.nativePtr = nativeCreateProperty(name, type.ordinal(), isPrimary, isIndexed, !isRequired);
     }
 
-    public Property(String name, RealmFieldType type, String linkedToName) {
+    public Property(String name, RealmFieldType type, RealmObjectSchema linkedTo) {
+        String linkedToName = linkedTo.getClassName();
         this.nativePtr = nativeCreateProperty(name, type.ordinal(), linkedToName);
     }
 
