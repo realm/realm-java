@@ -117,9 +117,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                     }
                                     unitTestFailed = true;
                                 }
-                                if (signalTestCompleted.getCount() > 0) {
-                                    signalTestCompleted.countDown();
-                                }
+                                signalTestCompleted.countDown();
                                 if (realm != null) {
                                     realm.close();
                                 }

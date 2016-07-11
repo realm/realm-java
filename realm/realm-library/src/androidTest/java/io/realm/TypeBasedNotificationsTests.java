@@ -104,6 +104,7 @@ public class TypeBasedNotificationsTests {
         final Dog dog = realm.createObject(Dog.class);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -121,6 +122,7 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObject_dynamic_realm() {
         final DynamicRealm realm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+        looperThread.keepStrongReference.add(realm);
         realm.addChangeListener(new RealmChangeListener<DynamicRealm>() {
             @Override
             public void onChange(DynamicRealm object) {
@@ -141,6 +143,7 @@ public class TypeBasedNotificationsTests {
         final DynamicRealmObject dog = realm.createObject("Dog");
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
             public void onChange(DynamicRealmObject object) {
@@ -180,6 +183,7 @@ public class TypeBasedNotificationsTests {
         final Dog dog = realm.copyToRealm(akamaru);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -221,6 +225,7 @@ public class TypeBasedNotificationsTests {
         final PrimaryKeyAsLong primaryKeyAsLong = realm.copyToRealmOrUpdate(obj);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(primaryKeyAsLong);
         primaryKeyAsLong.addChangeListener(new RealmChangeListener<PrimaryKeyAsLong>() {
             @Override
             public void onChange(PrimaryKeyAsLong object) {
@@ -268,6 +273,7 @@ public class TypeBasedNotificationsTests {
             realm.commitTransaction();
             in.close();
 
+            looperThread.keepStrongReference.add(objectFromJson);
             objectFromJson.addChangeListener(new RealmChangeListener<AllTypes>() {
                 @Override
                 public void onChange(AllTypes object) {
@@ -323,6 +329,7 @@ public class TypeBasedNotificationsTests {
             final AllTypes objectFromJson = realm.createObjectFromJson(AllTypes.class, json);
             realm.commitTransaction();
 
+            looperThread.keepStrongReference.add(objectFromJson);
             objectFromJson.addChangeListener(new RealmChangeListener<AllTypes>() {
                 @Override
                 public void onChange(AllTypes object) {
@@ -386,6 +393,7 @@ public class TypeBasedNotificationsTests {
             realm.commitTransaction();
             in.close();
 
+            looperThread.keepStrongReference.add(objectFromJson);
             objectFromJson.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
                 @Override
                 public void onChange(AllTypesPrimaryKey object) {
@@ -445,6 +453,7 @@ public class TypeBasedNotificationsTests {
         final AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(newObj);
         newObj.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey object) {
@@ -478,6 +487,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final Dog dog = realm.where(Dog.class).findFirst();
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -536,6 +546,7 @@ public class TypeBasedNotificationsTests {
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
 
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -613,6 +624,7 @@ public class TypeBasedNotificationsTests {
 
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -713,6 +725,7 @@ public class TypeBasedNotificationsTests {
 
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -797,6 +810,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
@@ -854,6 +868,7 @@ public class TypeBasedNotificationsTests {
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         assertTrue(dogs.load());
+        looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
@@ -930,6 +945,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         Dog dog = realm.where(Dog.class).findFirst();
+        looperThread.keepStrongReference.add(dog);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
             dog.addChangeListener(new RealmChangeListener<Dog>() {
                 @Override
@@ -971,6 +987,7 @@ public class TypeBasedNotificationsTests {
 
         Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
+        looperThread.keepStrongReference.add(dog);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
             dog.addChangeListener(new RealmChangeListener<Dog>() {
                 @Override
@@ -1009,6 +1026,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        looperThread.keepStrongReference.add(dogs);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
             dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                 @Override
@@ -1049,6 +1067,7 @@ public class TypeBasedNotificationsTests {
         RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         assertTrue(dogs.load());
 
+        looperThread.keepStrongReference.add(dogs);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
             dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                 @Override
@@ -1096,6 +1115,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         Dog dog = realm.where(Dog.class).findFirst();
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -1168,6 +1188,7 @@ public class TypeBasedNotificationsTests {
         };
 
         Dog dog = realm.where(Dog.class).findFirstAsync();
+        looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
@@ -1214,6 +1235,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
@@ -1279,6 +1301,7 @@ public class TypeBasedNotificationsTests {
         };
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
+        looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
@@ -1426,6 +1449,8 @@ public class TypeBasedNotificationsTests {
                 finishedLatch.countDown();
             }
         };
+        looperThread.keepStrongReference.add(results1);
+        looperThread.keepStrongReference.add(results2);
         results1.addChangeListener(listener);
         results2.addChangeListener(listener);
 
@@ -1451,6 +1476,7 @@ public class TypeBasedNotificationsTests {
 
         final RealmResults<Dog> dogs =
                 allTypes.getColumnRealmList().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
+        looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
