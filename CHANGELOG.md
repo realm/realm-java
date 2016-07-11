@@ -7,6 +7,10 @@
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
 * Fixed a bug that does not transfer the primary key when `RealmSchemaObject.setClassName()` is called to rename a class (#3118).
 
+### Internal
+
+* Updated Realm Core to 1.3.0.
+
 ## 1.1.0
 
 ### Bug fixes
