@@ -862,7 +862,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("long rowIndex");
         writer
                 .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
-                .emitStatement("rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex()")
+                .emitStatement("continue")
                 .nextControlFlow("else")
                 .emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)")
                 .endControlFlow();
@@ -1071,7 +1071,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("long rowIndex = TableOrView.NO_MATCH");
         writer
                 .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
-                .emitStatement("rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex()")
+                .emitStatement("continue")
                 .nextControlFlow("else");
         
         if (hasPrimaryKey) {

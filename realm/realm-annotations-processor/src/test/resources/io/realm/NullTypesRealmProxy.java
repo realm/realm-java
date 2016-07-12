@@ -1251,7 +1251,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if(!cache.containsKey(object)) {
                 long rowIndex;
                 if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                    rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+                    continue;
                 } else {
                     rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 }
@@ -1502,7 +1502,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if(!cache.containsKey(object)) {
                 long rowIndex = TableOrView.NO_MATCH;
                 if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                    rowIndex = ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+                    continue;
                 } else {
                     rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 }
