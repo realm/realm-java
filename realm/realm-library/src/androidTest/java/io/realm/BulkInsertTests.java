@@ -791,4 +791,18 @@ public class BulkInsertTests {
 
         assertEquals(1, realm.where(Dog.class).count());
     }
+
+    // To reproduce https://github.com/realm/realm-java/issues/3105
+    @Test
+    public void insertOrUpdate_shouldNotClearRealmList() {
+        realm.beginTransaction();
+        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class);
+        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class));
+        realm.commitTransaction();
+        assertEquals(1, allTypes.getColumnRealmList().size());
+
+        realm.insertOrUpdate(allTypes);
+        allTypes = realm.where(AllTypesPrimaryKey.class).findFirst();
+        assertEquals(1, allTypes.getColumnRealmList().size());
+    }
 }
