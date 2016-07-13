@@ -5,6 +5,11 @@
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
 * Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
+* Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
+
+### Internal
+
+* Updated Realm Core to 1.3.1.
 
 ## 1.1.0
 
