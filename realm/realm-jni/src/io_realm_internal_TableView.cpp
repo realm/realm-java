@@ -970,7 +970,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
     return -1;
 }
 
-static void finalize_table_view(jlong ptr) {
+static void finalize_table_view(jlong ptr)
+{
     TR_ENTER_PTR(ptr)
     delete TV(ptr);
 }

@@ -47,7 +47,8 @@ const char* ERR_IMPORT_CLOSED_REALM = "Can not import results from a closed Real
 const char* ERR_SORT_NOT_SUPPORTED = "Sort is not supported on binary data, object references and RealmList";
 //-------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr) {
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr)
+{
     finalize_table_query(nativeQueryPtr);
 }
 
@@ -1845,13 +1846,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
     } CATCH_STD()
 }
 
-static void finalize_table_query(jlong ptr) {
+static void finalize_table_query(jlong ptr)
+{
     TR_ENTER_PTR(ptr)
     delete Q(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizer
-  (JNIEnv *, jclass) {
+  (JNIEnv *, jclass)
+{
     return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_table_query));
 }
 

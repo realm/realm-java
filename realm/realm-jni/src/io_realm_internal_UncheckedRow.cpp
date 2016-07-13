@@ -368,13 +368,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
     } CATCH_STD()
 }
 
-static void finalize_unchecked_row(jlong ptr) {
+static void finalize_unchecked_row(jlong ptr)
+{
     TR_ENTER_PTR(ptr)
     delete ROW(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizer
-  (JNIEnv *, jclass) {
+  (JNIEnv *, jclass)
+{
     return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_unchecked_row));
 }
 
