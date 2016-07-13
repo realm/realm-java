@@ -39,8 +39,6 @@ public class UncheckedRow implements NativeObject, Row {
         this.context = context;
         this.parent = parent;
         this.nativePointer = nativePtr;
-
-        context.executeDelayedDisposal();
     }
 
     @Override

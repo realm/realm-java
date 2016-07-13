@@ -34,7 +34,6 @@ public class LinkView implements NativeObject {
         this.columnIndexInParent = columnIndexInParent;
         this.nativePointer = nativeLinkViewPtr;
 
-        context.executeDelayedDisposal();
         context.addReference(this);
     }
 
@@ -122,15 +121,8 @@ public class LinkView implements NativeObject {
     }
 
     public TableQuery where() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePointer);
-        try {
-            return new TableQuery(this.context, this.parent, nativeQueryPtr);
-        } catch (RuntimeException e) {
-            TableQuery.nativeClose(nativeQueryPtr);
-            throw e;
-        }
+        return new TableQuery(this.context, this.parent, nativeQueryPtr);
     }
 
     public boolean isAttached() {
@@ -161,8 +153,6 @@ public class LinkView implements NativeObject {
     }
 
     public Table getTargetTable() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetTargetTable(nativePointer);
         Table table = new Table(context, this.parent, nativeTablePointer);
         context.addReference(table);

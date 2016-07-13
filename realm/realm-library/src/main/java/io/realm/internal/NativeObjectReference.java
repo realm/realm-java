@@ -25,6 +25,7 @@ import java.lang.ref.ReferenceQueue;
  */
 public final class NativeObjectReference extends PhantomReference<NativeObject> {
 
+    // Linked list to keep the reference of the PhantomReference
     private static class ReferencePool {
         NativeObjectReference head;
 
@@ -55,6 +56,7 @@ public final class NativeObjectReference extends PhantomReference<NativeObject> 
 
     // The pointer to the native object to be handled
     private final long nativePtr;
+    // The pointer to the native finalize function
     private final long nativeFinalizerPtr;
     private final Context context;
     private NativeObjectReference prev;
@@ -79,8 +81,12 @@ public final class NativeObjectReference extends PhantomReference<NativeObject> 
         synchronized (context) {
             nativeCleanUp(nativeFinalizerPtr, nativePtr);
         }
+        // Remove the PhantomReference from the pool to free it.
         referencePool.remove(this);
     }
 
-    private static native void nativeCleanUp(long nativeDestructor, long nativePointer);
+    /**
+     *  Calls the native finalizer function to free the given native pointer.
+     */
+    private static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
 }

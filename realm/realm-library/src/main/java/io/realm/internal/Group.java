@@ -185,9 +185,6 @@ public class Group implements Closeable {
                     "Creating it requires a transaction: " + name);
         }
 
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
         // Copy context reference from parent
         Table table = new Table(context, this, nativeTablePointer);

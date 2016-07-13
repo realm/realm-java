@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import java.io.Closeable;
 import java.util.Date;
 
 import io.realm.Case;
@@ -416,37 +415,21 @@ public class TableQuery implements NativeObject {
      */
     public long findWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery) {
         validateQuery();
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         return nativeFindWithHandover(bgSharedGroupPtr, ptrQuery, 0);
     }
 
     public TableView findAll(long start, long end, long limit) {
         validateQuery();
 
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
-        try {
-            return new TableView(this.context, this.table, nativeViewPtr, this);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.table, nativeViewPtr, this);
     }
 
     public TableView findAll() {
         validateQuery();
 
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
-        try {
-            return new TableView(this.context, this.table, nativeViewPtr, this);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.table, nativeViewPtr, this);
     }
 
     // handover find* methods
@@ -454,29 +437,21 @@ public class TableQuery implements NativeObject {
     // run the query, and return the table view to the caller SharedGroup using the handover object.
     public long findAllWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr,  long ptrQuery) throws BadVersionException {
         validateQuery();
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         return nativeFindAllWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE);
     }
 
     public long findDistinctWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr,  long ptrQuery, long columnIndex) throws BadVersionException {
         validateQuery();
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         return nativeGetDistinctViewWithHandover(bgSharedGroupPtr, ptrQuery, columnIndex);
     }
 
     public long findAllSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery, long columnIndex, Sort sortOrder) throws BadVersionException {
         validateQuery();
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         return nativeFindAllSortedWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndex, sortOrder.getValue());
     }
 
     public long findAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery, long[] columnIndices, Sort[] sortOrders) throws BadVersionException {
         validateQuery();
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         boolean[] ascendings = getNativeSortOrderValues(sortOrders);
         return nativeFindAllMultiSortedWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndices, ascendings);
     }
@@ -491,14 +466,7 @@ public class TableQuery implements NativeObject {
      */
     public TableView importHandoverTableView(long handoverPtr, long callerSharedGroupPtr) throws BadVersionException {
         long nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
-        try {
-            return new TableView(this.context, this.table, nativeTvPtr);
-        } catch (RuntimeException e) {
-            if (nativeTvPtr != 0) {
-                TableView.nativeClose(nativeTvPtr);
-            }
-            throw e;
-        }
+        return new TableView(this.context, this.table, nativeTvPtr);
     }
 
     /**

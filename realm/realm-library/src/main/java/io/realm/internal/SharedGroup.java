@@ -209,7 +209,6 @@ public class SharedGroup implements Closeable {
 
     public void close() {
         synchronized (context) {
-            //context.cleanNativeReferences();
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 nativePtr = 0;

@@ -18,33 +18,21 @@ package io.realm.internal;
 
 import java.lang.ref.ReferenceQueue;
 
+// Currently we free native objects in two threads, the SharedGroup is freed in the caller thread, others are freed in
+// PhantomDaemon thread. The only reason we have this class is that there is a concurrency problem when freeing a row
+// which hold the last reference to a table -- freeing row will be locked on a mutex and the same mutex will be freed
+// when the corresponding table gets freed. So this class can go away when core doesn't hold the mutex itself as a
+// member of table.
 public class Context {
-
     private final static ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
     private final static Thread phantomThread = new Thread(new FinalizerRunnable(referenceQueue));
 
     static {
+        phantomThread.setName("RealmPhantomDaemon");
         phantomThread.start();
     }
 
-    synchronized void addReference(NativeObject referent) {
-        //referencesPool.add(new NativeObjectReference(this, referent, referenceQueue, referencesPool.getFreeIndex()));
+    void addReference(NativeObject referent) {
         new NativeObjectReference(this, referent, referenceQueue);
-    }
-
-    synchronized void executeDelayedDisposal() {
-        //cleanNativeReferences();
-    }
-
-    public void cleanNativeReferences() {
-        NativeObjectReference reference = (NativeObjectReference) referenceQueue.poll();
-        while (reference != null) {
-            // Dealloc the native resources
-            reference.cleanup();
-            // Inline referencesPool.remove() to make it faster.
-            // referencesPool.pool.set(index, null); is not really needed. Make it faster by not
-            // setting the slot to null.
-            reference = (NativeObjectReference) referenceQueue.poll();
-        }
     }
 }

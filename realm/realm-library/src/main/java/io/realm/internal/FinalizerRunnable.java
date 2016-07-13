@@ -19,7 +19,8 @@ package io.realm.internal;
 
 import java.lang.ref.ReferenceQueue;
 
-public class FinalizerRunnable implements Runnable {
+// Running in the PhantomDaemon thread to free native objects.
+class FinalizerRunnable implements Runnable {
     private final ReferenceQueue<NativeObject>  referenceQueue;
 
     FinalizerRunnable(ReferenceQueue<NativeObject> referenceQueue) {

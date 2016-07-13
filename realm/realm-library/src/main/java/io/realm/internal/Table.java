@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import java.io.Closeable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -582,15 +581,8 @@ public class Table implements TableOrView, TableSchema, NativeObject {
      * @return a sorted view.
      */
     public TableView getSortedView(long columnIndex, Sort sortOrder){
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, sortOrder.getValue());
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     /**
@@ -600,14 +592,11 @@ public class Table implements TableOrView, TableSchema, NativeObject {
      * @return a sorted view.
      */
     public TableView getSortedView(long columnIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, true);
         return new TableView(this.context, this, nativeViewPtr);
     }
 
     public TableView getSortedView(long columnIndices[], Sort sortOrders[]) {
-        context.executeDelayedDisposal();
         boolean[] nativeSortOrder = new boolean[sortOrders.length];
         for (int i = 0; i < sortOrders.length; i++) {
             nativeSortOrder[i] = sortOrders[i].getValue();
@@ -770,8 +759,6 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     public Table getLinkTarget(long columnIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         // Copy context reference from parent
         Table table = new Table(context, this.parent, nativeTablePointer);
@@ -1121,8 +1108,6 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     @Override
     public TableQuery where() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
         // Copy context reference from parent
         return new TableQuery(this.context, this, nativeQueryPtr);
@@ -1189,66 +1174,32 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     @Override
     public TableView findAllLong(long columnIndex, long value) {
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllString(long columnIndex, String value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     // Experimental feature
@@ -1275,15 +1226,8 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     //
 
     public TableView getDistinctView(long columnIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetDistinctView(nativePtr, columnIndex);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     /**

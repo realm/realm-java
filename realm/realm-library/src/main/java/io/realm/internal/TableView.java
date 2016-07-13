@@ -16,13 +16,11 @@
 
 package io.realm.internal;
 
-import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
-import io.realm.internal.log.RealmLog;
 
 /**
  * This class represents a view of a particular table. We can think of a tableview as a subset of a table. It contains
@@ -32,7 +30,6 @@ import io.realm.internal.log.RealmLog;
  * with the real data.
  */
 public class TableView implements TableOrView, NativeObject {
-    private static final boolean DEBUG = false; //true;
     // Don't convert this into local variable and don't remove this.
     // Core requests TableView to hold the Query reference.
     @SuppressWarnings({"unused"})
@@ -458,67 +455,32 @@ public class TableView implements TableOrView, NativeObject {
 
     @Override
     public TableView findAllLong(long columnIndex, long value){
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.parent, nativeViewPtr);
     }
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.parent, nativeViewPtr);
     }
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.parent, nativeViewPtr);
     }
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.parent, nativeViewPtr);
     }
 
     @Override
     public TableView findAllString(long columnIndex, String value){
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.parent, nativeViewPtr);
     }
 
     //
@@ -685,15 +647,8 @@ public class TableView implements TableOrView, NativeObject {
 
     @Override
     public TableQuery where() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
-        try {
-            return new TableQuery(this.context, this.parent, nativeQueryPtr, this);
-        } catch (RuntimeException e) {
-            TableQuery.nativeClose(nativeQueryPtr);
-            throw e;
-        }
+        return new TableQuery(this.context, this.parent, nativeQueryPtr, this);
     }
 
     /**
@@ -748,8 +703,6 @@ public class TableView implements TableOrView, NativeObject {
      * @throws UnsupportedOperationException if a column is not indexed.
      */
     public void distinct(long columnIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
         nativeDistinct(nativePtr, columnIndex);
     }
 
@@ -763,8 +716,6 @@ public class TableView implements TableOrView, NativeObject {
      * @throws IllegalArgumentException if a column is unsupported type, or is not indexed.
      */
     public void distinct(List<Long> columnIndexes) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
         long[] indexes = new long[columnIndexes.size()];
         for (int i = 0; i < columnIndexes.size(); i++) {
             indexes[i] = columnIndexes.get(i);
