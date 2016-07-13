@@ -89,6 +89,4 @@ public class ImplicitTransaction extends Group {
     public String getPath() {
         return parent.getPath();
     }
-
-    protected void finalize() {} // Nullify the actions of Group.finalize()
 }

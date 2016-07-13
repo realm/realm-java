@@ -47,6 +47,4 @@ public class WriteTransaction extends Group {
         this.db = db;
         committed = false;
     }
-
-    protected void finalize() {} // Nullify the actions of Group.finalize()
 }
