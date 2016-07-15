@@ -34,7 +34,7 @@ public class UncheckedRow implements NativeObject, Row {
     final Context context; // This is only kept because for now it's needed by the constructor of LinkView
     final Table parent;
     private final long nativePointer;
-    private static long nativeFinalizerPointer;
+    private static final long nativeFinalizerPointer = nativeGetFinalizer();
 
     protected UncheckedRow(Context context, Table parent, long nativePtr) {
         this.context = context;
@@ -50,9 +50,6 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public long getNativeFinalizer() {
-        if (nativeFinalizerPointer == 0) {
-            nativeFinalizerPointer = nativeGetFinalizer();
-        }
         return nativeFinalizerPointer;
     }
 

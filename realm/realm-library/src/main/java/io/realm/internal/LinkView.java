@@ -27,7 +27,7 @@ public class LinkView implements NativeObject {
     final Table parent;
     final long columnIndexInParent;
     private final long nativePointer;
-    private static long nativeFinalizerPointer;
+    private static final long nativeFinalizerPointer = nativeGetFinalizer();
 
     public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
@@ -46,9 +46,6 @@ public class LinkView implements NativeObject {
 
     @Override
     public long getNativeFinalizer() {
-        if (nativeFinalizerPointer == 0) {
-            nativeFinalizerPointer = nativeGetFinalizer();
-        }
         return nativeFinalizerPointer;
     }
 

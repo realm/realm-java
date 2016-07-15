@@ -50,7 +50,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     private static final long NO_PRIMARY_KEY = -2;
 
     protected long nativePtr;
-    private static long nativeFinalizerPtr;
+    private static final long nativeFinalizerPtr;
     protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -62,6 +62,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     static {
         RealmCore.loadLibrary();
+        nativeFinalizerPtr = nativeGetFinalizer();
     }
 
     /**
@@ -103,9 +104,6 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     @Override
     public long getNativeFinalizer() {
-        if (nativeFinalizerPtr == 0) {
-            nativeFinalizerPtr = nativeGetFinalizer();
-        }
         return nativeFinalizerPtr;
     }
 

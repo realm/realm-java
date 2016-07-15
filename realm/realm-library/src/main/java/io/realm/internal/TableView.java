@@ -37,7 +37,7 @@ public class TableView implements TableOrView, NativeObject {
     private long version; // Last seen version number. Call refresh() to update this.
 
     protected long nativePtr;
-    private static long nativeFinalizerPtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizer();
     protected final Table parent;
     private final Context context;
 
@@ -81,9 +81,6 @@ public class TableView implements TableOrView, NativeObject {
 
     @Override
     public long getNativeFinalizer() {
-        if (nativeFinalizerPtr == 0) {
-            nativeFinalizerPtr = nativeGetFinalizer();
-        }
         return nativeFinalizerPtr;
     }
 
