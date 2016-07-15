@@ -420,8 +420,8 @@ public class RealmQueryTests {
         assertEquals(4, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {"TEST data 15", "TEST data 117", "test DATA 30", "test DATA 199"}, Case.INSENSITIVE).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {}).findAll();
-        assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_STRING, new String[] {"TEST data 15", "TEST data 117", "test DATA 30", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(196, resultList.size());
     }
 
     @Test
@@ -440,6 +440,8 @@ public class RealmQueryTests {
         assertEquals(67, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new boolean[] {true, false}).findAll();
         assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_BOOLEAN, new boolean[] {true, false}).findAll();
+        assertEquals(0, resultList.size());
     }
 
     @Test
@@ -458,6 +460,8 @@ public class RealmQueryTests {
         assertEquals(0, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new double[] {3.1415, 2.34}).findAll();
         assertEquals(200, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_DOUBLE, new double[] {3.1415, 2.34}).findAll();
+        assertEquals(0, resultList.size());
     }
 
     @Test
@@ -476,6 +480,8 @@ public class RealmQueryTests {
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new float[] {1.234567f, 1.234567f + 1}).findAll();
         assertEquals(2, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_FLOAT, new float[] {1.234567f, 1.234567f + 1}).findAll();
+        assertEquals(198, resultList.size());
     }
 
     @Test
@@ -494,6 +500,8 @@ public class RealmQueryTests {
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new long[] {12, 13, 15, 99}).findAll();
         assertEquals(4, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_LONG, new long[] {12, 13, 15, 99}).findAll();
+        assertEquals(196, resultList.size());
     }
 
     @Test

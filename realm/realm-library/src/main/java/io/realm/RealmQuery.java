@@ -430,11 +430,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0], casing);
+        beginGroup().equalTo(fieldName, values[0], casing);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i], casing);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -449,11 +449,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -468,11 +468,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -487,11 +487,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -506,11 +506,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -525,11 +525,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -544,11 +544,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -563,11 +563,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     /**
@@ -582,11 +582,11 @@ public final class RealmQuery<E extends RealmModel> {
         if (values == null || values.length == 0) {
             return this;
         }
-        equalTo(fieldName, values[0]);
+        beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
             or().equalTo(fieldName, values[i]);
         }
-        return this;
+        return endGroup();
     }
 
     // Not Equal
