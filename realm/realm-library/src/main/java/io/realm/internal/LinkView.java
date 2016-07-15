@@ -155,7 +155,6 @@ public class LinkView implements NativeObject {
     public Table getTargetTable() {
         long nativeTablePointer = nativeGetTargetTable(nativePointer);
         Table table = new Table(context, this.parent, nativeTablePointer);
-        context.addReference(table);
         return table;
     }
 

@@ -188,7 +188,6 @@ public class Group implements Closeable {
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
         // Copy context reference from parent
         Table table = new Table(context, this, nativeTablePointer);
-        context.addReference(table);
         return table;
     }
 

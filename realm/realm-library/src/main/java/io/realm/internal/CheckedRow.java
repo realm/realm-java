@@ -34,6 +34,7 @@ public class CheckedRow extends UncheckedRow {
 
     private CheckedRow(Context context, Table parent, long nativePtr) {
         super(context, parent, nativePtr);
+        context.addReference(this);
     }
 
     private CheckedRow(UncheckedRow row) {
@@ -52,7 +53,6 @@ public class CheckedRow extends UncheckedRow {
     public static CheckedRow get(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         CheckedRow row = new CheckedRow(context, table, nativeRowPointer);
-        context.addReference(row);
         return row;
     }
 
@@ -66,9 +66,7 @@ public class CheckedRow extends UncheckedRow {
      */
     public static CheckedRow get(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePointer(), index);
-        CheckedRow row = new CheckedRow(context, linkView.getTargetTable(),
-                nativeRowPointer);
-        context.addReference(row);
+        CheckedRow row = new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
         return row;
     }
 

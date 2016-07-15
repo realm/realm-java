@@ -68,14 +68,14 @@ public class RealmAllocBenchmarks {
         }
     }
     @Benchmark
-    public void createResults(long reps) {
+    public void createRealmResults(long reps) {
         for (long i = 0; i < reps; i++) {
             realm.where(AllTypes.class).findAll();
         }
     }
 
     @Benchmark
-    public void createLinkView(long reps) {
+    public void createRealmLists(long reps) {
         for (long i = 0; i < reps; i++) {
             AllTypes allTypes = realm.where(AllTypes.class).findFirst();
             // To suppress warning

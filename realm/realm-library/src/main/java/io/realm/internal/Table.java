@@ -92,7 +92,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
             tableNo = tableCount.incrementAndGet();
             RealmLog.d("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
-        //context.addReference(this);
+        context.addReference(this);
     }
 
     @Override
@@ -762,7 +762,6 @@ public class Table implements TableOrView, TableSchema, NativeObject {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         // Copy context reference from parent
         Table table = new Table(context, this.parent, nativeTablePointer);
-        context.addReference(table);
         return table;
     }
 

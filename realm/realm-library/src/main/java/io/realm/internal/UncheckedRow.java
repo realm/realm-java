@@ -39,6 +39,7 @@ public class UncheckedRow implements NativeObject, Row {
         this.context = context;
         this.parent = parent;
         this.nativePointer = nativePtr;
+        context.addReference(this);
     }
 
     @Override
@@ -62,7 +63,6 @@ public class UncheckedRow implements NativeObject, Row {
     public static UncheckedRow getByRowIndex(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        context.addReference(row);
         return row;
     }
 
@@ -76,7 +76,6 @@ public class UncheckedRow implements NativeObject, Row {
      */
     public static UncheckedRow getByRowPointer(Context context, Table table, long nativeRowPointer) {
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        context.addReference(row);
         return row;
     }
 
@@ -90,9 +89,7 @@ public class UncheckedRow implements NativeObject, Row {
      */
     public static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePointer(), index);
-        UncheckedRow row = new UncheckedRow(context, linkView.getTargetTable(),
-                nativeRowPointer);
-        context.addReference(row);
+        UncheckedRow row = new UncheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
         return row;
     }
 
