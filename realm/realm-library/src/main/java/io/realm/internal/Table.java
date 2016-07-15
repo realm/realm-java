@@ -50,6 +50,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     private static final long NO_PRIMARY_KEY = -2;
 
     protected long nativePtr;
+    private static long nativeFinalizerPtr;
     protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -102,7 +103,10 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     @Override
     public long getNativeFinalizer() {
-        return nativeGetFinalizer();
+        if (nativeFinalizerPtr == 0) {
+            nativeFinalizerPtr = nativeGetFinalizer();
+        }
+        return nativeFinalizerPtr;
     }
 
     @Override

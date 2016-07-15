@@ -26,6 +26,7 @@ public class TableQuery implements NativeObject {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
+    private static long nativeFinalizerPtr;
     protected final Table table;
     // Don't convert this into local variable and don't remove this.
     // Core requests Query to hold the TableView reference which it is built from.
@@ -68,7 +69,10 @@ public class TableQuery implements NativeObject {
 
     @Override
     public long getNativeFinalizer() {
-        return nativeGetFinalizer();
+        if (nativeFinalizerPtr == 0) {
+            nativeFinalizerPtr = nativeGetFinalizer();
+        }
+        return nativeFinalizerPtr;
     }
 
     /**

@@ -36,6 +36,12 @@ public class TableView implements TableOrView, NativeObject {
     private final TableQuery query; // the query which created this TableView
     private long version; // Last seen version number. Call refresh() to update this.
 
+    protected long nativePtr;
+    private static long nativeFinalizerPtr;
+    protected final Table parent;
+    private final Context context;
+
+
     /**
      * Creates a TableView. This constructor is used if the TableView is created from a table.
      *
@@ -75,7 +81,10 @@ public class TableView implements TableOrView, NativeObject {
 
     @Override
     public long getNativeFinalizer() {
-        return nativeGetFinalizer();
+        if (nativeFinalizerPtr == 0) {
+            nativeFinalizerPtr = nativeGetFinalizer();
+        }
+        return nativeFinalizerPtr;
     }
 
     @Override
@@ -666,10 +675,6 @@ public class TableView implements TableOrView, NativeObject {
     private void throwImmutable() {
         throw new IllegalStateException("Realm data can only be changed inside a write transaction.");
     }
-
-    protected long nativePtr;
-    protected final Table parent;
-    private final Context context;
 
     @Override
     public long count(long columnIndex, String value) {
