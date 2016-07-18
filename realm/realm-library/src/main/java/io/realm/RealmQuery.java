@@ -412,7 +412,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, String[] values) {
         return in(fieldName, values, Case.SENSITIVE);
@@ -424,11 +424,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0], casing);
         for (int i = 1; i < values.length; ++i) {
@@ -443,11 +443,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, byte[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -462,11 +462,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, short[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -481,11 +481,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, int[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -500,11 +500,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, long[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -519,11 +519,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, double[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -538,11 +538,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, float[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -557,11 +557,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, boolean[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
@@ -576,11 +576,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values the array of values to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if values is empty or do not match class or field type.
      */
     public RealmQuery<E> in(String fieldName, Date[] values) {
         if (values == null || values.length == 0) {
-            return this;
+            throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; ++i) {
