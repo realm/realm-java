@@ -453,6 +453,31 @@ public class RealmQueryTests {
     }
 
     @Test
+    public void in_date() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(realm, TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
+        assertEquals(200, resultList.size());
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, (Date[]) null).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Date[] {}).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80)}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(0)}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
+        assertEquals(2, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
+        assertEquals(198, resultList.size());
+    }
+
+    @Test
     public void in_double() {
         populateTestRealm(realm, 200);
 
