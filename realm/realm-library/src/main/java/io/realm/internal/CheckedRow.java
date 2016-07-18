@@ -34,7 +34,6 @@ public class CheckedRow extends UncheckedRow {
 
     private CheckedRow(Context context, Table parent, long nativePtr) {
         super(context, parent, nativePtr);
-        context.addReference(this);
     }
 
     private CheckedRow(UncheckedRow row) {
