@@ -100,6 +100,9 @@ public class RealmQueryTests {
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
+            allTypes.setColumnByte((byte) i);
+            allTypes.setColumnShort((short) i);
+            allTypes.setColumnInt(i);
             allTypes.setColumnLong(i);
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
@@ -508,6 +511,69 @@ public class RealmQueryTests {
         assertEquals(2, resultList.size());
         resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_FLOAT, new float[] {1.234567f, 1.234567f + 1}).findAll();
         assertEquals(198, resultList.size());
+    }
+
+    @Test
+    public void in_byte() {
+        populateTestRealm(realm, 200);
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, (byte[]) null).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new byte[]{}).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new byte[] {11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new byte[] {13}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new byte[] {12, 13, 15, 99}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_BYTE, new byte[] {12, 13, 15, 99}).findAll();
+        assertEquals(196, resultList.size());
+    }
+
+    @Test
+    public void in_short() {
+        populateTestRealm(realm, 200);
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, (short[]) null).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new short[]{}).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new short[] {11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new short[] {3}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new short[] {2, 3, 5, 9}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_SHORT, new short[] {2, 3, 5, 9}).findAll();
+        assertEquals(196, resultList.size());
+    }
+
+    @Test
+    public void in_int() {
+        populateTestRealm(realm, 200);
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_INT, (int[]) null).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new int[]{}).findAll();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new int[] {11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new int[] {1}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new int[] {1, 2, 3, 4}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_INT, new int[] {1, 2, 3, 4}).findAll();
+        assertEquals(196, resultList.size());
     }
 
     @Test
