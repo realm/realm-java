@@ -451,11 +451,11 @@ public class RealmQueryTests {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, (Date[]) null).findAll();
+            realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, (Date[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Date[] {}).findAll();
+            realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80)}).findAll();
