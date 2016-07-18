@@ -9,7 +9,7 @@
 
 ### Internal
 
-* Updated Realm Core to 1.3.1.
+* Updated Realm Core to 1.4.0.
 
 ## 1.1.0
 
