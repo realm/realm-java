@@ -407,9 +407,6 @@ public class RealmQueryTests {
     @Test
     public void in_string() {
         populateTestRealm(realm, 200);
-
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
-        assertEquals(200, resultList.size());
         try {
             realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, (String[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
@@ -418,7 +415,7 @@ public class RealmQueryTests {
             realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {"test data 15"}).findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[]{"test data 15"}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {"test data 15", "test data 117", "test data 30", "test data 199"}).findAll();
         assertEquals(4, resultList.size());
@@ -431,9 +428,6 @@ public class RealmQueryTests {
     @Test
     public void in_boolean() {
         populateTestRealm(realm, 200);
-
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
-        assertEquals(200, resultList.size());
         try {
             realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, (boolean[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
@@ -442,7 +436,7 @@ public class RealmQueryTests {
             realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new boolean[] {}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new boolean[] {false}).findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new boolean[]{false}).findAll();
         assertEquals(133, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new boolean[] {true}).findAll();
         assertEquals(67, resultList.size());
@@ -456,9 +450,6 @@ public class RealmQueryTests {
     public void in_date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
-
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
-        assertEquals(200, resultList.size());
         try {
             realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, (Date[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
@@ -467,7 +458,7 @@ public class RealmQueryTests {
             realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Date[] {}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80)}).findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80)}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(0)}).findAll();
         assertEquals(1, resultList.size());
@@ -480,9 +471,6 @@ public class RealmQueryTests {
     @Test
     public void in_double() {
         populateTestRealm(realm, 200);
-
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
-        assertEquals(200, resultList.size());
         try {
             realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, (double[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
@@ -491,7 +479,7 @@ public class RealmQueryTests {
             realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new double[]{}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new double[] {3.1415}).findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new double[] {3.1415}).findAll();
         assertEquals(200, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new double[] {2.34}).findAll();
         assertEquals(0, resultList.size());
@@ -504,9 +492,6 @@ public class RealmQueryTests {
     @Test
     public void in_float() {
         populateTestRealm(realm, 200);
-
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
-        assertEquals(200, resultList.size());
         try {
             realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, (float[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
@@ -515,8 +500,7 @@ public class RealmQueryTests {
             realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new float[]{}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
-        assertEquals(200, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new float[] {1.234567f}).findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new float[] {1.234567f}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new float[] {1.234567f + 1}).findAll();
         assertEquals(1, resultList.size());
@@ -529,19 +513,15 @@ public class RealmQueryTests {
     @Test
     public void in_long() {
         populateTestRealm(realm, 200);
-
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
-        assertEquals(200, resultList.size());
         try {
-            resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, (long[]) null).findAll();
+            realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, (long[]) null).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new long[]{}).findAll();
+            realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new long[]{}).findAll();
         } catch (IllegalArgumentException ignored) {
         }
-        assertEquals(200, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new long[] {11}).findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new long[] {11}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new long[] {13}).findAll();
         assertEquals(1, resultList.size());
