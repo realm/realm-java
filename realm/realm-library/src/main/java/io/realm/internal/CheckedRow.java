@@ -29,7 +29,7 @@ public class CheckedRow extends UncheckedRow {
 
     // Used if created from other row. This keeps a strong reference to avoid GC'ing the original object, and it's
     // underlying native data.
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private UncheckedRow originalRow;
 
     private CheckedRow(Context context, Table parent, long nativePtr) {
@@ -37,7 +37,7 @@ public class CheckedRow extends UncheckedRow {
     }
 
     private CheckedRow(UncheckedRow row) {
-        super(row.context, row.parent, row.getNativePointer());
+        super(row);
         this.originalRow = row;
     }
 
@@ -51,8 +51,7 @@ public class CheckedRow extends UncheckedRow {
      */
     public static CheckedRow get(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
-        CheckedRow row = new CheckedRow(context, table, nativeRowPointer);
-        return row;
+        return new CheckedRow(context, table, nativeRowPointer);
     }
 
     /**
@@ -65,8 +64,7 @@ public class CheckedRow extends UncheckedRow {
      */
     public static CheckedRow get(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePointer(), index);
-        CheckedRow row = new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
-        return row;
+        return new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
 
     /**
@@ -74,7 +72,7 @@ public class CheckedRow extends UncheckedRow {
      *
      * @return an checked instance of {@link Row}.
      */
-    public static CheckedRow getFromRow(UncheckedRow row) {
+    static CheckedRow getFromRow(UncheckedRow row) {
         return new CheckedRow(row);
     }
 
