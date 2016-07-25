@@ -192,6 +192,7 @@ public class RealmModelTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
         final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctAsync(AllTypesRealmModel.FIELD_STRING);
+        looperThread.keepStrongReference.add(allTypesRealmModels);
         allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
             public void onChange(RealmResults<AllTypesRealmModel> object) {

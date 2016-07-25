@@ -692,6 +692,4 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 
 extern const std::string TABLE_PREFIX;
 
-extern bool string_compare_callback_func(const char* string1, const char* string2);
-
 #endif // REALM_JAVA_UTIL_HPP

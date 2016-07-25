@@ -797,6 +797,9 @@ public final class Realm extends BaseRealm {
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
+        if (objects.isEmpty()) {
+            return;
+        }
         configuration.getSchemaMediator().insert(this, objects);
     }
 
@@ -849,6 +852,9 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
+        }
+        if (objects.isEmpty()) {
+            return;
         }
         configuration.getSchemaMediator().insertOrUpdate(this, objects);
     }
