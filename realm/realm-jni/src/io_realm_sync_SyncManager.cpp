@@ -34,6 +34,7 @@
 
 using namespace std;
 using namespace realm;
+using namespace sync;
 
 class AndroidLogger: public realm::util::RootLogger
 {
@@ -83,6 +84,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateSession
   (JNIEnv *env, jclass, jlong clientPointer, jstring realmPath, jstring serverUrl, jstring userToken)
 {
     TR_ENTER()
+    Client* sync_client = SC(clientPointer);
+    if (sync_client == NULL) {
+        return 0;
+    }
     try {
         const char *token_tmp = env->GetStringUTFChars(userToken, NULL);
         std::string user_token(token_tmp);
@@ -92,20 +97,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateSession
         std::string path(path_tmp);
         env->ReleaseStringUTFChars(realmPath, path_tmp);
 
-        sync::Client* m_sync_client = reinterpret_cast<sync::Client*>(clientPointer);
-
         JStringAccessor server_url_tmp(env, serverUrl); // throws
         StringData server_url = StringData(server_url_tmp);
 
-        sync::Session* m_sync_session = new sync::Session(*m_sync_client, path);
+        Session* sync_session = new Session(*sync_client, path);
 
-        std::function<sync::Session::SyncTransactCallback> m_sync_transact_callback = [path](sync::Session::version_type) {
+        std::function<Session::SyncTransactCallback> sync_transact_callback = [path](Session::version_type) {
             sync_client_env->CallStaticVoidMethod(sync_manager, sync_manager_notify_handler, sync_client_env->NewStringUTF(path.c_str()));//REALM_CHANGE
         };
-        m_sync_session->set_sync_transact_callback(m_sync_transact_callback);
-        m_sync_session->bind(server_url, user_token);
-        return reinterpret_cast<jlong>(m_sync_session);
-
+        sync_session->set_sync_transact_callback(sync_transact_callback);
+        sync_session->bind(server_url, user_token);
+        return reinterpret_cast<jlong>(sync_session);
     } CATCH_STD()
     return 0;
 }
