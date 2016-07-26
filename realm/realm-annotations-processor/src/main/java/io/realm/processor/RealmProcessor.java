@@ -102,7 +102,7 @@ import io.realm.annotations.RealmClass;
 public class RealmProcessor extends AbstractProcessor {
 
     // Don't consume annotations. This allows 3rd party annotation processors to also run.
-    public static final boolean CONSUME_ANNOTATIONS = false;
+    private static final boolean CONSUME_ANNOTATIONS = false;
 
     Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
     private boolean hasProcessedModules = false;
