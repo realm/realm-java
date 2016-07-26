@@ -432,7 +432,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0], casing);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i], casing);
         }
         return endGroup();
@@ -451,7 +451,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -470,7 +470,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -489,7 +489,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -508,7 +508,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -527,7 +527,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -546,7 +546,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -565,7 +565,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
@@ -584,7 +584,7 @@ public final class RealmQuery<E extends RealmModel> {
             throw new IllegalArgumentException(("Non-empty values must be provided."));
         }
         beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; ++i) {
+        for (int i = 1; i < values.length; i++) {
             or().equalTo(fieldName, values[i]);
         }
         return endGroup();
