@@ -1,5 +1,9 @@
 ## 1.1.1
 
+### Enhancements
+
+* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to also run.
+
 ### Bug fixes
 
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
