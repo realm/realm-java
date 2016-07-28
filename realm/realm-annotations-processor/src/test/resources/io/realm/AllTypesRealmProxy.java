@@ -370,7 +370,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
             return columnInfo;
         } else {
-            throw new RealmMigrationNeededException(transaction.getPath(), "The AllTypes 'class' is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The 'AllTypes' class is missing from the schema for this Realm.");
         }
     }
 
