@@ -6,10 +6,11 @@
 * Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
 * Fixed a bug that does not transfer the primary key when `RealmSchemaObject.setClassName()` is called to rename a class (#3118).
+* Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
 
 ### Internal
 
-* Updated Realm Core to 1.3.0.
+* Updated Realm Core to 1.4.0.
 
 ## 1.1.0
 
