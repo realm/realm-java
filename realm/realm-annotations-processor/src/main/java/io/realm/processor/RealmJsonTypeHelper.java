@@ -89,7 +89,7 @@ public class RealmJsonTypeHelper {
             public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
                                                          String qualifiedRealmObjectProxyClass,
                                                          String fieldName, JavaWriter writer) throws IOException {
-                throw new IllegalArgumentException("Date is not allowed as a primary key value.");
+                throw new IllegalArgumentException("'Date' is not allowed as a primary key value.");
             }
         });
         JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmFieldTypeConverter() {
@@ -126,7 +126,7 @@ public class RealmJsonTypeHelper {
             public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass,
                                                          String qualifiedRealmObjectProxyClass,
                                                          String fieldName, JavaWriter writer) throws IOException {
-                throw new IllegalArgumentException("byte[] is not allowed as a primary key value.");
+                throw new IllegalArgumentException("'byte[]' is not allowed as a primary key value.");
             }
         });
     }
