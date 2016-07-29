@@ -326,7 +326,7 @@ public class RealmProxyClassGenerator {
                 writer.endMethod();
             } else {
                 throw new UnsupportedOperationException(
-                        String.format("Type %s of field %s is not supported", fieldTypeCanonicalName, fieldName));
+                        String.format("Type '%s' of field '%s' is not supported", fieldTypeCanonicalName, fieldName));
             }
             writer.emitEmptyLine();
         }
@@ -560,7 +560,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return %s", "columnInfo");
 
         writer.nextControlFlow("else");
-        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"The '%s' class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
