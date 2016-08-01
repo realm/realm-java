@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Looper;
-import android.os.Message;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -793,7 +792,7 @@ public final class Realm extends BaseRealm {
      * @see #copyToRealm(Iterable)
      */
     public void insert(Collection<? extends RealmModel> objects) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
@@ -822,7 +821,7 @@ public final class Realm extends BaseRealm {
      * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
@@ -849,7 +848,7 @@ public final class Realm extends BaseRealm {
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
@@ -878,7 +877,7 @@ public final class Realm extends BaseRealm {
      * @see #copyToRealmOrUpdate(RealmModel)
      */
     public void insertOrUpdate(RealmModel object) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
