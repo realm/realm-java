@@ -326,7 +326,7 @@ public class RealmMigrationTests {
         assertFalse(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
     }
 
-    // Test to show renaming a class does not hinder its PK field's attribute
+    // Test to show that renaming a class does not effect the primary key
     @Test
     public void setClassName_transferPrimaryKey() {
         buildInitialMigrationSchema(MigrationClassRenamed.CLASS_NAME, true);
