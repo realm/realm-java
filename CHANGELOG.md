@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to also run.
+* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
 
 ### Bug fixes
 
