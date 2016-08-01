@@ -407,7 +407,7 @@ public final class RealmQuery<E extends RealmModel> {
     // In
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -419,7 +419,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
@@ -439,7 +439,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -458,7 +458,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -477,7 +477,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -496,7 +496,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -515,7 +515,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -534,7 +534,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -553,7 +553,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
@@ -572,7 +572,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * In comparison. This allow you to test if objects matches any value in an array of values.
+     * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
      * @param values values to compare with and it cannot be null or empty.
