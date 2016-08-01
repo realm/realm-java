@@ -789,6 +789,8 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealm(Iterable)
      */
     public void insert(Collection<? extends RealmModel> objects) {
@@ -818,6 +820,8 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
@@ -845,6 +849,8 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
@@ -874,6 +880,8 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealmOrUpdate(RealmModel)
      */
     public void insertOrUpdate(RealmModel object) {
