@@ -10,6 +10,7 @@
 * Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
 * Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
+* Throw a proper `IllegalStateException` if a `RealmChangeListener` is used inside an IntentService.
 
 ### Internal
 

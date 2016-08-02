@@ -769,10 +769,11 @@ final class HandlerController implements Handler.Callback {
         }
     }
 
+    /**
+     * Toggles the auto refresh flag. Will throw an {@link IllegalStateException} if auto-refresh is not available.
+     */
     public void setAutoRefresh(boolean autoRefresh) {
-        if (autoRefresh && Looper.myLooper() == null) {
-            throw new IllegalStateException("Cannot enabled autorefresh on a non-looper thread.");
-        }
+        checkCanBeAutoRefreshed();
         this.autoRefresh = autoRefresh;
     }
 
@@ -780,4 +781,36 @@ final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
+    /**
+     * Validate that the current thread can enable auto refresh. An {@link IllegalStateException} will be thrown if that
+     * is not the case.
+     */
+    public void checkCanBeAutoRefreshed() {
+        if (Looper.myLooper() == null) {
+            throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
+        }
+        if (isIntentServiceThread()) {
+            throw new IllegalStateException("Cannot set auto-refresh in an IntentService thread.");
+        }
+    }
+
+    /**
+     * Checks if the auto-refresh feature is available on this thread. Calling {@link #setAutoRefresh(boolean)}
+     * will throw if this method return {@code false}.
+     */
+    public boolean isAutoRefreshAvailable() {
+        if (Looper.myLooper() == null || isIntentServiceThread()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean isIntentServiceThread() {
+        // Tries to determine if a thread is an IntentService thread. No public API can detect this use the
+        // thread name as a heuristic:
+        // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/app/IntentService.java#108
+        String threadName = Thread.currentThread().getName();
+        return threadName != null && threadName.startsWith("IntentService[");
+    }
 }
