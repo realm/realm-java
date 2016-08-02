@@ -70,6 +70,8 @@ public final class RealmQuery<E extends RealmModel> {
     private LinkView view;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
+    private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
+
 
     private final static Long INVALID_NATIVE_POINTER = 0L;
     private ArgumentsHolder argumentsHolder;
@@ -429,7 +431,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty values must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0], casing);
         for (int i = 1; i < values.length; i++) {
@@ -448,7 +450,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, byte[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty values must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -467,7 +469,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, short[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -486,7 +488,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, int[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -505,7 +507,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, long[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -524,7 +526,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, double[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -543,7 +545,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, float[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -562,7 +564,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, boolean[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
@@ -581,7 +583,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> in(String fieldName, Date[] values) {
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Non-empty 'values' must be provided.");
+            throw new IllegalArgumentException(EMPTY_VALUES);
         }
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
