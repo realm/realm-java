@@ -113,7 +113,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 preBuild.dependsOn ':realm-jni:buildAndroidJni'
 
 task findbugs(type: FindBugs) {
-    dependsOn assembleDebug
+    dependsOn "assembleDebug"
     group = 'Verification'
 
     ignoreFailures = false
