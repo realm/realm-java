@@ -421,7 +421,7 @@ public class RealmMigrationTests {
             Realm.getInstance(realmConfig);
             fail();
         } catch (IllegalArgumentException expected) {
-            assertEquals("Class name is to long. Limit is 57 characters: 'MigrationNameIsLongerThan56charThisShouldThrowAnException' (57)",
+            assertEquals("Class name is to long. Limit is 56 characters: 'MigrationNameIsLongerThan56charThisShouldThrowAnException' (57)",
                     expected.getMessage());
         }
     }
