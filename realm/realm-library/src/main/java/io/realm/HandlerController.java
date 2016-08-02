@@ -807,8 +807,8 @@ final class HandlerController implements Handler.Callback {
     }
 
     private static boolean isIntentServiceThread() {
-        // Tries to determine if a thread is an IntentService thread. No public API can detect this use the
-        // thread name as a heuristic:
+        // Tries to determine if a thread is an IntentService thread. No public API can detect this,
+        // so use the thread name as a heuristic:
         // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/app/IntentService.java#108
         String threadName = Thread.currentThread().getName();
         return threadName != null && threadName.startsWith("IntentService[");
