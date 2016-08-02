@@ -2292,7 +2292,7 @@ public class RealmTests {
         final CountDownLatch latch = new CountDownLatch(1);
         final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
 
-        final Thread thatThread = new Thread(new Runnable() {
+        final java.lang.Thread thatThread = new java.lang.Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -3431,5 +3431,59 @@ public class RealmTests {
         } finally {
             lockFile.delete();
         }
+    }
+
+    // write same value in one thread, read in another thread
+    // related to https://github.com/realm/realm-java/issues/2459
+    @Test
+    public void multipleThreadsStringCorruption() throws InterruptedException {
+        final String value = "Twilight";
+        final int iterations = 1000;
+        final CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.delete(StringOnly.class);
+                StringOnly stringOnly = realm.createObject(StringOnly.class);
+                stringOnly.setChars(value);
+            }
+        });
+        assertEquals(1, realm.where(StringOnly.class).count());
+
+        Thread writer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                for (int i = 0; i < iterations; i++) {
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            StringOnly stringOnly = realm.where(StringOnly.class).findFirst();
+                            stringOnly.setChars(value);
+                        }
+                    });
+                }
+                realm.close();
+                countDownLatch.countDown();
+            }
+        });
+
+        Thread reader = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                for (int i = 0; i < iterations; i++) {
+                    StringOnly stringOnly = realm.where(StringOnly.class).findFirst();
+                    assertEquals(value, stringOnly.getChars());
+                }
+                realm.close();
+                countDownLatch.countDown();
+            }
+        });
+
+        writer.start();
+        reader.start();
+        countDownLatch.await();
     }
 }
