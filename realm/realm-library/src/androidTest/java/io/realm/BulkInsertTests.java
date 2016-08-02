@@ -320,27 +320,29 @@ public class BulkInsertTests {
 
     @Test
     public void insert_duplicatedPrimaryKeyFails() {
-        AllJavaTypes obj = new AllJavaTypes();
-        AllJavaTypes childObj = new AllJavaTypes(1);
-        obj.setFieldList(new RealmList<AllJavaTypes>(childObj, childObj));
 
+        // Single object with 2 references to two objects with the same ID
+        AllJavaTypes obj = new AllJavaTypes(2);
+        obj.setFieldList(new RealmList<AllJavaTypes>(new AllJavaTypes(1), new AllJavaTypes(1)));
         realm.beginTransaction();
-
-        // Single object with 2 references to the same object
         try {
             realm.insert(obj);
             fail();
         } catch (RealmPrimaryKeyConstraintException ignored) {
+        } finally {
+            realm.cancelTransaction();
         }
 
-        // Two objects with the same id in a list
+        // Two objects with the same ID in a list
+        realm.beginTransaction();
         try {
-            realm.insert(Arrays.asList(obj, obj));
+            realm.insert(Arrays.asList(new AllJavaTypes(1), new AllJavaTypes(1)));
             fail();
         } catch (RealmPrimaryKeyConstraintException ignored) {
+        } finally {
+            realm.cancelTransaction();
         }
     }
-
 
     @Test
     public void insertOrUpdate() {

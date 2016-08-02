@@ -717,7 +717,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    private void throwDuplicatePrimaryKeyException(Object value) {
+    public void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
 
