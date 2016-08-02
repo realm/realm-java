@@ -1,9 +1,21 @@
 ## 1.1.1
 
+### Enhancements
+
+* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
+
 ### Bug fixes
 
 * Fixed a crash that did not treat an existing `RealmResult` as an empty list when its originating `RealmObject` class was removed (#2953).
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
+* Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
+* Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
+* Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
+* Bulk insertion now throws if it is not called in a transaction (#3173).
+
+### Internal
+
+* Updated Realm Core to 1.4.0.
 
 ## 1.1.0
 

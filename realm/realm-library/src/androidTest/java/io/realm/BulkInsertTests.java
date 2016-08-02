@@ -26,16 +26,21 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnimalModule;
+import io.realm.entities.Cat;
+import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
+import io.realm.entities.HumanModule;
 import io.realm.entities.NoPrimaryKeyWithPrimaryKeyObjectRelation;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
@@ -45,6 +50,8 @@ import io.realm.entities.PrimaryKeyWithNoPrimaryKeyObjectRelation;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.entities.pojo.InvalidRealmModel;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.modules.CompositeMediator;
+import io.realm.internal.modules.FilterableMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -61,11 +68,10 @@ public class BulkInsertTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     private Realm realm;
-    private RealmConfiguration realmConfig;
 
     @Before
     public void setUp() {
-        realmConfig = configFactory.createConfiguration();
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
 
@@ -90,9 +96,9 @@ public class BulkInsertTests {
 
         AllJavaTypes allTypes = new AllJavaTypes();
         allTypes.setFieldString("String");
-        allTypes.setFieldLong(1l);
-        allTypes.setFieldFloat(1f);
-        allTypes.setFieldDouble(1d);
+        allTypes.setFieldLong(1L);
+        allTypes.setFieldFloat(1F);
+        allTypes.setFieldDouble(1D);
         allTypes.setFieldBoolean(true);
         allTypes.setFieldDate(date);
         allTypes.setFieldBinary(new byte[]{1, 2, 3});
@@ -105,6 +111,7 @@ public class BulkInsertTests {
 
         AllJavaTypes realmTypes = realm.where(AllJavaTypes.class).findFirst();
 
+        assertNotNull(realmTypes);
         assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
         assertEquals(allTypes.getFieldString(), realmTypes.getFieldString()); // But they contain the same data
         assertEquals(allTypes.getFieldLong(), realmTypes.getFieldLong());
@@ -141,6 +148,7 @@ public class BulkInsertTests {
         realm.commitTransaction();
 
         AllTypesRealmModel first = realm.where(AllTypesRealmModel.class).findFirst();
+        assertNotNull(first);
         assertEquals(allTypes.columnString, first.columnString);
         assertEquals(allTypes.columnLong, first.columnLong);
         assertEquals(allTypes.columnBoolean, first.columnBoolean);
@@ -182,6 +190,7 @@ public class BulkInsertTests {
 
         NullTypes first = realm.where(NullTypes.class).findFirst();
 
+        assertNotNull(first);
         assertEquals(nullTypes1.getId(), first.getId());
         assertEquals(nullTypes1.getFieldIntegerNull(), first.getFieldIntegerNull());
         assertEquals(nullTypes1.getFieldFloatNull(), first.getFieldFloatNull());
@@ -219,6 +228,7 @@ public class BulkInsertTests {
 
         first = realm.where(NullTypes.class).equalTo("id", 1).findFirst();
 
+        assertNotNull(first);
         assertEquals(nullTypes1.getId(), first.getId());
         assertNull(first.getFieldIntegerNull());
         assertNull(first.getFieldFloatNull());
@@ -289,6 +299,7 @@ public class BulkInsertTests {
         realm.commitTransaction();
 
         primaryKeyAsString = realm.where(PrimaryKeyAsString.class).isNull("name").findFirst();
+        assertNotNull(primaryKeyAsString);
         assertNull(primaryKeyAsString.getName());
         assertEquals(19, primaryKeyAsString.getId());
 
@@ -300,6 +311,7 @@ public class BulkInsertTests {
         realm.commitTransaction();
 
         primaryKeyAsShort = realm.where(PrimaryKeyAsBoxedShort.class).isNull("id").findFirst();
+        assertNotNull(primaryKeyAsShort);
         assertNull(primaryKeyAsShort.getId());
         assertEquals("42", primaryKeyAsShort.getName());
     }
@@ -341,6 +353,7 @@ public class BulkInsertTests {
         AllTypesPrimaryKey obj = realm.where(AllTypesPrimaryKey.class).findFirst();
 
         // Check that the only element has all its properties updated
+        assertNotNull(obj);
         assertEquals("Bar", obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(2.23F, obj.getColumnFloat(), 0);
@@ -377,6 +390,74 @@ public class BulkInsertTests {
     }
 
     @Test
+    public void insertToRealm_emptyList() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insert(Collections.<PrimaryKeyAsLong>emptyList());
+            }
+        });
+        assertEquals(0, realm.where(PrimaryKeyAsLong.class).count());
+    }
+
+    /**
+     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     */
+    @Test
+    public void insertToRealm_emptyListWithCompositeMediator() {
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .modules(new HumanModule(), new AnimalModule())
+                .name("composite.realm")
+                .build();
+        Realm.deleteRealm(config);
+
+        assertEquals(config.getSchemaMediator().getClass(), CompositeMediator.class);
+
+        final Realm realm = Realm.getInstance(config);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.insert(Collections.<Cat>emptyList());
+                }
+            });
+            assertEquals(0, realm.where(Cat.class).count());
+        } finally {
+            realm.close();
+        }
+    }
+
+    /**
+     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     */
+    @Test
+    public void insertToRealm_emptyListWithFilterableMediator() {
+        //noinspection unchecked
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .schema(CatOwner.class, Cat.class)
+                .name("filterable.realm")
+                .build();
+        Realm.deleteRealm(config);
+
+        assertEquals(config.getSchemaMediator().getClass(), FilterableMediator.class);
+
+        final Realm realm = Realm.getInstance(config);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.insert(Collections.<Cat>emptyList());
+                }
+            });
+            assertEquals(0, realm.where(Cat.class).count());
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
     public void insertOrUpdateToRealm_list() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -399,7 +480,77 @@ public class BulkInsertTests {
         });
 
         assertEquals(1, realm.where(PrimaryKeyAsLong.class).count());
-        assertEquals("Baz", realm.where(PrimaryKeyAsLong.class).findFirst().getName());
+        PrimaryKeyAsLong first = realm.where(PrimaryKeyAsLong.class).findFirst();
+        assertNotNull(first);
+        assertEquals("Baz", first.getName());
+    }
+
+    @Test
+    public void insertOrUpdateToRealm_emptyList() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insertOrUpdate(Collections.<PrimaryKeyAsLong>emptyList());
+            }
+        });
+        assertEquals(0, realm.where(PrimaryKeyAsLong.class).count());
+    }
+
+    /**
+     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     */
+    @Test
+    public void insertOrUpdateToRealm_emptyListWithCompositeMediator() {
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .modules(new HumanModule(), new AnimalModule())
+                .name("composite.realm")
+                .build();
+        Realm.deleteRealm(config);
+
+        assertEquals(config.getSchemaMediator().getClass(), CompositeMediator.class);
+
+        final Realm realm = Realm.getInstance(config);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.insertOrUpdate(Collections.<Cat>emptyList());
+                }
+            });
+            assertEquals(0, realm.where(Cat.class).count());
+        } finally {
+            realm.close();
+        }
+    }
+
+    /**
+     * added to reproduce https://github.com/realm/realm-java/issues/3103
+     */
+    @Test
+    public void insertOrUpdateToRealm_emptyListWithFilterableMediator() {
+        //noinspection unchecked
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .schema(CatOwner.class, Cat.class)
+                .name("filterable.realm")
+                .build();
+        Realm.deleteRealm(config);
+
+        assertEquals(config.getSchemaMediator().getClass(), FilterableMediator.class);
+
+        final Realm realm = Realm.getInstance(config);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.insertOrUpdate(Collections.<Cat>emptyList());
+                }
+            });
+            assertEquals(0, realm.where(Cat.class).count());
+        } finally {
+            realm.close();
+        }
     }
 
     @Test
@@ -536,6 +687,7 @@ public class BulkInsertTests {
 
         realm.beginTransaction();
         try {
+            //noinspection ConstantConditions
             realm.insert(nullObject);
             fail("Should trigger NullPointerException");
         } catch (IllegalArgumentException ignore) {
@@ -551,6 +703,7 @@ public class BulkInsertTests {
 
         realm.beginTransaction();
         try {
+            //noinspection ConstantConditions
             realm.insert(nullObjects);
             fail("Should trigger IllegalArgumentException");
         } catch (IllegalArgumentException ignore) {
@@ -633,5 +786,25 @@ public class BulkInsertTests {
         assertNotNull(first.getFieldObject());
         assertEquals(42, first.getFieldObject().getFieldLong());
         assertEquals(2, realm.where(AllJavaTypes.class).count());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void insert_collection_notInTransaction() {
+        realm.insert(Arrays.asList(new AllTypes(), new AllTypes()));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void insert_object_notInTransaction() {
+        realm.insert(new AllTypes());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void insertOrUpdate_collection_notInTransaction() {
+        realm.insert(Arrays.asList(new AllTypesPrimaryKey(), new AllTypesPrimaryKey()));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void insertOrUpdate_object_notInTransaction() {
+        realm.insert(new AllTypes());
     }
 }

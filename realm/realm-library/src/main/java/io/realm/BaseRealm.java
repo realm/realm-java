@@ -33,11 +33,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
@@ -51,12 +51,17 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
+@SuppressWarnings("WeakerAccess")
 abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
-    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
-    private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
+            "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
+    private static final String INCORRECT_THREAD_MESSAGE =
+            "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+    private static final String NOT_IN_TRANSACTION_MESSAGE =
+            "Changing Realm data can only be done from inside a transaction.";
 
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -72,6 +77,7 @@ abstract class BaseRealm implements Closeable {
     HandlerController handlerController;
 
     static {
+        //noinspection ConstantConditions
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
@@ -411,14 +417,14 @@ abstract class BaseRealm implements Closeable {
                     // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
                     // be responsive.
                     Message msg = Message.obtain();
-                    msg.what = HandlerController.LOCAL_COMMIT;
-                    if (!handler.hasMessages(HandlerController.LOCAL_COMMIT)) {
-                        handler.removeMessages(HandlerController.REALM_CHANGED);
+                    msg.what = HandlerControllerConstants.LOCAL_COMMIT;
+                    if (!handler.hasMessages(HandlerControllerConstants.LOCAL_COMMIT)) {
+                        handler.removeMessages(HandlerControllerConstants.REALM_CHANGED);
                         messageHandled = handler.sendMessageAtFrontOfQueue(msg);
                     }
                 } else {
-                    if (!handler.hasMessages(HandlerController.REALM_CHANGED)) {
-                        messageHandled = handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+                    if (!handler.hasMessages(HandlerControllerConstants.REALM_CHANGED)) {
+                        messageHandled = handler.sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
                     }
                 }
                 if (!messageHandled) {
@@ -454,6 +460,15 @@ abstract class BaseRealm implements Closeable {
         // Check if we are in the right thread
         if (threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
+        }
+    }
+
+    /**
+     * Check if the Realm is valid and in a transaction.
+     */
+    protected void checkIfValidAndInTransaction() {
+        if (!isInTransaction()) {
+            throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
         }
     }
 
@@ -555,32 +570,6 @@ abstract class BaseRealm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
-    }
-
-    /**
-     * Sort a table using the given field names and sorting directions. If a field name does not
-     * exist in the table an {@link IllegalArgumentException} will be thrown.
-     */
-    protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
-        long columnIndices[] = new long[fieldNames.length];
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex == -1) {
-                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-            }
-            columnIndices[i] = columnIndex;
-        }
-
-        return table.getSortedView(columnIndices, sortOrders);
-    }
-
-    protected void checkAllObjectsSortedParameters(String[] fieldNames, Sort[] sortOrders) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrders must be provided.");
-        }
     }
 
     // Return all handlers registered for this Realm
@@ -713,7 +702,7 @@ abstract class BaseRealm implements Closeable {
      * Compacts the Realm file defined by the given configuration.
      *
      * @param configuration configuration for the Realm to compact.
-     * @throw IllegalArgumentException if Realm is encrypted.
+     * @throws IllegalArgumentException if Realm is encrypted.
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
