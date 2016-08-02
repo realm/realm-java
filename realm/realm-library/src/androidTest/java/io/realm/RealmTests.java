@@ -526,7 +526,11 @@ public class RealmTests {
         METHOD_CREATE_ALL_FROM_JSON,
         METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON,
         METHOD_CREATE_FROM_JSON,
-        METHOD_CREATE_OR_UPDATE_FROM_JSON
+        METHOD_CREATE_OR_UPDATE_FROM_JSON,
+        METHOD_INSERT_COLLECTION,
+        METHOD_INSERT_OBJECT,
+        METHOD_INSERT_OR_UPDATE_COLLECTION,
+        METHOD_INSERT_OR_UPDATE_OBJECT
     }
 
     // Calling methods on a wrong thread will fail.
@@ -576,6 +580,18 @@ public class RealmTests {
                             break;
                         case METHOD_CREATE_OR_UPDATE_FROM_JSON:
                             realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{\"columnLong\":1}");
+                            break;
+                        case METHOD_INSERT_COLLECTION:
+                            realm.insert(Arrays.asList(new AllTypes(), new AllTypes()));
+                            break;
+                        case METHOD_INSERT_OBJECT:
+                            realm.insert(new AllTypes());
+                            break;
+                        case METHOD_INSERT_OR_UPDATE_COLLECTION:
+                            realm.insert(Arrays.asList(new AllTypesPrimaryKey(), new AllTypesPrimaryKey()));
+                            break;
+                        case METHOD_INSERT_OR_UPDATE_OBJECT:
+                            realm.insertOrUpdate(new AllTypesPrimaryKey());
                             break;
                     }
                     return false;

@@ -17,6 +17,8 @@
 package io.realm;
 
 
+import android.app.IntentService;
+
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Collections;
@@ -917,15 +919,15 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      *
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to add a listener from a non-Looper Thread.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (realm.handler == null) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+        if (!realm.handlerController.isAutoRefreshEnabled()) {
+            throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread. ");
         }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
