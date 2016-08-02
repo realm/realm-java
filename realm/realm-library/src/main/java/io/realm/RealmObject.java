@@ -150,25 +150,82 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Determines if the current RealmObject is obtained synchronously or asynchronously (from a worker thread).
-     * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
+     * Checks if the query used to find this RealmObject has completed.
      *
-     * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
+     * Objects created from async methods like {@link RealmQuery#findFirstAsync()} return a
+     * dummy object that represent the future result of the {@link RealmQuery}. It can be considered
+     * similar to a {@link java.util.concurrent.Future} in this regard.
+     *
+     * Once this method returns {@code true}, this object represents the query result even if the query
+     * didn't find any object matching the query parameters. In this case the RealmObject will
+     * become a "null" object.
+     *
+     * "Null" objects will throw if any accessor is called, so it is important to also check {@link #isValid()}
+     * before calling any methods. A common pattern is this:
+     *
+     * <pre>
+     * {@code
+     * Person person = realm.where(Person.class).findFirstAsync();
+     * person.addChangeListener(new RealmChangeListener() {
+     *      @Override
+     *      public void onChange(Person person) {
+     *          if (person.isLoaded() && person.isValid()) {
+     *              // It is safe to access the person.
+     *          }
+     *      }
+     * });
+     * }
+     * </pre>
+     *
+     * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
+     * This method will also return {@code true} if called on an unmanaged object (created outside of Realm).
+     *
+     * @return {@code true} if the query has completed, {@code false} if the query is in
      * progress.
+     *
+     * @see #isValid()
      */
     public final boolean isLoaded() {
         return RealmObject.isLoaded(this);
     }
 
+
     /**
-     * Determines if the RealmObject is obtained synchronously or asynchronously (from a worker thread).
+     * Checks if the query used to find this RealmObject has completed.
+     *
+     * Objects created from async methods like {@link RealmQuery#findFirstAsync()} return a
+     * dummy object that represent the future result of the {@link RealmQuery}. It can be considered
+     * similar to a {@link java.util.concurrent.Future} in this regard.
+     *
+     * Once this method returns {@code true}, this object represents the query result even if the query
+     * didn't find any object matching the query parameters. In this case the RealmObject will
+     * become a "null" object.
+     *
+     * "Null" objects will throw if any accessor is called, so it is important to also check {@link #isValid()}
+     * before calling any methods. A common pattern is this:
+     *
+     * <pre>
+     * {@code
+     * Person person = realm.where(Person.class).findFirstAsync();
+     * RealmObject.addChangeListener(person, new RealmChangeListener() {
+     *      @Override
+     *      public void onChange(Person person) {
+     *          if (RealmObject.isLoaded(person) && RealmObject.isValid(person)) {
+     *              // It is safe to access the person.
+     *          }
+     *      }
+     * });
+     * }
+     * </pre>
+     *
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
+     * This method will also return {@code true} if called on an unmanaged object (created outside of Realm).
      *
      * @param object RealmObject to check.
-     * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
+     * @return {@code true} if the query has completed, {@code false} if the query is in
      * progress.
+     *
+     * @see #isValid(RealmModel)
      */
     public static <E extends RealmModel> boolean isLoaded(E object) {
         if (object instanceof RealmObjectProxy) {
