@@ -448,7 +448,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, byte[] values) {
+    public RealmQuery<E> in(String fieldName, Byte[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
@@ -467,7 +467,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, short[] values) {
+    public RealmQuery<E> in(String fieldName, Short[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
@@ -486,7 +486,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, int[] values) {
+    public RealmQuery<E> in(String fieldName, Integer[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
@@ -505,7 +505,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, long[] values) {
+    public RealmQuery<E> in(String fieldName, Long[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
@@ -524,7 +524,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, double[] values) {
+    public RealmQuery<E> in(String fieldName, Double[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
@@ -543,7 +543,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, float[] values) {
+    public RealmQuery<E> in(String fieldName, Float[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
@@ -562,7 +562,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if values is empty or does not match the class and the field type.
      */
-    public RealmQuery<E> in(String fieldName, boolean[] values) {
+    public RealmQuery<E> in(String fieldName, Boolean[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException(EMPTY_VALUES);
         }
