@@ -104,15 +104,16 @@ public final class RealmObjectSchema {
      * has a primary key, this will transfer the primary key for the new class name.
      *
      * @param className the new name for this class.
-     * @throws IllegalArgumentException if {@param className} is {@code null} or an empty string, or its length exceeds 57 characters.
+     * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56 characters.
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
-        if (57 < className.length()) {
-            throw new IllegalArgumentException("Class name length exceeds 57 characters.");
-        }
         String internalTableName = Table.TABLE_PREFIX + className;
+        //FIXME : when core implements class name length check, please remove.
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: \'" + className + "\' (" + Integer.valueOf(className.length()).toString() + ")");
+        }
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }

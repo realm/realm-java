@@ -389,6 +389,43 @@ public class RealmMigrationTests {
         assertFalse(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME).hasPrimaryKey());
     }
 
+    @Test
+    public void setClassName_throwOnLongClassName() {
+        // create the first version of schema
+        Realm realm = Realm.getInstance(configFactory.createConfigurationBuilder().build());
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.getSchema().create(MigrationPrimaryKey.CLASS_NAME);
+            }
+        });
+        realm.close();
+
+        // get ready for the 2nd version migration
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.getSchema()
+                        .get(MigrationPrimaryKey.CLASS_NAME)
+                        // 57 characters
+                        .setClassName("MigrationNameIsLongerThan56charThisShouldThrowAnException");
+            }
+        };
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+
+        // create Realm instance fails
+        try {
+            Realm.getInstance(realmConfig);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Class name is to long. Limit is 57 characters: 'MigrationNameIsLongerThan56charThisShouldThrowAnException' (57)",
+                    expected.getMessage());
+        }
+    }
+
     // Removing fields before a pk field does not affect the pk
     @Test
     public void removeFieldsBeforePrimaryKey() {
