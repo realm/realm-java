@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Looper;
-import android.os.Message;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -790,10 +789,12 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealm(Iterable)
      */
     public void insert(Collection<? extends RealmModel> objects) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
@@ -819,10 +820,12 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
@@ -846,10 +849,12 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param objects RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (objects == null) {
             throw new IllegalArgumentException("Null objects cannot be inserted into Realm.");
         }
@@ -875,10 +880,12 @@ public final class Realm extends BaseRealm {
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
+     * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
+     * transaction.
      * @see #copyToRealmOrUpdate(RealmModel)
      */
     public void insertOrUpdate(RealmModel object) {
-        checkIfValid();
+        checkIfValidAndInTransaction();
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
