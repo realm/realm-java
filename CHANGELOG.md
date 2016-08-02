@@ -1,5 +1,9 @@
 ## 1.1.1
 
+### Enhancements
+
+* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
+
 ### Bug fixes
 
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
@@ -7,6 +11,7 @@
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
 * Fixed a bug that does not transfer the primary key when `RealmSchemaObject.setClassName()` is called to rename a class (#3118).
 * Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
+* Bulk insertion now throws if it is not called in a transaction (#3173).
 
 ### Internal
 
