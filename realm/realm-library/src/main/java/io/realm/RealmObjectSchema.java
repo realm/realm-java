@@ -112,7 +112,7 @@ public final class RealmObjectSchema {
         String internalTableName = Table.TABLE_PREFIX + className;
         //FIXME : when core implements class name length check, please remove.
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: \'" + className + "\' (" + Integer.valueOf(className.length()).toString() + ")");
+            throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
         }
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
