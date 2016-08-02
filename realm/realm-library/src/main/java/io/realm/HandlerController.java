@@ -782,7 +782,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * Validate that the current thread can enable auto refresh. An {@link IllegalStateException} will be thrown if that
+     * Validates that the current thread can enable auto refresh. An {@link IllegalStateException} will be thrown if that
      * is not the case.
      */
     public void checkCanBeAutoRefreshed() {
