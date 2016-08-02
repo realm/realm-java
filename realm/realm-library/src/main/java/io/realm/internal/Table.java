@@ -711,7 +711,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     }
                     break;
                 default:
-                    // Since it is sufficient to check the existance of duplicated null values
+                    // Since it is sufficient to check the existence of duplicated null values
                     // on PrimaryKey in supported types only, this part is left empty.
             }
         }

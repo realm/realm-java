@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,6 +51,7 @@ import io.realm.entities.PrimaryKeyWithNoPrimaryKeyObjectRelation;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.entities.pojo.InvalidRealmModel;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -83,7 +85,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm() {
+    public void insert() {
         AllJavaTypes obj = new AllJavaTypes();
         obj.setFieldIgnored("cookie");
         obj.setFieldLong(42);
@@ -132,7 +134,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm_RealmModel() {
+    public void insert_realmModel() {
         AllTypesRealmModel allTypes = new AllTypesRealmModel();
         allTypes.columnLong = 10;
         allTypes.columnBoolean = false;
@@ -160,7 +162,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm_InvalidRealmModel() {
+    public void insert_invalidRealmModel() {
         InvalidRealmModel invalidRealmModel = new InvalidRealmModel();
 
         realm.beginTransaction();
@@ -174,7 +176,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertOrUpdateToRealm_NullTypes() {
+    public void insertOrUpdate_nullTypes() {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(1);
@@ -242,7 +244,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm_CyclicType() {
+    public void insert_cyclicType() {
         CyclicType oneCyclicType = new CyclicType();
         oneCyclicType.setName("One");
         CyclicType anotherCyclicType = new CyclicType();
@@ -262,7 +264,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertOrUpdateToRealm_CyclicType() {
+    public void insertOrUpdate_cyclicType() {
         CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1, "One");
         CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2, "Two");
         oneCyclicType.setObject(anotherCyclicType);
@@ -290,7 +292,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm_NullPrimaryKey() {
+    public void insert_nullPrimaryKey() {
         PrimaryKeyAsString primaryKeyAsString = new PrimaryKeyAsString();
         primaryKeyAsString.setId(19);
 
@@ -317,7 +319,31 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertOrUpdateToRealm() {
+    public void insert_duplicatedPrimaryKeyFails() {
+        AllJavaTypes obj = new AllJavaTypes();
+        AllJavaTypes childObj = new AllJavaTypes(1);
+        obj.setFieldList(new RealmList<AllJavaTypes>(childObj, childObj));
+
+        realm.beginTransaction();
+
+        // Single object with 2 references to the same object
+        try {
+            realm.insert(obj);
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+
+        // Two objects with the same id in a list
+        try {
+            realm.insert(Arrays.asList(obj, obj));
+            fail();
+        } catch (RealmPrimaryKeyConstraintException ignored) {
+        }
+    }
+
+
+    @Test
+    public void insertOrUpdate() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -369,7 +395,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm_list() {
+    public void insert_list() {
         Dog dog1 = new Dog();
         dog1.setName("Dog 1");
         Dog dog2 = new Dog();
@@ -390,7 +416,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertToRealm_emptyList() {
+    public void insert_emptyList() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -404,7 +430,7 @@ public class BulkInsertTests {
      * added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
-    public void insertToRealm_emptyListWithCompositeMediator() {
+    public void insert_emptyListWithCompositeMediator() {
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .modules(new HumanModule(), new AnimalModule())
                 .name("composite.realm")
@@ -432,7 +458,7 @@ public class BulkInsertTests {
      * added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
-    public void insertToRealm_emptyListWithFilterableMediator() {
+    public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .schema(CatOwner.class, Cat.class)
@@ -458,7 +484,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertOrUpdateToRealm_list() {
+    public void insertOrUpdate_list() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -486,7 +512,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void insertOrUpdateToRealm_emptyList() {
+    public void insertOrUpdate_emptyList() {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -500,7 +526,7 @@ public class BulkInsertTests {
      * added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
-    public void insertOrUpdateToRealm_emptyListWithCompositeMediator() {
+    public void insertOrUpdate_emptyListWithCompositeMediator() {
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .modules(new HumanModule(), new AnimalModule())
                 .name("composite.realm")
@@ -528,7 +554,7 @@ public class BulkInsertTests {
      * added to reproduce https://github.com/realm/realm-java/issues/3103
      */
     @Test
-    public void insertOrUpdateToRealm_emptyListWithFilterableMediator() {
+    public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .schema(CatOwner.class, Cat.class)
@@ -682,7 +708,7 @@ public class BulkInsertTests {
     //any omitted argument should not end in a SIGSEGV but an exception
 
     @Test
-    public void testObjectNull() {
+    public void insert_nullObject() {
         AllTypes nullObject = null;
 
         realm.beginTransaction();
@@ -698,7 +724,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void testListNull() {
+    public void inset_nullList() {
         List<AllTypes> nullObjects = null;
 
         realm.beginTransaction();
@@ -714,7 +740,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void testListNullElement() {
+    public void insert_listWithNullElement() {
         Dog dog1 = new Dog();
         dog1.setName("Dog 1");
         Dog dog2 = new Dog();
@@ -735,7 +761,7 @@ public class BulkInsertTests {
 
     //Inserting a managed object will result in it being copied or updated again
     @Test
-    public void testManagedObject() {
+    public void insertOrUpdate_managedObject() {
         AllJavaTypes obj = new AllJavaTypes();
         obj.setFieldIgnored("cookie");
         obj.setFieldLong(42);
@@ -768,7 +794,7 @@ public class BulkInsertTests {
     }
 
     @Test
-    public void linkingManagedToUnmanagedObject() {
+    public void insertOrUpdate_linkingManagedToUnmanagedObject() {
         realm.beginTransaction();
         AllJavaTypes managedAllJavaTypes = realm.createObject(AllJavaTypes.class, 42);
         realm.commitTransaction();
