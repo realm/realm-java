@@ -780,7 +780,10 @@ public final class Realm extends BaseRealm {
      * <p>
      * Please note:
      * <ul>
-     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object will duplicate it</li>
+     * <li>
+     *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
+     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
@@ -811,7 +814,10 @@ public final class Realm extends BaseRealm {
      * <p>
      * Please note:
      * <ul>
-     * <li>We don't check if the provided objects are already managed or not, so inserting a managed object will duplicate it</li>
+     * <li>
+     *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
+     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
@@ -822,6 +828,8 @@ public final class Realm extends BaseRealm {
      * @param object RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      * transaction.
+     * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
+     * inserted or if a primary key value already exists in the Realm.
      * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
@@ -842,7 +850,7 @@ public final class Realm extends BaseRealm {
      * <ul>
      * <li>
      *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
-     *     This will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
      * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
@@ -854,6 +862,9 @@ public final class Realm extends BaseRealm {
      * @param objects RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      * transaction.
+     * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
+     * inserted or if a primary key value already exists in the Realm.
+     *
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
@@ -876,7 +887,7 @@ public final class Realm extends BaseRealm {
      * <ul>
      * <li>
      *     We don't check if the provided objects are already managed or not, so inserting a managed object might duplicate it.
-     *     This will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
+     *     Duplication will only happen if the object doesn't have a primary key. Objects with primary keys will never get duplicated.
      * </li>
      * <li>We don't create (nor return) a managed {@link RealmObject} for each element</li>
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
