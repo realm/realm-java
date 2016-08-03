@@ -1098,6 +1098,7 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
 
         // make sure we have only one object
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
@@ -1107,7 +1108,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();
@@ -1141,6 +1142,7 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
 
         // make sure we contains an object in RealmResults
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
@@ -1151,7 +1153,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();
@@ -1200,6 +1202,7 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
 
         // Make sure we have expected values
         RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
@@ -1211,7 +1214,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();
@@ -1279,6 +1282,7 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
 
         final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertFalse(results.isEmpty());
@@ -1287,7 +1291,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();
@@ -1346,6 +1350,7 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
 
         final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertTrue(results.iterator().hasNext());
@@ -1356,7 +1361,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();
@@ -1402,6 +1407,7 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
 
         final RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAll();
         assertEquals(results.min("age"), Long.valueOf(12));
@@ -1415,7 +1421,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();
@@ -1463,6 +1469,8 @@ public class RealmResultsTests extends CollectionTests {
         final String CLASS_NAME = "KingsAndQueens";
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         DynamicRealm realm = initializeDynamicRealm(CLASS_NAME);
+        final RealmConfiguration config = realm.getConfiguration();
+
         // add a distinctive object
         realm.executeTransaction(new DynamicRealm.Transaction() {
             @Override
@@ -1483,7 +1491,7 @@ public class RealmResultsTests extends CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfig);
+                DynamicRealm bgRealm = DynamicRealm.getInstance(config);
                 removeClassFromDynamicRealm(bgRealm, CLASS_NAME);
                 bgRealm.close();
                 bgRealmClosed.countDown();

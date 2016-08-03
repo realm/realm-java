@@ -38,6 +38,7 @@ public class TableView implements TableOrView, Closeable {
     @SuppressWarnings({"unused"})
     private final TableQuery query; // the query which created this TableView
     private long version; // Last seen version number. Call refresh() to update this.
+    private boolean isAttached; // last false value. Once this TableView is found to be detached from its parent Table, it will cache the state and not make JNI call.
 
     /**
      * Creates a TableView. This constructor is used if the TableView is created from a table.
@@ -51,6 +52,7 @@ public class TableView implements TableOrView, Closeable {
         this.parent = parent;
         this.nativePtr = nativePtr;
         this.query = null;
+        this.isAttached = true;
     }
 
     /**
@@ -67,6 +69,7 @@ public class TableView implements TableOrView, Closeable {
         this.parent = parent;
         this.nativePtr = nativePtr;
         this.query = query;
+        this.isAttached = true;
     }
 
     @Override
@@ -792,7 +795,10 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public boolean isAttached() {
-        return nativeIsAttached(nativePtr);
+        if (isAttached) {
+            isAttached = nativeIsAttached(nativePtr);
+        }
+        return isAttached;
     }
 
     static native void nativeClose(long nativeViewPtr);

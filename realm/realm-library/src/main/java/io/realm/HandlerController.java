@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.EmptyTableView;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.IdentitySet;
 import io.realm.internal.RealmObjectProxy;
@@ -781,19 +782,20 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * When a Class is removed while {@link RealmResults} derived from the class exist, it is required
-     * for the RealmResults to be reconciled with the removal by voiding their backing TableView.
+     * When the schema definition for a Class is removed while a RealmResults is still present, the
+     * underlying TableView should be replaced by an always empty {@link io.realm.internal.TableView} instead.
      * This should be called in a propagated event from {@link RealmCache#invalidateRemovedClassFromCachedRealm}.
      *
-     * @param clazzName to invalidate the {@link RealmResults} from which are derived.
+     * @param className to invalidate the {@link RealmResults} from which are derived.
      */
-    void invalidateRemovedTableView(String clazzName) {
+    void invalidateRemovedTableView(String className) {
+        final EmptyTableView emptyTableView = new EmptyTableView(realm.getSchema().getTable(className));
         Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();
             RealmResults<? extends RealmModel> realmResults = weakRealmResults.get();
-            if (realmResults != null && realmResults.isFromSameClass(clazzName)) {
-                realmResults.setTableEmpty();
+            if (realmResults != null && realmResults.isFromSameClass(className)) {
+                realmResults.convertToEmptyTableView(emptyTableView);
             } else if (realmResults == null) {
                 iterator.remove();
             }

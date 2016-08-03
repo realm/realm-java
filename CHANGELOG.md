@@ -6,7 +6,7 @@
 
 ### Bug fixes
 
-* Fixed a crash that did not treat an existing `RealmResult` as an empty list when its originating `RealmObject` class was removed (#2953).
+* Fixed a crash caused by `RealmResults` if the underlying schema definition is removed. It is now instead treated as a empty list instead (#2953).
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
 * Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
