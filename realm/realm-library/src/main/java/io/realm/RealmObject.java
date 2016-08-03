@@ -153,23 +153,25 @@ public abstract class RealmObject implements RealmModel {
      * Checks if the query used to find this RealmObject has completed.
      *
      * Objects created from async methods like {@link RealmQuery#findFirstAsync()} return a
-     * dummy object that represent the future result of the {@link RealmQuery}. It can be considered
+     * dummy object that represents the future result of the {@link RealmQuery}. It can be considered
      * similar to a {@link java.util.concurrent.Future} in this regard.
      *
      * Once this method returns {@code true}, this object represents the query result even if the query
-     * didn't find any object matching the query parameters. In this case the RealmObject will
+     * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects will throw if any accessor is called, so it is important to also check {@link #isValid()}
-     * before calling any methods. A common pattern is this:
+     * "Null" objects represents {@code null} and will throw if any accessor is called, so it is important
+     * to also check {@link #isValid()} before calling any methods. A common pattern is this:
      *
      * <pre>
      * {@code
      * Person person = realm.where(Person.class).findFirstAsync();
+     * person.isLoaded(); // == false
      * person.addChangeListener(new RealmChangeListener() {
      *      @Override
      *      public void onChange(Person person) {
-     *          if (person.isLoaded() && person.isValid()) {
+     *          person.isLoaded(); // Always true here
+     *          if (person.isValid()) {
      *              // It is safe to access the person.
      *          }
      *      }
@@ -194,23 +196,25 @@ public abstract class RealmObject implements RealmModel {
      * Checks if the query used to find this RealmObject has completed.
      *
      * Objects created from async methods like {@link RealmQuery#findFirstAsync()} return a
-     * dummy object that represent the future result of the {@link RealmQuery}. It can be considered
+     * dummy object that represents the future result of the {@link RealmQuery}. It can be considered
      * similar to a {@link java.util.concurrent.Future} in this regard.
      *
      * Once this method returns {@code true}, this object represents the query result even if the query
-     * didn't find any object matching the query parameters. In this case the RealmObject will
+     * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects will throw if any accessor is called, so it is important to also check {@link #isValid()}
-     * before calling any methods. A common pattern is this:
+     * "Null" objects represents {@code null} and will throw if any accessor is called, so it is important
+     * to also check {@link #isValid()} before calling any methods. A common pattern is this:
      *
      * <pre>
      * {@code
      * Person person = realm.where(Person.class).findFirstAsync();
+     * RealmObject.isLoaded(person); // == false
      * RealmObject.addChangeListener(person, new RealmChangeListener() {
      *      @Override
      *      public void onChange(Person person) {
-     *          if (RealmObject.isLoaded(person) && RealmObject.isValid(person)) {
+     *          RealmObject.isLoaded(person); // always true here
+     *          if (RealmObject.isValid(person)) {
      *              // It is safe to access the person.
      *          }
      *      }
