@@ -9,6 +9,7 @@
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
 * Fixed a bug that `Error` in the background async thread is not forwarded to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
+* Fixed a bug that does not transfer the primary key when `RealmSchemaObject.setClassName()` is called to rename a class (#3118).
 * Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
 * Bulk insertion now throws if it is not called in a transaction (#3173).
 * The IllegalStateException thrown when accessing an empty RealmObject is now more meaningful (#3200).
