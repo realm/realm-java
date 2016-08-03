@@ -51,6 +51,8 @@ public final class RealmSchema {
     private final BaseRealm realm;
     ColumnIndices columnIndices; // Cached field look up
 
+    private long nativePtr;
+
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
@@ -259,10 +261,30 @@ public final class RealmSchema {
         return table.getName().substring(Table.TABLE_PREFIX.length());
     }
 
+    /**
+     * Adds an object schema (model class) to a Realm.
+     *
+     * @param realmObjectSchema the object schema
+     */
+    public void addObjectSchema(RealmObjectSchema realmObjectSchema) {
+        nativeAddObjectSchema(nativePtr, realmObjectSchema.getNativePtr());
+    }
+
+    /**
+     * Checks if a schema has a named object schema.
+     *
+     * @param name the name of the object schema (model class)
+     *
+     * @return {@code true} if schema has object schema, {@code false} otherwise
+     */
+    public boolean hasObjectSchemaByName(String name) {
+        return nativeHasObjectSchemaByName(nativePtr, name);
+    } 
+
     private static native long nativeCreateSchema();
     private static native void nativeClose(long nativePtr);
     private static native void nativeAddObjectSchema(long nativePtr, long nativeObjectSchemaPtr);
-    private static native void nativeHasObjectSchemaByName(long nativePtr, String name);
+    private static native boolean nativeHasObjectSchemaByName(long nativePtr, String name);
     private static native void nativeRemoveObjectSchemaByName(long nativePtr, String name);
     private static native long nativeGetObjectSchemaByName(long nativePtr, String name);
 }
