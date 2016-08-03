@@ -924,7 +924,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                         .beginControlFlow("if (primaryKeyValue == null)")
-                            .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                            .emitStatement("rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex)")
                         .nextControlFlow("else")
                             .emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue)")
                         .endControlFlow();
@@ -933,7 +933,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         .emitStatement("long rowIndex = TableOrView.NO_MATCH")
                         .beginControlFlow("if (primaryKeyValue == null)")
-                            .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                            .emitStatement("rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex)")
                         .nextControlFlow("else")
                             .emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         .endControlFlow();
@@ -944,9 +944,9 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (primaryKeyValue != null)");
 
                 if (Utils.isString(metadata.getPrimaryKey())) {
-                    writer.emitStatement("rowIndex = table.findFirstString(pkColumnIndex, (String)primaryKeyValue)");
+                    writer.emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, (String)primaryKeyValue)");
                 } else {
-                    writer.emitStatement("rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
+                    writer.emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
                 }
                 writer.endControlFlow();
             }

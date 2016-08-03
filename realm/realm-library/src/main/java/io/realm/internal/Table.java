@@ -1494,7 +1494,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
     private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnIndex, long dateTimeValue);
     public static native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
-    private native long nativeFindFirstNull(long nativePtr, long columnIndex);
+    public static native long nativeFindFirstNull(long nativeTablePtr, long columnIndex);
     private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);

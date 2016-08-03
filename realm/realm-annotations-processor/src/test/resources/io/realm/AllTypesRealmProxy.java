@@ -672,7 +672,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
         long rowIndex = TableOrView.NO_MATCH;
         if (primaryKeyValue == null) {
-            rowIndex = table.findFirstNull(pkColumnIndex);
+            rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
         } else {
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
@@ -735,7 +735,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
                 long rowIndex = TableOrView.NO_MATCH;
                 if (primaryKeyValue == null) {
-                    rowIndex = table.findFirstNull(pkColumnIndex);
+                    rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
                 } else {
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
@@ -795,7 +795,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
         long rowIndex = TableOrView.NO_MATCH;
         if (primaryKeyValue == null) {
-            rowIndex = table.findFirstNull(pkColumnIndex);
+            rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
         } else {
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
@@ -863,7 +863,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
                 long rowIndex = TableOrView.NO_MATCH;
                 if (primaryKeyValue == null) {
-                    rowIndex = table.findFirstNull(pkColumnIndex);
+                    rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
                 } else {
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
