@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.annotation.TargetApi;
+import android.app.IntentService;
 import android.os.Build;
 import android.os.Looper;
 import android.util.JsonReader;
@@ -42,6 +43,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import io.realm.RealmObject;
+import io.realm.RealmQuery;
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -132,11 +135,10 @@ public final class Realm extends BaseRealm {
      * The constructor is private to enforce the use of the static one.
      *
      * @param configuration the {@link RealmConfiguration} used to open the Realm.
-     * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      */
-    Realm(RealmConfiguration configuration, boolean autoRefresh) {
-        super(configuration, autoRefresh);
+    Realm(RealmConfiguration configuration) {
+        super(configuration);
     }
 
     /**
@@ -235,8 +237,7 @@ public final class Realm extends BaseRealm {
     }
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
-        boolean autoRefresh = Looper.myLooper() != null;
-        Realm realm = new Realm(configuration, autoRefresh);
+        Realm realm = new Realm(configuration);
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
@@ -1068,7 +1069,7 @@ public final class Realm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
