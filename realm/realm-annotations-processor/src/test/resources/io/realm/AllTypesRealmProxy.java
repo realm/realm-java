@@ -682,7 +682,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue);
             }
         } else {
-            table.throwDuplicatePrimaryKeyException(primaryKeyValue);
+            Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
         }
         cache.put(object, rowIndex);
         Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface)object).realmGet$columnLong());
@@ -745,7 +745,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue);
                     }
                 } else {
-                    table.throwDuplicatePrimaryKeyException(primaryKeyValue);
+                    Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 cache.put(object, rowIndex);
                 Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface)object).realmGet$columnLong());

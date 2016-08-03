@@ -965,7 +965,7 @@ public class RealmProxyClassGenerator {
 
             if (throwIfPrimaryKeyDuplicate) {
                 writer.nextControlFlow("else");
-                writer.emitStatement("table.throwDuplicatePrimaryKeyException(primaryKeyValue)");
+                writer.emitStatement("Table.throwDuplicatePrimaryKeyException(primaryKeyValue)");
             }
 
             writer.endControlFlow();
