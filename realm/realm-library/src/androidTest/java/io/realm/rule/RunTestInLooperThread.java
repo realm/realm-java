@@ -28,7 +28,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Annotation param {@link io.realm.rule.RunInLooperThread.RunnableBefore} can be supplied which will run before the
  * looper thread.
  */
-@Target(METHOD) @Retention(RUNTIME)
+@Target(METHOD)
+@Retention(RUNTIME)
 public @interface RunTestInLooperThread {
-    Class<? extends RunInLooperThread.RunnableBefore> value() default RunInLooperThread.RunnableBefore.class;
+        String threadName() default "RunTestInLooperThread";
+        Class<?extends RunInLooperThread.RunnableBefore> before() default RunInLooperThread.RunnableBefore.class;
 }

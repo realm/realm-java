@@ -13,6 +13,7 @@
 * Bulk insertion now throws if it is not called in a transaction (#3173).
 * The IllegalStateException thrown when accessing an empty RealmObject is now more meaningful (#3200).
 * `insert()` now correctly throws an exception if two different objects have the same primary key (#3212).
+* Throw a proper `IllegalStateException` if a `RealmChangeListener` is used inside an IntentService (#2875).
 
 ### Internal
 

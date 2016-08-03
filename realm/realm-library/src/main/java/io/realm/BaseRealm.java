@@ -81,18 +81,15 @@ abstract class BaseRealm implements Closeable {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
-    protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
+    protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         this.handlerController = new HandlerController(this);
-        if (Looper.myLooper() == null) {
-            if (autoRefresh) {
-                throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
-            }
-        } else {
-            setAutoRefresh(autoRefresh);
+
+        if (handlerController.isAutoRefreshAvailable()) {
+            setAutoRefresh(true);
         }
     }
 
@@ -109,10 +106,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        if (Looper.myLooper() == null) {
-            throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
-        }
-
+        handlerController.checkCanBeAutoRefreshed();
         if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
@@ -147,7 +141,7 @@ abstract class BaseRealm implements Closeable {
         }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+            throw new IllegalStateException("You can't register a listener from a non-Looper or IntentService thread.");
         }
         handlerController.addChangeListener(listener);
     }

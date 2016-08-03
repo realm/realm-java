@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.app.IntentService;
+
 import java.util.List;
 
 import io.realm.annotations.RealmClass;
@@ -279,6 +281,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
     public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
         RealmObject.addChangeListener((E) this, listener);
@@ -291,7 +294,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the {@code object} or the change listener is {@code null}.
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
-     * @throws IllegalStateException if you try to add a listener from a non-Looper Thread.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
         if (object == null) {
@@ -304,8 +307,8 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            if (realm.handler == null) {
-                throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+            if (!realm.handlerController.isAutoRefreshEnabled()) {
+                throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread.");
             }
             List<RealmChangeListener> listeners = proxy.realmGet$proxyState().getListeners$realm();
             if (!listeners.contains(listener)) {
