@@ -7,11 +7,13 @@
 ### Bug fixes
 
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
-* Fixed a bug that `Error` in the background async thread is not forwared to the caller thread.
+* Fixed a bug that `Error` in the background async thread is not forwarded to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
 * Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
-* Throw a proper `IllegalStateException` if a `RealmChangeListener` is used inside an IntentService (#2875).
 * Bulk insertion now throws if it is not called in a transaction (#3173).
+* The IllegalStateException thrown when accessing an empty RealmObject is now more meaningful (#3200).
+* `insert()` now correctly throws an exception if two different objects have the same primary key (#3212).
+* Throw a proper `IllegalStateException` if a `RealmChangeListener` is used inside an IntentService (#2875).
 
 ### Internal
 
