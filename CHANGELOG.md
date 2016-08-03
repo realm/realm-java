@@ -14,10 +14,11 @@
 * Bulk insertion now throws if it is not called in a transaction (#3173).
 * The IllegalStateException thrown when accessing an empty RealmObject is now more meaningful (#3200).
 * `insert()` now correctly throws an exception if two different objects have the same primary key (#3212).
+* Blackberry Z10 throwing "Function not implemented" (#3178).
 
 ### Internal
 
-* Updated Realm Core to 1.4.0.
+* Updated Realm Core to 1.4.2.
 
 ## 1.1.0
 
