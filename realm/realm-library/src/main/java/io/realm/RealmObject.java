@@ -169,7 +169,7 @@ public abstract class RealmObject implements RealmModel {
      * Person person = realm.where(Person.class).findFirstAsync();
      * person.isLoaded(); // == false
      * person.addChangeListener(new RealmChangeListener() {
-     *      @Override
+     *      \@Override
      *      public void onChange(Person person) {
      *          person.isLoaded(); // Always true here
      *          if (person.isValid()) {
@@ -211,7 +211,7 @@ public abstract class RealmObject implements RealmModel {
      * Person person = realm.where(Person.class).findFirstAsync();
      * RealmObject.isLoaded(person); // == false
      * RealmObject.addChangeListener(person, new RealmChangeListener() {
-     *      @Override
+     *      \@Override
      *      public void onChange(Person person) {
      *          RealmObject.isLoaded(person); // always true here
      *          if (RealmObject.isValid(person)) {
