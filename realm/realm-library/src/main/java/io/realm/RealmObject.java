@@ -152,16 +152,15 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Checks if the query used to find this RealmObject has completed.
      *
-     * Objects created from async methods like {@link RealmQuery#findFirstAsync()} return a
-     * dummy object that represents the future result of the {@link RealmQuery}. It can be considered
-     * similar to a {@link java.util.concurrent.Future} in this regard.
+     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future result
+     * of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this regard.
      *
-     * Once this method returns {@code true}, this object represents the query result even if the query
+     * Once {@code isLoaded()} returns {@code true}, the object represents the query result even if the query
      * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects represents {@code null} and will throw if any accessor is called, so it is important
-     * to also check {@link #isValid()} before calling any methods. A common pattern is this:
+     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
+     * check {@link #isValid()} before calling any methods. A common pattern is:
      *
      * <pre>
      * {@code
@@ -180,7 +179,7 @@ public abstract class RealmObject implements RealmModel {
      * </pre>
      *
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This method will also return {@code true} if called on an unmanaged object (created outside of Realm).
+     * This method will return {@code true} if called on an unmanaged object (created outside of Realm).
      *
      * @return {@code true} if the query has completed, {@code false} if the query is in
      * progress.
@@ -195,16 +194,15 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Checks if the query used to find this RealmObject has completed.
      *
-     * Objects created from async methods like {@link RealmQuery#findFirstAsync()} return a
-     * dummy object that represents the future result of the {@link RealmQuery}. It can be considered
-     * similar to a {@link java.util.concurrent.Future} in this regard.
+     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future result
+     * of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this regard.
      *
-     * Once this method returns {@code true}, this object represents the query result even if the query
+     * Once {@code isLoaded()} returns {@code true}, the object represents the query result even if the query
      * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects represents {@code null} and will throw if any accessor is called, so it is important
-     * to also check {@link #isValid()} before calling any methods. A common pattern is this:
+     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
+     * check {@link #isValid()} before calling any methods. A common pattern is:
      *
      * <pre>
      * {@code
@@ -223,7 +221,8 @@ public abstract class RealmObject implements RealmModel {
      * </pre>
      *
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This method will also return {@code true} if called on an unmanaged object (created outside of Realm).
+     * This method will return {@code true} if called on an unmanaged object (created outside of Realm).
+     *
      *
      * @param object RealmObject to check.
      * @return {@code true} if the query has completed, {@code false} if the query is in
