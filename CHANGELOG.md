@@ -11,6 +11,7 @@
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).
 * Fixed a concurrency allocation bug in storage engine which might lead to some random crashes.
 * Bulk insertion now throws if it is not called in a transaction (#3173).
+* `insert()` now correctly throws an exception if two different objects have the same primary key.
 
 ### Internal
 
