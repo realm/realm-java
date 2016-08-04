@@ -91,7 +91,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // This is a cache to reduce number of JNI call when checking if the parent Table exists. It is assume to exist until proven otherwise.
     private boolean tableExists = true;
 
-
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
     }
@@ -163,7 +162,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     private boolean isTablePresent() {
         if (table != null) {
-            return (table instanceof EmptyTableView);
+            return !(table instanceof EmptyTableView);
         }
         // once the parent table is found to be non-existent, this will always return false.
         if (tableExists) {
@@ -247,6 +246,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
+        if (!isTablePresent()) {
+            throw new IndexOutOfBoundsException("No results were found.");
+        }
         TableOrView table = getTable();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));

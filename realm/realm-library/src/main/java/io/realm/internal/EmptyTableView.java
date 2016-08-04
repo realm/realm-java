@@ -148,7 +148,7 @@ public final class EmptyTableView implements TableOrView {
     @Override
     public Date getDate(long columnIndex, long rowIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        throw new IndexOutOfBoundsException("No date to be found.");
     }
 
     @Override
@@ -214,96 +214,97 @@ public final class EmptyTableView implements TableOrView {
     @Override
     public void nullifyLink(long columnIndex, long rowIndex) {
         checkIfValidColumnIndex(columnIndex);
+        throw new IllegalStateException("No link to be nullified.");
     }
 
     @Override
     public void setLink(long columnIndex, long rowIndex, long value) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No link to be pivoted.");
+        throw new IllegalStateException("No link to be set.");
     }
 
     @Override
     public long sumLong(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return 0L;
     }
 
     @Override
     public Long maximumLong(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public Long minimumLong(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public double averageLong(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return 0.0D;
     }
 
     @Override
     public double sumFloat(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return 0.0F;
     }
 
     @Override
     public Float maximumFloat(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public Float minimumFloat(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public double averageFloat(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return 0.0F;
     }
 
     @Override
     public double sumDouble(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return 0.0D;
     }
 
     @Override
     public Double maximumDouble(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public Double minimumDouble(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public double averageDouble(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return 0.0D;
     }
 
     @Override
     public Date maximumDate(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
     public Date minimumDate(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return null;
     }
 
     @Override
@@ -407,7 +408,7 @@ public final class EmptyTableView implements TableOrView {
 
     @Override
     public long sourceRowIndex(long rowIndex) {
-        throw new IndexOutOfBoundsException("No result to be found.");
+        return NO_MATCH;
     }
 
     @Override
@@ -438,10 +439,5 @@ public final class EmptyTableView implements TableOrView {
     @Override
     public long syncIfNeeded() {
         return 0;
-    }
-
-    @Override
-    public boolean isAttached() {
-        return false;
     }
 }

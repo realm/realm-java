@@ -1179,7 +1179,12 @@ public class RealmResultsTests extends CollectionTests {
         // remove the backing class
         removeClassFromDynamicRealm(realm, CLASS_NAME);
         // indexed get
-        assertNull(results.get(0));
+        try {
+            results.get(0);
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results were found.", expected.getMessage());
+        }
         // get first value
         try {
             results.first();
@@ -1223,7 +1228,12 @@ public class RealmResultsTests extends CollectionTests {
 
         TestHelper.awaitOrFail(bgRealmClosed);
         // indexed get
-        assertNull(results.get(0));
+        try {
+            results.get(0);
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+            assertEquals("No results were found.", expected.getMessage());
+        }
         // get first value
         try {
             results.first();
@@ -1387,7 +1397,7 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(results.min("age"), Long.valueOf(12));
         assertEquals(results.max("age"), Long.valueOf(12));
         assertEquals(results.sum("age"), Long.valueOf(12));
-        assertEquals(results.average("age"), 12.0, 0);
+        assertEquals(results.average("age"), 12.0D, 0);
         assertEquals(results.minDate("birth"), new Date(1234));
         assertEquals(results.maxDate("birth"), new Date(1234));
 
@@ -1395,8 +1405,8 @@ public class RealmResultsTests extends CollectionTests {
         removeClassFromDynamicRealm(realm, CLASS_NAME);
         assertEquals(results.min("age"), null);
         assertEquals(results.max("age"), null);
-        assertEquals(results.sum("age"), null);
-        assertEquals(results.average("age"), 0.0, 0);
+        assertEquals(results.sum("age"), 0);
+        assertEquals(results.average("age"), 0.0D, 0);
         assertEquals(results.minDate("birth"), null);
         assertEquals(results.maxDate("birth"), null);
         realm.close();
@@ -1413,7 +1423,7 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(results.min("age"), Long.valueOf(12));
         assertEquals(results.max("age"), Long.valueOf(12));
         assertEquals(results.sum("age"), Long.valueOf(12));
-        assertEquals(results.average("age"), 12.0, 0);
+        assertEquals(results.average("age"), 12.0D, 0);
         assertEquals(results.minDate("birth"), new Date(1234));
         assertEquals(results.maxDate("birth"), new Date(1234));
 
@@ -1431,8 +1441,8 @@ public class RealmResultsTests extends CollectionTests {
         TestHelper.awaitOrFail(bgRealmClosed);
         assertEquals(results.min("age"), null);
         assertEquals(results.max("age"), null);
-        assertEquals(results.sum("age"), null);
-        assertEquals(results.average("age"), 0.0, 0);
+        assertEquals(results.sum("age"), 0);
+        assertEquals(results.average("age"), 0.0D, 0);
         assertEquals(results.minDate("birth"), null);
         assertEquals(results.maxDate("birth"), null);
         realm.close();
