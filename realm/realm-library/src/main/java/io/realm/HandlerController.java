@@ -788,8 +788,7 @@ final class HandlerController implements Handler.Callback {
      *
      * @param className to invalidate the {@link RealmResults} from which are derived.
      */
-    void invalidateRemovedTableView(String className) {
-        final EmptyTableView emptyTableView = new EmptyTableView(realm.getSchema().getTable(className));
+    void invalidateRemovedTableView(final String className, final EmptyTableView emptyTableView) {
         Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();

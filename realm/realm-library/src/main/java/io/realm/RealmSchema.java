@@ -24,6 +24,7 @@ import java.util.Set;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.EmptyTableView;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -156,16 +157,16 @@ public final class RealmSchema {
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
         Table table = getTable(className);
+        // create a final, immutable empty TableView
+        final EmptyTableView emptyTableView = new EmptyTableView(table);
+        // invalidate all the RealmResults related to this class
+        RealmCache.invalidateRemovedClassFromCachedRealm(realm.getConfiguration(), className, emptyTableView);
+        // remove corresponding table from cache if exists
+        removeTableFromTableCache(table);
         if (table.hasPrimaryKey()) {
             table.setPrimaryKey(null);
         }
         transaction.removeTable(internalTableName);
-
-        // remove corresponding table from cache if exists
-        removeTableFromTableCache(table);
-
-        // invalidate all the RealmResults related to this class
-        RealmCache.invalidateRemovedClassFromCachedRealm(realm.getConfiguration(), className);
     }
 
     /**
@@ -195,9 +196,6 @@ public final class RealmSchema {
 
         transaction.renameTable(oldInternalName, newInternalName);
         Table table = transaction.getTable(newInternalName);
-
-        // make sure old table name is flushed from cache
-        removeTableFromTableCache(oldTable);
 
         // Set the primary key for the new class if necessary
         if (pkField != null) {

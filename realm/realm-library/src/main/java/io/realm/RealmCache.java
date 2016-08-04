@@ -29,6 +29,7 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.EmptyTableView;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -366,9 +367,9 @@ final class RealmCache {
     * {@link RealmResults} should be invalidated to an empty list.
     *
     * @param configuration a configuration to filter all the {@link BaseRealm}.
-    * @param clazzName a removed class name that should be propagated to all {@link HandlerController#invalidateRemovedTableView)}.
+    * @param className a removed class name that should be propagated to all {@link HandlerController#invalidateRemovedTableView)}.
     */
-   static synchronized void invalidateRemovedClassFromCachedRealm(RealmConfiguration configuration, final String clazzName) {
+   static synchronized void invalidateRemovedClassFromCachedRealm(RealmConfiguration configuration, final String className, final EmptyTableView emptyTableView) {
        RealmCache cache = cachesMap.get(configuration.getPath());
        // when there is no Cache holding Realm/DynamicRealm Instances, just full-stop.
        if (cache == null) {
@@ -379,7 +380,7 @@ final class RealmCache {
        for (Iterator<WeakReference<BaseRealm>> itr = cache.globalBaseRealmReference.iterator(); itr.hasNext();) {
            BaseRealm realm = itr.next().get();
            if (realm != null) {
-               realm.handlerController.invalidateRemovedTableView(clazzName);
+               realm.handlerController.invalidateRemovedTableView(className, emptyTableView);
            }
        }
    }

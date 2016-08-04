@@ -25,19 +25,17 @@ import io.realm.RealmFieldType;
 
 public final class EmptyTableView implements TableOrView {
 
-    private final String className;
     private final long columnCount;
     private final List<RealmFieldType> fieldTypes;
     private final List<String> fieldNames;
 
     public EmptyTableView(TableOrView tableOrView) {
-        this.className = tableOrView.getTable().getName();
         this.columnCount = tableOrView.getColumnCount();
         ArrayList<RealmFieldType> types = new ArrayList();
         ArrayList<String> names = new ArrayList();
         for (long i = 0; i < columnCount; i++) {
-            types.add(getColumnType(i));
-            names.add(getColumnName(i));
+            types.add(tableOrView.getColumnType(i));
+            names.add(tableOrView.getColumnName(i));
         }
         fieldTypes = Collections.unmodifiableList(types);
         fieldNames = Collections.unmodifiableList(names);
@@ -58,7 +56,7 @@ public final class EmptyTableView implements TableOrView {
 
     @Override
     public Table getTable() {
-        throw new IllegalStateException("No result can be found.");
+        throw new IllegalStateException("No result to be found.");
     }
 
     @Override
@@ -77,12 +75,12 @@ public final class EmptyTableView implements TableOrView {
     @Override
     public void remove(long columnIndex) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IndexOutOfBoundsException("No result can be removed");
+        throw new IndexOutOfBoundsException("No results to be removed.");
     }
 
     @Override
     public void removeLast() {
-        throw new IndexOutOfBoundsException("No result can be removed");
+        throw new IndexOutOfBoundsException("No results to be removed.");
     }
 
     @Override
@@ -166,43 +164,43 @@ public final class EmptyTableView implements TableOrView {
     @Override
     public void setLong(long columnIndex, long rowIndex, long value) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No value can be set.");
+        throw new IllegalStateException("No value to be set.");
     }
 
     @Override
     public void setBoolean(long columnIndex, long rowIndex, boolean value) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No value can be set.");
+        throw new IllegalStateException("No value to be set.");
     }
 
     @Override
     public void setFloat(long columnIndex, long rowIndex, float value) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No value can be set.");
+        throw new IllegalStateException("No value to be set.");
     }
 
     @Override
     public void setDouble(long columnIndex, long rowIndex, double value) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No value can be set.");
+        throw new IllegalStateException("No value to be set.");
     }
 
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No string can be set.");
+        throw new IllegalStateException("No string to be set.");
     }
 
     @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No data can be set.");
+        throw new IllegalStateException("No data to be set.");
     }
 
     @Override
     public void setDate(long columnIndex, long rowIndex, Date date) {
         checkIfValidColumnIndex(columnIndex);
-        throw new IllegalStateException("No date can be set.");
+        throw new IllegalStateException("No date to be set.");
     }
 
     @Override

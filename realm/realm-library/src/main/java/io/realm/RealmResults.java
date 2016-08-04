@@ -179,7 +179,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * This is to make {@link RealmResults#table} as an empty list with {@link EmptyTableView}.
      * The benefits of converting to an empty TableOrView are that it absorbs operations as users proceed.
      */
-    void convertToEmptyTableView(EmptyTableView emptyTableView) {
+    void convertToEmptyTableView(final EmptyTableView emptyTableView) {
         this.table = emptyTableView;
     }
 
@@ -226,7 +226,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
+        if (isLoaded() && isTablePresent() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
                 contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
