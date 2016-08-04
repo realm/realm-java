@@ -36,13 +36,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
-import io.realm.entities.migration.MigrationClassRenamed;
-import io.realm.entities.migration.MigrationFieldRenamed;
-import io.realm.entities.migration.MigrationFieldTypeToInt;
-import io.realm.entities.migration.MigrationFieldTypeToInteger;
-import io.realm.entities.migration.MigrationPosteriorIndexOnly;
-import io.realm.entities.migration.MigrationPriorIndexOnly;
-import io.realm.migration.MigrationPrimaryKey;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
@@ -54,8 +47,15 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.migration.MigrationClassRenamed;
+import io.realm.entities.migration.MigrationFieldRenamed;
+import io.realm.entities.migration.MigrationFieldTypeToInt;
+import io.realm.entities.migration.MigrationFieldTypeToInteger;
+import io.realm.entities.migration.MigrationPosteriorIndexOnly;
+import io.realm.entities.migration.MigrationPriorIndexOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.Table;
+import io.realm.migration.MigrationPrimaryKey;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -694,9 +694,24 @@ public class RealmMigrationTests {
     public void openPreNullWithRequired() throws IOException {
         configFactory.copyRealmFromAssets(context,
                 "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                if (oldVersion == 0) {
+                    schema.get(AllTypes.CLASS_NAME)
+                            .addField(AllTypes.FIELD_BYTE, byte.class)
+                            .addField(AllTypes.FIELD_SHORT, short.class)
+                            .addField(AllTypes.FIELD_INT, int.class);
+                    oldVersion++;
+                }
+            }
+        };
+
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schemaVersion(0)
+                .schemaVersion(1)
                 .schema(AllTypes.class)
+                .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
