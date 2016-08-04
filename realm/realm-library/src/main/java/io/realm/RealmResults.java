@@ -156,23 +156,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Check if the underlying {@link Table} exists.
+     * Check if the underlying {@link Table} exists. When {@field table} is an instance of
+     * {@link EmptyTableView}, it can be certain that the parent Table does not exist.
      *
      * @return {@code true} if the backing Table is valid, {@code false} otherwise.
      */
-    private boolean isTablePresent() {
-        if (table != null) {
-            return !(table instanceof EmptyTableView);
-        }
-        // once the parent table is found to be non-existent, this will always return false.
-        if (tableExists) {
-            if (classSpec != null) {
-                tableExists = realm.schema.contains(classSpec.getSimpleName());
-            } else {
-                tableExists = realm.schema.contains(className);
-            }
-        }
-        return tableExists;
+    private boolean isTableRemoved() {
+        return !(this.table instanceof EmptyTableView);
     }
 
     /**
@@ -226,7 +216,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && isTablePresent() && object instanceof RealmObjectProxy) {
+        if (isLoaded() && isTableRemoved() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
                 contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
@@ -246,7 +236,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
-        if (!isTablePresent()) {
+        if (!isTableRemoved()) {
             throw new IndexOutOfBoundsException("No results were found.");
         }
         TableOrView table = getTable();
@@ -972,7 +962,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (!isTablePresent()) {
+        if (!isTableRemoved()) {
             throw new IllegalStateException("You can't register a listener to where no data is available.");
         }
         if (realm.handler == null) {
