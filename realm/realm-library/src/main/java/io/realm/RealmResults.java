@@ -88,6 +88,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
+    // This is a cache to reduce number of JNI call when checking if the parent Table exists. It is assume to exist until proven otherwise.
+    private boolean tableExists = true;
 
 
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
@@ -161,13 +163,15 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     private boolean isTablePresent() {
         if (table != null) {
-            return table.isAttached();
+            return (table instanceof EmptyTableView);
         }
-        boolean tableExists;
-        if (classSpec != null) {
-            tableExists = realm.schema.contains(classSpec.getSimpleName());
-        } else {
-            tableExists = realm.schema.contains(className);
+        // once the parent table is found to be non-existent, this will always return false.
+        if (tableExists) {
+            if (classSpec != null) {
+                tableExists = realm.schema.contains(classSpec.getSimpleName());
+            } else {
+                tableExists = realm.schema.contains(className);
+            }
         }
         return tableExists;
     }

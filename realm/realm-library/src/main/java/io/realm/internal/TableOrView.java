@@ -373,12 +373,4 @@ public interface TableOrView {
      * @return the version number for the updated TableView.
      */
     long syncIfNeeded();
-
-    /**
-     * From the classes which are based on {@link TableView}, it makes task straight-forward to check
-     * if the originating {@link Table} is alive rather than querying to Group::has_table().
-     *
-     * @return {@code true} if the originating {@link Table} is alive, {@code false} otherwise.
-     */
-    boolean isAttached();
 }

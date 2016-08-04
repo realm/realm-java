@@ -521,14 +521,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync
   (JNIEnv *, jobject, jlong);
 
-/*
- * Class:     io_realm_internal_TableView
- * Method:    nativeIsAttached
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_TableView_nativeIsAttached
-  (JNIEnv *, jobject, jlong);
-
 #ifdef __cplusplus
 }
 #endif
