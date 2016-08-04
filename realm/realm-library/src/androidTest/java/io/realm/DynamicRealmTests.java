@@ -39,6 +39,7 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -337,6 +338,7 @@ public class DynamicRealmTests {
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
         assertFalse(allTypes.isLoaded());
+        looperThread.keepStrongReference.add(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
             public void onChange(DynamicRealmObject object) {
@@ -395,11 +397,12 @@ public class DynamicRealmTests {
         });
     }
 
-    // Initialize a Dynamic Realm used by the *Async tests.
+    // Initialize a Dynamic Realm used by the *Async tests and keep it ref in the looperThread.
     private DynamicRealm initializeDynamicRealm() {
         RealmConfiguration defaultConfig = looperThread.realmConfiguration;
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         populateTestRealm(dynamicRealm, 10);
+        looperThread.keepStrongReference.add(dynamicRealm);
         return dynamicRealm;
     }
 
@@ -521,7 +524,7 @@ public class DynamicRealmTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
-                    case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
                         post(new Runnable() {
                             @Override
                             public void run() {
