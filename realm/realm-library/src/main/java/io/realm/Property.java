@@ -43,6 +43,10 @@ public class Property {
         this.nativePtr = nativePtr;
     }
 
+    protected long getNativePtr() {
+        return nativePtr;
+    }
+
     public boolean isIndexable() {
         return nativeIsIndexable(nativePtr);
     }

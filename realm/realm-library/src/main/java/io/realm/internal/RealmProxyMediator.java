@@ -30,6 +30,7 @@ import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.exceptions.RealmException;
 
 /**
@@ -56,10 +57,12 @@ public abstract class RealmProxyMediator {
      * This object schema will eventually be added to the Realm's schema.
      *
      * @param clazz the {@link RealmObject} model class to create backing table for.
-     * @param sharedRealm the underlaying Realm to create the table within.
+     * @param realmSchema the {@link RealmSchema} of the Realm.
+     * @param sharedRealm the underlying Realm to create the table within.
      * @return the object schema
      */
-    public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
+    public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema,
+                                                              SharedRealm sharedRealm);
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.

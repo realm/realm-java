@@ -126,6 +126,18 @@ public class BooleansRealmProxy extends some.test.Booleans
         return sharedRealm.getTable("class_Booleans");
     }
 
+    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema, SharedRealm sharedRealm) {
+        if (!realmSchema.hasObjectSchemaByName("Booleans")) {
+            RealmObjectSchema realmObjectSchema = new RealmObjectSchema(sharedRealm, "Booleans");
+            realmObjectSchema.add(new Property("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("anotherBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            return realmObjectSchema;
+        }
+        return realmSchema.getObjectSchemaByName("Booleans");
+    }
+
     public static BooleansColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");

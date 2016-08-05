@@ -2,6 +2,7 @@ package io.realm;
 
 
 import android.util.JsonReader;
+import io.realm.RealmObjectSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -46,6 +47,17 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
         if (clazz.equals(some.test.AllTypes.class)) {
             return io.realm.AllTypesRealmProxy.validateTable(sharedRealm);
+        } else {
+            throw getMissingProxyClassException(clazz);
+        }
+    }
+
+    @Override
+    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema, SharedRealm sharedRealm) {
+        checkClass(clazz);
+
+        if (clazz.equals(some.test.AllTypes.class)) {
+            return io.realm.AllTypesRealmProxy.createRealmObjectSchema(realmSchema, sharedRealm);
         } else {
             throw getMissingProxyClassException(clazz);
         }

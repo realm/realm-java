@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.annotations.Required;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
@@ -87,12 +88,20 @@ public final class RealmObjectSchema {
         this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getNativePtr());
     }
 
-    RealmObjectSchema(BaseRealm realm, String className) {
-        this.realm = realm;
+    RealmObjectSchema(SharedRealm sharedRealm, String className) {
+        this.realm = null;
         this.table = null;
         this.columnIndices = null;
         this.properties = null;
-        this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getNativePtr(), className);
+        this.nativePtr = nativeCreateObjectSchema(sharedRealm.getNativePtr(), className);
+    }
+
+    RealmObjectSchema(long nativePtr) {
+        this.realm = null;
+        this.table = null;
+        this.columnIndices = null;
+        this.properties = null;
+        this.nativePtr = nativePtr;
     }
 
     /**
@@ -211,6 +220,10 @@ public final class RealmObjectSchema {
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
+    }
+
+    public void add(Property property) {
+        nativeAddProperty(nativePtr, property.getNativePtr());
     }
 
     /**
@@ -782,6 +795,7 @@ public final class RealmObjectSchema {
     private static native long nativeCreateObjectSchema(long nativeSharedGroupPtr);
     private static native long nativeCreateObjectSchema(long nativeSharedRealmPtr, String className);
     private static native void nativeClose(long nativePtr);
+    private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
     private static native long nativeGetPropertyByName(long nativePtr, String name);
     private static native long nativeRemovePropertyByName(long nativePtr, String name);
 

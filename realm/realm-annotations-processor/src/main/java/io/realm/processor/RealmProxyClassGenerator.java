@@ -407,10 +407,10 @@ public class RealmProxyClassGenerator {
                 "RealmObjectSchema", // Return type
                 "createRealmObjectSchema", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "RealmSchema", "realmSchema"); // Argument type & argument name
+                "RealmSchema", "realmSchema", "SharedRealm", "sharedRealm"); // Argument type & argument name
 
         writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + this.simpleClassName + "\"))");
-        writer.emitStatement("RealmObjectSchema realmObjectSchema = new RealmObjectSchema(\"" + this.simpleClassName + "\")");
+        writer.emitStatement("RealmObjectSchema realmObjectSchema = new RealmObjectSchema(sharedRealm, \"" + this.simpleClassName + "\")");
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {
@@ -421,29 +421,29 @@ public class RealmProxyClassGenerator {
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 String nullableFlag = (metadata.isNullable(field)?"":"!") + "Property.REQUIRED";
                 String indexedFlag = (metadata.isIndexed(field)?"":"!") + "Property.INDEXED";
-                String primariKeyFlag = (metadata.isPrimaryKey(field)?"":"!") + "Property.PRIMARY_KEY";
+                String primaryKeyFlag = (metadata.isPrimaryKey(field)?"":"!") + "Property.PRIMARY_KEY";
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", %s, %s, %s, %s))",
                         fieldName,
                         Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        primariKeyFlag,
+                        primaryKeyFlag,
                         indexedFlag,
                         nullableFlag);
             } else if (Utils.isRealmModel(field)) {
                 writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + fieldTypeSimpleName + "\"))");
-                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema, sharedRealm)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.OBJECT, realmSchema.getObjectSchemaByName(\"%s\")))",
                         fieldName, fieldTypeSimpleName);
             } else if (Utils.isRealmList(field)) {
                 String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                 writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + genericTypeSimpleName +"\"))");
-                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema, sharedRealm)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.LIST, realmSchema.getObjectSchemaByName(\"%s\")))",
                         fieldName, fieldTypeSimpleName);
             }
         }
-        writer.emitStatement("return realmSchemaObject");
+        writer.emitStatement("return realmObjectSchema");
         writer.endControlFlow();
         writer.emitStatement("return realmSchema.getObjectSchemaByName(\"" + this.simpleClassName + "\")");
         writer.endMethod();

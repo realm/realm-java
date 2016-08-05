@@ -279,7 +279,11 @@ public final class RealmSchema {
      */
     public boolean hasObjectSchemaByName(String name) {
         return nativeHasObjectSchemaByName(nativePtr, name);
-    } 
+    }
+
+    public RealmObjectSchema getObjectSchemaByName(String name) {
+        return new RealmObjectSchema(nativeGetObjectSchemaByName(nativePtr, name));
+    }
 
     private static native long nativeCreateSchema();
     private static native void nativeClose(long nativePtr);

@@ -32,6 +32,7 @@ import java.util.Set;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -80,9 +81,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema, SharedRealm sharedRealm) {
         checkSchemaHasClass(clazz);
-        return originalMediator.createRealmObjectSchema(clazz, sharedRealm);
+        return originalMediator.createRealmObjectSchema(clazz, realmSchema, sharedRealm);
     }
 
     @Override

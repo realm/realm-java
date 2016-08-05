@@ -384,6 +384,9 @@ public class ClassMetaData {
     }
 
     public boolean isPrimaryKey(VariableElement variableElement) {
+        if (primaryKey == null) {
+            return false;
+        }
         return primaryKey.equals(variableElement);
     }
 
