@@ -1463,10 +1463,10 @@ public class RealmQueryTests {
     @Test
     public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
 
         // Boxed Byte
         assertEquals(7, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
