@@ -102,7 +102,6 @@ public final class RealmConfiguration {
     private final WeakReference<Context> contextWeakRef;
     private final String syncServerUrl;
     private final String syncUserToken;
-    public Handler handler;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
