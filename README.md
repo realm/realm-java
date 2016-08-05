@@ -135,7 +135,7 @@ so each sub-project must be opened in its own window.
 
 ## Examples
 
-The `./examples` folder contain a number of example projects showing how Realm can be used. If this is the first time you checkout this repository to try the examples, you must call `./gradlew assemble` from the top-level directory first. Otherwise the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
+The `./examples` folder contain a number of example projects showing how Realm can be used. If this is the first time you checkout or pull a new version of this repository to try the examples, you must call `./gradlew installRealmJava` from the top-level directory first. Otherwise the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
 
 A standalone version of the examples [downloaded from our website](https://realm.io/docs/java/latest/#getting-started).
 
