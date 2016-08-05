@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '1.4.2'
+ext.coreVersion = '0.27.0' // Sync version
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '1dfa2b4852b1cfccb18fd1a164cfeeea2b84f8de03f1024594837ca54840665c'
+ext.coreSha256Hash = '21687bfb3bff99ef4cb6b2846bf8031bf41e9e4c4f82ef38346ff18c45be4620'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -19,8 +19,10 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 // target ABIs to build(null means all).
 // To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
 ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
+// The location of the s3cfg used when running s3cmd
+ext.s3cfg = project.hasProperty('s3cfg') ? project.getProperty('s3cfg') : null;
 
-def commonCflags = [ '-Os', '-std=c++11', '-Wmissing-declarations' , '-Werror']
+def commonCflags = [ '-Os', '-std=c++14', '-Wmissing-declarations' , '-Werror']
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
     commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -75,7 +77,8 @@ def toolchains = [
 ]
 
 def allTargets = [
-    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
+// ARM support is deprecated
+//    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
     new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
     new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
     new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
@@ -152,13 +155,15 @@ ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore() {
+    group = 'build setup'
+    description = 'Download the latest version of realm core'
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
     def calcSha256Hash = {File targetFile ->
-        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        MessageDigest sha = MessageDigest.getInstance("SHA-256")
         Formatter hexHash = new Formatter()
         sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
         return hexHash.toString()
@@ -188,13 +193,14 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
 
     doLast {
         if (shouldDownloadCore()) {
-            download {
-                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
-                dest project.coreArchiveFile
-                onlyIfNewer false
+            // CI artifacts are only available if on the internal network or VPN
+            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
+
+            println "Downloading ${downloadUrl}"
+            exec {
+                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
             }
             coreDownloaded = true
-
             if (isHashCheckingEnabled()) {
                 def calculatedHash = calcSha256Hash(project.coreArchiveFile)
                 if (!project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
@@ -303,7 +309,7 @@ targets.each { target ->
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
+            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-${target.name} -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -lz -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}${getDebugExt()}.so"
         ]

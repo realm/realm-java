@@ -52,7 +52,7 @@ import rx.Observable;
  * @see io.realm.DynamicRealm
  */
 @SuppressWarnings("WeakerAccess")
-abstract class BaseRealm implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
             "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
@@ -64,17 +64,17 @@ abstract class BaseRealm implements Closeable {
             "Changing Realm data can only be done from inside a transaction.";
 
     // Map between a Handler and the canonical path to a Realm file
-    protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
+    public static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
     protected RealmConfiguration configuration;
-    protected SharedGroupManager sharedGroupManager;
+    public SharedGroupManager sharedGroupManager;
     RealmSchema schema;
-    Handler handler;
-    HandlerController handlerController;
+    public Handler handler;
+    public HandlerController handlerController;
 
     static {
         //noinspection ConstantConditions
@@ -84,9 +84,9 @@ abstract class BaseRealm implements Closeable {
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
+        this.handlerController = new HandlerController(this);
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
-        this.handlerController = new HandlerController(this);
 
         if (handlerController.isAutoRefreshAvailable()) {
             setAutoRefresh(true);
@@ -105,7 +105,14 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if called from a non-Looper thread.
      */
     public void setAutoRefresh(boolean autoRefresh) {
-        checkIfValid();
+        setAutoRefresh(autoRefresh, true);
+    }
+
+    private void setAutoRefresh(boolean autoRefresh, boolean performCheck) {
+        if (performCheck) {
+            checkIfValid();
+        }
+
         handlerController.checkCanBeAutoRefreshed();
         if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);

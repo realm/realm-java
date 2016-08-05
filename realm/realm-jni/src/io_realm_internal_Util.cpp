@@ -44,6 +44,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         return JNI_ERR;
     }
     else {
+        g_vm = vm;
         // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
         java_lang_long        = GetClass(env, "java/lang/Long");
         java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");
@@ -51,6 +52,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
         java_lang_double      = GetClass(env, "java/lang/Double");
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
+        sync_manager          = GetClass(env, "io/realm/sync/SyncManager");
+        sync_manager_notify_handler = env->GetStaticMethodID(sync_manager, "notifyHandlers", "(Ljava/lang/String;)V");
     }
 
     return JNI_VERSION_1_6;

@@ -32,6 +32,7 @@
 #include <realm/util/safe_int_ops.hpp>
 #include <realm/lang_bind_helper.hpp>
 #include <realm/timestamp.hpp>
+#include <realm/sync/client.hpp>
 
 #include "io_realm_internal_Util.h"
 
@@ -112,6 +113,8 @@ std::string num_to_string(T pNumber)
 #define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
 #define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
+#define SC(ptr) reinterpret_cast<realm::sync::Client*>(ptr)
+#define SS(ptr) reinterpret_cast<realm::sync::Session*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
@@ -647,12 +650,15 @@ private:
     jint                m_releaseMode;
 };
 
+extern JavaVM* g_vm;
 extern jclass java_lang_long;
 extern jmethodID java_lang_long_init;
 extern jclass java_lang_float;
 extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
+extern jclass sync_manager;
+extern jmethodID sync_manager_notify_handler;
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {

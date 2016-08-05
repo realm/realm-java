@@ -17,16 +17,24 @@
 #include <jni.h>
 
 #include "util.hpp"
-
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
 #include <realm/commit_log.hpp>
 
-#include "util.hpp"
+#include <realm/sync/history.hpp>
+#include <realm/sync/client.hpp>
+#include <realm/util/logger.hpp>
 #include "io_realm_internal_SharedGroup.h"
+#include <mutex>
+#include <thread>
+#include <vector>
+#include <chrono>
+#include <functional>
+#include <android/log.h>
 
 using namespace std;
 using namespace realm;
+using namespace sync;
 
 inline static bool jint_to_durability_level(JNIEnv* env, jint durability, SharedGroup::DurabilityLevel &level) {
     if (durability == 0)
@@ -114,7 +122,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateLocalReplication
   (JNIEnv* env, jobject, jstring jfile_name, jbyteArray keyArray)
 {
     TR_ENTER()
@@ -128,6 +138,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 #else
         std::unique_ptr<Replication> hist = make_client_history(file_name);
 #endif
+        return reinterpret_cast<jlong>(hist.release());
+    }
+    CATCH_FILE(file_name)
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateSyncReplication
+  (JNIEnv* env, jobject, jstring jfile_name)
+{
+    TR_ENTER()
+    StringData file_name;
+    try {
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
+        file_name = StringData(file_name_tmp);
+        std::unique_ptr<Replication> hist = realm::sync::make_sync_history(file_name);
         return reinterpret_cast<jlong>(hist.release());
     }
     CATCH_FILE(file_name)
@@ -179,11 +205,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
-  (JNIEnv *env, jobject, jlong native_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr, jlong sync_session_ptr)
 {
     TR_ENTER_PTR(native_ptr)
+    Session* sync_session = SS(sync_session_ptr);
     try {
-        LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
+        SharedGroup::version_type new_version = LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
+        if (sync_session != NULL) { //sync enabled
+            sync_session->nonsync_transact_notify(new_version);
+        }
     }
     CATCH_STD()
 }
@@ -327,3 +357,4 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChang
         SG(native_ptr)->wait_for_change_release();
     } CATCH_STD()
 }
+

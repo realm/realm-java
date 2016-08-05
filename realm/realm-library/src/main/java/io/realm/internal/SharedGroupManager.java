@@ -42,11 +42,7 @@ public class SharedGroupManager implements Closeable {
      * Creates a new instance of the FileWrapper for the given configuration on this thread.
      */
     public SharedGroupManager(RealmConfiguration configuration) {
-        this.sharedGroup = new SharedGroup(
-                configuration.getPath(),
-                SharedGroup.IMPLICIT_TRANSACTION,
-                configuration.getDurability(),
-                configuration.getEncryptionKey());
+        this.sharedGroup = new SharedGroup(configuration);
         this.transaction = sharedGroup.beginImplicitTransaction();
     }
 
@@ -170,11 +166,8 @@ public class SharedGroupManager implements Closeable {
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(
-                    configuration.getPath(),
-                    SharedGroup.IMPLICIT_TRANSACTION,
-                    SharedGroup.Durability.FULL,
-                    configuration.getEncryptionKey());
+            // TODO: Fail if in-memory only?
+            sharedGroup = new SharedGroup(configuration);
             result = sharedGroup.compact();
         } catch (Exception e) {
             RealmLog.i(e.getMessage());

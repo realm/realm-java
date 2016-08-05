@@ -20,11 +20,13 @@ import java.io.Closeable;
 import java.io.IOError;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.RealmConfiguration;
 import io.realm.exceptions.IncompatibleLockFileException;
 import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
+import io.realm.sync.SyncManager;
 
 public class SharedGroup implements Closeable {
 
@@ -43,6 +45,8 @@ public class SharedGroup implements Closeable {
 
     private final String path;
     private long nativePtr;
+//    private long syncClientPtr = 0;s
+    private long sessionPtr = 0;
     private long nativeReplicationPtr;
     private boolean implicitTransactionsEnabled = false;
     private boolean activeTransaction;
@@ -68,10 +72,47 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String canonicalPath, boolean enableImplicitTransactions, Durability durability, byte[] key) {
+    /**
+     * Constructs a new shared group using implicit transactions.
+     *
+     * @param config RealmConfiguration to create the SharedGroup for.
+     */
+    public SharedGroup(RealmConfiguration config) {
+        String canonicalPath = config.getPath();
+        boolean syncEnabled = config.isSyncEnabled();
+        byte[] encryptionKey = config.getEncryptionKey();
+        Durability durability = config.getDurability();
+
+        if (syncEnabled) {
+            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+        } else {
+            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, encryptionKey);
+        }
+        nativePtr = openSharedGroupOrFail(nativeReplicationPtr, canonicalPath, durability, encryptionKey);
+        implicitTransactionsEnabled = true;
+        context = new Context();
+        path = canonicalPath;
+        checkNativePtrNotZero();
+
+        if (syncEnabled) {
+            //TODO client is thread-safe & it should be global & reused across different RealmConfiguration
+            sessionPtr = SyncManager.getSession(config.getSyncUserToken(), config.getPath(), config.getSyncServerUrl());
+        }
+    }
+
+    // TODO Remove this? Explicit transactions are not supported anyway?
+    public SharedGroup(String canonicalPath,
+                       boolean enableImplicitTransactions,
+                       boolean enableSync,
+                       Durability durability,
+                       byte[] key) {
         if (enableImplicitTransactions) {
-            nativeReplicationPtr = nativeCreateReplication(canonicalPath, key);
-            nativePtr = openSharedGroupOrFail(durability, key);
+            if (enableSync) {
+                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
+            } else {
+                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
+            }
+            nativePtr = openSharedGroupOrFail(nativeReplicationPtr, canonicalPath, durability, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
@@ -81,7 +122,7 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    private long openSharedGroupOrFail(Durability durability, byte[] key) {
+    private long openSharedGroupOrFail(long nativeReplicationPtr, String path, Durability durability, byte[] key) {
         // We have anecdotal evidence that on some versions of Android it is possible for two versions of an app
         // to exist in two processes during an app upgrade. This is problematic since the lock file might not be
         // compatible across two versions of Android. See https://github.com/realm/realm-java/issues/2459. If this
@@ -146,7 +187,7 @@ public class SharedGroup implements Closeable {
     }
 
     void commitAndContinueAsRead() {
-        nativeCommitAndContinueAsRead(nativePtr);
+        nativeCommitAndContinueAsRead(nativePtr, sessionPtr);
     }
 
     void rollbackAndContinueAsRead() {
@@ -207,6 +248,7 @@ public class SharedGroup implements Closeable {
         activeTransaction = false;
     }
 
+    //FIXME close session (delete sessionPtr pointer)
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -363,10 +405,11 @@ public class SharedGroup implements Closeable {
         nativeStopWaitForChange(nativePtr);
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
-                                                             int durability, byte[] key);
-    private native long nativeCreateReplication(String databaseFile, byte[] key);
-    private native void nativeCommitAndContinueAsRead(long nativePtr);
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
+    private native long nativeCreateSyncReplication(String databaseFile);
+    private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
+
     private native long nativeBeginImplicit(long nativePtr);
 
     private native void nativeReserve(long nativePtr, long bytes);
