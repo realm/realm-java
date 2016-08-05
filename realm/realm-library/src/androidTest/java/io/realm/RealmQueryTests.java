@@ -42,6 +42,7 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
+import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
@@ -71,6 +72,7 @@ public class RealmQueryTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
     protected final static int TEST_DATA_SIZE = 10;
+    protected final static int TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE = 200;
 
     private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
 
@@ -89,14 +91,14 @@ public class RealmQueryTests {
         }
     }
 
-    private void populateTestRealm(Realm testRealm, int objects) {
+    private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();
         testRealm.deleteAll();
-        for (int i = 0; i < objects; ++i) {
+        for (int i = 0; i < dataSize; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
+            allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -115,6 +117,37 @@ public class RealmQueryTests {
 
     private void populateTestRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
+    }
+
+    private void populateNoPrimaryKeyNullTypesRows(Realm testRealm, int dataSize) {
+        testRealm.beginTransaction();
+        testRealm.deleteAll();
+        for (int i = 0; i < dataSize; ++i) {
+            NoPrimaryKeyNullTypes noPrimaryKeyNullTypes = testRealm.createObject(NoPrimaryKeyNullTypes.class);
+            noPrimaryKeyNullTypes.setFieldStringNull((i % 3) == 0 ? null : "test data " + i);
+            noPrimaryKeyNullTypes.setFieldStringNotNull("test data " + i);
+            noPrimaryKeyNullTypes.setFieldBooleanNull((i % 3) == 0 ? null : (i % 3) == 1);
+            noPrimaryKeyNullTypes.setFieldBooleanNotNull((i % 3) == 0);
+            noPrimaryKeyNullTypes.setFieldByteNull((i % 3) == 0 ? null : (byte) i);
+            noPrimaryKeyNullTypes.setFieldByteNotNull((byte) i);
+            noPrimaryKeyNullTypes.setFieldShortNull((i % 3) == 0 ? null : (short) i);
+            noPrimaryKeyNullTypes.setFieldShortNotNull((short) i);
+            noPrimaryKeyNullTypes.setFieldIntegerNull((i % 3) == 0 ? null : i);
+            noPrimaryKeyNullTypes.setFieldIntegerNotNull(i);
+            noPrimaryKeyNullTypes.setFieldLongNull((i % 3) == 0 ? null : (long) i);
+            noPrimaryKeyNullTypes.setFieldLongNotNull((long) i);
+            noPrimaryKeyNullTypes.setFieldFloatNull((i % 3) == 0 ? null : 1.234567f + i);
+            noPrimaryKeyNullTypes.setFieldFloatNotNull(1.234567f + i);
+            noPrimaryKeyNullTypes.setFieldDoubleNull((i % 3) == 0 ? null : 3.1415 + i);
+            noPrimaryKeyNullTypes.setFieldDoubleNotNull(3.1415 + i);
+            noPrimaryKeyNullTypes.setFieldDateNull((i % 3) == 0 ? null : new Date(DECADE_MILLIS * (i - (dataSize / 2))));
+            noPrimaryKeyNullTypes.setFieldDateNotNull(new Date(DECADE_MILLIS * (i - (dataSize / 2))));
+        }
+        testRealm.commitTransaction();
+    }
+
+    private void populateNoPrimaryKeyNullTypesRows() {
+        populateNoPrimaryKeyNullTypesRows(realm, TEST_NO_PRIMARY_KEY_NULL_TYPES_SIZE);
     }
 
     @Test
@@ -229,7 +262,7 @@ public class RealmQueryTests {
         resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 15").findAll();
         assertEquals(21, resultList.size());
 
-        resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 117").findAll();
+        resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 118").findAll();
         assertEquals(22, resultList.size());
     }
 
@@ -408,258 +441,490 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void in_string() {
-        populateTestRealm(realm, 200);
+    public void in_stringNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, (String[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, (String[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {"test data 15"}).findAll();
+
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"test data 14"}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {"test data 15", "test data 117", "test data 30", "test data 199"}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"test data 14", "test data 118", "test data 31", "test data 199"}).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_STRING, new String[] {"TEST data 15", "TEST data 117", "test DATA 30", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_STRING, new String[] {"TEST data 15", "TEST data 117", "test DATA 30", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
         assertEquals(196, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_STRING, new String[] { "TEST data 15", "TEST data 117", "test DATA 30", "test DATA 199"}, Case.INSENSITIVE).findAll();
-        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(196, resultList.size(
+
+
+        ));
+
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_STRING, new String[]{"TEST data 15", "TEST data 117", null, "test DATA 199"}, Case.INSENSITIVE).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", null, "test DATA 199"}, Case.INSENSITIVE).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_boolean() {
-        populateTestRealm(realm, 200);
+    public void in_stringNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, (Boolean[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, (String[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Boolean[] {}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Boolean[] {false}).findAll();
+
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{"test data 14"}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{"test data 14", "test data 118", "test data 31", "test data 199"}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[]{"TEST data 14", "test data 118", null, "test DATA 199"}, Case.INSENSITIVE).findAll();
+        assertEquals(130, resultList.size());
+    }
+
+    @Test
+    public void in_booleanNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, (Boolean[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, new Boolean[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, new Boolean[]{false}).findAll();
         assertEquals(133, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Boolean[] {true}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, new Boolean[]{true}).findAll();
         assertEquals(67, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BOOLEAN, new Boolean[] {true, false}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, new Boolean[]{true, false}).findAll();
         assertEquals(200, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_BOOLEAN, new Boolean[] {true, false}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, new Boolean[]{true, false}).findAll();
         assertEquals(0, resultList.size());
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_BOOLEAN, new Boolean[] {true, null, false}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NOT_NULL, new Boolean[]{true, null, false}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_date() {
-        final int TEST_OBJECTS_COUNT = 200;
-        populateTestRealm(realm, TEST_OBJECTS_COUNT);
+    public void in_booleanNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, (Date[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, (Boolean[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, new Boolean[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80)}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, new Boolean[]{false}).findAll();
+        assertEquals(66, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, new Boolean[]{true}).findAll();
+        assertEquals(67, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, new Boolean[]{true, false}).findAll();
+        assertEquals(133, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, new Boolean[]{true, false}).findAll();
+        assertEquals(67, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BOOLEAN_NULL, new Boolean[]{true, null, false}).findAll();
+        assertEquals(0, resultList.size());
+    }
+
+    @Test
+    public void in_dateNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, (Date[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, new Date[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, new Date[]{new Date(DECADE_MILLIS * -80)}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(0)}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, new Date[]{new Date(0)}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, new Date[]{new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, new Date[]{new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
         assertEquals(198, resultList.size());
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_DATE, new Date[] {new Date(DECADE_MILLIS * -80), null, new Date(0)}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DATE_NOT_NULL, new Date[]{new Date(DECADE_MILLIS * -80), null, new Date(0)}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_double() {
-        populateTestRealm(realm, 200);
+    public void in_dateNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, (Double[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, (Date[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new Double[]{}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, new Date[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new Double[] {3.1415d}).findAll();
-        assertEquals(200, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new Double[] {2.34d}).findAll();
-        assertEquals(0, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_DOUBLE, new Double[] {3.1415d, 2.34d}).findAll();
-        assertEquals(200, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_DOUBLE, new Double[] {3.1415d, 2.34d}).findAll();
-        assertEquals(0, resultList.size());
-        try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_DOUBLE, new Double[] {3.1415d, null, 2.34d}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void in_float() {
-        populateTestRealm(realm, 200);
-        try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, (Float[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new Float[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new Float[] {1.234567f}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, new Date[]{new Date(DECADE_MILLIS * -80)}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new Float[] {1.234567f + 1}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, new Date[]{new Date(0)}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_FLOAT, new Float[] {1.234567f, 1.234567f + 1}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, new Date[]{new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_FLOAT, new Float[] {1.234567f, 1.234567f + 1}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, new Date[]{new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
+        assertEquals(198, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DATE_NULL, new Date[]{new Date(DECADE_MILLIS * -80), null, new Date(0)}).findAll();
+        assertEquals(131, resultList.size());
+    }
+
+    @Test
+    public void in_doubleNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, (Double[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 1}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 2}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        assertEquals(2, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
         assertEquals(198, resultList.size());
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_FLOAT, new Float[] {1.234567f, null, 1.234567f + 1}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NOT_NULL, new Double[]{3.1415d + 1, null, 3.1415d + 2}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_byte() {
-        populateTestRealm(realm, 200);
+    public void in_doubleNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, (Byte[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, (Double[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new Byte[]{}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new Byte[] {11}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 1}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new Byte[] {13}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 2}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_BYTE, new Byte[] {12, 13, 15, 99}).findAll();
-        assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_BYTE, new Byte[] {12, 13, 15, 99}).findAll();
-        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        assertEquals(2, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 1, 3.1415d + 2}).findAll();
+        assertEquals(198, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_DOUBLE_NULL, new Double[]{3.1415d + 1, null, 3.1415d + 2}).findAll();
+        assertEquals(131, resultList.size());
+    }
+
+    @Test
+    public void in_floatNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_BYTE, new Byte[] {12, null, 15, 99}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, (Float[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.234567f + 1}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.234567f + 2}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.234567f + 1, 1.234567f + 2}).findAll();
+        assertEquals(2, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.234567f + 1, 1.234567f + 2}).findAll();
+        assertEquals(198, resultList.size());
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NOT_NULL, new Float[]{1.234567f + 1, null, 1.234567f + 2}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_short() {
-        populateTestRealm(realm, 200);
+    public void in_floatNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, (Short[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, (Float[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new Short[]{}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new Short[] {11}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.234567f + 1}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new Short[] {3}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.234567f + 2}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_SHORT, new Short[] {2, 3, 5, 9}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.234567f + 1, 1.234567f + 2}).findAll();
+        assertEquals(2, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.234567f + 1, 1.234567f + 2}).findAll();
+        assertEquals(198, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_FLOAT_NULL, new Float[]{1.234567f + 1, null, 1.234567f + 2}).findAll();
+        assertEquals(131, resultList.size());
+    }
+
+    @Test
+    public void in_byteNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, (Byte[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, new Byte[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, new Byte[]{11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, new Byte[]{13}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, new Byte[]{11, 13, 16, 98}).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_SHORT, new Short[] {2, 3, 5, 9}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, new Byte[]{11, 13, 16, 98}).findAll();
         assertEquals(196, resultList.size());
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_SHORT, new Short[] {2, null, 5, 9}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BYTE_NOT_NULL, new Byte[]{11, null, 13, 99}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_integer() {
-        populateTestRealm(realm, 200);
+    public void in_byteNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_INT, (Integer[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, (Byte[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new Integer[]{}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, new Byte[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new Integer[] {11}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, new Byte[]{11}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new Integer[] {1}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, new Byte[]{13}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_INT, new Integer[] {1, 2, 3, 4}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, new Byte[]{11, 13, 16, 98}).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_INT, new Integer[] {1, 2, 3, 4}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, new Byte[]{11, 13, 16, 98}).findAll();
+        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_BYTE_NULL, new Byte[]{11, null, 13, 99}).findAll();
+        assertEquals(131, resultList.size());
+    }
+
+    @Test
+    public void in_shortNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, (Short[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, new Short[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, new Short[]{11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, new Short[]{4}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, new Short[]{2, 4, 5, 8}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, new Short[]{2, 4, 5, 8}).findAll();
         assertEquals(196, resultList.size());
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_INT, new Integer[]{1, null, 3, 4}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_SHORT_NOT_NULL, new Short[]{2, null, 5, 8}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void in_long() {
-        populateTestRealm(realm, 200);
+    public void in_shortNull() {
+        populateNoPrimaryKeyNullTypesRows();
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, (Long[]) null).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, (Short[]) null).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new Long[]{}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, new Short[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new Long[] {11l}).findAll();
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, new Short[]{11}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new Long[] {13l}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, new Short[]{4}).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllTypes.class).in(AllTypes.FIELD_LONG, new Long[] {12l, 13l, 15l, 99l}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, new Short[]{2, 4, 5, 8}).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllTypes.class).not().in(AllTypes.FIELD_LONG, new Long[] {12l, 13l, 15l, 99l}).findAll();
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, new Short[]{2, 4, 5, 8}).findAll();
+        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_SHORT_NULL, new Short[]{2, null, 5, 8}).findAll();
+        assertEquals(130, resultList.size());
+    }
+
+    @Test
+    public void in_integerNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, (Integer[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, new Integer[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, new Integer[]{11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, new Integer[]{1}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, new Integer[]{1, 2, 4, 5}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, new Integer[]{1, 2, 4, 5}).findAll();
         assertEquals(196, resultList.size());
         try {
-            realm.where(AllTypes.class).not().in(AllTypes.FIELD_LONG, new Long[] {12l, null, 15l, 99l}).findAll();
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NOT_NULL, new Integer[]{1, null, 4, 5}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test
+    public void in_integerNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, (Integer[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, new Integer[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, new Integer[]{11}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, new Integer[]{1}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, new Integer[]{1, 2, 4, 5}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, new Integer[]{1, 2, 4, 5}).findAll();
+        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_INTEGER_NULL, new Integer[]{1, null, 4, 5}).findAll();
+        assertEquals(130, resultList.size());
+    }
+
+    @Test
+    public void in_longNotNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, (Long[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, new Long[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, new Long[]{11l}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, new Long[]{13l}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, new Long[]{13l, 14l, 16l, 98l}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, new Long[]{13l, 14l, 16l, 98l}).findAll();
+        assertEquals(196, resultList.size());
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_LONG_NOT_NULL, new Long[]{13l, null, 16l, 98l}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void in_longNull() {
+        populateNoPrimaryKeyNullTypesRows();
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, (Long[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{}).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{11l}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{13l}).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{13l, 14l, 16l, 98l}).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{13l, 14l, 16l, 98l}).findAll();
+        assertEquals(196, resultList.size());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{13l, null, 16l, 98l}).findAll();
+        assertEquals(130, resultList.size());
     }
 
     @Test
@@ -1038,22 +1303,22 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
         // fill up a Realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_STRING, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_STRING, 10, -5);
 
         // String
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).equalTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY,             (String) null).findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).equalTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
         // Boxed Byte
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).equalTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       (Byte) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).equalTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, (Byte) null).findAll().first().getName());
         // Boxed Short
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).equalTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     (Short) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).equalTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, (Short) null).findAll().first().getName());
         // Boxed Integer
         assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).equalTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, (Integer) null).findAll().first().getName());
         // Boxed Long
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       (Long) null).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, (Long) null).findAll().first().getName());
     }
 
     @Test
@@ -1061,11 +1326,11 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_STRING, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_STRING, 10, -5);
 
         // String
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).isNull(PrimaryKeyAsString.FIELD_PRIMARY_KEY).findAll().first().getId());
@@ -1084,28 +1349,28 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
         // fill up a realm with one user PrimaryKey value and one numeric values, starting from -1
-        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 2, -1);
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 2, -1);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 2, -1);
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 2, -1);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, SECONDARY_FIELD_STRING, 2, -1);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, SECONDARY_FIELD_STRING, 2, -1);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, SECONDARY_FIELD_STRING, 2, -1);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    SECONDARY_FIELD_STRING, 2, -1);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, SECONDARY_FIELD_STRING, 2, -1);
 
         // String
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).notEqualTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY,             "-1").findAll().first().getId());
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).notEqualTo(PrimaryKeyAsString.FIELD_PRIMARY_KEY, "-1").findAll().first().getId());
         // Boxed Byte
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).notEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       Byte.valueOf((byte)-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedByte.class).notEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, Byte.valueOf((byte) -1)).findAll().first().getName());
         // Boxed Short
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).notEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     Short.valueOf((short)-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedShort.class).notEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, Short.valueOf((short) -1)).findAll().first().getName());
         // Boxed Integer
         assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedInteger.class).notEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, Integer.valueOf(-1)).findAll().first().getName());
         // Boxed Long
-        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       Long.valueOf((long)-1)).findAll().first().getName());
+        assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, Long.valueOf((long) -1)).findAll().first().getName());
     }
 
     @Test
     public void beginWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
-        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
     }
@@ -1113,7 +1378,7 @@ public class RealmQueryTests {
     @Test
     public void contains_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
-        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
     }
@@ -1121,7 +1386,7 @@ public class RealmQueryTests {
     @Test
     public void endsWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
-        TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, null).findAll().first().getId());
     }
@@ -1129,91 +1394,91 @@ public class RealmQueryTests {
     @Test
     public void between_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedByte.class).between(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedByte.class).between(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, -1, 1).count());
         // Boxed Short
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedShort.class).between(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedShort.class).between(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, -1, 1).count());
         // Boxed Integer
         assertEquals(3, realm.where(PrimaryKeyAsBoxedInteger.class).between(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1, 1).count());
         // Boxed Long
-        assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1, 1).count());
+        assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, -1, 1).count());
     }
 
     @Test
     public void greaterThan_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedByte.class).greaterThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedByte.class).greaterThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Short
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedShort.class).greaterThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedShort.class).greaterThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Integer
         assertEquals(4, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThan(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Long
-        assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
+        assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, -1).count());
     }
 
     @Test
     public void greaterThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedByte.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedByte.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Short
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedShort.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedShort.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Integer
         assertEquals(5, realm.where(PrimaryKeyAsBoxedInteger.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, -1).count());
         // Boxed Long
-        assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
+        assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, -1).count());
     }
 
     @Test
     public void lessThan_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedByte.class).lessThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedByte.class).lessThan(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Short
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedShort.class).lessThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedShort.class).lessThan(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Integer
         assertEquals(6, realm.where(PrimaryKeyAsBoxedInteger.class).lessThan(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Long
-        assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
+        assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, 1).count());
     }
 
     @Test
     public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
-        TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
-        TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
+        TestHelper.populateTestRealmWithBytePrimaryKey(realm, (Byte) null, (String) null, 10, -5);
+        TestHelper.populateTestRealmWithShortPrimaryKey(realm, (Short) null, (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
-        TestHelper.populateTestRealmWithLongPrimaryKey(realm,    (Long) null,    (String) null, 10, -5);
+        TestHelper.populateTestRealmWithLongPrimaryKey(realm, (Long) null, (String) null, 10, -5);
 
         // Boxed Byte
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY,       1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedByte.class).lessThanOrEqualTo(PrimaryKeyAsBoxedByte.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Short
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedShort.class).lessThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY,     1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedShort.class).lessThanOrEqualTo(PrimaryKeyAsBoxedShort.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Integer
         assertEquals(7, realm.where(PrimaryKeyAsBoxedInteger.class).lessThanOrEqualTo(PrimaryKeyAsBoxedInteger.FIELD_PRIMARY_KEY, 1).count());
         // Boxed Long
-        assertEquals(7, realm.where(PrimaryKeyAsBoxedLong.class).lessThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
+        assertEquals(7, realm.where(PrimaryKeyAsBoxedLong.class).lessThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, 1).count());
     }
 
     // Querying nullable fields, querying with equalTo null
@@ -2080,6 +2345,7 @@ public class RealmQueryTests {
             RealmFieldType.LIST);
 
     private static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
+
     static {
         final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
@@ -2185,7 +2451,7 @@ public class RealmQueryTests {
 
     @Test
     public void isEmpty_invalidFieldNameThrows() {
-        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
+        String[] fieldNames = new String[]{null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
         for (String fieldName : fieldNames) {
             try {
@@ -2203,6 +2469,7 @@ public class RealmQueryTests {
             RealmFieldType.LIST);
 
     private static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
+
     static {
         final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
         list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
@@ -2308,7 +2575,7 @@ public class RealmQueryTests {
 
     @Test
     public void isNotEmpty_invalidFieldNameThrows() {
-        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
+        String[] fieldNames = new String[]{null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
         for (String fieldName : fieldNames) {
             try {
@@ -2784,32 +3051,32 @@ public class RealmQueryTests {
         }
         // a null string field in the middle
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null, AnnotationIndexTypes.FIELD_INDEX_INT);
+            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null, AnnotationIndexTypes.FIELD_INDEX_INT);
         } catch (IllegalArgumentException ignored) {
         }
         // a null string field at the end
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String)null);
+            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // (String)null makes varargs a null array.
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
+            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // Two (String)null for first and varargs fields
         try {
-            query.distinct((String)null, (String)null);
+            query.distinct((String) null, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String)null combination
         try {
-            query.distinct("", (String)null);
+            query.distinct("", (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String)null combination
         try {
-            query.distinct((String)null, "");
+            query.distinct((String) null, "");
         } catch (IllegalArgumentException ignored) {
         }
         // Two empty fields tests
