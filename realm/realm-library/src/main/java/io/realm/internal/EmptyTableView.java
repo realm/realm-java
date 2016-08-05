@@ -23,6 +23,14 @@ import java.util.List;
 
 import io.realm.RealmFieldType;
 
+/**
+ * Empty TableView is to save a snapshot of the column names/field types/field indices into an immutable
+ * TableView instance. It would mean that the class this empty TableView tries to capture would still
+ * respond to basic queries such as column name/index but otherwise behave as an empty TableView so
+ * resulting in Empty RealmResults.
+ *
+ * There is a disadvantage that it needs to instantiate a copy of this class for each type being removed.
+ */
 public final class EmptyTableView implements TableOrView {
 
     private final long columnCount;

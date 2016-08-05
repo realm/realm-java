@@ -82,6 +82,7 @@ final class RealmCache {
      * <p>As one can see there is no protection on this list from being accessed via multiple threads.
      * Please take caution when this is exposed to un-synchronized methods.
      */
+    // FIXME : please remove when ObjectStore safely reference all the Realm/DynamicRealm instances globally
     private final ArrayList<WeakReference<BaseRealm>> globalBaseRealmReference;
 
     final private RealmConfiguration configuration;
@@ -362,9 +363,9 @@ final class RealmCache {
     }
 
    /**
-    * This is to propagate a {@link RealmResults#setTableEmpty()} event through {@link HandlerController}
-    * across all the threads that when {@link RealmSchema#remove(String)} removes a Class, all the affected
-    * {@link RealmResults} should be invalidated to an empty list.
+    * This is to propagate a {@link RealmResults#convertToEmptyTableView(EmptyTableView)} event through
+    * {@link HandlerController} across all the threads that when {@link RealmSchema#remove(String)}
+    * removes a Class, all the affected {@link RealmResults} should be invalidated to an empty list.
     *
     * @param configuration a configuration to filter all the {@link BaseRealm}.
     * @param className a removed class name that should be propagated to all {@link HandlerController#invalidateRemovedTableView)}.
