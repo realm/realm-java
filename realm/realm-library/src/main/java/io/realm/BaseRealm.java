@@ -85,12 +85,12 @@ public abstract class BaseRealm implements Closeable {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.handlerController = new HandlerController(this);
+        this.sharedGroupManager = new SharedGroupManager(configuration);
+        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
 
         if (handlerController.isAutoRefreshAvailable()) {
             setAutoRefresh(true);
         }
-        this.sharedGroupManager = new SharedGroupManager(configuration);
-        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
     }
 
     /**
