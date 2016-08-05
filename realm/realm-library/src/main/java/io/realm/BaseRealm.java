@@ -54,9 +54,14 @@ import rx.Observable;
 @SuppressWarnings("WeakerAccess")
 public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
-    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
+            "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
+    private static final String INCORRECT_THREAD_MESSAGE =
+            "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+    private static final String NOT_IN_TRANSACTION_MESSAGE =
+            "Changing Realm data can only be done from inside a transaction.";
 
     // Map between a Handler and the canonical path to a Realm file
     public static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -72,22 +77,17 @@ public abstract class BaseRealm implements Closeable {
     public HandlerController handlerController;
 
     static {
+        //noinspection ConstantConditions
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
-    protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
+    protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.handlerController = new HandlerController(this);
-        if (Looper.myLooper() == null) {
-            if (autoRefresh) {
-                throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
-            }
-            if (configuration.isSyncEnabled()) {
-                throw new IllegalStateException("Cannot use Sync in a Thread without a Looper");
-            }
-        } else {
-            setAutoRefresh(autoRefresh, false);
+
+        if (handlerController.isAutoRefreshAvailable()) {
+            setAutoRefresh(true);
         }
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
@@ -113,10 +113,7 @@ public abstract class BaseRealm implements Closeable {
             checkIfValid();
         }
 
-        if (Looper.myLooper() == null) {
-            throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
-        }
-
+        handlerController.checkCanBeAutoRefreshed();
         if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
@@ -151,7 +148,7 @@ public abstract class BaseRealm implements Closeable {
         }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+            throw new IllegalStateException("You can't register a listener from a non-Looper or IntentService thread.");
         }
         handlerController.addChangeListener(listener);
     }
@@ -468,6 +465,15 @@ public abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Check if the Realm is valid and in a transaction.
+     */
+    protected void checkIfValidAndInTransaction() {
+        if (!isInTransaction()) {
+            throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
+        }
+    }
+
+    /**
      * Returns the canonical path to where this Realm is persisted on disk.
      *
      * @return the canonical path to the Realm file.
@@ -697,7 +703,7 @@ public abstract class BaseRealm implements Closeable {
      * Compacts the Realm file defined by the given configuration.
      *
      * @param configuration configuration for the Realm to compact.
-     * @throw IllegalArgumentException if Realm is encrypted.
+     * @throws IllegalArgumentException if Realm is encrypted.
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
