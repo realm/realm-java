@@ -18,9 +18,8 @@ try {
         stage 'JVM tests'
         try {
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-            gradle 'assemble check javadoc -Ps3cfg=${env.S3CFG}'
+            sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG}"
           }
-
         } finally {
           storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
           storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
