@@ -193,9 +193,12 @@ task downloadCore() {
         if (shouldDownloadCore()) {
             // CI artifacts are only available if on the internal network or VPN
             def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
+            s3cfgFile project.hasProperty('s3cfg') ? s3cfg: 'noFile'
+
             println "Downloading ${downloadUrl}"
+            println s3cfg
             exec {
-                commandLine 's3cmd', '-c', s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+                commandLine 's3cmd', '-c', s3cfgFile, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
             }
             coreDownloaded = true
             if (isHashCheckingEnabled()) {
