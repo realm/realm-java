@@ -705,6 +705,7 @@ public class NotificationsTest {
         realm.commitTransaction();
         // Any REALM_CHANGED message should now only reach the open Handler on Thread1
         try {
+            // TODO: Waiting 5 seconds is not a reliable condition. Figure out a better way for this.
             if (!handlerNotified.await(5, TimeUnit.SECONDS)) {
                 fail("Handler didn't receive message");
             }
