@@ -88,8 +88,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
-    // This is a cache to reduce number of JNI call when checking if the parent Table exists. It is assume to exist until proven otherwise.
-    private boolean tableExists = true;
 
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
@@ -159,10 +157,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * Check if the underlying {@link Table} exists. When {@field table} is an instance of
      * {@link EmptyTableView}, it can be certain that the parent Table does not exist.
      *
-     * @return {@code true} if the backing Table is valid, {@code false} otherwise.
+     * @return {@code true} if the backing Table is invalid, {@code false} otherwise.
      */
     private boolean isTableRemoved() {
-        return !(this.table instanceof EmptyTableView);
+        return (this.table instanceof EmptyTableView);
     }
 
     /**
@@ -216,7 +214,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && isTableRemoved() && object instanceof RealmObjectProxy) {
+        if (isLoaded() && !isTableRemoved() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
                 contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
@@ -236,7 +234,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
-        if (!isTableRemoved()) {
+        if (isTableRemoved()) {
             throw new IndexOutOfBoundsException("No results were found.");
         }
         TableOrView table = getTable();
@@ -535,6 +533,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
+        if (isTableRemoved()) {
+            return this;
+        }
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
         TableOrView tableOrView = getTable();
         if (tableOrView instanceof Table) {
@@ -558,6 +559,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
+        if (isTableRemoved()) {
+            return this;
+        }
         return where().distinctAsync(fieldName);
     }
 
@@ -574,6 +578,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * is an unsupported type, or points to a linked field.
      */
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        if (isTableRemoved()) {
+            return this;
+        }
         return where().distinct(firstFieldName, remainingFieldNames);
     }
 
@@ -962,7 +969,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (!isTableRemoved()) {
+        if (isTableRemoved()) {
             throw new IllegalStateException("You can't register a listener to where no data is available.");
         }
         if (realm.handler == null) {

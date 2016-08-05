@@ -1470,12 +1470,7 @@ public class RealmResultsTests extends CollectionTests {
 
         // results is empty
         removeClassFromDynamicRealm(realm, CLASS_NAME);
-        try {
-            results.distinct("age");
-            fail();
-        } catch (IllegalStateException expected) {
-            assertEquals("No result to be found.", expected.getMessage());
-        }
+        assertEquals(results.distinct("age").size(), 0);
         realm.close();
     }
 
@@ -1514,12 +1509,7 @@ public class RealmResultsTests extends CollectionTests {
         }).start();
 
         TestHelper.awaitOrFail(bgRealmClosed);
-        try {
-            results.distinct("age");
-            fail();
-        } catch (IllegalStateException expected) {
-            assertEquals("No result to be found.", expected.getMessage());
-        }
+        assertEquals(results.distinct("age").size(), 0);
         realm.close();
     }
 }
