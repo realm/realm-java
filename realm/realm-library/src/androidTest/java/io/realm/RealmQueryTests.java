@@ -460,10 +460,7 @@ public class RealmQueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
         assertEquals(196, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
-        assertEquals(196, resultList.size(
-
-
-        ));
+        assertEquals(196, resultList.size());
 
         try {
             realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", null, "test DATA 199"}, Case.INSENSITIVE).findAll();
