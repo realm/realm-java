@@ -19,6 +19,8 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 // target ABIs to build(null means all).
 // To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
 ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
+// The location of the s3cfg used when running s3cmd
+ext.s3cfg = project.hasProperty('s3cfg') ? project.getProperty('s3cfg') : null;
 
 def commonCflags = [ '-Os', '-std=c++14', '-Wmissing-declarations' , '-Werror']
 // LTO and debugging don't play well together
@@ -193,12 +195,10 @@ task downloadCore() {
         if (shouldDownloadCore()) {
             // CI artifacts are only available if on the internal network or VPN
             def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
-            s3cfgFile project.hasProperty('s3cfg') ? s3cfg: 'noFile'
 
             println "Downloading ${downloadUrl}"
-            println s3cfg
             exec {
-                commandLine 's3cmd', '-c', s3cfgFile, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
             }
             coreDownloaded = true
             if (isHashCheckingEnabled()) {

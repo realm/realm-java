@@ -57,6 +57,9 @@ task assembleRealm(type:GradleBuild) {
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
+    }
 }
 
 task checkExamples(type:GradleBuild) {
@@ -114,6 +117,9 @@ task installRealm(type:GradleBuild) {
     tasks = ['install']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
     }
 }
 
