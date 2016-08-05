@@ -26,9 +26,6 @@ public class AllTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AllTypes";
     public static final String FIELD_STRING = "columnString";
-    public static final String FIELD_BYTE= "columnByte";
-    public static final String FIELD_SHORT= "columnShort";
-    public static final String FIELD_INT= "columnInt";
     public static final String FIELD_LONG = "columnLong";
     public static final String FIELD_FLOAT = "columnFloat";
     public static final String FIELD_DOUBLE = "columnDouble";
@@ -42,9 +39,6 @@ public class AllTypes extends RealmObject {
 
     @Required
     private String columnString = "";
-    private byte columnByte;
-    private short columnShort;
-    private int columnInt;
     private long columnLong;
     private float columnFloat;
     private double columnDouble;
@@ -62,30 +56,6 @@ public class AllTypes extends RealmObject {
 
     public void setColumnString(String columnString) {
         this.columnString = columnString;
-    }
-
-    public byte getColumnByte() {
-        return columnByte;
-    }
-
-    public void setColumnByte(byte columnByte) {
-        this.columnByte = columnByte;
-    }
-
-    public short getColumnShort() {
-        return columnShort;
-    }
-
-    public void setColumnShort(short columnShort) {
-        this.columnShort = columnShort;
-    }
-
-    public int getColumnInt() {
-        return columnInt;
-    }
-
-    public void setColumnInt(int columnInt) {
-        this.columnInt = columnInt;
     }
 
     public long getColumnLong() {

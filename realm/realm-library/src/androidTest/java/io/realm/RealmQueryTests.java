@@ -102,9 +102,6 @@ public class RealmQueryTests {
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
-            allTypes.setColumnByte((byte) i);
-            allTypes.setColumnShort((short) i);
-            allTypes.setColumnInt(i);
             allTypes.setColumnLong(i);
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);

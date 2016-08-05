@@ -694,24 +694,9 @@ public class RealmMigrationTests {
     public void openPreNullWithRequired() throws IOException {
         configFactory.copyRealmFromAssets(context,
                 "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
-        RealmMigration migration = new RealmMigration() {
-            @Override
-            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
-                if (oldVersion == 0) {
-                    schema.get(AllTypes.CLASS_NAME)
-                            .addField(AllTypes.FIELD_BYTE, byte.class)
-                            .addField(AllTypes.FIELD_SHORT, short.class)
-                            .addField(AllTypes.FIELD_INT, int.class);
-                    oldVersion++;
-                }
-            }
-        };
-
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schemaVersion(1)
+                .schemaVersion(0)
                 .schema(AllTypes.class)
-                .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
