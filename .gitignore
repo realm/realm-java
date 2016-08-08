@@ -50,3 +50,5 @@ distribution/RealmMigrationExample/app/src
 realm/realm-library/src/main/cpp/jni_include
 # Downloaded core
 realm/realm-library/distribution
+# Cmake output
+realm/realm-library/.externalNativeBuild

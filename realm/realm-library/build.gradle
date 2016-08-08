@@ -1,14 +1,5 @@
 import java.security.MessageDigest
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'de.undercouch:gradle-download-task:2.0.0'
-    }
-}
-
 apply plugin: 'com.android.library'
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
@@ -48,11 +39,13 @@ android {
         project.archivesBaseName = "realm-android-library"
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        cmake {
-            arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
-            // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might drop it or
-            // use the new NDK clang to compile it.
-            abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
+        externalNativeBuild {
+            cmake {
+                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
+                    // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might
+                    // drop it or use the new NDK clang to compile it.
+                    abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
+            }
         }
     }
 
