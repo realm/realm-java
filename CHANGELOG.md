@@ -1,3 +1,9 @@
+## 1.2.0
+
+### Enhancements
+
+* Added `RealmQuery.in()` for a comparison against multiple values.
+
 ## 1.1.1
 
 ### Enhancements
