@@ -782,11 +782,12 @@ final class HandlerController implements Handler.Callback {
     }
 
     /**
-     * When the schema definition for a Class is removed while a RealmResults is still present, the
-     * underlying TableView should be replaced by an always empty {@link io.realm.internal.TableView} instead.
-     * This should be called in a propagated event from {@link RealmCache#invalidateRemovedClassFromCachedRealm}.
+     * When the {@link io.realm.internal.Table} for a Class is removed while a {@link RealmResults}
+     * is still present, the underlying {@link io.realm.internal.TableView} should be replaced by
+     * {@link io.realm.internal.EmptyTableView} instead.
      *
      * @param className to invalidate the {@link RealmResults} from which are derived.
+     * @param emptyTableView an empty TableView that contains the meta information of the deleted Table.
      */
     void invalidateRemovedTableView(final String className, final EmptyTableView emptyTableView) {
         Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
