@@ -33,11 +33,13 @@ import io.realm.RealmFieldType;
  */
 public final class EmptyTableView implements TableOrView {
 
+    private final String tableName;
     private final long columnCount;
     private final List<RealmFieldType> fieldTypes;
     private final List<String> fieldNames;
 
     public EmptyTableView(TableOrView tableOrView) {
+        this.tableName = tableOrView.getTable().getName();
         this.columnCount = tableOrView.getColumnCount();
         ArrayList<RealmFieldType> types = new ArrayList();
         ArrayList<String> names = new ArrayList();
@@ -57,6 +59,10 @@ public final class EmptyTableView implements TableOrView {
         if (columnCount <= columnIndex) {
             throw new IndexOutOfBoundsException("columnIndex > available columns.");
         }
+    }
+
+    public String getClassName() {
+        return tableName.substring(Table.TABLE_PREFIX.length());
     }
 
     @Override

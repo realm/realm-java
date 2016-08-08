@@ -1538,4 +1538,26 @@ public class RealmResultsTests extends CollectionTests {
 
         removeClassFromDynamicRealm(realm, CLASS_NAME);
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void asyncResultListener_changeEventOnClassDeletion() {
+        final String CLASS_NAME = "KingsAndQueens";
+        final DynamicRealm realm = initializeDynamicRealm(looperThread.realmConfiguration, CLASS_NAME);
+        RealmResults<DynamicRealmObject> results = realm.where(CLASS_NAME).findAllAsync();
+
+        looperThread.keepStrongReference.add(realm);
+        looperThread.keepStrongReference.add(results);
+
+        results.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
+            @Override
+            public void onChange(RealmResults<DynamicRealmObject> results) {
+                assertEquals(0, results.size());
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        removeClassFromDynamicRealm(realm, CLASS_NAME);
+    }
 }

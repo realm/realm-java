@@ -368,9 +368,11 @@ final class RealmCache {
     * removes a Class, all the affected {@link RealmResults} should be invalidated to an empty list.
     *
     * @param configuration a configuration to filter all the {@link BaseRealm}.
-    * @param className a removed class name that should be propagated to all {@link HandlerController#invalidateRemovedTableView)}.
+    * @param emptyTableView an empty TableView that contains the basic information such as column names
+    *                       and field types of the deleted Table.
     */
-   static synchronized void invalidateRemovedClassFromCachedRealm(RealmConfiguration configuration, final String className, final EmptyTableView emptyTableView) {
+   static synchronized void invalidateRemovedClassFromCachedRealm(RealmConfiguration configuration,
+                                                                  final EmptyTableView emptyTableView) {
        RealmCache cache = cachesMap.get(configuration.getPath());
        // when there is no Cache holding Realm/DynamicRealm Instances, just full-stop.
        if (cache == null) {
@@ -381,7 +383,7 @@ final class RealmCache {
        for (Iterator<WeakReference<BaseRealm>> itr = cache.globalBaseRealmReference.iterator(); itr.hasNext();) {
            BaseRealm realm = itr.next().get();
            if (realm != null) {
-               realm.handlerController.invalidateRemovedTableView(className, emptyTableView);
+               realm.handlerController.invalidateRealmResults(emptyTableView);
            }
        }
    }

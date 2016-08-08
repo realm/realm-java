@@ -160,7 +160,7 @@ public final class RealmSchema {
         // create a final, immutable empty TableView
         final EmptyTableView emptyTableView = new EmptyTableView(table);
         // invalidate all the RealmResults related to this class
-        RealmCache.invalidateRemovedClassFromCachedRealm(realm.getConfiguration(), className, emptyTableView);
+        RealmCache.invalidateRemovedClassFromCachedRealm(realm.getConfiguration(), emptyTableView);
         // remove corresponding table from cache if exists
         removeTableFromTableCache(table);
         if (table.hasPrimaryKey()) {

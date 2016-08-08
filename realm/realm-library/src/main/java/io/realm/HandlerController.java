@@ -786,11 +786,17 @@ final class HandlerController implements Handler.Callback {
      * is still present, the underlying {@link io.realm.internal.TableView} should be replaced by
      * {@link io.realm.internal.EmptyTableView} instead.
      *
-     * @param className to invalidate the {@link RealmResults} from which are derived.
-     * @param emptyTableView an empty TableView that contains the meta information of the deleted Table.
+     * @param emptyTableView an empty TableView that contains the basic information such as column name
+     *                       of the deleted Table.
      */
-    void invalidateRemovedTableView(final String className, final EmptyTableView emptyTableView) {
-        Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator = syncRealmResults.keySet().iterator();
+    void invalidateRealmResults(final EmptyTableView emptyTableView) {
+        convertResultToEmptyTableView(syncRealmResults.keySet().iterator(), emptyTableView);
+        convertResultToEmptyTableView(asyncRealmResults.keySet().iterator(), emptyTableView);
+    }
+
+    private void convertResultToEmptyTableView(Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator,
+                                               final EmptyTableView emptyTableView) {
+        final String className = emptyTableView.getClassName();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();
             RealmResults<? extends RealmModel> realmResults = weakRealmResults.get();

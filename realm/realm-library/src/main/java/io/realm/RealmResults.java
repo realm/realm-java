@@ -164,11 +164,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * This is to make {@link RealmResults#table} as an empty list with {@link EmptyTableView}.
-     * The benefits of converting to an empty TableOrView are that it absorbs operations as users proceed.
+     * This is to make {@link RealmResults#table} as an empty list with {@link EmptyTableView}. This
+     * further sets {@link #asyncQueryCompleted} true for preventing the {@link RealmResults} from updated.
+     * The benefits of converting to {@link EmptyTableView} follows that an empty tableview absorbs
+     * operations as users proceed without performance hit or gives users clear error message.
+     *
+     * @param emptyTableView an empty TableView that contains the basic information such as column names
+     *                       and field types of the deleted Table.
      */
     void convertToEmptyTableView(final EmptyTableView emptyTableView) {
         this.table = emptyTableView;
+        this.asyncQueryCompleted = true;
     }
 
     /**
