@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.Required;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -1184,13 +1185,13 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1491,7 +1492,7 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
 
@@ -1500,10 +1501,10 @@ public final class RealmQuery<E extends RealmModel> {
                         RealmLog.d("findAllAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1610,7 +1611,7 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
                     } catch (BadVersionException e) {
@@ -1618,10 +1619,10 @@ public final class RealmQuery<E extends RealmModel> {
                         RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1783,7 +1784,7 @@ public final class RealmQuery<E extends RealmModel> {
                             result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                             result.versionID = sharedGroup.getVersion();
                             closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                    weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                    weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                             return handoverTableViewPointer;
                         } catch (BadVersionException e) {
@@ -1791,10 +1792,10 @@ public final class RealmQuery<E extends RealmModel> {
                             RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                     "Retry is scheduled by a REALM_CHANGED event.");
 
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             RealmLog.e(e.getMessage(), e);
                             closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                    weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                    weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                         } finally {
                             if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1926,15 +1927,15 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedRow.put(realmObjectWeakReference, handoverRowPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_OBJECT, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT, result);
 
                         return handoverRowPointer;
 
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {

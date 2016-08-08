@@ -1368,8 +1368,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
         Table* table = TBL(nativeTablePtr);
         if (!TABLE_VALID(env, table))
             return NULL;
-        const string str = table->get_name();
-        return to_jstring(env, str);
+        return to_jstring(env, table->get_name());
     } CATCH_STD()
     return NULL;
 }

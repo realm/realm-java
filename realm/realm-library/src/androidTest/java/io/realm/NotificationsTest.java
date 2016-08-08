@@ -1020,6 +1020,7 @@ public class NotificationsTest {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -1064,7 +1065,7 @@ public class NotificationsTest {
     }
 
     @Test
-    @RunTestInLooperThread(PopulateOneAllTypes.class)
+    @RunTestInLooperThread(before = PopulateOneAllTypes.class)
     public void realmListener_realmResultShouldBeSynced() {
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
@@ -1177,7 +1178,7 @@ public class NotificationsTest {
     //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
     // Step 4: Posted runnable called.
     @Test
-    @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
+    @RunTestInLooperThread(/*step1*/ before = PopulateOneAllTypes.class)
     public void realmListener_localChangeShouldBeSendAtFrontOfTheQueue() {
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
@@ -1218,7 +1219,7 @@ public class NotificationsTest {
     //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
     // Step 5: Posted runnable called.
     @Test
-    @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
+    @RunTestInLooperThread(/*step1*/before = PopulateOneAllTypes.class)
     public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithLoadedAsync() {
         final AtomicBoolean changedFirstTime = new AtomicBoolean(false);
         final Realm realm = looperThread.realm;
@@ -1227,6 +1228,7 @@ public class NotificationsTest {
 
         assertEquals(1, results.size());
 
+        looperThread.keepStrongReference.add(asyncResults);
         asyncResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -1271,7 +1273,7 @@ public class NotificationsTest {
     // Step 5: Posted runnable called.
     //
     @Test
-    @RunTestInLooperThread(/*step1*/PopulateOneAllTypes.class)
+    @RunTestInLooperThread(/*step1*/before = PopulateOneAllTypes.class)
     public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithPausedAsync() {
         final Realm realm = looperThread.realm;
 
@@ -1325,6 +1327,7 @@ public class NotificationsTest {
         realm.commitTransaction();
 
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -1344,6 +1347,7 @@ public class NotificationsTest {
         final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
 
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> results) {
@@ -1380,6 +1384,8 @@ public class NotificationsTest {
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> syncResults1 = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> syncResults2 = realm.where(AllTypes.class).findAll();
+
+        looperThread.keepStrongReference.add(syncResults1);
         syncResults1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -1394,4 +1400,96 @@ public class NotificationsTest {
         realm.commitTransaction();
     }
 
+    @Test
+    @RunTestInLooperThread(threadName = "IntentService[1]")
+    public void listenersNotAllowedOnIntentServiceThreads() {
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+
+        // Global listener
+        try {
+            realm.addChangeListener(new RealmChangeListener<Realm>() {
+                @Override
+                public void onChange(Realm element) {
+
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // RealmResults listener
+        try {
+            results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+                @Override
+                public void onChange(RealmResults<AllTypes> element) {
+
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Object listener
+        try {
+            obj.addChangeListener(new RealmChangeListener<RealmModel>() {
+                @Override
+                public void onChange(RealmModel element) {
+
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        looperThread.testComplete();
+    }
+
+    @Test
+    public void listenersNotAllowedOnNonLooperThreads() {
+        realm = Realm.getInstance(realmConfig);
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+
+        // Global listener
+        try {
+            realm.addChangeListener(new RealmChangeListener<Realm>() {
+                @Override
+                public void onChange(Realm element) {
+
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // RealmResults listener
+        try {
+            results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+                @Override
+                public void onChange(RealmResults<AllTypes> element) {
+
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Object listener
+        try {
+            obj.addChangeListener(new RealmChangeListener<RealmModel>() {
+                @Override
+                public void onChange(RealmModel element) {
+
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
 }
