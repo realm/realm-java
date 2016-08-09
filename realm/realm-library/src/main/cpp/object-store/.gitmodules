@@ -1,6 +1,0 @@
-[submodule "external/pegtl"]
-	path = external/pegtl
-	url = https://github.com/ColinH/PEGTL
-[submodule "external/catch"]
-	path = external/catch
-	url = https://github.com/philsquared/Catch
