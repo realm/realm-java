@@ -30,7 +30,7 @@ Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativeSharedRealmPtr));
         JStringAccessor name(env, className);
-        auto* group = shared_realm->read_group();
+        auto& group = shared_realm->read_group();
         auto* object_schema = new ObjectSchema(group, name);
         return reinterpret_cast<jlong>(object_schema);
     }
