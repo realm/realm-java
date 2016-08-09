@@ -139,7 +139,7 @@ public class SimpleRealmProxy extends some.test.Simple
             }
             return columnInfo;
         } else {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The Simple class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Simple' class is missing from the schema for this Realm.");
         }
     }
 
@@ -164,7 +164,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
         if (json.has("age")) {
             if (json.isNull("age")) {
-                throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field 'age' to null.");
             } else {
                 ((SimpleRealmProxyInterface) obj).realmSet$age((int) json.getInt("age"));
             }
@@ -189,7 +189,7 @@ public class SimpleRealmProxy extends some.test.Simple
             } else if (name.equals("age")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field 'age' to null.");
                 } else {
                     ((SimpleRealmProxyInterface) obj).realmSet$age((int) reader.nextInt());
                 }

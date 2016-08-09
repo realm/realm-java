@@ -21,6 +21,7 @@ ENV PATH ${PATH}:${NDK_HOME}
 RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
     && apt-get update -qq \
     && apt-get install -y file git curl wget zip unzip \
+                       bsdmainutils \
                        build-essential \
                        openjdk-8-jdk-headless \
                        libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 \
@@ -33,7 +34,7 @@ RUN cd /opt && rm -f android-tools-linux.zip
 
 # Grab what's needed in the SDK
 # ↓ updates tools to at least 25.1.7, but that prints 'Nothing was installed' (so I don't check the outputs).
-RUN echo y | android update sdk --no-ui --all --filter tools > /dev/null 
+RUN echo y | android update sdk --no-ui --all --filter tools > /dev/null
 RUN echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter build-tools-24.0.0 | grep 'package installed'
 RUN echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'

@@ -14,6 +14,7 @@ endif()
 include (UseJava)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/release/)

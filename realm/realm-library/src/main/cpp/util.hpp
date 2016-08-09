@@ -514,8 +514,8 @@ class JniByteArray {
 public:
     JniByteArray(JNIEnv* env, jbyteArray arr)
     : m_env(env)
-    , m_size(arr ? env->GetArrayLength(m_array) : 0)
     , m_array(arr)
+    , m_size(arr ? env->GetArrayLength(m_array) : 0)
     , m_ptr(arr ? env->GetByteArrayElements(m_array, NULL) : 0) {}
 
     operator realm::BinaryData() const noexcept {
@@ -675,7 +675,5 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 }
 
 extern const std::string TABLE_PREFIX;
-
-extern bool string_compare_callback_func(const char* string1, const char* string2);
 
 #endif // REALM_JAVA_UTIL_HPP

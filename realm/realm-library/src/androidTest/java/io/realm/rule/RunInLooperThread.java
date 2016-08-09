@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -86,7 +87,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             @Override
             public void evaluate() throws Throwable {
                 before();
-                Class<? extends RunnableBefore> runnableBefore = annotation.value();
+                final String threadName = annotation.threadName();
+                Class<? extends RunnableBefore> runnableBefore = annotation.before();
                 if (!runnableBefore.isInterface()) {
                     runnableBefore.newInstance().run(realmConfiguration);
                 }
@@ -94,7 +96,12 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                     final CountDownLatch signalClosedRealm = new CountDownLatch(1);
                     final Throwable[] threadAssertionError = new Throwable[1];
                     final Looper[] backgroundLooper = new Looper[1];
-                    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+                    final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                        @Override
+                        public Thread newThread(Runnable runnable) {
+                            return new Thread(runnable, threadName);
+                        }
+                    });
                     executorService.submit(new Runnable() {
                         @Override
                         public void run() {
@@ -117,9 +124,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                     }
                                     unitTestFailed = true;
                                 }
-                                if (signalTestCompleted.getCount() > 0) {
-                                    signalTestCompleted.countDown();
-                                }
+                                signalTestCompleted.countDown();
                                 if (realm != null) {
                                     realm.close();
                                 }

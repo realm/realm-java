@@ -113,8 +113,8 @@ public interface Row {
     boolean hasColumn(String fieldName);
 
     Row EMPTY_ROW = new Row() {
-        private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded, make sure the instance" +
-                " is loaded by calling RealmObject.isLoaded().";
+        private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded or represents 'null', " +
+                "make sure the instance is loaded and is valid by calling 'RealmObject.isLoaded() && RealmObject.isValid()'.";
 
         @Override
         public long getColumnCount() {

@@ -99,7 +99,8 @@ static jlong findAllWithHandover(JNIEnv* env, jlong bgSharedRealmPtr, std::uniqu
 
     // handover the result
     auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-    auto handover = ObjectStore::export_for_handover(sharedRealm, tableView, MutableSourcePayload::Move);
+    using rf = realm::_impl::RealmFriend;
+    auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(tableView, MutableSourcePayload::Move);
     return reinterpret_cast<jlong>(handover.release());
 }
 
@@ -120,7 +121,9 @@ static jlong getDistinctViewWithHandover
 
                 // handover the result
                 auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-                auto handover = ObjectStore::export_for_handover(sharedRealm, tableView, MutableSourcePayload::Move);
+                using rf = realm::_impl::RealmFriend;
+                auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(
+                        tableView, MutableSourcePayload::Move);
                 return reinterpret_cast<jlong>(handover.release());
             }
             default:
@@ -164,7 +167,8 @@ static jlong findAllSortedWithHandover
 
         // handover the result
         auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-        auto handover = ObjectStore::export_for_handover(sharedRealm, tableView, MutableSourcePayload::Move);
+        using rf = realm::_impl::RealmFriend;
+        auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(tableView, MutableSourcePayload::Move);
         return reinterpret_cast<jlong>(handover.release());
 }
 
@@ -227,10 +231,10 @@ static jlong findAllMultiSortedWithHandover
 
     // handover the result
     auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-    auto handover = ObjectStore::export_for_handover(sharedRealm, tableView, MutableSourcePayload::Move);
+    using rf = realm::_impl::RealmFriend;
+    auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(tableView, MutableSourcePayload::Move);
     return reinterpret_cast<jlong>(handover.release());
 }
-
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_equal(TableRef tbl, jlong columnIndex, javatype value) {
@@ -1017,11 +1021,11 @@ static std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedRealmPtr, jlon
     // cases this means that the version in the Handover object is invalid and Realm Core will throw a
     // BadVersion as result.
     auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-    sharedRealm->read_group_to(handoverQuery->version);
-    auto query = ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery));
+    using rf = realm::_impl::RealmFriend;
+    rf::read_group_to(*sharedRealm, handoverQuery->version);
+    auto query = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverQuery));
 
     if (advanceToLatestVersion) {
-        //LangBindHelper::advance_read(*sg);
         sharedRealm->refresh();
     }
 
@@ -1055,7 +1059,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
             // handover the result
             Row row = (*table)[r];
             auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-            auto handover = ObjectStore::export_for_handover(sharedRealm, row);
+            using rf = realm::_impl::RealmFriend;
+            auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(row);
             return reinterpret_cast<jlong>(handover.release());
         }
 
@@ -1123,17 +1128,19 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         // cases this means that the version in the Handover object is invalid and Realm Core will throw a
         // BadVersion as result.
         auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-        sharedRealm->read_group_to(handoverQuery->version);
+        using rf = realm::_impl::RealmFriend;
+        rf::read_group_to(*sharedRealm, handoverQuery->version);
 
         std::vector<std::unique_ptr<Query>> queries(number_of_queries);
 
         // import the first query
-        queries[0] = ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery));
+        queries[0] = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverQuery));
 
         // import the rest of the queries
         for (size_t i = 1; i < number_of_queries; ++i) {
             std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(HO(Query, handover_queries_pointer_array[i]));
-            queries[i] = ObjectStore::import_from_handover(sharedRealm, std::move(handoverQuery));
+            using rf = realm::_impl::RealmFriend;
+            queries[i] = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverQuery));
         }
 
         // Step2: Bring the queries into the latest shared group version
@@ -1645,7 +1652,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
         // import_from_handover will free (delete) the handover
         auto sharedRealm = *(reinterpret_cast<SharedRealm*>(callerSharedGrpPtr));
         if (!sharedRealm->is_closed()) {
-            auto tableView = ObjectStore::import_from_handover(sharedRealm, std::move(handoverTableView));
+            using rf = realm::_impl::RealmFriend;
+            auto tableView = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverTableView));
             return reinterpret_cast<jlong>(tableView.release());
         } else {
             ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
@@ -1665,7 +1673,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
           // import_from_handover will free (delete) the handover
           auto sharedRealm = *(reinterpret_cast<SharedRealm*>(callerSharedGrpPtr));
           if (!sharedRealm->is_closed()) {
-              auto row = ObjectStore::import_from_handover(sharedRealm, std::move(handoverRow));
+              using rf = realm::_impl::RealmFriend;
+              auto row = rf::get_shared_group(*sharedRealm).import_from_handover(std::move(handoverRow));
               return reinterpret_cast<jlong>(row.release());
           } else {
               ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
@@ -1683,7 +1692,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
         return 0;
     try {
         auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-        auto handover = ObjectStore::export_for_handover(sharedRealm, *pQuery, ConstSourcePayload::Copy);
+        using rf = realm::_impl::RealmFriend;
+        auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(*pQuery, ConstSourcePayload::Copy);
         return reinterpret_cast<jlong>(handover.release());
     } CATCH_STD()
     return 0;

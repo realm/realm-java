@@ -1716,6 +1716,7 @@ public class RealmObjectTests {
         allTypesPrimaryKey = realm.copyToRealmOrUpdate(allTypesPrimaryKey);
         realm.commitTransaction();
 
+        looperThread.keepStrongReference.add(allTypesPrimaryKey);
         allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey element) {
@@ -1793,6 +1794,7 @@ public class RealmObjectTests {
                 realm.handlerController.realmObjects;
 
         final AllTypesPrimaryKey allTypesPrimaryKey = realm.where(AllTypesPrimaryKey.class).findFirstAsync();
+        looperThread.keepStrongReference.add(allTypesPrimaryKey);
         allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
             public void onChange(AllTypesPrimaryKey element) {

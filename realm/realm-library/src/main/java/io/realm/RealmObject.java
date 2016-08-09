@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.app.IntentService;
+
 import java.util.List;
 
 import io.realm.annotations.RealmClass;
@@ -150,25 +152,85 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * Determines if the current RealmObject is obtained synchronously or asynchronously (from a worker thread).
-     * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
+     * Checks if the query used to find this RealmObject has completed.
      *
-     * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
+     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future result
+     * of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this regard.
+     *
+     * Once {@code isLoaded()} returns {@code true}, the object represents the query result even if the query
+     * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
+     * become a "null" object.
+     *
+     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
+     * check {@link #isValid()} before calling any methods. A common pattern is:
+     *
+     * <pre>
+     * {@code
+     * Person person = realm.where(Person.class).findFirstAsync();
+     * person.isLoaded(); // == false
+     * person.addChangeListener(new RealmChangeListener() {
+     *      \@Override
+     *      public void onChange(Person person) {
+     *          person.isLoaded(); // Always true here
+     *          if (person.isValid()) {
+     *              // It is safe to access the person.
+     *          }
+     *      }
+     * });
+     * }
+     * </pre>
+     *
+     * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
+     * This method will return {@code true} if called on an unmanaged object (created outside of Realm).
+     *
+     * @return {@code true} if the query has completed, {@code false} if the query is in
      * progress.
+     *
+     * @see #isValid()
      */
     public final boolean isLoaded() {
         return RealmObject.isLoaded(this);
     }
 
+
     /**
-     * Determines if the RealmObject is obtained synchronously or asynchronously (from a worker thread).
+     * Checks if the query used to find this RealmObject has completed.
+     *
+     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future result
+     * of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this regard.
+     *
+     * Once {@code isLoaded()} returns {@code true}, the object represents the query result even if the query
+     * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
+     * become a "null" object.
+     *
+     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
+     * check {@link #isValid()} before calling any methods. A common pattern is:
+     *
+     * <pre>
+     * {@code
+     * Person person = realm.where(Person.class).findFirstAsync();
+     * RealmObject.isLoaded(person); // == false
+     * RealmObject.addChangeListener(person, new RealmChangeListener() {
+     *      \@Override
+     *      public void onChange(Person person) {
+     *          RealmObject.isLoaded(person); // always true here
+     *          if (RealmObject.isValid(person)) {
+     *              // It is safe to access the person.
+     *          }
+     *      }
+     * });
+     * }
+     * </pre>
+     *
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
-     * This will return {@code true} if called for an unmanaged object (created outside of Realm).
+     * This method will return {@code true} if called on an unmanaged object (created outside of Realm).
+     *
      *
      * @param object RealmObject to check.
-     * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
+     * @return {@code true} if the query has completed, {@code false} if the query is in
      * progress.
+     *
+     * @see #isValid(RealmModel)
      */
     public static <E extends RealmModel> boolean isLoaded(E object) {
         if (object instanceof RealmObjectProxy) {
@@ -219,6 +281,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null} or the object is an unmanaged object.
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
     public final <E extends RealmModel> void addChangeListener(RealmChangeListener<E> listener) {
         RealmObject.addChangeListener((E) this, listener);
@@ -231,7 +294,7 @@ public abstract class RealmObject implements RealmModel {
      * @param listener the change listener to be notified.
      * @throws IllegalArgumentException if the {@code object} or the change listener is {@code null}.
      * @throws IllegalArgumentException if object is an unmanaged RealmObject.
-     * @throws IllegalStateException if you try to add a listener from a non-Looper Thread.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
     public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener<E> listener) {
         if (object == null) {
@@ -244,8 +307,8 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            if (realm.handler == null) {
-                throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+            if (!realm.handlerController.isAutoRefreshEnabled()) {
+                throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread.");
             }
             List<RealmChangeListener> listeners = proxy.realmGet$proxyState().getListeners$realm();
             if (!listeners.contains(listener)) {

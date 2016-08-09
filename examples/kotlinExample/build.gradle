@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.0.2'
+    ext.kotlin_version = '1.0.3'
     repositories {
         jcenter()
         mavenCentral()
@@ -9,7 +9,6 @@ buildscript {
     }
 }
 
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'android-command'

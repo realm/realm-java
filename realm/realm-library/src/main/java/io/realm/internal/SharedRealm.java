@@ -35,6 +35,31 @@ public final class SharedRealm implements Closeable {
         }
     }
 
+    // Public for static checking in JNI
+    @SuppressWarnings("WeakerAccess")
+    public static final byte SCHEMA_MODE_VALUE_AUTOMATIC = 0;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte SCHEMA_MODE_VALUE_READONLY = 1;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte SCHEMA_MODE_VALUE_RESET_FILE = 2;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte SCHEMA_MODE_VALUE_ADDITIVE = 3;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte SCHEMA_MODE_VALUE_MANUAL = 4;
+    @SuppressWarnings("WeakerAccess")
+    public enum SchemaMode {
+        SCHEMA_MODE_AUTOMATIC(SCHEMA_MODE_VALUE_AUTOMATIC),
+        SCHEMA_MODE_READONLY(SCHEMA_MODE_VALUE_READONLY),
+        SCHEMA_MODE_RESET_FILE(SCHEMA_MODE_VALUE_RESET_FILE),
+        SCHEMA_MODE_ADDITIVE(SCHEMA_MODE_VALUE_ADDITIVE),
+        SCHEMA_MODE_MANUAL(SCHEMA_MODE_VALUE_MANUAL);
+
+        final byte value;
+        SchemaMode(byte value) {
+            this .value = value;
+        }
+    }
+
     public static class VersionID implements Comparable<VersionID> {
         final long version;
         final long index;
@@ -70,7 +95,6 @@ public final class SharedRealm implements Closeable {
         public boolean equals(Object object) {
             if (this == object) return true;
             if (object == null || getClass() != object.getClass()) return false;
-            if (!super.equals(object)) return false;
 
             VersionID versionID = (VersionID) object;
             return (version == versionID.version && index == versionID.index);
@@ -99,7 +123,7 @@ public final class SharedRealm implements Closeable {
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
-                false,
+                SchemaMode.SCHEMA_MODE_MANUAL.value,
                 config.getDurability() == Durability.MEM_ONLY,
                 false,
                 false,
@@ -178,6 +202,10 @@ public final class SharedRealm implements Closeable {
     }
 
     public void refresh(SharedRealm.VersionID version) throws BadVersionException {
+        // FIXME: This will have a different behaviour compared to refresh to the latest version.
+        // In the JNI this will just advance read the corresponding SharedGroup to the specific version without notifier
+        // or transact log observer involved. Before we use notification & fine grained notification from OS, it is not
+        // a problem.
         nativeRefresh(nativePtr, version.version, version.index);
     }
 
@@ -233,7 +261,7 @@ public final class SharedRealm implements Closeable {
         super.finalize();
     }
 
-    private static native long nativeCreateConfig(String realmPath, byte[] key, boolean readonly, boolean inMemory,
+    private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification);
     private static native void nativeCloseConfig(long nativeConfigPtr);
