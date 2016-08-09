@@ -97,18 +97,41 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a new name for this RealmObject class. This is equivalent to renaming it.
+     * Sets a new name for this RealmObject class. This is equivalent to renaming it. When {@link RealmObjectSchema#table}
+     * has a primary key, this will transfer the primary key for the new class name.
      *
      * @param className the new name for this class.
+     * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56 characters.
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
+        //FIXME : when core implements class name length check, please remove.
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
+        }
         if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
+        // in case this table has a primary key, we need to transfer it after renaming the table.
+        String oldTableName = null;
+        String pkField = null;
+        if (table.hasPrimaryKey()) {
+            oldTableName = table.getName();
+            pkField = getPrimaryKey();
+            table.setPrimaryKey(null);
+        }
         realm.sharedRealm.renameTable(table.getName(), internalTableName);
+        if (pkField != null && !pkField.isEmpty()) {
+            try {
+                table.setPrimaryKey(pkField);
+            } catch (Exception e) {
+                // revert the table name back when something goes wrong
+                realm.sharedRealm.renameTable(table.getName(), oldTableName);
+                throw e;
+            }
+        }
         return this;
     }
 

@@ -655,13 +655,19 @@ public class Table implements TableOrView, TableSchema {
                     }
                     break;
                 default:
-                    // Since it is sufficient to check the existance of duplicated null values
+                    // Since it is sufficient to check the existence of duplicated null values
                     // on PrimaryKey in supported types only, this part is left empty.
             }
         }
     }
 
-    private void throwDuplicatePrimaryKeyException(Object value) {
+    /**
+     * Throws a properly formatted exception when multiple objects with the same primary key
+     * value is detected.
+     *
+     * @param value the primary key value.
+     */
+    public static void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
 
@@ -1367,7 +1373,7 @@ public class Table implements TableOrView, TableSchema {
     private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
     private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnIndex, long dateTimeValue);
     public static native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
-    private native long nativeFindFirstNull(long nativePtr, long columnIndex);
+    public static native long nativeFindFirstNull(long nativeTablePtr, long columnIndex);
     private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
     private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);

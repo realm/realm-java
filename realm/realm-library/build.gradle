@@ -1,15 +1,5 @@
 import java.security.MessageDigest
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'de.undercouch:gradle-download-task:2.0.0'
-    }
-}
-
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
@@ -22,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.2.0'
+ext.coreVersion = '1.4.2'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '9284c53ee154d3cf74ca416a0ff9f1dc9feed014070db30f4851807c078b7f54'
+ext.coreSha256Hash = '1dfa2b4852b1cfccb18fd1a164cfeeea2b84f8de03f1024594837ca54840665c'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -49,11 +39,13 @@ android {
         project.archivesBaseName = "realm-android-library"
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        cmake {
-            arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
-            // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might drop it or
-            // use the new NDK clang to compile it.
-            abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
+        externalNativeBuild {
+            cmake {
+                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
+                    // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might
+                    // drop it or use the new NDK clang to compile it.
+                    abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
+            }
         }
     }
 
@@ -130,6 +122,10 @@ task javadoc(type: Javadoc) {
         charSet = 'UTF-8'
         locale = 'en_US'
         overview = 'src/overview.html'
+
+        links "http://docs.oracle.com/javase/7/docs/api/"
+        links "http://reactivex.io/RxJava/javadoc/"
+        linksOffline "http://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'

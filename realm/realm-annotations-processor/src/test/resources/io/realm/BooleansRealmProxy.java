@@ -177,7 +177,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             }
             return columnInfo;
         } else {
-            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The Booleans class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Booleans' class is missing from the schema for this Realm.");
         }
     }
 
@@ -195,28 +195,28 @@ public class BooleansRealmProxy extends some.test.Booleans
         some.test.Booleans obj = realm.createObject(some.test.Booleans.class);
         if (json.has("done")) {
             if (json.isNull("done")) {
-                throw new IllegalArgumentException("Trying to set non-nullable field done to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field 'done' to null.");
             } else {
                 ((BooleansRealmProxyInterface) obj).realmSet$done((boolean) json.getBoolean("done"));
             }
         }
         if (json.has("isReady")) {
             if (json.isNull("isReady")) {
-                throw new IllegalArgumentException("Trying to set non-nullable field isReady to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field 'isReady' to null.");
             } else {
                 ((BooleansRealmProxyInterface) obj).realmSet$isReady((boolean) json.getBoolean("isReady"));
             }
         }
         if (json.has("mCompleted")) {
             if (json.isNull("mCompleted")) {
-                throw new IllegalArgumentException("Trying to set non-nullable field mCompleted to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field 'mCompleted' to null.");
             } else {
                 ((BooleansRealmProxyInterface) obj).realmSet$mCompleted((boolean) json.getBoolean("mCompleted"));
             }
         }
         if (json.has("anotherBoolean")) {
             if (json.isNull("anotherBoolean")) {
-                throw new IllegalArgumentException("Trying to set non-nullable field anotherBoolean to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field 'anotherBoolean' to null.");
             } else {
                 ((BooleansRealmProxyInterface) obj).realmSet$anotherBoolean((boolean) json.getBoolean("anotherBoolean"));
             }
@@ -234,28 +234,28 @@ public class BooleansRealmProxy extends some.test.Booleans
             if (name.equals("done")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set non-nullable field done to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field 'done' to null.");
                 } else {
                     ((BooleansRealmProxyInterface) obj).realmSet$done((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("isReady")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set non-nullable field isReady to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field 'isReady' to null.");
                 } else {
                     ((BooleansRealmProxyInterface) obj).realmSet$isReady((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("mCompleted")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set non-nullable field mCompleted to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field 'mCompleted' to null.");
                 } else {
                     ((BooleansRealmProxyInterface) obj).realmSet$mCompleted((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("anotherBoolean")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set non-nullable field anotherBoolean to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field 'anotherBoolean' to null.");
                 } else {
                     ((BooleansRealmProxyInterface) obj).realmSet$anotherBoolean((boolean) reader.nextBoolean());
                 }
