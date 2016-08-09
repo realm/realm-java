@@ -1112,7 +1112,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+    JNIEnv* env, jclass, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))

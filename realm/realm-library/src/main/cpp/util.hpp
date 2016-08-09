@@ -514,8 +514,8 @@ class JniByteArray {
 public:
     JniByteArray(JNIEnv* env, jbyteArray arr)
     : m_env(env)
-    , m_size(arr ? env->GetArrayLength(m_array) : 0)
     , m_array(arr)
+    , m_size(arr ? env->GetArrayLength(m_array) : 0)
     , m_ptr(arr ? env->GetByteArrayElements(m_array, NULL) : 0) {}
 
     operator realm::BinaryData() const noexcept {
