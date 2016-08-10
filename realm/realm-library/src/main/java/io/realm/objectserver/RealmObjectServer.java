@@ -1,28 +1,53 @@
-package io.realm.sync;
+package io.realm.objectserver;
 
 import android.os.Handler;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.BaseRealm;
 import io.realm.internal.log.RealmLog;
+import io.realm.internal.objectserver.AuthentificationServer;
 
-public final class SyncManager {
+public final class RealmObjectServer {
+
     private static volatile long syncClientPointer = 0;
     private final static Map<String, Long> SYNC_SESSIONS = new HashMap<String, Long>();
+
+    private static volatile AuthentificationServer authServer;
+    private static volatile SyncErrorHandler globalErrorHandler;
+    private static volatile SyncEventHandler globalEventHandler;
+
+    private static URL globalAuthentificationServer;
+
+    /**
+     * Sets the default global error handler used by all {@link RealmObjectServerConfiguration} objects when they are created.
+     * * @param errorHandler the default error handler used when communicating with a Realm Object Server.
+     */
+    public static void setGlobalErrorHandler(SyncErrorHandler errorHandler) {
+        globalErrorHandler = errorHandler;
+    }
+
+    public static void setGlobalEventHandler(SyncEventHandler eventHandler) {
+
+    }
+
+    public static void setGlobalAuthentificationServer(URL authServer) {
+
+    }
 
     public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
         if (syncClientPointer == 0) {
             // client event loop is not created for this token
-            // we create 1 client per user token
+            // we create 1 client per credentials token
             syncClientPointer = syncCreateClient();
         }
 
         // check if the session is not already available for the provided RealmConfiguration
         Long syncSessionPointer = SYNC_SESSIONS.get(path);
         if (syncSessionPointer == null) {
-             syncSessionPointer = syncCreateSession(syncClientPointer, path, serverUrl, userToken);
+            syncSessionPointer = syncCreateSession(syncClientPointer, path, serverUrl, userToken);
         }
 
         SYNC_SESSIONS.put(path, syncSessionPointer);
@@ -50,7 +75,36 @@ public final class SyncManager {
         }
     }
 
+    /**
+     * Convenience method for creating an {@link SessionInfo} and calling {@link SessionInfo#connect()} on it.
+     */
+    public static SessionInfo connect(RealmObjectServerConfiguration syncConfig) {
+        return null;
+    }
+
+    /**
+     *
+     * @param syncConfig
+     * @return
+     */
+    public static SessionInfo createSession(RealmObjectServerConfiguration syncConfig) {
+        return null;
+    }
+
+    public static URL getGlobalAuthentificationServer() {
+        return globalAuthentificationServer;
+    }
+
+    /**
+     * TODO Internal only? Developers can also use this to inject stubs.
+     * TODO Find a better method name.
+     *
+     * Sets the auth server implementation used when validating credentials.
+     */
+    public static void setAuthServerImpl(AuthentificationServer authServerImpl) {
+        authServer = authServerImpl;
+    }
+
     private static native long syncCreateClient();
     private static native long syncCreateSession(long clientPointer, String path, String serverUrl, String userToken);
-
 }

@@ -1,4 +1,4 @@
-package io.realm.sync;
+package io.realm.objectserver;
 
 public class RealtimeSyncPolicy implements SyncPolicy {
     @Override

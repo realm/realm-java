@@ -1,4 +1,4 @@
-package io.realm.sync;
+package io.realm.objectserver;
 
 public interface SyncSession {
     void start();

@@ -50,7 +50,7 @@ final class HandlerController implements Handler.Callback {
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
     // Keep a strong reference to the registered RealmChangeListener
-    // user should unregister those listeners
+    // credentials should unregister those listeners
     final CopyOnWriteArrayList<RealmChangeListener<? extends BaseRealm>> changeListeners = new CopyOnWriteArrayList<RealmChangeListener<? extends BaseRealm>>();
 
     // Keep a weak reference to the registered RealmChangeListener those are Weak since
@@ -480,7 +480,7 @@ final class HandlerController implements Handler.Callback {
                     // 1- this RealmResults is not empty, this means that after we started the async
                     //    query, we received a REALM_CHANGE that triggered an update of all async queries
                     //    including the last async submitted, so no need to use the provided TableView pointer
-                    //    (or the user forced the sync behaviour .load())
+                    //    (or the credentials forced the sync behaviour .load())
                     // 2- This RealmResults is still empty but this caller thread is advanced than the worker thread
                     //    this could happen if the current thread advanced the shared_group (via a write or refresh)
                     //    this means that we need to rerun the query against a newer worker thread.

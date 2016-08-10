@@ -63,7 +63,7 @@ import io.realm.rx.RxObservableFactory;
  * <li>It has its schema version set to 0.</li>
  * </ul>
  */
-public final class RealmConfiguration {
+public class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
     public static final int KEY_LENGTH = 64;
@@ -103,7 +103,7 @@ public final class RealmConfiguration {
     private final String syncServerUrl;
     private final String syncUserToken;
 
-    private RealmConfiguration(Builder builder) {
+    protected RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
         this.realmFileName = builder.fileName;
         this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
@@ -239,9 +239,9 @@ public final class RealmConfiguration {
     }
 
     /**
-     * Returns the predefined user token for server side synchronization or {@code null} if no user is predefined.
+     * Returns the predefined credentials token for server side synchronization or {@code null} if no credentials is predefined.
      *
-     * @return The user token for Realm Sync of {@code null} if no token is defined.
+     * @return The credentials token for Realm Sync of {@code null} if no token is defined.
      */
     public String getSyncUserToken() {
         return syncUserToken;
@@ -387,10 +387,14 @@ public final class RealmConfiguration {
         return rxJavaAvailable;
     }
 
+    public Context getContext() {
+        return contextWeakRef.get();
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
-    public static final class Builder {
+    public static class Builder {
         private File folder;
         private String fileName;
         private String assetFilePath;
@@ -670,13 +674,13 @@ public final class RealmConfiguration {
         }
 
         /**
-         * Sets the default user token to be used with Realm Sync.
+         * Sets the default credentials token to be used with Realm Sync.
          *
-         * @param userToken User token identifying the user connecting to Realm Sync.
+         * @param userToken User token identifying the credentials connecting to Realm Sync.
          */
         public Builder syncUserToken(String userToken) {
             if (userToken == null || userToken.equals("")) {
-                throw new IllegalArgumentException("Non-empty user token required");
+                throw new IllegalArgumentException("Non-empty credentials token required");
             }
             syncUserToken = userToken;
             return this;

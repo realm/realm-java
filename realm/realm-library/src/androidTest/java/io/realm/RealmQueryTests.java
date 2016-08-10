@@ -779,7 +779,7 @@ public class RealmQueryTests {
     public void equalTo_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        // fill up a Realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a Realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 10, -5);
@@ -802,7 +802,7 @@ public class RealmQueryTests {
     public void isNull_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 10, -5);
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 10, -5);
@@ -825,7 +825,7 @@ public class RealmQueryTests {
     public void notEqualTo_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         final String SECONDARY_FIELD_STRING = "Realm is a mobile database hundreds of millions of people rely on.";
-        // fill up a realm with one user PrimaryKey value and one numeric values, starting from -1
+        // fill up a realm with one credentials PrimaryKey value and one numeric values, starting from -1
         TestHelper.populateTestRealmWithStringPrimaryKey(realm,  (String) null,  SECONDARY_FIELD_NUMBER, 2, -1);
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    SECONDARY_FIELD_STRING, 2, -1);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   SECONDARY_FIELD_STRING, 2, -1);
@@ -870,7 +870,7 @@ public class RealmQueryTests {
 
     @Test
     public void between_nullPrimaryKeysIsNotZero() {
-        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
@@ -888,7 +888,7 @@ public class RealmQueryTests {
 
     @Test
     public void greaterThan_nullPrimaryKeysIsNotZero() {
-        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
@@ -906,7 +906,7 @@ public class RealmQueryTests {
 
     @Test
     public void greaterThanOrEqualTo_nullPrimaryKeysIsNotZero() {
-        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
@@ -924,7 +924,7 @@ public class RealmQueryTests {
 
     @Test
     public void lessThan_nullPrimaryKeysIsNotZero() {
-        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);
@@ -942,7 +942,7 @@ public class RealmQueryTests {
 
     @Test
     public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
-        // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
+        // fill up a realm with one credentials PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
         TestHelper.populateTestRealmWithShortPrimaryKey(realm,   (Short) null,   (String) null, 10, -5);
         TestHelper.populateTestRealmWithIntegerPrimaryKey(realm, (Integer) null, (String) null, 10, -5);

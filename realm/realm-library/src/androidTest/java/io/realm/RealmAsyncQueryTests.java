@@ -167,7 +167,7 @@ public class RealmAsyncQueryTests {
         });
     }
 
-    // Test that an async transaction that throws an exception propagate it properly to the user.
+    // Test that an async transaction that throws an exception propagate it properly to the credentials.
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_exceptionHandling() throws Throwable {
@@ -469,7 +469,7 @@ public class RealmAsyncQueryTests {
     //   6- retry automatically the async query
     //   7- the returned RealmResults is now in the same version as the caller thread
     //   8- the notification should be called once (when we retry automatically we shouldn't
-    //      notify the user).
+    //      notify the credentials).
     @Test
     @RunTestInLooperThread
     public void findAllAsync_retry() throws Throwable {
@@ -945,7 +945,7 @@ public class RealmAsyncQueryTests {
     //   6- retry automatically the async query
     //   7- the returned RealmResults is now in the same version as the caller thread
     //   8- the notification should be called once (when we retry automatically we shouldn't
-    //      notify the user).
+    //      notify the credentials).
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_retry() throws Throwable {

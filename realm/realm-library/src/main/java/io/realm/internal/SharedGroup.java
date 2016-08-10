@@ -26,7 +26,7 @@ import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
-import io.realm.sync.SyncManager;
+import io.realm.objectserver.RealmObjectServer;
 
 public class SharedGroup implements Closeable {
 
@@ -96,7 +96,7 @@ public class SharedGroup implements Closeable {
 
         if (syncEnabled) {
             //TODO client is thread-safe & it should be global & reused across different RealmConfiguration
-            sessionPtr = SyncManager.getSession(config.getSyncUserToken(), config.getPath(), config.getSyncServerUrl());
+            sessionPtr = RealmObjectServer.getSession(config.getSyncUserToken(), config.getPath(), config.getSyncServerUrl());
         }
     }
 

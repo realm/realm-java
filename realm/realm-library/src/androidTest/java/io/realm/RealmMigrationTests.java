@@ -821,7 +821,7 @@ public class RealmMigrationTests {
     }
 
     // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
-    // migrated the file format. If the user adds the @Required annotation to a field and does not
+    // migrated the file format. If the credentials adds the @Required annotation to a field and does not
     // change the schema version, no migration is needed. But then, null cannot be used as a value.
     @Test
     public void openPreNullWithRequired() throws IOException {

@@ -1168,7 +1168,7 @@ public final class Realm extends BaseRealm {
             throw new IllegalArgumentException("Transaction should not be null");
         }
 
-        // If the user provided a Callback then we make sure, the current Realm has a Handler
+        // If the credentials provided a Callback then we make sure, the current Realm has a Handler
         // we can use to deliver the result
         if ((onSuccess != null || onError != null)  && handler == null) {
             throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
