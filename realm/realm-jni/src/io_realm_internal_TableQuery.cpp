@@ -931,16 +931,24 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
                 return;
             }
         }
+        jbyte* bytePtr = env->GetByteArrayElements(value, NULL);
+        if (!bytePtr) {
+            ThrowException(env, IllegalArgument, "binaryPredicate");
+            return;
+        }
+        size_t dataLen = S(env->GetArrayLength(value));
+        BinaryData value2(reinterpret_cast<char*>(bytePtr), dataLen);
+        env->ReleaseByteArrayElements(value, bytePtr, 0);
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Binary)) {
                 return;
             }
             switch (predicate) {
             case BinaryEqual:
-                Q(nativeQueryPtr)->equal(S(arr[0]), value);
+                Q(nativeQueryPtr)->equal(S(arr[0]), value2);
                 break;
             case BinaryNotEqual:
-                Q(nativeQueryPtr)->not_equal(S(arr[0]), value);
+                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2);
                 break;
             }
         }
@@ -948,10 +956,10 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
             switch (predicate) {
             case BinaryEqual:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).equal(BinaryData(value));
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).equal(value2));
                 break;
             case BinaryNotEqual:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).not_equal(BinaryData(value));
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).not_equal(value2));
                 break;
             }
         }
