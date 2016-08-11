@@ -863,9 +863,9 @@ public class RealmQueryTests {
         RealmResults<BinaryOnly> resultList;
         resultList = realm.where(BinaryOnly.class).notEqualTo("binary", binaries[0]).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(BinaryOnly.class).equalTo("binary", binaries[1]).findAll();
+        resultList = realm.where(BinaryOnly.class).notEqualTo("binary", binaries[1]).findAll();
         assertEquals(5, resultList.size());
-        resultList = realm.where(BinaryOnly.class).equalTo("binary", new byte[] {1}).findAll();
+        resultList = realm.where(BinaryOnly.class).notEqualTo("binary", new byte[] {1}).findAll();
         assertEquals(6, resultList.size());
     }
 
