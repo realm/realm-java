@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -48,7 +47,7 @@ import static org.junit.Assert.fail;
 /**
  * Test class for all methods part of the the {@link RealmCollection} interface.
  * This class only tests collections that are managed by Realm. See {@link UnManagedRealmCollectionTests} for
- * all tests targeting un-managed collections.
+ * all tests targeting unmanaged collections.
  *
  * Methods tested in this class:
  *
@@ -129,7 +128,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -153,9 +152,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     private OrderedRealmCollection<NullTypes> createAllNullRowsForNumericTesting(Realm realm, ManagedCollection collectionClass) {
         TestHelper.populateAllNullRowsForNumericTesting(realm);
-        switch(collectionClass) {
+        switch (collectionClass) {
             case MANAGED_REALMLIST:
-                RealmResults<NullTypes> results = realm.allObjects(NullTypes.class);
+                RealmResults<NullTypes> results = realm.where(NullTypes.class).findAll();
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
                 realm.beginTransaction();
                 for (int i = 0; i < results.size(); i++) {
@@ -174,7 +173,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         populatePartialNullRowsForNumericTesting(realm);
         switch (collectionClass) {
             case MANAGED_REALMLIST:
-                RealmResults<NullTypes> results = realm.allObjects(NullTypes.class);
+                RealmResults<NullTypes> results = realm.where(NullTypes.class).findAll();
                 RealmList<NullTypes> list = results.get(0).getFieldListNull();
                 realm.beginTransaction();
                 int size = results.size();
@@ -196,7 +195,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
-                RealmResults<NonLatinFieldNames> results = realm.allObjects(NonLatinFieldNames.class);
+                RealmResults<NonLatinFieldNames> results = realm.where(NonLatinFieldNames.class).findAll();
                 RealmList<NonLatinFieldNames> list = results.get(0).getChildren();
                 for (int i = 0; i < results.size(); i++) {
                     list.add(results.get(i));
@@ -205,7 +204,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 return list;
 
             case REALMRESULTS:
-                return realm.allObjects(NonLatinFieldNames.class);
+                return realm.where(NonLatinFieldNames.class).findAll();
 
             default:
                 throw new AssertionError("Unknown collection: " + collectionClass);
@@ -399,7 +398,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     public void sum() {
         Number sum = collection.sum(AllJavaTypes.FIELD_LONG);
         // Sum of numbers 0 to M-1: (M-1)*M/2
-        assertEquals((TEST_SIZE - 1) * TEST_SIZE/ 2, sum.intValue());
+        assertEquals((TEST_SIZE - 1) * TEST_SIZE / 2, sum.intValue());
     }
 
     // Test sum on nullable rows with all null values
@@ -491,12 +490,14 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void maxDate() {
-        assertEquals(new Date(YEAR_MILLIS * 20 * 4), collection.maxDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(TEST_SIZE, collection.size());
+        assertEquals(new Date(YEAR_MILLIS * 20 * (TEST_SIZE / 2 - 1)), collection.maxDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
     public void minDate() {
-        assertEquals(new Date(YEAR_MILLIS * 20 * -5), collection.minDate(AllJavaTypes.FIELD_DATE));
+        assertEquals(TEST_SIZE, collection.size());
+        assertEquals(new Date(-YEAR_MILLIS * 20 * TEST_SIZE / 2), collection.minDate(AllJavaTypes.FIELD_DATE));
     }
 
     @Test
@@ -692,10 +693,10 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     @Test
     public void methodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (RealmCollectionMethod method : RealmCollectionMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
         for (CollectionMethod method : CollectionMethod.values()) {
-            assertTrue(method + " failed" , runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
     }
 

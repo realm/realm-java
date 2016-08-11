@@ -15,7 +15,6 @@
  */
 
 #include "io_realm_internal_LinkView.h"
-#include "tablequery.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -23,7 +22,7 @@ using namespace realm;
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClose
   (JNIEnv*, jclass, jlong nativeLinkViewPtr)
 {
-    LangBindHelper::unbind_linklist_ptr( LV( nativeLinkViewPtr ) );
+    LangBindHelper::unbind_linklist_ptr(*LV(nativeLinkViewPtr));
 }
 
 
@@ -31,12 +30,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetRow
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
-    LinkView *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID(env, lv, pos)) {
+    LinkViewRef *lv = LV(nativeLinkViewPtr);
+    if (!ROW_INDEX_VALID(env, *lv, pos)) {
         return -1;
     }
     try {
-        Row* row = new Row( (*lv)[ S(pos) ] );
+        LinkViewRef lvr = *lv;
+        Row* row = new Row( (*lvr)[ S(pos) ] );
         return reinterpret_cast<jlong>(row);
     } CATCH_STD()
     return 0;
@@ -47,23 +47,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetRowIndex
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
-    LinkView *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID(env, lv, pos)) {
+    LinkViewRef *lv = LV(nativeLinkViewPtr);
+    if (!ROW_INDEX_VALID(env, *lv, pos)) {
         return -1;
     }
     try {
-        return lv->get( S(pos) ).get_index();
+        LinkViewRef lvr = *lv;
+        return lvr->get( S(pos) ).get_index();
     } CATCH_STD()
     return 0;
 }
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeAdd
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong rowIndex)
+  (JNIEnv* env, jclass, jlong nativeLinkViewPtr, jlong rowIndex)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
+    LinkViewRef *lv = LV(nativeLinkViewPtr);
     try {
-        LV(nativeLinkViewPtr)->add( S(rowIndex) );
+        LinkViewRef lvr = *lv;
+        lvr->add( S(rowIndex) );
     } CATCH_STD()
 }
 
@@ -72,8 +75,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeInsert
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos, jlong rowIndex)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
+    LinkViewRef *lv = LV(nativeLinkViewPtr);
     try {
-        LV(nativeLinkViewPtr)->insert( S(pos), S(rowIndex) );
+        LinkViewRef lvr = *lv;
+        lvr->insert( S(pos), S(rowIndex) );
     } CATCH_STD()
 }
 
@@ -82,12 +87,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeSet
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos, jlong rowIndex)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
-    LinkView *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID(env, lv, pos)) {
+    LinkViewRef *lv = LV(nativeLinkViewPtr);
+    if (!ROW_INDEX_VALID(env, *lv, pos)) {
         return;
     }
     try {
-        lv->set( S(pos), S(rowIndex) );
+        LinkViewRef lvr = *lv;
+        lvr->set( S(pos), S(rowIndex) );
     } CATCH_STD()
 }
 
@@ -97,14 +103,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeMove
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        size_t size = LV(nativeLinkViewPtr)->size();
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        size_t size = lvr->size();
         if (old_pos < 0 || new_pos < 0 || size_t(old_pos) >= size || size_t(new_pos) >= size) {
             ThrowException(env, IndexOutOfBounds,
                 "Indices must be within range [0, " + num_to_string(size) + "[. " +
                 "Yours were (" + num_to_string(old_pos) + "," + num_to_string(new_pos) + ")");
             return;
         }
-        LV(nativeLinkViewPtr)->move( S(old_pos), S(new_pos) );
+        lvr->move( S(old_pos), S(new_pos) );
     } CATCH_STD()
 }
 
@@ -113,22 +121,25 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemove
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
-    LinkView *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID(env, lv, pos)) {
+    LinkViewRef *lv = LV(nativeLinkViewPtr);
+    if (!ROW_INDEX_VALID(env, *lv, pos)) {
         return;
     }
     try {
-        return lv->remove( S(pos) );
+        LinkViewRef lvr = *lv;
+        return lvr->remove( S(pos) );
     } CATCH_STD()
 }
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClear
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr)
+  (JNIEnv* env, jclass, jlong nativeLinkViewPtr)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        return LV(nativeLinkViewPtr)->clear();
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        return lvr->clear();
     } CATCH_STD()
 }
 
@@ -136,9 +147,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClear
 JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeSize
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr)
 {
+    
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        return LV(nativeLinkViewPtr)->size();
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        return lvr->size();
     } CATCH_STD()
     return 0;
 }
@@ -149,7 +163,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsEmpty
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        return LV(nativeLinkViewPtr)->is_empty();
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        return lvr->is_empty();
     } CATCH_STD()
     return 0;
 }
@@ -159,9 +175,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        LinkView *lv = LV(nativeLinkViewPtr);
-        Query query = lv->get_target_table().where(LinkViewRef(lv));
-        TableQuery* queryPtr = new TableQuery(query);
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        Query *queryPtr = new Query(lvr->get_target_table().where(LinkViewRef(lvr)));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;
@@ -172,7 +188,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        return LV(nativeLinkViewPtr)->is_attached();
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        return lvr->is_attached();
     } CATCH_STD()
     return 0;
 }
@@ -182,11 +200,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        LinkView *lv = LV(nativeLinkViewPtr);
-        if (!ROW_INDEX_VALID(env, &lv->get_target_table(), targetRowIndex)) {
+        LinkViewRef *lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        if (!ROW_INDEX_VALID(env, &lvr->get_target_table(), targetRowIndex)) {
             return -1;
         }
-        size_t ndx = lv->find(targetRowIndex);
+        size_t ndx = lvr->find(targetRowIndex);
         return to_jlong_or_not_found(ndx);
     } CATCH_STD()
     return -1;
@@ -197,8 +216,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveAllTargetRows
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
-        LinkView *lv = LV(nativeLinkViewPtr);
-        lv->remove_all_target_rows();
+        LinkViewRef* lv = LV(nativeLinkViewPtr);
+        LinkViewRef lvr = *lv;
+        lvr->remove_all_target_rows();
     } CATCH_STD()
 }
 
@@ -207,8 +227,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetTable
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
 
-    LinkView* lv = LV(nativeLinkViewPtr);
-    Table* pTable = &(lv->get_target_table());
+    LinkViewRef* lv = LV(nativeLinkViewPtr);
+    LinkViewRef lvr = *lv;
+    Table* pTable = &(lvr->get_target_table());
     LangBindHelper::bind_table_ptr(pTable);
 
     return reinterpret_cast<jlong>(pTable);
@@ -218,11 +239,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveTargetRow
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
-    LinkView *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID(env, lv, pos)) {
+    LinkViewRef* lv = LV(nativeLinkViewPtr);
+    if (!ROW_INDEX_VALID(env, *lv, pos)) {
         return;
     }
     try {
-        return lv->remove_target_row( S(pos) );
+        LinkViewRef lvr = *lv;
+        return lvr->remove_target_row( S(pos) );
     } CATCH_STD()
 }

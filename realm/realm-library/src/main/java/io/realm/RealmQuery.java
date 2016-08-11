@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.Required;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -43,7 +44,7 @@ import io.realm.internal.log.RealmLog;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
- * pattern. The query is executed using either {@link #findAll()} or {@link #findFirst()}
+ * pattern. The query is executed using either {@link #findAll()} or {@link #findFirst()}.
  * <p>
  * The input to many of the query functions take a field name as String. Note that this is not type safe. If a 
  * RealmObject class is refactored care has to be taken to not break any queries.
@@ -69,6 +70,8 @@ public final class RealmQuery<E extends RealmModel> {
     private LinkView view;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
+    private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
+
 
     private final static Long INVALID_NATIVE_POINTER = 0L;
     private ArgumentsHolder argumentsHolder;
@@ -98,9 +101,9 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Creates a query from a existing {@link RealmResults}.
+     * Creates a query from an existing {@link RealmResults}.
      *
-     * @param queryResults   a existing @{link io.realm.RealmResults} to query against.
+     * @param queryResults   an existing @{link io.realm.RealmResults} to query against.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
@@ -115,9 +118,9 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Creates a query from a existing {@link RealmList}.
+     * Creates a query from an existing {@link RealmList}.
      *
-     * @param list   a existing @{link io.realm.RealmList} to query against.
+     * @param list   an existing @{link io.realm.RealmList} to query against.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
@@ -183,7 +186,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Checks if {@link io.realm.RealmQuery} is still valid to use i.e. the {@link io.realm.Realm} instance hasn't been
+     * Checks if {@link io.realm.RealmQuery} is still valid to use i.e., the {@link io.realm.Realm} instance hasn't been
      * closed and any parent {@link io.realm.RealmResults} is still valid.
      *
      * @return {@code true} if still valid to use, {@code false} otherwise.
@@ -201,9 +204,9 @@ public final class RealmQuery<E extends RealmModel> {
 
     /**
      * Tests if a field is {@code null}. Only works for nullable fields.
-     *
+     * <p>
      * For link queries, if any part of the link path is {@code null} the whole path is considered to be {@code null}
-     * e.g. {@code isNull("linkField.stringField")} will be considered to be {@code null} if either {@code linkField} or
+     * e.g., {@code isNull("linkField.stringField")} will be considered to be {@code null} if either {@code linkField} or
      * {@code linkField.stringField} is {@code null}.
      *
      * @param fieldName the field name.
@@ -254,7 +257,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the value to compare with.
-     * @param casing     How to handle casing. Setting this to {@link Case#INSENSITIVE} only works for English locale characters.
+     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -403,6 +406,192 @@ public final class RealmQuery<E extends RealmModel> {
         return this;
     }
 
+    // In
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, String[] values) {
+        return in(fieldName, values, Case.SENSITIVE);
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0], casing);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i], casing);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Byte[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Short[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Integer[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Long[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Double[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Float[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Boolean[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Date[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
     // Not Equal
 
     /**
@@ -422,7 +611,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the value to compare with.
-     * @param casing     How casing is handled. {@link Case#INSENSITIVE} works only for the English locale characters.
+     * @param casing     how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -960,7 +1149,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the substring.
-     * @param casing     How to handle casing. Setting this to {@link Case#INSENSITIVE} only works for English locale characters.
+     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -987,7 +1176,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the substring.
-     * @param casing     How to handle casing. Setting this to {@link Case#INSENSITIVE} only works for English locale characters.
+     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1014,7 +1203,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field to compare.
      * @param value the substring.
-     * @param casing     How to handle casing. Setting this to {@link Case#INSENSITIVE} only works for English locale characters.
+     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type.
      */
@@ -1069,7 +1258,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Condition that find values that are considered "empty", i.e. an empty list, the 0-length string or byte array.
+     * Condition that finds values that are considered "empty" i.e., an empty list, the 0-length string or byte array.
      *
      * @param fieldName the field to compare.
      * @return the query object.
@@ -1083,7 +1272,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Condition that find values that are considered "Not-empty", i.e. a list, a string or a byte array with not-empty values.
+     * Condition that finds values that are considered "Not-empty" i.e., a list, a string or a byte array with not-empty values.
      *
      * @param fieldName the field to compare.
      * @return the query object.
@@ -1103,7 +1292,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldName the field name.
      * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
@@ -1131,7 +1320,7 @@ public final class RealmQuery<E extends RealmModel> {
      * @return immediately a {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
      * query completes.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
@@ -1162,7 +1351,7 @@ public final class RealmQuery<E extends RealmModel> {
 
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1184,13 +1373,13 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1283,8 +1472,9 @@ public final class RealmQuery<E extends RealmModel> {
      * Calculates the sum of a given field.
      *
      * @param fieldName the field to sum. Only number fields are supported.
-     * @return the sum if no objects exist or they all have {@code null} as the value for the given field, {@code 0}
-     * will be returned. When computing the sum, objects with {@code null} values are ignored.
+     * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
+     *         for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
+     *         are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
@@ -1469,7 +1659,7 @@ public final class RealmQuery<E extends RealmModel> {
 
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1490,7 +1680,7 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
 
@@ -1499,10 +1689,10 @@ public final class RealmQuery<E extends RealmModel> {
                         RealmLog.d("findAllAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1587,7 +1777,7 @@ public final class RealmQuery<E extends RealmModel> {
         final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults =
                 realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1609,7 +1799,7 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
                     } catch (BadVersionException e) {
@@ -1617,10 +1807,10 @@ public final class RealmQuery<E extends RealmModel> {
                         RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1648,7 +1838,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field name to sort by.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldName) {
         return findAllSorted(fieldName, Sort.ASCENDING);
@@ -1660,7 +1851,8 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName) {
         return findAllSortedAsync(fieldName, Sort.ASCENDING);
@@ -1760,7 +1952,7 @@ public final class RealmQuery<E extends RealmModel> {
 
             final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
-            final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+            final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
                 @Override
                 public Long call() throws Exception {
                     if (!Thread.currentThread().isInterrupted()) {
@@ -1780,7 +1972,7 @@ public final class RealmQuery<E extends RealmModel> {
                             result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                             result.versionID = sharedGroup.getVersion();
                             closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                    weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+                                    weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                             return handoverTableViewPointer;
                         } catch (BadVersionException e) {
@@ -1788,10 +1980,10 @@ public final class RealmQuery<E extends RealmModel> {
                             RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                     "Retry is scheduled by a REALM_CHANGED event.");
 
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             RealmLog.e(e.getMessage(), e);
                             closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                    weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                    weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                         } finally {
                             if (sharedGroup != null && !sharedGroup.isClosed()) {
@@ -1823,10 +2015,11 @@ public final class RealmQuery<E extends RealmModel> {
      * @param sortOrder2 sort order for second field
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-                                   String fieldName2, Sort sortOrder2) {
+                                         String fieldName2, Sort sortOrder2) {
         return findAllSorted(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
@@ -1836,33 +2029,12 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
                                               String fieldName2, Sort sortOrder2) {
         return findAllSortedAsync(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
-    }
-
-    /**
-     * DEPRECATED: Use {@link #findAllSorted(String[], Sort[])}  instead.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-                                   String fieldName2, Sort sortOrder2,
-                                   String fieldName3, Sort sortOrder3) {
-        return findAllSorted(new String[]{fieldName1, fieldName2, fieldName3},
-                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
-    }
-
-    /**
-     * DEPRECATED: Use {@link #findAllSortedAsync(String[], Sort[])}  instead.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-                                              String fieldName2, Sort sortOrder2,
-                                              String fieldName3, Sort sortOrder3) {
-        return findAllSortedAsync(new String[]{fieldName1, fieldName2, fieldName3},
-                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     /**
@@ -1876,9 +2048,6 @@ public final class RealmQuery<E extends RealmModel> {
         long sourceRowIndex = getSourceRowIndexForFirstObject();
         if (sourceRowIndex >= 0) {
             E realmObject = realm.get(clazz, className, sourceRowIndex);
-            WeakReference<RealmObjectProxy> realmObjectWeakReference
-                    = new WeakReference<RealmObjectProxy>((RealmObjectProxy) realmObject, realm.handlerController.referenceQueueRealmObject);
-            realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
             return realmObject;
         } else {
             return null;
@@ -1923,7 +2092,7 @@ public final class RealmQuery<E extends RealmModel> {
         proxy.realmGet$proxyState().setRealm$realm(realm);
         proxy.realmGet$proxyState().setRow$realm(Row.EMPTY_ROW);
 
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
                 if (!Thread.currentThread().isInterrupted()) {
@@ -1946,15 +2115,15 @@ public final class RealmQuery<E extends RealmModel> {
                         result.updatedRow.put(realmObjectWeakReference, handoverRowPointer);
                         result.versionID = sharedGroup.getVersion();
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_OBJECT, result);
+                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT, result);
 
                         return handoverRowPointer;
 
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         RealmLog.e(e.getMessage(), e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null && !sharedGroup.isClosed()) {

@@ -69,10 +69,6 @@ public interface Row {
 
     byte[] getBinaryByteArray(long columnIndex);
 
-    Mixed getMixed(long columnIndex);
-
-    RealmFieldType getMixedType(long columnIndex);
-
     long getLink(long columnIndex);
 
     boolean isNullLink(long columnIndex);
@@ -92,8 +88,6 @@ public interface Row {
     void setString(long columnIndex, String value);
 
     void setBinaryByteArray(long columnIndex, byte[] data);
-
-    void setMixed(long columnIndex, Mixed data);
 
     void setLink(long columnIndex, long value);
 
@@ -119,8 +113,8 @@ public interface Row {
     boolean hasColumn(String fieldName);
 
     Row EMPTY_ROW = new Row() {
-        private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded, make sure the instance" +
-                " is loaded by calling RealmObject.isLoaded().";
+        private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded or represents 'null', " +
+                "make sure the instance is loaded and is valid by calling 'RealmObject.isLoaded() && RealmObject.isValid()'.";
 
         @Override
         public long getColumnCount() {
@@ -188,16 +182,6 @@ public interface Row {
         }
 
         @Override
-        public Mixed getMixed(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public RealmFieldType getMixedType(long columnIndex) {
-            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
         public long getLink(long columnIndex) {
             throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
@@ -255,11 +239,6 @@ public interface Row {
         @Override
         public void setBinaryByteArray(long columnIndex, byte[] data) {
             throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
-        }
-
-        @Override
-        public void setMixed(long columnIndex, Mixed data) {
-            throw new IllegalStateException();
         }
 
         @Override

@@ -25,8 +25,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * This annotation should be used along with {@link RunInLooperThread}
  * When the annotation is present, the test method is executed on a worker thread with a looper.
  * This will also uses {@link org.junit.rules.TemporaryFolder} to create and open a Realm.
+ * Annotation param {@link io.realm.rule.RunInLooperThread.RunnableBefore} can be supplied which will run before the
+ * looper thread.
  */
-@Target(METHOD) @Retention(RUNTIME)
+@Target(METHOD)
+@Retention(RUNTIME)
 public @interface RunTestInLooperThread {
-
+        String threadName() default "RunTestInLooperThread";
+        Class<?extends RunInLooperThread.RunnableBefore> before() default RunInLooperThread.RunnableBefore.class;
 }

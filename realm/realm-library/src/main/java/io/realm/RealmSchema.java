@@ -30,8 +30,8 @@ import io.realm.internal.Util;
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
  * to add, delete and change the classes in the Realm.
- *
- * All changes must happen inside a write transaction for that Realm.
+ * <p>
+ * All changes must happen inside a write transaction for the particular Realm.
  *
  * @see io.realm.RealmMigration
  */

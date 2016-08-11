@@ -39,6 +39,7 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -337,10 +338,10 @@ public class DynamicRealmTests {
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
         assertFalse(allTypes.isLoaded());
-
-        allTypes.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(allTypes);
+        allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
-            public void onChange() {
+            public void onChange(DynamicRealmObject object) {
                 assertEquals("test data 4", allTypes.getString(AllTypes.FIELD_STRING));
                 dynamicRealm.close();
                 looperThread.testComplete();
@@ -359,9 +360,9 @@ public class DynamicRealmTests {
         assertFalse(allTypes.isLoaded());
         assertEquals(0, allTypes.size());
 
-        allTypes.addChangeListener(new RealmChangeListener() {
+        allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals(6, allTypes.size());
                 for (int i = 0; i < allTypes.size(); i++) {
                     assertEquals("test data " + (4 + i), allTypes.get(i).getString(AllTypes.FIELD_STRING));
@@ -382,9 +383,9 @@ public class DynamicRealmTests {
         assertFalse(allTypes.isLoaded());
         assertEquals(0, allTypes.size());
 
-        allTypes.addChangeListener(new RealmChangeListener() {
+        allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals(5, allTypes.size());
                 for (int i = 0; i < 5; i++) {
                     int iteration = (4 - i);
@@ -396,11 +397,12 @@ public class DynamicRealmTests {
         });
     }
 
-    // Initialize a Dynamic Realm used by the *Async tests.
+    // Initialize a Dynamic Realm used by the *Async tests and keep it ref in the looperThread.
     private DynamicRealm initializeDynamicRealm() {
         RealmConfiguration defaultConfig = looperThread.realmConfiguration;
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         populateTestRealm(dynamicRealm, 10);
+        looperThread.keepStrongReference.add(dynamicRealm);
         return dynamicRealm;
     }
 
@@ -450,9 +452,9 @@ public class DynamicRealmTests {
             }
         };
 
-        realmResults1.addChangeListener(new RealmChangeListener() {
+        realmResults1.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 0", realmResults1.get(0).get(AllTypes.FIELD_STRING));
                 assertEquals(3L, realmResults1.get(0).get(AllTypes.FIELD_LONG));
                 assertEquals("data 0", realmResults1.get(1).get(AllTypes.FIELD_STRING));
@@ -480,9 +482,9 @@ public class DynamicRealmTests {
             }
         });
 
-        realmResults2.addChangeListener(new RealmChangeListener() {
+        realmResults2.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<DynamicRealmObject> object) {
                 assertEquals("data 2", realmResults2.get(0).get(AllTypes.FIELD_STRING));
                 assertEquals(1L, realmResults2.get(0).get(AllTypes.FIELD_LONG));
                 assertEquals("data 2", realmResults2.get(1).get(AllTypes.FIELD_STRING));
@@ -522,7 +524,7 @@ public class DynamicRealmTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
-                    case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
+                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
                         post(new Runnable() {
                             @Override
                             public void run() {
@@ -557,7 +559,7 @@ public class DynamicRealmTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.CLASS_NAME);
         DynamicRealmObject cat = realm.createObject(Cat.CLASS_NAME);
-        DynamicRealmObject owner =  realm.createObject(Owner.CLASS_NAME);
+        DynamicRealmObject owner = realm.createObject(Owner.CLASS_NAME);
         owner.setObject("cat", cat);
         realm.getSchema().create("TestRemoveAll").addField("Field1", String.class);
         realm.createObject("TestRemoveAll");
@@ -591,5 +593,75 @@ public class DynamicRealmTests {
 
         assertEquals(0, list.size());
         assertEquals(0, realm.where(Dog.CLASS_NAME).count());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_throwOnAddingNullListenerFromLooperThread() {
+        final DynamicRealm dynamicRealm = initializeDynamicRealm();
+
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.addChangeListener(null);
+            fail("adding null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            dynamicRealm.close();
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    public void addChangeListener_throwOnAddingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    dynamicRealm.addChangeListener(null);
+                    fail("adding null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    dynamicRealm.close();
+                }
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListener_throwOnRemovingNullListenerFromLooperThread() {
+        final DynamicRealm dynamicRealm = initializeDynamicRealm();
+
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            dynamicRealm.removeChangeListener(null);
+            fail("removing null change listener must throw an exception.");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            dynamicRealm.close();
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    public void removeChangeListener_throwOnRemovingNullListenerFromNonLooperThread() throws Throwable {
+        TestHelper.executeOnNonLooperThread(new TestHelper.Task() {
+            @Override
+            public void run() throws Exception {
+                final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
+
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    dynamicRealm.removeChangeListener(null);
+                    fail("removing null change listener must throw an exception.");
+                } catch (IllegalArgumentException ignore) {
+                } finally {
+                    dynamicRealm.close();
+                }
+            }
+        });
     }
 }

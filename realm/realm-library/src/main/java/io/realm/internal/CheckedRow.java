@@ -120,22 +120,19 @@ public class CheckedRow extends UncheckedRow {
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex);
-    protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+    public static native long nativeGetLinkView(long nativePtr, long columnIndex);
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
-    protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
+    protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
-    protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
 }

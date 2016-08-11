@@ -16,7 +16,13 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Date;
 
@@ -24,16 +30,29 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class RealmLinkTests extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
-    protected Realm testRealm;
+@RunWith(AndroidJUnit4.class)
+public class RealmLinkTests {
 
-    protected void setUp() {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(realmConfig);
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    private Realm testRealm;
+    private RealmConfiguration realmConfig;
+
+    @Before
+    public void setUp() {
+        realmConfig = configFactory.createConfiguration();
         testRealm = Realm.getInstance(realmConfig);
 
+        populate();
+    }
+
+    private void populate() {
         testRealm.beginTransaction();
         testRealm.delete(Dog.class);
         testRealm.delete(Cat.class);
@@ -76,13 +95,16 @@ public class RealmLinkTests extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        testRealm.close();
+    @After
+    public void tearDown() {
+        if (testRealm != null) {
+            testRealm.close();
+        }
     }
 
-    public void testObjects() {
-        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+    @Test
+    public void objects() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         assertEquals(1, owners.size());
         assertEquals(2, owners.first().getDogs().size());
         assertEquals("Pluto", owners.first().getDogs().first().getName());
@@ -90,19 +112,20 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Blackie", owners.first().getCat().getName());
         assertEquals(12, owners.first().getCat().getAge());
 
-        RealmResults<Dog> dogs = testRealm.allObjects(Dog.class);
+        RealmResults<Dog> dogs = testRealm.where(Dog.class).findAll();
         assertEquals(2, dogs.size());
         for (Dog dog : dogs) {
             assertEquals("Tim", dog.getOwner().getName());
         }
 
-        RealmResults<Cat> cats = testRealm.allObjects(Cat.class);
+        RealmResults<Cat> cats = testRealm.where(Cat.class).findAll();
         assertEquals(1, cats.size());
         assertEquals("Tim", cats.first().getOwner().getName());
     }
 
 
-    public void testReamListQuery() {
+    @Test
+    public void reamListQuery() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         RealmResults<Dog> dogs = owners.get(0).getDogs().where().contains("name", "o").findAll();
         assertEquals(2, dogs.size());
@@ -110,7 +133,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Fido", dogs.get(1).getName());
     }
 
-    public void testQuerySingleRelationBoolean() {
+    @Test
+    public void querySingleRelationBoolean() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail", true).findAll();
         assertEquals(1, owners.size());
         assertEquals(12, owners.first().getCat().getAge());
@@ -119,7 +143,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, none.size());
     }
 
-    public void testQuerySingleRelationInteger() {
+    @Test
+    public void querySingleRelationInteger() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("cat.age", 12).findAll();
         assertEquals(1, owners1.size());
         assertEquals(12, owners1.first().getCat().getAge());
@@ -157,7 +182,8 @@ public class RealmLinkTests extends AndroidTestCase {
         }
     }
 
-    public void testQuerySingleRelationDate() {
+    @Test
+    public void querySingleRelationDate() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("cat.birthday", new Date(6000)).findAll();
         assertEquals(1, owners1.size());
         assertEquals(12, owners1.first().getCat().getAge());
@@ -196,7 +222,8 @@ public class RealmLinkTests extends AndroidTestCase {
         }
     }
 
-    public void testQuerySingleRelationFloat() {
+    @Test
+    public void querySingleRelationFloat() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).greaterThanOrEqualTo("cat.height", 0.2f).findAll();
         assertEquals(1, owners1.size());
         assertEquals(12, owners1.first().getCat().getAge());
@@ -223,12 +250,12 @@ public class RealmLinkTests extends AndroidTestCase {
 
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-    public void testQuerySingleRelationDouble() {
+    @Test
+    public void querySingleRelationDouble() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).greaterThanOrEqualTo("cat.weight", 0.2).findAll();
         assertEquals(1, owners1.size());
         assertEquals(12, owners1.first().getCat().getAge());
@@ -256,13 +283,12 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-
-    public void testQuerySingleRelationString() {
+    @Test
+    public void querySingleRelationString() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("cat.name", "Blackie").findAll();
         assertEquals(1, owners1.size());
 
@@ -288,7 +314,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
     }
 
-    public void testQueryMultipleRelationsBoolean() {
+    @Test
+    public void queryMultipleRelationsBoolean() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("dogs.hasTail", true).findAll();
         assertEquals(1, owners.size());
 
@@ -296,7 +323,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, none.size());
     }
 
-    public void testQueryMultipleRelationsInteger() {
+    @Test
+    public void queryMultipleRelationsInteger() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("dogs.age", 10).findAll();
         assertEquals(1, owners1.size());
 
@@ -328,7 +356,8 @@ public class RealmLinkTests extends AndroidTestCase {
         }
     }
 
-    public void testQueryMultipleRelationsDate() {
+    @Test
+    public void queryMultipleRelationsDate() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("dogs.birthday", new Date(2000)).findAll();
         assertEquals(1, owners1.size());
 
@@ -361,7 +390,8 @@ public class RealmLinkTests extends AndroidTestCase {
         }
     }
 
-    public void testQueryMultipleRelationsFloat() {
+    @Test
+    public void queryMultipleRelationsFloat() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).greaterThanOrEqualTo("dogs.height", 0.2f).findAll();
         assertEquals(1, owners1.size());
         assertEquals(12, owners1.first().getCat().getAge());
@@ -389,12 +419,12 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-    public void testQueryMultipleRelationsDouble() {
+    @Test
+    public void queryMultipleRelationsDouble() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).greaterThanOrEqualTo("dogs.weight", 0.2).findAll();
         assertEquals(1, owners1.size());
         assertEquals(12, owners1.first().getCat().getAge());
@@ -422,13 +452,12 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-
-    public void testQueryMultipleRelationsString() {
+    @Test
+    public void queryMultipleRelationsString() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("dogs.name", "Pluto").findAll();
         assertEquals(1, owners1.size());
 
@@ -451,7 +480,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, owners5.size());
     }
 
-    public void testQueryShouldFail() {
+    @Test
+    public void queryShouldFail() {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
             fail("Should throw Exception");
@@ -474,8 +504,9 @@ public class RealmLinkTests extends AndroidTestCase {
         }
     }
 
-    public void testWhere() throws Exception {
-        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+    @Test
+    public void where() throws Exception {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         RealmResults<Dog> dogs = owners.first().getDogs().where().equalTo("name", "Pluto").findAll();
         assertEquals(1, dogs.size());
         assertEquals("Pluto", dogs.first().getName());
@@ -485,13 +516,15 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, none.size());
     }
 
-    public void testSubquery() {
+    @Test
+    public void subquery() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("dogs.name", "Pluto").findAll();
         RealmResults<Owner> subOwners = owners.where().equalTo("cat.name", "Blackie").findAll();
         assertEquals(1, subOwners.size());
     }
 
-    public void testLinkIsNull() {
+    @Test
+    public void linkIsNull() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNull("cat").findAll();
         assertEquals(0, owners1.size());
 
@@ -503,7 +536,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners2.size());
     }
 
-    public void testLinkIsNotNull() {
+    @Test
+    public void linkIsNotNull() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("cat").findAll();
         assertEquals(1, owners1.size());
 
@@ -515,7 +549,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, owners2.size());
     }
 
-    public void testIsNullWrongType() {
+    @Test
+    public void isNullWrongType() {
         try {
             // AllTypes.columnFloat is not nullable
             testRealm.where(AllTypes.class).isNull("columnFloat").findAll();

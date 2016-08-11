@@ -32,7 +32,7 @@ import io.realm.internal.android.JsonUtils;
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 public final class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
-    private final ProxyState proxyState = new ProxyState();
+    private final ProxyState proxyState = new ProxyState(this);
     /**
      * Creates a dynamic Realm object based on an existing object.
      *
@@ -49,7 +49,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
         if (!RealmObject.isValid(obj)) {
             throw new IllegalArgumentException("An object managed by Realm must be provided. This " +
-                    "is a standalone object or it was deleted.");
+                    "is an unmanaged object or it was deleted.");
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) obj;
@@ -102,12 +102,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code boolean} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the boolean value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain booleans.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain booleans.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public boolean getBoolean(String fieldName) {
@@ -117,12 +118,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code int} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public int getInt(String fieldName) {
@@ -131,12 +133,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code short} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public short getShort(String fieldName) {
@@ -145,12 +148,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code long} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public long getLong(String fieldName) {
@@ -160,12 +164,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code byte} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the byte value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public byte getByte(String fieldName) {
@@ -175,12 +180,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code float} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the float value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain floats.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain floats.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public float getFloat(String fieldName) {
@@ -190,12 +196,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     /**
      * Returns the {@code double} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * <p>
+     * If the field is nullable, use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
      * @param fieldName the name of the field.
      * @return the double value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain doubles.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain doubles.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public double getDouble(String fieldName) {
@@ -208,7 +215,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName the name of the field.
      * @return the byte[] value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain binary data.
      */
     public byte[] getBlob(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -220,7 +227,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName the name of the field.
      * @return the String value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Strings.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Strings.
      */
     public String getString(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -232,7 +239,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName the name of the field.
      * @return the Date value.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Dates.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Dates.
      */
     public Date getDate(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -248,7 +255,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName the name of the field.
      * @return the {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain links to other objects.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain links to other objects.
      */
     public DynamicRealmObject getObject(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -266,7 +273,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName the name of the field.
      * @return the {@link RealmList} data for this field.
-     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of links.
      */
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -280,7 +287,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName the name of the field.
      * @return {@code true} if field value is null, {@code false} otherwise.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @throws IllegalArgumentException if field name doesn't exist.
      */
     public boolean isNull(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -332,13 +339,13 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     }
 
     /**
-     * Set the value for the given field. This method will automatically try to convert numbers and
-     * booleans that are given as {@code String} to their appropriate type. E.g. {@code "10"} will be
-     * converted to {@code 10} if the field type is {@code int}.
-     *
+     * Sets the value for the given field. This method will automatically try to convert numbers and
+     * booleans that are given as {@code String} to their appropriate type. For example {@code "10"} 
+     * will be converted to {@code 10} if the field type is {@code int}.
+     * <p>
      * Using the typed setters will be faster than using this method.
-     *
-     * @throws IllegalArgumentException if field name doesn't exists or if the input value cannot be converted
+     * 
+     * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
      * to the appropriate input type.
      * @throws NumberFormatException if a String based number cannot be converted properly.
      */
@@ -410,7 +417,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name to update.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't a boolean field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a boolean field.
      */
     public void setBoolean(String fieldName, boolean value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -422,7 +429,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
      */
     public void setShort(String fieldName, short value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -434,7 +441,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name to update.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
      */
     public void setInt(String fieldName, int value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -446,7 +453,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
      */
     public void setLong(String fieldName, long value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -458,7 +465,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
      */
     public void setByte(String fieldName, byte value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -470,7 +477,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a float field.
      */
     public void setFloat(String fieldName, float value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -482,7 +489,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't a double field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a double field.
      */
     public void setDouble(String fieldName, double value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -494,7 +501,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't a String field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a String field.
      */
     public void setString(String fieldName, String value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -506,7 +513,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't a binary field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a binary field.
      */
     public void setBlob(String fieldName, byte[] value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -518,7 +525,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value value to insert.
-     * @throws IllegalArgumentException if field name doesn't exists or isn't a Date field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a Date field.
      */
     public void setDate(String fieldName, Date value) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -534,7 +541,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @param value object to link to.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, the type
+     * @throws IllegalArgumentException if field name doesn't exist, it doesn't link to other Realm objects, the type
      * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
     public void setObject(String fieldName, DynamicRealmObject value) {
@@ -575,7 +582,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         String tableName = proxyState.getRow$realm().getTable().getName();
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
-            // Standalone lists don't know anything about the types they contain. They might even hold objects of
+            // Unmanaged lists don't know anything about the types they contain. They might even hold objects of
             // multiple types :(, so we have to check each item in the list.
             typeValidated = false;
         } else {
@@ -609,7 +616,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * Sets the value to {@code null} for the given field.
      *
      * @param fieldName field name.
-     * @throws IllegalArgumentException if field name doesn't exists, or the field isn't nullable.
+     * @throws IllegalArgumentException if field name doesn't exist, or the field isn't nullable.
      */
     public void setNull(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -622,7 +629,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     }
 
     /**
-     * Return the type of object. This will normally correspond to the name of a class that is extending
+     * Returns the type of object. This will normally correspond to the name of a class that is extending
      * {@link RealmObject}.
      *
      * @return this objects type.
@@ -641,6 +648,19 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         return proxyState.getRow$realm().getColumnType(columnIndex);
     }
 
+    /**
+     * Returns a hash code value for the {@link DynamicRealmObject} object.
+     * <p>
+     * By the general contract of {@link Object#hashCode()}, any two objects for which {@link #equals}
+     * returns {@code true} must return the same hash code value.
+     * <p>
+     * Note that a {@link RealmObject} is a live object, and it might be updated by changes from
+     * other threads. This means that a hash code value of the object is not stable, and the value
+     * should be neither used as a key in HashMap nor saved in HashSet.
+     *
+     * @return  a hash code value for the object.
+     * @see     #equals
+     */
     @Override
     public int hashCode() {
         String realmName = proxyState.getRealm$realm().getPath();

@@ -20,5 +20,9 @@ public interface NullPrimaryKey<P, S> {
 
     public P getId();
 
+    public void setId(P id);
+
     public S getName();
+
+    public void setName(S name);
 }

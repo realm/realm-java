@@ -18,8 +18,6 @@
 #include "io_realm_internal_UncheckedRow.h"
 
 #include "util.hpp"
-#include "mixedutil.hpp"
-#include "tablebase_tpl.hpp"
 
 using namespace realm;
 
@@ -103,13 +101,13 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_CheckedRow_nativeGetDouble
     return Java_io_realm_internal_UncheckedRow_nativeGetDouble(env, obj, nativeRowPtr, columnIndex);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetTimestamp
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
+    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Timestamp))
         return 0;
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetDateTime(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetTimestamp(env, obj, nativeRowPtr, columnIndex);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetString
@@ -128,24 +126,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetByteArra
         return 0;
 
     return Java_io_realm_internal_UncheckedRow_nativeGetByteArray(env, obj, nativeRowPtr, columnIndex);
-}
-
-JNIEXPORT jint JNICALL Java_io_realm_internal_CheckedRow_nativeGetMixedType
-  (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex)
-{
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Mixed))
-        return 0;
-
-    return Java_io_realm_internal_UncheckedRow_nativeGetMixedType(env, obj, nativeRowPtr, columnIndex);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_CheckedRow_nativeGetMixed
-  (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex)
-{
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Mixed))
-        return NULL;
-
-    return Java_io_realm_internal_UncheckedRow_nativeGetMixed(env, obj, nativeRowPtr, columnIndex);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLink
@@ -167,7 +147,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNullLink
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLinkView
-  (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex)
+  (JNIEnv* env, jclass obj, jlong nativeRowPtr, jlong columnIndex)
 {
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_LinkList))
         return 0;
@@ -211,13 +191,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDouble
     Java_io_realm_internal_UncheckedRow_nativeSetDouble(env, obj, nativeRowPtr, columnIndex, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetTimestamp
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
+    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Timestamp))
         return;
 
-    Java_io_realm_internal_UncheckedRow_nativeSetDate(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetTimestamp(env, obj, nativeRowPtr, columnIndex, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetString
@@ -236,15 +216,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetByteArray
         return;
 
     Java_io_realm_internal_UncheckedRow_nativeSetByteArray(env, obj, nativeRowPtr, columnIndex, value);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetMixed
-  (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex, jobject jMixedValue)
-{
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Mixed))
-        return;
-
-    Java_io_realm_internal_UncheckedRow_nativeSetMixed(env, obj, nativeRowPtr, columnIndex, jMixedValue);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetLink

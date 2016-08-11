@@ -41,6 +41,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -77,7 +78,7 @@ public class TestHelper {
         }
     }
 
-    public static RealmFieldType getColumnType(Object o){
+    public static RealmFieldType getColumnType(Object o) {
         if (o instanceof Boolean)
             return RealmFieldType.BOOLEAN;
         if (o instanceof String)
@@ -97,9 +98,10 @@ public class TestHelper {
 
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     *
      * @return
      */
-    public static Table getTableWithAllColumnTypes(){
+    public static Table getTableWithAllColumnTypes() {
         Table t = new Table();
 
         t.addColumn(RealmFieldType.BINARY, "binary");
@@ -108,9 +110,7 @@ public class TestHelper {
         t.addColumn(RealmFieldType.DOUBLE, "double");
         t.addColumn(RealmFieldType.FLOAT, "float");
         t.addColumn(RealmFieldType.INTEGER, "long");
-        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
         t.addColumn(RealmFieldType.STRING, "string");
-        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");
 
         return t;
     }
@@ -316,7 +316,7 @@ public class TestHelper {
         if (garbageSize == 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
             long totalMemory = Runtime.getRuntime().totalMemory();
-            garbageSize = (int)(maxMemory - totalMemory)/10*9;
+            garbageSize = (int) (maxMemory - totalMemory) / 10 * 9;
         }
         byte garbage[] = new byte[0];
         try {
@@ -326,7 +326,7 @@ public class TestHelper {
                 garbage[garbage.length - 1] = 1;
             }
         } catch (OutOfMemoryError oom) {
-            return allocGarbage(garbageSize/10*9);
+            return allocGarbage(garbageSize / 10 * 9);
         }
 
         return garbage;
@@ -633,7 +633,7 @@ public class TestHelper {
         testRealm.commitTransaction();
     }
 
-    public static void populateAllNonNullRowsForNumericTesting (Realm realm) {
+    public static void populateAllNonNullRowsForNumericTesting(Realm realm) {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -668,7 +668,7 @@ public class TestHelper {
         realm.commitTransaction();
     }
 
-    public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+    public static void populatePartialNullRowsForNumericTesting(Realm realm) {
         // Id values are [1, 2, 3]
         // IntegerNull values are [3, null, 4]
         // FloatNull values are [4F, null, 5F]
@@ -796,7 +796,7 @@ public class TestHelper {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
         populateForMultiSort(dynamicRealm);
         dynamicRealm.close();
-        typedRealm.refresh();
+        typedRealm.waitForChange();
     }
 
     public static void populateForMultiSort(DynamicRealm realm) {
@@ -951,7 +951,7 @@ public class TestHelper {
      * @param executor {@link RealmThreadPoolExecutor} that should replace the current one
      */
     public static RealmThreadPoolExecutor replaceRealmThreadExectutor(RealmThreadPoolExecutor executor) throws NoSuchFieldException, IllegalAccessException {
-        Field field = BaseRealm.class.getDeclaredField("asyncQueryExecutor");
+        Field field = BaseRealm.class.getDeclaredField("asyncTaskExecutor");
         field.setAccessible(true);
         RealmThreadPoolExecutor oldExecutor = (RealmThreadPoolExecutor) field.get(null);
         field.set(field, executor);
@@ -976,4 +976,31 @@ public class TestHelper {
         }
     }
 
+    public static abstract class Task {
+        public abstract void run() throws Exception;
+    }
+
+    public static void executeOnNonLooperThread(final Task task) throws Throwable {
+        final AtomicReference<Throwable> thrown = new AtomicReference<Throwable>();
+        final Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    task.run();
+                } catch (Throwable e) {
+                    thrown.set(e);
+                    if (e instanceof Error) {
+                        throw (Error) e;
+                    }
+                }
+            }
+        };
+        thread.start();
+        thread.join();
+
+        final Throwable throwable = thrown.get();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
 }

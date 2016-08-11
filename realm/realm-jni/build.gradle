@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.97.3'
+ext.coreVersion = '1.4.2'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '2835ae5c51ec83c38fb3f968af6cacd5fce6393b3602ddad4a8f48aaa9e62781'
+ext.coreSha256Hash = '1dfa2b4852b1cfccb18fd1a164cfeeea2b84f8de03f1024594837ca54840665c'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -20,7 +20,7 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 // To obtain the ABI of the connected device, execute "adb shell getprop ro.product.cpu.abi"
 ext.buildTargetAbis = project.hasProperty('buildTargetABIs') ? project.getProperty('buildTargetABIs').split(',').collect {it.trim()} : null
 
-def commonCflags = [ '-Os', '-std=c++11' ]
+def commonCflags = [ '-Os', '-std=c++11', '-Wmissing-declarations' , '-Werror']
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
     commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -262,17 +262,9 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
             from tarTree(project.coreArchiveFile)
             into project.coreDir
         }
-        for (target in targets) {
-            exec {
-                commandLine = [
-                        'make',
-                        '-C', "${projectDir}/src",
-                        "BASE_DENOM=${target.name}",
-                        'LIB_SUFFIX_SHARED=.so',
-                        'clean'
-                ]
-            }
-        }
+	exec {
+	    commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
+	}
     }
 }
 
@@ -327,7 +319,7 @@ targets.each { target ->
         // Store the unstripped version
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}.so"
-            into "${projectDir}/../build/output/jniLibs-unstripped/${target.abi}"
+            into "${buildDir}/outputs/jniLibs-unstripped/${target.abi}"
             rename "librealm-jni-${target.name}${getDebugExt()}.so", 'librealm-jni.so'
         }
     }
@@ -347,7 +339,6 @@ task clean(type: Delete) {
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
-    delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
 
     doLast {

@@ -16,16 +16,16 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+import android.test.MoreAsserts;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,12 +35,15 @@ import java.util.Set;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
+import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
@@ -57,10 +60,10 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmConfigurationTests {
@@ -255,7 +258,7 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void setModules_nonRealmModulesThrows() {
+    public void modules_nonRealmModulesThrows() {
         // Test first argument
         try {
             new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
@@ -337,6 +340,23 @@ public class RealmConfigurationTests {
                 .build();
         realm = Realm.getInstance(config);
         assertEquals(0, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void deleteRealmIfMigrationNeeded_failsWhenAssetFileProvided() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .assetFile(context, "asset_file.realm")
+                    .deleteRealmIfMigrationNeeded();
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
+                    expected.getMessage());
+        }
     }
 
     @Test
@@ -764,19 +784,137 @@ public class RealmConfigurationTests {
         Realm.deleteRealm(defaultConfig);
 
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
-        configFactory.copyRealmFromAssets(context, "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        configFactory.copyRealmFromAssets(context, "asset_file.realm", Realm.DEFAULT_REALM_NAME);
         assertTrue(new File(configFactory.getRoot(), Realm.DEFAULT_REALM_NAME).exists());
 
         Realm.Transaction transaction = mock(Realm.Transaction.class);
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                // Just reuse existing file and set right schema
-                .schemaVersion(0)
-                .schema(AllTypes.class)
+                .modules(new AssetFileModule())
                 .initialData(transaction)
                 .build();
 
         realm = Realm.getInstance(configuration);
         realm.close();
         verify(transaction, never()).execute(realm);
+    }
+
+    @Test
+    public void assetFileNullAndEmptyFileName() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+        try {
+            new RealmConfiguration.Builder(context).assetFile(context, null).build();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            new RealmConfiguration.Builder(context).assetFile(context, "").build();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileWithInMemoryConfig() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        try {
+            new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm").inMemory().build();
+            fail();
+        } catch (RealmException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileFakeFile() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "no_file").build();
+        try {
+            Realm.getInstance(configuration);
+            fail();
+        } catch (RealmIOException ignored) {
+        }
+    }
+
+    @Test
+    public void assetFileValidFile() throws IOException {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // Ensure that there is no data
+        Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
+
+        RealmConfiguration configuration = new RealmConfiguration
+                .Builder(context)
+                .modules(new AssetFileModule())
+                .assetFile(context, "asset_file.realm")
+                .build();
+        Realm.deleteRealm(configuration);
+
+        File realmFile = new File(configuration.getPath());
+        assertFalse(realmFile.exists());
+
+        realm = Realm.getInstance(configuration);
+        assertTrue(realmFile.exists());
+
+        // Asset file has 10 Owners and 10 Cats, check if data is present
+        assertEquals(10, realm.where(Owner.class).count());
+        assertEquals(10, realm.where(Cat.class).count());
+
+        realm.close();
+
+        // Copy original file to another location
+        configFactory.copyRealmFromAssets(context, "asset_file.realm", "asset_file_copy.realm");
+        File copyFromAsset = new File(configFactory.getRoot(), "asset_file_copy.realm");
+        assertTrue(copyFromAsset.exists());
+
+        Realm.deleteRealm(configuration);
+        assertFalse(realmFile.exists());
+    }
+
+    @Test
+    public void assetFile_failsWhenDeleteRealmIfMigrationNeededConfigured() {
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
+
+        // have a builder instance to isolate codepath
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
+        try {
+            builder
+                    .deleteRealmIfMigrationNeeded()
+                    .assetFile(context, "asset_file.realm");
+            fail();
+        } catch (IllegalStateException expected) {
+            assertEquals("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().",
+                    expected.getMessage());
+        }
+    }
+
+    private static class MigrationWithNoEquals implements RealmMigration {
+        @Override
+        public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+            // Do nothing
+        }
+    }
+
+    @Test
+    public void detectMissingEqualsInCustomMigration() {
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+
+        Realm realm = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("The most likely cause is that equals() and hashCode() are not overridden"));
+        } finally {
+            realm.close();
+        }
     }
 }

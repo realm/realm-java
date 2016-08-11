@@ -18,7 +18,7 @@ package io.realm.entities.pojo;
 
 import io.realm.RealmObject;
 
-public class RealmObjectWithRealmModelField extends RealmObject{
+public class RealmObjectWithRealmModelField extends RealmObject {
     private AllTypesRealmModel allTypesRealmModel;
 
     public AllTypesRealmModel getAllTypesRealmModel() {

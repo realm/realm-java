@@ -17,6 +17,8 @@
 package io.realm;
 
 
+import android.app.IntentService;
+
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +31,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
@@ -45,7 +48,7 @@ import rx.Observable;
  * increases speed.
  * <p>
  * RealmResults are live views, which means that if it is on an {@link android.os.Looper} thread, it will automatically
- * update its query results after a transaction has been committed. If on a non-looper thread, {@link Realm#refresh()}
+ * update its query results after a transaction has been committed. If on a non-looper thread, {@link Realm#waitForChange()}
  * must be called to update the results.
  * <p>
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the modified objects are
@@ -54,7 +57,7 @@ import rx.Observable;
  * A RealmResults object cannot be passed between different threads.
  * <p>
  * Notice that a RealmResults is never {@code null} not even in the case where it contains no objects. You should always
- * use the size() method to check if a RealmResults is empty or not.
+ * use the {@link RealmResults#size()} method to check if a RealmResults is empty or not.
  * <p>
  * If a RealmResults is built on RealmList through {@link RealmList#where()}, it will become empty when the source
  * RealmList gets deleted.
@@ -64,8 +67,7 @@ import rx.Observable;
  *
  * @param <E> The class of objects in this list.
  * @see RealmQuery#findAll()
- * @see Realm#allObjects(Class)
- * @see io.realm.Realm#beginTransaction()
+ * @see io.realm.Realm#executeTransaction(Realm.Transaction)
  */
 public final class RealmResults<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
@@ -81,7 +83,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
     private final TableQuery query;
-    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    private final List<RealmChangeListener<RealmResults<E>>> listeners = new CopyOnWriteArrayList<RealmChangeListener<RealmResults<E>>>();
     private Future<Long> pendingQuery;
     private boolean asyncQueryCompleted = false;
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
@@ -218,7 +220,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (size() > 0) {
             return get(0);
         } else {
-            throw new IndexOutOfBoundsException("No results was found.");
+            throw new IndexOutOfBoundsException("No results were found.");
         }
     }
 
@@ -231,7 +233,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (size > 0) {
             return get(size - 1);
         } else {
-            throw new IndexOutOfBoundsException("No results was found.");
+            throw new IndexOutOfBoundsException("No results were found.");
         }
     }
 
@@ -357,24 +359,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
         return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
-    }
-
-    /**
-     * Sorts existing {@link io.realm.RealmResults} using three fields.
-     *
-     * DEPRECATED: Use {@link #sort(String[], Sort[])} instead.
-     *
-     * @param fieldName1 first field name.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name.
-     * @param sortOrder2 sort order for second field.
-     * @param fieldName3 third field name.
-     * @param sortOrder3 sort order for third field.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
-     */
-    @Deprecated
-    public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2, String fieldName3, Sort sortOrder3) {
-        sort(new String[]{fieldName1, fieldName2, fieldName3}, new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     // Aggregates
@@ -619,18 +603,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     /**
      * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
-     * DEPRECATED: Use {@link #deleteLastFromRealm()} instead.
-     *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
-     */
-    @Deprecated
-    public void removeLast() {
-        deleteLastFromRealm();
-    }
-
-    /**
-     * Removes the last object in the list. This also deletes the object from the underlying Realm.
-     *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     @Override
@@ -645,6 +617,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
     }
 
+    /**
+     * Syncs this RealmResults, so it is up to date after `advance_read` has been called.
+     * Not doing so can leave detached accessors in the table view.
+     *
+     * By design, we should only call this on looper events.
+     *
+     * NOTE: Calling this is a prerequisite to calling {@link #notifyChangeListeners(boolean)}.
+     */
     void syncIfNeeded() {
         long newVersion = table.syncIfNeeded();
         viewUpdated = newVersion != currentTableViewVersion;
@@ -882,12 +862,11 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Returns {@code true} if the results are not yet loaded, {@code false} if they are still loading. Synchronous
+     * Returns {@code false} if the results are not yet loaded, {@code true} if they are loaded. Synchronous
      * query methods like findAll() will always return {@code true}, while asynchronous query methods like
      * findAllAsync() will return {@code false} until the results are available.
-     * This will return {@code true} if called for a standalone object (created outside of Realm).
      *
-     * @return {@code true} if the query has completed and the data is available {@code false} if the query is still
+     * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
      * running.
      */
     public boolean isLoaded() {
@@ -900,7 +879,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * the query completes.
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise. {@code true} will always
-     *         be returned for standalone objects.
+     *         be returned for unmanaged objects.
      */
     public boolean load() {
         //noinspection SimplifiableIfStatement
@@ -927,7 +906,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             // this should handle more complex use cases like retry, ignore etc
             table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
             asyncQueryCompleted = true;
-            notifyChangeListeners(false, true);
+            notifyChangeListeners(true);
         } catch (Exception e) {
             RealmLog.d(e.getMessage());
             return false;
@@ -939,14 +918,16 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * Adds a change listener to this RealmResults.
      *
      * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to add a listener from a non-Looper or {@link IntentService} thread.
      */
-    public void addChangeListener(RealmChangeListener listener) {
+    public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (realm.handler == null) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+        if (!realm.handlerController.isAutoRefreshEnabled()) {
+            throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread. ");
         }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
@@ -957,11 +938,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * Removes a previously registered listener.
      *
      * @param listener the instance to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      */
     public void removeChangeListener(RealmChangeListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
-
+        }
         realm.checkIfValid();
         listeners.remove(listener);
     }
@@ -991,12 +974,19 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * }
      * </pre>
      *
+     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
+     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
+     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
+     * instead.
+     *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+
     @SuppressWarnings("unchecked")
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<RealmResults<E>> asObservable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);
@@ -1013,15 +1003,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * Notifies all registered listeners.
+     *
+     * NOTE: Remember to call `syncIfNeeded` before calling this method.
      */
-    void notifyChangeListeners() {
-        notifyChangeListeners(true, false);
-    }
-
-    private void notifyChangeListeners(boolean syncBeforeNotifying, boolean forceNotify) {
-        if (syncBeforeNotifying) {
-            syncIfNeeded();
-        }
+    void notifyChangeListeners(boolean forceNotify) {
         if (!listeners.isEmpty()) {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
@@ -1029,7 +1014,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             if (!viewUpdated && !forceNotify) return;
             viewUpdated = false;
             for (RealmChangeListener listener : listeners) {
-                listener.onChange();
+                listener.onChange(this);
             }
         }
     }

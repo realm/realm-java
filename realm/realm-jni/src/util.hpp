@@ -31,6 +31,7 @@
 #include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
 #include <realm/lang_bind_helper.hpp>
+#include <realm/timestamp.hpp>
 
 #include "io_realm_internal_Util.h"
 
@@ -61,14 +62,22 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
         ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
     } \
     catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \
+        ThrowException(env, IOFailed, string(fileName), \
+                std::string(e.what()) + " path: " + e.get_path()); \
     } \
-    catch (util::File::NotFound&) { \
-        ThrowException(env, FileNotFound, string(fileName).data());    \
+    catch (util::File::NotFound& e) { \
+        ThrowException(env, FileNotFound, string(fileName), \
+                std::string(e.what()) + " path: " + e.get_path());    \
     } \
     catch (util::File::AccessError& e) { \
-        ThrowException(env, FileAccessError, string(fileName), e.what()); \
-    }
+        ThrowException(env, FileAccessError, string(fileName), \
+                std::string(e.what()) + " path: " + e.get_path()); \
+    } \
+    catch (realm::IncompatibleLockFile& e) { \
+        ThrowException(env, LockFileError, std::string(e.what())); \
+    } \
+
+
 
 #define CATCH_STD() \
     catch (...) { \
@@ -96,7 +105,7 @@ std::string num_to_string(T pNumber)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<realm::Table*>(x)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)
-#define LV(x)   reinterpret_cast<realm::LinkView*>(x)
+#define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
@@ -121,7 +130,8 @@ enum ExceptionKind {
     RuntimeError = 12,
     RowInvalid = 13,
     CrossTableLink = 15,
-    BadVersion = 16
+    BadVersion = 16,
+    LockFileError = 17
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
@@ -183,10 +193,8 @@ extern const char* log_tag;
 #define INDEX_VALID(env,ptr,col,row)                            IndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    TblIndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             TblIndexInsertValid(env, ptr, col, row)
-#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              IndexAndTypeValid(env, ptr, col, row, type, false)
-#define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      TblIndexAndTypeValid(env, ptr, col, row, type, false)
-#define INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)        IndexAndTypeValid(env, ptr, col, row, type, true)
-#define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type) TblIndexAndTypeValid(env, ptr, col, row, type, true)
+#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              IndexAndTypeValid(env, ptr, col, row, type)
+#define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      TblIndexAndTypeValid(env, ptr, col, row, type)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) TblIndexAndTypeInsertValid(env, ptr, col, row, type)
 
 #define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     RowColIndexAndTypeValid(env, ptr, col, type)
@@ -210,8 +218,6 @@ extern const char* log_tag;
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             (true)
 #define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              (true)
 #define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      (true)
-#define INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)        (true)
-#define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type) (true)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) (true)
 
 #define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     (true)
@@ -292,7 +298,7 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
+inline bool RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset=false)
 {
     if (rowIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
@@ -381,16 +387,10 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
 }
 
 template <class T>
-inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
-    if (allowMixed) {
-        if (colType == realm::type_Mixed) {
-            size_t row = static_cast<size_t>(rowIndex);
-            colType = pTable->get_mixed_type(col, row);
-        }
-    }
     if (colType != expectColType) {
         TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
         ThrowException(env, IllegalArgument, "ColumnType invalid.");
@@ -440,7 +440,7 @@ template <class T>
 inline bool ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     return ColIndexValid(env, pTable, columnIndex)
-        && TypeValid(env, pTable, columnIndex, 0, expectColType, false);
+        && TypeValid(env, pTable, columnIndex, expectColType);
 }
 template <class T>
 inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
@@ -468,22 +468,22 @@ inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnI
 }
 
 template <class T>
-inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
     return IndexValid(env, pTable, columnIndex, rowIndex)
-        && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+        && TypeValid(env, pTable, columnIndex, expectColType);
 }
 template <class T>
-inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
-    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType);
 }
 
 template <class T>
 inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
     return TblIndexInsertValid(env, pTable, columnIndex, rowIndex)
-        && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, false);
+        && TypeValid(env, pTable, columnIndex, expectColType);
 }
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
@@ -669,6 +669,24 @@ inline jobject NewFloat(JNIEnv* env, float value)
     return env->NewObject(java_lang_float, java_lang_float_init, value);
 }
 
-extern const char* const TABLE_PREFIX;
+inline jlong to_milliseconds(const realm::Timestamp& ts)
+{
+    // From core's reference implementation aka unit test
+    // FIXME: check for overflow/underflow
+    const int64_t seconds = ts.get_seconds();
+    const int32_t nanoseconds = ts.get_nanoseconds();
+    const int64_t milliseconds = seconds * 1000 + nanoseconds / 1000000; // This may overflow
+    return milliseconds;
+}
+
+inline realm::Timestamp from_milliseconds(jlong milliseconds)
+{
+    // From core's reference implementation aka unit test
+    int64_t seconds = milliseconds / 1000;
+    int32_t nanoseconds = (milliseconds % 1000) * 1000000;
+    return realm::Timestamp(seconds, nanoseconds);
+}
+
+extern const std::string TABLE_PREFIX;
 
 #endif // REALM_JAVA_UTIL_HPP

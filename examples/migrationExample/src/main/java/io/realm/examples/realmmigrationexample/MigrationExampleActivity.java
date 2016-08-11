@@ -121,7 +121,7 @@ public class MigrationExampleActivity extends Activity {
 
     private String realmString(Realm realm) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (Person person : realm.allObjects(Person.class)) {
+        for (Person person : realm.where(Person.class).findAll()) {
             stringBuilder.append(person.toString()).append("\n");
         }
 

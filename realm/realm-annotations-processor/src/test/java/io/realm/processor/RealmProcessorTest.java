@@ -55,6 +55,7 @@ public class RealmProcessorTest {
     private JavaFileObject ValidModelPojo_ExtendingRealmObject = JavaFileObjects.forResource("some/test/ValidModelRealmModel_ExtendingRealmObject.java");
     private JavaFileObject UseExtendRealmList = JavaFileObjects.forResource("some/test/UseExtendRealmList.java");
     private JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
+    private JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
 
     @Test
     public void compileSimpleFile() {
@@ -442,5 +443,21 @@ public class RealmProcessorTest {
                 .that(SimpleRealmModel)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
+    }
+
+    @Test
+    public void compileWithInterfaceForList() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceList.java"), customInterface))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileWithInterfaceForObject() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(JavaFileObjects.forResource("some/test/InterfaceObjectReference.java"), customInterface))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 }

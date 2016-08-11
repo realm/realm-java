@@ -16,8 +16,6 @@
 
 #include "io_realm_internal_UncheckedRow.h"
 #include "util.hpp"
-#include "mixedutil.hpp"
-#include "tablebase_tpl.hpp"
 
 using namespace realm;
 
@@ -115,14 +113,14 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDouble
     return ROW(nativeRowPtr)->get_double( S(columnIndex) );
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetTimestamp
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
         return 0;
 
-    return ROW(nativeRowPtr)->get_datetime( S(columnIndex) ).get_datetime();
+    return to_milliseconds(ROW(nativeRowPtr)->get_timestamp( S(columnIndex) ));
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetString
@@ -162,31 +160,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
     }
 }
 
-JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixedType
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr)))
-        return 0;
-
-    DataType mixedType = ROW(nativeRowPtr)->get_mixed_type( S(columnIndex) );  // noexcept
-    return static_cast<jint>(mixedType);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr)))
-        return 0;
-
-    Mixed value = ROW(nativeRowPtr)->get_mixed( S(columnIndex) );  // noexcept
-    try {
-        return CreateJMixedFromMixed(env, value);
-    } CATCH_STD();
-    return NULL;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLink
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
@@ -211,13 +184,13 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNullLink
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+  (JNIEnv* env, jclass, jlong nativeRowPtr, jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr)))
         return 0;
 
-    LinkView* link_view_ptr = LangBindHelper::get_linklist_ptr( *ROW( nativeRowPtr ), S( columnIndex) );
+    LinkViewRef* link_view_ptr = const_cast<LinkViewRef*>(&(LangBindHelper::get_linklist_ptr(*ROW(nativeRowPtr), S(columnIndex))));
     return reinterpret_cast<jlong>(link_view_ptr);
 }
 
@@ -269,7 +242,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDouble
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDate
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetTimestamp
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
     TR_ENTER_PTR(nativeRowPtr)
@@ -277,7 +250,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDate
         return;
 
     try {
-        ROW(nativeRowPtr)->set_datetime( S(columnIndex), value);
+        ROW(nativeRowPtr)->set_timestamp( S(columnIndex), from_milliseconds(value));
     } CATCH_STD()
 }
 
@@ -329,18 +302,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray
     if (bytePtr) {
         env->ReleaseByteArrayElements(value, bytePtr, JNI_ABORT);
     }
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jobject jMixedValue)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr)))
-        return;
-
-    try {
-        row_nativeSetMixed(ROW(nativeRowPtr), env, columnIndex, jMixedValue);
-    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLink

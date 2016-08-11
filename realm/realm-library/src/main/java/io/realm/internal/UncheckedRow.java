@@ -145,7 +145,7 @@ public class UncheckedRow extends NativeObject implements Row {
 
     @Override
     public Date getDate(long columnIndex) {
-        return new Date(nativeGetDateTime(nativePointer, columnIndex)*1000);
+        return new Date(nativeGetTimestamp(nativePointer, columnIndex));
     }
 
     @Override
@@ -156,16 +156,6 @@ public class UncheckedRow extends NativeObject implements Row {
     @Override
     public byte[] getBinaryByteArray(long columnIndex) {
         return nativeGetByteArray(nativePointer, columnIndex);
-    }
-
-    @Override
-    public Mixed getMixed(long columnIndex) {
-        return nativeGetMixed(nativePointer, columnIndex);
-    }
-
-    @Override
-    public RealmFieldType getMixedType(long columnIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePointer, columnIndex));
     }
 
     @Override
@@ -217,8 +207,8 @@ public class UncheckedRow extends NativeObject implements Row {
         if (date == null) {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
-        long timestamp = date.getTime() / 1000;
-        nativeSetDate(nativePointer, columnIndex, timestamp);
+        long timestamp = date.getTime();
+        nativeSetTimestamp(nativePointer, columnIndex, timestamp);
     }
 
     /**
@@ -243,15 +233,6 @@ public class UncheckedRow extends NativeObject implements Row {
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
         nativeSetByteArray(nativePointer, columnIndex, data);
-    }
-
-    @Override
-    public void setMixed(long columnIndex, Mixed data) {
-        parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null data is not allowed");
-        }
-        nativeSetMixed(nativePointer, columnIndex, data);
     }
 
     @Override
@@ -311,22 +292,19 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex);
-    protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+    public static native long nativeGetLinkView(long nativePtr, long columnIndex);
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
-    protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
+    protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
-    protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
     static native void nativeClose(long nativeRowPtr);

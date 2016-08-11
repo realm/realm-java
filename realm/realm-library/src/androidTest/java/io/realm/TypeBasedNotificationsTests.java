@@ -43,7 +43,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -86,9 +85,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObject() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -105,9 +104,10 @@ public class TypeBasedNotificationsTests {
         final Dog dog = realm.createObject(Dog.class);
         realm.commitTransaction();
 
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 assertEquals("Akamaru", dog.getName());
                 typebasedCommitInvocations.incrementAndGet();
             }
@@ -122,9 +122,10 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObject_dynamic_realm() {
         final DynamicRealm realm = DynamicRealm.getInstance(looperThread.realmConfiguration);
-        realm.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(realm);
+        realm.addChangeListener(new RealmChangeListener<DynamicRealm>() {
             @Override
-            public void onChange() {
+            public void onChange(DynamicRealm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -142,9 +143,10 @@ public class TypeBasedNotificationsTests {
         final DynamicRealmObject dog = realm.createObject("Dog");
         realm.commitTransaction();
 
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
-            public void onChange() {
+            public void onChange(DynamicRealmObject object) {
                 assertEquals("Akamaru", dog.getString("name"));
                 typebasedCommitInvocations.incrementAndGet();
             }
@@ -160,9 +162,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_copyToRealm() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -181,9 +183,10 @@ public class TypeBasedNotificationsTests {
         final Dog dog = realm.copyToRealm(akamaru);
         realm.commitTransaction();
 
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 assertEquals(8, dog.getAge());
                 typebasedCommitInvocations.incrementAndGet();
             }
@@ -199,9 +202,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_copyToRealmOrUpdate() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -222,12 +225,13 @@ public class TypeBasedNotificationsTests {
         final PrimaryKeyAsLong primaryKeyAsLong = realm.copyToRealmOrUpdate(obj);
         realm.commitTransaction();
 
-        primaryKeyAsLong.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(primaryKeyAsLong);
+        primaryKeyAsLong.addChangeListener(new RealmChangeListener<PrimaryKeyAsLong>() {
             @Override
-            public void onChange() {
+            public void onChange(PrimaryKeyAsLong object) {
                 assertEquals(1, primaryKeyAsLong.getId());
                 assertEquals("Bar", primaryKeyAsLong.getName());
-                assertEquals(1, realm.allObjects(PrimaryKeyAsLong.class).size());
+                assertEquals(1, realm.where(PrimaryKeyAsLong.class).count());
                 typebasedCommitInvocations.incrementAndGet();
             }
         });
@@ -247,9 +251,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObjectFromJson() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -269,9 +273,10 @@ public class TypeBasedNotificationsTests {
             realm.commitTransaction();
             in.close();
 
-            objectFromJson.addChangeListener(new RealmChangeListener() {
+            looperThread.keepStrongReference.add(objectFromJson);
+            objectFromJson.addChangeListener(new RealmChangeListener<AllTypes>() {
                 @Override
-                public void onChange() {
+                public void onChange(AllTypes object) {
                     assertEquals("ObjectFromJson", objectFromJson.getColumnString());
                     assertEquals(1L, objectFromJson.getColumnLong());
                     assertEquals(1.23F, objectFromJson.getColumnFloat(), 0F);
@@ -296,9 +301,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObjectFromJson_from_JSONObject() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -324,9 +329,10 @@ public class TypeBasedNotificationsTests {
             final AllTypes objectFromJson = realm.createObjectFromJson(AllTypes.class, json);
             realm.commitTransaction();
 
-            objectFromJson.addChangeListener(new RealmChangeListener() {
+            looperThread.keepStrongReference.add(objectFromJson);
+            objectFromJson.addChangeListener(new RealmChangeListener<AllTypes>() {
                 @Override
-                public void onChange() {
+                public void onChange(AllTypes object) {
                     assertEquals("ObjectFromJson", objectFromJson.getColumnString());
                     assertEquals(1L, objectFromJson.getColumnLong());
                     assertEquals(1.23F, objectFromJson.getColumnFloat(), 0F);
@@ -351,9 +357,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createOrUpdateObjectFromJson() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -387,9 +393,10 @@ public class TypeBasedNotificationsTests {
             realm.commitTransaction();
             in.close();
 
-            objectFromJson.addChangeListener(new RealmChangeListener() {
+            looperThread.keepStrongReference.add(objectFromJson);
+            objectFromJson.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
                 @Override
-                public void onChange() {
+                public void onChange(AllTypesPrimaryKey object) {
                     assertEquals("ObjectFromJson", objectFromJson.getColumnString());
                     assertEquals(1L, objectFromJson.getColumnLong());
                     assertEquals(1F, objectFromJson.getColumnFloat(), 0F);
@@ -416,9 +423,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void callback_should_trigger_for_createOrUpdateObjectFromJson_from_JSONObject() throws JSONException {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 realm.handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -446,10 +453,11 @@ public class TypeBasedNotificationsTests {
         final AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
         realm.commitTransaction();
 
-        newObj.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(newObj);
+        newObj.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
             @Override
-            public void onChange() {
-                assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
+            public void onChange(AllTypesPrimaryKey object) {
+                assertEquals(1, realm.where(AllTypesPrimaryKey.class).count());
                 assertEquals("bar", newObj.getColumnString());
                 assertTrue(newObj.getColumnBoxedBoolean());
                 typebasedCommitInvocations.incrementAndGet();
@@ -479,9 +487,10 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final Dog dog = realm.where(Dog.class).findFirst();
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 // Step 4: Respond to relevant change
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals("Akamaru", dog.getName());
@@ -489,9 +498,9 @@ public class TypeBasedNotificationsTests {
             }
         });
 
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
@@ -537,9 +546,10 @@ public class TypeBasedNotificationsTests {
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
 
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
                     case 1:
                         assertEquals("Akamaru", dog.getName());
@@ -554,9 +564,9 @@ public class TypeBasedNotificationsTests {
             }
         });
 
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
@@ -605,18 +615,19 @@ public class TypeBasedNotificationsTests {
         final Handler looperHandler2 = new Handler(looperThread2.getLooper());
         final Handler looperHandler3 = new Handler(looperThread3.getLooper());
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 globalCommitInvocations.incrementAndGet();
             }
         });
 
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
                     case 1: // triggered by COMPLETED_ASYNC_REALM_OBJECT from calling dog.load()
                         assertTrue(dog.isLoaded());
@@ -705,18 +716,19 @@ public class TypeBasedNotificationsTests {
     public void callback_with_relevant_commit_from_different_non_looper_realmobject_async() throws Throwable {
         final CountDownLatch nonLooperThread3CloseLatch = new CountDownLatch(1);
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 globalCommitInvocations.incrementAndGet();
             }
         });
 
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
                     case 1:  // triggered by COMPLETED_ASYNC_REALM_OBJECT
                         new RealmBackgroundTask(realm.configuration) {
@@ -798,9 +810,10 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-        dogs.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<Dog> object) {
                 // Step 4: Respond to relevant change
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals(1, dogs.size());
@@ -809,9 +822,9 @@ public class TypeBasedNotificationsTests {
             }
         });
 
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
@@ -855,9 +868,10 @@ public class TypeBasedNotificationsTests {
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         assertTrue(dogs.load());
-        dogs.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<Dog> object) {
                 // Step 4: Respond to relevant change
                 int commits = typebasedCommitInvocations.incrementAndGet();
                 switch (commits) {
@@ -871,9 +885,9 @@ public class TypeBasedNotificationsTests {
             }
         });
 
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
@@ -913,9 +927,9 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmobject_sync() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 realm.handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -931,10 +945,11 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         Dog dog = realm.where(Dog.class).findFirst();
+        looperThread.keepStrongReference.add(dog);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
-            dog.addChangeListener(new RealmChangeListener() {
+            dog.addChangeListener(new RealmChangeListener<Dog>() {
                 @Override
-                public void onChange() {
+                public void onChange(Dog object) {
                     typebasedCommitInvocations.incrementAndGet();
                 }
             });
@@ -951,9 +966,9 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmobject_async() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
-        RealmChangeListener listener = new RealmChangeListener() {
+        RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 realm.handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -972,10 +987,11 @@ public class TypeBasedNotificationsTests {
 
         Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
+        looperThread.keepStrongReference.add(dog);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
-            dog.addChangeListener(new RealmChangeListener() {
+            dog.addChangeListener(new RealmChangeListener<Dog>() {
                 @Override
-                public void onChange() {
+                public void onChange(Dog object) {
                     typebasedCommitInvocations.incrementAndGet();
                 }
             });
@@ -992,9 +1008,9 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmresults_sync() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 realm.handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -1010,10 +1026,11 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        looperThread.keepStrongReference.add(dogs);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
-            dogs.addChangeListener(new RealmChangeListener() {
+            dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                 @Override
-                public void onChange() {
+                public void onChange(RealmResults<Dog> object) {
                     typebasedCommitInvocations.incrementAndGet();
                 }
             });
@@ -1030,9 +1047,9 @@ public class TypeBasedNotificationsTests {
     public void multiple_callbacks_should_be_invoked_realmresults_async() {
         final int NUMBER_OF_LISTENERS = 7;
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 realm.handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -1050,10 +1067,11 @@ public class TypeBasedNotificationsTests {
         RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         assertTrue(dogs.load());
 
+        looperThread.keepStrongReference.add(dogs);
         for (int i = 0; i < NUMBER_OF_LISTENERS; i++) {
-            dogs.addChangeListener(new RealmChangeListener() {
+            dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                 @Override
-                public void onChange() {
+                public void onChange(RealmResults<Dog> object) {
                     typebasedCommitInvocations.incrementAndGet();
                 }
             });
@@ -1077,9 +1095,9 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void non_looper_thread_commit_realmobject_sync() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (realm.where(Dog.class).count() == 2) {
                     realm.handler.post(new Runnable() {
                         @Override
@@ -1097,9 +1115,10 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         Dog dog = realm.where(Dog.class).findFirst();
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 typebasedCommitInvocations.incrementAndGet();
             }
         });
@@ -1130,15 +1149,15 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void non_looper_thread_commit_realmobject_async() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 // Check if the 2nd transaction is committed.
                 if (realm.where(Dog.class).count() == 2) {
                     realm.handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(2,typebasedCommitInvocations.get());
+                            assertEquals(2, typebasedCommitInvocations.get());
                             looperThread.testComplete();
                         }
                     });
@@ -1169,9 +1188,10 @@ public class TypeBasedNotificationsTests {
         };
 
         Dog dog = realm.where(Dog.class).findFirstAsync();
-        dog.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dog);
+        dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
-            public void onChange() {
+            public void onChange(Dog object) {
                 typebasedCommitInvocations.incrementAndGet();
 
                 if (typebasedCommitInvocations.get() == 1) {
@@ -1195,14 +1215,14 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void non_looper_thread_commit_realmresults_sync() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (realm.where(Dog.class).count() == 2) {
                     realm.handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(typebasedCommitInvocations.get(),1);
+                            assertEquals(typebasedCommitInvocations.get(), 1);
                             looperThread.testComplete();
                         }
                     });
@@ -1215,9 +1235,10 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
-        dogs.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<Dog> object) {
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals(2, dogs.size());
             }
@@ -1249,14 +1270,14 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void non_looper_thread_commit_realmresults_async() {
         final Realm realm = looperThread.realm;
-        realm.addChangeListener(new RealmChangeListener() {
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
-            public void onChange() {
+            public void onChange(Realm object) {
                 if (realm.where(Dog.class).count() == 2) {
                     realm.handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            assertEquals(2,typebasedCommitInvocations.get());
+                            assertEquals(2, typebasedCommitInvocations.get());
                             looperThread.testComplete();
                         }
                     });
@@ -1280,9 +1301,10 @@ public class TypeBasedNotificationsTests {
         };
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
-        dogs.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<Dog> object) {
                 typebasedCommitInvocations.incrementAndGet();
                 if (typebasedCommitInvocations.get() == 1) {
                     // COMPLETED_ASYNC_REALM_RESULTS arrived
@@ -1316,9 +1338,9 @@ public class TypeBasedNotificationsTests {
                     bgRealm.createObject(Dog.class);
                     bgRealm.commitTransaction();
 
-                    bgRealm.addChangeListener(new RealmChangeListener() {
+                    bgRealm.addChangeListener(new RealmChangeListener<Realm>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(Realm object) {
                             fail("Callback should not be registered and invoked on a non-Looper thread");
                         }
                     });
@@ -1348,9 +1370,9 @@ public class TypeBasedNotificationsTests {
                     bgRealm.commitTransaction();
 
                     Dog dog = bgRealm.where(Dog.class).findFirst();
-                    dog.addChangeListener(new RealmChangeListener() {
+                    dog.addChangeListener(new RealmChangeListener<Dog>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(Dog object) {
                             fail("Callback should not be registered and invoked on a non-Looper thread");
                         }
                     });
@@ -1380,9 +1402,9 @@ public class TypeBasedNotificationsTests {
                     bgRealm.commitTransaction();
 
                     RealmResults<Dog> dogs = bgRealm.where(Dog.class).findAll();
-                    dogs.addChangeListener(new RealmChangeListener() {
+                    dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                         @Override
-                        public void onChange() {
+                        public void onChange(RealmResults<Dog> object) {
                             fail("Callback should not be registered and invoked on a non-Looper thread");
                         }
                     });
@@ -1398,44 +1420,6 @@ public class TypeBasedNotificationsTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // Test modifying realmObjects in RealmObject's change listener
-    @Test
-    @RunTestInLooperThread
-    public void change_realm_objects_map_in_listener() throws InterruptedException {
-        final Realm realm = looperThread.realm;
-        realm.beginTransaction();
-        // At least two objects are needed to make sure list modification happen during iterating.
-        final Cat cat = realm.createObject(Cat.class);
-        final Owner owner = realm.createObject(Owner.class);
-        owner.setCat(cat);
-        realm.commitTransaction();
-
-        RealmChangeListener listener = new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                Cat cat = owner.getCat();
-                boolean foundKey = false;
-                // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
-                for (WeakReference<RealmObjectProxy> weakReference : realm.handlerController.realmObjects.keySet()) {
-                    if (weakReference.get() == cat) {
-                        foundKey = true;
-                        break;
-                    }
-                }
-                assertTrue(foundKey);
-                looperThread.testComplete();
-            }
-        };
-
-        cat.addChangeListener(listener);
-        owner.addChangeListener(listener);
-
-        realm.beginTransaction();
-        // To make sure the shared group version changed
-        realm.createObject(Owner.class);
-        realm.commitTransaction();
-    }
-
     // Test modifying syncRealmResults in RealmResults's change listener
     @Test
     @RunTestInLooperThread
@@ -1444,12 +1428,12 @@ public class TypeBasedNotificationsTests {
 
         final Realm realm = looperThread.realm;
         // Two results needed to make sure list modification happen while iterating
-        RealmResults<Owner> results1 = realm.allObjects(Owner.class);
-        RealmResults<Cat> results2 = realm.allObjects(Cat.class);
+        RealmResults<Owner> results1 = realm.where(Owner.class).findAll();
+        RealmResults<Cat> results2 = realm.where(Cat.class).findAll();
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
-            public void onChange() {
-                RealmResults<Owner> results = realm.allObjects(Owner.class);
+            public void onChange(Object object) {
+                RealmResults<Owner> results = realm.where(Owner.class).findAll();
                 boolean foundKey = false;
                 // Check if the results has been added to the syncRealmResults in case of the behaviour of
                 // allObjects changes
@@ -1465,6 +1449,8 @@ public class TypeBasedNotificationsTests {
                 finishedLatch.countDown();
             }
         };
+        looperThread.keepStrongReference.add(results1);
+        looperThread.keepStrongReference.add(results2);
         results1.addChangeListener(listener);
         results2.addChangeListener(listener);
 
@@ -1490,9 +1476,10 @@ public class TypeBasedNotificationsTests {
 
         final RealmResults<Dog> dogs =
                 allTypes.getColumnRealmList().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
-        dogs.addChangeListener(new RealmChangeListener() {
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<Dog> object) {
                 if (typebasedCommitInvocations.getAndIncrement() == 0) {
                     assertTrue(dogs.isValid());
                     assertEquals(0, dogs.size());
@@ -1516,7 +1503,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void run() {
                 realm.close();
-                assertEquals(1,typebasedCommitInvocations.get());
+                assertEquals(1, typebasedCommitInvocations.get());
                 looperThread.testComplete();
             }
         });

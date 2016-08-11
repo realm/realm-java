@@ -33,8 +33,8 @@ import java.util.Date;
 import io.realm.entities.AllTypes;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.entities.pojo.InvalidRealmModel;
-import io.realm.entities.pojo.RealmModelWithRealmListOfRealmModel;
 import io.realm.entities.pojo.PojoWithRealmListOfRealmObject;
+import io.realm.entities.pojo.RealmModelWithRealmListOfRealmModel;
 import io.realm.entities.pojo.RealmModelWithRealmModelField;
 import io.realm.entities.pojo.RealmObjectWithRealmListOfRealmModel;
 import io.realm.entities.pojo.RealmObjectWithRealmModelField;
@@ -106,15 +106,15 @@ public class RealmModelTests {
             realm.commitTransaction();
         }
 
-        RealmResults<AllTypesRealmModel> resultList = realm.allObjects(AllTypesRealmModel.class);
-        assertEquals("Realm.get is returning wrong result set", 42, resultList.size());
+        long size = realm.where(AllTypesRealmModel.class).count();
+        assertEquals("Realm.get is returning wrong result set", 42, size);
     }
 
     @Test
     public void copyToRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
-        RealmResults<AllTypesRealmModel> resultList = realm.allObjects(AllTypesRealmModel.class);
-        assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
+        long size = realm.where(AllTypesRealmModel.class).count();
+        assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, size);
     }
 
 
@@ -123,15 +123,15 @@ public class RealmModelTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
         AllTypesRealmModel realmObject = realm.where(AllTypesRealmModel.class).findAllSorted(AllTypesRealmModel.FIELD_LONG).first();
-        AllTypesRealmModel standaloneObject = realm.copyFromRealm(realmObject);
-        assertArrayEquals(realmObject.columnBinary, standaloneObject.columnBinary);
-        assertEquals(realmObject.columnString, standaloneObject.columnString);
-        assertEquals(realmObject.columnLong, standaloneObject.columnLong);
-        assertEquals(realmObject.columnFloat, standaloneObject.columnFloat, 0.00000000001);
-        assertEquals(realmObject.columnDouble, standaloneObject.columnDouble, 0.00000000001);
-        assertEquals(realmObject.columnBoolean, standaloneObject.columnBoolean);
-        assertEquals(realmObject.columnDate, standaloneObject.columnDate);
-        assertEquals(realmObject.hashCode(), standaloneObject.hashCode());
+        AllTypesRealmModel unmanagedObject = realm.copyFromRealm(realmObject);
+        assertArrayEquals(realmObject.columnBinary, unmanagedObject.columnBinary);
+        assertEquals(realmObject.columnString, unmanagedObject.columnString);
+        assertEquals(realmObject.columnLong, unmanagedObject.columnLong);
+        assertEquals(realmObject.columnFloat, unmanagedObject.columnFloat, 0.00000000001);
+        assertEquals(realmObject.columnDouble, unmanagedObject.columnDouble, 0.00000000001);
+        assertEquals(realmObject.columnBoolean, unmanagedObject.columnBoolean);
+        assertEquals(realmObject.columnDate, unmanagedObject.columnDate);
+        assertEquals(realmObject.hashCode(), unmanagedObject.hashCode());
 
     }
 
@@ -151,9 +151,9 @@ public class RealmModelTests {
             }
         });
 
-        assertEquals(1, realm.allObjects(AllTypesRealmModel.class).size());
+        assertEquals(1, realm.where(AllTypesRealmModel.class).count());
 
-        AllTypesRealmModel obj = realm.allObjects(AllTypesRealmModel.class).first();
+        AllTypesRealmModel obj = realm.where(AllTypesRealmModel.class).findFirst();
         assertEquals("Foo", obj.columnString);
     }
 
@@ -163,8 +163,8 @@ public class RealmModelTests {
         realm.createOrUpdateAllFromJson(AllTypesRealmModel.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
         realm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(AllTypesRealmModel.class).size());
-        AllTypesRealmModel obj = realm.allObjects(AllTypesRealmModel.class).first();
+        assertEquals(1, realm.where(AllTypesRealmModel.class).count());
+        AllTypesRealmModel obj = realm.where(AllTypesRealmModel.class).findFirst();
         assertEquals("Bar", obj.columnString);
         assertEquals(2.23F, obj.columnFloat, 0.000000001);
         assertEquals(2.234D, obj.columnDouble, 0.000000001);
@@ -188,12 +188,14 @@ public class RealmModelTests {
     @Test
     @RunTestInLooperThread
     public void async_query() {
-        populateTestRealm(looperThread.realm, TEST_DATA_SIZE);
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, TEST_DATA_SIZE);
 
-        final RealmResults<AllTypesRealmModel> allTypesRealmModels = looperThread.realm.distinctAsync(AllTypesRealmModel.class, AllTypesRealmModel.FIELD_STRING);
-        allTypesRealmModels.addChangeListener(new RealmChangeListener() {
+        final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctAsync(AllTypesRealmModel.FIELD_STRING);
+        looperThread.keepStrongReference.add(allTypesRealmModels);
+        allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
-            public void onChange() {
+            public void onChange(RealmResults<AllTypesRealmModel> object) {
                 assertEquals(1, allTypesRealmModels.size());
                 looperThread.testComplete();
             }
@@ -204,7 +206,7 @@ public class RealmModelTests {
     public void dynamicObject() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        AllTypesRealmModel typedObj = realm.allObjects(AllTypesRealmModel.class).first();
+        AllTypesRealmModel typedObj = realm.where(AllTypesRealmModel.class).findFirst();
         DynamicRealmObject dObj = new DynamicRealmObject(typedObj);
 
         realm.beginTransaction();
@@ -259,7 +261,7 @@ public class RealmModelTests {
     }
 
     // Test the behaviour of a RealmModel, containing a RealmList
-    // of other RealmModel, in managed and un-managed mode
+    // of other RealmModel, in managed and unmanaged mode
     @Test
     public void realmModelWithRealmListOfRealmModel() {
         RealmList<AllTypesRealmModel> allTypesRealmModels = new RealmList<AllTypesRealmModel>();
@@ -288,7 +290,7 @@ public class RealmModelTests {
     }
 
     // Test the behaviour of a RealmModel, containing a RealmList
-    // of RealmObject, in managed and un-managed mode
+    // of RealmObject, in managed and unmanaged mode
     @Test
     public void realmModelWithRealmListOfRealmObject() {
         RealmList<AllTypes> allTypes = new RealmList<AllTypes>();
@@ -317,7 +319,7 @@ public class RealmModelTests {
     }
 
     // Test the behaviour of a RealmObject, containing a RealmList
-    // of RealmModel, in managed and un-managed mode
+    // of RealmModel, in managed and unmanaged mode
     @Test
     public void realmObjectWithRealmListOfRealmModel() {
         RealmList<AllTypesRealmModel> allTypesRealmModel = new RealmList<AllTypesRealmModel>();

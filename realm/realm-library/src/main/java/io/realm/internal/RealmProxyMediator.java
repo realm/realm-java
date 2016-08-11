@@ -21,6 +21,7 @@ import android.util.JsonReader;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,16 +94,58 @@ public abstract class RealmProxyMediator {
     public abstract Set<Class<? extends RealmModel>> getModelClasses();
 
     /**
-     * Copies a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
+     * Copies an unmanaged {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
      * any changes to the original object will not be persisted.
      *
+     * @param realm reference to the {@link Realm} where the object will be copied.
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
-     * @param cache the cache for mapping between standalone objects and their {@link RealmObjectProxy} representation.
+     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
      * @return the managed Realm object.
      */
     public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
+
+    /**
+     * Insert an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original object will not be persisted.
+     *
+     * @param realm reference to the {@link Realm} where the object will be inserted.
+     * @param object {@link RealmObject} to insert.
+     * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
+     */
+    public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+
+    /**
+     * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original object will not be persisted.
+     *
+     * @param realm reference to the {@link Realm} where the objecs will be inserted.
+     * @param object {@link RealmObject} to insert.
+     * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
+     */
+    public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+
+    /**
+     * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original objects will not be persisted.
+     *
+     * @param realm reference to the {@link Realm} where the objects will be inserted.
+     * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.
+     */
+    public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
+
+    /**
+     * Insert a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
+     * doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original objects will not be persisted.
+     *
+     * @param realm reference to the {@link Realm} where the objects will be inserted.
+     * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.
+     */
+    public abstract void insert(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.
@@ -129,13 +172,13 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
 
     /**
-     * Creates a deep standalone copy of a RealmObject. This is a deep copy so all links will be copied as well.
+     * Creates a deep unmanaged copy of a RealmObject. This is a deep copy so all links will be copied as well.
      * The depth can be restricted to a maximum depth after which all links will be turned into null values instead.
      *
      * @param realmObject RealmObject to copy. It must be a valid object.
      * @param maxDepth restrict the depth of the copy to this level. The root object is depth {@code 0}.
-     * @param cache cache used to make sure standalone objects are reused correctly.
-     * @return a standalone copy of the given object.
+     * @param cache cache used to make sure unmanaged objects are reused correctly.
+     * @return an unmanaged copy of the given object.
      */
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 

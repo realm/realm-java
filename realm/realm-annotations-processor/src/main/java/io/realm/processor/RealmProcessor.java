@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -54,7 +53,7 @@ import io.realm.annotations.RealmClass;
  * <ol>
  *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
  *  <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
- *  <li>Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named <moduleName>Mediator.java</li>
+ *  <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
  * </ol>
  *
  * <h1>WHY</h1>
@@ -68,7 +67,7 @@ import io.realm.annotations.RealmClass;
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
- * @RealmModule annotation. Realm automatically knows about this module, but it is still possible for users to create
+ * {@code @RealmModule} annotation. Realm automatically knows about this module, but it is still possible for users to create
  * their own modules with a subset of model classes.</li>
  *
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
@@ -102,6 +101,9 @@ import io.realm.annotations.RealmClass;
 })
 public class RealmProcessor extends AbstractProcessor {
 
+    // Don't consume annotations. This allows 3rd party annotation processors to run.
+    private static final boolean CONSUME_ANNOTATIONS = false;
+
     Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
     private boolean hasProcessedModules = false;
 
@@ -111,8 +113,9 @@ public class RealmProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        // Don't run this processor in subsequent runs. We created everything in the first one.
         if (hasProcessedModules) {
-            return true;
+            return CONSUME_ANNOTATIONS;
         }
         RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
@@ -165,7 +168,9 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         hasProcessedModules = true;
-        return processModules(roundEnv);
+        processModules(roundEnv);
+
+        return CONSUME_ANNOTATIONS;
     }
 
     // Returns true if modules was processed successfully, false otherwise

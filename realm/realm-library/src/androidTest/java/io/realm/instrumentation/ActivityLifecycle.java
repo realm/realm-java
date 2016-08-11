@@ -22,7 +22,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.entities.AllTypes;
 
-public class ActivityLifecycle implements Lifecycle, RealmChangeListener {
+public class ActivityLifecycle implements Lifecycle, RealmChangeListener<RealmResults<AllTypes>> {
     private final RealmConfiguration realmConfiguration;
     private Realm realm;
     private RealmResults<AllTypes> mAllTypes;
@@ -45,7 +45,6 @@ public class ActivityLifecycle implements Lifecycle, RealmChangeListener {
     }
 
     @Override
-    public void onChange() {
-
+    public void onChange(RealmResults<AllTypes> object) {
     }
 }

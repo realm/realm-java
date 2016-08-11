@@ -74,26 +74,6 @@ public class JNIRowTest extends TestCase {
         MoreAsserts.assertEquals(newData, row.getBinaryByteArray(6));
     }
 
-    public void testMixed() {
-        Table table = new Table();
-
-        table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
-
-        table.addEmptyRows(2);
-
-        UncheckedRow row = table.getUncheckedRow(0);
-        row.setMixed(0, new Mixed(1.5));
-
-        assertEquals(1.5, row.getMixed(0).getDoubleValue());
-
-        UncheckedRow row2 = table.getUncheckedRow(1);
-        row2.setMixed(0, new Mixed("test"));
-
-        assertEquals("test", row2.getMixed(0).getStringValue());
-
-
-    }
-
     public void testNull() {
 
         Table table = new Table();

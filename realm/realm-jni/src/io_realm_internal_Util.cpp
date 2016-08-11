@@ -16,6 +16,9 @@
 
 #include <jni.h>
 
+#include <realm/string_data.hpp>
+#include <realm/unicode.hpp>
+
 #include "util.hpp"
 #include "mem_usage.hpp"
 #include "io_realm_internal_Util.h"
@@ -31,7 +34,8 @@ using std::string;
 int trace_level = 0;
 const char* log_tag = "REALM";
 
-const char* const TABLE_PREFIX = "class_";
+const string TABLE_PREFIX("class_");
+
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
@@ -78,7 +82,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, j
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(
     JNIEnv* env, jclass)
 {
-    return to_jstring(env, string(TABLE_PREFIX));
+    realm::StringData sd(TABLE_PREFIX);
+    return to_jstring(env, sd);
 }
 
 // -------------------------- Testcases for exception handling
@@ -169,6 +174,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, BadVersion, "parm1", "parm2");
             break;
+        case LockFileError:
+            expect = "io.realm.exceptions.IncompatibleLockFileException: parm1";
+            if (dotest)
+                ThrowException(env, LockFileError, "parm1", "parm2");
+            break;
+
 
     }
     if (dotest) {

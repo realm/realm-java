@@ -35,6 +35,25 @@ import io.realm.annotations.Required;
 // 11 Object
 public class NoPrimaryKeyNullTypes extends RealmObject {
 
+    public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
+    public static String FIELD_STRING_NULL = "fieldStringNull";
+    public static String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
+    public static String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
+    public static String FIELD_BYTE_NOT_NULL = "fieldByteNotNull";
+    public static String FIELD_BYTE_NULL = "fieldByteNull";
+    public static String FIELD_SHORT_NOT_NULL = "fieldShortNotNull";
+    public static String FIELD_SHORT_NULL = "fieldShortNull";
+    public static String FIELD_INTEGER_NOT_NULL = "fieldIntegerNotNull";
+    public static String FIELD_INTEGER_NULL = "fieldIntegerNull";
+    public static String FIELD_LONG_NOT_NULL = "fieldLongNotNull";
+    public static String FIELD_LONG_NULL = "fieldLongNull";
+    public static String FIELD_FLOAT_NOT_NULL = "fieldFloatNotNull";
+    public static String FIELD_FLOAT_NULL = "fieldFloatNull";
+    public static String FIELD_DOUBLE_NOT_NULL = "fieldDoubleNotNull";
+    public static String FIELD_DOUBLE_NULL = "fieldDoubleNull";
+    public static String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
+    public static String FIELD_DATE_NULL = "fieldDateNull";
+
     @Required
     private String fieldStringNotNull = "";
     private String fieldStringNull;

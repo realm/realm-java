@@ -56,7 +56,7 @@ When writing unit tests, use the following guide lines:
 5) Use the `@RunInLooperThread` rule for any test that depends on Realms notification system. 
 
 6) Input-parameters should be boundary tested. Especially `Null/NotNull`, but also the state of Realm objects like
-   standalone objects, deleted objects, objects from other threads.
+   unmanaged objects, deleted objects, objects from other threads.
 
 7) Unit tests are not required to only have 1 test. It is acceptable to combine multiple tests into one unit test, but
    if it fails, it should be clear why it failed. E.g. you can group related tests with the same setup like negative 
