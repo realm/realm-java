@@ -915,6 +915,60 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringContains);
 }
 
+// Binary
+
+enum BinaryPredicate {
+    BinaryEqual,
+    BinaryNotEqual
+};
+
+static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value, BinaryPredicate predicate) {
+    JniLongArray arr(env, columnIndices);
+    jsize arr_len = arr.len();
+    try {
+        if (value == NULL) {
+            if (!TBL_AND_COL_NULLABLE(env, getTableByArray(nativeQueryPtr, arr).get(), arr[arr_len-1])) {
+                return;
+            }
+        }
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Binary)) {
+                return;
+            }
+            switch (predicate) {
+            case BinaryEqual:
+                Q(nativeQueryPtr)->equal(S(arr[0]), value);
+                break;
+            case BinaryNotEqual:
+                Q(nativeQueryPtr)->not_equal(S(arr[0]), value);
+                break;
+            }
+        }
+        else {
+            TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
+            switch (predicate) {
+            case BinaryEqual:
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).equal(BinaryData(value));
+                break;
+            case BinaryNotEqual:
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).not_equal(BinaryData(value));
+                break;
+            }
+        }
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3B
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
+{
+    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3B
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
+{
+    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryNotEqual);
+}
 
 // General ----------------------------------------------------
 // TODO:
