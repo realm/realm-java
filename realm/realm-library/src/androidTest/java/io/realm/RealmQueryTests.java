@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.BinaryOnly;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
@@ -405,6 +406,27 @@ public class RealmQueryTests {
         resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+    }
+
+    @Test
+    public void equalTo_binary() {
+        byte[][] binaries = {{1, 2, 3}, {1, 2}, {1, 2, 3}, {2, 3}, {2}, {4, 5, 6}};
+
+        realm.beginTransaction();
+        realm.delete(BinaryOnly.class);
+        for (byte[] binary : binaries) {
+            BinaryOnly binaryOnly = realm.createObject(BinaryOnly.class);
+            binaryOnly.setBinary(binary);
+        }
+        realm.commitTransaction();
+
+        RealmResults<BinaryOnly> resultList;
+        resultList = realm.where(BinaryOnly.class).equalTo("binary", binaries[0]).findAll();
+        assertEquals(2, resultList.size());
+        resultList = realm.where(BinaryOnly.class).equalTo("binary", binaries[1]).findAll();
+        assertEquals(1, resultList.size());
+        resultList = realm.where(BinaryOnly.class).equalTo("binary", new byte[] {1}).findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -827,6 +849,27 @@ public class RealmQueryTests {
     }
 
     @Test
+    public void notEqualTo_binary() {
+        byte[][] binaries = {{1, 2, 3}, {1, 2}, {1, 2, 3}, {2, 3}, {2}, {4, 5, 6}};
+
+        realm.beginTransaction();
+        realm.delete(BinaryOnly.class);
+        for (byte[] binary : binaries) {
+            BinaryOnly binaryOnly = realm.createObject(BinaryOnly.class);
+            binaryOnly.setBinary(binary);
+        }
+        realm.commitTransaction();
+
+        RealmResults<BinaryOnly> resultList;
+        resultList = realm.where(BinaryOnly.class).notEqualTo("binary", binaries[0]).findAll();
+        assertEquals(4, resultList.size());
+        resultList = realm.where(BinaryOnly.class).equalTo("binary", binaries[1]).findAll();
+        assertEquals(5, resultList.size());
+        resultList = realm.where(BinaryOnly.class).equalTo("binary", new byte[] {1}).findAll();
+        assertEquals(6, resultList.size());
+    }
+
+    @Test
     public void contains_caseSensitive() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
@@ -1044,7 +1087,12 @@ public class RealmQueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        // 2 Bytes skipped, doesn't support equalTo query
+        // 2 Bytes
+        try {
+            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NOT_NULL, (byte[]) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
         // 3 Boolean
         try {
             realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (Boolean) null).findAll();
@@ -1354,7 +1402,11 @@ public class RealmQueryTests {
         assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
         assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").findAll().size());
         assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
-        // 2 Bytes skipped, doesn't support equalTo query
+        // 2 Bytes
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {0}).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).findAll().size());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2, 3}).findAll().size());
         // 3 Boolean
         assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
         assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
@@ -1429,7 +1481,9 @@ public class RealmQueryTests {
         // 1 String
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
-        // 2 Bytes skipped, doesn't support notEqualTo query
+        // 2 Bytes
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).findAll().size());
         // 3 Boolean
         assertEquals(1, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
