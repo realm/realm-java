@@ -956,10 +956,10 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
             switch (predicate) {
             case BinaryEqual:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).equal(value2));
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) == value2);
                 break;
             case BinaryNotEqual:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).not_equal(value2));
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) != value2);
                 break;
             }
         }
