@@ -8,7 +8,7 @@
 # 3. rebuild project using Android Studio (or gradle)
 
 # Setting up
-CLASSDIR="$(pwd)/../realm/build/intermediates/classes/release/"
+CLASSDIR="$(pwd)/../realm-library/build/intermediates/classes/release/"
 JNIDIR="$(pwd)/src"
 
 # Generate the headers
