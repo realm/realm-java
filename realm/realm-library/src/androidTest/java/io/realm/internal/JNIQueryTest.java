@@ -805,9 +805,9 @@ public class JNIQueryTest extends TestCase {
         table.addColumn(RealmFieldType.BINARY, "binary");
 
         final byte[] binary1 = new byte[] {0x01, 0x02, 0x03, 0x04};
-        final byte[] binary2 = new byte[] {0x05, 0x06, 0x07, 0x08};
-        final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x0c};
-        final byte[] binary4 = new byte[] {0x0d, 0x0e, 0x0f, 0x10};
+        final byte[] binary2 = new byte[] {0x05, 0x02, 0x03, 0x08};
+        final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x04};
+        final byte[] binary4 = new byte[] {0x05, 0x0a, 0x0b, 0x10};
 
         table.add((Object) binary1);
         table.add((Object) binary2);
@@ -823,5 +823,22 @@ public class JNIQueryTest extends TestCase {
 
         assertEquals(3L, table.where().notEqualTo(new long[]{0}, binary2).count());
         assertEquals(3L, table.where().notEqualTo(new long[]{0}, binary4).count());
+
+        // Begins with
+
+        assertEquals(1L, table.where().beginsWith(new long[]{0}, new byte[]{0x01}).count());
+        assertEquals(2L, table.where().beginsWith(new long[]{0}, new byte[]{0x05}).count());
+
+        // Ends with
+
+        assertEquals(2L, table.where().beginsWith(new long[]{0}, new byte[]{0x04}).count());
+        assertEquals(1L, table.where().beginsWith(new long[]{0}, new byte[]{0x08}).count());
+
+        // Contains
+
+        assertEquals(1L, table.where().contains(new long[]{0}, new byte[]{0x01, 0x02}).count());
+        assertEquals(2L, table.where().contains(new long[]{0}, new byte[]{0x02, 0x03}).count());
+        assertEquals(2L, table.where().contains(new long[]{0}, new byte[]{0x0a, 0x0b}).count());
+        assertEquals(1L, table.where().contains(new long[]{0}, new byte[]{0x0b, 0x10}).count());
     }
 }
