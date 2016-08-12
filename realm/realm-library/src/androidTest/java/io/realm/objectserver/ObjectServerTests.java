@@ -1,5 +1,6 @@
 package io.realm.objectserver;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -9,8 +10,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.objectserver.credentials.AccessTokenCredentials;
+import io.realm.objectserver.credentials.CredentialsHandler;
+import io.realm.objectserver.session.Session;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 @RunWith(AndroidJUnit4.class)
@@ -20,10 +28,12 @@ public class ObjectServerTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     private Realm realm;
+    private Context context;
 
     @Before
-    public void setUp() {
-        RealmObjectServer.setGlobalAuthentificationServer();
+    public void setUp() throws MalformedURLException {
+        ObjectServer.setGlobalAuthentificationServer(new URL("realm://sync.realm.io/auth"));
+        context = InstrumentationRegistry.getTargetContext();
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
@@ -51,34 +61,30 @@ public class ObjectServerTests {
 //        User rosUser = new User(); // anonymous credentials
 //        rosUser.addCredentials(getFacebookToken()); // convert to
 //
+        ObjectServerConfiguration syncConfig = new ObjectServerConfiguration.Builder(context)
+                // Standard Realm properties
+                .name("testrealm.realm") // Local name
 
-        RealmObjectServerConfiguration syncConfig = RealmObjectServerConfiguration.from(config)
+//                // ROS specific
                 .remoteRealm("realm://realm.io/testrealm")
                 .credentials(new CredentialsHandler() {
-                    void credentialsNeeded(SessionInfo session) {
-                        // Get the credentials somehow
-                        session.setCredentials(getFacebookCredentials())
-                    }
-                })
-                .replicationPolicy(new SyncPolicy() {
                     @Override
-                    public void apply(SessionInfo session) {
-                        session.start();
-
+                    public void getCredentials(Session session) {
+                        // Get the credentials somehow
+                        session.setCredentials(new AccessTokenCredentials("accessToken", "refreshToken"));
                     }
                 })
-                .autoConnect() // Will automatically handle connections as part of the normal Realm lifecycle.
                 .build();
+
 
         // Extra. Manually start synchronizing.
         // Will trigger a request for credentials if they are not provided by the configuration
 
-        // As normal. `connect` can be done before or after, doesn't matter.
-        Realm realm = Realm.getDefaultInstance(syncConfig);
-
+        // As normal. `bind` can be done before or after, doesn't matter.
+        Realm realm = Realm.getInstance(syncConfig);
 
         // If needed
-        session.disconnect();
+//        session.disconnect();
 
 
 

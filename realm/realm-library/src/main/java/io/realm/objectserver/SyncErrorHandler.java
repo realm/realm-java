@@ -16,6 +16,8 @@
 
 package io.realm.objectserver;
 
+import io.realm.objectserver.session.Session;
+
 public interface SyncErrorHandler {
-    void onError(SessionInfo session, int errorCode, String errorMsg); // TODO What type of error is returned from Core?
+    void onError(Session session, int errorCode, String errorMsg); // TODO What type of error is returned from Core?
 }

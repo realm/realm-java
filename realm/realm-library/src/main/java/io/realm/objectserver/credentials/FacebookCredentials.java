@@ -2,9 +2,9 @@ package io.realm.objectserver.credentials;
 
 import java.net.URL;
 
-import io.realm.objectserver.RealmObjectServer;
+import io.realm.objectserver.ObjectServer;
 
-public class Facebook extends ObjectServerCredentials {
+public class FacebookCredentials extends Credentials {
 
     private final String token;
 
@@ -15,10 +15,10 @@ public class Facebook extends ObjectServerCredentials {
      * @param createUser creates a new credentials on the Authentication Server if it doesn't exists already.
      *
      * @see <a href="LINK_HERE">Tutorial showing how to get an token using Facebooks SDK</a>
-     * @see io.realm.objectserver.RealmObjectServer#setGlobalAuthentificationServer(URL);
+     * @see ObjectServer#setGlobalAuthentificationServer(URL);
      */
-    public Facebook(String token, boolean createUser) {
-        this(token, createUser, RealmObjectServer.getGlobalAuthentificationServer());
+    public FacebookCredentials(String token, boolean createUser) {
+        this(token, createUser, ObjectServer.getGlobalAuthentificationServer());
     }
 
     /**
@@ -29,9 +29,9 @@ public class Facebook extends ObjectServerCredentials {
      * @param authenticationServer the Server that can be used to validate the credentials.
      *
      * @see <a href="LINK_HERE">Tutorial showing how to get an token using Facebooks SDK</a>
-     * @see io.realm.objectserver.RealmObjectServer#setGlobalAuthentificationServer(URL);
+     * @see ObjectServer#setGlobalAuthentificationServer(URL);
      */
-    public Facebook(String token, boolean createUser, URL authenticationServer) {
+    public FacebookCredentials(String token, boolean createUser, URL authenticationServer) {
         super(authenticationServer, createUser);
         this.token = token;
     }

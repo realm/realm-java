@@ -34,12 +34,12 @@ import java.net.URL;
  *
  * This class is thread safe.
  */
-public abstract class ObjectServerCredentials {
+public abstract class Credentials {
 
     private final boolean createUser;
     private final URL authentificationUrl;
 
-    public ObjectServerCredentials(URL authentificationUrl, boolean createUser) {
+    public Credentials(URL authentificationUrl, boolean createUser) {
         this.authentificationUrl = authentificationUrl;
         this.createUser = createUser;
     }

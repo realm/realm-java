@@ -395,6 +395,9 @@ public class RealmConfiguration {
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
+        /**
+         * IMPORTANT: When adding any new methods to this class also add them to ObjectServerConfiguration.Builder
+         */
         private File folder;
         private String fileName;
         private String assetFilePath;

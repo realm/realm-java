@@ -2,7 +2,7 @@ package io.realm.objectserver.credentials;
 
 import java.net.URL;
 
-public class UsernameAndPassword extends ObjectServerCredentials {
+public class UsernameAndPassword extends Credentials {
 
 
     public UsernameAndPassword(URL authentificationUrl, boolean createUser) {

@@ -16,7 +16,7 @@
 
 package io.realm.objectserver;
 
-import io.realm.objectserver.credentials.ObjectServerCredentials;
+import io.realm.objectserver.credentials.Credentials;
 
 /**
  * The credentials object describes a credentials on the Realm Object Server.
@@ -32,7 +32,7 @@ public class User {
      * Creates a credentials with a given set of credenStials. Realm Object Server will grant permission and access
      * if _any_ of the credentials are accepted.
      */
-    public User(ObjectServerCredentials... credentialses) {
+    public User(Credentials... credentialses) {
 
     }
 
@@ -40,15 +40,11 @@ public class User {
      * Add a new set of credentials to a given credentials. If the credentials is an anonymous credentials, it will be converted to
      * @param credentials
      */
-    public void addCredentials(ObjectServerCredentials credentials) {
+    public void addCredentials(Credentials credentials) {
 
     }
 
-    public void removeCredentials(ObjectServerCredentials credentials) {
-
-    }
-
-    public void setUserEventsHandler(UserEventsHandler handler) {
+    public void removeCredentials(Credentials credentials) {
 
     }
 }
