@@ -16,6 +16,7 @@
 * `insert()` now correctly throws an exception if two different objects have the same primary key (#3212).
 * Blackberry Z10 throwing "Function not implemented" (#3178).
 * Reduced the number of file descriptors used by Realm Core (#3197).
+* `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
 
 ### Internal
 
