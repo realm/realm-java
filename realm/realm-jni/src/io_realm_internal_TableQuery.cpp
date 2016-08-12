@@ -929,19 +929,23 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
     JniLongArray arr(env, columnIndices);
     jsize arr_len = arr.len();
     try {
+        BinaryData value2;
         if (value == NULL) {
             if (!TBL_AND_COL_NULLABLE(env, getTableByArray(nativeQueryPtr, arr).get(), arr[arr_len-1])) {
                 return;
             }
+            value2 = BinaryData();
         }
-        jbyte* bytePtr = env->GetByteArrayElements(value, NULL);
-        if (!bytePtr) {
-            ThrowException(env, IllegalArgument, "binaryPredicate");
-            return;
+        else {
+            jbyte* bytePtr = env->GetByteArrayElements(value, NULL);
+            if (!bytePtr) {
+                ThrowException(env, IllegalArgument, "binaryPredicate");
+                return;
+            }
+            size_t dataLen = S(env->GetArrayLength(value));
+            value2 = BinaryData(reinterpret_cast<char*>(bytePtr), dataLen);
+            env->ReleaseByteArrayElements(value, bytePtr, 0);
         }
-        size_t dataLen = S(env->GetArrayLength(value));
-        BinaryData value2(reinterpret_cast<char*>(bytePtr), dataLen);
-        env->ReleaseByteArrayElements(value, bytePtr, 0);
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Binary)) {
                 return;
