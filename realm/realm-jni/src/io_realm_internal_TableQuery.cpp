@@ -897,19 +897,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3JLja
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringNotEqual);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3JLjava_lang_String_2Z(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringBeginsWith);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3JLjava_lang_String_2Z(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringEndsWith);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3JLjava_lang_String_2Z(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringContains);
@@ -919,7 +919,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(
 
 enum BinaryPredicate {
     BinaryEqual,
-    BinaryNotEqual
+    BinaryNotEqual,
+    BinaryContains,
+    BinaryBeginsWith,
+    BinaryEndsWith
 };
 
 static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value, BinaryPredicate predicate) {
@@ -950,6 +953,15 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             case BinaryNotEqual:
                 Q(nativeQueryPtr)->not_equal(S(arr[0]), value2);
                 break;
+            case BinaryContains:
+                Q(nativeQueryPtr)->contains(S(arr[0]), value2);
+                break;
+            case BinaryBeginsWith:
+                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2);
+                break;
+            case BinaryEndsWith:
+                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2);
+                break;
             }
         }
         else {
@@ -960,6 +972,15 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
                 break;
             case BinaryNotEqual:
                 Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) != value2);
+                break;
+            case BinaryContains:
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).contains(value2));
+                break;
+            case BinaryBeginsWith:
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).begins_with(value2));
+                break;
+            case BinaryEndsWith:
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).ends_with(value2));
                 break;
             }
         }
@@ -976,6 +997,24 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3B
   (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
 {
     TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryNotEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3J_3B
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
+{
+    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryBeginsWith);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3J_3B
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
+{
+    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryEndsWith);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3J_3B
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
+{
+    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryContains);
 }
 
 // General ----------------------------------------------------
