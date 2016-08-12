@@ -15,6 +15,8 @@
  */
 
 #include <jni.h>
+#include "io_realm_RealmObjectSchema.h"
+
 #include <object-store/src/shared_realm.hpp>
 #include <object-store/src/object_schema.hpp>
 #include <object-store/src/property.hpp>
@@ -24,9 +26,22 @@
 using namespace realm;
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema
-(JNIEnv *env, jclass, jlong nativeSharedRealmPtr, jstring className) {
+Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema__(
+        JNIEnv *env, jclass
+) {
     TR_ENTER()
+    try {
+        auto* object_schema = new ObjectSchema();
+        return reinterpret_cast<jlong>(object_schema);
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema__JLjava_lang_String_2
+(JNIEnv *env, jclass, jlong nativeSharedRealmPtr, jstring className) {
+    TR_ENTER_PTR(nativeSharedRealmPtr)
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativeSharedRealmPtr));
         JStringAccessor name(env, className);
@@ -49,8 +64,20 @@ Java_io_realm_RealmObjectSchema_nativeClose
     CATCH_STD()
 }
 
+JNIEXPORT jstring JNICALL
+Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass type, jlong native_ptr) {
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
+        auto name = object_schema->name;
+        return to_jstring(env, name);
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmObjectSchema_nativeGetPropertyByString
+Java_io_realm_RealmObjectSchema_nativeGetPropertyByName
 (JNIEnv *env, jclass, jlong native_ptr, jstring name) {
     TR_ENTER_PTR(native_ptr)
     auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);

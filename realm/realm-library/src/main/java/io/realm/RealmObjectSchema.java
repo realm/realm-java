@@ -85,7 +85,7 @@ public final class RealmObjectSchema {
         this.table = table;
         this.columnIndices = columnIndices;
         this.properties = new ArrayList<>();
-        this.nativePtr = nativeCreateObjectSchema(realm.sharedRealm.getNativePtr());
+        this.nativePtr = nativeCreateObjectSchema();
     }
 
     RealmObjectSchema(SharedRealm sharedRealm, String className) {
@@ -124,7 +124,7 @@ public final class RealmObjectSchema {
      * @return the name of the RealmObject class represented by this schema.
      */
     public String getClassName() {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
+        return nativeGetClassName(nativePtr);
     }
 
     /**
@@ -227,6 +227,10 @@ public final class RealmObjectSchema {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+
+        Property property = new Property(fieldName, RealmFieldType.OBJECT, objectSchema);
+        properties.add(property);
+
         return this;
     }
 
@@ -242,6 +246,10 @@ public final class RealmObjectSchema {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+
+        Property property = new Property(fieldName, RealmFieldType.LIST, objectSchema);
+        properties.add(property);
+
         return this;
     }
 
@@ -815,11 +823,12 @@ public final class RealmObjectSchema {
         }
     }
 
-    private static native long nativeCreateObjectSchema(long nativeSharedGroupPtr);
+    private static native long nativeCreateObjectSchema();
     private static native long nativeCreateObjectSchema(long nativeSharedRealmPtr, String className);
+    private static native String nativeGetClassName(long nativePtr);
     private static native void nativeClose(long nativePtr);
     private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
     private static native long nativeGetPropertyByName(long nativePtr, String name);
-    private static native long nativeRemovePropertyByName(long nativePtr, String name);
+    private static native void nativeRemovePropertyByName(long nativePtr, String name);
 
 }

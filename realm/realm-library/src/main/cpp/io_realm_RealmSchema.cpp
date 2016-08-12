@@ -15,6 +15,7 @@
  */
 
 #include <jni.h>
+#include "io_realm_RealmSchema.h"
 
 #include <object-store/src/schema.hpp>
 #include <object-store/src/object_schema.hpp>
@@ -24,11 +25,12 @@
 using namespace realm;
 
 JNIEXPORT jlong JNICALL
-io_realm_RealmSchema_nativeCreateSchema(JNIEnv *env, jclass)
+Java_io_realm_RealmSchema_nativeCreateSchema(JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
-        auto *schema = new Schema({});
+        auto *schema = new Schema();
+        TR("schema = %p", VOID_PTR(schema));
         return reinterpret_cast<jlong>(schema);
     }
     CATCH_STD()
@@ -36,7 +38,7 @@ io_realm_RealmSchema_nativeCreateSchema(JNIEnv *env, jclass)
 }
 
 JNIEXPORT void JNICALL
-io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr)
+Java_io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     auto *schema  = reinterpret_cast<Schema*>(native_ptr);
@@ -44,7 +46,7 @@ io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr)
 }
 
 JNIEXPORT jboolean JNICALL
-io_realm_RealmSchema_nativeHasObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
+Java_io_realm_RealmSchema_nativeHasObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
 {
     TR_ENTER_PTR(native_schema_ptr)
     auto *schema = reinterpret_cast<Schema*>(native_schema_ptr);
@@ -57,7 +59,7 @@ io_realm_RealmSchema_nativeHasObjectSchemaByName(JNIEnv *env, jclass, jlong nati
 }
 
 JNIEXPORT jlong JNICALL
-io_realm_RealmSchema_nativeGetObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
+Java_io_realm_RealmSchema_nativeGetObjectSchemaByName(JNIEnv *env, jclass, jlong native_schema_ptr, jstring j_name)
 {
     TR_ENTER_PTR(native_schema_ptr)
     auto *schema = reinterpret_cast<Schema*>(native_schema_ptr);

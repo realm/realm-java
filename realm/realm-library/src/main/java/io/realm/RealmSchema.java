@@ -58,6 +58,7 @@ public final class RealmSchema {
      */
     RealmSchema(BaseRealm realm) {
         this.realm = realm;
+        nativePtr = nativeCreateSchema();
     }
 
     /**
@@ -69,6 +70,17 @@ public final class RealmSchema {
      */
     public RealmObjectSchema get(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
+        if (hasObjectSchemaByName(className)) {
+            RealmObjectSchema realmObjectSchema = getObjectSchemaByName(className);
+            Table table = realmObjectSchema.table;
+            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
+
+            return realmObjectSchema;
+        } else {
+            return null;
+        }
+
+        /*
         String internalClassName = TABLE_PREFIX + className;
         if (realm.sharedRealm.hasTable(internalClassName)) {
             Table table = realm.sharedRealm.getTable(internalClassName);
@@ -77,6 +89,7 @@ public final class RealmSchema {
         } else {
             return null;
         }
+        */
     }
 
     /**

@@ -120,10 +120,17 @@ public final class SharedRealm implements Closeable {
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
+        SchemaMode schemaMode;
+        // FIXME: Should SCHEMA_MODE_MANUAL be default?
+        if (config.shouldDeleteRealmIfMigrationNeeded()) {
+            schemaMode = SchemaMode.SCHEMA_MODE_RESET_FILE;
+        } else {
+            schemaMode = SchemaMode.SCHEMA_MODE_MANUAL;
+        }
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
-                SchemaMode.SCHEMA_MODE_MANUAL.value,
+                schemaMode.value,
                 config.getDurability() == Durability.MEM_ONLY,
                 false,
                 false,

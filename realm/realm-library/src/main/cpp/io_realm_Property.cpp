@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include <jni.h>
+#include "io_realm_Property.h"
+
 #include <object-store/src/property.hpp>
 
 #include "util.hpp"
@@ -21,13 +24,13 @@
 using namespace realm;
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_Property_nativeCreateProperty
-(JNIEnv *env, jstring name, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable) {
+Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ
+(JNIEnv *env, jclass, jstring name, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable) {
     TR_ENTER()
     try {
         JStringAccessor str(env, name);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type)); // FIXME: is validation done by object store?
-        Property *property = new Property(str, p_type, nullptr, nullptr, to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable));
+        Property *property = new Property(str, p_type, "", "", to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable));
         return reinterpret_cast<jlong>(property);
     }
     CATCH_STD()
@@ -35,13 +38,13 @@ Java_io_realm_Property_nativeCreateProperty
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_Property_nativeCreateProperty(JNIEnv *env, jstring j_name, jint type, jstring j_link_name) {
+Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(JNIEnv *env, jclass, jstring j_name, jint type, jstring j_link_name) {
     TR_ENTER()
     try {
         JStringAccessor name(env, j_name);
         JStringAccessor link_name(env, j_link_name);
         auto  p_type = static_cast<PropertyType>(static_cast<int>(type)); // FIXME: is validation done by object store?
-        auto *property = new Property(name, p_type, link_name, nullptr, false, false, false);
+        auto *property = new Property(name, p_type, link_name, "", false, false, false);
         return reinterpret_cast<jlong>(property);
     }
     CATCH_STD()
@@ -50,26 +53,33 @@ Java_io_realm_Property_nativeCreateProperty(JNIEnv *env, jstring j_name, jint ty
 
 JNIEXPORT void JNICALL
 Java_io_realm_Property_nativeClose
-(JNIEnv *, jlong property_ptr) {
+(JNIEnv *env, jclass, jlong property_ptr) {
     TR_ENTER_PTR(property_ptr)
-    auto* property = reinterpret_cast<Property*>(property_ptr);
-    delete property;
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        delete property;
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_Property_nativeIsIndexable
-(JNIEnv *, jlong property_ptr) {
+(JNIEnv *env, jclass, jlong property_ptr) {
     TR_ENTER_PTR(property_ptr)
-
-    auto* property = reinterpret_cast<Property*>(property_ptr);
-    return property->is_indexable();
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        return property->is_indexable();
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_Property_nativeRequiresIndex
-(JNIEnv *, jlong property_ptr) {
+(JNIEnv *env, jclass, jlong property_ptr) {
     TR_ENTER_PTR(property_ptr)
-
-    auto* property = reinterpret_cast<Property*>(property_ptr);
-    return property->requires_index();
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        return property->requires_index();
+    }
+    CATCH_STD()
 }
