@@ -831,8 +831,8 @@ public class JNIQueryTest extends TestCase {
 
         // Ends with
 
-        assertEquals(2L, table.where().beginsWith(new long[]{0}, new byte[]{0x04}).count());
-        assertEquals(1L, table.where().beginsWith(new long[]{0}, new byte[]{0x08}).count());
+        assertEquals(2L, table.where().endsWith(new long[]{0}, new byte[]{0x04}).count());
+        assertEquals(1L, table.where().endsWith(new long[]{0}, new byte[]{0x08}).count());
 
         // Contains
 

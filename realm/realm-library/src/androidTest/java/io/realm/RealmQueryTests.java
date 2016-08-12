@@ -1719,30 +1719,6 @@ public class RealmQueryTests {
         assertEquals(0, resultList.size());
     }
 
-    // Querying nullable field with beginsWith - all byte arrays begin with null
-    @Test
-    public void beginWith_nullForNullableByteArrays() {
-        TestHelper.populateTestRealmForNullTests(realm);
-        assertEquals(new byte[] {0}, realm.where(NullTypes.class).beginsWith(NullTypes.FIELD_BYTES_NULL,
-                (byte[]) null).findFirst().getFieldBytesNotNull());
-    }
-
-    // Querying nullable field with endsWith - all byte arrays contain with null
-    @Test
-    public void contains_nullForNullableByteArrays() {
-        TestHelper.populateTestRealmForNullTests(realm);
-        assertEquals(new byte[] {0}, realm.where(NullTypes.class).contains(NullTypes.FIELD_BYTES_NULL,
-                (byte[]) null).findFirst().getFieldBytesNotNull());
-    }
-
-    // Querying nullable field with endsWith - all byte arrays end with null
-    @Test
-    public void endsWith_nullForNullableByteArrays() {
-        TestHelper.populateTestRealmForNullTests(realm);
-        assertEquals(new byte[] {0}, realm.where(NullTypes.class).endsWith(NullTypes.FIELD_BYTES_NULL,
-                (byte[]) null).findFirst().getFieldBytesNotNull());
-    }
-
     // Test min on empty columns
     @Test
     public void min_emptyColumns() {
