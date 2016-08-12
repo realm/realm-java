@@ -75,6 +75,12 @@ Prerequisites:
     export ANDROID_NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
     ```
 
+ * If you want to build with Android Studio, `ndk.dir` has to be defined in the `realm/local.properties` as well.
+
+    ```
+    ndk.dir=/usr/local/Cellar/android-ndk-r10e/r10e
+    ```
+
  * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
 
     ```
