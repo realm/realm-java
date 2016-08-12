@@ -1196,6 +1196,20 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
+     * Condition that value of field contains the specified byte array.
+     *
+     * @param fieldName the field to compare.
+     * @param value the byte array.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> contains(String fieldName, byte[] value) {
+        long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
+        this.query.contains(columnIndices, value);
+        return this;
+    }
+
+    /**
      * Condition that the value of field begins with the specified string.
      *
      * @param fieldName the field to compare.
@@ -1223,6 +1237,20 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
+     * Condition that the value of field begins with the specified byte array.
+     *
+     * @param fieldName the field to compare.
+     * @param value the byte array.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> beginsWith(String fieldName, byte[] value) {
+        long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
+        this.query.beginsWith(columnIndices, value);
+        return this;
+    }
+
+    /**
      * Condition that the value of field ends with the specified string.
      *
      * @param fieldName the field to compare.
@@ -1246,6 +1274,20 @@ public final class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
         this.query.endsWith(columnIndices, value, casing);
+        return this;
+    }
+
+    /**
+     * Condition that the value of field ends with the specified byte array.
+     *
+     * @param fieldName the field to compare.
+     * @param value the byte array.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> endsWith(String fieldName, byte[] value) {
+        long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
+        this.query.endsWith(columnIndices, value);
         return this;
     }
 
