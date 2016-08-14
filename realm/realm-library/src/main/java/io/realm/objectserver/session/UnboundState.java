@@ -9,19 +9,24 @@ import io.realm.objectserver.credentials.Credentials;
 public class UnboundState extends FsmState {
 
     @Override
-    public void entry(Session session) {
+    public void onEnterState() {
         // Do nothing. Just wait for further user action.
         session.applySyncPolicy();
     }
 
     @Override
-    public void onSetCredentials(Session session, Credentials credentials) {
+    protected void onExitState() {
+        // Do nothing.
+    }
+
+    @Override
+    public void onSetCredentials(Credentials credentials) {
         // Just replace current credentials and wait for further action.
         session.replaceCredentials(credentials);
     }
 
     @Override
-    public void onBind(Session session) {
-        session.nextState(SessionState.BINDING_REALM);
+    public void onBind() {
+        gotoNextState(SessionState.BINDING_REALM);
     }
 }

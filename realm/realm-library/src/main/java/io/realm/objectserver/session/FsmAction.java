@@ -9,10 +9,10 @@ import io.realm.objectserver.credentials.Credentials;
  * All states should implement this so all possible permutations of state/actions are covered.
  */
 interface FsmAction {
-    void onStart(Session session);
-    void onBind(Session session);
-    void onUnbind(Session session);
-    void onStop(Session session);
-    void onRefresh(Session session);
-    void onSetCredentials(Session session, Credentials credentials);
+    void onStart();
+    void onBind();
+    void onUnbind();
+    void onStop();
+    void onRefresh();
+    void onSetCredentials(Credentials credentials);
 }

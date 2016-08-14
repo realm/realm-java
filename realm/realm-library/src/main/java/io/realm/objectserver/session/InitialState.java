@@ -6,12 +6,17 @@ package io.realm.objectserver.session;
 class InitialState extends FsmState {
 
     @Override
-    public void entry(Session session) {
+    public void onEnterState() {
         // Do nothing. We start here
     }
 
     @Override
-    public void onStart(Session session) {
-        session.nextState(SessionState.STARTED);
+    protected void onExitState() {
+        // Do nothing.
+    }
+
+    @Override
+    public void onStart() {
+        gotoNextState(SessionState.STARTED);
     }
 }

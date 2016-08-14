@@ -25,6 +25,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.realm.Realm;
+import okhttp3.Call;
 
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
@@ -90,6 +91,16 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
      */
     public <T> Future<T> submitQuery(Callable<T> task) {
         return super.submit(new BgPriorityCallable<T>(task));
+    }
+
+    /**
+     * Submits a runnable for executing a network request.
+     *
+     * @param task the task to submit
+     * @return a future representing pending completion of the task
+     */
+    public Future<?> submitNetworkRequest(Runnable task) {
+        return super.submit(new BgPriorityRunnable(task));
     }
 
     /**

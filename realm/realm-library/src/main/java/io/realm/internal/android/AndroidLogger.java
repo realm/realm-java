@@ -37,7 +37,7 @@ public class AndroidLogger implements Logger {
     }
 
     /**
-     * Overrides the provided logger behavior and only log if log entry has a level equal or higher.
+     * Overrides the provided logger behavior and only log if log onEntry has a level equal or higher.
      *
      * @param logLevel the minimum log level to report.
      */

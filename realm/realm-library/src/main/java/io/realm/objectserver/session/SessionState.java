@@ -10,7 +10,7 @@ enum SessionState {
     BINDING_REALM, // bind() has been called. Can take a while
     AUTHENTICATING, // authentication is needed. Can take a while.
     BOUND, // local realm was successfully bound to the remote Realm.
-    STOPPED
+    STOPPED // Final state. No more tra
 }
 
 

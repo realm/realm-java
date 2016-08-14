@@ -6,9 +6,14 @@ package io.realm.objectserver.session;
 class StartedState extends FsmState {
 
     @Override
-    public void entry(Session session) {
+    public void onEnterState() {
         session.initialize();
         // This is just an intermediate step, so goto next straight away.
-        session.nextState(SessionState.UNBOUND);
+        gotoNextState(SessionState.UNBOUND);
+    }
+
+    @Override
+    protected void onExitState() {
+        // Do nothing
     }
 }

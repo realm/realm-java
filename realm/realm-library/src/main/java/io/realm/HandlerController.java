@@ -265,7 +265,7 @@ final class HandlerController implements Handler.Callback {
         while (iterator.hasNext()) {
             Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<?>> next = iterator.next();
             if (next.getKey().get() != null) {
-                Realm.asyncTaskExecutor
+                Realm.ASYNC_TASK_EXECUTOR
                         .submitQueryUpdate(QueryUpdateTask.newBuilder()
                                 .realmConfiguration(realm.getConfiguration())
                                 .addObject(next.getKey(),
@@ -377,7 +377,7 @@ final class HandlerController implements Handler.Callback {
         if (updateAsyncQueriesTask != null && !updateAsyncQueriesTask.isDone()) {
             // try to cancel any pending update since we're submitting a new one anyway
             updateAsyncQueriesTask.cancel(true);
-            Realm.asyncTaskExecutor.getQueue().remove(updateAsyncQueriesTask);
+            Realm.ASYNC_TASK_EXECUTOR.getQueue().remove(updateAsyncQueriesTask);
             RealmLog.d("REALM_CHANGED realm:" + HandlerController.this + " cancelling pending COMPLETED_UPDATE_ASYNC_QUERIES updates");
         }
         RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " updating async queries, total: " + asyncRealmResults.size());
@@ -414,7 +414,7 @@ final class HandlerController implements Handler.Callback {
             QueryUpdateTask queryUpdateTask = realmResultsQueryStep
                     .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_UPDATE_ASYNC_QUERIES)
                     .build();
-            updateAsyncQueriesTask = Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
+            updateAsyncQueriesTask = Realm.ASYNC_TASK_EXECUTOR.submitQueryUpdate(queryUpdateTask);
         }
     }
 
@@ -498,7 +498,7 @@ final class HandlerController implements Handler.Callback {
                                 .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS)
                                 .build();
 
-                        Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
+                        Realm.ASYNC_TASK_EXECUTOR.submitQueryUpdate(queryUpdateTask);
 
                     } else {
                         // UC covered by this test: RealmAsyncQueryTests#testFindAllCallerIsAdvanced
@@ -640,7 +640,7 @@ final class HandlerController implements Handler.Callback {
                                 .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT)
                                 .build();
 
-                        Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
+                        Realm.ASYNC_TASK_EXECUTOR.submitQueryUpdate(queryUpdateTask);
                     }
                 } else {
                     // should not happen, since the the background thread position itself against the provided version

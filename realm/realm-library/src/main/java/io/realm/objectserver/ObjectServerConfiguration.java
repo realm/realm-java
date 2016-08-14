@@ -104,6 +104,14 @@ public final class ObjectServerConfiguration extends RealmConfiguration {
         return syncPolicy;
     }
 
+    public List<Credentials> getCredentials() {
+        return credentials;
+    }
+
+    public List<CredentialsHandler> getCredentialHanders() {
+        return credentialsHandlers;
+    }
+
     /**
      * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
      */

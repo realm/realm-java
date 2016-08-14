@@ -9,34 +9,34 @@ import io.realm.objectserver.credentials.Credentials;
 public class BindingRealmState extends FsmState {
 
     @Override
-    public void entry(Session session) {
+    public void onEnterState() {
         if (!session.isAuthenticated()) {
             // FIXME How to handle errors?
             session.bindWithTokens();
         } else {
             // Not access token available. We need to authenticate first.
-            session.nextState(SessionState.AUTHENTICATING);
+            gotoNextState(SessionState.AUTHENTICATING);
         }
     }
 
     @Override
-    public void exit(Session session) {
+    public void onExitState() {
         // TODO Abort any async stuff going on, possible in `session.bindWithTokens()`
     }
 
     @Override
-    public void onBind(Session session) {
-        session.nextState(SessionState.BINDING_REALM); // Will trigger a retry.
+    public void onBind() {
+        gotoNextState(SessionState.BINDING_REALM); // Will trigger a retry.
     }
 
     @Override
-    public void onUnbind(Session session) {
-        session.nextState(SessionState.UNBOUND);
+    public void onUnbind() {
+        gotoNextState(SessionState.UNBOUND);
     }
 
     @Override
-    public void onSetCredentials(Session session, Credentials credentials) {
+    public void onSetCredentials(Credentials credentials) {
         session.replaceCredentials(credentials);
-        session.nextState(SessionState.BINDING_REALM); // Retry with new credentials
+        gotoNextState(SessionState.BINDING_REALM); // Retry with new credentials
     }
 }

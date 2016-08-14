@@ -66,8 +66,8 @@ public abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     public static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
-    // Thread pool for all async operations (Query & transaction)
-    static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
+    // Thread pool for all async operations (Query / transaction / network requests)
+    public static final RealmThreadPoolExecutor ASYNC_TASK_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
     protected RealmConfiguration configuration;

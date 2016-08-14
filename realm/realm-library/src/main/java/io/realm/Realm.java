@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.os.Build;
-import android.os.Looper;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -43,8 +42,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -1179,7 +1176,7 @@ public final class Realm extends BaseRealm {
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
-        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
+        final Future<?> pendingTransaction = ASYNC_TASK_EXECUTOR.submitTransaction(new Runnable() {
             @Override
             public void run() {
                 if (Thread.currentThread().isInterrupted()) {

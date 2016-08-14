@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.BaseRealm;
+import io.realm.Realm;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
+import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
 
 public final class ObjectServer {
@@ -21,7 +23,7 @@ public final class ObjectServer {
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static volatile long nativeSyncClientPointer = nativeCreateSyncClient();
-    private static volatile AuthentificationServer authServer;
+    private static volatile AuthentificationServer authServer = new OkHttpAuthentificationServer();
     private static volatile SyncErrorHandler globalErrorHandler;
     private static volatile SyncEventHandler globalEventHandler;
 
@@ -110,11 +112,9 @@ public final class ObjectServer {
      *
      * Sets the auth server implementation used when validating credentials.
      */
-    public static void setAuthServerImpl(AuthentificationServer authServerImpl) {
+    static void setAuthServerImpl(AuthentificationServer authServerImpl) {
         authServer = authServerImpl;
     }
-
-
 
     //
     // OLD IMPLEMENTATION

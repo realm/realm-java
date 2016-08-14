@@ -741,7 +741,7 @@ public class RealmAsyncQueryTests {
             }
         };
         realm.setHandler(handler);
-        Realm.asyncTaskExecutor.pause();
+        Realm.ASYNC_TASK_EXECUTOR.pause();
 
         // Create async queries and check they haven't completed
         final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
@@ -765,7 +765,7 @@ public class RealmAsyncQueryTests {
                 realm.commitTransaction();
             }
         }.awaitOrFail();
-        Realm.asyncTaskExecutor.resume();
+        Realm.ASYNC_TASK_EXECUTOR.resume();
 
         // Setup change listeners
         final Runnable signalCallbackDone = new Runnable() {
@@ -1465,7 +1465,7 @@ public class RealmAsyncQueryTests {
     public void combiningAsyncAndSync() {
         populateTestRealm(looperThread.realm, 10);
 
-        Realm.asyncTaskExecutor.pause();
+        Realm.ASYNC_TASK_EXECUTOR.pause();
         final RealmResults<AllTypes> allTypesAsync = looperThread.realm.where(AllTypes.class).greaterThan("columnLong", 5).findAllAsync();
         final RealmResults<AllTypes> allTypesSync = allTypesAsync.where().greaterThan("columnLong", 3).findAll();
 
@@ -1479,7 +1479,7 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
-        Realm.asyncTaskExecutor.resume();
+        Realm.ASYNC_TASK_EXECUTOR.resume();
         looperThread.keepStrongReference.add(allTypesAsync);
     }
 
@@ -1851,7 +1851,7 @@ public class RealmAsyncQueryTests {
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
 
         populateTestRealm(looperThread.realm, 10);
-        Realm.asyncTaskExecutor.pause();
+        Realm.ASYNC_TASK_EXECUTOR.pause();
 
         final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
         looperThread.keepStrongReference.add(firstAsync);
@@ -1872,7 +1872,7 @@ public class RealmAsyncQueryTests {
                 // Advancing the Realm without generating notifications
                 bgRealm.sharedGroupManager.promoteToWrite();
                 bgRealm.sharedGroupManager.commitAndContinueAsRead();
-                Realm.asyncTaskExecutor.resume();
+                Realm.ASYNC_TASK_EXECUTOR.resume();
                 bgRealm.close();
                 signalClosedRealm.countDown();
             }

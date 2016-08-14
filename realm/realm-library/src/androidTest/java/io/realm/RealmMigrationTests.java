@@ -480,7 +480,7 @@ public class RealmMigrationTests {
         assertEquals(MigrationPriorIndexOnly.FIELD_PRIMARY, table.getColumnName(table.getPrimaryKey()));
     }
 
-    // Renaming the class should also rename the the class entry in the pk metadata table that tracks primary keys
+    // Renaming the class should also rename the the class onEntry in the pk metadata table that tracks primary keys
     @Test
     public void renamePrimaryKeyFieldInMigration() {
         buildInitialMigrationSchema(MigrationFieldRenamed.CLASS_NAME, false);

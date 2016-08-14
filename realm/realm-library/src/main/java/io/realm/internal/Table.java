@@ -222,7 +222,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Renames a column in the table. If the column is a primary key column, the corresponding entry
+     * Renames a column in the table. If the column is a primary key column, the corresponding onEntry
      * in PrimaryKeyTable will be renamed accordingly.
      *
      * @param columnIndex the column index to be renamed.
@@ -370,7 +370,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Removes a row from the specific index. As of now the entry is simply removed from the table.
+     * Removes a row from the specific index. As of now the onEntry is simply removed from the table.
      *
      * @param rowIndex the row index (starting with 0)
      *

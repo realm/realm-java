@@ -18,8 +18,10 @@ package io.realm.objectserver.session;
 
 import java.util.HashMap;
 
+import io.realm.RealmAsyncTask;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
+import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.ObjectServerConfiguration;
 import io.realm.objectserver.credentials.Credentials;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
@@ -64,16 +66,7 @@ import io.realm.objectserver.syncpolicy.SyncPolicy;
 
 public final class Session {
 
-    private static final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
-    static {
-        FSM.put(SessionState.INITIAL, new InitialState());
-        FSM.put(SessionState.STARTED, new StartedState());
-        FSM.put(SessionState.UNBOUND, new UnboundState());
-        FSM.put(SessionState.BINDING_REALM, new BindingRealmState());
-        FSM.put(SessionState.AUTHENTICATING, new AuthenticatingState());
-        FSM.put(SessionState.BOUND, new BoundState());
-        FSM.put(SessionState.STOPPED, new StoppedState());
-    }
+    private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
 
     // Variables used by the FSM
     final ObjectServerConfiguration configuration;
@@ -83,10 +76,12 @@ public final class Session {
     Credentials credentials;
     volatile String accessToken;
     volatile String refreshToken;
+    RealmAsyncTask networkRequest;
+    NetworkStateReceiver.ConnectionListener networkListener;
 
     // Keeping track of currrent FSM state
-    private SessionState currentStateDescription;
-    private FsmState currentState;
+    SessionState currentStateDescription;
+    FsmState currentState;
 
     /**
      * Creates a new Object Server Session
@@ -95,6 +90,17 @@ public final class Session {
         this.configuration = objectServerConfiguration;
         this.nativeSyncClientPointer = nativeSyncClientPointer;
         this.authServer = authServer;
+        setupStateMachine();
+    }
+
+    private void setupStateMachine() {
+        FSM.put(SessionState.INITIAL, new InitialState());
+        FSM.put(SessionState.STARTED, new StartedState());
+        FSM.put(SessionState.UNBOUND, new UnboundState());
+        FSM.put(SessionState.BINDING_REALM, new BindingRealmState());
+        FSM.put(SessionState.AUTHENTICATING, new AuthenticatingState());
+        FSM.put(SessionState.BOUND, new BoundState());
+        FSM.put(SessionState.STOPPED, new StoppedState());
         currentState = FSM.get(SessionState.INITIAL);
         currentState.entry(this);
     }
@@ -102,7 +108,7 @@ public final class Session {
     // Goto the next state. The FsmState classes are responsible for calling this method as a reaction to a FsmAction
     // being called or an internal action triggering a state transition.
     void nextState(SessionState stateDescription) {
-        currentState.exit(this);
+        currentState.exit();
         FsmState nextState = FSM.get(stateDescription);
         if (nextState == null) {
             throw new IllegalStateException("No state was configured to handle: " + stateDescription);
@@ -113,11 +119,11 @@ public final class Session {
     }
 
     public synchronized void start() {
-        currentState.onStart(this);
+        currentState.onStart();
     }
 
     public synchronized void stop() {
-        currentState.onStop(this);
+        currentState.onStop();
 //        if (!isStarted || isStopped) {
 //            return;
 //        }
@@ -140,7 +146,7 @@ public final class Session {
      *
      */
     public synchronized void bind() {
-        currentState.onBind(this);
+        currentState.onBind();
     }
 
     /**
@@ -148,7 +154,7 @@ public final class Session {
      * It is possible to call {@link #bind()} again after a Realm has been unbound.
      */
     public synchronized void unbind() {
-        currentState.onUnbind(this);
+        currentState.onUnbind();
     }
 
     /**
@@ -161,7 +167,7 @@ public final class Session {
      * Refreshing is handled automatically by this class, but this method will trigger it manually as well.
      */
     public synchronized void refresh() {
-        currentState.onRefresh(this);
+        currentState.onRefresh();
 //        if (!isAuthenticated()) {
 //            throw new IllegalStateException("Can only refresh already validated credentials. " +
 //                    "Check with isAuthenticated() first.");
@@ -179,7 +185,7 @@ public final class Session {
      * @param credentials credentials to use when authenticating access to the remote Realm.
      */
     public synchronized void setCredentials(Credentials credentials) {
-        currentState.onSetCredentials(this, credentials);
+        currentState.onSetCredentials(credentials);
 //        if (credentials == null) {
 //            throw new IllegalArgumentException("non-empty 'credentials' must be provided");
 //        }
