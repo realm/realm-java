@@ -77,11 +77,11 @@ def toolchains = [
 def allTargets = [
 // ARM support is deprecated
 //    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
-    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
-    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
+//    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+//    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
+//    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
     new Target( name:'x86',     abi:'x86',         toolchain:toolchains.find {it.name == 'x86'},    cflags:[] ),
-    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
+//    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
 ]
 
 def targets
