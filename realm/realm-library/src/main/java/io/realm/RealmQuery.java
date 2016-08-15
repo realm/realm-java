@@ -291,7 +291,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param value the value to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type, or if
+     * {@code fieldName} points to a linked field.
      */
     public RealmQuery<E> equalTo(String fieldName, byte[] value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
@@ -666,7 +667,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param value the value to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type, or if
+     * {@code fieldName} points to a linked field.
      */
     public RealmQuery<E> notEqualTo(String fieldName, byte[] value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
@@ -1201,7 +1203,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param value the byte array.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type, or if
+     * {@code fieldName} points to a linked field.
      */
     public RealmQuery<E> contains(String fieldName, byte[] value) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
@@ -1242,7 +1245,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param value the byte array.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type, or if
+     * {@code fieldName} points to a linked field.
      */
     public RealmQuery<E> beginsWith(String fieldName, byte[] value) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
@@ -1283,7 +1287,8 @@ public final class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param value the byte array.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type, or if
+     * {@code fieldName} points to a linked field.
      */
     public RealmQuery<E> endsWith(String fieldName, byte[] value) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);

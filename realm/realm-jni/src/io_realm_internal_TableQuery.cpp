@@ -972,19 +972,29 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
             switch (predicate) {
             case BinaryEqual:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) == value2);
+                // Core currently does not support equal() for byte[] when traversing relationships.
+                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) == value2);
+                ThrowException(env, IllegalArgument, "equalTo() does not support queries using child object byte[] fields.");
                 break;
             case BinaryNotEqual:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) != value2);
+                // Core currently does not support equal() for byte[] when traversing relationships.
+                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) != value2);
+                ThrowException(env, IllegalArgument, "notEqualTo() does not support queries using child object byte[] fields.");
                 break;
             case BinaryContains:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).contains(value2));
+                // Core currently does not support contains() for byte[] when traversing relationships.
+                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).contains(value2));
+                ThrowException(env, IllegalArgument, "contains() does not support queries using child object byte[] fields.");
                 break;
             case BinaryBeginsWith:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).begins_with(value2));
+                // Core currently does not support begins_with() for byte[] when traversing relationships.
+                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).begins_with(value2));
+                ThrowException(env, IllegalArgument, "beginsWith() does not support queries using child object byte[] fields.");
                 break;
             case BinaryEndsWith:
-                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).ends_with(value2));
+                // Core currently does not support ends_with./() for byte[] when traversing relationships.
+                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).ends_with(value2));
+                ThrowException(env, IllegalArgument, "endsWith() does not support queries using child object byte[] fields.");
                 break;
             }
         }
