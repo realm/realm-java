@@ -7,6 +7,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef io_realm_internal_SharedGroup_IMPLICIT_TRANSACTION
+#define io_realm_internal_SharedGroup_IMPLICIT_TRANSACTION 1L
+#undef io_realm_internal_SharedGroup_EXPLICIT_TRANSACTION
+#define io_realm_internal_SharedGroup_EXPLICIT_TRANSACTION 0L
+#undef io_realm_internal_SharedGroup_CREATE_FILE_YES
+#define io_realm_internal_SharedGroup_CREATE_FILE_YES 0L
+#undef io_realm_internal_SharedGroup_CREATE_FILE_NO
+#define io_realm_internal_SharedGroup_CREATE_FILE_NO 1L
+#undef io_realm_internal_SharedGroup_ENABLE_REPLICATION
+#define io_realm_internal_SharedGroup_ENABLE_REPLICATION 1L
+#undef io_realm_internal_SharedGroup_DISABLE_REPLICATION
+#define io_realm_internal_SharedGroup_DISABLE_REPLICATION 0L
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    createNativeWithImplicitTransactions
@@ -25,43 +37,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 
 /*
  * Class:     io_realm_internal_SharedGroup
- * Method:    nativeAdvanceRead
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativeAdvanceReadToVersion
- * Signature: (JJJJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceReadToVersion
-(JNIEnv *, jobject, jlong, jlong, jlong);
-
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativePromoteToWrite
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
  * Method:    nativeCommitAndContinueAsRead
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativeRollbackAndContinueAsRead
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -71,14 +50,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndConti
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
   (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativeGetDefaultReplicationDatabaseFileName
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultReplicationDatabaseFileName
-  (JNIEnv *, jobject);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -170,11 +141,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
 
 /*
  * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeRollbackAndContinueAsRead
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
  * Method:    nativeGetVersionID
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
-        (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -190,6 +169,30 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeWaitForChang
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChange
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeAdvanceRead
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeAdvanceReadToVersion
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceReadToVersion
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativePromoteToWrite
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

@@ -105,27 +105,11 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetByteArra
 
 /*
  * Class:     io_realm_internal_CheckedRow
- * Method:    nativeGetMixedType
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_io_realm_internal_CheckedRow_nativeGetMixedType
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
- * Method:    nativeGetMixed
- * Signature: (JJ)Lio/realm/internal/Mixed;
- */
-JNIEXPORT jobject JNICALL Java_io_realm_internal_CheckedRow_nativeGetMixed
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
  * Method:    nativeGetLinkView
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLinkView
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_CheckedRow
@@ -193,14 +177,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetByteArray
 
 /*
  * Class:     io_realm_internal_CheckedRow
- * Method:    nativeSetMixed
- * Signature: (JJLio/realm/internal/Mixed;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetMixed
-  (JNIEnv *, jobject, jlong, jlong, jobject);
-
-/*
- * Class:     io_realm_internal_CheckedRow
  * Method:    nativeSetLink
  * Signature: (JJJ)V
  */
@@ -213,14 +189,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetLink
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeNullifyLink
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
- * Method:    nativeIsNull
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNull
   (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus

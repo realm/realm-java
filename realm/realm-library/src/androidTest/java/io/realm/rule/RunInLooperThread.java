@@ -24,6 +24,7 @@ import org.junit.runners.model.Statement;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -75,7 +76,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     @Override
     public Statement apply(final Statement base, Description description) {
-        if (description.getAnnotation(RunTestInLooperThread.class) == null) {
+        final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
+        if (annotation == null) {
             return base;
         }
         return new Statement() {
@@ -84,6 +86,10 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             @Override
             public void evaluate() throws Throwable {
                 before();
+                Class<? extends RunnableBefore> runnableBefore = annotation.value();
+                if (!runnableBefore.isInterface()) {
+                    runnableBefore.newInstance().run(realmConfiguration);
+                }
                 try {
                     final CountDownLatch signalClosedRealm = new CountDownLatch(1);
                     final Throwable[] threadAssertionError = new Throwable[1];
@@ -111,9 +117,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                     }
                                     unitTestFailed = true;
                                 }
-                                if (signalTestCompleted.getCount() > 0) {
-                                    signalTestCompleted.countDown();
-                                }
+                                signalTestCompleted.countDown();
                                 if (realm != null) {
                                     realm.close();
                                 }
@@ -195,5 +199,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      * This will run on the same thread as the looper test.
      */
     public void looperTearDown() {
+    }
+
+    /**
+     * If an implementation of this is supplied with the annotation, the {@link RunnableBefore#run(RealmConfiguration)}
+     * will be executed before the looper thread starts. It is normally for populating the Realm before the test.
+     */
+    public interface RunnableBefore {
+        void run(RealmConfiguration realmConfig);
     }
 }

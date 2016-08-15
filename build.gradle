@@ -59,7 +59,17 @@ task assembleRealm(type:GradleBuild) {
     }
 }
 
-task check(type:GradleBuild) {
+task checkExamples(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the JVM tests and checks the examples'
+    buildFile = file('examples/build.gradle')
+    tasks = ['check']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task checkRealm(type:GradleBuild) {
     group = 'Test'
     description = 'Run the JVM tests and checks Realm project'
     buildFile = file('realm/build.gradle')
@@ -69,10 +79,26 @@ task check(type:GradleBuild) {
     }
 }
 
+task check {
+    group = 'Test'
+    description = 'Run the JVM tests and checks in the realm and examples projects'
+    dependsOn checkRealm
+    dependsOn checkExamples
+}
+
+task integrationTestsConnectedCheck(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the integration tests of the Realm project'
+    dependsOn installTransformer
+    buildFile = file('integration-tests/build.gradle')
+    tasks = ['connectedCheck']
+}
+
 task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
+    dependsOn integrationTestsConnectedCheck
     buildFile = file('realm/build.gradle')
     tasks = ['connectedUnitTests']
     if (project.hasProperty('buildTargetABIs')) {
@@ -288,6 +314,7 @@ task bintrayRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['bintrayUpload']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -297,6 +324,7 @@ task bintrayAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations to Bintray'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['bintrayUpload']
 }
 
@@ -304,6 +332,7 @@ task bintrayGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin to Bintray'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['bintrayUpload']
 }
 
@@ -311,6 +340,7 @@ task bintrayTransformer(type: GradleBuild) {
     description = 'Publish the Realm Transformer to Bintray'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['bintrayUpload']
 }
 
@@ -328,6 +358,7 @@ task ojoRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['artifactoryPublish']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -337,6 +368,7 @@ task ojoAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['artifactoryPublish']
 }
 
@@ -344,6 +376,7 @@ task ojoGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['artifactoryPublish']
 }
 
@@ -351,6 +384,7 @@ task ojoTransformer(type: GradleBuild) {
     description = 'Publish the Realm Transformer SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['artifactoryPublish']
 }
 

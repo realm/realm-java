@@ -18,6 +18,7 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -30,12 +31,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
-import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
@@ -49,12 +51,17 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
+@SuppressWarnings("WeakerAccess")
 abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
-    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
-    private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
+            "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
+    private static final String INCORRECT_THREAD_MESSAGE =
+            "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+    private static final String NOT_IN_TRANSACTION_MESSAGE =
+            "Changing Realm data can only be done from inside a transaction.";
 
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -70,6 +77,7 @@ abstract class BaseRealm implements Closeable {
     HandlerController handlerController;
 
     static {
+        //noinspection ConstantConditions
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
@@ -167,8 +175,8 @@ abstract class BaseRealm implements Closeable {
      * Returns an RxJava Observable that monitors changes to this Realm. It will emit the current state
      * when subscribed to. Items will continually be emitted as the Realm is updated -
      * {@code onComplete} will never be called.
-     *
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * <p>
+     * If you would like the {@code asObservable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      *
      * <pre>
@@ -181,6 +189,7 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public abstract Observable asObservable();
 
     /**
@@ -302,13 +311,32 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or aborted by
+     * Starts a transaction which must be closed by {@link io.realm.Realm#commitTransaction()} or aborted by
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
-     * <br>
-     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm in the case of
-     * pending updates from other threads.
-     * <br>
+     * <p>
+     * Before beginning a transaction, the Realm instance is updated to the latest version in order to include all
+     * changes from other threads. This update does not trigger any registered {@link RealmChangeListener}.
+     * <p>
+     * It is therefore recommended to query for the items that should be modified from inside the transaction. Otherwise
+     * there is a risk that some of the results have been deleted or modified when the transaction begins.
+     * <p>
+     * <pre>
+     * {@code
+     * // Don't do this
+     * RealmResults<Person> persons = realm.where(Person.class).findAll();
+     * realm.beginTransaction();
+     * persons.first().setName("John");
+     * realm.commitTransaction;
+     *
+     * // Do this instead
+     * realm.beginTransaction();
+     * RealmResults<Person> persons = realm.where(Person.class).findAll();
+     * persons.first().setName("John");
+     * realm.commitTransaction;
+     * }
+     * </pre>
+     * <p>
      * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
      * thrown.
      */
@@ -320,11 +348,19 @@ abstract class BaseRealm implements Closeable {
     /**
      * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the Realm reverts back to
      * being read-only. An event is sent to notify all other Realm instances that a change has occurred. When the event
-     * is received, the other Realms will get their objects and {@link io.realm.RealmResults} updated to reflect the
+     * is received, the other Realms will update their objects and {@link io.realm.RealmResults} to reflect the
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, null);
+        commitTransaction(true, true, null);
+    }
+
+    /**
+     * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
+     * that.
+     */
+    void commitAsyncTransaction(Runnable runAfterCommit) {
+        commitTransaction(false, false, runAfterCommit);
     }
 
     /**
@@ -335,7 +371,7 @@ abstract class BaseRealm implements Closeable {
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
      * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads, Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
 
@@ -353,17 +389,48 @@ abstract class BaseRealm implements Closeable {
                 continue;
             }
 
+            // Sometimes we don't want to notify other threads about changes because we need a custom message, e.g. when
+            // doing async transactions.
+            if (!notifyOtherThreads && !handler.equals(this.handler)) {
+                continue;
+            }
+
             // For all other threads, use the Handler
             // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
-            if (
-                    realmPath.equals(configuration.getPath())                           // It's the right realm
-                            && !handler.hasMessages(HandlerController.REALM_CHANGED)    // The right message
-                            && handler.getLooper().getThread().isAlive()                // The receiving thread is alive
-                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                        "to prevent this.");
+            Looper looper = handler.getLooper();
+            if (realmPath.equals(configuration.getPath())  // It's the right realm
+                    && looper.getThread().isAlive()) {     // The receiving thread is alive
+
+                boolean messageHandled = true;
+                if (looper == Looper.myLooper()) {
+                    // Force any updates on the current thread to the front the queue. Doing this is mostly
+                    // relevant on the UI thread where it could otherwise process a motion event before the
+                    // REALM_CHANGED event. This could in turn cause a UI component like ListView to crash. See
+                    // https://github.com/realm/realm-android-adapters/issues/11 for such a case.
+                    // Other Looper threads could process similar events. For that reason all looper threads will
+                    // prioritize local commits.
+                    //
+                    // If a user is doing commits inside a RealmChangeListener this can cause the Looper thread to get
+                    // event starved as it only starts handling Realm events instead. This is an acceptable risk as
+                    // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
+                    // be responsive.
+                    Message msg = Message.obtain();
+                    msg.what = HandlerControllerConstants.LOCAL_COMMIT;
+                    if (!handler.hasMessages(HandlerControllerConstants.LOCAL_COMMIT)) {
+                        handler.removeMessages(HandlerControllerConstants.REALM_CHANGED);
+                        messageHandled = handler.sendMessageAtFrontOfQueue(msg);
+                    }
+                } else {
+                    if (!handler.hasMessages(HandlerControllerConstants.REALM_CHANGED)) {
+                        messageHandled = handler.sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
+                    }
+                }
+                if (!messageHandled) {
+                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                            "to prevent this.");
+                }
             }
         }
     }
@@ -371,9 +438,9 @@ abstract class BaseRealm implements Closeable {
     /**
      * Reverts all writes (created, updated, or deleted objects) made in the current write transaction and end the
      * transaction.
-     * <br>
+     * <p>
      * The Realm reverts back to read-only.
-     * <br>
+     * <p>
      * Calling this when not in a transaction will throw an exception.
      */
     public void cancelTransaction() {
@@ -393,6 +460,15 @@ abstract class BaseRealm implements Closeable {
         // Check if we are in the right thread
         if (threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
+        }
+    }
+
+    /**
+     * Check if the Realm is valid and in a transaction.
+     */
+    protected void checkIfValidAndInTransaction() {
+        if (!isInTransaction()) {
+            throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
         }
     }
 
@@ -494,32 +570,6 @@ abstract class BaseRealm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
-    }
-
-    /**
-     * Sort a table using the given field names and sorting directions. If a field name does not
-     * exist in the table an {@link IllegalArgumentException} will be thrown.
-     */
-    protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
-        long columnIndices[] = new long[fieldNames.length];
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex == -1) {
-                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-            }
-            columnIndices[i] = columnIndex;
-        }
-
-        return table.getSortedView(columnIndices, sortOrders);
-    }
-
-    protected void checkAllObjectsSortedParameters(String[] fieldNames, Sort[] sortOrders) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrders must be provided.");
-        }
     }
 
     // Return all handlers registered for this Realm
@@ -650,6 +700,10 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Compacts the Realm file defined by the given configuration.
+     *
+     * @param configuration configuration for the Realm to compact.
+     * @throws IllegalArgumentException if Realm is encrypted.
+     * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
         if (configuration.getEncryptionKey() != null) {
@@ -662,8 +716,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration configuration for the Realm that should be migrated
-     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param configuration configuration for the Realm that should be migrated.
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
@@ -719,6 +773,17 @@ abstract class BaseRealm implements Closeable {
             throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
                     + configuration.getPath());
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (sharedGroupManager != null && sharedGroupManager.isOpen()) {
+            RealmLog.w("Remember to call close() on all Realm instances. " +
+                    "Realm " + configuration.getPath() + " is being finalized without being closed, " +
+                    "this can lead to running out of native memory."
+            );
+        }
+        super.finalize();
     }
 
     // Internal delegate for migrations

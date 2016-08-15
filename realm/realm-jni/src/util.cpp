@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+#include <realm/unicode.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -160,6 +161,12 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
             message = classStr;
             break;
+
+        case LockFileError:
+            jExceptionClass = env->FindClass("io/realm/exceptions/IncompatibleLockFileException");
+            message = classStr;
+            break;
+
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
@@ -185,21 +192,6 @@ jclass GetClass(JNIEnv* env, const char* classStr)
     return myClass;
 }
 
-void jprint(JNIEnv *env, char *txt)
-{
-#if 1
-    static_cast<void>(env);
-    fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
-#else
-    static jclass myClass = GetClass(env, "io/realm/internal/Util");
-    static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
-    if (myMethod)
-        env->CallStaticVoidMethod(myClass, myMethod, to_jstring(env, txt));
-    else
-        ThrowException(env, NoSuchMethod, "Util", "javaPrint");
-#endif
-}
-
 void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx) {
     std::ostringstream ss;
     ss << "Trying to set a non-nullable field '"
@@ -208,17 +200,6 @@ void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx) {
        << table->get_name()
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
-}
-
-void jprintf(JNIEnv *env, const char *format, ...)
-{
-    va_list argptr;
-    char buf[200];
-    va_start(argptr, format);
-    //vfprintf(stderr, format, argptr);
-    vsnprintf(buf, 200, format, argptr);
-    jprint(env, buf);
-    va_end(argptr);
 }
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& bin)
@@ -279,7 +260,7 @@ private:
 
 } // anonymous namespace
 
-string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
+static string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
                      jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code) {
     ostringstream ret;
 
@@ -300,7 +281,7 @@ string string_to_hex(const string& message, StringData& str, const char* in_begi
     return ret.str();
 }
 
-string string_to_hex(const string& message, const jchar *str, size_t size, size_t error_code) {
+static string string_to_hex(const string& message, const jchar *str, size_t size, size_t error_code) {
     ostringstream ret;
 
     ret << message << "; ";
@@ -425,3 +406,4 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
+

@@ -17,6 +17,7 @@
 #include <jni.h>
 
 #include <realm/string_data.hpp>
+#include <realm/unicode.hpp>
 
 #include "util.hpp"
 #include "mem_usage.hpp"
@@ -173,6 +174,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, BadVersion, "parm1", "parm2");
             break;
+        case LockFileError:
+            expect = "io.realm.exceptions.IncompatibleLockFileException: parm1";
+            if (dotest)
+                ThrowException(env, LockFileError, "parm1", "parm2");
+            break;
+
 
     }
     if (dotest) {

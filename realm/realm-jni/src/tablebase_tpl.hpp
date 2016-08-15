@@ -17,6 +17,7 @@
 #ifndef REALM_JNI_TABLEBASE_TPL_HPP
 #define REALM_JNI_TABLEBASE_TPL_HPP
 
+#include <realm.hpp>
 
 template <class T>
 jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
@@ -24,7 +25,7 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     if (!TBL_AND_INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex))
         return NULL;
 
-    BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
+    realm::BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
     if (bin.is_null()) {
         return NULL;
     }
@@ -49,7 +50,7 @@ void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex
         return;
     }
     size_t dataLen = S(env->GetArrayLength(dataArray));
-    (pTable->*doBinary)( S(columnIndex), S(rowIndex), BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
+    (pTable->*doBinary)( S(columnIndex), S(rowIndex), realm::BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
     env->ReleaseByteArrayElements(dataArray, bytePtr, 0);
 }
 
@@ -57,189 +58,9 @@ void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex
 template <class M, class T>
 void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
-    BinaryData bin;
+    realm::BinaryData bin;
     if (GetBinaryData(env, byteBuffer, bin))
         (pTable->*doBinary)( S(columnIndex), S(rowIndex), bin);
 }
-
-
-// insertMixed() or setMixed() value for TableView or Table class
-
-template <class M, class T>
-void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
-{
-    DataType valueType = GetMixedObjectType(env, jMixedValue);
-    switch(valueType) {
-    case type_Int:
-        {
-            jlong longValue = GetMixedIntValue(env, jMixedValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(static_cast<int64_t>(longValue)));
-            return;
-        }
-    case type_Float:
-        {
-            jfloat floatValue = GetMixedFloatValue(env, jMixedValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(floatValue));
-            return;
-        }
-    case type_Double:
-        {
-            jdouble doubleValue = GetMixedDoubleValue(env, jMixedValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(doubleValue));
-            return;
-        }
-    case type_Bool:
-        {
-            jboolean boolValue = GetMixedBooleanValue(env, jMixedValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(boolValue != 0 ? true : false));
-            return;
-        }
-    case type_String:
-        {
-            jstring stringValue = GetMixedStringValue(env, jMixedValue);
-            JStringAccessor string(env, stringValue); // throws
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), StringData(string));
-            return;
-        }
-    case type_Timestamp:
-        {
-            jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
-            Timestamp ts = from_milliseconds(dateTimeValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(ts));
-            return;
-        }
-    case type_Binary:
-        {
-            jint mixedBinaryType = GetMixedBinaryType(env, jMixedValue);
-            if (mixedBinaryType == 0) {
-                jbyteArray dataArray = GetMixedByteArrayValue(env, jMixedValue);
-                if (!dataArray)
-                    break;
-                char* data = reinterpret_cast<char*>(env->GetByteArrayElements(dataArray, NULL));
-                if (!data)
-                    break;
-                size_t size = S(env->GetArrayLength(dataArray));
-                (pTable->*doMixed)( S(columnIndex), S(rowIndex), BinaryData(data, size));
-                env->ReleaseByteArrayElements(dataArray, reinterpret_cast<jbyte*>(data), 0);
-                return;
-            }
-            else if (mixedBinaryType == 1) {
-                jobject jByteBuffer = GetMixedByteBufferValue(env, jMixedValue);
-                if (!jByteBuffer)
-                    break;
-                BinaryData binaryData;
-                if (GetBinaryData(env, jByteBuffer, binaryData))
-                    (pTable->*doMixed)( S(columnIndex), S(rowIndex), binaryData);
-                return;
-            }
-            break; // failed
-        }
-    case type_Table:
-        {
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed::subtable_tag());
-            return;
-        }
-    case type_Mixed:
-        break;
-    case type_Link:
-        break;
-    case type_LinkList:
-        break;
-    case type_OldDateTime:
-        // not used
-        break;
-    }
-    TR_ERR("ERROR: nativeSetMixed() failed.")
-    ThrowException(env, IllegalArgument, "nativeSetMixed()");
-}
-
-template <class R>
-void row_nativeSetMixed(R* pRow, JNIEnv* env, jlong columnIndex, jobject jMixedValue)
-{
-    DataType valueType = GetMixedObjectType(env, jMixedValue);
-    switch(valueType) {
-    case type_Int:
-        {
-            jlong longValue = GetMixedIntValue(env, jMixedValue);
-            pRow->set_mixed( S(columnIndex), Mixed(static_cast<int64_t>(longValue)));
-            return;
-        }
-    case type_Float:
-        {
-            jfloat floatValue = GetMixedFloatValue(env, jMixedValue);
-            pRow->set_mixed( S(columnIndex), Mixed(floatValue));
-            return;
-        }
-    case type_Double:
-        {
-            jdouble doubleValue = GetMixedDoubleValue(env, jMixedValue);
-            pRow->set_mixed( S(columnIndex), Mixed(doubleValue));
-            return;
-        }
-    case type_Bool:
-        {
-            jboolean boolValue = GetMixedBooleanValue(env, jMixedValue);
-            pRow->set_mixed( S(columnIndex), Mixed(boolValue != 0 ? true : false));
-            return;
-        }
-    case type_String:
-        {
-            jstring stringValue = GetMixedStringValue(env, jMixedValue);
-            JStringAccessor string(env, stringValue); // throws
-            pRow->set_mixed( S(columnIndex), StringData(string));
-            return;
-        }
-    case type_Timestamp:
-        {
-            jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
-            Timestamp ts = from_milliseconds(dateTimeValue);
-            pRow->set_mixed( S(columnIndex), Mixed(ts));
-            return;
-        }
-    case type_Binary:
-        {
-            jint mixedBinaryType = GetMixedBinaryType(env, jMixedValue);
-            if (mixedBinaryType == 0) {
-                jbyteArray dataArray = GetMixedByteArrayValue(env, jMixedValue);
-                if (!dataArray)
-                    break;
-                char* data = reinterpret_cast<char*>(env->GetByteArrayElements(dataArray, NULL));
-                if (!data)
-                    break;
-                size_t size = S(env->GetArrayLength(dataArray));
-                pRow->set_mixed( S(columnIndex), BinaryData(data, size));
-                env->ReleaseByteArrayElements(dataArray, reinterpret_cast<jbyte*>(data), 0);
-                return;
-            }
-            else if (mixedBinaryType == 1) {
-                jobject jByteBuffer = GetMixedByteBufferValue(env, jMixedValue);
-                if (!jByteBuffer)
-                    break;
-                BinaryData binaryData;
-                if (GetBinaryData(env, jByteBuffer, binaryData))
-                    pRow->set_mixed( S(columnIndex), binaryData);
-                return;
-            }
-            break; // failed
-        }
-    case type_Table:
-        {
-            pRow->set_mixed( S(columnIndex), Mixed::subtable_tag());
-            return;
-        }
-    case type_Mixed:
-        break;
-    case type_Link:
-        break;
-    case type_LinkList:
-        break;
-    case type_OldDateTime:
-        // not used
-        break;
-    }
-    TR_ERR("ERROR: nativeSetMixed() failed.")
-    ThrowException(env, IllegalArgument, "nativeSetMixed()");
-}
-
 
 #endif // REALM_JNI_TABLEBASE_TPL_HPP

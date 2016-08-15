@@ -15,7 +15,6 @@
  */
 
 #include "io_realm_internal_LinkView.h"
-#include "tablequery.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -61,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetRowIndex
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeAdd
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong rowIndex)
+  (JNIEnv* env, jclass, jlong nativeLinkViewPtr, jlong rowIndex)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     LinkViewRef *lv = LV(nativeLinkViewPtr);
@@ -134,7 +133,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemove
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClear
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr)
+  (JNIEnv* env, jclass, jlong nativeLinkViewPtr)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     try {
@@ -178,8 +177,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
     try {
         LinkViewRef *lv = LV(nativeLinkViewPtr);
         LinkViewRef lvr = *lv;
-        Query query = lvr->get_target_table().where(LinkViewRef(lvr));
-        TableQuery* queryPtr = new TableQuery(query);
+        Query *queryPtr = new Query(lvr->get_target_table().where(LinkViewRef(lvr)));
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;

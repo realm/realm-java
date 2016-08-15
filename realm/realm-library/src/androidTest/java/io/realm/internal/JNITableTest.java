@@ -49,11 +49,7 @@ public class JNITableTest extends AndroidTestCase {
         t.add("s1", 1, true);
         t.add("s2", 2, false);
 
-        String expected =
-"    stringCol  intCol  boolCol\n" +
-"0:  s1              1     true\n" +
-"1:  s2              2    false\n" ;
-
+        String expected = "The Table contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
         assertEquals(expected, t.toString());
     }
 
@@ -89,23 +85,22 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, "string");
 
         assertEquals(-1, t.findFirstBoolean(1, false));
         // FIXME: reenable when core implements find_first_timestamp(): assertEquals(-1, t.findFirstDate(2, new Date(138442314986l)));
         assertEquals(-1, t.findFirstDouble(3, 1.0d));
         assertEquals(-1, t.findFirstFloat(4, 1.0f));
         assertEquals(-1, t.findFirstLong(5, 50));
-        assertEquals(-1, t.findFirstString(7, "other string"));
     }
 
     public void testFindFirst() {
         final int TEST_SIZE = 10;
         Table t = TestHelper.getTableWithAllColumnTypes();
         for (int i = 0; i < TEST_SIZE; i++) {
-            t.add(new byte[]{1,2,3}, true, new Date(i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
+            t.add(new byte[]{1,2,3}, true, new Date(i), (double)i, (float)i, i, "string " + i);
         }
-        t.add(new byte[]{1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, "");
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -113,13 +108,10 @@ public class JNITableTest extends AndroidTestCase {
             assertEquals(i, t.findFirstDouble(3, (double) i));
             assertEquals(i, t.findFirstFloat(4, (float) i));
             assertEquals(i, t.findFirstLong(5, i));
-            assertEquals(i, t.findFirstString(7, "string " + i));
         }
 
-        assertEquals(TEST_SIZE, t.findFirstString(7, ""));
-
         try {
-            t.findFirstString(7, null);
+            t.findFirstString(6, null);
             fail();
         } catch (IllegalArgumentException ignored) {}
 
@@ -158,18 +150,9 @@ public class JNITableTest extends AndroidTestCase {
         try { t.getLong(-10, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
         try { t.getLong(9, 0);                      fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
 
-        try { t.getMixed(-1, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getMixed(-10, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getMixed(9, 0);                     fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-
         try { t.getString(-1, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
         try { t.getString(-10, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
         try { t.getString(9, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-
-        try { t.getSubtable(-1, 0);                 fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getSubtable(-10, 0);                fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getSubtable(9, 0);                  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-
     }
 
     public void testGetNonExistingColumn() {
@@ -242,9 +225,8 @@ public class JNITableTest extends AndroidTestCase {
         Table t = new Table();
         t.addColumn(RealmFieldType.STRING, "");
         t.addColumn(RealmFieldType.DATE, "");
-        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "");
         t.addColumn(RealmFieldType.BINARY, "");
-        t.add("String val", new Date(), new Mixed(""), new byte[]{1, 2, 3});
+        t.add("String val", new Date(), new byte[]{1, 2, 3});
 
         try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException ignored) { }
         try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (IllegalArgumentException ignored) { }
@@ -255,14 +237,6 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(RealmFieldType.STRING, "colName");
 
         try { t.addEmptyRows(-1); fail("Argument is negative"); } catch (IllegalArgumentException ignored) { }
-    }
-
-    public void testAddNullInMixedColumn() {
-        Table t = new Table();
-        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
-        t.add(new Mixed(true));
-
-        try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException ignored) { }
     }
 
     public void testImmutableInsertNotAllowed() {
@@ -601,17 +575,6 @@ public class JNITableTest extends AndroidTestCase {
                     }
                 }
             }
-        }
-    }
-
-    // migrating an mixed column to be nullable is not supported
-    public void testConvertMixedToNullable() {
-        Table table = new Table();
-        table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed", Table.NOT_NULLABLE);
-        try {
-            table.convertColumnToNullable(0);
-            fail();
-        } catch (IllegalArgumentException ignored) {
         }
     }
 

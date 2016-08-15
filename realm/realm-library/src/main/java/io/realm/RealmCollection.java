@@ -24,7 +24,7 @@ import java.util.Collections;
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
  * collections and the behavior that they will have in all implementations of {@code RealmCollection}s.
- *
+ * <p>
  * Realm collections are "live" views to the underlying data. This means that they automatically will be kept up to
  * date. As a consequence, using methods like {@link Collections#unmodifiableCollection(Collection)} will not prevent
  * a collection from being modified.

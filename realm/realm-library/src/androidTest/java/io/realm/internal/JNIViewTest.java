@@ -43,15 +43,11 @@ public class JNIViewTest extends TestCase {
         t.addColumn(RealmFieldType.INTEGER,    "Age");
         t.addColumn(RealmFieldType.DATE,   "Birthday");
 
-        // Add unsupported column types
-        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED,  "Unsupported3");
-        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE,  "Unsupported4");
-
         //Add data
-        t.add("cc", true,  24, date1, 0, null);
-        t.add("dd", false, 35, date2, 0, null);
-        t.add("bb", true,  22, date3, 0, null);
-        t.add("aa", false, 22, date4, 0, null);
+        t.add("cc", true,  24, date1);
+        t.add("dd", false, 35, date2);
+        t.add("bb", true,  22, date3);
+        t.add("aa", false, 22, date4);
 
         assertEquals(date1, t.getDate(3, 0));
         assertEquals(date2, t.getDate(3, 1));
@@ -140,39 +136,6 @@ public class JNIViewTest extends TestCase {
         MoreAsserts.assertEquals(arr2, view.getBinaryByteArray(0, 0));
     }
 
-
-    public void testSubtable() {
-        Table persons = new Table();
-        persons.addColumn(RealmFieldType.STRING, "name");
-        persons.addColumn(RealmFieldType.STRING, "email");
-        persons.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "addresses");
-
-        TableSchema addresses = persons.getSubtableSchema(2);
-        addresses.addColumn(RealmFieldType.STRING, "street");
-        addresses.addColumn(RealmFieldType.INTEGER, "zipcode");
-        addresses.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "phone_numbers");
-
-        TableSchema phone_numbers = addresses.getSubtableSchema(2);
-        phone_numbers.addColumn(RealmFieldType.INTEGER, "number");
-
-        // Inserting data
-        persons.add("Mr X", "xx@xxxx.com",
-                new Object[][] { { "X Street", 1234, new Object[][] {{ 12345678 }} },
-                                 { "Y Street", 1234, new Object[][] {{ 12345678 }} }
-                               });
-
-        TableView personsView = persons.where().findAll();
-
-        assertEquals(2, personsView.getSubtableSize(2, 0));
-
-        Table address = personsView.getSubtable(2, 0);
-        assertEquals(2, address.size());
-        assertEquals(3, address.getColumnCount());
-
-        personsView.clearSubtable(2, 0);
-        assertEquals(0, personsView.getSubtableSize(2, 0));
-    }
-
     public void testSortOnNonexistingColumn() {
         TableView view = t.where().findAll();
 
@@ -184,7 +147,7 @@ public class JNIViewTest extends TestCase {
 
     public void testFindFirstNonExisting() {
         Table tt = TestHelper.getTableWithAllColumnTypes();
-        tt.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        tt.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, "string");
         TableView v = tt.where().findAll();
 
         assertEquals(-1, v.findFirstBoolean(1, false));
@@ -192,7 +155,6 @@ public class JNIViewTest extends TestCase {
         assertEquals(-1, v.findFirstDouble(3, 1.0d));
         assertEquals(-1, v.findFirstFloat(4, 1.0f));
         assertEquals(-1, v.findFirstLong(5, 50));
-        assertEquals(-1, v.findFirstString(7, "other string"));
     }
 
 
@@ -224,17 +186,9 @@ public class JNIViewTest extends TestCase {
         try { view.getLong(-10, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getLong(100, 0);             fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
 
-        try { view.getMixed(-1, 0);             fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getMixed(-10, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getMixed(100, 0);            fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
-
         try { view.getString(-1, 0);            fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getString(-10, 0);           fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getString(100, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
-
-        try { view.getSubtable(-1, 0);          fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getSubtable(-10, 0);         fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getSubtable(100, 0);         fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
     }
 
 
@@ -300,20 +254,6 @@ public class JNIViewTest extends TestCase {
         assertEquals("bb", view.getString(0, 3));
     }
 
-
-
-    public void testShouldThrowExceptionForUnsupportedColumns() {
-        TableView view = t.where().findAll();
-        long colIndex;
-        for (colIndex = 4; colIndex <= 5; colIndex++) {
-            try {
-                view.sort(colIndex); // Must throw for invalid column types
-                fail("expected exception.");
-            } catch (IllegalArgumentException e) {
-            }
-        }
-    }
-
     public void testShouldSearchByColumnValue() {
         Table table = new Table();
         table.addColumn(RealmFieldType.STRING, "name");
@@ -375,10 +315,7 @@ public class JNIViewTest extends TestCase {
 
         TableView view = t.where().findAll();
 
-        String expected =
-                "    stringCol  intCol  boolCol\n" +
-                        "0:  s1              1     true\n" +
-                        "1:  s2              2    false\n" ;
+        String expected = "The TableView contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
 
         assertEquals(expected, view.toString());
     }

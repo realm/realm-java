@@ -19,11 +19,10 @@ package io.realm;
 import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
-import io.realm.internal.Mixed;
 
 /**
  * List of the types used by Realm's underlying storage engine.
- *
+ * <p>
  * Normally there is no reason to interact with the underlying Realm types as Realm will automatically
  * convert between normal Java types and the Realm types. However it is possible to access these
  * types through a {@link DynamicRealmObject}.
@@ -64,7 +63,7 @@ public enum RealmFieldType {
     /**
      * Returns the native value representing this type.
      *
-     * @return The value used by the underlying storage engine to represent this type.
+     * @return the value used by the underlying storage engine to represent this type.
      */
     public int getNativeValue() {
         return nativeValue;
@@ -72,7 +71,7 @@ public enum RealmFieldType {
 
     /**
      * Checks if the given Java object can be converted to the underlying Realm type.
-     * @param obj Object to test compatibility on.
+     * @param obj object to test compatibility on.
      * @return {@code true} if object can be converted to the Realm type, {@code false} otherwise.
      */
     public boolean isValid(Object obj) {
@@ -82,14 +81,6 @@ public enum RealmFieldType {
             case 2: return (obj instanceof String);
             case 4: return (obj instanceof byte[] || obj instanceof ByteBuffer);
             case 5: return (obj == null || obj instanceof Object[][]);
-            case 6: return (obj instanceof Mixed ||
-                    obj instanceof Long || obj instanceof Integer ||
-                    obj instanceof Short || obj instanceof Byte || obj instanceof Boolean ||
-                    obj instanceof Float || obj instanceof Double ||
-                    obj instanceof String ||
-                    obj instanceof byte[] || obj instanceof ByteBuffer ||
-                    obj == null || obj instanceof Object[][] ||
-                    obj instanceof java.util.Date);
             case 7: return (obj instanceof java.util.Date); // the unused DateTime
             case 8: return (obj instanceof java.util.Date);
             case 9: return (obj instanceof Float);
@@ -104,8 +95,8 @@ public enum RealmFieldType {
     /**
      * Converts the underlying value used by the storage engine to the proper Realm type.
      *
-     * @param value Value to convert
-     * @return The corresponding Realm type.
+     * @param value the value to convert
+     * @return the corresponding Realm type.
      * @throws IllegalArgumentException if value isn't valid.
      */
     public static RealmFieldType fromNativeValue(int value) {

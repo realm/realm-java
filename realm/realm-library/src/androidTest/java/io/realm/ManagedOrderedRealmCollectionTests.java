@@ -470,7 +470,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     public void sort_nullArguments() {
         OrderedRealmCollection<AllJavaTypes> result = collection;
         try {
-            result.sort(null);
+            result.sort((String) null);
             fail("Sorting with a null field name should throw an IllegalArgumentException");
         } catch (IllegalArgumentException ignored) {
         }

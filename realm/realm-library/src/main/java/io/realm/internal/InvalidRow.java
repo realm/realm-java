@@ -94,16 +94,6 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public Mixed getMixed(long columnIndex) {
-        throw getStubException();
-    }
-
-    @Override
-    public RealmFieldType getMixedType(long columnIndex) {
-        throw getStubException();
-    }
-
-    @Override
     public long getLink(long columnIndex) {
         throw getStubException();
     }
@@ -150,11 +140,6 @@ public enum InvalidRow implements Row {
 
     @Override
     public void setBinaryByteArray(long columnIndex, byte[] data) {
-        throw getStubException();
-    }
-
-    @Override
-    public void setMixed(long columnIndex, Mixed data) {
         throw getStubException();
     }
 

@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.realm.Realm;
+
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
  * appropriate number of Threads & wrap submitted tasks to set the thread priority according to
@@ -59,19 +61,46 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
                 new ArrayBlockingQueue<Runnable>(QUEUE_SIZE));
     }
 
-    @Override
-    public Future<?> submit(Runnable task) {
+    /**
+     * Submits a runnable for executing a transaction.
+     *
+     * @param task the task to submit
+     * @return a future representing pending completion of the task
+     */
+    public Future<?> submitTransaction(Runnable task) {
+        Future<?> future = super.submit(new BgPriorityRunnable(task));
+        return future;
+    }
+
+    /**
+     * Submits a runnable for updating a query.
+     *
+     * @param task the task to submit
+     * @return a future representing pending completion of the task
+     */
+    public Future<?> submitQueryUpdate(Runnable task) {
         return super.submit(new BgPriorityRunnable(task));
     }
 
-    @Override
-    public <T> Future<T> submit(Callable<T> task) {
+    /**
+     * Submits a runnable for executing a query.
+     *
+     * @param task the task to submit
+     * @return a future representing pending completion of the task
+     */
+    public <T> Future<T> submitQuery(Callable<T> task) {
         return super.submit(new BgPriorityCallable<T>(task));
     }
 
+    /**
+     * Method invoked prior to executing the given Runnable to pause execution of the thread.
+     *
+     * @param t the thread that will run task r
+     * @param r the task that will be executed
+     */
     @Override
     protected void beforeExecute(Thread t, Runnable r) {
-            super.beforeExecute(t, r);
+        super.beforeExecute(t, r);
         pauseLock.lock();
         try {
             while (isPaused) unpaused.await();
@@ -94,6 +123,9 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         }
     }
 
+    /**
+     * Resume executing any scheduled tasks.
+     */
     public void resume() {
         pauseLock.lock();
         try {
