@@ -112,8 +112,13 @@ public class PassingObjectsFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.delete(Person.class);
+            }
+        });
         // Clear out all Person instances.
-        realm.delete(Person.class);
         realm.close();
     }
 }

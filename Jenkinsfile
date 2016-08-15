@@ -93,7 +93,7 @@ try {
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
-  adb logcat > "logcat.txt" &
+  adb logcat -v time > "logcat.txt" &
   echo $! > pid
   '''
   return readFile("pid").trim()
