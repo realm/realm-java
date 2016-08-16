@@ -1,3 +1,9 @@
+## 1.1.2
+
+### Bug fixes
+
+* Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
+
 ## 1.1.1
 
 ### Enhancements
@@ -16,7 +22,6 @@
 * `insert()` now correctly throws an exception if two different objects have the same primary key (#3212).
 * Blackberry Z10 throwing "Function not implemented" (#3178).
 * Reduced the number of file descriptors used by Realm Core (#3197).
-* Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
 
 ### Internal
 
