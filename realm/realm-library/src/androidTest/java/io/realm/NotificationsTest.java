@@ -349,9 +349,9 @@ public class NotificationsTest {
                 }
                 addHandlerMessages.await(1, TimeUnit.SECONDS); // Wait for main thread to add update messages
 
-                // Find the current Handler for the thread now. All message and references will be
+                // Create a Handler for the thread now. All message and references for the notification handler will be
                 // cleared once we call close().
-                Handler threadHandler = realm.handler;
+                Handler threadHandler = new Handler(Looper.myLooper());
                 realm.close(); // Close native resources + associated handlers.
 
                 // Looper now reads the update message from the main thread if the Handler was not
@@ -359,12 +359,13 @@ public class NotificationsTest {
                 // If it works correctly. The looper will just block on an empty message queue.
                 // This is normal behavior but is bad for testing, so we add a custom quit message
                 // at the end so we can evaluate results faster.
-                threadHandler.post(new Runnable() {
+                // 500 ms delay is to make sure the notification daemon thread gets time to send notification.
+                threadHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         TestHelper.quitLooperOrFail();
                     }
-                });
+                }, 500);
 
                 try {
                     Looper.loop();
@@ -848,89 +849,57 @@ public class NotificationsTest {
     // to advance to the latest version. We make sure in this test that all Realm listeners will be notified
     // regardless of the presence of an async RealmResults that will delay the `REALM_CHANGE` sometimes
     @Test
-    public void asyncRealmResultsShouldNotBlockBackgroundCommitNotification() throws Throwable {
-        final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
-        final AtomicInteger numberOfAsyncRealmResultsCallbackInvocation = new AtomicInteger(0);
-        final CountDownLatch signalTestFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Realm[] realm = new Realm[1];
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+    @RunTestInLooperThread
+    public void asyncRealmResultsShouldNotBlockBackgroundCommitNotification() {
+        final Realm realm = looperThread.realm;
+        final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
+        final AtomicBoolean resultsListenerDone = new AtomicBoolean(false);
+        final AtomicBoolean realmListenerDone = new AtomicBoolean(false);
+
+        looperThread.keepStrongReference.add(dogs);
+        assertTrue(dogs.load());
+        assertEquals(0, dogs.size());
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                try {
-                    realm[0] = Realm.getInstance(realmConfig);
-                    realm[0].addChangeListener(new RealmChangeListener<Realm>() {
-                        @Override
-                        public void onChange(Realm object) {
-                            RealmResults<Dog> dogs; // to keep it as a strong reference
-                            switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
-                                case 1: {
-                                    // first commit
-                                    dogs = realm[0].where(Dog.class).findAllAsync();
-                                    assertTrue(dogs.load());
-                                    dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
-                                        @Override
-                                        public void onChange(RealmResults<Dog> object) {
-                                            numberOfAsyncRealmResultsCallbackInvocation.incrementAndGet();
-                                        }
-                                    });
-
-                                    new Thread() {
-                                        @Override
-                                        public void run() {
-                                            Realm realm = Realm.getInstance(realmConfig);
-                                            realm.beginTransaction();
-                                            realm.createObject(Dog.class);
-                                            realm.commitTransaction();
-                                            realm.close();
-                                            signalTestFinished.countDown();
-                                        }
-                                    }.start();
-                                    break;
-                                }
-                                case 2: {
-                                    // finish test
-                                    signalTestFinished.countDown();
-                                    break;
-                                }
-                            }
-                        }
-                    });
-
-                    realm[0].handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            realm[0].beginTransaction();
-                            realm[0].createObject(Dog.class);
-                            realm[0].commitTransaction();
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (realm.length > 0 && realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
-
-                    if (signalTestFinished.getCount() > 0) {
-                        signalTestFinished.countDown();
+            public void onChange(RealmResults<Dog> results) {
+                if (dogs.size() == 2) {
+                    // Results has the latest changes
+                    resultsListenerDone.set(true);
+                    if (realmListenerDone.get()) {
+                        looperThread.testComplete();
                     }
                 }
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                if (dogs.size() == 1) {
+                    // Step 2. Create the second dog
+                    realm.executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            realm.createObject(Dog.class);
+                        }
+                    });
+                } else if (dogs.size() == 2) {
+                    // Realm listener can see the latest changes
+                    realmListenerDone.set(true);
+                    if (resultsListenerDone.get()) {
+                        looperThread.testComplete();
+                    }
+                }
+            }
+        });
+
+        // Step 1. Create the first dog
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(Dog.class);
+            }
+        });
     }
 
     // The presence of async RealmResults blocks any `REALM_CHANGE` notification . We make sure in this test that all
