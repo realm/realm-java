@@ -143,6 +143,7 @@ public class DynamicRealmObjectTests {
             }
         }
     }
+
     @Test
     public void typedGetter_wrongUnderlyingTypeThrows() {
         for (SupportedType type : SupportedType.values()) {

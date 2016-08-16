@@ -193,7 +193,6 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public float getFloat(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnIndex);
         checkFieldType(fieldName, columnIndex, RealmFieldType.FLOAT);
         return proxyState.getRow$realm().getFloat(columnIndex);
     }
