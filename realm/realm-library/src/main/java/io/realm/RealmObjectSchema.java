@@ -662,8 +662,7 @@ public final class RealmObjectSchema {
      * @return column index or null if it doesn't exists.
      */
     Long getFieldIndex(String fieldName) {
-        Long ret = columnIndices.get(fieldName);
-        return ret >= 0 ? ret : null;
+        return columnIndices.get(fieldName);
     }
 
     /**
@@ -720,7 +719,8 @@ public final class RealmObjectSchema {
 
         @Override
         public Long get(Object key) {
-            return table.getColumnIndex((String) key);
+            long ret = table.getColumnIndex((String) key);
+            return ret < 0 ? null : ret;
         }
 
         @Override
