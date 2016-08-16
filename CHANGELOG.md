@@ -1,3 +1,9 @@
+## 1.1.2
+
+### Internal
+
+* Updated Realm Core to 1.5.0.
+
 ## 1.1.1
 
 ### Enhancements

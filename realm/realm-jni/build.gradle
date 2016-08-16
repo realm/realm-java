@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '1.4.2'
+ext.coreVersion = '1.5.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '1dfa2b4852b1cfccb18fd1a164cfeeea2b84f8de03f1024594837ca54840665c'
+ext.coreSha256Hash = 'b4329935c8423602f81cb80f920a576f3b6937b6c44cb5358730ae12b87bdb20'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
