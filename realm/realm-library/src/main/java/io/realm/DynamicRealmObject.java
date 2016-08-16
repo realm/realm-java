@@ -32,7 +32,9 @@ import io.realm.internal.android.JsonUtils;
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 public final class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
+
     private final ProxyState proxyState = new ProxyState(this);
+
     /**
      * Creates a dynamic Realm object based on an existing object.
      *
@@ -405,7 +407,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
             setObject(fieldName, (DynamicRealmObject) value);
         } else if (valueClass == RealmList.class) {
             @SuppressWarnings("unchecked")
-            RealmList<RealmObject> list = (RealmList<RealmObject>) value;
+            RealmList<DynamicRealmObject> list = (RealmList<DynamicRealmObject>) value;
             setList(fieldName, list);
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
@@ -574,7 +576,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * of the object represented by the DynamicRealmObject doesn't match or any element in the list belongs to a
      * different Realm.
      */
-    public void setList(String fieldName, RealmList<? extends RealmModel> list) {
+    public void setList(String fieldName, RealmList<DynamicRealmObject> list) {
         if (list == null) {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
@@ -599,7 +601,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         links.clear();
         Table linkTargetTable = links.getTargetTable();
         for (int i = 0; i < list.size(); i++) {
-            RealmObjectProxy obj = (RealmObjectProxy) list.get(i);
+            RealmObjectProxy obj = list.get(i);
             if (obj.realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
                 throw new IllegalArgumentException("Each element in 'list' must belong to the same Realm instance.");
             }
