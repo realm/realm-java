@@ -4,6 +4,13 @@
 
 * Added `RealmQuery.in()` for a comparison against multiple values.
 
+## 1.1.2
+
+### Bug fixes
+
+* Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
+* `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
+
 ## 1.1.1
 
 ### Enhancements
