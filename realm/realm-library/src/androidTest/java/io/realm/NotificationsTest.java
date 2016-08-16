@@ -654,9 +654,9 @@ public class NotificationsTest {
     // prevents commitTransaction from accidentally posting messages to Handlers which might reference a closed Realm.
     @Test
     public void doNotUseClosedHandler() throws InterruptedException {
-        final AssertionFailedError[] threadAssertionError = new AssertionFailedError[1]; // Keep track of errors in test threads.
         final CountDownLatch handlerNotified = new CountDownLatch(1);
-        final CountDownLatch backgroundThreadClosed = new CountDownLatch(1);
+        final CountDownLatch backgroundThread1Started = new CountDownLatch(1);
+        final CountDownLatch backgroundThread2Closed = new CountDownLatch(1);
 
         // Create Handler on Thread1 by opening a Realm instance
         new Thread("thread1") {
@@ -673,6 +673,7 @@ public class NotificationsTest {
                     }
                 };
                 realm.addChangeListener(listener);
+                backgroundThread1Started.countDown();
                 Looper.loop();
             }
         }.start();
@@ -686,37 +687,30 @@ public class NotificationsTest {
                 RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
                     @Override
                     public void onChange(Realm object) {
-                        try {
-                            fail("This handler should not be notified");
-                        } catch (AssertionFailedError e) {
-                            threadAssertionError[0] = e;
-                            handlerNotified.countDown(); // Make sure that that await() doesn't fail instead.
-                        }
+                        fail("This handler should not be notified");
                     }
                 };
                 realm.addChangeListener(listener);
                 realm.close();
-                backgroundThreadClosed.countDown();
+                backgroundThread2Closed.countDown();
                 Looper.loop();
             }
 
         }.start();
 
-        // Any REALM_CHANGED message should now only reach the open Handler on Thread1
-        backgroundThreadClosed.await();
+        TestHelper.awaitOrFail(backgroundThread1Started);
+        TestHelper.awaitOrFail(backgroundThread2Closed);
         Realm realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
         realm.commitTransaction();
+        // Any REALM_CHANGED message should now only reach the open Handler on Thread1
         try {
+            // TODO: Waiting 5 seconds is not a reliable condition. Figure out a better way for this.
             if (!handlerNotified.await(5, TimeUnit.SECONDS)) {
                 fail("Handler didn't receive message");
             }
         } finally {
             realm.close();
-        }
-
-        if (threadAssertionError[0] != null) {
-            throw threadAssertionError[0];
         }
     }
 
