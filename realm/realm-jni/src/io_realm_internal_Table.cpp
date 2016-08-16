@@ -1320,9 +1320,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         return 0;
     }
 
-    std::vector<size_t> indices(S(arr_len));
+    std::vector<std::vector<size_t>> indices(S(arr_len));
     std::vector<bool> ascendings(S(arr_len));
-
+    std::vector<size_t> field_ref(1);
     for (int i = 0; i < arr_len; ++i) {
         if (!TBL_AND_COL_INDEX_VALID(env, pTable, S(long_arr[i]) )) {
             return 0;
@@ -1335,7 +1335,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_Double:
             case type_Float:
             case type_Timestamp:
-                indices[i] = S(long_arr[i]);
+                field_ref[0] = S(long_arr[i]); // TODO Enable support for sorting through links
+                indices[i] = { field_ref };
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
@@ -1345,7 +1346,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
     }
 
     try {
-        TableView* pTableView = new TableView(pTable->get_sorted_view(indices, ascendings));
+        TableView* pTableView = new TableView(pTable->get_sorted_view(SortDescriptor(*pTable, indices, ascendings)));
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;

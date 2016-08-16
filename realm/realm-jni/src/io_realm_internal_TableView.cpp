@@ -85,14 +85,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
     if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
         return;
     try {
+        TableView* tv = TV(nativeViewPtr);
         JniLongArray indexes(env, columnIndexes);
         jsize indexes_len = indexes.len();
-        std::vector<size_t> columns;
+        std::vector<std::vector<size_t>> columns;
+        std::vector<bool> ascending;
+        std::vector<size_t> field_ref(1);
         for (int i = 0; i < indexes_len; ++i) {
             if (!COL_INDEX_VALID(env, TV(nativeViewPtr), indexes[i])) {
                 return;
             }
-            if (!TV(nativeViewPtr)->get_parent().has_search_index(S(indexes[i]))) {
+            if (!tv->get_parent().has_search_index(S(indexes[i]))) {
                 ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
                 return;
             }
@@ -101,14 +104,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
                 case type_Int:
                 case type_String:
                 case type_Timestamp:
-                    columns.push_back(S(indexes[i]));
+                    field_ref[0] = S(indexes[i]); // TODO Enable support for sorting through links
+                    columns.push_back(field_ref);
+                    ascending.push_back(true);
                     break;
                 default:
                     ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
                     return;
             }
         }
-        TV(nativeViewPtr)->distinct(columns);
+        tv->distinct(SortDescriptor(tv->get_parent(), columns, ascending));
     } CATCH_STD()
 }
 
@@ -883,14 +888,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
             return;
         }
 
-        std::vector<size_t> indices;
+        TableView* tv = TV(nativeViewPtr);
+        std::vector<std::vector<size_t>> indices;
         std::vector<bool> ascendings;
+        std::vector<size_t> field_ref(1);
 
         for (int i = 0; i < arr_len; ++i) {
             if (!COL_INDEX_VALID(env, TV(nativeViewPtr), long_arr[i])) {
                 return;
             }
-            int colType = TV(nativeViewPtr)->get_column_type( S(long_arr[i]) );
+            int colType = tv->get_column_type( S(long_arr[i]) );
             switch (colType) {
                 case type_Bool:
                 case type_Int:
@@ -898,7 +905,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                 case type_Double:
                 case type_String:
                 case type_Timestamp:
-                    indices.push_back( S(long_arr[i]) );
+                    field_ref[0] = S(long_arr[i]);
+                    indices.push_back( field_ref );
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:
@@ -906,7 +914,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                     return;
             }
         }
-        TV(nativeViewPtr)->sort(indices, ascendings);
+        tv->sort(SortDescriptor(tv->get_parent(), indices, ascendings));
     } CATCH_STD()
 }
 

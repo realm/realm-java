@@ -196,9 +196,9 @@ static jlong findAllMultiSortedWithHandover
         TableView tableView( query->find_all(S(start), S(end), S(limit)) );
 
         // sorting the results
-        std::vector<size_t> indices;
+        std::vector<std::vector<size_t>> indices;
         std::vector<bool> ascendings;
-
+        std::vector<size_t> field_ref(1);
         for (int i = 0; i < arr_len; ++i) {
             if (!COL_INDEX_VALID(env, &tableView, long_arr[i])) {
                 return -1;
@@ -211,7 +211,8 @@ static jlong findAllMultiSortedWithHandover
                 case type_Double:
                 case type_String:
                 case type_Timestamp:
-                    indices.push_back( S(long_arr[i]) );
+                    field_ref[0] = S(long_arr[i]); // TODO Enable support for sorting through links
+                    indices.push_back( field_ref );
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:
@@ -220,7 +221,7 @@ static jlong findAllMultiSortedWithHandover
             }
         }
 
-        tableView.sort(indices, ascendings);
+        tableView.sort(SortDescriptor(*table, indices, ascendings));
 
         // handover the result
         std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
