@@ -57,6 +57,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -1716,6 +1717,30 @@ public class RealmQueryTests {
         assertEquals(3, resultList.size());
         resultList = realm.where(BinaryOnly.class).contains("binary", new byte[] {1, 3}).findAll();
         assertEquals(0, resultList.size());
+    }
+
+    // Querying nullable field with beginsWith - all byte arrays begin with null
+    @Test
+    public void beginsWith_nullForNullableByteArrays() {
+        TestHelper.populateTestRealmForNullTests(realm);
+        assertArrayEquals(new byte[] {0}, realm.where(NullTypes.class).beginsWith(NullTypes.FIELD_BYTES_NULL,
+                (byte[]) null).findFirst().getFieldBytesNotNull());
+    }
+
+    // Querying nullable field with endsWith - all byte arrays contain with null
+    @Test
+    public void contains_nullForNullableByteArrays() {
+        TestHelper.populateTestRealmForNullTests(realm);
+        assertArrayEquals(new byte[] {0}, realm.where(NullTypes.class).contains(NullTypes.FIELD_BYTES_NULL,
+                (byte[]) null).findFirst().getFieldBytesNotNull());
+    }
+
+    // Querying nullable field with endsWith - all byte arrays end with null
+    @Test
+    public void endsWith_nullForNullableByteArrays() {
+        TestHelper.populateTestRealmForNullTests(realm);
+        assertArrayEquals(new byte[] {0}, realm.where(NullTypes.class).endsWith(NullTypes.FIELD_BYTES_NULL,
+                (byte[]) null).findFirst().getFieldBytesNotNull());
     }
 
     // Test min on empty columns
