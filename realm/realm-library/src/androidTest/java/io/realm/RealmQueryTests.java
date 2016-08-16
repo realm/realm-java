@@ -1634,7 +1634,6 @@ public class RealmQueryTests {
 
     private void createBinaryOnlyDataSet() {
         realm.beginTransaction();
-        realm.delete(BinaryOnly.class);
         for (byte[] binary : binaries) {
             BinaryOnly binaryOnly = realm.createObject(BinaryOnly.class);
             binaryOnly.setBinary(binary);
