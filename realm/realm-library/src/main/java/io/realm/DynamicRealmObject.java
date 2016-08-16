@@ -659,7 +659,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
 
     private void checkFieldType(String fieldName, long columnIndex, RealmFieldType expectedType) {
         RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnIndex);
-        if (columnType != RealmFieldType.BOOLEAN) {
+        if (columnType != expectedType) {
             String indefiniteWowel = "";
             if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.LIST) {
                 indefiniteWowel = "n";
