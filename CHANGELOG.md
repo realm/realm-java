@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* `DynamicRealmObject.getX(fieldName)` now throw a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
+* `DynamicRealmObject.getX(fieldName)` now throws a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
 
 ## 1.1.1
 
