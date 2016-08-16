@@ -244,12 +244,11 @@ public class SimpleRealmProxy extends some.test.Simple
         while (objects.hasNext()) {
             object = (some.test.Simple) objects.next();
             if(!cache.containsKey(object)) {
-                long rowIndex;
                 if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
                     continue;
-                } else {
-                    rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 }
+                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 cache.put(object, rowIndex);
                 String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
                 if (realmGet$name != null) {
@@ -287,12 +286,11 @@ public class SimpleRealmProxy extends some.test.Simple
         while (objects.hasNext()) {
             object = (some.test.Simple) objects.next();
             if(!cache.containsKey(object)) {
-                long rowIndex = TableOrView.NO_MATCH;
                 if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
                     continue;
-                } else {
-                    rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 }
+                long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 cache.put(object, rowIndex);
                 String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
                 if (realmGet$name != null) {

@@ -868,12 +868,11 @@ public class RealmProxyClassGenerator {
         writer.beginControlFlow("if(!cache.containsKey(object))");
 
         writer.beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))");
-                writer.emitStatement("cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex())");
-                .nextControlFlow("else");
-                addPrimaryKeyCheckIfNeeeded(metadata, true, writer);
-                writer.endControlFlow();
+                writer.emitStatement("cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex())")
+                .emitStatement("continue");
+        writer.endControlFlow();
 
-
+        addPrimaryKeyCheckIfNeeeded(metadata, true, writer);
 
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
@@ -1025,12 +1024,11 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("object = (%s) objects.next()", qualifiedClassName);
         writer.beginControlFlow("if(!cache.containsKey(object))");
 
-        writer
-                .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))")
-        writer.emitStatement("cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex())");
-                .nextControlFlow("else");
+        writer.beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath()))");
+            writer.emitStatement("cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex())")
+                  .emitStatement("continue");
+        writer.endControlFlow();
         addPrimaryKeyCheckIfNeeeded(metadata, false, writer);
-                writer.endControlFlow();
 
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();

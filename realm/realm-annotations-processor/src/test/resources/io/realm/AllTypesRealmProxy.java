@@ -735,6 +735,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         while (objects.hasNext()) {
             object = (some.test.AllTypes) objects.next();
             if(!cache.containsKey(object)) {
+                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
+                    continue;
+                }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
                 long rowIndex = TableOrView.NO_MATCH;
                 if (primaryKeyValue == null) {
@@ -866,6 +870,11 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         while (objects.hasNext()) {
             object = (some.test.AllTypes) objects.next();
             if(!cache.containsKey(object)) {
+                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
+                    continue;
+                }
+                String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
                 long rowIndex = TableOrView.NO_MATCH;
                 if (primaryKeyValue == null) {
                     rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnIndex);
