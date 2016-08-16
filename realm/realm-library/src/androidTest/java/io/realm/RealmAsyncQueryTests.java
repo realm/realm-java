@@ -62,7 +62,7 @@ import static org.junit.Assert.fail;
 public class RealmAsyncQueryTests {
 
     @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
+    public static final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
@@ -483,25 +483,7 @@ public class RealmAsyncQueryTests {
         realm.setAutoRefresh(true);
 
         // 2. Configure handler interceptor
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                // Intercepts in order: [QueryComplete, RealmChanged, QueryUpdated]
-                int intercepts = numberOfIntercept.incrementAndGet();
-                switch (what) {
-                    // 5. Intercept all messages from other threads. On the first complete, we advance the tread
-                    // which will cause the async query to rerun instead of triggering the change listener.
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS:
-                        if (intercepts == 1) {
-                            // We advance the Realm so we can simulate a retry
-                            realm.beginTransaction();
-                            realm.delete(AllTypes.class);
-                            realm.commitTransaction();
-                        }
-                }
-                return false;
-            }
-        };
+        final Handler handler = new RetryHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // 3. Create a async query
@@ -545,31 +527,7 @@ public class RealmAsyncQueryTests {
         populateTestRealm(realm, 10);
 
         // 1. Configure Handler interceptor
-        Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                int intercepts = numberOfIntercept.getAndIncrement();
-                if (what == HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
-                    // 4. The first time the async queries complete we start an update from
-                    // another background thread. This will cause queries to rerun when the
-                    // background thread notifies this thread.
-                    new RealmBackgroundTask(looperThread.realmConfiguration) {
-                        @Override
-                        public void doInBackground(Realm realm) {
-                            realm.beginTransaction();
-                            realm.where(AllTypes.class)
-                                    .equalTo(AllTypes.FIELD_LONG, 4)
-                                    .findFirst()
-                                    .setColumnString("modified");
-                            realm.createObject(AllTypes.class);
-                            realm.createObject(AllTypes.class);
-                            realm.commitTransaction();
-                        }
-                    }.awaitOrFail();
-                }
-                return false;
-            }
-        };
+        Handler handler = new BatchUpdateHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // 2. Create 2 async queries and check they are not loaded
@@ -653,24 +611,7 @@ public class RealmAsyncQueryTests {
         populateTestRealm(realm, 10);
 
         // Configure handler interceptor
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
-                int intercepts = numberOfIntercept.incrementAndGet();
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
-                        // we advance the Realm so we can simulate a retry
-                        if (intercepts == 1) {
-                            realm.beginTransaction();
-                            realm.createObject(AllTypes.class).setColumnLong(0);
-                            realm.commitTransaction();
-                        }
-                    }
-                }
-                return false;
-            }
-        };
+        final Handler handler = new CallerIsAdvancedHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // Create async query and verify it has not been loaded.
@@ -715,31 +656,8 @@ public class RealmAsyncQueryTests {
         populateTestRealm(realm, 10);
 
         // Configure Handler Interceptor
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerControllerConstants.REALM_CHANGED: {
-                        // should only intercept the first REALM_CHANGED coming from the
-                        // background update thread
-
-                        // swallow this message, so the caller thread
-                        // remain behind the worker thread. This has as
-                        // a consequence to ignore the delivered result & wait for the
-                        // upcoming REALM_CHANGED to batch update all async queries
-                        return numberOfInterceptedChangeMessage.getAndIncrement() == 0;
-                    }
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
-                        if (numberOfCompletedAsyncQuery.incrementAndGet() == 2) {
-                            // both queries have completed now (& their results should be ignored)
-                            // now send the REALM_CHANGED event that should batch update all queries
-                            sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
-                        }
-                    }
-                }
-                return false;
-            }
-        };
+        final Handler handler = new CallerThreadBehindHandlerProxy(realm, numberOfInterceptedChangeMessage,
+                numberOfCompletedAsyncQuery);
         realm.setHandler(handler);
         Realm.asyncTaskExecutor.pause();
 
@@ -954,26 +872,7 @@ public class RealmAsyncQueryTests {
         populateTestRealm(realm, 10);
 
         // Configure interceptor handler
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                int intercepts = numberOfIntercept.incrementAndGet();
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
-                        if (intercepts == 1) {
-                            // we advance the Realm so we can simulate a retry
-                            realm.beginTransaction();
-                            realm.delete(AllTypes.class);
-                            AllTypes object = realm.createObject(AllTypes.class);
-                            object.setColumnString("The Endless River");
-                            object.setColumnLong(5);
-                            realm.commitTransaction();
-                        }
-                    }
-                }
-                return false;
-            }
-        };
+        final Handler handler = new RetryFirstHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // Create a async query and verify it is not still loaded.
@@ -1051,26 +950,7 @@ public class RealmAsyncQueryTests {
         realm.setAutoRefresh(true);
 
         // 2. Configure proxy handler to intercept messages
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                // In order [QueryCompleted, RealmChanged, QueryUpdated]
-                int intercepts = numberOfIntercept.incrementAndGet();
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
-                        if (intercepts == 1) {
-                            // We advance the Realm so we can simulate a retry before listeners are
-                            // called.
-                            realm.beginTransaction();
-                            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().deleteFromRealm();
-                            realm.commitTransaction();
-                        }
-                        break;
-                    }
-                }
-                return false;
-            }
-        };
+        final Handler handler = new RetrySortedHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // 3. This will add a task to the paused asyncTaskExecutor
@@ -1117,37 +997,7 @@ public class RealmAsyncQueryTests {
         realm.setAutoRefresh(true);
 
         // 2. Configure interceptor
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
-                        if (numberOfIntercept.incrementAndGet() == 1) {
-                            // 6. The first time the async queries complete we start an update from
-                            // another background thread. This will cause queries to rerun when the
-                            // background thread notifies this thread.
-                            final CountDownLatch bgThreadLatch = new CountDownLatch(1);
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
-                                    bgRealm.beginTransaction();
-                                    bgRealm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
-                                    bgRealm.createObject(AllTypes.class);
-                                    bgRealm.createObject(AllTypes.class);
-                                    bgRealm.commitTransaction();
-                                    bgRealm.close();
-                                    bgThreadLatch.countDown();
-                                }
-                            }.start();
-                            TestHelper.awaitOrFail(bgThreadLatch);
-                        }
-                    }
-                    break;
-                }
-                return false;
-            }
-        };
+        final Handler handler = new BatchUpdateSortedHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // 3. Create 2 async queries
@@ -1257,36 +1107,7 @@ public class RealmAsyncQueryTests {
         realm.setAutoRefresh(true);
 
         // 2. Configure interceptor
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                int intercepts = numberOfIntercept.incrementAndGet();
-                if (what == HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
-                    // 6. The first time the async queries complete we start an update from
-                    // another background thread. This will cause queries to rerun when the
-                    // background thread notifies this thread.
-                    new RealmBackgroundTask(looperThread.realmConfiguration) {
-                        @Override
-                        public void doInBackground(Realm realm) {
-                            realm.beginTransaction();
-                            realm.where(AllTypes.class)
-                                    .equalTo("columnString", "data 1")
-                                    .equalTo("columnLong", 0)
-                                    .findFirst().setColumnDouble(Math.PI);
-                            AllTypes allTypes = realm.createObject(AllTypes.class);
-                            allTypes.setColumnLong(2);
-                            allTypes.setColumnString("data " + 5);
-
-                            allTypes = realm.createObject(AllTypes.class);
-                            allTypes.setColumnLong(0);
-                            allTypes.setColumnString("data " + 5);
-                            realm.commitTransaction();
-                        }
-                    }.awaitOrFail();
-                }
-                return false;
-            }
-        };
+        final Handler handler = new BatchMultipleSortedHandlerProxy(realm, numberOfIntercept);
         realm.setHandler(handler);
 
         // 3. Create 2 async queries
@@ -2148,5 +1969,268 @@ public class RealmAsyncQueryTests {
             }
         }
         realm.commitTransaction();
+    }
+
+    private static class RetryHandlerProxy extends HandlerProxy {
+        private final Realm realm;
+        private final AtomicInteger numberOfIntercept;
+
+        RetryHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.realm = realm;
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            // Intercepts in order: [QueryComplete, RealmChanged, QueryUpdated]
+            int intercepts = numberOfIntercept.incrementAndGet();
+            switch (what) {
+                // 5. Intercept all messages from other threads. On the first complete, we advance the tread
+                // which will cause the async query to rerun instead of triggering the change listener.
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS:
+                    if (intercepts == 1) {
+                        // We advance the Realm so we can simulate a retry
+                        realm.beginTransaction();
+                        realm.delete(AllTypes.class);
+                        realm.commitTransaction();
+                    }
+            }
+            return false;
+        }
+    }
+
+    private static class BatchUpdateHandlerProxy extends HandlerProxy {
+        private final AtomicInteger numberOfIntercept;
+
+        BatchUpdateHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            int intercepts = numberOfIntercept.getAndIncrement();
+            if (what == HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
+                // 4. The first time the async queries complete we start an update from
+                // another background thread. This will cause queries to rerun when the
+                // background thread notifies this thread.
+                new RealmBackgroundTask(looperThread.realmConfiguration) {
+                    @Override
+                    public void doInBackground(Realm realm) {
+                        realm.beginTransaction();
+                        realm.where(AllTypes.class)
+                                .equalTo(AllTypes.FIELD_LONG, 4)
+                                .findFirst()
+                                .setColumnString("modified");
+                        realm.createObject(AllTypes.class);
+                        realm.createObject(AllTypes.class);
+                        realm.commitTransaction();
+                    }
+                }.awaitOrFail();
+            }
+            return false;
+        }
+    }
+
+    private static class CallerIsAdvancedHandlerProxy extends HandlerProxy {
+        private final Realm realm;
+        private final AtomicInteger numberOfIntercept;
+
+        CallerIsAdvancedHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.realm = realm;
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
+            int intercepts = numberOfIntercept.incrementAndGet();
+            switch (what) {
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
+                    // we advance the Realm so we can simulate a retry
+                    if (intercepts == 1) {
+                        realm.beginTransaction();
+                        realm.createObject(AllTypes.class).setColumnLong(0);
+                        realm.commitTransaction();
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private static class CallerThreadBehindHandlerProxy extends HandlerProxy {
+        private final AtomicInteger numberOfInterceptedChangeMessage;
+        private final AtomicInteger numberOfCompletedAsyncQuery;
+
+        CallerThreadBehindHandlerProxy(Realm realm, AtomicInteger numberOfInterceptedChangeMessage,
+                                       AtomicInteger numberOfCompletedAsyncQuery) {
+            super(realm.handlerController);
+            this.numberOfInterceptedChangeMessage = numberOfInterceptedChangeMessage;
+            this.numberOfCompletedAsyncQuery = numberOfCompletedAsyncQuery;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            switch (what) {
+                case HandlerControllerConstants.REALM_CHANGED: {
+                    // should only intercept the first REALM_CHANGED coming from the
+                    // background update thread
+
+                    // swallow this message, so the caller thread
+                    // remain behind the worker thread. This has as
+                    // a consequence to ignore the delivered result & wait for the
+                    // upcoming REALM_CHANGED to batch update all async queries
+                    return numberOfInterceptedChangeMessage.getAndIncrement() == 0;
+                }
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
+                    if (numberOfCompletedAsyncQuery.incrementAndGet() == 2) {
+                        // both queries have completed now (& their results should be ignored)
+                        // now send the REALM_CHANGED event that should batch update all queries
+                        sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private static class RetryFirstHandlerProxy extends HandlerProxy {
+        private final Realm realm;
+        private final AtomicInteger numberOfIntercept;
+
+        RetryFirstHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.realm = realm;
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            int intercepts = numberOfIntercept.incrementAndGet();
+            switch (what) {
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
+                    if (intercepts == 1) {
+                        // we advance the Realm so we can simulate a retry
+                        realm.beginTransaction();
+                        realm.delete(AllTypes.class);
+                        AllTypes object = realm.createObject(AllTypes.class);
+                        object.setColumnString("The Endless River");
+                        object.setColumnLong(5);
+                        realm.commitTransaction();
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private static class RetrySortedHandlerProxy extends HandlerProxy {
+        private final Realm realm;
+        private final AtomicInteger numberOfIntercept;
+
+        RetrySortedHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.realm = realm;
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            // In order [QueryCompleted, RealmChanged, QueryUpdated]
+            int intercepts = numberOfIntercept.incrementAndGet();
+            switch (what) {
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
+                    if (intercepts == 1) {
+                        // We advance the Realm so we can simulate a retry before listeners are
+                        // called.
+                        realm.beginTransaction();
+                        realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().deleteFromRealm();
+                        realm.commitTransaction();
+                    }
+                    break;
+                }
+            }
+            return false;
+        }
+    }
+
+    private static class BatchUpdateSortedHandlerProxy extends HandlerProxy {
+        private final AtomicInteger numberOfIntercept;
+
+        BatchUpdateSortedHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            switch (what) {
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
+                    if (numberOfIntercept.incrementAndGet() == 1) {
+                        // 6. The first time the async queries complete we start an update from
+                        // another background thread. This will cause queries to rerun when the
+                        // background thread notifies this thread.
+                        final CountDownLatch bgThreadLatch = new CountDownLatch(1);
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
+                                bgRealm.beginTransaction();
+                                bgRealm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
+                                bgRealm.createObject(AllTypes.class);
+                                bgRealm.createObject(AllTypes.class);
+                                bgRealm.commitTransaction();
+                                bgRealm.close();
+                                bgThreadLatch.countDown();
+                            }
+                        }.start();
+                        TestHelper.awaitOrFail(bgThreadLatch);
+                    }
+                }
+                break;
+            }
+            return false;
+        }
+    }
+
+    private static class BatchMultipleSortedHandlerProxy extends HandlerProxy {
+        private final AtomicInteger numberOfIntercept;
+
+        BatchMultipleSortedHandlerProxy(Realm realm, AtomicInteger numberOfIntercept) {
+            super(realm.handlerController);
+            this.numberOfIntercept = numberOfIntercept;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            int intercepts = numberOfIntercept.incrementAndGet();
+            if (what == HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
+                // 6. The first time the async queries complete we start an update from
+                // another background thread. This will cause queries to rerun when the
+                // background thread notifies this thread.
+                new RealmBackgroundTask(looperThread.realmConfiguration) {
+                    @Override
+                    public void doInBackground(Realm realm) {
+                        realm.beginTransaction();
+                        realm.where(AllTypes.class)
+                                .equalTo("columnString", "data 1")
+                                .equalTo("columnLong", 0)
+                                .findFirst().setColumnDouble(Math.PI);
+                        AllTypes allTypes = realm.createObject(AllTypes.class);
+                        allTypes.setColumnLong(2);
+                        allTypes.setColumnString("data " + 5);
+
+                        allTypes = realm.createObject(AllTypes.class);
+                        allTypes.setColumnLong(0);
+                        allTypes.setColumnString("data " + 5);
+                        realm.commitTransaction();
+                    }
+                }.awaitOrFail();
+            }
+            return false;
+        }
     }
 }

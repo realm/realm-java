@@ -31,6 +31,8 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.test.AndroidTestCase;
 
+import junit.framework.Assert;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -51,9 +53,9 @@ import io.realm.services.RemoteProcessService;
 //      B. Open three Realms
 //      2. assertTrue("OK, remote process win. You can open more Realms than I do in the main local process", false);
 public class RealmInterprocessTest extends AndroidTestCase {
-    private Realm testRealm;
-    private Messenger remoteMessenger;
-    private Messenger localMessenger;
+    private static Realm testRealm;
+    private static Messenger remoteMessenger;
+    private static Messenger localMessenger;
     private CountDownLatch serviceStartLatch;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -105,8 +107,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
     }
 
     // Helper handler to make it easy to interact with remote service process.
-    @SuppressLint("HandlerLeak") // SuppressLint bug, doesn't work
-    private class InterprocessHandler extends Handler {
+    private static class InterprocessHandler extends Handler {
         // Timeout Watchdog. In case the service crashed or expected response is not returned.
         // It is very important to feed the dog after the expected message arrived.
         private final int timeout = 5000;
@@ -123,15 +124,15 @@ public class RealmInterprocessTest extends AndroidTestCase {
             }
         };
 
-        protected void clearTimeoutFlag() {
+        void clearTimeoutFlag() {
             isTimeout = false;
         }
 
-        protected void done() {
+        void done() {
             Looper.myLooper().quit();
         }
 
-        public InterprocessHandler(Runnable startRunnable) {
+        InterprocessHandler(Runnable startRunnable) {
             super(Looper.myLooper());
             localMessenger = new Messenger(this);
             // To have the first step from main process run
@@ -175,11 +176,11 @@ public class RealmInterprocessTest extends AndroidTestCase {
         remoteMessenger = null;
 
         // Kill the remote process.
-        ActivityManager.RunningAppProcessInfo info = getRemoteProcessInfo();
+        ActivityManager.RunningAppProcessInfo info = getRemoteProcessInfo(getContext());
         if (info != null) {
             android.os.Process.killProcess(info.pid);
         }
-        while (getRemoteProcessInfo() != null) {
+        while (getRemoteProcessInfo(getContext()) != null) {
             if (counter == 0) {
                 assertTrue("The remote service process is still alive.", false);
             }
@@ -190,7 +191,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
     }
 
     // Call this to trigger the next step of service process
-    private void triggerServiceStep(RemoteProcessService.Step step) {
+    private static void triggerServiceStep(RemoteProcessService.Step step) {
         Message msg = Message.obtain(null, step.message);
         msg.replyTo = localMessenger;
         try {
@@ -204,8 +205,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
     // When this method return null, it doesn't mean the remote process is not existed. An 'empty' process could
     // be retained by the system to be used next time.
     // Use getRemoteProcessInfo if you want to check the existence of remote process.
-    private ActivityManager.RunningServiceInfo getServiceInfo() {
-        ActivityManager manager = (ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
+    private static ActivityManager.RunningServiceInfo getServiceInfo(Context context) {
+        ActivityManager manager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningServiceInfo> serviceInfoList = manager.getRunningServices(Integer.MAX_VALUE);
         for (ActivityManager.RunningServiceInfo service : serviceInfoList) {
             if (RemoteProcessService.class.getName().equals(service.service.getClassName())) {
@@ -216,11 +217,11 @@ public class RealmInterprocessTest extends AndroidTestCase {
     }
 
     // Get the remote process info if it is alive.
-    private ActivityManager.RunningAppProcessInfo getRemoteProcessInfo() {
-        ActivityManager manager = (ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
+    private static ActivityManager.RunningAppProcessInfo getRemoteProcessInfo(Context context) {
+        ActivityManager manager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> processInfoList = manager.getRunningAppProcesses();
         for (ActivityManager.RunningAppProcessInfo info : processInfoList) {
-            if (info.processName.equals(getContext().getPackageName() + ":remote")) {
+            if (info.processName.equals(context.getPackageName() + ":remote")) {
                 return info;
             }
         }
@@ -231,76 +232,96 @@ public class RealmInterprocessTest extends AndroidTestCase {
     // A. Open a realm, close it, then call Runtime.getRuntime().exit(0).
     // 1. Wait 3 seconds to see if the service process existed.
     public void testExitProcess() {
-        new InterprocessHandler(new Runnable() {
-            @Override
-            public void run() {
-                // Step A
-                triggerServiceStep(RemoteProcessService.stepExitProcess_A);
-            }
-        }) {
-
-            @SuppressWarnings("ConstantConditions")
-            final int servicePid = getServiceInfo().pid;
-
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == RemoteProcessService.stepExitProcess_A.message) {
-                    // Step 1
-                    clearTimeoutFlag();
-                    try {
-                        // Timeout is 5 seconds. 3 (6x500ms) seconds should be enough to quit the process.
-                        for (int i = 1; i <= 6; i++) {
-                            // We need to retrieve the service's pid again since the system might restart it automatically.
-                            ActivityManager.RunningAppProcessInfo processInfo = getRemoteProcessInfo();
-                            if (processInfo != null && processInfo.pid == servicePid && i >= 6) {
-                                // The process is still alive.
-                                assertTrue(false);
-                            } else if (processInfo == null || processInfo.pid != servicePid) {
-                                // The process is gone
-                                break;
-                            }
-                            Thread.sleep(500, 0);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        assertTrue(false);
-                    }
-                    done();
-                }
-            }
-        };
+        new ExitInterprocessHandler(getContext());
         Looper.loop();
     }
 
     // 1. Main process create Realm, write one object.
     // A. Service process open Realm, check if there is one and only one object.
     public void testCreateInitialRealm() throws InterruptedException {
-        new InterprocessHandler(new Runnable() {
-            @Override
-            public void run() {
+        new CreateInterprocessHandler(getContext());
+        Looper.loop();
+    }
+
+    private static class ExitInterprocessHandler extends InterprocessHandler {
+
+        @SuppressWarnings("ConstantConditions")
+        final int servicePid;
+        final Context context;
+
+        ExitInterprocessHandler(Context context) {
+            super(new Runnable() {
+                @Override
+                public void run() {
+                    // Step A
+                    triggerServiceStep(RemoteProcessService.stepExitProcess_A);
+                }
+            });
+            this.context = context;
+            this.servicePid = getServiceInfo(context).pid;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == RemoteProcessService.stepExitProcess_A.message) {
                 // Step 1
-                testRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).build());
-                assertEquals(testRealm.where(AllTypes.class).count(), 0);
-                testRealm.beginTransaction();
-                testRealm.createObject(AllTypes.class);
-                testRealm.commitTransaction();
-
-                // Step A
-                triggerServiceStep(RemoteProcessService.stepCreateInitialRealm_A);
-            }}) {
-
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == RemoteProcessService.stepCreateInitialRealm_A.message) {
-                    clearTimeoutFlag();
-                    done();
-                } else {
+                clearTimeoutFlag();
+                try {
+                    // Timeout is 5 seconds. 3 (6x500ms) seconds should be enough to quit the process.
+                    for (int i = 1; i <= 6; i++) {
+                        // We need to retrieve the service's pid again since the system might restart it automatically.
+                        ActivityManager.RunningAppProcessInfo processInfo = getRemoteProcessInfo(context);
+                        if (processInfo != null && processInfo.pid == servicePid && i >= 6) {
+                            // The process is still alive.
+                            assertTrue(false);
+                        } else if (processInfo == null || processInfo.pid != servicePid) {
+                            // The process is gone
+                            break;
+                        }
+                        Thread.sleep(500, 0);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                     assertTrue(false);
                 }
+                done();
             }
-        };
-        Looper.loop();
+        }
+    }
+
+    private static class CreateInterprocessHandler extends InterprocessHandler {
+
+        final Context context;
+
+        CreateInterprocessHandler(final Context context) {
+            super(new Runnable() {
+                @Override
+                public void run() {
+                    // Step 1
+                    testRealm = Realm.getInstance(new RealmConfiguration.Builder(context).build
+                            ());
+                    Assert.assertEquals(testRealm.where(AllTypes.class).count(), 0);
+                    testRealm.beginTransaction();
+                    testRealm.createObject(AllTypes.class);
+                    testRealm.commitTransaction();
+
+                    // Step A
+                    RealmInterprocessTest.triggerServiceStep(RemoteProcessService.stepCreateInitialRealm_A);
+                }
+            });
+            this.context = context;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == RemoteProcessService.stepCreateInitialRealm_A.message) {
+                clearTimeoutFlag();
+                done();
+            } else {
+                assertTrue(false);
+            }
+        }
     }
 }

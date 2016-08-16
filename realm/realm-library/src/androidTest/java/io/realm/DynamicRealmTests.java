@@ -54,7 +54,7 @@ import static org.junit.Assert.fail;
 public class DynamicRealmTests {
 
     @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread();
+    public static final RunInLooperThread looperThread = new RunInLooperThread();
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -520,33 +520,7 @@ public class DynamicRealmTests {
         final DynamicRealmObject[] dynamicRealmObject = new DynamicRealmObject[1];
 
         // Intercept completion of the async DynamicRealmObject query
-        Handler handler = new HandlerProxy(dynamicRealm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
-                        post(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertFalse(dynamicRealmObject[0].isLoaded());
-                                assertFalse(dynamicRealmObject[0].isValid());
-                                try {
-                                    dynamicRealmObject[0].getObject(AllTypes.FIELD_BINARY);
-                                    fail("trying to access a DynamicRealmObject property should throw");
-                                } catch (IllegalStateException ignored) {
-
-                                } finally {
-                                    dynamicRealm.close();
-                                    looperThread.testComplete();
-                                }
-                            }
-                        });
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
+        Handler handler = new TestHandlerProxy(dynamicRealm, dynamicRealmObject);
 
         dynamicRealm.setHandler(handler);
         dynamicRealmObject[0] = dynamicRealm.where(AllTypes.CLASS_NAME)
@@ -663,5 +637,42 @@ public class DynamicRealmTests {
                 }
             }
         });
+    }
+
+    private static class TestHandlerProxy extends HandlerProxy {
+        private final DynamicRealm dynamicRealm;
+        private final DynamicRealmObject[] dynamicRealmObject;
+
+        public TestHandlerProxy(DynamicRealm dynamicRealm, DynamicRealmObject[] dynamicRealmObject) {
+            super(dynamicRealm.handlerController);
+            this.dynamicRealm = dynamicRealm;
+            this.dynamicRealmObject = dynamicRealmObject;
+        }
+
+        @Override
+        public boolean onInterceptInMessage(int what) {
+            switch (what) {
+                case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
+                    post(new Runnable() {
+                        @Override
+                        public void run() {
+                            assertFalse(dynamicRealmObject[0].isLoaded());
+                            assertFalse(dynamicRealmObject[0].isValid());
+                            try {
+                                dynamicRealmObject[0].getObject(AllTypes.FIELD_BINARY);
+                                fail("trying to access a DynamicRealmObject property should throw");
+                            } catch (IllegalStateException ignored) {
+
+                            } finally {
+                                dynamicRealm.close();
+                                looperThread.testComplete();
+                            }
+                        }
+                    });
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

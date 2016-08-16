@@ -3297,7 +3297,7 @@ public class RealmTests {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealm.set(realm);
                 bgRealmOpened.countDown();
-                bgRealmWaitResult.set(new Boolean(realm.waitForChange()));
+                bgRealmWaitResult.set(realm.waitForChange());
                 realm.close();
                 bgRealmClosed.countDown();
             }
