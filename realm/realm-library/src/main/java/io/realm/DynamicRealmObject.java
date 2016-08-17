@@ -662,7 +662,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnIndex);
         if (columnType != expectedType) {
             String indefiniteVowel = "";
-            if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.LIST) {
+            if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.OBJECT) {
                 indefiniteVowel = "n";
             }
             throw new IllegalArgumentException(String.format("'%s' is not a%s '%s', but a%s '%s'.",
