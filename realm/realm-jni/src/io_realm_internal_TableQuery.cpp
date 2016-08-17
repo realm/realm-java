@@ -897,19 +897,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3JLja
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringNotEqual);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3JLjava_lang_String_2Z(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringBeginsWith);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3JLjava_lang_String_2Z(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringEndsWith);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3JLjava_lang_String_2Z(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
     TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringContains);
@@ -919,10 +919,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3JLja
 
 enum BinaryPredicate {
     BinaryEqual,
-    BinaryNotEqual,
-    BinaryContains,
-    BinaryBeginsWith,
-    BinaryEndsWith
+    BinaryNotEqual
 };
 
 static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value, BinaryPredicate predicate) {
@@ -944,7 +941,7 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             }
             size_t dataLen = S(env->GetArrayLength(value));
             value2 = BinaryData(reinterpret_cast<char*>(bytePtr), dataLen);
-            env->ReleaseByteArrayElements(value, bytePtr, 0);
+            env->ReleaseByteArrayElements(value, bytePtr, JNI_ABORT);
         }
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Binary)) {
@@ -957,44 +954,16 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             case BinaryNotEqual:
                 Q(nativeQueryPtr)->not_equal(S(arr[0]), value2);
                 break;
-            case BinaryContains:
-                Q(nativeQueryPtr)->contains(S(arr[0]), value2);
-                break;
-            case BinaryBeginsWith:
-                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2);
-                break;
-            case BinaryEndsWith:
-                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2);
-                break;
             }
         }
         else {
             TableRef table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
             switch (predicate) {
             case BinaryEqual:
-                // Core currently does not support equal() for byte[] when traversing relationships.
-                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) == value2);
-                ThrowException(env, IllegalArgument, "equalTo() does not support queries using child object byte[] fields.");
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) == value2);
                 break;
             case BinaryNotEqual:
-                // Core currently does not support equal() for byte[] when traversing relationships.
-                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) != value2);
-                ThrowException(env, IllegalArgument, "notEqualTo() does not support queries using child object byte[] fields.");
-                break;
-            case BinaryContains:
-                // Core currently does not support contains() for byte[] when traversing relationships.
-                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).contains(value2));
-                ThrowException(env, IllegalArgument, "contains() does not support queries using child object byte[] fields.");
-                break;
-            case BinaryBeginsWith:
-                // Core currently does not support begins_with() for byte[] when traversing relationships.
-                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).begins_with(value2));
-                ThrowException(env, IllegalArgument, "beginsWith() does not support queries using child object byte[] fields.");
-                break;
-            case BinaryEndsWith:
-                // Core currently does not support ends_with./() for byte[] when traversing relationships.
-                //Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])).ends_with(value2));
-                ThrowException(env, IllegalArgument, "endsWith() does not support queries using child object byte[] fields.");
+                Q(nativeQueryPtr)->and_query(table_ref->column<Binary>(size_t(arr[arr_len-1])) != value2);
                 break;
             }
         }
@@ -1011,24 +980,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3B
   (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
 {
     TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryNotEqual);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3J_3B
-  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
-{
-    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryBeginsWith);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3J_3B
-  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
-{
-    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryEndsWith);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3J_3B
-  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndices, jbyteArray value)
-{
-    TableQuery_BinaryPredicate(env, nativeQueryPtr, columnIndices, value, BinaryContains);
 }
 
 // General ----------------------------------------------------

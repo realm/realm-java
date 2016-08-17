@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
-import io.realm.entities.BinaryOnly;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
@@ -57,7 +56,6 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -913,7 +911,6 @@ public class RealmQueryTests {
         assertEquals(dog1, dog);
     }
 
-
     @Test
     public void findAllSorted_multiFailures() {
         // zero fields specified
@@ -1635,9 +1632,10 @@ public class RealmQueryTests {
 
     private void createBinaryOnlyDataSet() {
         realm.beginTransaction();
-        for (byte[] binary : binaries) {
-            BinaryOnly binaryOnly = realm.createObject(BinaryOnly.class);
-            binaryOnly.setBinary(binary);
+        for (int i = 0; i < binaries.length; i++) {
+            AllJavaTypes binaryOnly = new AllJavaTypes((long) i);
+            binaryOnly.setFieldBinary(binaries[i]);
+            realm.copyToRealm(binaryOnly);
         }
         realm.commitTransaction();
     }
@@ -1646,101 +1644,68 @@ public class RealmQueryTests {
     public void equalTo_binary() {
         createBinaryOnlyDataSet();
 
-        RealmResults<BinaryOnly> resultList;
-        resultList = realm.where(BinaryOnly.class).equalTo("binary", binaries[0]).findAll();
+        RealmResults<AllJavaTypes> resultList;
+        resultList = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BINARY, binaries[0]).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(BinaryOnly.class).equalTo("binary", binaries[1]).findAll();
+        resultList = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BINARY, binaries[1]).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(BinaryOnly.class).equalTo("binary", new byte[] {1}).findAll();
+        resultList = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BINARY, new byte[] {1}).findAll();
         assertEquals(0, resultList.size());
+    }
+
+    @Test
+    public void equalTo_binary_multiFailures() {
+        createBinaryOnlyDataSet();
+
+        // Non-binary field.
+        try {
+            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
+                    .equalTo(AllJavaTypes.FIELD_INT, binaries[0]).findAll();
+            fail("Should throw exception.");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Non-existent field.
+        try {
+            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
+                    .equalTo("NotAField", binaries[0]).findAll();
+            fail("Should throw exception.");
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     @Test
     public void notEqualTo_binary() {
         createBinaryOnlyDataSet();
 
-        RealmResults<BinaryOnly> resultList;
-        resultList = realm.where(BinaryOnly.class).notEqualTo("binary", binaries[0]).findAll();
+        RealmResults<AllJavaTypes> resultList;
+        resultList = realm.where(AllJavaTypes.class).notEqualTo(AllJavaTypes.FIELD_BINARY, binaries[0]).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(BinaryOnly.class).notEqualTo("binary", binaries[1]).findAll();
+        resultList = realm.where(AllJavaTypes.class).notEqualTo(AllJavaTypes.FIELD_BINARY, binaries[1]).findAll();
         assertEquals(5, resultList.size());
-        resultList = realm.where(BinaryOnly.class).notEqualTo("binary", new byte[] {1}).findAll();
+        resultList = realm.where(AllJavaTypes.class).notEqualTo(AllJavaTypes.FIELD_BINARY, new byte[] {1}).findAll();
         assertEquals(6, resultList.size());
     }
 
     @Test
-    public void beginsWith_binary() {
+    public void notEqualTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
-        RealmResults<BinaryOnly> resultList;
-        resultList = realm.where(BinaryOnly.class).beginsWith("binary", new byte[] {1}).findAll();
-        assertEquals(3, resultList.size());
-        resultList = realm.where(BinaryOnly.class).beginsWith("binary", new byte[] {1, 2}).findAll();
-        assertEquals(3, resultList.size());
-        resultList = realm.where(BinaryOnly.class).beginsWith("binary", new byte[] {1, 2, 3}).findAll();
-        assertEquals(2, resultList.size());
-        resultList = realm.where(BinaryOnly.class).beginsWith("binary", new byte[] {2}).findAll();
-        assertEquals(2, resultList.size());
-        resultList = realm.where(BinaryOnly.class).beginsWith("binary", new byte[] {3}).findAll();
-        assertEquals(0, resultList.size());
-    }
+        // Non-binary field.
+        try {
+            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
+                    .notEqualTo(AllJavaTypes.FIELD_INT, binaries[0]).findAll();
+            fail("Should throw exception.");
+        } catch (IllegalArgumentException ignored) {
+        }
 
-    @Test
-    public void endsWith_binary() {
-        createBinaryOnlyDataSet();
-
-        RealmResults<BinaryOnly> resultList;
-        resultList = realm.where(BinaryOnly.class).endsWith("binary", new byte[] {3}).findAll();
-        assertEquals(3, resultList.size());
-        resultList = realm.where(BinaryOnly.class).endsWith("binary", new byte[] {2, 3}).findAll();
-        assertEquals(3, resultList.size());
-        resultList = realm.where(BinaryOnly.class).endsWith("binary", new byte[] {1, 2, 3}).findAll();
-        assertEquals(2, resultList.size());
-        resultList = realm.where(BinaryOnly.class).endsWith("binary", new byte[] {2}).findAll();
-        assertEquals(2, resultList.size());
-        resultList = realm.where(BinaryOnly.class).endsWith("binary", new byte[] {1}).findAll();
-        assertEquals(0, resultList.size());
-    }
-
-    @Test
-    public void contains_binary() {
-        createBinaryOnlyDataSet();
-
-        RealmResults<BinaryOnly> resultList;
-        resultList = realm.where(BinaryOnly.class).contains("binary", new byte[] {2}).findAll();
-        assertEquals(5, resultList.size());
-        resultList = realm.where(BinaryOnly.class).contains("binary", new byte[] {5}).findAll();
-        assertEquals(1, resultList.size());
-        resultList = realm.where(BinaryOnly.class).contains("binary", new byte[] {1}).findAll();
-        assertEquals(3, resultList.size());
-        resultList = realm.where(BinaryOnly.class).contains("binary", new byte[] {1, 2}).findAll();
-        assertEquals(3, resultList.size());
-        resultList = realm.where(BinaryOnly.class).contains("binary", new byte[] {1, 3}).findAll();
-        assertEquals(0, resultList.size());
-    }
-
-    // Querying nullable field with beginsWith - all byte arrays begin with null
-    @Test
-    public void beginsWith_nullForNullableByteArrays() {
-        TestHelper.populateTestRealmForNullTests(realm);
-        assertArrayEquals(new byte[] {0}, realm.where(NullTypes.class).beginsWith(NullTypes.FIELD_BYTES_NULL,
-                (byte[]) null).findFirst().getFieldBytesNotNull());
-    }
-
-    // Querying nullable field with endsWith - all byte arrays contain with null
-    @Test
-    public void contains_nullForNullableByteArrays() {
-        TestHelper.populateTestRealmForNullTests(realm);
-        assertArrayEquals(new byte[] {0}, realm.where(NullTypes.class).contains(NullTypes.FIELD_BYTES_NULL,
-                (byte[]) null).findFirst().getFieldBytesNotNull());
-    }
-
-    // Querying nullable field with endsWith - all byte arrays end with null
-    @Test
-    public void endsWith_nullForNullableByteArrays() {
-        TestHelper.populateTestRealmForNullTests(realm);
-        assertArrayEquals(new byte[] {0}, realm.where(NullTypes.class).endsWith(NullTypes.FIELD_BYTES_NULL,
-                (byte[]) null).findFirst().getFieldBytesNotNull());
+        // Non-existent field.
+        try {
+            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
+                    .notEqualTo("NotAField", binaries[0]).findAll();
+            fail("Should throw exception.");
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     // Test min on empty columns

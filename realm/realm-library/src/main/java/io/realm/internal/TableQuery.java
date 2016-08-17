@@ -343,24 +343,6 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    public TableQuery beginsWith(long[] columnIndices, byte[] value) {
-        nativeBeginsWith(nativePtr, columnIndices, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery endsWith(long[] columnIndices, byte[] value) {
-        nativeEndsWith(nativePtr, columnIndices, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery contains(long[] columnIndices, byte[] value) {
-        nativeContains(nativePtr, columnIndices, value);
-        queryValidated = false;
-        return this;
-    }
-
     // Query for String values.
 
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
@@ -799,9 +781,6 @@ public class TableQuery implements Closeable {
     private native void nativeBetweenTimestamp(long nativeQueryPtr, long columnIndex[], long value1, long value2);
     private native void nativeEqual(long nativeQueryPtr, long[] columnIndices, byte[] value);
     private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndices, byte[] value);
-    private native void nativeBeginsWith(long nativeQueryPtr, long[] columnIndices, byte[] value);
-    private native void nativeEndsWith(long nativeQueryPtr, long[] columnIndices, byte[] value);
-    private native void nativeContains(long nativeQueryPtr, long[] columnIndices, byte[] value);
     private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
     private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
     private native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);

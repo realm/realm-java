@@ -3,7 +3,7 @@
 ### Enhancements
 
 * Added `RealmQuery.in()` for a comparison against multiple values.
-* Added byte array (`byte[]`) support to `RealmQuery`'s `equalTo`, `notEqualTo`, `contains`, `beginsWith`, and `endsWith` methods.
+* Added byte array (`byte[]`) support to `RealmQuery`'s `equalTo` and `notEqualTo` methods.
 
 ## 1.1.1
 

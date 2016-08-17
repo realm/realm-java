@@ -313,30 +313,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3B
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeBeginsWith
- * Signature: (J[J[B)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3J_3B
-  (JNIEnv *, jobject, jlong, jlongArray, jbyteArray);
-
-/*
- * Class:     io_realm_internal_TableQuery
- * Method:    nativeEndsWith
- * Signature: (J[J[B)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3J_3B
-  (JNIEnv *, jobject, jlong, jlongArray, jbyteArray);
-
-/*
- * Class:     io_realm_internal_TableQuery
- * Method:    nativeContains
- * Signature: (J[J[B)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3J_3B
-  (JNIEnv *, jobject, jlong, jlongArray, jbyteArray);
-
-/*
- * Class:     io_realm_internal_TableQuery
  * Method:    nativeEqual
  * Signature: (J[JLjava/lang/String;Z)V
  */
@@ -356,7 +332,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3JLja
  * Method:    nativeBeginsWith
  * Signature: (J[JLjava/lang/String;Z)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3JLjava_lang_String_2Z
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith
   (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*
@@ -364,7 +340,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith__J_3JL
  * Method:    nativeEndsWith
  * Signature: (J[JLjava/lang/String;Z)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3JLjava_lang_String_2Z
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith
   (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*
@@ -372,7 +348,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith__J_3JLja
  * Method:    nativeContains
  * Signature: (J[JLjava/lang/String;Z)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains__J_3JLjava_lang_String_2Z
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains
   (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*

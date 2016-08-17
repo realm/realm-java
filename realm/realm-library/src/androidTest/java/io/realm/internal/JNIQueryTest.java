@@ -823,22 +823,5 @@ public class JNIQueryTest extends TestCase {
 
         assertEquals(3L, table.where().notEqualTo(new long[]{0}, binary2).count());
         assertEquals(3L, table.where().notEqualTo(new long[]{0}, binary4).count());
-
-        // Begins with
-
-        assertEquals(1L, table.where().beginsWith(new long[]{0}, new byte[]{0x01}).count());
-        assertEquals(2L, table.where().beginsWith(new long[]{0}, new byte[]{0x05}).count());
-
-        // Ends with
-
-        assertEquals(2L, table.where().endsWith(new long[]{0}, new byte[]{0x04}).count());
-        assertEquals(1L, table.where().endsWith(new long[]{0}, new byte[]{0x08}).count());
-
-        // Contains
-
-        assertEquals(1L, table.where().contains(new long[]{0}, new byte[]{0x01, 0x02}).count());
-        assertEquals(2L, table.where().contains(new long[]{0}, new byte[]{0x02, 0x03}).count());
-        assertEquals(2L, table.where().contains(new long[]{0}, new byte[]{0x0a, 0x0b}).count());
-        assertEquals(1L, table.where().contains(new long[]{0}, new byte[]{0x0b, 0x10}).count());
     }
 }
