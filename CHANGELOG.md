@@ -7,6 +7,11 @@
 * `DynamicRealmObject.getX(fieldName)` now throws a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
 
 
+### Internal
+
+* Updated Realm Core to 1.5.0.
+* Improved sorting speed.
+
 ## 1.1.1
 
 ### Enhancements
