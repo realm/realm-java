@@ -72,6 +72,10 @@
 * Fixed a bug that allowed both `RealmConfiguration.Builder.assetFile()`/`deleteRealmIfMigrationNeeded()` to be configured at the same time, which leads to the asset file accidentally being deleted in migrations (#2933).
 * Realm crashed outright when the same Realm file was opened in two processes. Realm will now optimistically retry opening for 1 second before throwing an Error (#2459).
 
+### Enhancements
+
+* Removes RxJava related APIs during bytecode transforming to make RealmObject plays well with reflection when rx.Observable doesn't exist.
+
 ## 1.0.0
 
 No changes since 0.91.1.
