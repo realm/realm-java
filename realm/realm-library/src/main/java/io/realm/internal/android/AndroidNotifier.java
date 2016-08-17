@@ -92,7 +92,7 @@ public class AndroidNotifier implements RealmNotifier {
 
     @Override
     public boolean isValid() {
-        return handler == null;
+        return handler != null;
     }
 
     @Override
