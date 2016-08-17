@@ -90,7 +90,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
         jsize indexes_len = indexes.len();
         std::vector<std::vector<size_t>> columns;
         std::vector<bool> ascending;
-        std::vector<size_t> field_ref(1);
         for (int i = 0; i < indexes_len; ++i) {
             if (!COL_INDEX_VALID(env, tv, indexes[i])) {
                 return;
@@ -104,8 +103,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
                 case type_Int:
                 case type_String:
                 case type_Timestamp:
-                    field_ref[0] = S(indexes[i]); // TODO Enable support for sorting through links
-                    columns.push_back(field_ref);
+                    columns.push_back(std::vector<size_t> { S(indexes[i]) });
                     ascending.push_back(true);
                     break;
                 default:
@@ -891,7 +889,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
         TableView* tv = TV(nativeViewPtr);
         std::vector<std::vector<size_t>> indices;
         std::vector<bool> ascendings;
-        std::vector<size_t> field_ref(1);
 
         for (int i = 0; i < arr_len; ++i) {
             if (!COL_INDEX_VALID(env, tv, long_arr[i])) {
@@ -905,8 +902,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                 case type_Double:
                 case type_String:
                 case type_Timestamp:
-                    field_ref[0] = S(long_arr[i]);
-                    indices.push_back( field_ref );
+                    indices.push_back(std::vector<size_t> { S(long_arr[i]) });
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:

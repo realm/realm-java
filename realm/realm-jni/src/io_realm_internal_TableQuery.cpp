@@ -198,7 +198,6 @@ static jlong findAllMultiSortedWithHandover
         // sorting the results
         std::vector<std::vector<size_t>> indices;
         std::vector<bool> ascendings;
-        std::vector<size_t> field_ref(1);
         for (int i = 0; i < arr_len; ++i) {
             if (!COL_INDEX_VALID(env, &tableView, long_arr[i])) {
                 return -1;
@@ -211,8 +210,7 @@ static jlong findAllMultiSortedWithHandover
                 case type_Double:
                 case type_String:
                 case type_Timestamp:
-                    field_ref[0] = S(long_arr[i]); // TODO Enable support for sorting through links
-                    indices.push_back( field_ref );
+                    indices.push_back(std::vector<size_t> { S(long_arr[i]) });
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:
