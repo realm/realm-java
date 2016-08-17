@@ -39,6 +39,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.android.AndroidNotifier;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
@@ -86,9 +87,9 @@ abstract class BaseRealm implements Closeable {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
 
-        this.sharedRealm = SharedRealm.getInstance(configuration);
-        this.schema = new RealmSchema(this);
         this.handlerController = new HandlerController(this);
+        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController));
+        this.schema = new RealmSchema(this);
 
         if (handlerController.isAutoRefreshAvailable()) {
             setAutoRefresh(true);
@@ -109,12 +110,14 @@ abstract class BaseRealm implements Closeable {
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
         handlerController.checkCanBeAutoRefreshed();
+        /*
         if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
         } else if (!autoRefresh && handlerController.isAutoRefreshEnabled() && handler != null) { // Switch it off
             removeHandler();
         }
+        */
         handlerController.setAutoRefresh(autoRefresh);
     }
 
@@ -373,6 +376,10 @@ abstract class BaseRealm implements Closeable {
             runAfterCommit.run();
         }
 
+        if (notifyLocalThread) {
+            sharedRealm.realmNotifier.notifyByLocalThread();
+        }
+        /*
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
@@ -427,6 +434,7 @@ abstract class BaseRealm implements Closeable {
                 }
             }
         }
+        */
     }
 
     /**

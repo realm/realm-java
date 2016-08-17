@@ -45,7 +45,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-final class HandlerController implements Handler.Callback {
+public final class HandlerController implements Handler.Callback {
 
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 
@@ -271,7 +271,8 @@ final class HandlerController implements Handler.Callback {
                                 .addObject(next.getKey(),
                                         next.getValue().handoverQueryPointer(),
                                         next.getValue().getArgument())
-                                .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT)
+                                .sendToNotifier(realm.sharedRealm.realmNotifier,
+                                        QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_OBJECT)
                                 .build());
 
             } else {
@@ -412,7 +413,8 @@ final class HandlerController implements Handler.Callback {
         }
         if (realmResultsQueryStep != null) {
             QueryUpdateTask queryUpdateTask = realmResultsQueryStep
-                    .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_UPDATE_ASYNC_QUERIES)
+                    .sendToNotifier(realm.sharedRealm.realmNotifier,
+                            QueryUpdateTask.NotifyEvent.COMPLETE_UPDATE_ASYNC_QUERIES)
                     .build();
             updateAsyncQueriesTask = Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
         }
@@ -495,7 +497,8 @@ final class HandlerController implements Handler.Callback {
                                 .add(weakRealmResults,
                                         query.handoverQueryPointer(),
                                         query.getArgument())
-                                .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS)
+                                .sendToNotifier(realm.sharedRealm.realmNotifier,
+                                        QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS)
                                 .build();
 
                         Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
@@ -637,7 +640,8 @@ final class HandlerController implements Handler.Callback {
                                 .addObject(realmObjectWeakReference,
                                         realmQuery.handoverQueryPointer(),
                                         realmQuery.getArgument())
-                                .sendToHandler(realm.handler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT)
+                                .sendToNotifier(realm.sharedRealm.realmNotifier,
+                                        QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_OBJECT)
                                 .build();
 
                         Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
