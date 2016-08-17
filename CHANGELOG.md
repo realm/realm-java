@@ -11,6 +11,11 @@
 * Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
 * `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
 
+### Internal
+
+* Updated Realm Core to 1.5.0.
+* Improved sorting speed.
+
 ## 1.1.1
 
 ### Enhancements
