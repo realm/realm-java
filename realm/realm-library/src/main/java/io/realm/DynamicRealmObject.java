@@ -661,12 +661,16 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     private void checkFieldType(String fieldName, long columnIndex, RealmFieldType expectedType) {
         RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnIndex);
         if (columnType != expectedType) {
-            String indefiniteVowel = "";
+            String expectedIndefiniteVowel = "";
             if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.OBJECT) {
-                indefiniteVowel = "n";
+                expectedIndefiniteVowel = "n";
+            }
+            String columnTypeIndefiniteVowel = "";
+            if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.OBJECT) {
+                columnTypeIndefiniteVowel = "n";
             }
             throw new IllegalArgumentException(String.format("'%s' is not a%s '%s', but a%s '%s'.",
-                    fieldName, indefiniteVowel, expectedType, indefiniteVowel, columnType));
+                    fieldName, expectedIndefiniteVowel, expectedType, indefiniteVowel, columnTypeIndefiniteVowel));
         }
     }
 
