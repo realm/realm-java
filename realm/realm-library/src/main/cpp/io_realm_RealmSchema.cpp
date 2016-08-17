@@ -76,3 +76,25 @@ Java_io_realm_RealmSchema_nativeGetObjectSchemaByName(JNIEnv *env, jclass, jlong
     }
     CATCH_STD()
 }
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_RealmSchema_nativeGetRealmObjectSchemas(JNIEnv *env, jclass type, jlong nativePtr) {
+    TR_ENTER_PTR(nativePtr);
+    auto *schema = reinterpret_cast<Schema*>(nativePtr);
+    try {
+        size_t size = schema->size();
+        jlongArray native_ptr_array = env->NewLongArray(size);
+        jlong* tmp = new jlong[size];
+        auto it = schema->begin();
+        size_t index = 0;
+        while (it != schema->end()) {
+            auto& object_schema = *it;
+            tmp[index] = reinterpret_cast<jlong>(&object_schema);
+            ++index;
+        }
+        env->SetLongArrayRegion(native_ptr_array, 0, size, tmp);
+        return native_ptr_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}

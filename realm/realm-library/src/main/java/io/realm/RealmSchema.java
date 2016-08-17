@@ -61,6 +61,15 @@ public final class RealmSchema {
         nativePtr = nativeCreateSchema();
     }
 
+    public RealmSchema(long nativePtr) {
+        this.realm = null;
+        this.nativePtr = nativePtr;
+    }
+
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
     /**
      * Returns the Realm schema for a given class.
      *
@@ -72,24 +81,10 @@ public final class RealmSchema {
         checkEmpty(className, EMPTY_STRING_MSG);
         if (hasObjectSchemaByName(className)) {
             RealmObjectSchema realmObjectSchema = getObjectSchemaByName(className);
-            Table table = realmObjectSchema.table;
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-
             return realmObjectSchema;
         } else {
             return null;
         }
-
-        /*
-        String internalClassName = TABLE_PREFIX + className;
-        if (realm.sharedRealm.hasTable(internalClassName)) {
-            Table table = realm.sharedRealm.getTable(internalClassName);
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-            return new RealmObjectSchema(realm, table, columnIndices);
-        } else {
-            return null;
-        }
-        */
     }
 
     /**
@@ -100,14 +95,9 @@ public final class RealmSchema {
     public Set<RealmObjectSchema> getAll() {
         int tableCount = (int) realm.sharedRealm.size();
         Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+        long[] nativeRealmObjectSchemaPtr = nativeGetRealmObjectSchemas(nativePtr);
         for (int i = 0; i < tableCount; i++) {
-            String tableName = realm.sharedRealm.getTableName(i);
-            if (Table.isMetaTable(tableName)) {
-                continue;
-            }
-            Table table = realm.sharedRealm.getTable(tableName);
-            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-            schemas.add(new RealmObjectSchema(realm, table, columnIndices));
+            schemas.add(new RealmObjectSchema(nativeRealmObjectSchemaPtr[i]));
         }
         return schemas;
     }
@@ -120,16 +110,7 @@ public final class RealmSchema {
      */
     public RealmObjectSchema create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
-        String internalTableName = TABLE_PREFIX + className;
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: " + className.length());
-        }
-        if (realm.sharedRealm.hasTable(internalTableName)) {
-            throw new IllegalArgumentException("Class already exists: " + className);
-        }
-        Table table = realm.sharedRealm.getTable(internalTableName);
-        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
-        return new RealmObjectSchema(realm, table, columnIndices);
+        return new RealmObjectSchema(realm.sharedRealm, className);
     }
 
     /**
@@ -193,7 +174,7 @@ public final class RealmSchema {
      * @return {@code true} if the class already exists. {@code false} otherwise.
      */
     public boolean contains(String className) {
-        return realm.sharedRealm.hasTable(Table.TABLE_PREFIX + className);
+        return hasObjectSchemaByName(className);
     }
 
     private void checkEmpty(String str, String error) {
@@ -304,4 +285,5 @@ public final class RealmSchema {
     private static native boolean nativeHasObjectSchemaByName(long nativePtr, String name);
     private static native void nativeRemoveObjectSchemaByName(long nativePtr, String name);
     private static native long nativeGetObjectSchemaByName(long nativePtr, String name);
+    private static native long[] nativeGetRealmObjectSchemas(long nativePtr);
 }

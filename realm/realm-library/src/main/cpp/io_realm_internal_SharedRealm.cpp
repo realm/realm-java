@@ -195,6 +195,32 @@ Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong
     return NULL;
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass type, jlong shared_realm_ptr, jobject dynamic_realm,
+                                                      jlong schema_ptr, jlong schema_version, jobject migration_object) {
+
+    TR_ENTER_PTR(shared_realm_ptr)
+    TR("schema %p", VOID_PTR(schema_ptr))
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto schema = reinterpret_cast<Schema*>(schema_ptr);
+    auto version = static_cast<uint64_t>(schema_version);
+    try {
+        jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
+        jmethodID realm_migration_method = env->GetMethodID(realm_migration_class, "migration", "()Lio/realm/DynamicRealm;JJ");
+        if (realm_migration_method == nullptr) {
+            ThrowException(env, NoSuchMethod, "io.realm.RealmMigration", "migration"); // FIXME: class name might be misleading
+            return 0;
+        }
+        Realm::MigrationFunction migration_function;
+        migration_function = [=](SharedRealm old_realm, SharedRealm realm, Schema& mutable_schema) {
+            auto& config = shared_realm->config();
+            jlong schema_new_version = jlong(config.schema_version);
+            env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version, schema_new_version);
+        };
+        shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
+    } CATCH_STD()
+}
+
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv *, jclass, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr)
@@ -348,4 +374,17 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
     } CATCH_STD()
 
     return static_cast<jboolean>(false);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass type, jlong shared_realm_ptr) {
+    TR_ENTER_PTR(shared_realm_ptr);
+
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        const Schema tmp = shared_realm->schema();
+        Schema *schema = new Schema(std::move(tmp));
+        return reinterpret_cast<jlong>(schema);
+    } CATCH_STD()
+    return 0;
 }

@@ -19,7 +19,10 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.io.File;
 
+import io.realm.DynamicRealm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
+import io.realm.RealmSchema;
 import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
@@ -167,6 +170,12 @@ public final class SharedRealm implements Closeable {
         return nativeGetVersion(nativePtr);
     }
 
+    public void updateSchema(RealmSchema realmSchema, long schemaVersion, RealmMigration realmMigration) {
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        nativeUpdateSchema(nativePtr, realmSchema.getNativePtr(), dynamicRealm, schemaVersion, realmMigration);
+        dynamicRealm.close();
+    }
+
     // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
     long getGroupNative() {
         return nativeReadGroup(nativePtr);
@@ -244,6 +253,10 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
+    public RealmSchema schema() {
+        return new RealmSchema(nativeSchema(nativePtr));
+    }
+
     @Override
     public void close() {
         synchronized (context) {
@@ -280,6 +293,8 @@ public final class SharedRealm implements Closeable {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
+    private static native long nativeSchema(long nativeSharedRealmPtr);
+    private static native long nativeUpdateSchema(long nativeSharedRealmPtr, long nativeSchemaPtr, Object dynamicRealm, long schemaVersion, Object migration);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);

@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.os.Build;
-import android.os.Looper;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -43,8 +42,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -290,6 +287,7 @@ public final class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+
 
             if (version == UNVERSIONED) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
