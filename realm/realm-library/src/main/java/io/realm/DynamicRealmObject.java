@@ -666,7 +666,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
                 indefiniteVowel = "n";
             }
             throw new IllegalArgumentException(String.format("'%s' is not a%s '%s', but a%s '%s'.",
-                    fieldName, indefiniteWowel, expectedType, indefiniteVowel, columnType));
+                    fieldName, indefiniteVowel, expectedType, indefiniteVowel, columnType));
         }
     }
 
