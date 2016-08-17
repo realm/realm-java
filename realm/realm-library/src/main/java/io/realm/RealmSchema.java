@@ -232,7 +232,7 @@ public final class RealmSchema {
                 table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(originalClass));
                 classToTable.put(originalClass, table);
                 if (originalClass != clazz) {
-                    // Add cache entry for proxy class
+                    // 'clazz' is the proxy class for 'originalClass'
                     classToTable.put(clazz, table);
                 }
             }
@@ -255,7 +255,7 @@ public final class RealmSchema {
                 classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(originalClass).getIndicesMap());
                 classToSchema.put(originalClass, classSchema);
                 if (originalClass != clazz) {
-                    // Add cache entry for proxy class
+                    // 'clazz' is the proxy class for 'originalClass'
                     classToSchema.put(clazz, classSchema);
                 }
             }
