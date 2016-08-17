@@ -225,16 +225,13 @@ public final class RealmSchema {
             if (originalClass != clazz) {
                 table = classToTable.get(originalClass);
             }
-            if (table != null) {
-                // table was not cached against proxy class. Add cache entry.
-                classToTable.put(clazz, table);
-            } else {
+            if (table == null) {
                 table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(originalClass));
                 classToTable.put(originalClass, table);
-                if (originalClass != clazz) {
-                    // 'clazz' is the proxy class for 'originalClass'
-                    classToTable.put(clazz, table);
-                }
+            }
+            if (originalClass != clazz) {
+                // 'clazz' is the proxy class for 'originalClass'
+                classToTable.put(clazz, table);
             }
         }
         return table;
@@ -247,17 +244,14 @@ public final class RealmSchema {
             if (originalClass != clazz) {
                 classSchema = classToSchema.get(originalClass);
             }
-            if (classSchema != null) {
-                // classSchema was not cached against proxy class. Add cache entry.
-                classToSchema.put(clazz, classSchema);
-            } else {
+            if (classSchema == null) {
                 Table table = getTable(clazz);
                 classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(originalClass).getIndicesMap());
                 classToSchema.put(originalClass, classSchema);
-                if (originalClass != clazz) {
-                    // 'clazz' is the proxy class for 'originalClass'
-                    classToSchema.put(clazz, classSchema);
-                }
+            }
+            if (originalClass != clazz) {
+                // 'clazz' is the proxy class for 'originalClass'
+                classToSchema.put(clazz, classSchema);
             }
         }
         return classSchema;
