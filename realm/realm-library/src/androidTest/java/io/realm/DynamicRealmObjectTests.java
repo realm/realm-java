@@ -149,12 +149,12 @@ public class DynamicRealmObjectTests {
         for (SupportedType type : SupportedType.values()) {
             try {
                 // Make sure we hit the wrong underlying type for all types.
-                if (type == SupportedType.STRING) {
-                    callGetter(type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
-                } else {
+                if (type == SupportedType.DOUBLE) {
                     callGetter(type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                } else {
+                    callGetter(type, Arrays.asList(AllJavaTypes.FIELD_DOUBLE));
                 }
-                fail();
+                fail(type + " failed to throw.");
             } catch (IllegalArgumentException ignored) {
             }
         }

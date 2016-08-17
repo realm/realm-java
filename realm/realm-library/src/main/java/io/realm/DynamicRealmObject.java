@@ -178,8 +178,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public byte getByte(String fieldName) {
-        long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        return (byte) proxyState.getRow$realm().getLong(columnIndex);
+        return (byte) getLong(fieldName);
     }
 
     /**
