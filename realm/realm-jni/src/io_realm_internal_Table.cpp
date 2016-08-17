@@ -1336,7 +1336,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_Float:
             case type_Timestamp:
                 field_ref[0] = S(long_arr[i]); // TODO Enable support for sorting through links
-                indices[i] = { field_ref };
+                indices[i] = field_ref;
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:

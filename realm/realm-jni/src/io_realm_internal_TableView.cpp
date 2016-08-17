@@ -92,14 +92,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
         std::vector<bool> ascending;
         std::vector<size_t> field_ref(1);
         for (int i = 0; i < indexes_len; ++i) {
-            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), indexes[i])) {
+            if (!COL_INDEX_VALID(env, tv, indexes[i])) {
                 return;
             }
             if (!tv->get_parent().has_search_index(S(indexes[i]))) {
                 ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
                 return;
             }
-            switch (TV(nativeViewPtr)->get_column_type(S(indexes[i]))) {
+            switch (tv->get_column_type(S(indexes[i]))) {
                 case type_Bool:
                 case type_Int:
                 case type_String:
@@ -894,7 +894,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
         std::vector<size_t> field_ref(1);
 
         for (int i = 0; i < arr_len; ++i) {
-            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), long_arr[i])) {
+            if (!COL_INDEX_VALID(env, tv, long_arr[i])) {
                 return;
             }
             int colType = tv->get_column_type( S(long_arr[i]) );
