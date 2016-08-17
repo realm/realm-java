@@ -676,7 +676,8 @@ public class TableView implements TableOrView, Closeable {
     @Override
     public String toString() {
         long columnCount = getColumnCount();
-        StringBuilder stringBuilder = new StringBuilder("The TableView contains ");
+        StringBuilder stringBuilder = new StringBuilder("The TableView ");
+        stringBuilder.append("contains ");
         stringBuilder.append(columnCount);
         stringBuilder.append(" columns: ");
 
