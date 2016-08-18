@@ -1,6 +1,6 @@
 package io.realm.internal.objectserver.network;
 
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 
 /**
  * Interface for handling communication with the Realm Mobile Platform Authentication Server.

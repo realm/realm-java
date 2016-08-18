@@ -22,13 +22,14 @@ import io.realm.RealmAsyncTask;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
-import io.realm.objectserver.ObjectServerConfiguration;
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.User;
+import io.realm.objectserver.Credentials;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
 
 /**
  * This class controls the connection to a Realm Object Server for one Realm. If
- * {@link ObjectServerConfiguration#shouldAutoConnect()} returns {@code true}, the session will automatically be
+ * {@link SyncConfiguration#shouldAutoConnect()} returns {@code true}, the session will automatically be
  * managed when opening and closing Realm instances.
  *
  * In particular the Realm will begin syncing depending on the given {@link SyncPolicy} . When a Realm is closed
@@ -69,7 +70,7 @@ public final class Session {
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
 
     // Variables used by the FSM
-    final ObjectServerConfiguration configuration;
+    final SyncConfiguration configuration;
     final long nativeSyncClientPointer;
     final AuthentificationServer authServer;
     long nativeSessionPointer;
@@ -86,7 +87,7 @@ public final class Session {
     /**
      * Creates a new Object Server Session
      */
-    public Session(ObjectServerConfiguration objectServerConfiguration, long nativeSyncClientPointer, AuthentificationServer authServer) {
+    public Session(SyncConfiguration objectServerConfiguration, long nativeSyncClientPointer, AuthentificationServer authServer) {
         this.configuration = objectServerConfiguration;
         this.nativeSyncClientPointer = nativeSyncClientPointer;
         this.authServer = authServer;
@@ -139,7 +140,7 @@ public final class Session {
 
     /**
      * Binds a local Realm to a remote one by using the credentials provided by the
-     * {@link ObjectServerConfiguration}. Once bound, changes on either the local or Remote Realm will be synchronized
+     * {@link SyncConfiguration}. Once bound, changes on either the local or Remote Realm will be synchronized
      * immediately.
      *
      * Note that binding a Realm is not guaranteed to succeed. If a device is offline or credentials are no longer valid,
@@ -174,6 +175,13 @@ public final class Session {
 //        }
 //
     }
+
+    public void setUser(User user) {
+        // This will probably replace `setCredentials()`
+//        setCredentials(user.getCredentials());
+    }
+
+
 
     /**
      * Set the credentials used to bind this Realm to the Realm Object Server. Credentials control access and
@@ -260,7 +268,7 @@ public final class Session {
     // Bind with proper access tokens
     void bindWithTokens() {
         // TODO How do we handle errors from bind?
-        nativeBind(nativeSessionPointer, configuration.getRemoteUrl(), accessToken);
+        nativeBind(nativeSessionPointer, configuration.getRealmFileName(), accessToken);
     }
 
     // Unbind a Realm that is currently bound
@@ -278,9 +286,6 @@ public final class Session {
         // TODO Refresh access token in the auth server
         nativeRefresh(nativeSessionPointer, accessToken);
     }
-
-
-
 
     void resetCredentials() {
         credentials = null;
@@ -343,6 +348,36 @@ public final class Session {
         void bindFailed(int errorCode, String errorMsg);
         void unbinded();
         void stopped();
+    }
+
+    public interface ErrorHandler {
+        void onError(Throwable error);
+    }
+
+    public interface EventHandler {
+        void sessionStarted(Session session);
+
+        void realmUnbound(Session session);
+
+        void bindingRealm(Session session);
+
+        void realmBound(Session session);
+
+        void sessionStopped(Session session);
+
+        void authorizationMissing();
+
+        void authorizationExpired();
+
+        void localChangesAvailable();
+
+        void remoteChangesAvailable();
+
+        void realmSynchronized();
+
+        void allRemoteChangesDownloaded();
+
+        void error(int errorCode, String errorMessage);
     }
 }
 

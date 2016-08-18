@@ -1,6 +1,6 @@
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 
 /**
  * UNBOUND State. This is the default state after a session has been started and no attempt at binding the local Realm

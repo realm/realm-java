@@ -1,6 +1,6 @@
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 
 /**
  * Abstract class describing all states used in the Session Finite-State-Machine.

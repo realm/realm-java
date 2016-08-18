@@ -1,6 +1,6 @@
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 
 /**
  * STOPPED State. This is the final state for a {@link Session}. After this, all actions will throw an

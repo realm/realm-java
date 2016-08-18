@@ -1,6 +1,6 @@
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 
 /**
  * As {@link Session} is modeled as a state machine, this interface describe all

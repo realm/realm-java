@@ -3,7 +3,7 @@ package io.realm.internal.objectserver.network;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.BuildConfig;
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

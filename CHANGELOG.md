@@ -21,6 +21,7 @@
 ### Internal
 
 * Updated Realm Core to 1.4.2.
+* Improved sorting speed.
 
 ## 1.1.0
 

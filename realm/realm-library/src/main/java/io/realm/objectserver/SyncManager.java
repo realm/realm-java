@@ -9,13 +9,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.BaseRealm;
-import io.realm.Realm;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
 
-public final class ObjectServer {
+public final class SyncManager {
 
     private static volatile long syncClientPointer = 0;
     private final static Map<String, Long> SYNC_SESSIONS = new HashMap<String, Long>();
@@ -33,7 +32,7 @@ public final class ObjectServer {
     private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
 
     /**
-     * Sets the default global error handler used by all {@link ObjectServerConfiguration} objects when they are created.
+     * Sets the default global error handler used by all {@link SyncConfiguration} objects when they are created.
      * * @param errorHandler the default error handler used when communicating with a Realm Object Server.
      */
     public static void setGlobalErrorHandler(SyncErrorHandler errorHandler) {
@@ -42,7 +41,7 @@ public final class ObjectServer {
 
     /**
      * Sets the global default Realm Mobile Platform authentification server. Setting this parameter means this server
-     * will be used as the default server for any {@link io.realm.objectserver.credentials.Credentials} created.
+     * will be used as the default server for any {@link Credentials} created.
      *
      * @param authServer the default authentification server.
      */
@@ -50,11 +49,19 @@ public final class ObjectServer {
 
     }
 
+    public static void setGlobalSessionErrorHandler(Session.ErrorHandler handler) {
+
+    }
+
+    public static void setGlobalSessionEventHandler(Session.EventHandler handler) {
+
+    }
+
     /**
-     * Convenience method for creating an {@link Session} using {@link #getSession(ObjectServerConfiguration)} and
+     * Convenience method for creating an {@link Session} using {@link #getSession(SyncConfiguration)} and
      * calling {@link Session#start()} on it.
      */
-    public static Session connect(ObjectServerConfiguration configuration) {
+    public static Session connect(SyncConfiguration configuration) {
         // Get any cached session or create a new one if needed.
         Session session = getSession(configuration);
         session.start();
@@ -62,13 +69,13 @@ public final class ObjectServer {
     }
 
     /**
-     * Gets any cached {@link Session} for the given {@link ObjectServerConfiguration} or create a new one if
+     * Gets any cached {@link Session} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
      * @param objectServerConfiguration configuration object for the Realm that s
      * @return the {@link Session} for the specified Realm.
      */
-    public static Session getSession(ObjectServerConfiguration objectServerConfiguration) {
+    public static Session getSession(SyncConfiguration objectServerConfiguration) {
         if (objectServerConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'objectServerConfiguration' is required.");
         }
@@ -160,4 +167,31 @@ public final class ObjectServer {
 
     private static native long nativeCreateSyncClient();
     private static native long nativeCreateSession(long clientPointer, String path);
+
+    public static void downloadRealm(SyncConfiguration syncConfig, ResultCallback resultCallback) {
+
+    }
+
+    public interface ErrorHandler {
+        void onError(int error, String errorMessage);
+        void onFatalError(Exception e);
+    }
+
+    public interface EventHandler {
+        void userAccepted();
+        void sessionStarted();
+        void realmBound();
+        void realmUnbound();
+        void sessionStopped();
+    }
+
+    public interface UserHandler {
+
+    }
+
+    public interface ResultCallback {
+        void onSuccess(SyncConfiguration config);
+
+        void onError(SyncConfiguration config, Exception e);
+    }
 }

@@ -100,8 +100,6 @@ public class RealmConfiguration {
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
     private final WeakReference<Context> contextWeakRef;
-    private final String syncServerUrl;
-    private final String syncUserToken;
 
     protected RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -117,8 +115,6 @@ public class RealmConfiguration {
         this.rxObservableFactory = builder.rxFactory;
         this.initialDataTransaction = builder.initialDataTransaction;
         this.contextWeakRef = builder.contextWeakRef;
-        this.syncServerUrl = builder.syncServerUrl;
-        this.syncUserToken = builder.syncUserToken;
     }
 
     public File getRealmFolder() {
@@ -220,33 +216,6 @@ public class RealmConfiguration {
         return rxObservableFactory;
     }
 
-    /**
-     * Checks if server side synchronization is enabled for this Realm.
-     *
-     * @return {@code true} if synchronisation is enabled, {@code false} otherwise.
-     */
-    public boolean isSyncEnabled() {
-        return syncServerUrl != null && syncServerUrl.length() > 0;
-    }
-
-    /**
-     * Returns the server side URL used to sync this Realm across devices.
-     *
-     * @return URL of the Realm Sync server.
-     */
-    public String getSyncServerUrl() {
-        return syncServerUrl;
-    }
-
-    /**
-     * Returns the predefined credentials token for server side synchronization or {@code null} if no credentials is predefined.
-     *
-     * @return The credentials token for Realm Sync of {@code null} if no token is defined.
-     */
-    public String getSyncUserToken() {
-        return syncUserToken;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -265,12 +234,6 @@ public class RealmConfiguration {
         //noinspection SimplifiableIfStatement
         if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) return false;
-        if (syncServerUrl == null ? that.syncServerUrl != null : !syncServerUrl.equals(that.syncServerUrl)) {
-            return false;
-        }
-        if (syncUserToken == null ? that.syncUserToken != null : !syncUserToken.equals(that.syncUserToken)) {
-            return false;
-        }
 
         return schemaMediator.equals(that.schemaMediator);
     }
@@ -290,8 +253,6 @@ public class RealmConfiguration {
         result = 31 * result + durability.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
-        result = 31 * result + (syncServerUrl != null ? syncServerUrl.hashCode() : 0);
-        result = 31 * result + (syncUserToken != null ? syncUserToken.hashCode() : 0);
 
         return result;
     }
@@ -411,8 +372,6 @@ public class RealmConfiguration {
         private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
-        private String syncServerUrl;
-        private String syncUserToken;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -662,30 +621,6 @@ public class RealmConfiguration {
             this.contextWeakRef = new WeakReference<>(context);
             this.assetFilePath = assetFile;
 
-            return this;
-        }
-
-        /**
-         * Enable server side synchronization for this Realm. The URL should point to an endpoint exposed by a
-         * Realm Sync server.
-         *
-         * @param serverUrl Realm Sync server url.
-         */
-        public Builder withSync(String serverUrl) {
-            syncServerUrl = serverUrl;
-            return this;
-        }
-
-        /**
-         * Sets the default credentials token to be used with Realm Sync.
-         *
-         * @param userToken User token identifying the credentials connecting to Realm Sync.
-         */
-        public Builder syncUserToken(String userToken) {
-            if (userToken == null || userToken.equals("")) {
-                throw new IllegalArgumentException("Non-empty credentials token required");
-            }
-            syncUserToken = userToken;
             return this;
         }
 

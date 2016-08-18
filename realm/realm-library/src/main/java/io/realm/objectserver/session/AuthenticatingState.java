@@ -8,7 +8,7 @@ import io.realm.internal.IOException;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
-import io.realm.objectserver.credentials.Credentials;
+import io.realm.objectserver.Credentials;
 
 /**
  * STARTED State. This is just an intermediate step that can be used to initialize the session properly.
@@ -59,7 +59,7 @@ class AuthenticatingState extends FsmState {
             @Override
             public void run() {
                 // FIXME Align how many credentials are supported. Just assume 1 for now.
-                Credentials credentials = session.configuration.getCredentials().get(0);
+                Credentials credentials = Credentials.fromFacebook("");//ession.configuration.;
                 AuthentificationServer authServer = session.authServer;
                 int attempt = 0;
                 boolean success = false;

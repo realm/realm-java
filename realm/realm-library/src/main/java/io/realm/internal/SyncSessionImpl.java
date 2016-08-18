@@ -1,14 +1,14 @@
 package io.realm.internal;
 
-import io.realm.objectserver.ObjectServerConfiguration;
+import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncSession;
 
 public class SyncSessionImpl implements SyncSession {
 
-    private final ObjectServerConfiguration config;
+    private final SyncConfiguration config;
     private final long nativeSyncSessionPtr;
 
-    public SyncSessionImpl(ObjectServerConfiguration config, long nativeSyncSessionPtr) {
+    public SyncSessionImpl(SyncConfiguration config, long nativeSyncSessionPtr) {
         this.config = config;
         this.nativeSyncSessionPtr = nativeSyncSessionPtr;
     }

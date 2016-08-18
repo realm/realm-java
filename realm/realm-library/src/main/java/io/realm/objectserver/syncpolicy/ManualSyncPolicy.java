@@ -1,12 +1,13 @@
 package io.realm.objectserver.syncpolicy;
 
+import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.session.Session;
 
 /**
  * This synchronization policy renders all control to the developer.
  * {@link Session#bind()} and {@link Session#unbind()} must be manually called from the developer.
  *
- * @see io.realm.objectserver.ObjectServerConfiguration.Builder#syncPolicy(SyncPolicy)
+ * @see SyncConfiguration.Builder#syncPolicy(SyncPolicy)
  */
 public class ManualSyncPolicy implements SyncPolicy {
 
