@@ -246,6 +246,9 @@ public final class SharedRealm implements Closeable {
 
     @Override
     public void close() {
+        if (realmNotifier != null) {
+            realmNotifier.close();
+        }
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeCloseSharedRealm(nativePtr);

@@ -35,6 +35,7 @@ import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -64,9 +65,6 @@ abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
-    // Map between a Handler and the canonical path to a Realm file
-    protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
-
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
@@ -75,7 +73,6 @@ abstract class BaseRealm implements Closeable {
     protected SharedRealm sharedRealm;
 
     RealmSchema schema;
-    Handler handler;
     HandlerController handlerController;
 
     static {
@@ -110,14 +107,6 @@ abstract class BaseRealm implements Closeable {
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
         handlerController.checkCanBeAutoRefreshed();
-        /*
-        if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
-            handler = new Handler(handlerController);
-            handlers.put(handler, configuration.getPath());
-        } else if (!autoRefresh && handlerController.isAutoRefreshEnabled() && handler != null) { // Switch it off
-            removeHandler();
-        }
-        */
         handlerController.setAutoRefresh(autoRefresh);
     }
 
@@ -208,21 +197,9 @@ abstract class BaseRealm implements Closeable {
     // WARNING: If this method is used after calling any async method, the old handler will still be used.
     //          package private, for test purpose only
     void setHandler(Handler handler) {
-        // remove the old one
-        handlers.remove(this.handler);
-        handlers.put(handler, configuration.getPath());
-        this.handler = handler;
+        ((AndroidNotifier)sharedRealm.realmNotifier).setHandler(handler);
     }
 
-    /**
-     * Removes and stops the current thread handler as gracefully as possible.
-     */
-    protected void removeHandler() {
-        handlers.remove(handler);
-        // Warning: This only clears the Looper queue. Handler.Callback is not removed.
-        handler.removeCallbacksAndMessages(null);
-        this.handler = null;
-    }
 
     /**
      * Writes a compacted copy of the Realm to the given destination File.
@@ -532,9 +509,6 @@ abstract class BaseRealm implements Closeable {
             sharedRealm.close();
             sharedRealm = null;
         }
-        if (handler != null) {
-            removeHandler();
-        }
     }
 
     /**
@@ -569,11 +543,6 @@ abstract class BaseRealm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
-    }
-
-    // Return all handlers registered for this Realm
-    static Map<Handler, String> getHandlers() {
-        return handlers;
     }
 
     /**
@@ -775,6 +744,11 @@ abstract class BaseRealm implements Closeable {
             throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
                     + configuration.getPath());
         }
+    }
+
+    // Return true if this Realm can receive notifications.
+    boolean hasValidNotifier() {
+        return sharedRealm.realmNotifier != null && sharedRealm.realmNotifier.isValid();
     }
 
     @Override

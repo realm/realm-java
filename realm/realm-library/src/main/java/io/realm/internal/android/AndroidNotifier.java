@@ -91,8 +91,23 @@ public class AndroidNotifier implements RealmNotifier {
     }
 
     @Override
+    public void post(Runnable runnable) {
+        Looper looper = handler.getLooper();
+        if (looper.getThread().isAlive()) {     // The receiving thread is alive
+            handler.post(runnable);
+        }
+    }
+
+    @Override
     public boolean isValid() {
         return handler != null;
+    }
+
+    @Override
+    public void close() {
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
     }
 
     @Override
@@ -139,5 +154,10 @@ public class AndroidNotifier implements RealmNotifier {
         // https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/app/IntentService.java#108
         String threadName = Thread.currentThread().getName();
         return threadName != null && threadName.startsWith("IntentService[");
+    }
+
+    // For testing purpose only. Should be removed ideally.
+    public void setHandler(Handler handler) {
+        this.handler = handler;
     }
 }
