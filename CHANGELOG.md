@@ -12,6 +12,10 @@
 * `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
 * `DynamicRealmObject.getX(fieldName)` now throws a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
 
+### Enhancements
+
+* Optimized internal caching of schema classes (#3315).
+
 ### Internal
 
 * Updated Realm Core to 1.5.0.
