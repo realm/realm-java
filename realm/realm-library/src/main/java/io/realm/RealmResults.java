@@ -30,6 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.internal.OptionalAPI;
+import io.realm.internal.EmptyTableView;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
@@ -87,7 +88,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
-
 
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
@@ -154,6 +154,46 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
+     * Check if the underlying {@link Table} exists. When {@field table} is an instance of
+     * {@link EmptyTableView}, it can be certain that the parent Table does not exist.
+     *
+     * @return {@code true} if the backing Table is invalid, {@code false} otherwise.
+     */
+    private boolean isTableRemoved() {
+        return (this.table instanceof EmptyTableView);
+    }
+
+    /**
+     * This is to make {@link RealmResults#table} as an empty list with {@link EmptyTableView}. This
+     * further sets {@link #asyncQueryCompleted} true for preventing the {@link RealmResults} from updated.
+     * The benefits of converting to {@link EmptyTableView} follows that an empty tableview absorbs
+     * operations as users proceed without performance hit or gives users clear error message.
+     *
+     * @param emptyTableView an empty TableView that contains the basic information such as column names
+     *                       and field types of the deleted Table.
+     */
+    void convertToEmptyTableView(final EmptyTableView emptyTableView) {
+        this.table = emptyTableView;
+        this.asyncQueryCompleted = true;
+    }
+
+    /**
+     * Check if the RealmResults is from the same class as the one being queried by its name.
+     *
+     * @param className a class name to check.
+     * @return {@code true} if the RealmResults is from the same class, {@code false} otherwise.
+     */
+    boolean isFromSameClass(String className) {
+        if (this.className != null && this.className.equals(className)) {
+            return true;
+        }
+        if (classSpec != null && classSpec.getSimpleName().equals(className)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public boolean isValid() {
@@ -180,7 +220,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
+        if (isLoaded() && !isTableRemoved() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
                 contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
@@ -200,6 +240,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
+        if (isTableRemoved()) {
+            throw new IndexOutOfBoundsException("No results were found.");
+        }
         TableOrView table = getTable();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
@@ -496,8 +539,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
+        if (isTableRemoved()) {
+            return this;
+        }
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
-
         TableOrView tableOrView = getTable();
         if (tableOrView instanceof Table) {
             this.table = ((Table) tableOrView).getDistinctView(columnIndex);
@@ -520,6 +565,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
+        if (isTableRemoved()) {
+            return this;
+        }
         return where().distinctAsync(fieldName);
     }
 
@@ -536,6 +584,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * is an unsupported type, or points to a linked field.
      */
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        if (isTableRemoved()) {
+            return this;
+        }
         return where().distinct(firstFieldName, remainingFieldNames);
     }
 
@@ -924,6 +975,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
+        if (isTableRemoved()) {
+            throw new IllegalStateException("You can't register a listener to where no data is available.");
+        }
         if (realm.handler == null) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
         }

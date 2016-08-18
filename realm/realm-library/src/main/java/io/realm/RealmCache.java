@@ -19,13 +19,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.EmptyTableView;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -70,6 +74,17 @@ final class RealmCache {
     // Separated references and counters for typed Realm and dynamic Realm.
     private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
 
+    /**
+     * This is a global reference of all the Realm/DynamicRealm instances across thread. As {@link #refAndCountMap}
+     * allows its {@link #refAndCountMap#localRealm} to yield {@link BaseRealm} instance to a specific thread,
+     * it is necessary to have a global list of BaseRealm that could be approached from any thread.
+     *
+     * <p>As one can see there is no protection on this list from being accessed via multiple threads.
+     * Please take caution when this is exposed to un-synchronized methods.
+     */
+    // FIXME : please remove when ObjectStore safely reference all the Realm/DynamicRealm instances globally
+    private final ArrayList<WeakReference<BaseRealm>> globalBaseRealmReference;
+
     final private RealmConfiguration configuration;
 
     // Column indices are cached to speed up opening typed Realm. If a Realm instance is created in one thread, creating
@@ -89,6 +104,7 @@ final class RealmCache {
         for (RealmCacheType type : RealmCacheType.values()) {
             refAndCountMap.put(type, new RefAndCount());
         }
+        globalBaseRealmReference = new ArrayList<WeakReference<BaseRealm>>();
     }
 
     /**
@@ -138,6 +154,8 @@ final class RealmCache {
             }
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
+            // add the new realm instance to the global list.
+            cache.globalBaseRealmReference.add(new WeakReference<BaseRealm>(realm));
         }
 
         Integer refCount = refAndCount.localCount.get();
@@ -184,32 +202,44 @@ final class RealmCache {
         refCount -= 1;
 
         if (refCount == 0) {
-            // The last instance in this thread.
-            // Clear local ref & counter
-            refAndCount.localCount.set(null);
-            refAndCount.localRealm.set(null);
+            //Before release realm from threadlocal, release it from global list.
+            if (cache != null && refAndCount != null) {
 
-            // Clear global counter
-            refAndCount.globalCount--;
-            if (refAndCount.globalCount < 0) {
-                // Should never happen.
-                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
-                        " got corrupted.");
-            }
+                BaseRealm localRealm = refAndCount.localRealm.get();
+                for (Iterator<WeakReference<BaseRealm>> itr = cache.globalBaseRealmReference.iterator(); itr.hasNext();) {
+                    WeakReference<BaseRealm> realmRef = itr.next();
+                    if (realmRef.get() == localRealm) {
+                        itr.remove();
+                    }
+                }
 
-            // Clear the column indices cache if needed
-            if (realm instanceof Realm && refAndCount.globalCount == 0) {
-                // All typed Realm instances of this file are cleared from cache
-                cache.typedColumnIndices = null;
-            }
+                // The last instance in this thread.
+                // Clear local ref & counter
+                refAndCount.localCount.set(null);
+                refAndCount.localRealm.set(null);
 
-            int totalRefCount = 0;
-            for (RealmCacheType type : RealmCacheType.values()) {
-                totalRefCount += cache.refAndCountMap.get(type).globalCount;
-            }
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
-            if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
+                // Clear global counter
+                refAndCount.globalCount--;
+                if (refAndCount.globalCount < 0) {
+                    // Should never happen.
+                    throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
+                            " got corrupted.");
+                }
+
+                // Clear the column indices cache if needed
+                if (realm instanceof Realm && refAndCount.globalCount == 0) {
+                    // All typed Realm instances of this file are cleared from cache
+                    cache.typedColumnIndices = null;
+                }
+
+                int totalRefCount = 0;
+                for (RealmCacheType type : RealmCacheType.values()) {
+                    totalRefCount += cache.refAndCountMap.get(type).globalCount;
+                }
+                // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
+                if (totalRefCount == 0) {
+                    cachesMap.remove(canonicalPath);
+                }
             }
 
             // No more local reference to this Realm in current thread, close the instance.
@@ -331,4 +361,30 @@ final class RealmCache {
             }
         }
     }
+
+   /**
+    * This is to propagate a {@link RealmResults#convertToEmptyTableView(EmptyTableView)} event through
+    * {@link HandlerController} across all the threads that when {@link RealmSchema#remove(String)}
+    * removes a Class, all the affected {@link RealmResults} should be invalidated to an empty list.
+    *
+    * @param configuration a configuration to filter all the {@link BaseRealm}.
+    * @param emptyTableView an empty TableView that contains the basic information such as column names
+    *                       and field types of the deleted Table.
+    */
+   static synchronized void invalidateRemovedClassFromCachedRealm(RealmConfiguration configuration,
+                                                                  final EmptyTableView emptyTableView) {
+       RealmCache cache = cachesMap.get(configuration.getPath());
+       // when there is no Cache holding Realm/DynamicRealm Instances, just full-stop.
+       if (cache == null) {
+           return;
+       }
+       // Throw the exception if validation failed.
+       cache.validateConfiguration(configuration);
+       for (Iterator<WeakReference<BaseRealm>> itr = cache.globalBaseRealmReference.iterator(); itr.hasNext();) {
+           BaseRealm realm = itr.next().get();
+           if (realm != null) {
+               realm.handlerController.invalidateRealmResults(emptyTableView);
+           }
+       }
+   }
 }

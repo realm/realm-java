@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.EmptyTableView;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.IdentitySet;
 import io.realm.internal.RealmObjectProxy;
@@ -780,4 +781,30 @@ final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
+    /**
+     * When the {@link io.realm.internal.Table} for a Class is removed while a {@link RealmResults}
+     * is still present, the underlying {@link io.realm.internal.TableView} should be replaced by
+     * {@link io.realm.internal.EmptyTableView} instead.
+     *
+     * @param emptyTableView an empty TableView that contains the basic information such as column name
+     *                       of the deleted Table.
+     */
+    void invalidateRealmResults(final EmptyTableView emptyTableView) {
+        convertResultToEmptyTableView(syncRealmResults.keySet().iterator(), emptyTableView);
+        convertResultToEmptyTableView(asyncRealmResults.keySet().iterator(), emptyTableView);
+    }
+
+    private void convertResultToEmptyTableView(Iterator<WeakReference<RealmResults<? extends RealmModel>>> iterator,
+                                               final EmptyTableView emptyTableView) {
+        final String className = emptyTableView.getClassName();
+        while (iterator.hasNext()) {
+            WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = iterator.next();
+            RealmResults<? extends RealmModel> realmResults = weakRealmResults.get();
+            if (realmResults != null && realmResults.isFromSameClass(className)) {
+                realmResults.convertToEmptyTableView(emptyTableView);
+            } else if (realmResults == null) {
+                iterator.remove();
+            }
+        }
+    }
 }
