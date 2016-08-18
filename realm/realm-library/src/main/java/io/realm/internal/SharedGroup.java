@@ -84,11 +84,11 @@ public class SharedGroup implements Closeable {
         Durability durability = config.getDurability();
 
         if (syncEnabled) {
-            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath, encryptionKey);
+            nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
         } else {
-            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath);
+            nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, encryptionKey);
         }
-        nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, encryptionKey);
+        nativePtr = openSharedGroupOrFail(nativeReplicationPtr, canonicalPath, durability, encryptionKey);
         implicitTransactionsEnabled = true;
         context = new Context();
         path = canonicalPath;
@@ -108,11 +108,11 @@ public class SharedGroup implements Closeable {
                        byte[] key) {
         if (enableImplicitTransactions) {
             if (enableSync) {
-                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath, key);
+                nativeReplicationPtr = nativeCreateSyncReplication(canonicalPath);
             } else {
-                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath);
+                nativeReplicationPtr = nativeCreateLocalReplication(canonicalPath, key);
             }
-            nativePtr = openSharedGroupOrFail(durability, key);
+            nativePtr = openSharedGroupOrFail(nativeReplicationPtr, canonicalPath, durability, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
@@ -122,7 +122,7 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    private long openSharedGroupOrFail(Durability durability, byte[] key) {
+    private long openSharedGroupOrFail(long nativeReplicationPtr, String path, Durability durability, byte[] key) {
         // We have anecdotal evidence that on some versions of Android it is possible for two versions of an app
         // to exist in two processes during an app upgrade. This is problematic since the lock file might not be
         // compatible across two versions of Android. See https://github.com/realm/realm-java/issues/2459. If this
@@ -405,12 +405,9 @@ public class SharedGroup implements Closeable {
         nativeStopWaitForChange(nativePtr);
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
-                                                             int durability, byte[] key);
-    private native long nativeCreateLocalReplication(String databaseFile);
-    private native long nativeCreateSyncReplication(String databaseFile, byte[] key);
-//    private native long nativeInitSyncClient(String userToken);
-//    private native long nativeStartSession(long syncClientPtr, String serverUrl, String path, Object handler);
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    private native long nativeCreateLocalReplication(String databaseFile, byte[] key);
+    private native long nativeCreateSyncReplication(String databaseFile);
     private native long nativeCommitAndContinueAsRead(long nativePtr, long sessionPtr);
 
     private native long nativeBeginImplicit(long nativePtr);

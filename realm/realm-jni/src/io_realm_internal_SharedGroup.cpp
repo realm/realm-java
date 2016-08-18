@@ -34,6 +34,7 @@
 
 using namespace std;
 using namespace realm;
+using namespace sync;
 
 inline static bool jint_to_durability_level(JNIEnv* env, jint durability, SharedGroup::DurabilityLevel &level) {
     if (durability == 0)
@@ -207,11 +208,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinu
   (JNIEnv *env, jobject, jlong native_ptr, jlong sync_session_ptr)
 {
     TR_ENTER_PTR(native_ptr)
+    Session* sync_session = SS(sync_session_ptr);
     try {
         SharedGroup::version_type new_version = LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
-        if (sync_session_ptr != 0) { //sync enabled
-            sync::Session* m_sync_session = reinterpret_cast<sync::Session*>(sync_session_ptr);
-            m_sync_session->nonsync_transact_notify(new_version);
+        if (sync_session != NULL) { //sync enabled
+            sync_session->nonsync_transact_notify(new_version);
         }
     }
     CATCH_STD()

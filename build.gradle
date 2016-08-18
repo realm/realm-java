@@ -57,9 +57,22 @@ task assembleRealm(type:GradleBuild) {
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
+    }
 }
 
-task check(type:GradleBuild) {
+task checkExamples(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the JVM tests and checks the examples'
+    buildFile = file('examples/build.gradle')
+    tasks = ['check']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task checkRealm(type:GradleBuild) {
     group = 'Test'
     description = 'Run the JVM tests and checks Realm project'
     buildFile = file('realm/build.gradle')
@@ -67,6 +80,13 @@ task check(type:GradleBuild) {
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
+}
+
+task check {
+    group = 'Test'
+    description = 'Run the JVM tests and checks in the realm and examples projects'
+    dependsOn checkRealm
+    dependsOn checkExamples
 }
 
 task integrationTestsConnectedCheck(type:GradleBuild) {
@@ -97,6 +117,9 @@ task installRealm(type:GradleBuild) {
     tasks = ['install']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
     }
 }
 
@@ -297,6 +320,7 @@ task bintrayRealm(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['bintrayUpload']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -306,6 +330,7 @@ task bintrayAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations to Bintray'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['bintrayUpload']
 }
 
@@ -313,6 +338,7 @@ task bintrayGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin to Bintray'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['bintrayUpload']
 }
 
@@ -320,6 +346,7 @@ task bintrayTransformer(type: GradleBuild) {
     description = 'Publish the Realm Transformer to Bintray'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['bintrayUpload']
 }
 
@@ -332,11 +359,52 @@ task bintrayUpload {
     dependsOn bintrayTransformer
 }
 
+task s3Realm(type: GradleBuild) {
+    description = 'Publish the Realm AAR and AP to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('realm/build.gradle')
+    tasks = ['publish']
+    if (project.hasProperty('buildTargetABIs')) {
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+}
+
+task s3Annotations(type: GradleBuild) {
+    description = 'Publish the Realm Annotations to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('realm-annotations/build.gradle')
+    tasks = ['publish']
+}
+
+task s3GradlePlugin(type: GradleBuild) {
+    description = 'Publish the Realm Gradle Plugin to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['publish']
+}
+
+task s3Transformer(type: GradleBuild) {
+    description = 'Publish the Realm Transformer to the internal S3 maven repository.'
+    group = 'Publishing'
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['publish']
+}
+
+task s3Upload {
+    description = 'Publish all the Realm artifacts to the internal S3 maven repository.'
+    group = 'Publishing'
+    dependsOn s3Realm
+    dependsOn s3Annotations
+    dependsOn s3GradlePlugin
+    dependsOn s3Transformer
+}
+
 task ojoRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
     tasks = ['artifactoryPublish']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -346,6 +414,7 @@ task ojoAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['artifactoryPublish']
 }
 
@@ -353,6 +422,7 @@ task ojoGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['artifactoryPublish']
 }
 
@@ -360,6 +430,7 @@ task ojoTransformer(type: GradleBuild) {
     description = 'Publish the Realm Transformer SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
+    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['artifactoryPublish']
 }
 

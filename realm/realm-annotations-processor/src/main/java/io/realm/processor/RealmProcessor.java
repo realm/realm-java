@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
@@ -102,6 +101,9 @@ import io.realm.annotations.RealmClass;
 })
 public class RealmProcessor extends AbstractProcessor {
 
+    // Don't consume annotations. This allows 3rd party annotation processors to run.
+    private static final boolean CONSUME_ANNOTATIONS = false;
+
     Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
     private boolean hasProcessedModules = false;
 
@@ -111,8 +113,9 @@ public class RealmProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        // Don't run this processor in subsequent runs. We created everything in the first one.
         if (hasProcessedModules) {
-            return true;
+            return CONSUME_ANNOTATIONS;
         }
         RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
@@ -165,7 +168,9 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         hasProcessedModules = true;
-        return processModules(roundEnv);
+        processModules(roundEnv);
+
+        return CONSUME_ANNOTATIONS;
     }
 
     // Returns true if modules was processed successfully, false otherwise

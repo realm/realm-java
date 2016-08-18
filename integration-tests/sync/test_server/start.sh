@@ -1,2 +1,2 @@
-node server.js ../../../../realm-sync/src/realm
-
+npm install
+node server.js ./realm-sync-server

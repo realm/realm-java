@@ -344,7 +344,7 @@ public class SortTest {
     public void resorting() throws InterruptedException {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
 
-        final Realm realm = Realm.getInstance(looperThread.createConfiguration());
+        final Realm realm = looperThread.realm;
         realm.setAutoRefresh(true);
 
         final Runnable endTest = new Runnable() {
@@ -365,6 +365,7 @@ public class SortTest {
 
         // rr0: [0, 1, 2, 3]
         final RealmResults<AllTypes> rr0 = realm.where(AllTypes.class).findAll();
+        looperThread.keepStrongReference.add(rr0);
         rr0.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -376,6 +377,7 @@ public class SortTest {
 
         // rr1: [1, 2, 0, 3]
         final RealmResults<AllTypes> rr1 = realm.where(AllTypes.class).findAll().sort(FIELD_LONG, Sort.ASCENDING);
+        looperThread.keepStrongReference.add(rr1);
         rr1.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -391,6 +393,7 @@ public class SortTest {
 
         // rr2: [0, 3, 1, 2]
         final RealmResults<AllTypes> rr2 = realm.where(AllTypes.class).findAll().sort(FIELD_LONG, Sort.DESCENDING);
+        looperThread.keepStrongReference.add(rr2);
         rr2.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -479,6 +482,7 @@ public class SortTest {
 
         RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
         assertEquals(TEST_SIZE, objectsAscending.size());
+        looperThread.keepStrongReference.add(objectsAscending);
         objectsAscending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
@@ -494,6 +498,7 @@ public class SortTest {
 
         RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
         assertEquals(TEST_SIZE, objectsDescending.size());
+        looperThread.keepStrongReference.add(objectsDescending);
         objectsDescending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> element) {

@@ -342,7 +342,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     @RunTestInLooperThread
     public void changeListener_syncIfNeeded_updatedFromOtherThread() {
-        final Realm realm = Realm.getInstance(looperThread.createConfiguration("Foo"));
+        final Realm realm = looperThread.realm;
         populateTestRealm(realm, 10);
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
@@ -450,6 +450,10 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
+        looperThread.keepStrongReference.add(distinctBool);
+        looperThread.keepStrongReference.add(distinctLong);
+        looperThread.keepStrongReference.add(distinctDate);
+        looperThread.keepStrongReference.add(distinctString);
         distinctBool.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -512,6 +516,8 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
+        looperThread.keepStrongReference.add(distinctDate);
+        looperThread.keepStrongReference.add(distinctString);
         distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
             @Override
             public void onChange(RealmResults<AnnotationIndexTypes> object) {
@@ -856,6 +862,7 @@ public class RealmResultsTests extends CollectionTests {
         Realm realm = looperThread.realm;
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
 
+        looperThread.keepStrongReference.add(collection);
         collection.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
@@ -900,6 +907,7 @@ public class RealmResultsTests extends CollectionTests {
         });
 
         // Adding it twice will be ignored, so removing it will not cause the listener to be triggered.
+        looperThread.keepStrongReference.add(collection);
         collection.addChangeListener(listener);
         collection.addChangeListener(listener);
         collection.removeChangeListener(listener);
@@ -933,6 +941,7 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
+        looperThread.keepStrongReference.add(collection);
         collection.addChangeListener(listener);
         collection.removeChangeListener(listener);
 
@@ -983,6 +992,7 @@ public class RealmResultsTests extends CollectionTests {
             }
         };
 
+        looperThread.keepStrongReference.add(collection);
         collection.addChangeListener(listenerA);
         collection.addChangeListener(listenerB);
         collection.removeChangeListeners();

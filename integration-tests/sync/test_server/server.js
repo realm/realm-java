@@ -63,5 +63,5 @@ dispatcher.onGet("/stop", function(req, res) {
 //Create and start the Http server
 var server = http.createServer(handleRequest);
 server.listen(PORT, function() {
-    console.log("Server listening on: http://127.0.0.1:%s", PORT);
+    console.log("Integration test server listening on: 127.0.0.1:%s", PORT);
 });

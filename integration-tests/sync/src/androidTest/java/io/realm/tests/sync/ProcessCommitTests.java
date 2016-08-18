@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -91,9 +92,8 @@ public class ProcessCommitTests {
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
-
             }
         });
-        testFinished.await();
+        testFinished.await(30, TimeUnit.SECONDS);
     }
 }
