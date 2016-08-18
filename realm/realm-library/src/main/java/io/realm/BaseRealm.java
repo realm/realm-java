@@ -328,13 +328,13 @@ public abstract class BaseRealm implements Closeable {
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * realm.beginTransaction();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      *
      * // Do this instead
      * realm.beginTransaction();
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      * }
      * </pre>
      * <p>

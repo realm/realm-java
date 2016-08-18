@@ -33,6 +33,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -728,6 +729,28 @@ public class RealmObjectSchemaTests {
     @Test(expected = IllegalStateException.class)
     public void getPrimaryKey_nonExistFieldThrows() {
         schema.getPrimaryKey();
+    }
+
+    @Test
+    public void getFieldIndex() {
+        final String className = "NoField";
+        final String fieldName = "field";
+        RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(emptyConfig);
+        dynamicRealm.beginTransaction();
+        RealmObjectSchema objectSchema = dynamicRealm.getSchema().create(className);
+
+        assertNull(objectSchema.getFieldIndex(fieldName));
+
+        objectSchema.addField(fieldName, long.class);
+        //noinspection ConstantConditions
+        assertTrue(objectSchema.getFieldIndex(fieldName) >= 0);
+
+        objectSchema.removeField(fieldName);
+        assertNull(objectSchema.getFieldIndex(fieldName));
+
+        dynamicRealm.cancelTransaction();
+        dynamicRealm.close();
     }
 
     private interface FieldRunnable {
