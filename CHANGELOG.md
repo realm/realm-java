@@ -5,6 +5,7 @@
 * Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
 * `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
 * `DynamicRealmObject.getX(fieldName)` now throws a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
+* Fixed a concurrency crash which might happen when `Realm.executeTransactionAsync()` tried to call `onSucess` after the Realm was closed.
 
 ### Enhancements
 
