@@ -13,7 +13,7 @@
 
 ### Internal
 
-* Updated Realm Core to 1.5.0.
+* Updated Realm Core to 1.5.1.
 * Improved sorting speed.
 
 ## 1.1.1
