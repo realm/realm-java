@@ -51,7 +51,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -121,10 +120,6 @@ import rx.Observable;
 public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
-
-    // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmModel>, Table> classToTable =
-            new HashMap<Class<? extends RealmModel>, Table>();
 
     private static RealmConfiguration defaultConfiguration;
 
@@ -604,7 +599,7 @@ public final class Realm extends BaseRealm {
             return null;
         }
         E realmObject;
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         if (table.hasPrimaryKey()) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
             // case that value might be the last property :(
@@ -683,7 +678,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
     }
@@ -703,7 +698,7 @@ public final class Realm extends BaseRealm {
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex);
     }
@@ -1292,7 +1287,7 @@ public final class Realm extends BaseRealm {
      */
     public void delete(Class<? extends RealmModel> clazz) {
         checkIfValid();
-        getTable(clazz).clear();
+        schema.getTable(clazz).clear();
     }
 
 
@@ -1314,7 +1309,7 @@ public final class Realm extends BaseRealm {
     }
 
     private void checkHasPrimaryKey(Class<? extends RealmModel> clazz) {
-        if (!getTable(clazz).hasPrimaryKey()) {
+        if (!schema.getTable(clazz).hasPrimaryKey()) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
     }
@@ -1404,13 +1399,7 @@ public final class Realm extends BaseRealm {
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {
-        Table table = classToTable.get(clazz);
-        if (table == null) {
-            clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
-            classToTable.put(clazz, table);
-        }
-        return table;
+        return schema.getTable(clazz);
     }
 
     /**
