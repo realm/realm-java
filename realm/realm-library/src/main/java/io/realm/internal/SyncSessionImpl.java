@@ -2,6 +2,8 @@ package io.realm.internal;
 
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncSession;
+import io.realm.sync.SyncConfiguration;
+import io.realm.sync.SyncSession;
 
 public class SyncSessionImpl implements SyncSession {
 

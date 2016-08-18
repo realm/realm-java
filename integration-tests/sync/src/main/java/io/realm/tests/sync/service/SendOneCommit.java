@@ -49,18 +49,6 @@ public class SendOneCommit extends Service {
         realm.commitTransaction();
 
         realm.close();//FIXME the close may not give a chance to the sync client to process/upload the changeset
-
-        SessionInfo session = ReplicationManager.getSession(replicationConfig);
-
-        ReplicationConfiguration SyncConfig = ReplicationConfiguration.from(config)
-                .user()
-                .setErrorHandler
-
-
-
-
-
-
     }
 
 
