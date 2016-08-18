@@ -126,10 +126,25 @@ def getNdk() {
     if (!ndkDir.directory) {
         throw new GradleException('The path provided in the NDK_HOME environment variable is not a folder.')
     }
-    if (!file("${ndkDir}/RELEASE.TXT").file) {
+    def detectedNdkVersion
+    if (file("${ndkDir}/RELEASE.TXT").file) {
+        detectedNdkVersion = file("${ndkDir}/RELEASE.TXT").text.trim().split()[0].split('-')[0]
+    } else if (file("${ndkDir}/source.properties").file) {
+        def reader = file("${ndkDir}/source.properties").newReader()
+        try {
+            def props = new Properties()
+            props.load(reader)
+            detectedNdkVersion = props.get('Pkg.Revision')
+            if (detectedNdkVersion == null) {
+                throw new GradleException("failed to obtain ndk version information from ${ndkDir}/source.properties")
+            }
+        } finally {
+            reader.close()
+        }
+    } else {
         throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
     }
-    def detectedNdkVersion = file("${ndkDir}/RELEASE.TXT").text.trim().split()[0].split('-')[0]
+    //noinspection GroovyVariableNotAssigned
     if (detectedNdkVersion != ndkVersion) {
         throw new GradleException("Your NDK version: ${detectedNdkVersion}. Realm JNI should be compiled with the version ${ndkVersion} of NDK.")
     }
