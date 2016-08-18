@@ -18,13 +18,45 @@ public final class SyncManager {
 
     private static volatile long syncClientPointer = 0;
     private final static Map<String, Long> SYNC_SESSIONS = new HashMap<String, Long>();
+    private static final Session.ErrorHandler NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
+        @Override
+        public void onError(Throwable error) {
+            // Ignore
+        }
+    };
+    private static final Session.EventHandler NO_OP_EVENT_HANDLER = new Session.EventHandler() {
+        @Override
+        public void sessionStarted(Session session) {}
+        @Override
+        public void realmUnbound(Session session) {}
+        @Override
+        public void bindingRealm(Session session) {}
+        @Override
+        public void realmBound(Session session) {}
+        @Override
+        public void sessionStopped(Session session) {}
+        @Override
+        public void authorizationMissing() {}
+        @Override
+        public void authorizationExpired() {}
+        @Override
+        public void localChangesAvailable() {}
+        @Override
+        public void remoteChangesAvailable() {}
+        @Override
+        public void realmSynchronized() {}
+        @Override
+        public void allRemoteChangesDownloaded() {}
+        @Override
+        public void error(int errorCode, String errorMessage) {}
+    };
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static volatile long nativeSyncClientPointer = nativeCreateSyncClient();
     private static volatile AuthentificationServer authServer = new OkHttpAuthentificationServer();
-    private static volatile SyncErrorHandler globalErrorHandler;
-    private static volatile SyncEventHandler globalEventHandler;
+    private static volatile Session.ErrorHandler defaultErrorHandler = NO_OP_ERROR_HANDLER;
+    private static volatile Session.EventHandler defaultEventHandler = NO_OP_EVENT_HANDLER;
 
     private static URL globalAuthentificationServer;
 
@@ -32,29 +64,29 @@ public final class SyncManager {
     private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
 
     /**
-     * Sets the default global error handler used by all {@link SyncConfiguration} objects when they are created.
-     * * @param errorHandler the default error handler used when communicating with a Realm Object Server.
+     * Sets the default error handler used by all {@link SyncConfiguration} objects when they are created.
+     *
+     * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setGlobalErrorHandler(SyncErrorHandler errorHandler) {
-        globalErrorHandler = errorHandler;
+    public static void setDefaultErrorHandler(Session.ErrorHandler errorHandler) {
+        if (errorHandler == null) {
+            defaultErrorHandler = NO_OP_ERROR_HANDLER;
+        } else {
+            defaultErrorHandler = errorHandler;
+        }
     }
 
     /**
-     * Sets the global default Realm Mobile Platform authentification server. Setting this parameter means this server
-     * will be used as the default server for any {@link Credentials} created.
+     * Sets the default event handler used by all {@link SyncConfiguration} objects when they are created.
      *
-     * @param authServer the default authentification server.
+     * @param eventHandler the default event handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setGlobalAuthentificationServer(URL authServer) {
-
-    }
-
-    public static void setGlobalSessionErrorHandler(Session.ErrorHandler handler) {
-
-    }
-
-    public static void setGlobalSessionEventHandler(Session.EventHandler handler) {
-
+    public static void setDefaultEventHandler(Session.EventHandler eventHandler) {
+        if (eventHandler == null) {
+            defaultEventHandler = NO_OP_EVENT_HANDLER;
+        } else {
+            defaultEventHandler = eventHandler;
+        }
     }
 
     /**
