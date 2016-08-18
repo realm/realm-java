@@ -222,14 +222,15 @@ public final class RealmSchema {
         Table table = classToTable.get(clazz);
         if (table == null) {
             Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
-            if (originalClass != clazz) {
+            if (isProxyClass(originalClass, clazz)) {
+                // if passed 'clazz' is the proxy, try again with model class
                 table = classToTable.get(originalClass);
             }
             if (table == null) {
                 table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(originalClass));
                 classToTable.put(originalClass, table);
             }
-            if (originalClass != clazz) {
+            if (isProxyClass(originalClass, clazz)) {
                 // 'clazz' is the proxy class for 'originalClass'
                 classToTable.put(clazz, table);
             }
@@ -241,7 +242,8 @@ public final class RealmSchema {
         RealmObjectSchema classSchema = classToSchema.get(clazz);
         if (classSchema == null) {
             Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
-            if (originalClass != clazz) {
+            if (isProxyClass(originalClass, clazz)) {
+                // if passed 'clazz' is the proxy, try again with model class
                 classSchema = classToSchema.get(originalClass);
             }
             if (classSchema == null) {
@@ -249,12 +251,17 @@ public final class RealmSchema {
                 classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(originalClass).getIndicesMap());
                 classToSchema.put(originalClass, classSchema);
             }
-            if (originalClass != clazz) {
+            if (isProxyClass(originalClass, clazz)) {
                 // 'clazz' is the proxy class for 'originalClass'
                 classToSchema.put(clazz, classSchema);
             }
         }
         return classSchema;
+    }
+
+    private static boolean isProxyClass(Class<? extends RealmModel> modelClass,
+                                        Class<? extends RealmModel> testee) {
+        return modelClass != testee;
     }
 
     RealmObjectSchema getSchemaForClass(String className) {
