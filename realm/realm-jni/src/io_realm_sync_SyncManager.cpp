@@ -59,7 +59,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateClient
 
         sync::Client::Config config;
         config.logger = base_logger;
-        config.reconnect = sync::Client::Reconnect::immediately;
+        //config.reconnect = sync::Client::Reconnect::immediately;// for testing?
+        config.reconnect = sync::Client::Reconnect::normal;
 
         sync::Client* m_sync_client = new sync::Client(config);
         sync_client_thread = new std::thread([m_sync_client](){

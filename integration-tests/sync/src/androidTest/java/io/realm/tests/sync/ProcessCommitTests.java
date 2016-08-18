@@ -56,7 +56,7 @@ public class ProcessCommitTests {
         httpUtils.stopSyncServer();
     }
 
-    @Test
+    @Test(timeout=30000) //30 seconds
     public void expectServerCommit() throws Exception {
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
@@ -72,6 +72,7 @@ public class ProcessCommitTests {
                             .withSync(Constants.SYNC_SERVER_URL)
                             .syncUserToken(Constants.USER_TOKEN)
                             .build();
+                    Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
                     Intent intent = new Intent(targetContext, SendOneCommit.class);
                     targetContext.startService(intent);

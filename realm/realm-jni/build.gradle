@@ -1,8 +1,10 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.23.2' // Sync version
+//ext.coreVersion = '0.23.2' // Sync version
+ext.coreVersion = '0.27.4' // Sync version
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'd04111821f7b2c1bcf0d7da8a8acac045c95f92a970c35f667a3691a63cad50c'
+//ext.coreSha256Hash = 'd04111821f7b2c1bcf0d7da8a8acac045c95f92a970c35f667a3691a63cad50c'
+ext.coreSha256Hash = 'e3a849a648f8f0ce6e1a2ed653c61a6eeb00fdcff5a5bf842d6d657c5b135947'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -76,12 +78,12 @@ def toolchains = [
 
 def allTargets = [
 // ARM support is deprecated
-//    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
-//    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-//    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
-//    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
+    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
+    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
+    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
     new Target( name:'x86',     abi:'x86',         toolchain:toolchains.find {it.name == 'x86'},    cflags:[] ),
-//    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
+    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
 ]
 
 def targets
@@ -187,6 +189,7 @@ task downloadCore() {
         println "Existing archive hash mismatch(Expected: ${project.coreSha256Hash.toLowerCase()}" +
                 " but got ${calculatedHash.toLowerCase()}). Download new version."
         return true
+//        return false
     }
 
     doLast {
@@ -194,9 +197,9 @@ task downloadCore() {
             // CI artifacts are only available if on the internal network or VPN
             def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
             println "Downloading ${downloadUrl}"
-            exec {
-                commandLine 's3cmd', '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
-            }
+//            exec {
+//                commandLine 's3cmd', '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+//            }
             coreDownloaded = true
             if (isHashCheckingEnabled()) {
                 def calculatedHash = calcSha256Hash(project.coreArchiveFile)
@@ -306,7 +309,7 @@ targets.each { target ->
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-${target.name} -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
+            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-${target.name} -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -lz -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}${getDebugExt()}.so"
         ]
