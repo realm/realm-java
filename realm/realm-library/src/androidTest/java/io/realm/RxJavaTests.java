@@ -202,10 +202,10 @@ public class RxJavaTests {
     @Test
     @UiThreadTest
     public void dynamicRealmResults_emittedOnSubscribe() {
-        final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
-        results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
+        subscription = results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
             @Override
             public void call(RealmResults<DynamicRealmObject> rxResults) {
                 assertTrue(rxResults == results);
@@ -214,6 +214,7 @@ public class RxJavaTests {
         });
         assertTrue(subscribedNotified.get());
         dynamicRealm.close();
+        subscription.unsubscribe();
     }
 
     @Test
@@ -243,12 +244,12 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void dynamicRealmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        final DynamicRealm dynamicRealm = DynamicRealm.createInstance(looperThread.realmConfiguration);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
         dynamicRealm.beginTransaction();
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
         dynamicRealm.commitTransaction();
 
-        results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
+        subscription = results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
             @Override
             public void call(RealmResults<DynamicRealmObject> allTypes) {
                 if (subscriberCalled.incrementAndGet() == 2) {
