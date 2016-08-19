@@ -925,8 +925,8 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
     JniLongArray arr(env, columnIndices);
     jsize arr_len = arr.len();
     try {
+        JniByteArray bytes(env, value);
         BinaryData value2;
-        jbyte* bytePtr;
         if (value == NULL) {
             if (!TBL_AND_COL_NULLABLE(env, getTableByArray(nativeQueryPtr, arr).get(), arr[arr_len-1])) {
                 return;
@@ -934,18 +934,15 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             value2 = BinaryData();
         }
         else {
-            bytePtr = env->GetByteArrayElements(value, NULL);
-            if (!bytePtr) {
+            if (!bytes) {
                 ThrowException(env, IllegalArgument, "binaryPredicate");
                 return;
             }
-            size_t dataLen = S(env->GetArrayLength(value));
-            value2 = BinaryData(reinterpret_cast<char*>(bytePtr), dataLen);
+            value2 = BinaryData(reinterpret_cast<char*>(bytes.ptr()), S(bytes.len()));
         }
 
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Binary)) {
-                env->ReleaseByteArrayElements(value, bytePtr, JNI_ABORT);
                 return;
             }
             switch (predicate) {
@@ -968,7 +965,6 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
                 break;
             }
         }
-        env->ReleaseByteArrayElements(value, bytePtr, JNI_ABORT);
     } CATCH_STD()
 }
 
