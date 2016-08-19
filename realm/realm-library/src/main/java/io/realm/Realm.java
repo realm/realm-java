@@ -1189,8 +1189,9 @@ public final class Realm extends BaseRealm {
 
                     if (!Thread.currentThread().isInterrupted()) {
                         bgRealm.commitAsyncTransaction();
-                        // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
-                        // problem. This is currently guaranteed by posting handleAsyncTransactionCompleted below.
+                        // The bgRealm needs to be closed before posting the REALM_CHANGED event to the caller's handler
+                        // to avoid currency problems. This is currently guaranteed by posting
+                        // handleAsyncTransactionCompleted below.
                         bgRealm.close();
                         transactionCommitted = true;
                     }
