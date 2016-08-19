@@ -574,6 +574,7 @@ public:
     ~JniLongArray()
     {
         m_env->ReleaseLongArrayElements(m_javaArray, m_array, m_releaseMode);
+        m_env->DeleteLocalRef(m_javaArray);
     }
 
     inline jsize len() const noexcept

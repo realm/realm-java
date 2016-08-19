@@ -1213,17 +1213,18 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 
         // Step3: Run & export the queries against the latest shared group
         for (size_t i = 0; i < number_of_queries; ++i) {
-            JniLongArray query_param_array(env, (jlongArray) env->GetObjectArrayElement(query_param_matrix, i));
-            switch (query_param_array[0]) { // 0, index of the type of query, the next indicies are parameters
+            std::unique_ptr<JniLongArray> query_param_array(
+                new JniLongArray(env, (jlongArray) env->GetObjectArrayElement(query_param_matrix, i));
+            switch ((*query_param_array)[0]) { // 0, index of the type of query, the next indicies are parameters
                 case QUERY_TYPE_FIND_ALL: {// nativeFindAllWithHandover
                     exported_handover_tableview_array[i] =
                             findAllWithHandover
                                     (env,
                                      bgSharedGroupPtr,
                                      std::move(queries[i]),
-                                     query_param_array[1]/*start*/,
-                                     query_param_array[2]/*end*/,
-                                     query_param_array[3]/*limit*/);
+                                     (*query_param_array)[1]/*start*/,
+                                     (*query_param_array)[2]/*end*/,
+                                     (*query_param_array)[3]/*limit*/);
                     break;
                 }
                 case QUERY_TYPE_DISTINCT: {// nativeGetDistinctViewWithHandover
@@ -1232,7 +1233,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                                     (env,
                                      bgSharedGroupPtr,
                                      std::move(queries[i]),
-                                     query_param_array[1]/*columnIndex*/);
+                                     (*query_param_array)[1]/*columnIndex*/);
                     break;
                 }
                 case QUERY_TYPE_FIND_ALL_SORTED: {// nativeFindAllSortedWithHandover
@@ -1241,11 +1242,11 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                                     (env,
                                      bgSharedGroupPtr,
                                      std::move(queries[i]),
-                                     query_param_array[1]/*start*/,
-                                     query_param_array[2]/*end*/,
-                                     query_param_array[3]/*limit*/,
-                                     query_param_array[4]/*columnIndex*/,
-                                     query_param_array[5] == 1/*ascending order*/);
+                                     (*query_param_array)[1]/*start*/,
+                                     (*query_param_array)[2]/*end*/,
+                                     (*query_param_array)[3]/*limit*/,
+                                     (*query_param_array)[4]/*columnIndex*/,
+                                     (*query_param_array)[5] == 1/*ascending order*/);
                     break;
                 }
                 case QUERY_TYPE_FIND_ALL_MULTI_SORTED: {// nativeFindAllMultiSortedWithHandover
@@ -1258,9 +1259,9 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                                     (env,
                                      bgSharedGroupPtr,
                                      std::move(queries[i]),
-                                     query_param_array[1]/*start*/,
-                                     query_param_array[2]/*end*/,
-                                     query_param_array[3]/*limit*/,
+                                     (*query_param_array)[1]/*start*/,
+                                     (*query_param_array)[2]/*end*/,
+                                     (*query_param_array)[3]/*limit*/,
                                      column_indices_array/*columnIndices*/,
                                      column_order_array/*ascending orders*/);
                     break;
