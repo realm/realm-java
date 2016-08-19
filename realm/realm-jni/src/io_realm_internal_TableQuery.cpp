@@ -934,7 +934,7 @@ static void TableQuery_BinaryPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             value2 = BinaryData();
         }
         else {
-            if (!bytes) {
+            if (!bytes.ptr()) {
                 ThrowException(env, IllegalArgument, "binaryPredicate");
                 return;
             }
