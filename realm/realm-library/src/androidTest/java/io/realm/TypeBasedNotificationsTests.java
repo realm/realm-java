@@ -89,7 +89,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -127,7 +127,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(DynamicRealm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             realm.close();
@@ -166,7 +166,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -206,7 +206,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -255,7 +255,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -305,7 +305,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -361,7 +361,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (globalCommitInvocations.incrementAndGet() == 1) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -426,7 +426,7 @@ public class TypeBasedNotificationsTests {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                realm.handler.post(new Runnable() {
+                looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
                         assertEquals(1, typebasedCommitInvocations.get());
@@ -518,7 +518,7 @@ public class TypeBasedNotificationsTests {
 
                     case 3:
                         // Step 5: Complete test
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 assertEquals(1, typebasedCommitInvocations.get());
@@ -584,7 +584,7 @@ public class TypeBasedNotificationsTests {
 
                     case 3:
                         // Step 5: Complete test
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
@@ -665,7 +665,7 @@ public class TypeBasedNotificationsTests {
 
                     case 3: // triggered by relevant commit from LooperThread2
                         assertEquals("Akamaru", dog.getName());
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 // trigger second callback invocation
@@ -689,7 +689,7 @@ public class TypeBasedNotificationsTests {
                         // posting as an event will give the handler a chance
                         // to deliver the notification for globalCommitInvocations
                         // otherwise, test will exit before the callback get a chance to be invoked
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
@@ -756,7 +756,7 @@ public class TypeBasedNotificationsTests {
                     }
                     case 3: {
                         assertEquals("Akamaru", dog.getName());
-                        realm.handler.postDelayed(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 // trigger second callback invocation
@@ -772,7 +772,7 @@ public class TypeBasedNotificationsTests {
                                     }
                                 }.start();
                             }
-                        }, TimeUnit.SECONDS.toMillis(0));
+                        });
                         break;
                     }
                     case 4: {
@@ -781,7 +781,7 @@ public class TypeBasedNotificationsTests {
                         // posting as an event will give the handler a chance
                         // to deliver the notification for globalCommitInvocations
                         // otherwise, test will exit before the callback get a chance to be invoked
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
@@ -842,7 +842,7 @@ public class TypeBasedNotificationsTests {
 
                     case 3:
                         // Step 5: Complete test
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 assertEquals(1, typebasedCommitInvocations.get());
@@ -905,7 +905,7 @@ public class TypeBasedNotificationsTests {
 
                     case 3:
                         // Step 5: Complete test
-                        realm.handler.post(new Runnable() {
+                        looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
                                 assertEquals(2, typebasedCommitInvocations.get());
@@ -930,7 +930,7 @@ public class TypeBasedNotificationsTests {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                realm.handler.post(new Runnable() {
+                looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
                         assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
@@ -969,7 +969,7 @@ public class TypeBasedNotificationsTests {
         RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                realm.handler.post(new Runnable() {
+                looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
                         assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
@@ -1011,7 +1011,7 @@ public class TypeBasedNotificationsTests {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                realm.handler.post(new Runnable() {
+                looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
                         assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
@@ -1050,7 +1050,7 @@ public class TypeBasedNotificationsTests {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                realm.handler.post(new Runnable() {
+                looperThread.postRunnable(new Runnable() {
                     @Override
                     public void run() {
                         assertEquals(NUMBER_OF_LISTENERS, typebasedCommitInvocations.get());
@@ -1099,7 +1099,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (realm.where(Dog.class).count() == 2) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(1, typebasedCommitInvocations.get());
@@ -1154,7 +1154,7 @@ public class TypeBasedNotificationsTests {
             public void onChange(Realm object) {
                 // Check if the 2nd transaction is committed.
                 if (realm.where(Dog.class).count() == 2) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(2, typebasedCommitInvocations.get());
@@ -1219,7 +1219,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (realm.where(Dog.class).count() == 2) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(typebasedCommitInvocations.get(), 1);
@@ -1274,7 +1274,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Realm object) {
                 if (realm.where(Dog.class).count() == 2) {
-                    realm.handler.post(new Runnable() {
+                    looperThread.postRunnable(new Runnable() {
                         @Override
                         public void run() {
                             assertEquals(2, typebasedCommitInvocations.get());

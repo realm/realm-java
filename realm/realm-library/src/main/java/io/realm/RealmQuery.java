@@ -2023,7 +2023,7 @@ public final class RealmQuery<E extends RealmModel> {
         }
 
         Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
+        if (columnIndex == null) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 

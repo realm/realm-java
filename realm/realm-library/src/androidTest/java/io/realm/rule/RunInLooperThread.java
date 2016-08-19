@@ -195,6 +195,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     }
 
     /**
+     * Posts a runnable to this worker threads looper with a delay in milli second.
+     */
+    public void postRunnableDelayed(Runnable runnable, long delayMillis) {
+        backgroundHandler.postDelayed(runnable, delayMillis);
+    }
+
+    /**
      * Tear down logic which is guaranteed to run after the looper test has either completed or failed.
      * This will run on the same thread as the looper test.
      */
