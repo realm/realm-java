@@ -139,6 +139,12 @@ This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `as
 Note that IntelliJ [does not support multiple projects in the same window](https://youtrack.jetbrains.com/issue/IDEABKL-6118#)
 so each sub-project must be opened in its own window.
 
+## Examples
+
+The `./examples` folder contain a number of example projects showing how Realm can be used. If this is the first time you checkout or pull a new version of this repository to try the examples, you must call `./gradlew installRealmJava` from the top-level directory first. Otherwise the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
+
+Standalone examples can be [downloaded from website](https://realm.io/docs/java/latest/#getting-started).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!

@@ -80,18 +80,15 @@ abstract class BaseRealm implements Closeable {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
-    protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
+    protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         this.handlerController = new HandlerController(this);
-        if (Looper.myLooper() == null) {
-            if (autoRefresh) {
-                throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
-            }
-        } else {
-            setAutoRefresh(autoRefresh);
+
+        if (handlerController.isAutoRefreshAvailable()) {
+            setAutoRefresh(true);
         }
     }
 
@@ -108,10 +105,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        if (Looper.myLooper() == null) {
-            throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
-        }
-
+        handlerController.checkCanBeAutoRefreshed();
         if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
@@ -146,7 +140,7 @@ abstract class BaseRealm implements Closeable {
         }
         checkIfValid();
         if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+            throw new IllegalStateException("You can't register a listener from a non-Looper or IntentService thread.");
         }
         handlerController.addChangeListener(listener);
     }
@@ -325,13 +319,13 @@ abstract class BaseRealm implements Closeable {
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * realm.beginTransaction();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      *
      * // Do this instead
      * realm.beginTransaction();
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      * }
      * </pre>
      * <p>
@@ -350,15 +344,15 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, true, null);
+        commitTransaction(true, true);
     }
 
     /**
      * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
      * that.
      */
-    void commitAsyncTransaction(Runnable runAfterCommit) {
-        commitTransaction(false, false, runAfterCommit);
+    void commitAsyncTransaction() {
+        commitTransaction(false, false);
     }
 
     /**
@@ -367,15 +361,10 @@ abstract class BaseRealm implements Closeable {
      * other threads see the changes to majoyly avoid the flaky tests.
      *
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
-     * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
-
-        if (runAfterCommit != null)  {
-            runAfterCommit.run();
-        }
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();

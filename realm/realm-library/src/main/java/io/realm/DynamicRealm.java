@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.os.Looper;
+import android.app.IntentService;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -46,8 +46,8 @@ import rx.Observable;
  */
 public final class DynamicRealm extends BaseRealm {
 
-    private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
-        super(configuration, autoRefresh);
+    private DynamicRealm(RealmConfiguration configuration) {
+        super(configuration);
     }
 
     /**
@@ -128,7 +128,7 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
@@ -180,8 +180,7 @@ public final class DynamicRealm extends BaseRealm {
      * @return a {@link DynamicRealm} instance.
      */
     static DynamicRealm createInstance(RealmConfiguration configuration) {
-        boolean autoRefresh = Looper.myLooper() != null;
-        return new DynamicRealm(configuration, autoRefresh);
+        return new DynamicRealm(configuration);
     }
 
     /**

@@ -798,4 +798,30 @@ public class JNIQueryTest extends TestCase {
         assertEquals(0L, table.where().between(new long[]{0}, distantFuture, future).count());
         assertEquals(1L, table.where().between(new long[]{0}, distantFuture, distantFuture).count());
     }
+
+    public void testByteArrayQuery() throws Exception {
+
+        Table table = new Table();
+        table.addColumn(RealmFieldType.BINARY, "binary");
+
+        final byte[] binary1 = new byte[] {0x01, 0x02, 0x03, 0x04};
+        final byte[] binary2 = new byte[] {0x05, 0x02, 0x03, 0x08};
+        final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x04};
+        final byte[] binary4 = new byte[] {0x05, 0x0a, 0x0b, 0x10};
+
+        table.add((Object) binary1);
+        table.add((Object) binary2);
+        table.add((Object) binary3);
+        table.add((Object) binary4);
+
+        // Equal to
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, binary1).count());
+        assertEquals(1L, table.where().equalTo(new long[]{0}, binary3).count());
+
+        // Not equal to
+
+        assertEquals(3L, table.where().notEqualTo(new long[]{0}, binary2).count());
+        assertEquals(3L, table.where().notEqualTo(new long[]{0}, binary4).count());
+    }
 }

@@ -70,6 +70,8 @@ public final class RealmQuery<E extends RealmModel> {
     private LinkView view;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
+    private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
+
 
     private final static Long INVALID_NATIVE_POINTER = 0L;
     private ArgumentsHolder argumentsHolder;
@@ -291,6 +293,24 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
+    public RealmQuery<E> equalTo(String fieldName, byte[] value) {
+        long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
+        if (value == null) {
+            this.query.isNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> equalTo(String fieldName, Short value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
@@ -404,6 +424,192 @@ public final class RealmQuery<E extends RealmModel> {
         return this;
     }
 
+    // In
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, String[] values) {
+        return in(fieldName, values, Case.SENSITIVE);
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0], casing);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i], casing);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Byte[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Short[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Integer[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Long[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Double[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Float[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Boolean[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with and it cannot be null or empty.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or empty.
+     */
+    public RealmQuery<E> in(String fieldName, Date[] values) {
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException(EMPTY_VALUES);
+        }
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        return endGroup();
+    }
+
     // Not Equal
 
     /**
@@ -446,6 +652,24 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, Byte value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
+        if (value == null) {
+            this.query.isNotNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, byte[] value) {
+        long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
         if (value == null) {
             this.query.isNotNull(columnIndices);
         } else {
