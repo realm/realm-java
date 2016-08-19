@@ -1534,7 +1534,7 @@ public class RealmAsyncQueryTests {
         });
         looperThread.keepStrongReference.add(allAsync);
 
-        looperThread.realm.handler.postDelayed(new Runnable() {
+        looperThread.postRunnableDelayed(new Runnable() {
             @Override
             public void run() {
                 backgroundThread.start();
