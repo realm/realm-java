@@ -21,6 +21,7 @@
 
 * Updated Realm Core to 1.5.1.
 * Improved sorting speed.
+* Totally remove optional API transformer from repository.
 
 ## 1.1.1
 
