@@ -40,13 +40,13 @@ public final class RealmSchema {
     private static final String TABLE_PREFIX = Table.TABLE_PREFIX;
     private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
-    // Caches Dynamic Class objects given as Strings (both model classes and proxy classes) to Realm Tables
+    // Caches Dynamic Class objects given as Strings to Realm Tables
     private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmModel>, Table> classToTable = new HashMap<Class<? extends RealmModel>, Table>();
     // Caches Class objects (both model classes and proxy classes) to their Schema object
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<Class<? extends RealmModel>, RealmObjectSchema>();
-    // Caches Class Strings (both model classes and proxy classes) to their Schema object
+    // Caches Class Strings to their Schema object
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<String, RealmObjectSchema>();
 
     private final ImplicitTransaction transaction;
@@ -221,9 +221,19 @@ public final class RealmSchema {
     Table getTable(Class<? extends RealmModel> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
-            clazz = Util.getOriginalModelClass(clazz);
-            table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(clazz));
-            classToTable.put(clazz, table);
+            Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
+            if (isProxyClass(originalClass, clazz)) {
+                // if passed 'clazz' is the proxy, try again with model class
+                table = classToTable.get(originalClass);
+            }
+            if (table == null) {
+                table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(originalClass));
+                classToTable.put(originalClass, table);
+            }
+            if (isProxyClass(originalClass, clazz)) {
+                // 'clazz' is the proxy class for 'originalClass'
+                classToTable.put(clazz, table);
+            }
         }
         return table;
     }
@@ -231,12 +241,27 @@ public final class RealmSchema {
     RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
         RealmObjectSchema classSchema = classToSchema.get(clazz);
         if (classSchema == null) {
-            clazz = Util.getOriginalModelClass(clazz);
-            Table table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(clazz));
-            classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(clazz).getIndicesMap());
-            classToSchema.put(clazz, classSchema);
+            Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
+            if (isProxyClass(originalClass, clazz)) {
+                // if passed 'clazz' is the proxy, try again with model class
+                classSchema = classToSchema.get(originalClass);
+            }
+            if (classSchema == null) {
+                Table table = getTable(clazz);
+                classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(originalClass).getIndicesMap());
+                classToSchema.put(originalClass, classSchema);
+            }
+            if (isProxyClass(originalClass, clazz)) {
+                // 'clazz' is the proxy class for 'originalClass'
+                classToSchema.put(clazz, classSchema);
+            }
         }
         return classSchema;
+    }
+
+    private static boolean isProxyClass(Class<? extends RealmModel> modelClass,
+                                        Class<? extends RealmModel> testee) {
+        return modelClass != testee;
     }
 
     RealmObjectSchema getSchemaForClass(String className) {

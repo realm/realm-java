@@ -1121,7 +1121,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+    JNIEnv* env, jclass, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
@@ -1322,7 +1322,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         return 0;
     }
 
-    std::vector<size_t> indices(S(arr_len));
+    std::vector<std::vector<size_t>> indices(S(arr_len));
     std::vector<bool> ascendings(S(arr_len));
 
     for (int i = 0; i < arr_len; ++i) {
@@ -1337,7 +1337,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_Double:
             case type_Float:
             case type_Timestamp:
-                indices[i] = S(long_arr[i]);
+                indices[i] = std::vector<size_t> { S(long_arr[i]) };
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
@@ -1347,7 +1347,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
     }
 
     try {
-        TableView* pTableView = new TableView(pTable->get_sorted_view(indices, ascendings));
+        TableView* pTableView = new TableView(pTable->get_sorted_view(SortDescriptor(*pTable, indices, ascendings)));
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;

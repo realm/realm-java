@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
@@ -54,9 +53,14 @@ import rx.Observable;
 @SuppressWarnings("WeakerAccess")
 abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
-    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
+            "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
+    private static final String INCORRECT_THREAD_MESSAGE =
+            "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String CLOSED_REALM_MESSAGE =
+            "This Realm instance has already been closed, making it unusable.";
+    private static final String NOT_IN_TRANSACTION_MESSAGE =
+            "Changing Realm data can only be done from inside a transaction.";
 
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -72,6 +76,7 @@ abstract class BaseRealm implements Closeable {
     HandlerController handlerController;
 
     static {
+        //noinspection ConstantConditions
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
@@ -183,7 +188,6 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public abstract Observable asObservable();
 
     /**
@@ -458,6 +462,15 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Check if the Realm is valid and in a transaction.
+     */
+    protected void checkIfValidAndInTransaction() {
+        if (!isInTransaction()) {
+            throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
+        }
+    }
+
+    /**
      * Returns the canonical path to where this Realm is persisted on disk.
      *
      * @return the canonical path to the Realm file.
@@ -687,7 +700,7 @@ abstract class BaseRealm implements Closeable {
      * Compacts the Realm file defined by the given configuration.
      *
      * @param configuration configuration for the Realm to compact.
-     * @throw IllegalArgumentException if Realm is encrypted.
+     * @throws IllegalArgumentException if Realm is encrypted.
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {

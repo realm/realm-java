@@ -1,4 +1,0 @@
-include ':optionalAPIRemoved', ':optionalAPIExists'
-
-rootProject.name = 'integration-tests'
-

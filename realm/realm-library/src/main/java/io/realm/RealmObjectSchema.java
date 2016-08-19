@@ -100,18 +100,41 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a new name for this RealmObject class. This is equivalent to renaming it.
+     * Sets a new name for this RealmObject class. This is equivalent to renaming it. When {@link RealmObjectSchema#table}
+     * has a primary key, this will transfer the primary key for the new class name.
      *
      * @param className the new name for this class.
+     * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56 characters.
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
+        //FIXME : when core implements class name length check, please remove.
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
+        }
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
+        // in case this table has a primary key, we need to transfer it after renaming the table.
+        String oldTableName = null;
+        String pkField = null;
+        if (table.hasPrimaryKey()) {
+            oldTableName = table.getName();
+            pkField = getPrimaryKey();
+            table.setPrimaryKey(null);
+        }
         transaction.renameTable(table.getName(), internalTableName);
+        if (pkField != null && !pkField.isEmpty()) {
+            try {
+                table.setPrimaryKey(pkField);
+            } catch (Exception e) {
+                // revert the table name back when something goes wrong
+                transaction.renameTable(table.getName(), oldTableName);
+                throw e;
+            }
+        }
         return this;
     }
 
@@ -610,15 +633,16 @@ public final class RealmObjectSchema {
             }
             return columnIndices;
         } else {
-            if (getFieldIndex(fieldDescription) == null) {
+            Long fieldIndex = getFieldIndex(fieldDescription);
+            if (fieldIndex == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldDescription));
             }
-            RealmFieldType tableColumnType = table.getColumnType(getFieldIndex(fieldDescription));
+            RealmFieldType tableColumnType = table.getColumnType(fieldIndex);
             if (checkColumnType && !isValidType(tableColumnType, validColumnTypes)) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
                         fieldDescription, tableColumnType, Arrays.toString(validColumnTypes)));
             }
-            return new long[] {getFieldIndex(fieldDescription)};
+            return new long[] {fieldIndex};
         }
     }
 
@@ -695,7 +719,8 @@ public final class RealmObjectSchema {
 
         @Override
         public Long get(Object key) {
-            return table.getColumnIndex((String) key);
+            long ret = table.getColumnIndex((String) key);
+            return ret < 0 ? null : ret;
         }
 
         @Override
