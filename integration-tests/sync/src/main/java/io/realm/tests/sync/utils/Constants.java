@@ -19,8 +19,8 @@ package io.realm.tests.sync.utils;
 public class Constants {
     // to generate a valid token follow the guide in
     //<root>/integration-tests/sync/test_server/keys/HowToGenerateKey.txt
-    public static String USER_TOKEN = "ewogICJpZGVudGl0eSI6ICJ0ZXN0IiwKICAiYWNjZXNzIjogWwogICAgImRvd25sb2FkIiwKICAgICJ1cGxvYWQiCiAgXSwKICAidGltZXN0YW1wIjogMTQ1NTUzMDYxNCwKICAiZXhwaXJlcyI6IG51bGwsCiAgImFwcF9pZCI6ICJpby5yZWFsbS50ZXN0cy5zeW5jIgp9"
-    + ":" +
-    "Y5+K3Y+wd+McaZx6rte1MQvKpHgy7NoTqTzgF3CnGKcosMT7PkG1M71rLsq9/Fcldn6G26Bn3kb0vnw93TS2Ox4wa0FMiObK+N7VNdI6p/+dG5bDjBhtW2AFd2P0nOUCvx39EIdLVnGr3JUidJZEZGzFyFOdZVpnmIAnHNDaOIPOXt4vnASJ/dBjUTkOlexOwSRKIK1hvkA1GO9zpvnG5EbnVG6LuVSRM93Hp0tzuFdesns19P827/FsdZATDA9TFlwVTIa7vHz0KbzolSXKvIiOr5XWC2NXyDFEowxwFHyCuXN52jk9kylagFDTBvXu1ddmDZjWxg9SinJzS4lsYA==";
+    public static String USER_TOKEN = "ewogICJpZGVudGl0eSI6ICJ0ZXN0MiIsCiAgImFjY2VzcyI6IFsKICAgICJkb3dubG9hZCIsCiAgICAidXBsb2FkIgogIF0sCiAgInRpbWVzdGFtcCI6IDE0NTU1MzA2MTQsCiAgImV4cGlyZXMiOiBudWxsLAogICJhcHBfaWQiOiAiaW8ucmVhbG0udGVzdHMuc3luYyIKfQ=="
+            + ":" +
+            "mR0/GMc0b5XHFNJEM4D9fb94oXMjho0jKxopaU1lQW4FqY1QPBa/bPiVCMhAosZVSNhEP6vEZxVjFHAxoPODKoml1Ry78geKt5Iql395HRvO6KCCN0VkMpx2eXy+SzF2pcEjU5jlldbTAcO6nMyVaQ9g2XF2SZPVjBqpkY1cy2IjMHN0HRWy9SfGelwZY/jW72jZM7+89kWpIB0SmNH8kEPKVZlnRMW4KwNAUPA8P0/+qyoRTr/4l7k7N6z5kBxIKB/+m55AeOUDiFsxA53QPlpHGvF7ThZpiv8i+UhyKZcQlXi1utoj8H1CzpeU/YzrrEf3xrr2qCO3/niU5WdnHA==";
     public static String SYNC_SERVER_URL = "realm://127.0.0.1/public/tests";
 }

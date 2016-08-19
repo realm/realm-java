@@ -14,6 +14,10 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            buildConfigField "String", "NODE_SERVER_LOCATION", "\"$projectDir\""
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -21,7 +25,7 @@ android {
     }
 
     tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn reverseNodeServerPort, reverseSyncServerPort
+        compileTask -> compileTask.dependsOn reverseNodeServerPort, reverseSyncServerPort, startServer
     }
 }
 
@@ -42,6 +46,13 @@ task reverseNodeServerPort(type: Exec) {
         }
     }
 }
+
+task startServer << {
+    def processBuilder = new ProcessBuilder(['node','server.js'])
+    processBuilder.directory(new File("$projectDir/test_server"))
+    processBuilder.start()
+}
+
 
 task reverseSyncServerPort(type: Exec) {
     def adb = android.getAdbExe()?.toString() ?: 'false'

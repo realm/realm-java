@@ -37,11 +37,13 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.tests.sync.model.ProcessInfo;
+import io.realm.tests.sync.model.TestObject;
 import io.realm.tests.sync.service.SendOneCommit;
+import io.realm.tests.sync.service.SendsALot;
 import io.realm.tests.sync.utils.Constants;
 import io.realm.tests.sync.utils.HttpUtils;
 
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests {
@@ -57,8 +59,9 @@ public class ProcessCommitTests {
         httpUtils.stopSyncServer();
     }
 
-    @Test(timeout=30000) //30 seconds
-    public void expectServerCommit() throws Exception {
+    @Test
+    public void expectServerCommit() throws Throwable {
+        final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
         ExecutorService service = Executors.newSingleThreadExecutor();
         service.submit(new Runnable() {
@@ -82,7 +85,8 @@ public class ProcessCommitTests {
                     all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
                         @Override
                         public void onChange(RealmResults<ProcessInfo> element) {
-                            assertNotEquals(0, all.size());
+                            assertEquals(1, all.size());
+                            assertEquals("Background_Process1", all.get(0).getName());
                             testFinished.countDown();
                         }
                     });
@@ -90,10 +94,68 @@ public class ProcessCommitTests {
                     Looper.loop();
 
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    exception[0] = e;
+                    testFinished.countDown();
                 }
             }
         });
         testFinished.await(30, TimeUnit.SECONDS);
+        if (exception[0] != null) {
+            throw exception[0];
+        }
+    }
+
+    //TODO send string from service and match
+    //     replicate integration tests from Cocoa
+    //     add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process
+    //     check the requirement for the issue again
+    @Test
+    public void expectALot() throws Throwable {
+        final Throwable[] exception = new Throwable[1];
+        final CountDownLatch testFinished = new CountDownLatch(1);
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Looper.prepare();
+                    Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+                    final RealmConfiguration syncConfig = new RealmConfiguration
+                            .Builder(targetContext)
+                            .name("main_process_2")
+                            .withSync(Constants.SYNC_SERVER_URL)
+                            .syncUserToken(Constants.USER_TOKEN)
+                            .build();
+                    Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
+                    final Realm realm = Realm.getInstance(syncConfig);
+                    Intent intent = new Intent(targetContext, SendsALot.class);
+                    targetContext.startService(intent);
+
+                    final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
+                    all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {
+                        @Override
+                        public void onChange(RealmResults<TestObject> element) {
+                            assertEquals(100, element.size());
+                            for (int i = 0; i < 100; i++) {
+                                assertEquals(i, element.get(i).getIntProp());
+                                assertEquals("property " + i, element.get(i).getStringProp());
+                            }
+
+                            testFinished.countDown();
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    exception[0] = e;
+                    testFinished.countDown();
+                }
+            }
+        });
+        testFinished.await(30, TimeUnit.SECONDS);
+        if (exception[0] != null) {
+            throw exception[0];
+        }
     }
 }

@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.27.0' // Sync version
+ext.coreVersion = '0.28.0' // Sync version
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '21687bfb3bff99ef4cb6b2846bf8031bf41e9e4c4f82ef38346ff18c45be4620'
+ext.coreSha256Hash = '2bc9b1c4fcf94bf7cd7790989ac54281e1bc36e09542fbce075087ef9ab3b4f7'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -79,11 +79,11 @@ def toolchains = [
 def allTargets = [
 // ARM support is deprecated
 //    new Target( name:'arm',     abi:'armeabi',     toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb' ] ),
-    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
-    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
+//    new Target( name:'arm-v7a', abi:'armeabi-v7a', toolchain:toolchains.find {it.name == 'arm'},    cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+//    new Target( name:'arm64',   abi:'arm64-v8a',   toolchain:toolchains.find {it.name == 'arm64'},  cflags:[] ),
+//    new Target( name:'mips',    abi:'mips',        toolchain:toolchains.find {it.name == 'mips'},   cflags:[] ),
     new Target( name:'x86',     abi:'x86',         toolchain:toolchains.find {it.name == 'x86'},    cflags:[] ),
-    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
+//    new Target( name:'x86_64',  abi:'x86_64',      toolchain:toolchains.find {it.name == 'x86_64'}, cflags:[] )
 ]
 
 def targets
@@ -197,9 +197,9 @@ task downloadCore() {
             def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
 
             println "Downloading ${downloadUrl}"
-            exec {
-                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
-            }
+//            exec {
+//                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+//            }
             coreDownloaded = true
             if (isHashCheckingEnabled()) {
                 def calculatedHash = calcSha256Hash(project.coreArchiveFile)

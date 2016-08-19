@@ -1,2 +1,2 @@
 npm install
-node server.js ./realm-sync-server
+node server.js

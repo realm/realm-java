@@ -22,20 +22,20 @@ import android.os.IBinder;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.tests.sync.model.ProcessInfo;
+import io.realm.tests.sync.model.TestObject;
 import io.realm.tests.sync.utils.Constants;
 
 /**
  * Open a sync Realm on a different process, then send one commit.
  */
-public class SendOneCommit extends Service {
+public class SendsALot extends Service {
 
     @Override
     public void onCreate() {
         super.onCreate();
         final RealmConfiguration syncConfig = new RealmConfiguration
                 .Builder(this)
-                .name(SendOneCommit.class.getSimpleName())
+                .name(SendsALot.class.getSimpleName())
                 .withSync(Constants.SYNC_SERVER_URL)
                 .syncUserToken(Constants.USER_TOKEN)
                 .build();
@@ -43,10 +43,12 @@ public class SendOneCommit extends Service {
         Realm realm = Realm.getInstance(syncConfig);
 
         realm.beginTransaction();
-        ProcessInfo processInfo = realm.createObject(ProcessInfo.class);
-        processInfo.setName("Background_Process1");
-        processInfo.setPid(android.os.Process.myPid());
-        processInfo.setThreadId(Thread.currentThread().getId());
+
+        for (int i = 0; i < 100; i++) {
+            TestObject testObject = realm.createObject(TestObject.class);
+            testObject.setIntProp(i);
+            testObject.setStringProp("property " + i);
+        }
         realm.commitTransaction();
 
         realm.close();//FIXME the close may not give a chance to the sync client to process/upload the changeset

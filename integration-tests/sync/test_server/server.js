@@ -6,11 +6,11 @@ var dispatcher = require('httpdispatcher');
 // Automatically track and cleanup files at exit
 temp.track();
 
-if (process. argv. length <= 2) {
-    console.log("Usage: " + __filename + " absolute_path_to_sync_server_binary");
-    process.exit(-1);
-}
-const syncServerBinaryDir = process.argv[2];
+//if (process. argv. length <= 2) {
+//    console.log("Usage: " + __filename + " absolute_path_to_sync_server_binary");
+//    process.exit(-1);
+//}
+//const syncServerBinaryDir = process.argv[2];
 
 const PORT = 8888;
 
@@ -32,7 +32,9 @@ dispatcher.onGet("/start", function(req, res) {
     temp.mkdir('naruto', function(err, path) {
       if (!err) {
         console.log("Starting sync server in ", path);
-        syncServerChildProcess = spawn(syncServerBinaryDir + '/realm-server-noinst', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
+//        syncServerChildProcess = spawn(syncServerBinaryDir + '/realm-server-noinst', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
+        syncServerChildProcess = spawn('./realm-sync-server-0.28.0/realm-server-dbg-noinst', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
+//        syncServerChildProcess = spawn('realm-server', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
 
         syncServerChildProcess.stdout.on('data', (data) => {
           console.log(`stdout: ${data}`);

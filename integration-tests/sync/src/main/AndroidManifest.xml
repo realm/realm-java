@@ -7,6 +7,11 @@
             android:enabled="true"
             android:exported="true"
             android:process=":remote"/>
+        <service
+            android:name=".service.SendsALot"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote"/>
     </application>
 
 </manifest>

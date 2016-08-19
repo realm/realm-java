@@ -17,7 +17,6 @@
 package io.realm.tests.sync.model;
 
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
 public class ProcessInfo extends RealmObject {
     private String name;
