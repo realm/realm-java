@@ -129,15 +129,16 @@ def getNdk() {
     def detectedNdkVersion
     def releaseFile = new File(ndkDir, 'RELEASE.TXT')
     def propertyFile = new File(ndkDir, 'source.properties')
-    if (releaseFile.file) {
+    if (releaseFile.isFile()) {
         detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
-    } else if (propertyFile.file) {
+    } else if (propertyFile.isFile()) {
         def reader = propertyFile.newReader()
         try {
             def props = new Properties()
             props.load(reader)
             detectedNdkVersion = props.get('Pkg.Revision')
             if (detectedNdkVersion == null) {
+                println "RELEASE.TXT: ${releaseFile.getAbsolutePath()}"
                 throw new GradleException("failed to obtain ndk version information from ${ndkDir}/source.properties")
             }
         } finally {
