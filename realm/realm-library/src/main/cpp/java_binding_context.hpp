@@ -39,6 +39,9 @@ private:
 
     // The JNIEnv for the thread which creates the Realm. This should only be used on the current thread.
     JNIEnv* m_local_jni_env;
+    // All methods should be called from the thread which creates the realm except the destructor which might be
+    // called from finalizer/phantom daemon. So we need a jvm pointer to create JNIEnv there if needed.
+    JavaVM* m_jvm;
     // A weak global ref to the implementation of RealmNotifier
     // Java should hold a strong ref to it as long as the SharedRealm lives
     jobject m_java_notifier;

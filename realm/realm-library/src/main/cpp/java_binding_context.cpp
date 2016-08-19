@@ -16,12 +16,18 @@
 
 #include "java_binding_context.hpp"
 
+#include "util/format.hpp"
+
 using namespace realm;
 using namespace realm::_impl;
 
 JavaBindingContext::JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
     : m_local_jni_env(concrete_context.jni_env)
 {
+    jint ret = m_local_jni_env->GetJavaVM(&m_jvm);
+    if (ret != 0) {
+        throw std::runtime_error(util::format("Failed to get Java vm. Error: %d", ret));
+    }
     if (concrete_context.java_notifier) {
         m_java_notifier = m_local_jni_env->NewWeakGlobalRef(concrete_context.java_notifier);
         jclass cls = m_local_jni_env->GetObjectClass(m_java_notifier);
@@ -33,7 +39,12 @@ JavaBindingContext::JavaBindingContext(const ConcreteJavaBindContext& concrete_c
 
 JavaBindingContext::~JavaBindingContext() {
     if (m_java_notifier) {
-        m_local_jni_env->DeleteWeakGlobalRef(m_java_notifier);
+        // Always try to attach here since this may be called in the finalizer/phantom thread where m_local_jni_env
+        // should not be used on. No need to call DetachCurrentThread since this thread should always be created by
+        // JVM.
+        JNIEnv *env;
+        m_jvm->AttachCurrentThread(&env, nullptr);
+        env->DeleteWeakGlobalRef(m_java_notifier);
     }
 }
 
