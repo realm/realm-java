@@ -14,7 +14,7 @@ try {
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
-      buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+      buildEnv.inside("-u 0:0 --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
         stage 'JVM tests'
         try {
           gradle 'assemble check javadoc'
