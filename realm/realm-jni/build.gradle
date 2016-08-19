@@ -128,7 +128,7 @@ def getNdk() {
     }
     def detectedNdkVersion
     def releaseFile = new File(ndkDir, 'RELEASE.TXT')
-    println releaseFile.exixts()
+    println releaseFile.exists()
     println releaseFile.isFile()
     def propertyFile = new File(ndkDir, 'source.properties')
     if (releaseFile.isFile()) {
