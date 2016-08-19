@@ -138,14 +138,13 @@ def getNdk() {
             props.load(reader)
             detectedNdkVersion = props.get('Pkg.Revision')
             if (detectedNdkVersion == null) {
-                println "RELEASE.TXT: ${releaseFile.getAbsolutePath()}"
-                throw new GradleException("failed to obtain ndk version information from ${ndkDir}/source.properties")
+                throw new GradleException("Failed to obtain the NDK version information from ${ndkDir}/source.properties")
             }
         } finally {
             reader.close()
         }
     } else {
-        throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
+        throw new GradleException("The path provided in the NDK_HOME environment variable does not seem to be an Android NDK. ${releaseFile.getAbsolutePath()}")
     }
     //noinspection GroovyVariableNotAssigned
     if (detectedNdkVersion != ndkVersion) {
