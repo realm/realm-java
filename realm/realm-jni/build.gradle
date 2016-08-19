@@ -122,15 +122,17 @@ def getNdk() {
     if (!System.env.NDK_HOME) {
         throw new GradleException('The NDK_HOME environment variable is not set.')
     }
-    def ndkDir = file(System.env.NDK_HOME)
+    def ndkDir = new File(System.env.NDK_HOME)
     if (!ndkDir.directory) {
         throw new GradleException('The path provided in the NDK_HOME environment variable is not a folder.')
     }
     def detectedNdkVersion
-    if (file("${ndkDir}/RELEASE.TXT").file) {
-        detectedNdkVersion = file("${ndkDir}/RELEASE.TXT").text.trim().split()[0].split('-')[0]
-    } else if (file("${ndkDir}/source.properties").file) {
-        def reader = file("${ndkDir}/source.properties").newReader()
+    def releaseFile = new File(ndkDir, 'RELEASE.TXT')
+    def propertyFile = new File(ndkDir, 'source.properties')
+    if (releaseFile.file) {
+        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
+    } else if (propertyFile.file) {
+        def reader = propertyFile.newReader()
         try {
             def props = new Properties()
             props.load(reader)
