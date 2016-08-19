@@ -93,7 +93,16 @@ public final class RealmObjectSchema {
         this.table = null;
         this.columnIndices = null;
         this.properties = null;
-        this.nativePtr = nativeCreateObjectSchema(sharedRealm.getNativePtr(), className);
+        //this.nativePtr = nativeCreateObjectSchema(sharedRealm.getNativePtr(), className);
+        this.nativePtr = nativeCreateObjectSchema(className); // FIXME: use above and change generated Proxy classes
+    }
+
+    RealmObjectSchema(String className) {
+        this.realm = null;
+        this.table = null;
+        this.columnIndices = null;
+        this.properties = null;
+        this.nativePtr = nativeCreateObjectSchema(className);
     }
 
     RealmObjectSchema(long nativePtr) {
@@ -824,6 +833,7 @@ public final class RealmObjectSchema {
     }
 
     private static native long nativeCreateObjectSchema();
+    private static native long nativeCreateObjectSchema(String className);
     private static native long nativeCreateObjectSchema(long nativeSharedRealmPtr, String className);
     private static native String nativeGetClassName(long nativePtr);
     private static native void nativeClose(long nativePtr);

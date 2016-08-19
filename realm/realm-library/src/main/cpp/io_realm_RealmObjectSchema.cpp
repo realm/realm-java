@@ -39,14 +39,28 @@ Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema__(
 }
 
 JNIEXPORT jlong JNICALL
+Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema__Ljava_lang_String_2(JNIEnv *env, jclass,
+                                                                              jstring className_) {
+    TR_ENTER()
+    try {
+        JStringAccessor name(env, className_);
+        auto* object_schema = new ObjectSchema();
+        object_schema->name = name;
+        return reinterpret_cast<jlong>(object_schema);
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL
 Java_io_realm_RealmObjectSchema_nativeCreateObjectSchema__JLjava_lang_String_2
 (JNIEnv *env, jclass, jlong nativeSharedRealmPtr, jstring className) {
     TR_ENTER_PTR(nativeSharedRealmPtr)
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativeSharedRealmPtr));
         JStringAccessor name(env, className);
-        auto& group = shared_realm->read_group();
-        auto* object_schema = new ObjectSchema(group, name);
+        auto tmp = ObjectSchema(shared_realm->read_group(), name);
+        ObjectSchema* object_schema = new ObjectSchema(tmp);
         return reinterpret_cast<jlong>(object_schema);
     }
     CATCH_STD()

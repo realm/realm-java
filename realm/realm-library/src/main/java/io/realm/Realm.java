@@ -235,7 +235,7 @@ public final class Realm extends BaseRealm {
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
         Realm realm = new Realm(configuration);
-        long currentVersion = realm.getVersion();
+/*        long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
             realm.doClose();
@@ -256,6 +256,13 @@ public final class Realm extends BaseRealm {
             }
         } else {
             realm.schema.columnIndices = columnIndices;
+        }
+*/
+        try {
+            initializeRealm(realm);
+        } catch (RuntimeException e) {
+            realm.doClose();
+            throw e;
         }
 
         return realm;
@@ -287,8 +294,8 @@ public final class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
-
-
+            RealmSchema schema = new RealmSchema(realm, realmObjectSchemas);
+            realm.sharedRealm.updateSchema(schema, realm.getVersion(), realm.configuration.getMigration());
             if (version == UNVERSIONED) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
                 if (transaction != null) {

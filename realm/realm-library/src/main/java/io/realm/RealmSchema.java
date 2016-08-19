@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -61,6 +62,16 @@ public final class RealmSchema {
         nativePtr = nativeCreateSchema();
     }
 
+
+    RealmSchema(BaseRealm realm, ArrayList<RealmObjectSchema> realmObjectSchemas) {
+        long[] nativeRealmObjectSchemaPtrs = new long[realmObjectSchemas.size()];
+        for (int i = 0; i < realmObjectSchemas.size(); i++) {
+            nativeRealmObjectSchemaPtrs[i] = realmObjectSchemas.get(i).getNativePtr();
+        }
+        nativePtr = nativeCreateSchemaFromArray(nativeRealmObjectSchemaPtrs);
+        this.realm = realm;
+    }
+
     public RealmSchema(long nativePtr) {
         this.realm = null;
         this.nativePtr = nativePtr;
@@ -68,6 +79,14 @@ public final class RealmSchema {
 
     public long getNativePtr() {
         return nativePtr;
+    }
+
+    /**
+     * Close/delete native resources
+     */
+    public void close() {
+        nativeClose(nativePtr);
+        realm.close();
     }
 
     /**
@@ -256,15 +275,6 @@ public final class RealmSchema {
     }
 
     /**
-     * Adds an object schema (model class) to a Realm.
-     *
-     * @param realmObjectSchema the object schema
-     */
-    public void addObjectSchema(RealmObjectSchema realmObjectSchema) {
-        nativeAddObjectSchema(nativePtr, realmObjectSchema.getNativePtr());
-    }
-
-    /**
      * Checks if a schema has a named object schema.
      *
      * @param name the name of the object schema (model class)
@@ -280,10 +290,9 @@ public final class RealmSchema {
     }
 
     private static native long nativeCreateSchema();
+    private static native long nativeCreateSchemaFromArray(long[] realmObjectSchemaPtrs);
     private static native void nativeClose(long nativePtr);
-    private static native void nativeAddObjectSchema(long nativePtr, long nativeObjectSchemaPtr);
     private static native boolean nativeHasObjectSchemaByName(long nativePtr, String name);
-    private static native void nativeRemoveObjectSchemaByName(long nativePtr, String name);
     private static native long nativeGetObjectSchemaByName(long nativePtr, String name);
     private static native long[] nativeGetRealmObjectSchemas(long nativePtr);
 }

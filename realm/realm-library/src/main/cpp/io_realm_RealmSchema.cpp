@@ -19,6 +19,7 @@
 
 #include <object-store/src/schema.hpp>
 #include <object-store/src/object_schema.hpp>
+#include <object-store/src/property.hpp>
 
 #include "util.hpp"
 
@@ -35,6 +36,22 @@ Java_io_realm_RealmSchema_nativeCreateSchema(JNIEnv *env, jclass)
     }
     CATCH_STD()
     return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_RealmSchema_nativeCreateSchemaFromArray(JNIEnv *env, jclass type, jlongArray realmObjectSchemaPtrs_) {
+    TR_ENTER();
+    try {
+        JniLongArray realmObjectSchemaPtr(env, realmObjectSchemaPtrs_);
+        std::vector<ObjectSchema> object_schemas;
+        for (jint i = 0; i < realmObjectSchemaPtr.len(); ++i) {
+            auto object_schema = *reinterpret_cast<ObjectSchema *>(realmObjectSchemaPtr[i]);
+            object_schemas.push_back(std::move(object_schema));
+        }
+        auto* schema = new Schema(object_schemas);
+        return reinterpret_cast<jlong>(schema);
+    }
+    CATCH_STD();
 }
 
 JNIEXPORT void JNICALL
