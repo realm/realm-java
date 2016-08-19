@@ -350,15 +350,15 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, true, null);
+        commitTransaction(true, true);
     }
 
     /**
      * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
      * that.
      */
-    void commitAsyncTransaction(Runnable runAfterCommit) {
-        commitTransaction(false, false, runAfterCommit);
+    void commitAsyncTransaction() {
+        commitTransaction(false, false);
     }
 
     /**
@@ -367,15 +367,10 @@ abstract class BaseRealm implements Closeable {
      * other threads see the changes to majoyly avoid the flaky tests.
      *
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
-     * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
-
-        if (runAfterCommit != null)  {
-            runAfterCommit.run();
-        }
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();

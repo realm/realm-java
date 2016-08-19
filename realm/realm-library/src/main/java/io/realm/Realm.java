@@ -288,7 +288,7 @@ public final class Realm extends BaseRealm {
             }
         } finally {
             if (commitNeeded) {
-                realm.commitTransaction(false, true, null);
+                realm.commitTransaction(false, true);
             } else {
                 realm.cancelTransaction();
             }
@@ -1186,15 +1186,11 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitAsyncTransaction(new Runnable() {
-                            @Override
-                            public void run() {
-                                // The bgRealm needs to be closed before post event to caller's handler to avoid
-                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
-                                // This will close Realm before sending REALM_CHANGED.
-                                bgRealm.close();
-                            }
-                        });
+                        bgRealm.commitAsyncTransaction();
+                        // The bgRealm needs to be closed before posting the REALM_CHANGED event to the caller's handler
+                        // to avoid currency problems. This is currently guaranteed by posting
+                        // handleAsyncTransactionCompleted below.
+                        bgRealm.close();
                         transactionCommitted = true;
                     }
                 } catch (final Throwable e) {
