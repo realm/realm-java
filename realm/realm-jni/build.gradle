@@ -128,6 +128,8 @@ def getNdk() {
     }
     def detectedNdkVersion
     def releaseFile = new File(ndkDir, 'RELEASE.TXT')
+    println releaseFile.exixts()
+    println releaseFile.isFile()
     def propertyFile = new File(ndkDir, 'source.properties')
     if (releaseFile.isFile()) {
         detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
@@ -144,7 +146,7 @@ def getNdk() {
             reader.close()
         }
     } else {
-        throw new GradleException("The path provided in the NDK_HOME environment variable does not seem to be an Android NDK. ${releaseFile.getAbsolutePath()}")
+        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
     }
     //noinspection GroovyVariableNotAssigned
     if (detectedNdkVersion != ndkVersion) {
