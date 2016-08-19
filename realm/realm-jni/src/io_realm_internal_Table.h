@@ -279,8 +279,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkView
-        (JNIEnv *, jclass, jlong, jlong, jlong);
-
+  (JNIEnv *, jclass, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
