@@ -1354,50 +1354,50 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmForNullTests(realm);
 
         // 1 String
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String) null).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").count());
         // 2 Bytes
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {0}).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2, 3}).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {0}).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2, 3}).count());
         // 3 Boolean
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, false).count());
         // 4 Byte
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (byte) 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (byte) 42).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (byte) 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (byte) 42).count());
         // 5 Short for other long based columns, only test null
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (short) 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (Short) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (short) 42).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (short) 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (Short) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (short) 42).count());
         // 6 Integer
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, (Integer) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, 42).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, (Integer) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, 42).count());
         // 7 Long
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (long) 1).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (Long) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (long) 42).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (long) 1).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (Long) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (long) 42).count());
         // 8 Float
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, 1F).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, (Float) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, 42F).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, 1F).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, (Float) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, 42F).count());
         // 9 Double
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, 1D).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, (Double) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, 42D).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, 1D).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, (Double) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, 42D).count());
         // 10 Date
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(0)).findAll().size());
-        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, (Date) null).findAll().size());
-        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(424242)).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(0)).count());
+        assertEquals(1, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, (Date) null).count());
+        assertEquals(0, realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(424242)).count());
         // 11 Object skipped, doesn't support equalTo query
     }
 
@@ -1407,27 +1407,27 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmForNullTests(realm);
 
         // 1 String
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).count());
         // 2 Bytes
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTES_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTES_NULL).count());
         // 3 Boolean
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NULL).count());
         // 4 Byte
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTE_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTE_NULL).count());
         // 5 Short
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_SHORT_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_SHORT_NULL).count());
         // 6 Integer
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_INTEGER_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_INTEGER_NULL).count());
         // 7 Long
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LONG_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_LONG_NULL).count());
         // 8 Float
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_FLOAT_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_FLOAT_NULL).count());
         // 9 Double
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_DOUBLE_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_DOUBLE_NULL).count());
         // 10 Date
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_DATE_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_DATE_NULL).count());
         // 11 Object
-        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL).count());
     }
 
     // Querying nullable field for not null
@@ -1435,35 +1435,35 @@ public class RealmQueryTests {
     public void notEqualTo_nullableFields() {
         TestHelper.populateTestRealmForNullTests(realm);
         // 1 String
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).count());
         // 2 Bytes
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).count());
         // 3 Boolean
-        assertEquals(1, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
+        assertEquals(1, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).count());
         // 4 Byte
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (byte) 1).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (byte) 1).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).count());
         // 5 Short
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_SHORT_NULL, (short) 1).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_SHORT_NULL, (Byte) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_SHORT_NULL, (short) 1).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_SHORT_NULL, (Byte) null).count());
         // 6 Integer
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_INTEGER_NULL, 1).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_INTEGER_NULL, (Integer) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_INTEGER_NULL, 1).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_INTEGER_NULL, (Integer) null).count());
         // 7 Long
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_LONG_NULL, 1).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_LONG_NULL, (Integer) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_LONG_NULL, 1).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_LONG_NULL, (Integer) null).count());
         // 8 Float
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_FLOAT_NULL, 1F).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_FLOAT_NULL, (Float) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_FLOAT_NULL, 1F).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_FLOAT_NULL, (Float) null).count());
         // 9 Double
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DOUBLE_NULL, 1D).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DOUBLE_NULL, (Double) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DOUBLE_NULL, 1D).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DOUBLE_NULL, (Double) null).count());
         // 10 Date
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, new Date(0)).findAll().size());
-        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, (Date) null).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, new Date(0)).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, (Date) null).count());
         // 11 Object skipped, doesn't support notEqualTo query
     }
 
@@ -1473,27 +1473,27 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmForNullTests(realm);
 
         // 1 String
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_STRING_NULL).count());
         // 2 Bytes
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BYTES_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BYTES_NULL).count());
         // 3 Boolean
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BOOLEAN_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BOOLEAN_NULL).count());
         // 4 Byte
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BYTE_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BYTE_NULL).count());
         // 5 Short
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_SHORT_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_SHORT_NULL).count());
         // 6 Integer
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_INTEGER_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_INTEGER_NULL).count());
         // 7 Long
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LONG_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LONG_NULL).count());
         // 8 Float
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_FLOAT_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_FLOAT_NULL).count());
         // 9 Double
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DOUBLE_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DOUBLE_NULL).count());
         // 10 Date
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DATE_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DATE_NULL).count());
         // 11 Object
-        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL).findAll().size());
+        assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL).count());
     }
 
     // Querying nullable field with beginsWith - all strings begin with null
