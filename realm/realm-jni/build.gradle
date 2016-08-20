@@ -197,9 +197,9 @@ task downloadCore() {
             def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
 
             println "Downloading ${downloadUrl}"
-//            exec {
-//                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
-//            }
+            exec {
+                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+            }
             coreDownloaded = true
             if (isHashCheckingEnabled()) {
                 def calculatedHash = calcSha256Hash(project.coreArchiveFile)
