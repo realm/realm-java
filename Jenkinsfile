@@ -12,9 +12,20 @@ try {
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
 
+      stage 'Collect info'
+      def dependencies = readProperties file: 'dependencies.list'
+      def syncVersion = dependencies.REALM_SYNC_VERSION
+      echo "Sync Version: ${syncVersion}"
+      def currentDir = pwd()
+
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
       buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+        withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+          sh "s3cmd -c ${env.S3CFG} sync s3://realm-ci-artifacts/sync/v${syncVersion}/linux/ /opt/"
+        }
+        sh 'tar zxf /opt/*.tgz'
+
         stage 'JVM tests'
         try {
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
@@ -95,7 +106,7 @@ try {
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
-  adb logcat -v time > "logcat.txt" &
+  adb logcat > "logcat.txt" &
   echo $! > pid
   '''
   return readFile("pid").trim()
