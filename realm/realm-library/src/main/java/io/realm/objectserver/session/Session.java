@@ -16,7 +16,6 @@
 
 package io.realm.objectserver.session;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +79,7 @@ public final class Session {
     final SyncConfiguration configuration;
     final long nativeSyncClientPointer;
     final AuthentificationServer authServer;
-    long nativeSessionPointer;
+    public long nativeSessionPointer;
     final User user;
     RealmAsyncTask networkRequest;
     NetworkStateReceiver.ConnectionListener networkListener;
@@ -260,7 +259,7 @@ public final class Session {
 
     // Initialize the Session object
     void initialize() {
-        nativeSessionPointer = nativeCreteSession(nativeSyncClientPointer, configuration.getPath());
+        nativeSessionPointer = nativeCreateSession(nativeSyncClientPointer, configuration.getPath());
     }
 
     // Apply any sync policy. It is assumed that any previous running policy have been stopped
@@ -382,7 +381,7 @@ public final class Session {
         }
     }
 
-    private native long nativeCreteSession(long nativeSyncClientPointer, String localRealmPath);
+    private native long nativeCreateSession(long nativeSyncClientPointer, String localRealmPath);
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);

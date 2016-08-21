@@ -16,7 +16,8 @@
 
 #include <jni.h>
 
-#include "io_realm_sync_SyncManager.h"
+#include "io_realm_objectserver_SyncManager.h"
+#include "objectserver_shared.hpp"
 #include "util.hpp"
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
@@ -45,13 +46,7 @@ public:
     }
 };
 
-// maintain a reference to the threads allocated dynamically, to prevent deallocation
-// after Java_io_realm_internal_SharedGroup_nativeStartSession completes.
-// To be released later, maybe on JNI_OnUnload
-std::thread* sync_client_thread;
-JNIEnv* sync_client_env;
-
-JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateClient
+JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
   (JNIEnv *env, jclass)
 {
     TR_ENTER()
@@ -79,36 +74,3 @@ JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateClient
     } CATCH_STD()
     return 0;
 }
-
-JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateSession
-  (JNIEnv *env, jclass, jlong clientPointer, jstring realmPath, jstring serverUrl, jstring userToken)
-{
-    TR_ENTER()
-    Client* sync_client = SC(clientPointer);
-    if (sync_client == NULL) {
-        return 0;
-    }
-    try {
-        const char *token_tmp = env->GetStringUTFChars(userToken, NULL);
-        std::string user_token(token_tmp);
-        env->ReleaseStringUTFChars(userToken, token_tmp);
-
-        const char *path_tmp = env->GetStringUTFChars(realmPath, NULL);
-        std::string path(path_tmp);
-        env->ReleaseStringUTFChars(realmPath, path_tmp);
-
-        JStringAccessor server_url_tmp(env, serverUrl); // throws
-        StringData server_url = StringData(server_url_tmp);
-
-        Session* sync_session = new Session(*sync_client, path);
-
-        std::function<Session::SyncTransactCallback> sync_transact_callback = [path](Session::version_type) {
-            sync_client_env->CallStaticVoidMethod(sync_manager, sync_manager_notify_handler, sync_client_env->NewStringUTF(path.c_str()));//REALM_CHANGE
-        };
-        sync_session->set_sync_transact_callback(sync_transact_callback);
-        sync_session->bind(server_url, user_token);
-        return reinterpret_cast<jlong>(sync_session);
-    } CATCH_STD()
-    return 0;
-}
-

@@ -11,10 +11,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 @RunWith(AndroidJUnit4.class)
@@ -27,6 +29,7 @@ public class ObjectServerTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private Realm realm;
+    private Context context;
 
     @Before
     public void setUp() throws MalformedURLException {
@@ -48,7 +51,28 @@ public class ObjectServerTests {
     // TODO Add test for opening an old Realm with new Sync (should crash)
 
     @Test
+    @RunTestInLooperThread
     public void exploration() throws MalformedURLException {
+
+        Credentials creds = Credentials.createAnonymous();
+        User.authenticate(creds, new URL("http://127.0.0.1:8080/auth"), new User.Callback() {
+            @Override
+            public void onSuccess(User user) {
+                SyncConfiguration config = new SyncConfiguration.Builder(context)
+                        .user(user)
+                        .serverUrl("realm://127.0.0.1/~/default.realm")
+                        .build();
+
+                Realm realm = Realm.getInstance(config);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(int i, String s) {
+                throw new RuntimeException("Error: " + i + " -> " + s);
+            }
+        });
+
 //        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getContext()).build();
 //
 //        // Realm Object Server requires an "User"

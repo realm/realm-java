@@ -9,7 +9,7 @@ import java.util.Map;
 
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
-import io.realm.sync.SyncManager;
+import io.realm.objectserver.SyncManager;
 
 /**
  * This class encapsulates a request to authenticateUser. It is responsible for constructing the JSON understood by the

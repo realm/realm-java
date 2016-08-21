@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseRealm;
+import io.realm.BuildConfig;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
@@ -19,9 +20,8 @@ import io.realm.objectserver.session.Session;
 
 public final class SyncManager {
 
-    /**
-     * Thread pool used when doing network requests against the Realm Authentication Server.
-     */
+    public static final String APP_ID = BuildConfig.APPLICATION_ID;
+    // Thread pool used when doing network requests against the Realm Authentication Server.
     // FIXME Set proper parameters
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
@@ -165,27 +165,29 @@ public final class SyncManager {
         authServer = authServerImpl;
     }
 
-    //
-    // OLD IMPLEMENTATION
-    //
-    public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
-        if (syncClientPointer == 0) {
-            // client event loop is not created for this token
-            // we createFrom 1 client per credentials token
-            syncClientPointer = nativeCreateSyncClient();
-        }
-
-        // check if the session is not already available for the provided RealmConfiguration
-        Long syncSessionPointer = SYNC_SESSIONS.get(path);
-        if (syncSessionPointer == null) {
-            syncSessionPointer = nativeCreateSession(syncClientPointer, path);
-        }
-
-        SYNC_SESSIONS.put(path, syncSessionPointer);
-        return syncSessionPointer;
-    }
-
-
+//    //
+//    // OLD IMPLEMENTATION
+//    //
+//    public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
+//        if (syncClientPointer == 0) {
+//            // client event loop is not created for this token
+//            // we createFrom 1 client per credentials token
+//            syncClientPointer = nativeCreateSyncClient();
+//        }
+//
+//        // check if the session is not already available for the provided RealmConfiguration
+//        Long syncSessionPointer = SYNC_SESSIONS.get(path);
+//        if (syncSessionPointer == null) {
+//            syncSessionPointer = nativeCreateSession(syncClientPointer, path);
+//        }
+//
+//        SYNC_SESSIONS.put(path, syncSessionPointer);
+//        return syncSessionPointer;
+//    }
+//
+//
+    // Called from native code whenever a commit from sync is detected
+    // TODO Remove once the Object Store is introduced.
     public static void notifyHandlers(String path) {
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : BaseRealm.handlers.entrySet()) {
@@ -208,7 +210,6 @@ public final class SyncManager {
     }
 
     private static native long nativeCreateSyncClient();
-    private static native long nativeCreateSession(long clientPointer, String path);
 
     public static void downloadRealm(SyncConfiguration syncConfig, ResultCallback resultCallback) {
 

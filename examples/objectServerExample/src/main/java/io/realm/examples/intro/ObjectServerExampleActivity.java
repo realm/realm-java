@@ -23,6 +23,9 @@ import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
@@ -30,6 +33,7 @@ import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
 import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
+import io.realm.exceptions.ObjectServerException;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.User;
@@ -49,15 +53,31 @@ public class ObjectServerExampleActivity extends Activity {
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
+        URL authUrl;
+        try {
+            authUrl = new URL("http://127.0.0.1:8080/auth");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+
         // Synchronized Realms can only be accessed with a configured `User`
-        Credentials creds = Credentials.fromUsernamePassword("foo", )
-                Credentials.l
-        User user = User.auhauthcreateAnonymousUser();
+        Credentials creds = Credentials.createAnonymous();
+        User.authenticate(creds, authUrl, new User.Callback() {
+            @Override
+            public void onSuccess(User user) {
+                SyncConfiguration config = new SyncConfiguration.Builder(ObjectServerExampleActivity.this)
+                        .user(user)
+                        .serverUrl("realm://127.0.0.1/~/default.realm")
+                        .build();
 
+                Realm realm = Realm.getInstance(config);
+            }
 
-        // TODO This whole anonymous / authenticate user is one big clusterfuck.
-        SyncConfiguration config = new SyncConfiguration.Builder(this)
-                .user()
+            @Override
+            public void onError(int i, String s) {
+                throw new RuntimeException("Error: " + i + " -> " + s);
+            }
+        });
 
 
 

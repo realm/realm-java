@@ -1,16 +1,7 @@
 package io.realm.objectserver.session;
 
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import io.realm.RealmAsyncTask;
-import io.realm.internal.IOException;
-import io.realm.internal.Util;
-import io.realm.internal.objectserver.network.AuthenticateResponse;
-import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.Credentials;
-import io.realm.objectserver.SyncManager;
 
 /**
  * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this

@@ -26,7 +26,9 @@ import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
+import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
+import io.realm.objectserver.session.Session;
 
 public class SharedGroup implements Closeable {
 
@@ -44,9 +46,8 @@ public class SharedGroup implements Closeable {
     private static final boolean DISABLE_REPLICATION = false;
 
     private final String path;
+    private Session session;
     private long nativePtr;
-//    private long syncClientPtr = 0;s
-    private long sessionPtr = 0;
     private long nativeReplicationPtr;
     private boolean implicitTransactionsEnabled = false;
     private boolean activeTransaction;
@@ -96,7 +97,9 @@ public class SharedGroup implements Closeable {
 
         if (syncEnabled) {
             //TODO client is thread-safe & it should be global & reused across different RealmConfiguration
-            sessionPtr = SyncManager.getSession(config.getSyncUserToken(), config.getPath(), config.getSyncServerUrl());
+            session = SyncManager.getSession((SyncConfiguration) config);
+        } else {
+            session = null;
         }
     }
 
@@ -119,6 +122,7 @@ public class SharedGroup implements Closeable {
         }
         context = new Context();
         path = canonicalPath;
+        session = null;
         checkNativePtrNotZero();
     }
 
@@ -187,7 +191,7 @@ public class SharedGroup implements Closeable {
     }
 
     void commitAndContinueAsRead() {
-        nativeCommitAndContinueAsRead(nativePtr, sessionPtr);
+        nativeCommitAndContinueAsRead(nativePtr, session != null ? session.nativeSessionPointer : 0);
     }
 
     void rollbackAndContinueAsRead() {

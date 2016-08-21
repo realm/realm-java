@@ -979,7 +979,7 @@ public class TestHelper {
     public static void waitRealmThreadExecutorFinish() {
         int counter = 50;
         while (counter > 0) {
-            if (BaseRealm.asyncTaskExecutor.getActiveCount() == 0) {
+            if (BaseRealm.ASYNC_TASK_EXECUTOR.getActiveCount() == 0) {
                 return;
             }
             try {
