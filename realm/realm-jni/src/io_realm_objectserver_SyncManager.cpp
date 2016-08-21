@@ -46,6 +46,9 @@ public:
     }
 };
 
+std::thread* sync_client_thread;
+JNIEnv* sync_client_env;
+
 JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
   (JNIEnv *env, jclass)
 {
