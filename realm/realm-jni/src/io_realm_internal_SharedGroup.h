@@ -46,7 +46,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateSyncRepli
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    nativeCommitAndContinueAsRead
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
   (JNIEnv *, jobject, jlong, jlong);

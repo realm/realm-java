@@ -16,7 +16,7 @@
 
 #include <jni.h>
 
-#include "io_realm_objectserver_Session.h"
+#include "io_realm_objectserver_session_Session.h"
 #include "objectserver_shared.hpp"
 #include "util.hpp"
 #include <realm/group_shared.hpp>
@@ -38,7 +38,7 @@ using namespace realm;
 using namespace sync;
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_objectserver_Session_nativeCreateSession
+JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateSession
   (JNIEnv *env, jclass, jlong clientPointer, jstring localRealmPath)
 {
     TR_ENTER()
@@ -64,7 +64,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_Session_nativeCreateSession
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeBind
+JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeBind
   (JNIEnv *env, jclass, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
 {
     TR_ENTER()
@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeBind
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeUnbind
+JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeUnbind
   (JNIEnv *, jclass, jlong sessionPointer)
 {
     TR_ENTER()
@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeUnbind
     delete session; // TODO Can we avoid killing the session here?
 }
 
-JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeRefresh
+JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
   (JNIEnv *env, jclass, jlong sessionPointer, jstring accessToken)
 {
     TR_ENTER()
