@@ -16,13 +16,20 @@
 
 package io.realm.objectserver.session;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
+import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
+import io.realm.internal.objectserver.Token;
+import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
@@ -74,9 +81,7 @@ public final class Session {
     final long nativeSyncClientPointer;
     final AuthentificationServer authServer;
     long nativeSessionPointer;
-    Credentials credentials;
-    volatile String accessToken;
-    volatile String refreshToken;
+    final User user;
     RealmAsyncTask networkRequest;
     NetworkStateReceiver.ConnectionListener networkListener;
 
@@ -89,6 +94,7 @@ public final class Session {
      */
     public Session(SyncConfiguration objectServerConfiguration, long nativeSyncClientPointer, AuthentificationServer authServer) {
         this.configuration = objectServerConfiguration;
+        this.user = configuration.getUser();
         this.nativeSyncClientPointer = nativeSyncClientPointer;
         this.authServer = authServer;
         setupStateMachine();
@@ -192,6 +198,7 @@ public final class Session {
      **
      * @param credentials credentials to use when authenticating access to the remote Realm.
      */
+    @Deprecated
     public synchronized void setCredentials(Credentials credentials) {
         currentState.onSetCredentials(credentials);
 //        if (credentials == null) {
@@ -221,10 +228,6 @@ public final class Session {
         notifyBindAborded();
     }
 
-    private void authenticate(Runnable onSuccess, Runnable onError) {
-
-    }
-
     // IDEAS
 
     /**
@@ -237,6 +240,7 @@ public final class Session {
      * @return
      */
     public synchronized boolean isAuthenticated() {
+
         return false;
     }
 
@@ -268,7 +272,12 @@ public final class Session {
     // Bind with proper access tokens
     void bindWithTokens() {
         // TODO How do we handle errors from bind?
-        nativeBind(nativeSessionPointer, configuration.getRealmFileName(), accessToken);
+        Token accessToken = user.getAccessToken(configuration);
+        if (accessToken == null) {
+            throw new IllegalStateException("User '" + user.toString() + "' does not have an access token for "
+                    + configuration.getSyncServerUrl());
+        }
+        nativeBind(nativeSessionPointer, configuration.getRealmFileName(), accessToken.value());
     }
 
     // Unbind a Realm that is currently bound
@@ -282,15 +291,62 @@ public final class Session {
         // TODO
     }
 
-    public void refreshAccessToken() {
-        // TODO Refresh access token in the auth server
-        nativeRefresh(nativeSessionPointer, accessToken);
+    void authenticate(final Runnable onSuccess, final Runnable onError) {
+        if (networkRequest != null) {
+            networkRequest.cancel();
+        }
+        // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
+        // TODO: This is a potentially very long-lived thread. Should we use a separate thread pool?
+        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
+            @Override
+            public void run() {
+                // FIXME Align how many credentials are supported. Just assume 1 for now.
+                int attempt = 0;
+                boolean success = false;
+
+                while (true) {
+                    attempt++;
+                    long sleep = Util.calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
+                    if (sleep > 0) {
+                        try {
+                            Thread.sleep(sleep);
+                        } catch (InterruptedException e) {
+                            return; // Abort authentication if interrupted.
+                        }
+                    }
+
+                    AuthenticateResponse response = authServer.authenticateRealm(
+                            user.getRefreshToken(),
+                            configuration.getSyncServerUrl(),
+                            user.getAuthentificationUrl()
+                    );
+                    if (response.isValid()) {
+                        user.setAccesToken(configuration, response.getAccessToken());
+                        user.setRefreshToken(response.getRefreshToken());
+                        // TODO Save tokens
+                        success = true;
+                    } else {
+                        // TODO Report bad credentials. How?
+                        break;
+                    }
+                }
+
+                if (success) {
+                    onSuccess.run();
+                } else {
+                    onError.run();
+                }
+            }
+        });
+        networkRequest = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
-    void resetCredentials() {
-        credentials = null;
-        accessToken = null;
-        refreshToken = null;
+
+
+    public void refreshAccessToken(Token accessToken) {
+        // TODO Refresh access token in the auth server
+        user.setAccesToken(configuration, accessToken);
+        nativeRefresh(nativeSessionPointer, accessToken.value());
     }
 
     private void notifyStarted() {

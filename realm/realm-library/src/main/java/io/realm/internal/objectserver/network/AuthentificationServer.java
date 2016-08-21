@@ -1,5 +1,8 @@
 package io.realm.internal.objectserver.network;
 
+import java.net.URL;
+
+import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
 
 /**
@@ -12,5 +15,7 @@ import io.realm.objectserver.Credentials;
  * {@link NetworkRequest#run(OkHttpNetworkRequest.Callback)}.
  */
 public interface AuthentificationServer {
-    AuthenticateResponse authenticate(Credentials credentials);
+    AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl);
+    AuthenticateResponse authenticateRealm(Token refreshToken, String path, URL authentificationUrl);
+    RefreshResponse refresh(String token, URL authentificationUrl);
 }

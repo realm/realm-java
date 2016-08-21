@@ -16,6 +16,8 @@
 
 package io.realm.objectserver;
 
+import java.util.UUID;
+
 /**
  * Credentials represents a login with a 3rd party login provider in an oAuth2 login flow, and is used by the Realm
  * Authorization Server to verify the user and grant access to the Realm Object Server.
@@ -44,7 +46,7 @@ package io.realm.objectserver;
  *
  * Credentials credentials = Credentials.fromFacebook(getFacebookToken());
  * boolean createUser = true;
- * User.authenticate(credentials, new URL("http://objectserver.realm.io/auth", createUser, new User.Callback() {
+ * User.authenticateUser(credentials, new URL("http://objectserver.realm.io/auth", createUser, new User.Callback() {
  *     \@Override
  *     public void onSuccess(User user) {
  *          SyncManager.saveUser("key", user)
@@ -62,14 +64,15 @@ package io.realm.objectserver;
 public class Credentials {
 
     private LoginType loginType;
-    private String token;
+    private String field1;
+    private String field2;
 
     // Factory constructors
 
     /**
      * Creates a credentials token based on a Facebook login.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticate using the Facebook SDK</a>
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using the Facebook SDK</a>
      */
     public static Credentials fromFacebook(String facebookToken) {
         return new Credentials(LoginType.FACEBOOK, facebookToken);
@@ -78,7 +81,7 @@ public class Credentials {
     /**
      * Creates a credentials token based on a Twitter login.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticate using the Twitter SDK</a>
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using the Twitter SDK</a>
      */
     public static Credentials fromTwitter(String twitterToken) {
         return new Credentials(LoginType.TWITTER, twitterToken);
@@ -87,16 +90,28 @@ public class Credentials {
     /**
      * Creates a credentials token based on a login with username and password.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticate using username and password</a>
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using username and password</a>
      */
     public static Credentials fromUsernamePassword(String username, String password) {
         return new Credentials(LoginType.USERNAME_PASSWORD, username, password);
     }
 
     /**
+     * Creates credentials for a local user that is only know by this device.
+     *
+     * Loosing these credentials or the User once it has been authenticated means that the data stored in
+     * the Realm cannot be recovered.
+     *
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using local credentials</a>
+     */
+    public static Credentials createAnonymous() {
+        return new Credentials(LoginType.LOCAL, UUID.randomUUID().toString());
+    }
+
+    /**
      * Creates a credentials token based on a Google login.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticate using username and password</a>
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using username and password</a>
      */
     public static Credentials fromGoogle(String googleToken) {
         return new Credentials(LoginType.GOOGLE, googleToken);
@@ -104,21 +119,42 @@ public class Credentials {
 
     private Credentials(LoginType type, String token) {
         this.loginType = type;
-        this.token = token;
+        this.field1 = token;
     }
 
-    public Credentials(LoginType usernamePassword, String username, String s) {
-
+    public Credentials(LoginType usernamePassword, String username, String password) {
+        this.loginType = LoginType.USERNAME_PASSWORD;
+        this.field1 = username;
+        this.field2 = password;
     }
 
     /**
-     * Returns the type of login used to create these credentials.
+     * Returns the type of login used to createFrom these credentials.
      * It is used by the authentication server to determine how these credentials should be validated.
      *
      * @return the login type.
      */
     public LoginType getLoginType() {
         return loginType;
+    }
+
+    /**
+     * Returns the data in field 1. The type of information in this field will depend on the login type.
+     *
+     * @return the value of field1 of for these credentials.
+     */
+    public String getField1() {
+        return field1;
+
+    }
+
+    /**
+     * Returns the data in field 2. The type of information in this field will depend on the login type.
+     *
+     * @return the value of field2 of for these credentials.
+     */
+    public String getField2() {
+        return field2;
     }
 
     /**
@@ -129,5 +165,6 @@ public class Credentials {
         TWITTER,
         GOOGLE,
         USERNAME_PASSWORD,
+        LOCAL
     }
 }

@@ -6,7 +6,10 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseRealm;
 import io.realm.internal.log.RealmLog;
@@ -15,6 +18,13 @@ import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
 
 public final class SyncManager {
+
+    /**
+     * Thread pool used when doing network requests against the Realm Authentication Server.
+     */
+    // FIXME Set proper parameters
+    public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
+            10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
     private static volatile long syncClientPointer = 0;
     private final static Map<String, Long> SYNC_SESSIONS = new HashMap<String, Long>();
@@ -161,7 +171,7 @@ public final class SyncManager {
     public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
         if (syncClientPointer == 0) {
             // client event loop is not created for this token
-            // we create 1 client per credentials token
+            // we createFrom 1 client per credentials token
             syncClientPointer = nativeCreateSyncClient();
         }
 
@@ -202,6 +212,10 @@ public final class SyncManager {
 
     public static void downloadRealm(SyncConfiguration syncConfig, ResultCallback resultCallback) {
 
+    }
+
+    public static AuthentificationServer getAuthServer() {
+        return authServer;
     }
 
     public interface ErrorHandler {

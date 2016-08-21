@@ -87,13 +87,17 @@ public final class SyncConfiguration extends RealmConfiguration {
         return syncPolicy;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     /**
      * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
      */
     public static final class Builder extends RealmConfiguration.Builder {
 
         private String serverUrl;
-        private User user = User.defaultUser();
+        private User user = null;
         private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
         private long heartBeatRateMs = TimeUnit.SECONDS.toMillis(280);
@@ -227,7 +231,7 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
             if (!user.isAuthenticated()) {
-                throw new IllegalArgumentException("Authenticated user required" + user.getId());
+                throw new IllegalArgumentException("Authenticated user required" + user.getIdentifier());
             }
             this.user = user;
             return this;

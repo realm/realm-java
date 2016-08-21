@@ -12,13 +12,12 @@ class StoppedState extends FsmState {
 
     @Override
     public void onEnterState() {
-        super.entry(session);
-        session.resetCredentials();
+        // Do nothing. All relevant state was cleared when unbinding.
     }
 
     @Override
     protected void onExitState() {
-        // Do nothing
+        // Cannot exit this state
     }
 
     @Override

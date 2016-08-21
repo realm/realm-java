@@ -10,11 +10,11 @@ public class BindingRealmState extends FsmState {
 
     @Override
     public void onEnterState() {
-        if (!session.isAuthenticated()) {
+        if (session.isAuthenticated(session.configuration)) {
             // FIXME How to handle errors?
             session.bindWithTokens();
         } else {
-            // Not access token available. We need to authenticate first.
+            // Not access token available. We need to authenticateUser first.
             gotoNextState(SessionState.AUTHENTICATING);
         }
     }

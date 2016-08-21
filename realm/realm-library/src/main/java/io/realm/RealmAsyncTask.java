@@ -16,7 +16,9 @@
 
 package io.realm;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Represents a pending asynchronous Realm transaction.
@@ -27,11 +29,13 @@ import java.util.concurrent.Future;
  */
 public final class RealmAsyncTask {
     private final Future<?> pendingTask;
+    private final ThreadPoolExecutor service;
     private volatile boolean isCancelled = false;
 
     // FIXME This shouldn't be public
-    public RealmAsyncTask(Future<?> pendingTask) {
+    public RealmAsyncTask(Future<?> pendingTask, ThreadPoolExecutor service) {
         this.pendingTask = pendingTask;
+        this.service = service;
     }
 
     /**
@@ -50,7 +54,7 @@ public final class RealmAsyncTask {
         // first thread is attempting to purge the queue the attempt to purge
         // the queue fails and the cancelled object remain in the queue.
         // A better way to cancel objects with thread pools is to use the remove()
-        Realm.ASYNC_TASK_EXECUTOR.getQueue().remove(pendingTask);
+        service.getQueue().remove(pendingTask);
     }
 
     /**

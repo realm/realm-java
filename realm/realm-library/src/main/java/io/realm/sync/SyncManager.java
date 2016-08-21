@@ -6,9 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.BaseRealm;
+import io.realm.BuildConfig;
 import io.realm.internal.log.RealmLog;
 
 public final class SyncManager {
+
+    public static final String APP_ID = BuildConfig.APPLICATION_ID;
+
     private static volatile long syncClientPointer = 0;
     private final static Map<String, Long> SYNC_SESSIONS = new HashMap<String, Long>();
 

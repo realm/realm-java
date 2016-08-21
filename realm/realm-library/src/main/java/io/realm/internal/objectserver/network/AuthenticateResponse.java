@@ -1,14 +1,123 @@
 package io.realm.internal.objectserver.network;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import io.realm.internal.objectserver.Error;
+import io.realm.internal.objectserver.Token;
+import okhttp3.Response;
+
 public class AuthenticateResponse {
 
-    public boolean isValid() {
-        // 200
-        // Valid Json
-        // Valid AccessToken + RefreshToken
+    private final Error error;
+    private final String errorMessage;
 
-        // Otherwise not valid.
-        return false;
+    private final String identifier;
+    private final String path;
+    private final String appId;
+    private final Token accessToken;
+    private final Token refreshToken;
+
+    /**
+     * Helper method for creating the proper Authenticate response. This method will set the appropriate error
+     * depending on any HTTP response codes or IO errors.
+     */
+    public static AuthenticateResponse createFrom(Response response) {
+        String serverResponse;
+        try {
+            serverResponse = response.body().string();
+        } catch (IOException e) {
+            return new AuthenticateResponse(Error.OTHER_ERROR, "Failed to read response: " + e.getMessage());
+        }
+
+        if (response.code() != 200) {
+            return new AuthenticateResponse(Error.UNKNOWN_MESSAGE, response.code() + ":" + serverResponse);
+        } else {
+            return new AuthenticateResponse(serverResponse);
+        }
     }
-    // TODO Should cover both the error and success part
+
+    /**
+     * Create a unsuccessful authentication response. This should only happen in case of network / IO problems.
+     */
+    public AuthenticateResponse(Error reason, String errorMessage) {
+        this.error = reason;
+        this.errorMessage = errorMessage;
+        this.identifier = null;
+        this.path = null;
+        this.appId = null;
+        this.accessToken = null;
+        this.refreshToken = null;
+    }
+
+    /**
+     * Parse a valid (200) server response. It might still result in a unsuccessful authentication attemp.
+     */
+    public AuthenticateResponse(String serverResponse) {
+        Error error;
+        String errorMessage;
+        String identifier;
+        String path;
+        String appId;
+        Token accessToken;
+        Token refreshToken;
+        try {
+            JSONObject obj = new JSONObject(serverResponse);
+            identifier = obj.getString("identity");
+            path = obj.getString("path");
+            appId = obj.getString("app_id");
+            accessToken = Token.from(obj);
+            refreshToken = Token.from(obj.getJSONObject("refresh"));
+            error = null;
+            errorMessage = null;
+        } catch (JSONException ex) {
+            identifier = null;
+            path =  null;
+            appId = null;
+            accessToken = null;
+            refreshToken = null;
+            error = Error.BAD_SYNTAX;
+            errorMessage = "Unexpected JSON: " + ex.toString();
+        }
+        this.identifier = identifier;
+        this.path = path;
+        this.appId = appId;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.error = error;
+        this.errorMessage = errorMessage;
+    }
+
+    public boolean isValid() {
+        return (error != null);
+    }
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public Error getError() {
+        return error;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public Token getAccessToken() {
+        return accessToken;
+    }
+
+    public Token getRefreshToken() {
+        return refreshToken;
+    }
 }
