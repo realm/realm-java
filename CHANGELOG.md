@@ -1,27 +1,29 @@
 ## 1.2.0
 
-### Enhancements
-
-* Added `RealmQuery.in()` for a comparison against multiple values.
-
-## 1.1.2
-
 ### Bug fixes
 
 * Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
 * `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
 * `DynamicRealmObject.getX(fieldName)` now throws a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
-
-### Internal
-
-* Updated Realm Core to 1.5.0.
-* Improved sorting speed.
-
-## 1.1.1
+* Fixed a concurrency crash which might happen when `Realm.executeTransactionAsync()` tried to call `onSucess` after the Realm was closed.
 
 ### Enhancements
 
-* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
+* Added `RealmQuery.in()` for a comparison against multiple values.
+* Added byte array (`byte[]`) support to `RealmQuery`'s `equalTo` and `notEqualTo` methods.
+* Optimized internal caching of schema classes (#3315).
+
+### Internal
+
+* Updated Realm Core to 1.5.1.
+* Improved sorting speed.
+* Completely removed the `OptionalAPITransformer`.
+
+### Credits
+
+* Thanks to Brenden Kromhout (@bkromhout) for adding binary array support to `equalTo` and `notEqualTo`.
+
+## 1.1.1
 
 ### Bug fixes
 
@@ -37,6 +39,10 @@
 * Blackberry Z10 throwing "Function not implemented" (#3178).
 * Reduced the number of file descriptors used by Realm Core (#3197).
 * Throw a proper `IllegalStateException` if a `RealmChangeListener` is used inside an IntentService (#2875).
+
+### Enhancements
+
+* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
 
 ### Internal
 
