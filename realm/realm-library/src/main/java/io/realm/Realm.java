@@ -1268,7 +1268,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new RealmAsyncTask(pendingTransaction);
+        return new RealmAsyncTask(pendingTransaction, ASYNC_TASK_EXECUTOR);
     }
 
     /**

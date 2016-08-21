@@ -58,11 +58,6 @@ public class OkHttpAuthentificationServer implements AuthentificationServer {
     }
 
     @Override
-    public AuthenticateResponse authenticateRealm(Credentials credentials, String path, URL authentificationUrl) {
-        return null;
-    }
-
-    @Override
     public RefreshResponse refresh(String token, URL authentificationUrl) {
         return null;
     }

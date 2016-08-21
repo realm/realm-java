@@ -30,10 +30,13 @@ import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
 import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
+import io.realm.objectserver.Credentials;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.User;
 
-public class IntroExampleActivity extends Activity {
+public class ObjectServerExampleActivity extends Activity {
 
-    public static final String TAG = IntroExampleActivity.class.getName();
+    public static final String TAG = ObjectServerExampleActivity.class.getName();
     private LinearLayout rootLayout = null;
 
     private Realm realm;
@@ -45,6 +48,19 @@ public class IntroExampleActivity extends Activity {
         setContentView(R.layout.activity_realm_basic_example);
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
+
+        // Synchronized Realms can only be accessed with a configured `User`
+        Credentials creds = Credentials.fromUsernamePassword("foo", )
+                Credentials.l
+        User user = User.auhauthcreateAnonymousUser();
+
+
+        // TODO This whole anonymous / authenticate user is one big clusterfuck.
+        SyncConfiguration config = new SyncConfiguration.Builder(this)
+                .user()
+
+
+
 
         // These operations are small enough that
         // we can generally safely run them on the UI thread.

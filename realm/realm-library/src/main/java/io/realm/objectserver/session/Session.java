@@ -387,6 +387,11 @@ public final class Session {
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
 
+    public boolean isAuthenticated(SyncConfiguration configuration) {
+        Token token = user.getAccessToken(configuration);
+        return token != null && token.expires() < System.currentTimeMillis();
+    }
+
     private interface AuthentificationHandler {
         void onSuccesss(String token);
         void onError(int errrorCode, String errorMsg);

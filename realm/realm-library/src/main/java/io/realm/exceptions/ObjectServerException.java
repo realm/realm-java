@@ -1,6 +1,6 @@
 package io.realm.exceptions;
 
-public class ObjectServerException extends RealmException {
+public class ObjectServerException extends RuntimeException {
 
 
     public ObjectServerException(Error error, String detailMessage) {
