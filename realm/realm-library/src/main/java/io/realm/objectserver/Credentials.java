@@ -98,7 +98,6 @@ public class Credentials {
 
     /**
      * Creates credentials for a local user that is only know by this device.
-     *
      * Loosing these credentials or the User once it has been authenticated means that the data stored in
      * the Realm cannot be recovered.
      *

@@ -11,13 +11,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.objectserver.credentials.FacebookCredentials;
-import io.realm.objectserver.credentials.LocalCrendentials;
-import io.realm.objectserver.credentials.UsernameAndPasswordCredentials;
+import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 @RunWith(AndroidJUnit4.class)
@@ -26,12 +23,13 @@ public class ObjectServerTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
+
     private Realm realm;
-    private Context context;
 
     @Before
     public void setUp() throws MalformedURLException {
-        SyncManager.setGlobalAuthentificationServer(new URL("realm://sync.realm.io/auth"));
         context = InstrumentationRegistry.getTargetContext();
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
@@ -43,6 +41,8 @@ public class ObjectServerTests {
             realm.close();
         }
     }
+
+
 
     // TODO Add tests for invalid configuration combinations
     // TODO Add test for opening an old Realm with new Sync (should crash)
