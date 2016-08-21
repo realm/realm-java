@@ -21,20 +21,39 @@ import android.content.Context;
 import com.getkeepsafe.relinker.ReLinker;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
+
+import io.realm.exceptions.RealmException;
 
 /**
  * Utility methods for Realm Core.
  */
 public class RealmCore {
 
+    public static final boolean SYNC_AVAILABLE;
     private static final String FILE_SEP = File.separator;
     private static final String PATH_SEP = File.pathSeparator;          // On Windows ";"
     private static final String BINARIES_PATH = "lib" + PATH_SEP + ".." + FILE_SEP + "lib";
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
 
     private static volatile boolean libraryIsLoaded = false;
+
+    static {
+        boolean syncAvailable;
+        try {
+            //TODO We need to take ProGuard into acoount. Pick some internal class instead that cannot be obfuscated.
+            Class.forName("io.realm.objectserver.SyncManager");
+            syncAvailable = true;
+        } catch (ClassNotFoundException e) {
+            syncAvailable = false;
+        }
+
+        SYNC_AVAILABLE = syncAvailable;
+
+    }
 
     public static boolean osIsWindows() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());

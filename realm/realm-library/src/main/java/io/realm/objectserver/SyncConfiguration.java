@@ -91,6 +91,10 @@ public final class SyncConfiguration extends RealmConfiguration {
         return user;
     }
 
+    public boolean isAutoConnectEnabled() {
+        return autoConnect;
+    }
+
     /**
      * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
      */
@@ -215,7 +219,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @param url URL identifying the Realm.
          */
         public Builder serverUrl(String url) {
-            // TODO Validate URL
+            // FIXME Validate URL
             this.serverUrl = url;
             return this;
         }
@@ -242,9 +246,9 @@ public final class SyncConfiguration extends RealmConfiguration {
          * Realm lifecycle.
          *
          * Specifically this means that the connection will be established when the first local Realm is opened and
-         * closed again after it has been closed and all changes locally and remotely have been synchronized.
+         * closed again after it has been closed and all changes locally have been sent to the server.
          *
-         * If this is to {@code false}, the connection must manually be established using
+         * If this is set to {@code false}, the connection must manually be established using
          * {@link SyncManager#connect(SyncConfiguration)}.
          *
          * The default value is {@code true}.

@@ -95,9 +95,11 @@ public class SharedGroup implements Closeable {
         path = canonicalPath;
         checkNativePtrNotZero();
 
-        if (syncEnabled) {
-            //TODO client is thread-safe & it should be global & reused across different RealmConfiguration
-            session = SyncManager.getSession((SyncConfiguration) config);
+        if (RealmCore.SYNC_AVAILABLE && config instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) config;
+            if (syncConfig.isAutoConnectEnabled()) {
+                session = SyncManager.getSession((SyncConfiguration) config);
+            }
         } else {
             session = null;
         }

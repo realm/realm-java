@@ -784,5 +784,4 @@ public abstract class BaseRealm implements Closeable {
     protected interface MigrationCallback {
         void migrationComplete();
     }
-
 }
