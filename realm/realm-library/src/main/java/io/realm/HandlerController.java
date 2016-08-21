@@ -156,10 +156,13 @@ final class HandlerController implements Handler.Callback {
      * @param onSuccess onSuccess callback to run for the async transaction that completed.
      */
     public void handleAsyncTransactionCompleted(Runnable onSuccess) {
-        if (onSuccess != null) {
-            pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
+        // Same reason as handleMessage()
+        if (realm.sharedGroupManager != null) {
+            if (onSuccess != null) {
+                pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
+            }
+            realmChanged(false);
         }
-        realmChanged(false);
     }
 
     void addChangeListener(RealmChangeListener<? extends BaseRealm> listener) {

@@ -298,6 +298,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeEqual
+ * Signature: (J[J[B)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3B
+  (JNIEnv *, jobject, jlong, jlongArray, jbyteArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeNotEqual
+ * Signature: (J[J[B)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3B
+  (JNIEnv *, jobject, jlong, jlongArray, jbyteArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeEqual
  * Signature: (J[JLjava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_lang_String_2Z

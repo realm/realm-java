@@ -883,8 +883,6 @@ public class TestHelper {
             // used. Any exception in the `after()` code will mask the original error.
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
-            // close the executor
-            executorService.shutdownNow();
             if (looper[0] != null) {
                 // failing to quit the looper will not execute the finally block responsible
                 // of closing the Realm
@@ -893,6 +891,9 @@ public class TestHelper {
 
             // wait for the finally block to execute & close the Realm
             TestHelper.awaitOrFail(signalClosedRealm);
+            // Close the executor.
+            // This needs to be called after waiting since it might interrupt waitRealmThreadExecutorFinish().
+            executorService.shutdownNow();
 
             if (throwable[0] != null) {
                 // throw any assertion errors happened in the background thread
@@ -947,15 +948,48 @@ public class TestHelper {
     /**
      * Replaces the current thread executor with a another one for testing.
      * WARNING: This method should only be called before any async tasks have been started.
+     *          Call {@link #resetRealmThreadExecutor()} before test return to reset the excutor to default.
      *
      * @param executor {@link RealmThreadPoolExecutor} that should replace the current one
      */
-    public static RealmThreadPoolExecutor replaceRealmThreadExectutor(RealmThreadPoolExecutor executor) throws NoSuchFieldException, IllegalAccessException {
+    public static RealmThreadPoolExecutor replaceRealmThreadExecutor(RealmThreadPoolExecutor executor)
+            throws NoSuchFieldException, IllegalAccessException {
         Field field = BaseRealm.class.getDeclaredField("ASYNC_TASK_EXECUTOR");
         field.setAccessible(true);
         RealmThreadPoolExecutor oldExecutor = (RealmThreadPoolExecutor) field.get(null);
         field.set(field, executor);
         return oldExecutor;
+    }
+
+    /**
+     * This will first wait for finishing all tasks in BaseRealm.asyncTaskExecutor, throws if time out.
+     * Then reset the BaseRealm.asyncTaskExecutor to the default value.
+     *
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    public static void resetRealmThreadExecutor() throws NoSuchFieldException, IllegalAccessException {
+        waitRealmThreadExecutorFinish();
+        replaceRealmThreadExecutor(RealmThreadPoolExecutor.newDefaultExecutor());
+    }
+
+    /**
+     * Wait and check if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fail the test.
+     */
+    public static void waitRealmThreadExecutorFinish() {
+        int counter = 50;
+        while (counter > 0) {
+            if (BaseRealm.asyncTaskExecutor.getActiveCount() == 0) {
+                return;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                fail(e.getMessage());
+            }
+            counter--;
+        }
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
     }
 
     /**
