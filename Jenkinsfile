@@ -9,13 +9,12 @@ try {
     ws('/tmp/realm-java') {
       stage 'SCM'
       checkout scm
+      // Make sure not to delete the folder that Jenkins allocates to store scripts
+      sh 'git clean -ffdx -e .????????'
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
-      buildEnv.inside("-u 0:0 --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
-        // Make sure not to delete the folder that Jenkins allocates to store scripts
-        sh 'git clean -ffdx -e .????????'
-
+      buildEnv.inside("-e HOME=/tmp -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android") {
         stage 'JVM tests'
         try {
           gradle 'assemble check javadoc'
