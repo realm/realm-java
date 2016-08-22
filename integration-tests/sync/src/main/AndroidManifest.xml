@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.realm.tests.sync">
     <uses-permission android:name="android.permission.INTERNET"/>
-    <application>
+    <application
+        android:label="sync">
         <service
             android:name=".service.SendOneCommit"
             android:enabled="true"
