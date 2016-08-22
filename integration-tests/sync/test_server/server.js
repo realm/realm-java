@@ -42,15 +42,15 @@ dispatcher.onGet("/start", function(req, res) {
 //        syncServerChildProcess = spawn('realm-server', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
 
         syncServerChildProcess.stdout.on('data', (data) => {
-          winston.log(`stdout: ${data}`);
+          winston.info(`stdout: ${data}`);
         });
 
         syncServerChildProcess.stderr.on('data', (data) => {
-          winston.log(`stderr: ${data}`);
+          winston.info(`stderr: ${data}`);
         });
 
         syncServerChildProcess.on('close', (code) => {
-          winston.log(`child process exited with code ${code}`);
+          winston.info(`child process exited with code ${code}`);
         });
       }
     });
