@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.6.0)
 
 # find javah
 find_package(Java COMPONENTS Development)
@@ -65,7 +65,6 @@ include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}/jni_include)
 
 # Set compile flags
-# TODO: Is this correct?
 set(ANDROID_STL "gnustl_static")
 
 if (ARMEABI)
