@@ -47,7 +47,7 @@ RUN cd /opt/android-ndk-tmp && mv ./android-ndk-r10e /opt/android-ndk
 RUN rm -rf /opt/android-ndk-tmp
 
 # Install cmake
-RUN cd /opt && wget -q https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip -O cmake-linux.zip
+RUN cd /opt && wget -q https://dl.google.com/android/repository/cmake-3.6.3133135-linux-x86_64.zip -O cmake-linux.zip
 RUN cd /opt && unzip cmake-linux.zip -d ${ANDROID_HOME}/cmake
 RUN cd /opt && rm -f cmake-linux.zip
 

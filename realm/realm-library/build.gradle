@@ -41,8 +41,14 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
-                    abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
+                          // FIXME:
+                          // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
+                          // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
+                          // JNI build currently (lack of lto linking support).
+                          // This file should be removed and use the one from Android SDK cmake package when it supports lto.
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
             }
         }
     }
