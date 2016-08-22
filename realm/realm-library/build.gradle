@@ -414,3 +414,8 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 }
 
 preBuild.dependsOn deployCore
+
+task cleanExternalBuildFiles(type: Delete) {
+    delete project.file('.externalNativeBuild')
+}
+clean.dependsOn cleanExternalBuildFiles
