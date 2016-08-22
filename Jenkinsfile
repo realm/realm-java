@@ -27,11 +27,16 @@ try {
         sh 'tar zxf /opt/*.tgz'
 
         stage 'JVM tests'
+        boolean archiveLog = true
+        String backgroundPid
         try {
+          backgroundPid = startLogCatCollector()
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
             sh "chmod +x gradlew && ./gradlew --debug installRealmJava integrationTestsConnectedCheck javadoc -Ps3cfg=${env.S3CFG}"
           }
+          archiveLog = false;
         } finally {
+          stopLogCatCollector(backgroundPid, archiveLog)
           storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/**/TEST-*.xml'
           storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/**/TEST-*.xml'
           step([$class: 'LintPublisher'])
@@ -54,14 +59,13 @@ try {
         }
 
         stage 'Run instrumented tests'
-        boolean archiveLog = true
-        String backgroundPid
+
         try {
-          backgroundPid = startLogCatCollector()
+
           gradle('realm', 'connectedUnitTests')
-          archiveLog = false;
+
         } finally {
-          stopLogCatCollector(backgroundPid, archiveLog)
+
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
         }
 
