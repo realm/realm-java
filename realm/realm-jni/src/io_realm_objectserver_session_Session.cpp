@@ -39,7 +39,7 @@ using namespace sync;
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateSession
-  (JNIEnv *env, jclass, jlong clientPointer, jstring localRealmPath)
+  (JNIEnv *env, jobject, jlong clientPointer, jstring localRealmPath)
 {
     TR_ENTER()
     Client* sync_client = SC(clientPointer);
@@ -65,7 +65,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateS
 }
 
 JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeBind
-  (JNIEnv *env, jclass, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
+  (JNIEnv *env, jobject, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
 {
     TR_ENTER()
     try {
@@ -85,7 +85,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeBind
 
 
 JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeUnbind
-  (JNIEnv *, jclass, jlong sessionPointer)
+  (JNIEnv *, jobject, jlong sessionPointer)
 {
     TR_ENTER()
     Session* session = SS(sessionPointer);
@@ -93,7 +93,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeUnbind
 }
 
 JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
-  (JNIEnv *env, jclass, jlong sessionPointer, jstring accessToken)
+  (JNIEnv *env, jobject, jlong sessionPointer, jstring accessToken)
 {
     TR_ENTER()
     try {

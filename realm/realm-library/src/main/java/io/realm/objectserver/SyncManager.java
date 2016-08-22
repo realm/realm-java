@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseRealm;
 import io.realm.BuildConfig;
+import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
@@ -71,7 +72,8 @@ public final class SyncManager {
     private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
 
     static {
-        nativeSyncClientPointer = nativeCreateClient();
+        RealmCore.loadLibrary();
+        nativeSyncClientPointer = nativeCreateSyncClient();
     }
 
     /**
@@ -206,11 +208,7 @@ public final class SyncManager {
         }
     }
 
-    private static native long nativeCreateClient();
-
-    public static void downloadRealm(SyncConfiguration syncConfig, ResultCallback resultCallback) {
-
-    }
+    private static native long nativeCreateSyncClient();
 
     public static AuthentificationServer getAuthServer() {
         return authServer;

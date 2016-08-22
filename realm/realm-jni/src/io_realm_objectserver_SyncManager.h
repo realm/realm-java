@@ -12,8 +12,8 @@ extern "C" {
  * Method:    nativeCreateClient
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateClient
-  (JNIEnv *, jclass);
+JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
+  (JNIEnv *env, jclass);
 
 #ifdef __cplusplus
 }
