@@ -299,7 +299,7 @@ artifacts {
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore(group: 'build setup', description: 'Download the latest version of Realm Core') {
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -328,7 +328,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
             return false
         }
 
-        println "Existing archive hash mismatch(Expected: ${project.coreSha256Hash.toLowerCase()}" +
+        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
                 " but got ${calculatedHash.toLowerCase()}). Download new version."
         return true
     }
@@ -351,7 +351,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
                             "${calculatedHash.toLowerCase()}.");
                 }
             } else {
-                println 'Skipping hash check(empty \'coreSha256Hash\').'
+                println 'Skipping hash check (empty \'coreSha256Hash\').'
             }
         }
     }
@@ -383,7 +383,7 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
     }
 }
 
-task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
+task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
         coreSourcePath ? compileCore : downloadCore
     }

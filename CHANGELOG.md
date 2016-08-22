@@ -2,7 +2,7 @@
 
 ### Internal
 
-* Move JNI build to cmake.
+* Move JNI build to CMake.
 
 ## 1.2.0
 
