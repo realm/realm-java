@@ -27,8 +27,8 @@ android {
 }
 
 task untarRealmServer(type: Exec) {
-    commandLine 'pwd'
-//    commandLine 'tar', 'xvf', '/opt/realm-sync-0.27.4-101.tgz'
+//    commandLine 'pwd'
+    commandLine 'tar', 'zxf', '/opt/realm-sync-0.27.4-101.tgz'
 }
 
 task reverseNodeServerPort(type: Exec) {
