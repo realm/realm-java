@@ -34,6 +34,7 @@ try {
         } finally {
           storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
           storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+          storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/connected/TEST-*.xml'
           step([$class: 'LintPublisher'])
         }
 
