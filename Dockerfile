@@ -39,12 +39,14 @@ RUN echo y | android update sdk --no-ui --all --filter extra-android-m2repositor
 RUN echo y | android update sdk --no-ui --all --filter android-24 | grep 'package installed'
 
 # Install the NDK
-RUN mkdir /opt/android-ndk-tmp
-RUN cd /opt/android-ndk-tmp && wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin
-RUN cd /opt/android-ndk-tmp && chmod a+x ./android-ndk.bin && ./android-ndk.bin
-RUN cd /opt/android-ndk-tmp && mv ./android-ndk-r10e /opt/android-ndk
-RUN rm -rf /opt/android-ndk-tmp
+RUN mkdir /opt/android-ndk-tmp && \
+    cd /opt/android-ndk-tmp && \
+    wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin && \
+    chmod a+x ./android-ndk.bin && \
+    ./android-ndk.bin && \
+    ./android-ndk-r10e /opt/android-ndk && \
+    rm -rf /opt/android-ndk-tmp && \
+    chmod -R a+rX /opt/android-ndk
 
-# Make the SDK and NDK universally readable
+# Make the SDK universally readable
 RUN chmod -R a+rX /opt/android-sdk-linux
-RUN chmod -R a+rX /opt/android-ndk
