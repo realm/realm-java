@@ -108,19 +108,20 @@ public final class Session {
         FSM.put(SessionState.AUTHENTICATING, new AuthenticatingState());
         FSM.put(SessionState.BOUND, new BoundState());
         FSM.put(SessionState.STOPPED, new StoppedState());
+        RealmLog.d("Session started: " + configuration.getServerUrl());
         currentState = FSM.get(SessionState.INITIAL);
         currentState.entry(this);
     }
 
     // Goto the next state. The FsmState classes are responsible for calling this method as a reaction to a FsmAction
     // being called or an internal action triggering a state transition.
-    void nextState(SessionState stateDescription) {
-        FsmState nextState = FSM.get(stateDescription);
+    void nextState(SessionState nextStateDescription) {
+        FsmState nextState = FSM.get(nextStateDescription);
         if (nextState == null) {
-            throw new IllegalStateException("No state was configured to handle: " + stateDescription);
+            throw new IllegalStateException("No state was configured to handle: " + nextStateDescription);
         }
-        RealmLog.d("Session state change: " + currentState + " -> " + nextState + ". For: " + configuration.getServerUrl());
-        currentStateDescription = stateDescription;
+        RealmLog.d(String.format("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription));
+        currentStateDescription = nextStateDescription;
         currentState = nextState;
         nextState.entry(this);
     }

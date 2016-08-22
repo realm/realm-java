@@ -99,6 +99,7 @@ public class SharedGroup implements Closeable {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             if (syncConfig.isAutoConnectEnabled()) {
                 session = SyncManager.getSession((SyncConfiguration) config);
+                session.start();
             }
         } else {
             session = null;

@@ -65,7 +65,6 @@ public class ObjectServerTests {
                 Realm.deleteRealm(config);
 
                 Realm realm = Realm.getInstance(config);
-                looperThread.testComplete();
             }
 
             @Override
