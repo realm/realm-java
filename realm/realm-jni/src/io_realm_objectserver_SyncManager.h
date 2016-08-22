@@ -9,10 +9,10 @@ extern "C" {
 #endif
 /*
  * Class:     io_realm_objectserver_SyncManager
- * Method:    nativeCreateSyncClient
+ * Method:    nativeCreateClient
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
+JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateClient
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus

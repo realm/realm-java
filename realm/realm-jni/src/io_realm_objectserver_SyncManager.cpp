@@ -46,10 +46,11 @@ public:
     }
 };
 
+// Object Server global vars, see objectserver_shared.hpp
 std::thread* sync_client_thread;
 JNIEnv* sync_client_env;
 
-JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
+JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateClient
   (JNIEnv *env, jclass)
 {
     TR_ENTER()

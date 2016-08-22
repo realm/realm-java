@@ -26,8 +26,6 @@ public final class SyncManager {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
-    private static volatile long syncClientPointer = 0;
-    private final static Map<String, Long> SYNC_SESSIONS = new HashMap<String, Long>();
     private static final Session.ErrorHandler NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
         @Override
         public void onError(Throwable error) {
@@ -63,15 +61,18 @@ public final class SyncManager {
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
-    private static volatile long nativeSyncClientPointer = nativeCreateSyncClient();
+    private static long nativeSyncClientPointer;
     private static volatile AuthentificationServer authServer = new OkHttpAuthentificationServer();
     private static volatile Session.ErrorHandler defaultErrorHandler = NO_OP_ERROR_HANDLER;
     private static volatile Session.EventHandler defaultEventHandler = NO_OP_EVENT_HANDLER;
 
-    private static URL globalAuthentificationServer;
 
     // Map of between a local Realm path and any associated sessionInfo
     private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
+
+    static {
+        nativeSyncClientPointer = nativeCreateClient();
+    }
 
     /**
      * Sets the default error handler used by all {@link SyncConfiguration} objects when they are created.
@@ -151,10 +152,6 @@ public final class SyncManager {
         }
     }
 
-    public static URL getGlobalAuthentificationServer() {
-        return globalAuthentificationServer;
-    }
-
     /**
      * TODO Internal only? Developers can also use this to inject stubs.
      * TODO Find a better method name.
@@ -209,7 +206,7 @@ public final class SyncManager {
         }
     }
 
-    private static native long nativeCreateSyncClient();
+    private static native long nativeCreateClient();
 
     public static void downloadRealm(SyncConfiguration syncConfig, ResultCallback resultCallback) {
 
