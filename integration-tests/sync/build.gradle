@@ -64,11 +64,9 @@ task startServer(dependsOn: untarRealmServer)  {
             }
         }
         //start new process
-        def processBuilder = new ProcessBuilder(['node','server.js', 'deebug.log'])
+        def processBuilder = new ProcessBuilder(['nodejs','server.js', 'deebug.log'])
         processBuilder.directory(new File("$projectDir/test_server"))
         Process process = processBuilder.start()
-
-
 
         // block until the server is up
         while (true) {
