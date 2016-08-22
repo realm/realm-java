@@ -1081,6 +1081,22 @@ else()
 endif()
 unset( _ndk_ccache )
 
+# Export configurable variables for the try_compile() command.
+set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+	ANDROID_NDK
+	ANDROID_TOOLCHAIN
+	ANDROID_ABI
+	ANDROID_PLATFORM
+	ANDROID_STL
+	ANDROID_PIE
+	ANDROID_CPP_FEATURES
+	ANDROID_ALLOW_UNDEFINED_SYMBOLS
+	ANDROID_ARM_MODE
+	ANDROID_ARM_NEON
+	ANDROID_DISABLE_NO_EXECUTE
+	ANDROID_DISABLE_RELRO
+	ANDROID_DISABLE_FORMAT_STRING_CHECKS
+	ANDROID_CCACHE)
 
 # setup the cross-compiler
 if( NOT CMAKE_C_COMPILER )
@@ -1630,6 +1646,9 @@ if( CMAKE_GENERATOR MATCHES "Ninja" AND CMAKE_HOST_WIN32 )
  # unset( CMAKE_COMPILER_IS_MINGW ) # can't unset because CMake does not convert back-slashes in response files without it
  unset( MINGW )
 endif()
+
+# Variables need by cmAndroidGradleBuild to generate android_gradle_build.json
+set(CMAKE_ANDROID_ARCH_ABI ${ANDROID_ABI})
 
 
 # Variables controlling behavior or set by cmake toolchain:
