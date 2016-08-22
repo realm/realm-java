@@ -46,5 +46,5 @@ RUN cd /opt/android-ndk-tmp && mv ./android-ndk-r10e /opt/android-ndk
 RUN rm -rf /opt/android-ndk-tmp
 
 # Make the SDK and NDK universally readable
-RUN chmod a+rX /opt/android-sdk
+RUN chmod a+rX /opt/android-sdk-linux
 RUN chmod a+rX /opt/android-ndk
