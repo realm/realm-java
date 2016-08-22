@@ -51,8 +51,6 @@ public final class RealmLog {
 
     /**
      * Removes a current logger implementation.
-     *
-     * @param logger.
      */
     public static void remove(Logger logger) {
         if (logger == null) {

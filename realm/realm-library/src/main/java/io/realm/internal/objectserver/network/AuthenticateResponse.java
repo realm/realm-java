@@ -5,6 +5,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import io.realm.internal.Util;
+import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import okhttp3.Response;
@@ -29,8 +31,10 @@ public class AuthenticateResponse {
         try {
             serverResponse = response.body().string();
         } catch (IOException e) {
-            return new AuthenticateResponse(Error.OTHER_ERROR, "Failed to read response: " + e.getMessage());
+            return new AuthenticateResponse(Error.OTHER_ERROR, "Failed to read response: " + Util.getStackTrace(e));
         }
+
+        RealmLog.d("Authenticate response:" + serverResponse);
 
         if (response.code() != 200) {
             return new AuthenticateResponse(Error.UNKNOWN_MESSAGE, response.code() + ":" + serverResponse);
@@ -66,9 +70,9 @@ public class AuthenticateResponse {
         try {
             JSONObject obj = new JSONObject(serverResponse);
             identifier = obj.getString("identity");
-            path = obj.getString("path");
-            appId = obj.getString("app_id");
-            accessToken = Token.from(obj);
+            path = obj.optString("path");
+            appId = obj.optString("app_id"); // FIXME No longer sent?
+            accessToken = obj.has("token") ? Token.from(obj) : null;
             refreshToken = Token.from(obj.getJSONObject("refresh"));
             error = null;
             errorMessage = null;
@@ -79,7 +83,7 @@ public class AuthenticateResponse {
             accessToken = null;
             refreshToken = null;
             error = Error.BAD_SYNTAX;
-            errorMessage = "Unexpected JSON: " + ex.toString();
+            errorMessage = "Unexpected JSON: " + Util.getStackTrace(ex);
         }
         this.identifier = identifier;
         this.path = path;
@@ -91,7 +95,7 @@ public class AuthenticateResponse {
     }
 
     public boolean isValid() {
-        return (error != null);
+        return (error == null);
     }
     public String getErrorMessage() {
         return errorMessage;

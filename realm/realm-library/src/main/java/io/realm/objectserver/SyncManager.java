@@ -15,6 +15,7 @@ import io.realm.BaseRealm;
 import io.realm.BuildConfig;
 import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
+import io.realm.internal.objectserver.Error;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
@@ -29,35 +30,60 @@ public final class SyncManager {
 
     private static final Session.ErrorHandler NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
         @Override
-        public void onError(Throwable error) {
-            // Ignore
+        public void onError(Error error, String errorMessage) {
+
         }
     };
     private static final Session.EventHandler NO_OP_EVENT_HANDLER = new Session.EventHandler() {
         @Override
-        public void sessionStarted(Session session) {}
+        public void sessionCreated(Session session) {
+
+        }
+
         @Override
-        public void realmUnbound(Session session) {}
+        public void sessionStarted(Session session) {
+
+        }
+
         @Override
-        public void bindingRealm(Session session) {}
+        public void realmUnbound(Session session) {
+
+        }
+
         @Override
-        public void realmBound(Session session) {}
+        public void bindingRealm(Session session) {
+
+        }
+
         @Override
-        public void sessionStopped(Session session) {}
+        public void realmBound(Session session) {
+
+        }
+
         @Override
-        public void authorizationMissing() {}
+        public void sessionStopped(Session session) {
+
+        }
+
         @Override
-        public void authorizationExpired() {}
+        public void authenticating(Session session) {
+
+        }
+
         @Override
-        public void localChangesAvailable() {}
+        public void authorizationMissing(Session session) {
+
+        }
+
         @Override
-        public void remoteChangesAvailable() {}
+        public void authorizationExpired(Session session) {
+
+        }
+
         @Override
-        public void realmSynchronized() {}
-        @Override
-        public void allRemoteChangesDownloaded() {}
-        @Override
-        public void error(int errorCode, String errorMessage) {}
+        public void error(Error error, String errorMessage) {
+
+        }
     };
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
@@ -135,6 +161,10 @@ public final class SyncManager {
         return session;
     }
 
+    public static AuthentificationServer getAuthServer() {
+        return authServer;
+    }
+
     /**
      * Remove a session once it has been closed
      * @param info
@@ -210,30 +240,4 @@ public final class SyncManager {
 
     private static native long nativeCreateSyncClient();
 
-    public static AuthentificationServer getAuthServer() {
-        return authServer;
-    }
-
-    public interface ErrorHandler {
-        void onError(int error, String errorMessage);
-        void onFatalError(Exception e);
-    }
-
-    public interface EventHandler {
-        void userAccepted();
-        void sessionStarted();
-        void realmBound();
-        void realmUnbound();
-        void sessionStopped();
-    }
-
-    public interface UserHandler {
-
-    }
-
-    public interface ResultCallback {
-        void onSuccess(SyncConfiguration config);
-
-        void onError(SyncConfiguration config, Exception e);
-    }
 }

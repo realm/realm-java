@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
+import io.realm.internal.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
@@ -35,7 +36,7 @@ import io.realm.objectserver.syncpolicy.SyncPolicy;
 
 /**
  * This class controls the connection to a Realm Object Server for one Realm. If
- * {@link SyncConfiguration#shouldAutoConnect()} returns {@code true}, the session will automatically be
+ * {@link SyncConfiguration#isAutoConnectEnabled()} returns {@code true}, the session will automatically be
  * managed when opening and closing Realm instances.
  *
  * In particular the Realm will begin syncing depending on the given {@link SyncPolicy} . When a Realm is closed
@@ -114,11 +115,11 @@ public final class Session {
     // Goto the next state. The FsmState classes are responsible for calling this method as a reaction to a FsmAction
     // being called or an internal action triggering a state transition.
     void nextState(SessionState stateDescription) {
-        currentState.exit();
         FsmState nextState = FSM.get(stateDescription);
         if (nextState == null) {
             throw new IllegalStateException("No state was configured to handle: " + stateDescription);
         }
+        RealmLog.d("Session state change: " + currentState + " -> " + nextState + ". For: " + configuration.getServerUrl());
         currentStateDescription = stateDescription;
         currentState = nextState;
         nextState.entry(this);
@@ -130,17 +131,6 @@ public final class Session {
 
     public synchronized void stop() {
         currentState.onStop();
-//        if (!isStarted || isStopped) {
-//            return;
-//        }
-//
-//        if (isBound()) {
-//            unbind();
-//        }
-//        resetCredentials();
-//
-//        ObjectServer.removeSession(this);
-//        notifyStopped();
     }
 
     /**
@@ -274,7 +264,7 @@ public final class Session {
         Token accessToken = user.getAccessToken(configuration);
         if (accessToken == null) {
             throw new IllegalStateException("User '" + user.toString() + "' does not have an access token for "
-                    + configuration.getSyncServerUrl());
+                    + configuration.getServerUrl());
         }
         nativeBind(nativeSessionPointer, configuration.getRealmFileName(), accessToken.value());
     }
@@ -316,7 +306,7 @@ public final class Session {
 
                     AuthenticateResponse response = authServer.authenticateRealm(
                             user.getRefreshToken(),
-                            configuration.getSyncServerUrl(),
+                            configuration.getServerUrl(),
                             user.getAuthentificationUrl()
                     );
                     if (response.isValid()) {
@@ -411,33 +401,20 @@ public final class Session {
     }
 
     public interface ErrorHandler {
-        void onError(Throwable error);
+        void onError(Error error, String errorMessage);
     }
 
     public interface EventHandler {
+        void sessionCreated(Session session);
         void sessionStarted(Session session);
-
         void realmUnbound(Session session);
-
         void bindingRealm(Session session);
-
         void realmBound(Session session);
-
         void sessionStopped(Session session);
-
-        void authorizationMissing();
-
-        void authorizationExpired();
-
-        void localChangesAvailable();
-
-        void remoteChangesAvailable();
-
-        void realmSynchronized();
-
-        void allRemoteChangesDownloaded();
-
-        void error(int errorCode, String errorMessage);
+        void authenticating(Session session);
+        void authorizationMissing(Session session);
+        void authorizationExpired(Session session);
+        void error(Error error, String errorMessage);
     }
 }
 

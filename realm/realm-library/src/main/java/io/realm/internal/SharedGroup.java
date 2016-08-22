@@ -80,7 +80,7 @@ public class SharedGroup implements Closeable {
      */
     public SharedGroup(RealmConfiguration config) {
         String canonicalPath = config.getPath();
-        boolean syncEnabled = config.isSyncEnabled();
+        boolean syncEnabled = RealmCore.SYNC_AVAILABLE && config instanceof SyncConfiguration;
         byte[] encryptionKey = config.getEncryptionKey();
         Durability durability = config.getDurability();
 
@@ -95,7 +95,7 @@ public class SharedGroup implements Closeable {
         path = canonicalPath;
         checkNativePtrNotZero();
 
-        if (RealmCore.SYNC_AVAILABLE && config instanceof SyncConfiguration) {
+        if (syncEnabled) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             if (syncConfig.isAutoConnectEnabled()) {
                 session = SyncManager.getSession((SyncConfiguration) config);

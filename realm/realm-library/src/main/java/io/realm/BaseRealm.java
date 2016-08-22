@@ -20,8 +20,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import com.getkeepsafe.relinker.BuildConfig;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;

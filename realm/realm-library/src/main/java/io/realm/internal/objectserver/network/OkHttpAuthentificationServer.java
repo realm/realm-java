@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.internal.Util;
 import io.realm.internal.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
@@ -29,19 +30,21 @@ public class OkHttpAuthentificationServer implements AuthentificationServer {
      */
     @Override
     public AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl) {
-        Request request = new Request.Builder()
-                .url(authentificationUrl)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/json")
-                .post(RequestBody.create(JSON, AuthenticateRequest.fromCredentials(credentials).toJson()))
-                .build();
-
-        Call call = client.newCall(request);
         try {
+
+            String requestBody = AuthenticateRequest.fromCredentials(credentials).toJson();
+            Request request = new Request.Builder()
+                    .url(authentificationUrl)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Connection","close") //  See https://github.com/square/okhttp/issues/2363
+                    .post(RequestBody.create(JSON, requestBody))
+                    .build();
+            Call call = client.newCall(request);
             Response response = call.execute();
             return AuthenticateResponse.createFrom(response);
-        } catch (IOException e) {
-            return new AuthenticateResponse(Error.OTHER_ERROR, "Error executing network request: " + e.getMessage());
+        } catch (Exception e) {
+            return new AuthenticateResponse(Error.OTHER_ERROR, Util.getStackTrace(e));
         }
     }
 

@@ -187,7 +187,7 @@ public class User {
      * which permissions.
      */
     public boolean isAuthenticated() {
-        return refreshToken != null && System.currentTimeMillis() < refreshToken.expires();
+        return refreshToken != null && refreshToken.expires() < System.currentTimeMillis();
     }
 
 

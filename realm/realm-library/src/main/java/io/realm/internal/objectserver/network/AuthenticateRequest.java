@@ -34,7 +34,7 @@ public class AuthenticateRequest {
         String data;
         String appId = SyncManager.APP_ID;
         Map<String, Object> userInfo = new HashMap<String, Object>();
-        userInfo.put("register", true); // FIXME: Determine the semantics for this.
+//        userInfo.put("register", true); // FIXME: Determine the semantics for this.
 
         switch (credentials.getLoginType()) {
             case FACEBOOK:
@@ -42,7 +42,7 @@ public class AuthenticateRequest {
                 data = credentials.getField1();
                 break;
             case USERNAME_PASSWORD:
-                provider = Provider.FACEBOOK;
+                provider = Provider.PASSWORD;
                 data = credentials.getField1();
                 userInfo.put("password", credentials.getField2());
                 break;

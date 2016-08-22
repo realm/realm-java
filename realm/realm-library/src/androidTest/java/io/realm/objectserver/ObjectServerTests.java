@@ -54,7 +54,7 @@ public class ObjectServerTests {
     @RunTestInLooperThread
     public void exploration() throws MalformedURLException {
 
-        Credentials creds = Credentials.createAnonymous();
+        Credentials creds = Credentials.fromUsernamePassword("foo", "bar");
         User.authenticate(creds, new URL("http://127.0.0.1:8080/auth"), new User.Callback() {
             @Override
             public void onSuccess(User user) {
@@ -62,6 +62,7 @@ public class ObjectServerTests {
                         .user(user)
                         .serverUrl("realm://127.0.0.1/~/default.realm")
                         .build();
+                Realm.deleteRealm(config);
 
                 Realm realm = Realm.getInstance(config);
                 looperThread.testComplete();

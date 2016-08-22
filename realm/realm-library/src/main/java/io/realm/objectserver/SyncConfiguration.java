@@ -95,6 +95,10 @@ public final class SyncConfiguration extends RealmConfiguration {
         return autoConnect;
     }
 
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
     /**
      * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
      */
@@ -105,6 +109,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
         private long heartBeatRateMs = TimeUnit.SECONDS.toMillis(280);
+        private Session.ErrorHandler errorHandler;
+        private Session.ErrorHandler eventHandler;
 
         /**
          * {@inheritDoc}
@@ -235,7 +241,7 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
             if (!user.isAuthenticated()) {
-                throw new IllegalArgumentException("Authenticated user required" + user.getIdentifier());
+                throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: " + user.getIdentifier());
             }
             this.user = user;
             return this;
@@ -332,7 +338,8 @@ public final class SyncConfiguration extends RealmConfiguration {
             return new SyncConfiguration(this);
         }
 
-        public Builder errorHandler(Session.ErrorHandler sessionErrors) {
+        public Builder errorHandler(Session.ErrorHandler errorHandler) {
+            this.errorHandler = errorHandler;
             return this;
         }
 
