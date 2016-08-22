@@ -51,41 +51,41 @@ task reverseNodeServerPort(type: Exec) {
 
 task startServer(dependsOn: untarRealmServer)  {
     doLast {
-        def pidFile = new File('.', '.pid.lock')//TODO use BUIld var location to have a consistent path whenever we run the script
-        if (pidFile.exists()) {
-            // try to kill the previous process
-            def pid = pidFile.text
-            def process = "kill -9 $pid".execute()
-
-            try {
-                process.waitFor()
-            } finally {
-                pidFile.delete()
-            }
-        }
+//        def pidFile = new File('.', '.pid.lock')//TODO use BUIld var location to have a consistent path whenever we run the script
+//        if (pidFile.exists()) {
+//            // try to kill the previous process
+//            def pid = pidFile.text
+//            def process = "kill -9 $pid".execute()
+//
+//            try {
+//                process.waitFor()
+//            } finally {
+//                pidFile.delete()
+//            }
+//        }
         //start new process
         def processBuilder = new ProcessBuilder(['nodejs','server.js', 'deebug.log'])
         processBuilder.directory(new File("$projectDir/test_server"))
         Process process = processBuilder.start()
 
         // block until the server is up
-        while (true) {
-            def proc = "lsof -n -i4TCP:8888".execute()
-            try {
-                proc.waitFor()
-            } finally {
-                def exitValue = proc.exitValue()
-                if (exitValue == 0) {
-                    //set pid
-                    def pidField = process.class.getDeclaredField('pid')
-                    pidField.accessible = true
-                    pidFile << pidField.getInt(process)
-                    break;
-                } else {
-                    // TODO add sleep to timeout
-                }
-            }
-        }
+//        while (true) {
+//            def proc = "lsof -n -i4TCP:8888".execute()
+//            try {
+//                proc.waitFor()
+//            } finally {
+//                def exitValue = proc.exitValue()
+//                if (exitValue == 0) {
+//                    //set pid
+//                    def pidField = process.class.getDeclaredField('pid')
+//                    pidField.accessible = true
+//                    pidFile << pidField.getInt(process)
+//                    break;
+//                } else {
+//                    // TODO add sleep to timeout
+//                }
+//            }
+//        }
     }
 }
 
