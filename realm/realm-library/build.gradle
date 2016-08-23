@@ -415,7 +415,17 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 
 preBuild.dependsOn deployCore
 
-task cleanExternalBuildFiles(type: Delete) {
-    delete project.file('.externalNativeBuild')
+if (project.hasProperty('dontCleanJniFiles')) {
+    project.afterEvaluate {
+        tasks.all { task ->
+            if (task.name.startsWith('externalNativeBuildClean')) {
+                task.enabled = false
+            }
+        }
+    }
+} else {
+    task cleanExternalBuildFiles(type: Delete) {
+            delete project.file('.externalNativeBuild')
+    }
+    clean.dependsOn cleanExternalBuildFiles
 }
-clean.dependsOn cleanExternalBuildFiles
