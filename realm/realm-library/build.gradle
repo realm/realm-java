@@ -41,10 +41,15 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
-                    // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might
-                    // drop it or use the new NDK clang to compile it.
-                    abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
+                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
+                          // FIXME:
+                          // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
+                          // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
+                          // JNI build currently (lack of lto linking support).
+                          // This file should be removed and use the one from Android SDK cmake package when it supports lto.
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                // armeabi is not supported anymore.
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
             }
         }
     }
@@ -295,7 +300,7 @@ artifacts {
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore(group: 'build setup', description: 'Download the latest version of Realm Core') {
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -324,7 +329,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
             return false
         }
 
-        println "Existing archive hash mismatch(Expected: ${project.coreSha256Hash.toLowerCase()}" +
+        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
                 " but got ${calculatedHash.toLowerCase()}). Download new version."
         return true
     }
@@ -347,7 +352,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
                             "${calculatedHash.toLowerCase()}.");
                 }
             } else {
-                println 'Skipping hash check(empty \'coreSha256Hash\').'
+                println 'Skipping hash check (empty \'coreSha256Hash\').'
             }
         }
     }
@@ -379,7 +384,7 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
     }
 }
 
-task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
+task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
         coreSourcePath ? compileCore : downloadCore
     }
@@ -410,3 +415,18 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 }
 
 preBuild.dependsOn deployCore
+
+if (project.hasProperty('dontCleanJniFiles')) {
+    project.afterEvaluate {
+        tasks.all { task ->
+            if (task.name.startsWith('externalNativeBuildClean')) {
+                task.enabled = false
+            }
+        }
+    }
+} else {
+    task cleanExternalBuildFiles(type: Delete) {
+        delete project.file('.externalNativeBuild')
+    }
+    clean.dependsOn cleanExternalBuildFiles
+}

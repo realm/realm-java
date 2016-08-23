@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.6.0)
 
 # find javah
 find_package(Java COMPONENTS Development)
@@ -26,8 +26,8 @@ endif()
 create_javah(TARGET jni_headers
   CLASSES io.realm.internal.Table io.realm.internal.TableView
   io.realm.internal.CheckedRow io.realm.internal.SharedGroup io.realm.internal.Group
-  io.realm.internal.LinkView io.realm.internal.Util
-  io.realm.internal.Version io.realm.internal.UncheckedRow io.realm.internal.TableQuery
+  io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
+  io.realm.internal.TableQuery
 
   CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
@@ -65,8 +65,6 @@ include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}/jni_include
     ${CMAKE_SOURCE_DIR}/object-store/src)
 
-# Set compile flags
-# TODO: Is this correct?
 set(ANDROID_STL "gnustl_static")
 
 if (ARMEABI)
