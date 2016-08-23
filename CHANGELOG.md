@@ -1,3 +1,9 @@
+## 1.2.1
+
+### Internal
+
+* Move JNI build to CMake.
+
 ## 1.2.0
 
 ### Bug fixes
