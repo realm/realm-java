@@ -214,7 +214,11 @@ task downloadCore() {
 
             println "Downloading ${downloadUrl}"
             exec {
-                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+                if (project.s3cfg) {
+                    commandLine 's3cmd', '-c', project.s3cfg , '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+                } else {
+                    commandLine 's3cmd',                       '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+                }
             }
             coreDownloaded = true
             if (isHashCheckingEnabled()) {
