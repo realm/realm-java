@@ -326,87 +326,24 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, true);
+        commitTransaction(true);
     }
 
     /**
-     * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
-     * that.
-     */
-    void commitAsyncTransaction() {
-        commitTransaction(false, false);
-    }
-
-    /**
-     * Commits transaction, runs the given runnable and then sends notifications. The runnable is useful to meet some
-     * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
-     * other threads see the changes to majoyly avoid the flaky tests.
+     * Commits transaction and sends notifications to local thread.
      *
-     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
+     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change
+     *                          listeners.
      */
-    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads) {
+    void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
 
+        // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
+        // file will make a commit in order to create the schema. Users should not be notified about that.
         if (notifyLocalThread) {
             sharedRealm.realmNotifier.notifyByLocalThread();
         }
-        /*
-        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
-            Handler handler = handlerIntegerEntry.getKey();
-            String realmPath = handlerIntegerEntry.getValue();
-
-            // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
-            // file will make a commit in order to create the schema. Users should not be notified about that.
-            if (!notifyLocalThread && handler.equals(this.handler)) {
-                continue;
-            }
-
-            // Sometimes we don't want to notify other threads about changes because we need a custom message, e.g. when
-            // doing async transactions.
-            if (!notifyOtherThreads && !handler.equals(this.handler)) {
-                continue;
-            }
-
-            // For all other threads, use the Handler
-            // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
-            // as the target thread consumes messages at the same time. In this case it is not a problem as worst
-            // case we end up with two REALM_CHANGED messages in the queue.
-            Looper looper = handler.getLooper();
-            if (realmPath.equals(configuration.getPath())  // It's the right realm
-                    && looper.getThread().isAlive()) {     // The receiving thread is alive
-
-                boolean messageHandled = true;
-                if (looper == Looper.myLooper()) {
-                    // Force any updates on the current thread to the front the queue. Doing this is mostly
-                    // relevant on the UI thread where it could otherwise process a motion event before the
-                    // REALM_CHANGED event. This could in turn cause a UI component like ListView to crash. See
-                    // https://github.com/realm/realm-android-adapters/issues/11 for such a case.
-                    // Other Looper threads could process similar events. For that reason all looper threads will
-                    // prioritize local commits.
-                    //
-                    // If a user is doing commits inside a RealmChangeListener this can cause the Looper thread to get
-                    // event starved as it only starts handling Realm events instead. This is an acceptable risk as
-                    // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
-                    // be responsive.
-                    Message msg = Message.obtain();
-                    msg.what = HandlerControllerConstants.LOCAL_COMMIT;
-                    if (!handler.hasMessages(HandlerControllerConstants.LOCAL_COMMIT)) {
-                        handler.removeMessages(HandlerControllerConstants.REALM_CHANGED);
-                        messageHandled = handler.sendMessageAtFrontOfQueue(msg);
-                    }
-                } else {
-                    if (!handler.hasMessages(HandlerControllerConstants.REALM_CHANGED)) {
-                        messageHandled = handler.sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
-                    }
-                }
-                if (!messageHandled) {
-                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                            "to prevent this.");
-                }
-            }
-        }
-        */
     }
 
     /**

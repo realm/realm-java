@@ -298,7 +298,7 @@ public final class Realm extends BaseRealm {
             }
         } finally {
             if (commitNeeded) {
-                realm.commitTransaction(false, true);
+                realm.commitTransaction(false);
             } else {
                 realm.cancelTransaction();
             }
@@ -1196,7 +1196,8 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitAsyncTransaction();
+                        // No need to send change notification to the work thread.
+                        bgRealm.commitTransaction(false);
                         // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
                         // problem. This is currently guaranteed by posting handleAsyncTransactionCompleted below.
                         bgRealm.close();
