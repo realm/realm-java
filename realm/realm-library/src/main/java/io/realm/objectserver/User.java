@@ -31,7 +31,6 @@ import io.realm.exceptions.ObjectServerException;
 import io.realm.internal.IOException;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
@@ -78,7 +77,7 @@ public class User {
                 try {
                     AuthenticateResponse result = server.authenticateUser(credentials, authentificationUrl);
                     if (result.isValid()) {
-                        User user = new User(result.getIdentifier(), result.getRefreshToken());
+                        User user = new User(result.getIdentifier(), result.getRefreshToken(), authentificationUrl);
                         postSuccess(user);
                     } else {
                         postError(result.getError(), result.getErrorMessage());
@@ -126,8 +125,9 @@ public class User {
     }
 
 
-    private User(String identifier, Token refreshToken) {
+    private User(String identifier, Token refreshToken, URL authentificationUrl) {
         this.identifier = identifier;
+        this.authentificationUrl = authentificationUrl;
         setRefreshToken(refreshToken);
     }
 

@@ -19,6 +19,8 @@ package io.realm.objectserver;
 import android.content.Context;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
@@ -51,7 +53,7 @@ import io.realm.rx.RxObservableFactory;
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
-    private final String serverUrl;
+    private final URI serverUrl;
     private final User user;
     private final boolean autoConnect;
     private final SyncPolicy syncPolicy;
@@ -59,8 +61,12 @@ public final class SyncConfiguration extends RealmConfiguration {
 
     private SyncConfiguration(Builder builder) {
         super(builder);
-        this.serverUrl = builder.serverUrl;
         this.user = builder.user;
+        try {
+            this.serverUrl = new URI(builder.serverUrl.toString().replace("/~/", "/" + user.getIdentifier() + "/"));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Could not be replaced /~/ with a valid user ID.", e);
+        }
         this.autoConnect = builder.autoConnect;
         this.syncPolicy = builder.syncPolicy;
         this.heartbeatRateMs = builder.heartBeatRateMs;
@@ -95,7 +101,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         return autoConnect;
     }
 
-    public String getServerUrl() {
+    public URI getServerUrl() {
         return serverUrl;
     }
 
@@ -104,13 +110,13 @@ public final class SyncConfiguration extends RealmConfiguration {
      */
     public static final class Builder extends RealmConfiguration.Builder {
 
-        private String serverUrl;
+        private URI serverUrl;
         private User user = null;
         private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
         private long heartBeatRateMs = TimeUnit.SECONDS.toMillis(280);
-        private Session.ErrorHandler errorHandler;
-        private Session.ErrorHandler eventHandler;
+        private ErrorHandler errorHandler;
+        private Session.EventHandler eventHandler;
 
         /**
          * {@inheritDoc}
@@ -223,10 +229,14 @@ public final class SyncConfiguration extends RealmConfiguration {
          * user, e.g. {@code "realm://objectserver.relam.io/~/default.realm"}
          *
          * @param url URL identifying the Realm.
+         * @throws IllegalArgumentException if the URL is not valid.
          */
         public Builder serverUrl(String url) {
-            // FIXME Validate URL
-            this.serverUrl = url;
+            try {
+                this.serverUrl = new URI(url);
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Invalid url.", e);
+            }
             return this;
         }
 
@@ -338,7 +348,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             return new SyncConfiguration(this);
         }
 
-        public Builder errorHandler(Session.ErrorHandler errorHandler) {
+        public Builder errorHandler(ErrorHandler errorHandler) {
             this.errorHandler = errorHandler;
             return this;
         }

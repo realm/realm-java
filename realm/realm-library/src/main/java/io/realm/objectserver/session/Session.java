@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.objectserver.Error;
+import io.realm.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
@@ -267,7 +267,7 @@ public final class Session {
             throw new IllegalStateException("User '" + user.toString() + "' does not have an access token for "
                     + configuration.getServerUrl());
         }
-        nativeBind(nativeSessionPointer, configuration.getRealmFileName(), accessToken.value());
+        nativeBind(nativeSessionPointer, configuration.getServerUrl().toString(), accessToken.value());
     }
 
     // Unbind a Realm that is currently bound
@@ -281,7 +281,7 @@ public final class Session {
         // TODO
     }
 
-    void authenticate(final Runnable onSuccess, final Runnable onError) {
+    void authenticateRealm(final Runnable onSuccess, final Runnable onError) {
         if (networkRequest != null) {
             networkRequest.cancel();
         }
@@ -290,7 +290,6 @@ public final class Session {
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
             @Override
             public void run() {
-                // FIXME Align how many credentials are supported. Just assume 1 for now.
                 int attempt = 0;
                 boolean success = false;
 
@@ -312,12 +311,12 @@ public final class Session {
                     );
                     if (response.isValid()) {
                         user.setAccesToken(configuration, response.getAccessToken());
-                        user.setRefreshToken(response.getRefreshToken());
-                        // TODO Save tokens
+//                        user.setRefreshToken(response.getRefreshToken());
                         success = true;
-                    } else {
-                        // TODO Report bad credentials. How?
                         break;
+                    } else {
+                        // TODO REPORT ERROR?
+                        // Which errors should we retry on, and which should kill the connection
                     }
                 }
 
@@ -337,6 +336,11 @@ public final class Session {
         // TODO Refresh access token in the auth server
         user.setAccesToken(configuration, accessToken);
         nativeRefresh(nativeSessionPointer, accessToken.value());
+    }
+
+    public boolean isAuthenticated(SyncConfiguration configuration) {
+        Token token = user.getAccessToken(configuration);
+        return token != null && token.expires() < System.currentTimeMillis();
     }
 
     private void notifyStarted() {
@@ -376,34 +380,6 @@ public final class Session {
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
-
-    public boolean isAuthenticated(SyncConfiguration configuration) {
-        Token token = user.getAccessToken(configuration);
-        return token != null && token.expires() < System.currentTimeMillis();
-    }
-
-    private interface AuthentificationHandler {
-        void onSuccesss(String token);
-        void onError(int errrorCode, String errorMsg);
-    }
-
-
-    public interface EventListener {
-        void started();
-        void authenticatationRequired();
-        void authenticationSuccess();
-        void authentifcationError(int errorCode, String errorMsg);
-        void attemptBind();
-        void attemptBindAborted();
-        void bindSuccessfull();
-        void bindFailed(int errorCode, String errorMsg);
-        void unbinded();
-        void stopped();
-    }
-
-    public interface ErrorHandler {
-        void onError(Error error, String errorMessage);
-    }
 
     public interface EventHandler {
         void sessionCreated(Session session);

@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.objectserver.Error;
+import io.realm.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import okhttp3.Response;
 
@@ -73,7 +73,7 @@ public class AuthenticateResponse {
             path = obj.optString("path");
             appId = obj.optString("app_id"); // FIXME No longer sent?
             accessToken = obj.has("token") ? Token.from(obj) : null;
-            refreshToken = Token.from(obj.getJSONObject("refresh"));
+            refreshToken = obj.has("refresh") ? Token.from(obj.getJSONObject("refresh")) : null;
             error = null;
             errorMessage = null;
         } catch (JSONException ex) {

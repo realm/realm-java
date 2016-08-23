@@ -3,6 +3,7 @@ package io.realm.internal.objectserver.network;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,12 +60,12 @@ public class AuthenticateRequest {
      * @param refreshToken Users refresh token
      * @param path Path of the Realm to gain access to.
      */
-    public static AuthenticateRequest fromRefreshToken(Token refreshToken, String path) {
+    public static AuthenticateRequest fromRefreshToken(Token refreshToken, URI path) {
         // Authenticate a given Realm path using an already logged in user.
         return new AuthenticateRequest(Provider.REALM,
                 refreshToken.value(),
                 SyncManager.APP_ID,
-                path,
+                path.getPath(),
                 Collections.<String, Object>emptyMap()
         );
     }

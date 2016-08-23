@@ -2,8 +2,6 @@ package io.realm.objectserver;
 
 import android.os.Handler;
 
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -15,7 +13,6 @@ import io.realm.BaseRealm;
 import io.realm.BuildConfig;
 import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.objectserver.Error;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
@@ -28,9 +25,9 @@ public final class SyncManager {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
-    private static final Session.ErrorHandler NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
+    private static final ErrorHandler NO_OP_ERROR_HANDLER = new ErrorHandler() {
         @Override
-        public void onError(Error error, String errorMessage) {
+        public void onError(Error errorCode, String errorMessage) {
 
         }
     };
@@ -90,7 +87,8 @@ public final class SyncManager {
     // Right now it just lives and dies together with the process.
     private static long nativeSyncClientPointer;
     private static volatile AuthentificationServer authServer = new OkHttpAuthentificationServer();
-    private static volatile Session.ErrorHandler defaultErrorHandler = NO_OP_ERROR_HANDLER;
+    private static volatile ErrorHandler globalErrorHandler = NO_OP_ERROR_HANDLER;
+    private static volatile ErrorHandler defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
     private static volatile Session.EventHandler defaultEventHandler = NO_OP_EVENT_HANDLER;
 
 
@@ -103,15 +101,28 @@ public final class SyncManager {
     }
 
     /**
+     * Sets the global error handler used by underlying network client. All connection errors will be reported here,
+     * while all session related errors will be posted to the sessions error handler
+     */
+    public static void setGlobalErrorHandler(ErrorHandler errorHandler) {
+        if (errorHandler == null) {
+            globalErrorHandler = NO_OP_ERROR_HANDLER;
+        } else {
+            globalErrorHandler = errorHandler;
+        }
+    }
+
+
+    /**
      * Sets the default error handler used by all {@link SyncConfiguration} objects when they are created.
      *
      * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setDefaultErrorHandler(Session.ErrorHandler errorHandler) {
+    public static void setDefaultSessionErrorHandler(ErrorHandler errorHandler) {
         if (errorHandler == null) {
-            defaultErrorHandler = NO_OP_ERROR_HANDLER;
+            defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
         } else {
-            defaultErrorHandler = errorHandler;
+            defaultSessionErrorHandler = errorHandler;
         }
     }
 

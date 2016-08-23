@@ -31,7 +31,6 @@ class BoundState extends FsmState {
     @Override
     public void onRefresh() {
         // TODO How to replace an access token on an active connection
-
         gotoNextState(SessionState.STOPPED); // TODO: Stop? Really?
     }
 

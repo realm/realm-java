@@ -1,11 +1,11 @@
 package io.realm.internal.objectserver.network;
 
-import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Util;
-import io.realm.internal.objectserver.Error;
+import io.realm.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
 import okhttp3.Call;
@@ -31,30 +31,38 @@ public class OkHttpAuthentificationServer implements AuthentificationServer {
     @Override
     public AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl) {
         try {
-
             String requestBody = AuthenticateRequest.fromCredentials(credentials).toJson();
-            Request request = new Request.Builder()
-                    .url(authentificationUrl)
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Accept", "application/json")
-                    .addHeader("Connection","close") //  See https://github.com/square/okhttp/issues/2363
-                    .post(RequestBody.create(JSON, requestBody))
-                    .build();
-            Call call = client.newCall(request);
-            Response response = call.execute();
-            return AuthenticateResponse.createFrom(response);
+            return authenticate(authentificationUrl, requestBody);
         } catch (Exception e) {
             return new AuthenticateResponse(Error.OTHER_ERROR, Util.getStackTrace(e));
         }
     }
 
     @Override
-    public AuthenticateResponse authenticateRealm(Token refreshToken, String path, URL authentificationUrl) {
-        return null;
+    public AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authentificationUrl) {
+        try {
+            String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken, path).toJson();
+            return authenticate(authentificationUrl, requestBody);
+        } catch (Exception e) {
+            return new AuthenticateResponse(Error.OTHER_ERROR, Util.getStackTrace(e));
+        }
     }
 
     @Override
     public RefreshResponse refresh(String token, URL authentificationUrl) {
-        return null;
+        throw new RuntimeException("BOOM");
+    }
+
+    private AuthenticateResponse authenticate(URL authenticationUrl, String requestBody) throws Exception {
+        Request request = new Request.Builder()
+                .url(authenticationUrl)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "application/json")
+                .addHeader("Connection","close") //  See https://github.com/square/okhttp/issues/2363
+                .post(RequestBody.create(JSON, requestBody))
+                .build();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return AuthenticateResponse.createFrom(response);
     }
 }

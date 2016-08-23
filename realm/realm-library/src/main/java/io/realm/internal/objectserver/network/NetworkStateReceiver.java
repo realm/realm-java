@@ -9,6 +9,8 @@ import android.net.NetworkInfo;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.realm.internal.Util;
+
 /**
  * This class is responsible for keeping track of system events related to the network so it can delegate them to
  * interested parties.
@@ -38,11 +40,13 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     /**
      * Try to detect if a device is online and can transmit or receive data.
      * This method is thread safe.
+     *
+     * The Emulator is always considered online, as `getActiveNetworkInfo()` does not report the correct value.
      */
     public static boolean isOnline(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnectedOrConnecting());
+        return ((networkInfo != null && networkInfo.isConnectedOrConnecting()) || Util.isEmulator());
     }
 
 

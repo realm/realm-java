@@ -60,7 +60,7 @@ public class ObjectServerTests {
             public void onSuccess(User user) {
                 SyncConfiguration config = new SyncConfiguration.Builder(context)
                         .user(user)
-                        .serverUrl("realm://127.0.0.1/~/default.realm")
+                        .serverUrl("realm://127.0.0.1/~/default")
                         .build();
                 Realm.deleteRealm(config);
 

@@ -4,26 +4,11 @@ import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.Credentials;
 
 /**
- * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this
- * Realm. This can happen in 2 ways:
- *
- * <ol>
- *     <li>
- *          <b>Refresh token has expired:</b> This effectively means the user has been logged out and credentials has
- *          to be re-verified on the Authentication Server. Refreshing this token should happen automatically in the
- *          background, but could be delayed for a number of reasons.
- *     </li>
- *     <li>
- *          <b>Access token has expired:</b>
- *          The access token has expired. This state will refresh it
- *     </li>
- *     <li>
- *          <b>Access token does not exists:</b>
- *          This state will acquire an access token and attach it to the user.
- *     </li>
- * </ol>
+ * AUTHENTICATING_REQUIRED State. This step is entered if authentication fails for some reason. This means that an
+ * error has been reported to the user but no new credentials have been provided. The session is halted until new
+ * valid credentials are provided.
  */
-class AuthenticatingState extends FsmState {
+class AuthenticationRequiredState extends FsmState {
 
     @Override
     public void onEnterState() {
@@ -65,12 +50,12 @@ class AuthenticatingState extends FsmState {
         session.authenticateRealm(new Runnable() {
             @Override
             public void run() {
-                gotoNextState(SessionState.BINDING_REALM);
+                gotoNextState(SessionState.BOUND);
             }
         }, new Runnable() {
             @Override
             public void run() {
-                gotoNextState(SessionState.STOPPED);
+                gotoNextState(SessionState.UNBOUND);
             }
         });
     }

@@ -1,4 +1,4 @@
-package io.realm.internal.objectserver;
+package io.realm.objectserver;
 
 public enum Error {
 
@@ -19,7 +19,7 @@ public enum Error {
 //        bad_message_order            = 109, // Bad input message order
 //
 //        // Session level errors
-//        session_closed               = 200, // Session closed (no error)
+//        session_closed               = 200, // Session closed (no error) -> ? Potentially rebind ->
 //        other_session_error          = 201, // Other session level error
 //        token_expired                = 202, // Access token expired
 //        bad_authentication           = 203, // Bad user authentication (BIND, REFRESH)
@@ -30,7 +30,7 @@ public enum Error {
 //        bad_client_file_ident        = 208, // Bad client file identifier (IDENT)
 //        bad_server_version           = 209, // Bad server version (IDENT, UPLOAD)
 //        bad_client_version           = 210, // Bad client version (IDENT, UPLOAD)
-//        diverging_histories          = 211, // Diverging histories (IDENT)
+//        diverging_histories          = 211, // Diverging histories (IDENT) -> Critical
 //        bad_changeset                = 212, // Bad changeset (UPLOAD)
 //
 
@@ -42,7 +42,7 @@ public enum Error {
 
     @Override
     public String toString() {
-        return code + " : " + super.toString();
+        return super.toString() + "(" + code + ")";
     }
 
     public int errorCode() {

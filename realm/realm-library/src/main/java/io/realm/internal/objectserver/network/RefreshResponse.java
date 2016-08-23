@@ -1,6 +1,6 @@
 package io.realm.internal.objectserver.network;
 
-import io.realm.internal.objectserver.Error;
+import io.realm.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 
 public class RefreshResponse {
