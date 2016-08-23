@@ -213,7 +213,7 @@ task distributionJniUnstrippedPackage(type:Zip) {
     archiveName = "realm-java-jni-libs-unstripped-${currentVersion}.zip"
     destinationDir = file("${buildDir}/outputs/distribution")
 
-    from("realm/realm-jni/build/outputs/jniLibs-unstripped") {
+    from("realm/realm-library/build/outputs/jniLibs-unstripped") {
         include '**/*.so'
     }
 }

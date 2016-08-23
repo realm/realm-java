@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 apply plugin: 'com.android.library'
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
@@ -8,6 +10,24 @@ apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
+apply plugin: 'de.undercouch.download'
+
+ext.coreVersion = '1.5.1'
+// empty or comment out this to disable hash checking
+ext.coreSha256Hash = 'a034d3250c820a15126721142d168a2ac4a12223b75bb324958ca2a70442720d'
+ext.forceDownloadCore =
+        project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
+// Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
+// core source code.
+ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
+// The location of core archive.
+ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
+if (!ext.coreArchiveDir) {
+    ext.coreArchiveDir = ".."
+}
+ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/core-android-${project.coreVersion}.tar.gz")
+ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
+ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 
 android {
     compileSdkVersion 24
@@ -19,6 +39,24 @@ android {
         project.archivesBaseName = "realm-android-library"
         consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
+                          // FIXME:
+                          // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
+                          // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
+                          // JNI build currently (lack of lto linking support).
+                          // This file should be removed and use the one from Android SDK cmake package when it supports lto.
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+        }
     }
 
     buildTypes {
@@ -109,10 +147,8 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-preBuild.dependsOn ':realm-jni:buildAndroidJni'
-
 task findbugs(type: FindBugs) {
-    dependsOn assembleDebug
+    dependsOn assemble
     group = 'Verification'
 
     ignoreFailures = false
@@ -258,4 +294,138 @@ artifactory {
 artifacts {
     archives javadocJar
     archives sourcesJar
+}
+
+
+def coreDownloaded = false
+
+task downloadCore(group: 'build setup', description: 'Download the latest version of Realm Core') {
+    def isHashCheckingEnabled = {
+        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
+    }
+
+    def calcSha256Hash = {File targetFile ->
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        Formatter hexHash = new Formatter()
+        sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
+        return hexHash.toString()
+    }
+
+    def shouldDownloadCore = {
+        if (!project.coreArchiveFile.exists()) {
+            return true
+        }
+        if (project.forceDownloadCore) {
+            return true;
+        }
+        if (!isHashCheckingEnabled()) {
+            println "Skipping hash check(empty \'coreSha256Hash\')."
+            return false
+        }
+
+        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
+        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
+            return false
+        }
+
+        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
+                " but got ${calculatedHash.toLowerCase()}). Download new version."
+        return true
+    }
+
+    doLast {
+        if (shouldDownloadCore()) {
+            download {
+                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
+                dest project.coreArchiveFile
+                onlyIfNewer false
+            }
+            coreDownloaded = true
+
+            if (isHashCheckingEnabled()) {
+                def calculatedHash = calcSha256Hash(project.coreArchiveFile)
+                if (!project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
+                    throw new GradleException("Invalid checksum for file '" +
+                            "${project.coreArchiveFile.getName()}'. Expected " +
+                            "${project.coreSha256Hash.toLowerCase()} but got " +
+                            "${calculatedHash.toLowerCase()}.");
+                }
+            } else {
+                println 'Skipping hash check (empty \'coreSha256Hash\').'
+            }
+        }
+    }
+}
+
+task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
+    // Build the library from core source code
+    doFirst {
+        if (!coreSourcePath) {
+            throw new GradleException('The coreSourcePath is not set.')
+        }
+        exec {
+            workingDir = coreSourcePath
+            commandLine = [
+                    "bash",
+                    "build.sh",
+                    "build-android"
+            ]
+        }
+    }
+
+    // Copy the core tar ball
+    doLast {
+        copy {
+            from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
+            into project.coreArchiveFile.parent
+            rename "realm-core-android-${coreVersion}.tar.gz", "core-android-${coreVersion}.tar.gz"
+        }
+    }
+}
+
+task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
+    dependsOn {
+        coreSourcePath ? compileCore : downloadCore
+    }
+
+    outputs.upToDateWhen {
+        // Clean up the coreDir if it is newly downloaded or compiled from source
+        if (coreDownloaded || coreSourcePath) {
+            return false
+        }
+
+        return project.coreDir.exists()
+    }
+
+    doLast {
+        // Delete all files to avoid multiple copies of the same header file in Android Studio.
+        exec {
+            commandLine = [
+                    'rm',
+                    '-rf',
+                    project.coreDistributionDir.getAbsolutePath()
+            ]
+        }
+        copy {
+            from tarTree(project.coreArchiveFile)
+            into project.coreDir
+        }
+    }
+}
+
+preBuild.dependsOn deployCore
+
+if (project.hasProperty('dontCleanJniFiles')) {
+    project.afterEvaluate {
+        tasks.all { task ->
+            if (task.name.startsWith('externalNativeBuildClean')) {
+                task.enabled = false
+            }
+        }
+    }
+} else {
+    task cleanExternalBuildFiles(type: Delete) {
+        delete project.file('.externalNativeBuild')
+    }
+    clean.dependsOn cleanExternalBuildFiles
 }
