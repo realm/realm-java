@@ -69,7 +69,7 @@ task startServer(dependsOn: untarRealmServer)  {
         processBuilder.directory(new File("$projectDir/test_server"))
         Process process = processBuilder.start()
 
-         block until the server is up
+//         block until the server is up
         while (true) {
             def proc = "lsof -n -i4TCP:8888".execute()
             try {
