@@ -4,7 +4,7 @@ import groovy.json.JsonOutput
 
 def buildSuccess = false
 try {
-  node('ematest') {
+  node('android') {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
       stage 'SCM'
