@@ -425,7 +425,7 @@ if (project.hasProperty('dontCleanJniFiles')) {
     }
 } else {
     task cleanExternalBuildFiles(type: Delete) {
-            delete project.file('.externalNativeBuild')
+        delete project.file('.externalNativeBuild')
     }
     clean.dependsOn cleanExternalBuildFiles
 }
