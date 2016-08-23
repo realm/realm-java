@@ -55,7 +55,7 @@ RUN mkdir /opt/cmake-tmp && \
     cd /opt/cmake-tmp && \
     wget -q https://dl.google.com/android/repository/cmake-3.6.3133135-linux-x86_64.zip -O cmake-linux.zip && \
     unzip cmake-linux.zip -d ${ANDROID_HOME}/cmake && \
-    rm -rf /opt/cmake-tmp && \
+    rm -rf /opt/cmake-tmp
 
 # Make the SDK universally readable
 RUN chmod -R a+rX ${ANDROID_HOME}
