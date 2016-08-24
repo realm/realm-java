@@ -349,7 +349,7 @@ Java_io_realm_internal_SharedRealm_nativeWaitForChange(JNIEnv *env, jclass, jlon
         return static_cast<jboolean>(rf::get_shared_group(*shared_realm).wait_for_change());
     } CATCH_STD()
 
-    return static_cast<jboolean>(false);
+    return JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL
@@ -373,7 +373,7 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
         return static_cast<jboolean>(shared_realm->compact());
     } CATCH_STD()
 
-    return static_cast<jboolean>(false);
+    return JNI_FALSE;
 }
 
 JNIEXPORT jlong JNICALL
@@ -387,4 +387,61 @@ Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass type, jlong 
         return reinterpret_cast<jlong>(schema);
     } CATCH_STD()
     return 0;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeRenameField(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+                                                     jstring className_,
+                                                     jstring oldName_, jstring newName_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        JStringAccessor oldName(env, oldName_);
+        JStringAccessor newName(env, newName_);
+        Schema schema = shared_realm->schema();
+        ObjectStore::rename_property(shared_realm->read_group(), schema, className, oldName, newName);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeHasPrimaryKey(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+                                                       jstring className_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        StringData name = ObjectStore::get_primary_key_for_object(shared_realm->read_group(), className);
+        return static_cast<jboolean>(name != "");
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeSetPrimaryKey(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+                                                       jstring className_, jstring fieldName_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm *>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        JStringAccessor fieldName(env, fieldName_);
+        ObjectStore::set_primary_key_for_object(shared_realm->read_group(), className, fieldName);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_realm_internal_SharedRealm_nativeGetPrimaryKey(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+                                                       jstring className_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        StringData name = ObjectStore::get_primary_key_for_object(shared_realm->read_group(), className);
+        return to_jstring(env, name);
+    }
+    CATCH_STD()
+    return nullptr;
 }

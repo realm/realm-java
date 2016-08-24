@@ -539,8 +539,8 @@ public:
 
 private:
     JNIEnv* m_env;
-    jsize m_size;
     jbyteArray m_array;
+    jsize m_size;
     jbyte* m_ptr;
 };
 

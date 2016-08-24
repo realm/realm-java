@@ -17,8 +17,6 @@
 package io.realm;
 
 
-import io.realm.RealmFieldType;
-
 /**
  * Class for handling properties/fields.
  */
@@ -55,6 +53,18 @@ public class Property {
         return nativeRequiresIndex(nativePtr);
     }
 
+    public void setName(String name) {
+        nativeSetName(nativePtr, name);
+    }
+
+    public String getName() {
+        return nativeGetName(nativePtr);
+    }
+
+    public boolean isPrimaryKey() {
+        return nativeIsPrimaryKey(nativePtr);
+    }
+
     public void close() {
         nativeClose(nativePtr);
     }
@@ -63,5 +73,8 @@ public class Property {
     private static native long nativeCreateProperty(String name, int type, String linkedToName);
     private static native boolean nativeIsIndexable(long nativePtr);
     private static native boolean nativeRequiresIndex(long nativePtr);
+    private static native String nativeGetName(long nativePtr);
+    private static native void nativeSetName(long nativePtr, String name);
+    private static native boolean nativeIsPrimaryKey(long nativePtr);
     private static native void nativeClose(long nativePtr);
 }

@@ -79,7 +79,7 @@ Java_io_realm_RealmObjectSchema_nativeClose
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass type, jlong native_ptr) {
+Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     try {
         auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
@@ -88,6 +88,30 @@ Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass type, jlo
     }
     CATCH_STD()
     return nullptr;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_RealmObjectSchema_nativeSetClassName(JNIEnv *env, jclass, jlong native_ptr, jstring className_) {
+    TR_ENTER_PTR(native_ptr)
+    try {
+        JStringAccessor name(env, className_);
+        auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
+        object_schema->name = name;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_RealmObjectSchema_nativeHasProperty(JNIEnv *env, jclass, jlong native_ptr, jstring name_) {
+    TR_ENTER_PTR(native_ptr)
+    auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
+    try {
+        JStringAccessor name(env, name_);
+        const Property* property = object_schema->property_for_name(name);
+        return static_cast<jboolean>(property != nullptr);
+    }
+    CATCH_STD()
+    return static_cast<jboolean>(false);
 }
 
 JNIEXPORT jlong JNICALL
@@ -145,7 +169,13 @@ Java_io_realm_RealmObjectSchema_nativeRemovePropertyByName
 }
 
 
-
-
-
-
+JNIEXPORT jboolean JNICALL
+Java_io_realm_RealmObjectSchema_nativeHasPrimaryKey(JNIEnv *env, jclass, jlong native_ptr) {
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
+        return static_cast<jboolean>(object_schema->primary_key != nullptr && object_schema->primary_key != "");
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}

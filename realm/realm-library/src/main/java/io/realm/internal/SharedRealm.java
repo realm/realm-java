@@ -201,6 +201,22 @@ public final class SharedRealm implements Closeable {
         return nativeGetTableName(nativePtr, index);
     }
 
+    public void renameField(String className, String oldName, String newName) {
+        nativeRenameField(nativePtr, className, oldName, newName);
+    }
+
+    public boolean hasPrimaryKey(String className) {
+        return nativeHasPrimaryKey(nativePtr, className);
+    }
+
+    public void setPrimaryKey(String className, String fieldName) {
+        nativeSetPrimaryKey(nativePtr, className, fieldName);
+    }
+
+    public String getPrimaryKey(String className) {
+        return nativeGetPrimaryKey(nativePtr, className);
+    }
+
     public long size() {
         return nativeSize(nativePtr);
     }
@@ -305,9 +321,13 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
     private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
+    private static native void nativeRenameField(long natveSharedRealmPtr, String className, String oldName, String newName);
     private static native long nativeSize(long nativeSharedRealmPtr);
     private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
+    private static native boolean nativeHasPrimaryKey(long nativeSharedRealmPtr, String className);
+    private static native void nativeSetPrimaryKey(long nativeSharedRealmPtr, String className, String fieldName);
+    private static native String nativeGetPrimaryKey(long nativeSharedRealmPtr, String className);
 }

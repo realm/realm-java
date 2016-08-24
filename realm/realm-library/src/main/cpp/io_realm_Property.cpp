@@ -71,6 +71,7 @@ Java_io_realm_Property_nativeIsIndexable
         return property->is_indexable();
     }
     CATCH_STD()
+    return JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -82,4 +83,38 @@ Java_io_realm_Property_nativeRequiresIndex
         return property->requires_index();
     }
     CATCH_STD()
+    return JNI_FALSE;
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_realm_Property_nativeGetName(JNIEnv *env, jclass, jlong property_ptr) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        return to_jstring(env, property->name);
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_Property_nativeSetName(JNIEnv *env, jclass, jlong property_ptr, jstring name_) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        JStringAccessor name(env, name_);
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        property->name = name;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_Property_nativeIsPrimaryKey(JNIEnv *env, jclass, jlong property_ptr) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        return static_cast<jboolean>(property->is_primary);
+    }
+    CATCH_STD()
+    return JNI_FALSE;
 }
