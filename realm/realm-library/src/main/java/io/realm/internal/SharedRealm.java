@@ -93,8 +93,12 @@ public final class SharedRealm implements Closeable {
 
         @Override
         public boolean equals(Object object) {
-            if (this == object) return true;
-            if (object == null || getClass() != object.getClass()) return false;
+            if (this == object) {
+                return true;
+            }
+            if (object == null || getClass() != object.getClass()) {
+                return false;
+            }
 
             VersionID versionID = (VersionID) object;
             return (version == versionID.version && index == versionID.index);
