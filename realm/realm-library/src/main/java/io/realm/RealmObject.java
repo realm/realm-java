@@ -245,16 +245,18 @@ public abstract class RealmObject implements RealmModel {
      * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
      * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
      * is possible to register a change listener using {@link #addChangeListener(RealmChangeListener)} to be notified
-     * when this happens. Managed objects are thread confined so the they cannot be accessed from other threads than
+     * when changes happen. Managed objects are thread confined so the they cannot be accessed from other threads than
      * the one that created them.
+     * <p>
      *
      * If this method returns {@code false}, the object is unmanaged. An unmanaged object is just a normal Java object,
      * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
      * so it will not be live updated.
+     * <p>
      *
      * It is possible to create a managed object from an unmanaged object by using
-     * {@link Realm#copyFromRealm(RealmModel)}. A unmanaged object can be created from a managed object by using
-     * {@link Realm#copyToRealm(RealmModel)}.
+     * {@link Realm#copyToRealm(RealmModel)}. A unmanaged object can be created from a managed object by using
+     * {@link Realm#copyFromRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
      */
@@ -266,16 +268,18 @@ public abstract class RealmObject implements RealmModel {
      * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
      * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
      * is possible to register a change listener using {@link #addChangeListener(RealmModel, RealmChangeListener)} to be
-     * notified when this happens. Managed objects are thread confined so the they cannot be accessed from other threads
+     * notified when changes happen. Managed objects are thread confined so the they cannot be accessed from other threads
      * than the one that created them.
+     * <p>
      *
      * If this method returns {@code false}, the object is unmanaged. An unmanaged object is just a normal Java object,
      * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
      * so it will not be live updated.
+     * <p>
      *
      * It is possible to create a managed object from an unmanaged object by using
-     * {@link Realm#copyFromRealm(RealmModel)}. A unmanaged object can be created from a managed object by using
-     * {@link Realm#copyToRealm(RealmModel)}.
+     * {@link Realm#copyToRealm(RealmModel)}. A unmanaged object can be created from a managed object by using
+     * {@link Realm#copyFromRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
      */
