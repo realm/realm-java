@@ -21,6 +21,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
+import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import io.realm.objectserver.Error;
@@ -72,6 +73,7 @@ import io.realm.objectserver.syncpolicy.SyncPolicy;
 // TODO Rename to Session / ObjectServerSession instead? This is turning into a mutable object instead
 // of a value type which the name suggests.
 
+@Keep
 public final class Session {
 
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
@@ -172,12 +174,22 @@ public final class Session {
 //
     }
 
-    public void setUser(User user) {
-        // This will probably replace `setCredentials()`
+    synchronized void setUser(User user) {
 //        setCredentials(user.getCredentials());
     }
 
+    // Called from
+    synchronized void handleError(Error error, String errorMessage) {
+        RealmLog.d(String.format("Session[%s] - ERORR: %s", configuration.getServerUrl(), error.toString()));
+        currentState.onError(error, errorMessage);
+    }
 
+    // Called from Session.cpp
+    // This callback will happen on the thread running the Sync Client.
+    private void notifySessionError(int errorCode, String errorMessage) {
+        Error error = Error.fromInt(errorCode);
+        handleError(error, errorMessage);
+    }
 
     /**
      * Set the credentials used to bind this Realm to the Realm Object Server. Credentials control access and

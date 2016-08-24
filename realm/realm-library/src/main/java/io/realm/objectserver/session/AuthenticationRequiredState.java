@@ -5,8 +5,8 @@ import io.realm.objectserver.Credentials;
 
 /**
  * AUTHENTICATING_REQUIRED State. This step is entered if authentication fails for some reason. This means that an
- * error has been reported to the user but no new credentials have been provided. The session is halted until new
- * valid credentials are provided.
+ * error has been reported to the user but no new access token has been provided. The session is halted until a new
+ * valid access token is provided.
  */
 class AuthenticationRequiredState extends FsmState {
 

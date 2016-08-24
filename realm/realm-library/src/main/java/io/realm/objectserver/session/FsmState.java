@@ -1,6 +1,7 @@
 package io.realm.objectserver.session;
 
 import io.realm.objectserver.Credentials;
+import io.realm.objectserver.Error;
 
 /**
  * Abstract class describing all states used in the Session Finite-State-Machine.
@@ -69,6 +70,11 @@ abstract class FsmState implements FsmAction {
 
     @Override
     public void onSetCredentials(Credentials credentials) {
+        // Do nothing
+    }
+
+    @Override
+    public void onError(Error error, String errorMessage) {
         // Do nothing
     }
 }

@@ -15,6 +15,7 @@ import java.net.URL;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.internal.Util;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -53,14 +54,14 @@ public class ObjectServerTests {
     @Test
     @RunTestInLooperThread
     public void exploration() throws MalformedURLException {
-
+//        Util.setDebugLevel(2);
         Credentials creds = Credentials.fromUsernamePassword("foo", "bar");
         User.authenticate(creds, new URL("http://127.0.0.1:8080/auth"), new User.Callback() {
             @Override
             public void onSuccess(User user) {
                 SyncConfiguration config = new SyncConfiguration.Builder(context)
                         .user(user)
-                        .serverUrl("realm://127.0.0.1/~/default")
+                        .serverUrl("realm://127.0.0.1/~/default.realm")
                         .build();
                 Realm.deleteRealm(config);
 

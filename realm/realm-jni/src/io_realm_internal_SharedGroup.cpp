@@ -17,6 +17,7 @@
 #include <jni.h>
 
 #include "util.hpp"
+#include "objectserver_shared.hpp"
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
 #include <realm/commit_log.hpp>
@@ -208,11 +209,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinu
   (JNIEnv *env, jobject, jlong native_ptr, jlong sync_session_ptr)
 {
     TR_ENTER_PTR(native_ptr)
-    Session* sync_session = SS(sync_session_ptr);
+    JNISession* sync_session = SS(sync_session_ptr);
     try {
         SharedGroup::version_type new_version = LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
         if (sync_session != NULL) { //sync enabled
-            sync_session->nonsync_transact_notify(new_version);
+            sync_session->get_session()->nonsync_transact_notify(new_version);
         }
     }
     CATCH_STD()

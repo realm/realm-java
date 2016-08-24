@@ -62,6 +62,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncC
         config.reconnect = sync::Client::Reconnect::immediately;
 
         sync::Client* m_sync_client = new sync::Client(config);
+        // TODO How to test this?
+        auto error_handler = [&](int error_code, std::string message) {
+            jstring error_message = sync_client_env->NewStringUTF(message.c_str())
+            sync_client_env->CallStaticVoidMethod(
+                sync_manager,
+                sync_manager_notify_error_handler,
+                error_code,
+                error_message
+            );
+            sync_client_env->DeleteLocalRef(error_message);
+        };
+        m_sync_client->set_error_handler(error_handler);
         sync_client_thread = new std::thread([m_sync_client](){
             //Attaching thread to Java so we can perform JNI calls
             JavaVMAttachArgs args;

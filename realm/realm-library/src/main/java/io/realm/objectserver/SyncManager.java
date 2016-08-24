@@ -11,12 +11,16 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseRealm;
 import io.realm.BuildConfig;
+import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
 
+import static io.realm.objectserver.Error.fromInt;
+
+@Keep
 public final class SyncManager {
 
     public static final String APP_ID = BuildConfig.APPLICATION_ID;
@@ -247,6 +251,13 @@ public final class SyncManager {
                         "to prevent this.");
             }
         }
+    }
+
+    // This is called for SyncManager.cpp from the worker thread the Sync Client is running on
+    private static void notifyErrorHandler(int errorCode, String errorMessage) {
+        Error error = Error.fromInt(errorCode);
+        globalErrorHandler.onError(error, errorMessage);
+        throw new RuntimeException("BOOM FROM JNI:" + error + errorMessage);
     }
 
     private static native long nativeCreateSyncClient();

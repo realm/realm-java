@@ -52,8 +52,13 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
         java_lang_double      = GetClass(env, "java/lang/Double");
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
+
+        // FIXME Move this to own library
         sync_manager          = GetClass(env, "io/realm/objectserver/SyncManager");
         sync_manager_notify_handler = env->GetStaticMethodID(sync_manager, "notifyHandlers", "(Ljava/lang/String;)V");
+        sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager, "notifyErrorHandler", "(ILjava/lang/String;)V");
+        session_class_ref     = GetClass(env, "io/realm/objectserver/session/Session");
+        session_error_handler = env->GetMethodID(session_class_ref, "notifySessionError", "(ILjava/lang/String;)V");
     }
 
     return JNI_VERSION_1_6;

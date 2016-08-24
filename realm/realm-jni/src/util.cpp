@@ -38,6 +38,9 @@ jclass java_lang_double;
 jmethodID java_lang_double_init;
 jclass sync_manager;
 jmethodID sync_manager_notify_handler;
+jmethodID sync_manager_notify_error_handler;
+jclass session_class_ref;
+jmethodID session_error_handler;
 
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
