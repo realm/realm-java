@@ -48,7 +48,8 @@ android {
                           // JNI build currently (lack of lto linking support).
                           // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
-                abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                // armeabi is not supported anymore.
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
             }
         }
     }
