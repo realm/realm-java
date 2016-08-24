@@ -109,7 +109,6 @@ public final class DynamicRealm extends BaseRealm {
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
-        //if (!sharedGroupManager.hasTable(Table.TABLE_PREFIX + className)) {
         if (!sharedRealm.hasTable(Table.TABLE_PREFIX + className)) {
             throw new IllegalArgumentException("Class does not exist in the Realm and cannot be queried: " + className);
         }
