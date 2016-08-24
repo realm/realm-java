@@ -856,7 +856,7 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 1000);
+        awaitOrFail(latch, 7);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
