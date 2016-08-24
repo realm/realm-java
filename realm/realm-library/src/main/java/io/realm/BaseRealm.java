@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
@@ -185,7 +184,6 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public abstract Observable asObservable();
 
     /**
@@ -321,13 +319,13 @@ abstract class BaseRealm implements Closeable {
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * realm.beginTransaction();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      *
      * // Do this instead
      * realm.beginTransaction();
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      * }
      * </pre>
      * <p>
@@ -346,15 +344,15 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, true, null);
+        commitTransaction(true, true);
     }
 
     /**
      * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
      * that.
      */
-    void commitAsyncTransaction(Runnable runAfterCommit) {
-        commitTransaction(false, false, runAfterCommit);
+    void commitAsyncTransaction() {
+        commitTransaction(false, false);
     }
 
     /**
@@ -363,15 +361,10 @@ abstract class BaseRealm implements Closeable {
      * other threads see the changes to majoyly avoid the flaky tests.
      *
      * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
-     * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads, Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads) {
         checkIfValid();
         sharedRealm.commitTransaction();
-
-        if (runAfterCommit != null)  {
-            runAfterCommit.run();
-        }
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();

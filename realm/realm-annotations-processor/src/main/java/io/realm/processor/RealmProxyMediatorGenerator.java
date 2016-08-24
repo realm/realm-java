@@ -305,21 +305,21 @@ public class RealmProxyMediatorGenerator {
                 .emitStatement("@SuppressWarnings(\"unchecked\") Class<RealmModel> clazz = (Class<RealmModel>) ((object instanceof RealmObjectProxy) ? object.getClass().getSuperclass() : object.getClass())")
                 .emitEmptyLine();
 
-                emitMediatorSwitch(new ProxySwitchStatement() {
-                    @Override
-                    public void emitStatement(int i, JavaWriter writer) throws IOException {
-                        writer.emitStatement("%s.insertOrUpdate(realm, (%s) object, cache)", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
-                    }
-                }, writer, false);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("%s.insertOrUpdate(realm, (%s) object, cache)", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
+            }
+        }, writer, false);
 
-                writer.beginControlFlow("if (iterator.hasNext())");
-                emitMediatorSwitch(new ProxySwitchStatement() {
-                    @Override
-                    public void emitStatement(int i, JavaWriter writer) throws IOException {
-                        writer.emitStatement("%s.insertOrUpdate(realm, iterator, cache)", qualifiedProxyClasses.get(i));
-                    }
-                }, writer, false);
-                writer.endControlFlow();
+        writer.beginControlFlow("if (iterator.hasNext())");
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("%s.insertOrUpdate(realm, iterator, cache)", qualifiedProxyClasses.get(i));
+            }
+        }, writer, false);
+        writer.endControlFlow();
         writer.endControlFlow();
 
         writer.endMethod();
@@ -346,21 +346,21 @@ public class RealmProxyMediatorGenerator {
                 .emitStatement("@SuppressWarnings(\"unchecked\") Class<RealmModel> clazz = (Class<RealmModel>) ((object instanceof RealmObjectProxy) ? object.getClass().getSuperclass() : object.getClass())")
                 .emitEmptyLine();
 
-                emitMediatorSwitch(new ProxySwitchStatement() {
-                    @Override
-                    public void emitStatement(int i, JavaWriter writer) throws IOException {
-                        writer.emitStatement("%s.insert(realm, (%s) object, cache)", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
-                    }
-                }, writer, false);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("%s.insert(realm, (%s) object, cache)", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
+            }
+        }, writer, false);
 
-            writer.beginControlFlow("if (iterator.hasNext())");
-            emitMediatorSwitch(new ProxySwitchStatement() {
-                @Override
-                public void emitStatement(int i, JavaWriter writer) throws IOException {
-                    writer.emitStatement("%s.insert(realm, iterator, cache)", qualifiedProxyClasses.get(i));
-                }
-            }, writer, false);
-            writer.endControlFlow();
+        writer.beginControlFlow("if (iterator.hasNext())");
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("%s.insert(realm, iterator, cache)", qualifiedProxyClasses.get(i));
+            }
+        }, writer, false);
+        writer.endControlFlow();
         writer.endControlFlow();
 
         writer.endMethod();

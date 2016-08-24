@@ -1288,7 +1288,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         return 0;
     }
 
-    std::vector<size_t> indices(S(arr_len));
+    std::vector<std::vector<size_t>> indices(S(arr_len));
     std::vector<bool> ascendings(S(arr_len));
 
     for (int i = 0; i < arr_len; ++i) {
@@ -1303,7 +1303,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_Double:
             case type_Float:
             case type_Timestamp:
-                indices[i] = S(long_arr[i]);
+                indices[i] = std::vector<size_t> { S(long_arr[i]) };
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
@@ -1313,7 +1313,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
     }
 
     try {
-        TableView* pTableView = new TableView(pTable->get_sorted_view(indices, ascendings));
+        TableView* pTableView = new TableView(pTable->get_sorted_view(SortDescriptor(*pTable, indices, ascendings)));
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
@@ -1350,17 +1350,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(
     return NULL;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeEquals(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong nativeTableToComparePtr)
-{
-    Table* tbl = TBL(nativeTablePtr);
-    Table* tblToCompare = TBL(nativeTableToComparePtr);
-    try {
-        return (*tbl == *tblToCompare);
-    } CATCH_STD()
-    return false;
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
     JNIEnv*, jobject, jlong nativeTablePtr)
 {
@@ -1383,10 +1372,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, j
     return 0;
 }
 
-
 // Checks if the primary key column contains any duplicate values, making it ineligible as a
 // primary key.
-bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws
+static bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws
 {
     size_t column_index = table->get_column_index(column_name);
     if (column_index == realm::not_found) {

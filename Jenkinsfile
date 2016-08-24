@@ -14,7 +14,7 @@ try {
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
-      buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+      buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android") {
         stage 'JVM tests'
         try {
           gradle 'assemble check javadoc'
@@ -93,7 +93,7 @@ try {
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
-  adb logcat > "logcat.txt" &
+  adb logcat -v time > "logcat.txt" &
   echo $! > pid
   '''
   return readFile("pid").trim()

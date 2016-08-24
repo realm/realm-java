@@ -630,15 +630,16 @@ public final class RealmObjectSchema {
             }
             return columnIndices;
         } else {
-            if (getFieldIndex(fieldDescription) == null) {
+            Long fieldIndex = getFieldIndex(fieldDescription);
+            if (fieldIndex == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldDescription));
             }
-            RealmFieldType tableColumnType = table.getColumnType(getFieldIndex(fieldDescription));
+            RealmFieldType tableColumnType = table.getColumnType(fieldIndex);
             if (checkColumnType && !isValidType(tableColumnType, validColumnTypes)) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
                         fieldDescription, tableColumnType, Arrays.toString(validColumnTypes)));
             }
-            return new long[] {getFieldIndex(fieldDescription)};
+            return new long[] {fieldIndex};
         }
     }
 
@@ -715,7 +716,8 @@ public final class RealmObjectSchema {
 
         @Override
         public Long get(Object key) {
-            return table.getColumnIndex((String) key);
+            long ret = table.getColumnIndex((String) key);
+            return ret < 0 ? null : ret;
         }
 
         @Override

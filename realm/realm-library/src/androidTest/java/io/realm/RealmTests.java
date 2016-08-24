@@ -3430,26 +3430,4 @@ public class RealmTests {
         TestHelper.awaitOrFail(bgRealmFished);
         assertFalse(bgRealmChangeResult.get());
     }
-
-    @Test
-    public void incompatibleLockFile() throws IOException {
-        // Replace .lock file with a corrupted one
-        File lockFile = new File(realmConfig.getPath() + ".lock");
-        assertTrue(lockFile.exists());
-        FileOutputStream fooStream = new FileOutputStream(lockFile, false);
-        fooStream.write("Boom".getBytes());
-        fooStream.close();
-
-        try {
-            // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
-            DynamicRealm.getInstance(realm.getConfiguration());
-            fail();
-        } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Realm file is currently open in another process which cannot" +
-                    " share access with this process." +
-                    " All processes sharing a single file must be the same architecture."));
-        } finally {
-            lockFile.delete();
-        }
-    }
 }

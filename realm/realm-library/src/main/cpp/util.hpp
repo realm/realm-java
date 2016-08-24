@@ -510,53 +510,21 @@ private:
     std::size_t m_size;
 };
 
-class JniByteArray {
-public:
-    JniByteArray(JNIEnv* env, jbyteArray arr)
-    : m_env(env)
-    , m_array(arr)
-    , m_size(arr ? env->GetArrayLength(m_array) : 0)
-    , m_ptr(arr ? env->GetByteArrayElements(m_array, NULL) : 0) {}
-
-    operator realm::BinaryData() const noexcept {
-        return realm::BinaryData(reinterpret_cast<const char *>(m_ptr), m_size);
-    }
-
-    operator std::vector<char>() const noexcept {
-        if (m_array == nullptr) {
-            return {};
-        }
-
-        std::vector<char> v(m_size);
-        std::copy_n(m_ptr, v.size(), v.begin());
-        return v;
-    }
-
-    ~JniByteArray() {
-        if (m_ptr)
-            m_env->ReleaseByteArrayElements(m_array, m_ptr, JNI_ABORT);
-    }
-
-private:
-    JNIEnv* m_env;
-    jbyteArray m_array;
-    jsize m_size;
-    jbyte* m_ptr;
-};
-
 class JniLongArray {
 public:
     JniLongArray(JNIEnv* env, jlongArray javaArray)
         : m_env(env)
         , m_javaArray(javaArray)
-        , m_arrayLength(env->GetArrayLength(javaArray))
-        , m_array(env->GetLongArrayElements(javaArray, NULL))
+        , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
+        , m_array(javaArray == NULL ? NULL : env->GetLongArrayElements(javaArray, NULL))
         , m_releaseMode(JNI_ABORT) {
     }
 
     ~JniLongArray()
     {
-        m_env->ReleaseLongArrayElements(m_javaArray, m_array, m_releaseMode);
+        if (m_array) {
+            m_env->ReleaseLongArrayElements(m_javaArray, m_array, m_releaseMode);
+        }
     }
 
     inline jsize len() const noexcept
@@ -587,19 +555,80 @@ private:
     jint             m_releaseMode;
 };
 
+class JniByteArray {
+public:
+    JniByteArray(JNIEnv* env, jbyteArray javaArray)
+        : m_env(env)
+        , m_javaArray(javaArray)
+        , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
+        , m_array(javaArray == NULL ? NULL : env->GetByteArrayElements(javaArray, NULL))
+        , m_releaseMode(JNI_ABORT) {
+    }
+
+    ~JniByteArray()
+    {
+        if (m_array) {
+            m_env->ReleaseByteArrayElements(m_javaArray, m_array, m_releaseMode);
+        }
+    }
+
+    inline jsize len() const noexcept
+    {
+        return m_arrayLength;
+    }
+
+    inline jbyte* ptr() const noexcept
+    {
+        return m_array;
+    }
+
+    inline jbyte& operator[](const int index) noexcept
+    {
+        return m_array[index];
+    }
+
+    inline operator realm::BinaryData() const noexcept {
+        return realm::BinaryData(reinterpret_cast<const char *>(m_array), m_arrayLength);
+    }
+
+    inline operator std::vector<char>() const noexcept {
+        if (m_array == nullptr) {
+            return {};
+        }
+
+        std::vector<char> v(m_arrayLength);
+        std::copy_n(m_array, v.size(), v.begin());
+        return v;
+    }
+
+    inline void updateOnRelease() noexcept
+    {
+        m_releaseMode = 0;
+    }
+
+private:
+    JNIEnv*    const m_env;
+    jbyteArray const m_javaArray;
+    jsize      const m_arrayLength;
+    jbyte*     const m_array;
+    jint             m_releaseMode;
+};
+
 class JniBooleanArray {
 public:
     JniBooleanArray(JNIEnv* env, jbooleanArray javaArray)
         : m_env(env)
         , m_javaArray(javaArray)
-        , m_arrayLength(env->GetArrayLength(javaArray))
-        , m_array(env->GetBooleanArrayElements(javaArray, NULL))
+        , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
+        , m_array(javaArray == NULL ? NULL : env->GetBooleanArrayElements(javaArray, NULL))
         , m_releaseMode(JNI_ABORT) {
     }
 
     ~JniBooleanArray()
     {
-        m_env->ReleaseBooleanArrayElements(m_javaArray, m_array, m_releaseMode);
+        if (m_array) {
+            m_env->ReleaseBooleanArrayElements(m_javaArray, m_array, m_releaseMode);
+        }
     }
 
     inline jsize len() const noexcept
