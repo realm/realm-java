@@ -2,11 +2,13 @@
 
 ### Breaking Changes
 
-* `isValid()` now returns always return `true` instead of `false` for unmanaged objects. This puts it in line with the behaviour from the Cocoa and .NET API's (#3101).
+* `isValid()` now always returns `true` instead of `false` for unmanaged objects. This puts it in line with the behaviour from the Cocoa and .NET API's (#3101).
 
 ### Enhancements
 
 * Added `realmObject.isManaged()` and `RealmObject.isManaged(obj)` (#3101).
+
+## 1.2.1
 
 ### Internal
 
