@@ -196,7 +196,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             proxyState.getRow$realm().nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
-        if (!RealmObject.isValid(value)) {
+        if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
         if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
@@ -225,7 +225,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return;
         }
         for (RealmModel linkedObject : (RealmList<? extends RealmModel>) value) {
-            if (!RealmObject.isValid(linkedObject)) {
+            if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject))) {
                 throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
             }
             if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {

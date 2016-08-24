@@ -365,7 +365,8 @@ public class RealmAsyncQueryTests {
         dog.setAge(10);
 
         assertTrue(dog.isLoaded());
-        assertFalse(dog.isValid());
+        assertTrue(dog.isValid());
+        assertFalse(dog.isManaged());
     }
 
     @Test
