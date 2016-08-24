@@ -13,6 +13,7 @@ try {
       sh 'git clean -ffdx -e .????????'
       // Use https url to work around the permission problem
       sh 'git config --file=.gitmodules submodule.realm/realm-library/src/main/cpp/object-store.url https://github.com/realm/realm-object-store.git'
+      sh 'git submodule sync'
       // Update submodule for object-store
       sh 'git submodule update --init --force'
 
