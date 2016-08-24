@@ -249,11 +249,12 @@ public abstract class RealmObject implements RealmModel {
      * the one that created them.
      *
      * If this method returns {@code false}, the object is unmanaged. An unmanaged object is just a normal Java object,
-     * so it can be parsed freely across threads, but the data in the object is not connected to the underlying data,
+     * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
      * so it will not be live updated.
      *
-     * It is possible to convert a object from managed to unmanaged using {@link Realm#copyFromRealm(RealmModel)}.
-     * A unmanaged object can be converted to a managed object using {@link Realm#copyToRealm(RealmModel)}.
+     * It is possible to create a managed object from an unmanaged object by using
+     * {@link Realm#copyFromRealm(RealmModel)}. A unmanaged object can be created from a managed object by using
+     * {@link Realm#copyToRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
      */
@@ -269,11 +270,12 @@ public abstract class RealmObject implements RealmModel {
      * than the one that created them.
      *
      * If this method returns {@code false}, the object is unmanaged. An unmanaged object is just a normal Java object,
-     * so it can be parsed freely across threads, but the data in the object is not connected to the underlying data,
+     * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
      * so it will not be live updated.
      *
-     * It is possible to convert a object from managed to unmanaged using {@link Realm#copyFromRealm(RealmModel)}.
-     * A unmanaged object can be converted to a managed object using {@link Realm#copyToRealm(RealmModel)}.
+     * It is possible to create a managed object from an unmanaged object by using
+     * {@link Realm#copyFromRealm(RealmModel)}. A unmanaged object can be created from a managed object by using
+     * {@link Realm#copyToRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
      */
