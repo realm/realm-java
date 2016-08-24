@@ -2,7 +2,7 @@
 
 ### Breaking Changes
 
-* `isValid()` now always returns `true` instead of `false` for unmanaged objects. This puts it in line with the behaviour from the Cocoa and .NET API's (#3101).
+* `isValid()` now always returns `true` instead of `false` for unmanaged objects. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
 
 ### Enhancements
 
