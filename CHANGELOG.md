@@ -1,3 +1,9 @@
+## 2.0.0
+
+### Breaking changes
+
+* armeabi is not supported anymore.
+
 ## 1.2.1
 
 ### Internal
