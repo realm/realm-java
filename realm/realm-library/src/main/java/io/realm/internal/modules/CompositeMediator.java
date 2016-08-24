@@ -66,9 +66,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema, SharedRealm sharedRealm) {
+    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.createRealmObjectSchema(clazz, realmSchema, sharedRealm);
+        return mediator.createRealmObjectSchema(clazz, realmSchema);
     }
 
     @Override

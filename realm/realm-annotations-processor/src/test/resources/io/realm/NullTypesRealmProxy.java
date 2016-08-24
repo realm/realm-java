@@ -524,9 +524,9 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return sharedRealm.getTable("class_NullTypes");
     }
 
-    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema, SharedRealm sharedRealm) {
+    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
         if (!realmSchema.hasObjectSchemaByName("NullTypes")) {
-            RealmObjectSchema realmObjectSchema = new RealmObjectSchema(sharedRealm, "NullTypes");
+            RealmObjectSchema realmObjectSchema = new RealmObjectSchema("NullTypes");
             realmObjectSchema.add(new Property("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
             realmObjectSchema.add(new Property("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
             realmObjectSchema.add(new Property("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
@@ -548,7 +548,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             realmObjectSchema.add(new Property("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
             realmObjectSchema.add(new Property("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
             if (!realmSchema.hasObjectSchemaByName("NullTypes")) {
-                NullTypesRealmProxy.createRealmObjectSchema(realmSchema, sharedRealm);
+                NullTypesRealmProxy.createRealmObjectSchema(realmSchema);
             }
             realmObjectSchema.add(new Property("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.getObjectSchemaByName("NullTypes")));
             return realmObjectSchema;

@@ -288,7 +288,7 @@ public final class Realm extends BaseRealm {
                 // Create and validate table
                 if (version == UNVERSIONED) {
                     //mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
-                    realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, realm.getSchema(), realm.sharedRealm));
+                    realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, realm.getSchema()));
                 }
                 //columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));

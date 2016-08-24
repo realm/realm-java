@@ -407,10 +407,10 @@ public class RealmProxyClassGenerator {
                 "RealmObjectSchema", // Return type
                 "createRealmObjectSchema", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "RealmSchema", "realmSchema", "SharedRealm", "sharedRealm"); // Argument type & argument name
+                "RealmSchema", "realmSchema"); // Argument type & argument name
 
         writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + this.simpleClassName + "\"))");
-        writer.emitStatement("RealmObjectSchema realmObjectSchema = new RealmObjectSchema(sharedRealm, \"" + this.simpleClassName + "\")");
+        writer.emitStatement("RealmObjectSchema realmObjectSchema = new RealmObjectSchema(\"" + this.simpleClassName + "\")");
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {
@@ -430,14 +430,14 @@ public class RealmProxyClassGenerator {
                         nullableFlag);
             } else if (Utils.isRealmModel(field)) {
                 writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + fieldTypeSimpleName + "\"))");
-                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema, sharedRealm)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.OBJECT, realmSchema.getObjectSchemaByName(\"%s\")))",
                         fieldName, fieldTypeSimpleName);
             } else if (Utils.isRealmList(field)) {
                 String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                 writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + genericTypeSimpleName +"\"))");
-                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema, sharedRealm)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.LIST, realmSchema.getObjectSchemaByName(\"%s\")))",
                         fieldName, fieldTypeSimpleName);
