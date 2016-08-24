@@ -12,7 +12,7 @@ try {
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
       // Update submodule for object-store
-      sh 'git submodule update --init'
+      sh 'git submodule update --init --force'
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
