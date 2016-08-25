@@ -149,7 +149,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
     /**
      * Checks if the collection is managed by Realm. A managed collection is just a wrapper around the data in the
      * underlying Realm file. On Looper threads, a managed collection will be live-updated so it always points to the
-     * latest data. Managed collections are thread confined so the they cannot be accessed from other threads than the
+     * latest data. Managed collections are thread confined so that they cannot be accessed from other threads than the
      * one that created them.
      * <p>
      *
