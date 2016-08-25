@@ -87,6 +87,8 @@ std::string num_to_string(T pNumber)
 
 // Exception handling
 enum ExceptionKind {
+    // FIXME: This is not something should be exposed to java, ClassNotFound is something we should
+    // crash hard in native code and fix it.
     ClassNotFound = 0,
     IllegalArgument,
     IndexOutOfBounds,
@@ -96,6 +98,7 @@ enum ExceptionKind {
     RuntimeError,
     BadVersion,
     IllegalState,
+    RealmFileError,
     // NOTE!!!!: Please also add test cases to io_realm_internal_TestUtil when introducing a
     // new exception kind.
     ExceptionKindMax // Always keep this as the last one!

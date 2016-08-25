@@ -72,6 +72,9 @@ throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
             if (should_throw)
                 ThrowException(env, IllegalState, "parm1");
             break;
+        // FIXME: This is difficult to test right now. Need to refactor the test.
+        // See https://github.com/realm/realm-java/issues/3348
+        // case RealmFileError:
         default:
             break;
     }

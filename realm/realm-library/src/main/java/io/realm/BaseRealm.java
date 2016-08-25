@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
@@ -228,6 +229,8 @@ abstract class BaseRealm implements Closeable {
      * the last transaction was committed.
      *
      * @param destination file to save the Realm to.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
+     * destination file.
      */
     public void writeCopyTo(File destination) {
         writeEncryptedCopyTo(destination, null);
@@ -245,6 +248,8 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws IllegalArgumentException if destination argument is null.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
+     * destination file.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) {
         if (destination == null) {

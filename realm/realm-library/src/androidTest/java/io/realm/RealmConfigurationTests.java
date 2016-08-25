@@ -43,7 +43,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
@@ -839,7 +839,8 @@ public class RealmConfigurationTests {
         try {
             Realm.getInstance(configuration);
             fail();
-        } catch (RealmIOException ignored) {
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
         }
     }
 

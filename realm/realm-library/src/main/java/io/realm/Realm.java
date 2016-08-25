@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.os.Build;
-import android.os.Looper;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -43,10 +42,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
@@ -151,7 +148,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      *         RealmObject classes or version has has changed so a migration is required.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -167,7 +164,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
      *         classes or version has has changed so a migration is required.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
@@ -221,7 +218,7 @@ public final class Realm extends BaseRealm {
                     migrateRealm(configuration);
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen
-                    throw new RealmIOException(fileNotFoundException);
+                    throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
                 }
             }
 
@@ -1389,7 +1386,9 @@ public final class Realm extends BaseRealm {
         try {
             return realmFile.getCanonicalPath();
         } catch (IOException e) {
-            throw new RealmIOException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                    "Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath(),
+                    e);
         }
     }
 
