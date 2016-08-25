@@ -140,7 +140,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
 
     /**
      * Checks if the collection is still valid to use, i.e., the {@link io.realm.Realm} instance hasn't been closed. It
-     * will always return {@code true} for unmanaged collection.
+     * will always return {@code true} for an unmanaged collection.
      *
      * @return {@code true} if it is still valid to use or an unmanaged collection, {@code false} otherwise.
      */
