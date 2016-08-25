@@ -1,8 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/flamingo</item>
+        <item name="colorPrimaryDark">@color/mulberry</item>
+        <item name="colorAccent">@color/peach</item>
+    </style>
+
+    <style name="AppTheme.Dark" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/flamingo</item>
+        <item name="colorPrimaryDark">@color/mulberry</item>
+        <item name="colorAccent">@color/peach</item>
+
+        <item name="android:windowBackground">@color/dove</item>
+
+        <item name="colorControlNormal">@color/elephant</item>
+        <item name="colorControlActivated">@color/charcoal</item>
+        <item name="colorControlHighlight">@color/charcoal</item>
+        <item name="android:textColorHint">@color/elephant</item>
+        <item name="android:editTextColor">@color/charcoal</item>
+
+        <item name="colorButtonNormal">@color/mulberry</item>
+        <!--<item name="android:colorButtonNormal">@color/primary_darker</item>-->
+    </style>
+
+    <style name="AppTheme.Dark.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="colorAccent">@color/white</item>
+        <item name="android:textColorPrimary">@color/iron</item>
+        <item name="android:background">@color/mulberry</item>
     </style>
 
 </resources>
+

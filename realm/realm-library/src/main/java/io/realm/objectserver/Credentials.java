@@ -70,21 +70,14 @@ public class Credentials {
     // Factory constructors
 
     /**
-     * Creates a credentials token based on a Facebook login.
+     * Creates credentials for a local user that is only know by this device.
+     * Loosing these credentials or the User once it has been authenticated means that the data stored in
+     * the Realm cannot be recovered.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using the Facebook SDK</a>
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using local credentials</a>
      */
-    public static Credentials fromFacebook(String facebookToken) {
-        return new Credentials(LoginType.FACEBOOK, facebookToken);
-    }
-
-    /**
-     * Creates a credentials token based on a Twitter login.
-     *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using the Twitter SDK</a>
-     */
-    public static Credentials fromTwitter(String twitterToken) {
-        return new Credentials(LoginType.TWITTER, twitterToken);
+    public static Credentials createLocal() {
+        return new Credentials(LoginType.LOCAL, UUID.randomUUID().toString());
     }
 
     /**
@@ -97,23 +90,12 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials for a local user that is only know by this device.
-     * Loosing these credentials or the User once it has been authenticated means that the data stored in
-     * the Realm cannot be recovered.
+     * Creates a credentials token based on a Facebook login.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using local credentials</a>
+     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using the Facebook SDK</a>
      */
-    public static Credentials createAnonymous() {
-        return new Credentials(LoginType.LOCAL, UUID.randomUUID().toString());
-    }
-
-    /**
-     * Creates a credentials token based on a Google login.
-     *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using username and password</a>
-     */
-    public static Credentials fromGoogle(String googleToken) {
-        return new Credentials(LoginType.GOOGLE, googleToken);
+    public static Credentials fromFacebook(String facebookToken) {
+        return new Credentials(LoginType.FACEBOOK, facebookToken);
     }
 
     private Credentials(LoginType type, String token) {
@@ -144,7 +126,6 @@ public class Credentials {
      */
     public String getField1() {
         return field1;
-
     }
 
     /**

@@ -36,6 +36,7 @@ import io.realm.examples.intro.model.Person;
 import io.realm.exceptions.ObjectServerException;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 
 public class ObjectServerExampleActivity extends Activity {
@@ -67,7 +68,7 @@ public class ObjectServerExampleActivity extends Activity {
             public void onSuccess(User user) {
                 SyncConfiguration config = new SyncConfiguration.Builder(ObjectServerExampleActivity.this)
                         .user(user)
-                        .serverUrl("realm://127.0.0.1/~/default.realm")
+                        .serverUrl("realm://127.0.0.1/~/default")
                         .build();
 
                 Realm realm = Realm.getInstance(config);

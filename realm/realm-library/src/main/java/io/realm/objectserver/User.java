@@ -58,13 +58,32 @@ public class User {
     private Map<SyncConfiguration, Token> accessTokens = new HashMap<SyncConfiguration, Token>();
 
     /**
+     * Load a user that has previously been saved using {@link #toJson()}.
+     *
+     * @param user Json string representing the user.
+     *
+     * @return the user object.
+     */
+    public static User fromJson(String user) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    public static void save(String key);
+    public
+
+
+    public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
+        return null; // TODO
+    }
+
+    /**
      * Login the user on the Realm Object Server
      *
      * @param credentials Credentials to use
      * @param authentificationUrl URL to authenticateUser against
      * @param callback Callback when login has completed or failed. This callback will always happen on the UI thread.
      */
-    public static void authenticate(final Credentials credentials, final URL authentificationUrl, final Callback callback) {
+    public static void login(final Credentials credentials, final URL authentificationUrl, final Callback callback) {
         // TODO Where should the callback happen? Only allow callbacks on Handler threads? Then we need a variant
         // that blocks on a background thread.
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -111,19 +130,6 @@ public class User {
         });
         authenticateTask = new RealmAsyncTask(authenticateRequest, SyncManager.NETWORK_POOL_EXECUTOR);
     }
-
-
-    /**
-     * Load a user that has previously been saved using {@link #toJson()}.
-     *
-     * @param user Json string representing the user.
-     *
-     * @return the user object.
-     */
-    public static User fromJson(String user) {
-        return null;
-    }
-
 
     private User(String identifier, Token refreshToken, URL authentificationUrl) {
         this.identifier = identifier;
@@ -190,10 +196,6 @@ public class User {
         return refreshToken != null && refreshToken.expires() < System.currentTimeMillis();
     }
 
-
-    public User authenticate(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
-        return null; // TODO
-    }
 
     public void logout() {
         // TODO Stop any session

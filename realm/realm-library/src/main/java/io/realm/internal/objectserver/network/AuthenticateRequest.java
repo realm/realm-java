@@ -25,7 +25,7 @@ public class AuthenticateRequest {
     private final String path;
 
     /**
-     * Generates a proper authenticate request for a new user.
+     * Generates a proper login request for a new user.
      */
     public static AuthenticateRequest fromCredentials(Credentials credentials) {
         if (credentials == null) {
