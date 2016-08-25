@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.annotation.TargetApi;
+import android.app.IntentService;
 import android.os.Build;
 import android.os.Looper;
 import android.util.JsonReader;
@@ -42,6 +43,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import io.realm.RealmObject;
+import io.realm.RealmQuery;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -126,11 +129,10 @@ public final class Realm extends BaseRealm {
      * The constructor is private to enforce the use of the static one.
      *
      * @param configuration the {@link RealmConfiguration} used to open the Realm.
-     * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      */
-    Realm(RealmConfiguration configuration, boolean autoRefresh) {
-        super(configuration, autoRefresh);
+    Realm(RealmConfiguration configuration) {
+        super(configuration);
     }
 
     /**
@@ -228,8 +230,7 @@ public final class Realm extends BaseRealm {
     }
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
-        boolean autoRefresh = Looper.myLooper() != null;
-        Realm realm = new Realm(configuration, autoRefresh);
+        Realm realm = new Realm(configuration);
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
@@ -288,7 +289,7 @@ public final class Realm extends BaseRealm {
             }
         } finally {
             if (commitNeeded) {
-                realm.commitTransaction(false, true, null);
+                realm.commitTransaction(false, true);
             } else {
                 realm.cancelTransaction();
             }
@@ -1061,7 +1062,7 @@ public final class Realm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper Thread.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
@@ -1186,15 +1187,11 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitAsyncTransaction(new Runnable() {
-                            @Override
-                            public void run() {
-                                // The bgRealm needs to be closed before post event to caller's handler to avoid
-                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
-                                // This will close Realm before sending REALM_CHANGED.
-                                bgRealm.close();
-                            }
-                        });
+                        bgRealm.commitAsyncTransaction();
+                        // The bgRealm needs to be closed before posting the REALM_CHANGED event to the caller's handler
+                        // to avoid currency problems. This is currently guaranteed by posting
+                        // handleAsyncTransactionCompleted below.
+                        bgRealm.close();
                         transactionCommitted = true;
                     }
                 } catch (final Throwable e) {

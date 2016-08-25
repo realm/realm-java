@@ -319,6 +319,20 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    // Query for Binary values.
+
+    public TableQuery equalTo(long[] columnIndices, byte[] value) {
+        nativeEqual(nativePtr, columnIndices, value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(long[] columnIndices, byte[] value) {
+        nativeNotEqual(nativePtr, columnIndices, value);
+        queryValidated = false;
+        return this;
+    }
+
     // Query for String values.
 
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
@@ -724,6 +738,8 @@ public class TableQuery implements NativeObject {
     private native void nativeLessTimestamp(long nativeQueryPtr, long columnIndex[], long value);
     private native void nativeLessEqualTimestamp(long nativeQueryPtr, long columnIndex[], long value);
     private native void nativeBetweenTimestamp(long nativeQueryPtr, long columnIndex[], long value1, long value2);
+    private native void nativeEqual(long nativeQueryPtr, long[] columnIndices, byte[] value);
+    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndices, byte[] value);
     private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
     private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
     private native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
