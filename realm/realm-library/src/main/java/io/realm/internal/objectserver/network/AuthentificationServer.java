@@ -16,7 +16,7 @@ import io.realm.objectserver.Credentials;
  * {@link NetworkRequest#run(OkHttpNetworkRequest.Callback)}.
  */
 public interface AuthentificationServer {
-    AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl);
+    AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl, boolean createUser);
     AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authentificationUrl);
     RefreshResponse refresh(String token, URL authentificationUrl);
 }

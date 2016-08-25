@@ -27,7 +27,7 @@ public class AuthenticateRequest {
     /**
      * Generates a proper login request for a new user.
      */
-    public static AuthenticateRequest fromCredentials(Credentials credentials) {
+    public static AuthenticateRequest fromCredentials(Credentials credentials, boolean createUser) {
         if (credentials == null) {
            throw new IllegalArgumentException("Non-null credentials required.");
         }
@@ -35,7 +35,7 @@ public class AuthenticateRequest {
         String data;
         String appId = SyncManager.APP_ID;
         Map<String, Object> userInfo = new HashMap<String, Object>();
-//        userInfo.put("register", true); // FIXME: Determine the semantics for this.
+        userInfo.put("register", createUser);
 
         switch (credentials.getLoginType()) {
             case FACEBOOK:

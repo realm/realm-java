@@ -19,7 +19,9 @@ package io.realm.objectserver;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.telecom.Call;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +53,7 @@ public class User {
     private static final long REFRESH_WINDOW_MS = TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
     private static RealmAsyncTask authenticateTask;
     private static RealmAsyncTask refreshTask;
+    private static volatile User currentUser;
 
     private final String identifier;
     private Token refreshToken;
@@ -68,11 +71,11 @@ public class User {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
-    public static void save(String key);
-    public
-
-
     public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
+        return null; // TODO
+    }
+
+    public static User createUserAndLogin(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
         return null; // TODO
     }
 
@@ -80,10 +83,26 @@ public class User {
      * Login the user on the Realm Object Server
      *
      * @param credentials Credentials to use
-     * @param authentificationUrl URL to authenticateUser against
+     * @param authenticationUrl URL to authenticateUser against
      * @param callback Callback when login has completed or failed. This callback will always happen on the UI thread.
+     * @throws IllegalArgumentException
      */
-    public static void login(final Credentials credentials, final URL authentificationUrl, final Callback callback) {
+    public static void login(final Credentials credentials, final String authenticationUrl, final Callback callback) {
+        authenticate(credentials, false, authenticationUrl, callback);
+    }
+
+    public static void createUserAndLogin(Credentials credentials, String authenticationUrl, Callback callback) {
+        authenticate(credentials, true, authenticationUrl, callback);
+    }
+
+    private static void authenticate(final Credentials credentials, final boolean createUser, String authentificationUrl, final Callback callback) {
+        final URL authUrl;
+        try {
+            authUrl = new URL(authentificationUrl);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid URL", e);
+        }
+
         // TODO Where should the callback happen? Only allow callbacks on Handler threads? Then we need a variant
         // that blocks on a background thread.
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -94,9 +113,9 @@ public class User {
             public void run() {
                 // Don't retry authenticateUser requests. The app might want to respond to errors.
                 try {
-                    AuthenticateResponse result = server.authenticateUser(credentials, authentificationUrl);
+                    AuthenticateResponse result = server.authenticateUser(credentials, authUrl, createUser);
                     if (result.isValid()) {
-                        User user = new User(result.getIdentifier(), result.getRefreshToken(), authentificationUrl);
+                        User user = new User(result.getIdentifier(), result.getRefreshToken(), authUrl);
                         postSuccess(user);
                     } else {
                         postError(result.getError(), result.getErrorMessage());
