@@ -49,7 +49,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     }
     catch (CrossTableLinkTarget& e) {
         ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, CrossTableLink, ss.str());
+        ThrowException(env, IllegalState, ss.str());
     }
     catch (SharedGroup::BadVersion& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -96,39 +96,9 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = "Class '" + classStr + "' could not be located.";
             break;
 
-        case NoSuchField:
-            jExceptionClass = env->FindClass("java/lang/NoSuchFieldException");
-            message = "Field '" + itemStr + "' could not be located in class io.realm." + classStr;
-            break;
-
-        case NoSuchMethod:
-            jExceptionClass = env->FindClass("java/lang/NoSuchMethodException");
-            message = "Method '" + itemStr + "' could not be located in class io.realm." + classStr;
-            break;
-
         case IllegalArgument:
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
             message = "Illegal Argument: " + classStr;
-            break;
-
-        case TableInvalid:
-            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
-            message = "Illegal State: " + classStr;
-            break;
-
-        case IOFailed:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
-            message = "Failed to open " + classStr + ". " + itemStr;
-            break;
-
-        case FileNotFound:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
-            message = "File not found: " + classStr + ".";
-            break;
-
-        case FileAccessError:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
-            message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
         case IndexOutOfBounds:
@@ -156,23 +126,8 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = classStr;
             break;
 
-        case RowInvalid:
-            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
-            message = "Illegal State: " + classStr;
-            break;
-
-        case CrossTableLink:
-            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
-            message = "This class is referenced by other classes. Remove those fields first before removing this class.";
-            break;
-
         case BadVersion:
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
-            message = classStr;
-            break;
-
-        case LockFileError:
-            jExceptionClass = env->FindClass("io/realm/exceptions/IncompatibleLockFileException");
             message = classStr;
             break;
 
@@ -180,6 +135,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = classStr;
             break;
+
         // Should never get here.
         case ExceptionKindMax:
         default:
