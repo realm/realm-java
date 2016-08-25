@@ -72,7 +72,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
 
-    BaseRealm realm;
+    final BaseRealm realm;
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
@@ -158,7 +158,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     public boolean isValid() {
-        return realm != null && !realm.isClosed();
+        return !realm.isClosed();
+    }
+
+    /**
+     * A {@link RealmResults} is always a managed collection.
+     *
+     * @return {@code true}.
+     * @see RealmCollection#isManaged()
+     */
+    public boolean isManaged() {
+        return true;
     }
 
     /**

@@ -276,7 +276,7 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field));
                     writer.emitStatement("return");
                 writer.endControlFlow();
-                writer.beginControlFlow("if (!RealmObject.isValid(value))");
+                writer.beginControlFlow("if (!(RealmObject.isManaged(value) && RealmObject.isValid(value)))");
                     writer.emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")");
                 writer.endControlFlow();
                 writer.beginControlFlow("if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");
@@ -315,7 +315,7 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("return");
                 writer.endControlFlow();
                 writer.beginControlFlow("for (RealmModel linkedObject : (RealmList<? extends RealmModel>) value)");
-                    writer.beginControlFlow("if (!RealmObject.isValid(linkedObject))");
+                    writer.beginControlFlow("if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject)))");
                         writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")");
                     writer.endControlFlow();
                     writer.beginControlFlow("if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())");

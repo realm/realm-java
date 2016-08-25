@@ -724,6 +724,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case MIN_DATE:
                 case MAX_DATE:
                 case IS_VALID:
+                case IS_MANAGED:
                     realm.cancelTransaction();
                     continue;
                 default:

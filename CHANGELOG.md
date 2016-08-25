@@ -1,8 +1,18 @@
+## 2.0.0
+
+### Breaking Changes
+
+* `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
+
+### Enhancements
+
+* Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
+
 ## 1.2.1
 
 ### Internal
 
-* Move JNI build to CMake.
+* Moved JNI build to CMake.
 
 ## 1.2.0
 
