@@ -21,9 +21,6 @@ import android.test.AndroidTestCase;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
-
-// Tables get detached
-
 public class JNICloseTest extends AndroidTestCase {
 
     /**

@@ -1902,10 +1902,10 @@ public class RealmTests {
 
     @Test
     public void writeEncryptedCopyTo_wrongKeyLength() {
-        byte[]  wrongLentKey = new byte[42];
+        byte[]  wrongLengthKey = new byte[42];
         File destination = new File(configFactory.getRoot(), "wrong_key.realm");
         thrown.expect(IllegalArgumentException.class);
-        realm.writeEncryptedCopyTo(destination, wrongLentKey);
+        realm.writeEncryptedCopyTo(destination, wrongLengthKey);
     }
 
     @Test
