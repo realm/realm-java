@@ -1319,8 +1319,8 @@ public final class Realm extends BaseRealm {
         if (realmObject == null) {
             throw new IllegalArgumentException("Null objects cannot be copied from Realm.");
         }
-        if (!RealmObject.isValid(realmObject)) {
-            throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
+        if (!(RealmObject.isManaged(realmObject) && RealmObject.isValid(realmObject))) {
+            throw new IllegalArgumentException("Only valid managed objects can be copied from Realm.");
         }
         if (realmObject instanceof DynamicRealmObject) {
             throw new IllegalArgumentException("DynamicRealmObject cannot be copied from Realm.");
