@@ -86,26 +86,19 @@ std::string num_to_string(T pNumber)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling
-// FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
 enum ExceptionKind {
+    // FIXME: This is not something should be exposed to java, ClassNotFound is something we should
+    // crash hard in native code and fix it.
     ClassNotFound = 0,
-    NoSuchField,
-    NoSuchMethod,
     IllegalArgument,
-    IOFailed,
-    FileNotFound,
-    FileAccessError,
     IndexOutOfBounds,
-    TableInvalid,
     UnsupportedOperation,
     OutOfMemory,
     FatalError,
     RuntimeError,
-    RowInvalid,
-    CrossTableLink,
     BadVersion,
-    LockFileError,
     IllegalState,
+    RealmFileError,
     // NOTE!!!!: Please also add test cases to io_realm_internal_TestUtil when introducing a
     // new exception kind.
     ExceptionKindMax // Always keep this as the last one!
@@ -220,7 +213,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     }
     if (!valid) {
         TR_ERR("Table %p is no longer attached!", VOID_PTR(objPtr))
-        ThrowException(env, TableInvalid, "Table is no longer valid to operate on.");
+        ThrowException(env, IllegalState, "Table is no longer valid to operate on.");
     }
     return valid;
 }
@@ -230,7 +223,7 @@ inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
         TR_ERR("Row %p is no longer attached!", VOID_PTR(rowPtr))
-        ThrowException(env, RowInvalid, "Object is no longer valid to operate on. Was it deleted by another thread?");
+        ThrowException(env, IllegalState, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
 }

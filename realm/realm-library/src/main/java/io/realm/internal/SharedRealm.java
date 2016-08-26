@@ -24,6 +24,14 @@ import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
 
+    // Const value for RealmFileException conversion
+    public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
+    public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 1;
+    public static final byte FILE_EXCEPTION_KIND_EXISTS = 2;
+    public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 3;
+    public static final byte FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE = 4;
+    public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);

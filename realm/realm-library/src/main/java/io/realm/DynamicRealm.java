@@ -19,7 +19,7 @@ package io.realm;
 import android.app.IntentService;
 
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -57,7 +57,7 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @return the DynamicRealm defined by the configuration.
      * @see RealmConfiguration for details on how to configure a Realm.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {

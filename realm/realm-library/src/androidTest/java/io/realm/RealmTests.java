@@ -40,7 +40,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -85,9 +84,8 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.log.RealmLog;
@@ -209,8 +207,11 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+        }
     }
 
     @Test
@@ -222,8 +223,11 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+        }
     }
 
     @Test

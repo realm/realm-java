@@ -18,7 +18,6 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Table.h"
-#include "java_lang_List_Util.hpp"
 #include "tablebase_tpl.hpp"
 
 using namespace std;
@@ -1545,7 +1544,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
     bool valid = (TBL(nativeTablePtr) != NULL);
     if (valid) {
         if (!TBL(nativeTablePtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return 0;
         }
     }
