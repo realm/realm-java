@@ -17,7 +17,6 @@
 package io.realm.objectserver;
 
 import android.content.Context;
-import android.net.Uri;
 
 import java.io.File;
 import java.net.URI;
@@ -26,13 +25,9 @@ import java.net.URISyntaxException;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
-import io.realm.objectserver.session.Session;
 import io.realm.objectserver.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
 import io.realm.rx.RxObservableFactory;
-
-import static android.R.attr.id;
-import static android.R.attr.path;
 
 /**
  * An {@link SyncConfiguration} is used to setup a replicated .
@@ -78,7 +73,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         this.errorHandler = builder.errorHandler;
 
         // Determine location on disk
-        // Use the objectServerUrl + user to create a unique filepath unless it has been explicitly overridden.
+        // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
         this.realmFolder = builder.defaultFolder; // TODO Add support for overriding default folder
         this.realmFileName = builder.overrideDefaultLocalFileName ? getRealmFileName() : builder.defaultLocalFileName;
         this.canonicalPath = getCanonicalPath(new File(realmFolder, realmFileName));
@@ -182,7 +177,7 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the local filename for the Realm.
-         * This will override the default name defined by the {@link #objectServerUrl(String)}
+         * This will override the default name defined by the {@link #serverUrl(String)}
          *
          * @param name name of the local file on disk.
          */
@@ -195,7 +190,7 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the local directory where the Realm file can be saved.
-         * This will override the default location defined by the {@link #objectServerUrl(String)}
+         * This will override the default location defined by the {@link #serverUrl(String)}
          * <p>
          * <b>WARNING:</b> Overriding the default location should be done with extreme care. If two users write
          * to the same locale Realm, it can no longer be synchronized with the remote Realm.
@@ -306,7 +301,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @param url URL identifying the Realm.
          * @throws IllegalArgumentException if the URL is not valid.
          */
-        public Builder objectServerUrl(String url) {
+        public Builder serverUrl(String url) {
             try {
                 this.serverUrl = new URI(url);
             } catch (URISyntaxException e) {

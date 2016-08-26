@@ -31,13 +31,20 @@ public class AuthenticateResponse {
         try {
             serverResponse = response.body().string();
         } catch (IOException e) {
-            return new AuthenticateResponse(Error.OTHER_ERROR, "Failed to read response: " + Util.getStackTrace(e));
+            return new AuthenticateResponse(Error.IO_ERROR, "Failed to read response." + Util.getStackTrace(e));
         }
-
-        RealmLog.d("Authenticate response:" + serverResponse);
-
+        RealmLog.d("Authenticate response: " + serverResponse);
         if (response.code() != 200) {
-            return new AuthenticateResponse(Error.UNKNOWN_MESSAGE, response.code() + ":" + serverResponse);
+            try {
+                JSONObject obj = new JSONObject(serverResponse);
+                String type = obj.getString("type");
+                String hint = obj.getString("hint");
+                Error error = Error.fromAuthError(type);
+                return new AuthenticateResponse(error, hint);
+            } catch (JSONException e) {
+                return new AuthenticateResponse(Error.UNEXPECTED_JSON_FORMAT, "Server failed with " + response.code() +
+                        ", but could not parse error." + Util.getStackTrace(e));
+            }
         } else {
             return new AuthenticateResponse(serverResponse);
         }

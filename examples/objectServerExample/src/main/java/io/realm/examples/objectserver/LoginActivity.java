@@ -11,8 +11,11 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.objectserver.Credentials;
+import io.realm.objectserver.Error;
 import io.realm.objectserver.User;
 import io.realm.objectserver.util.UserStore;
+
+import static io.realm.objectserver.Error.UNKNOWN_ACCOUNT;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -65,14 +68,25 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onSuccess(User user) {
                 progressDialog.dismiss();
-                userStore.save(MyApplication.APP_USER_KEY, user); // TODO Use Async
+                userStore.saveAsync(MyApplication.APP_USER_KEY, user); // TODO Use Async
                 userStore.setCurrentUser(user);
                 onLoginSuccess();
             }
 
             @Override
-            public void onError(int errorCode, String errorMsg) {
+            public void onError(Error error, String errorMessage) {
                 progressDialog.dismiss();
+                String errorMsg;
+                switch (error) {
+                    case UNKNOWN_ACCOUNT:
+                        errorMsg = "Account does not exists.";
+                        break;
+                    case INVALID_CREDENTIALS:
+                        errorMsg = "User name and password does not match";
+                        break;
+                    default:
+                        errorMsg = "Unknown error. Try again";
+                }
                 onLoginFailed(errorMsg);
             }
         };

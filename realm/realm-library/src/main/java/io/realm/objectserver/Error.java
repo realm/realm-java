@@ -1,5 +1,7 @@
 package io.realm.objectserver;
 
+import static android.R.attr.path;
+
 public enum Error {
 
     // See https://github.com/realm/realm-sync/issues/585
@@ -104,11 +106,20 @@ public enum Error {
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
     }
 
-    public static Error fromAuthType(String type) {
-        return null;
+    public static Error fromAuthError(String type) {
+        switch(type) {
+            case "https://realm.io/docs/object-server/problems/invalid-credentials" : return Error.INVALID_CREDENTIALS;
+            case "https://realm.io/docs/object-server/problems/unknown-account" : return Error.UNKNOWN_ACCOUNT;
+            case "https://realm.io/docs/object-server/problems/existing-account" : return Error.EXISTING_ACCOUNT;
+            case "https://realm.io/docs/object-server/problems/access-denied" : return Error.ACCESS_DENIED;
+            case "https://realm.io/docs/object-server/problems/expired-refresh-token" : return Error.EXPIRED_REFRESH_TOKEN;
+            case "https://realm.io/docs/object-server/problems/internal-server-error" : return Error.INTERNAL_SERVER_ERROR;
+            default:
+                return Error.UNEXPECTED_JSON_FORMAT;
+        }
     }
 
-    public enum Category {
+public enum Category {
         FATAL,          // Abort session as soon as possible
         RECOVERABLE,    // Still possible to recover by providing additional information to the session
         INFO            // Just FYI. The underlying network client will automatically try to recover.
