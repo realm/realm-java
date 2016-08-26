@@ -153,6 +153,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClose(
     JNIEnv*, jclass, jlong nativeViewPtr)
 {
+    TR_ENTER_PTR(nativeViewPtr)
     finalize_table_view(nativeViewPtr);
 }
 
@@ -980,8 +981,9 @@ static void finalize_table_view(jlong ptr)
     delete TV(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetFinalizer
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetFinalizerPtr
   (JNIEnv *, jclass)
 {
+    TR_ENTER()
     return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_table_view));
 }

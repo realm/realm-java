@@ -26,7 +26,7 @@ public class TableQuery implements NativeObject {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
-    private static final long nativeFinalizerPtr = nativeGetFinalizer();
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     protected final Table table;
     // Don't convert this into local variable and don't remove this.
     // Core requests Query to hold the TableView reference which it is built from.
@@ -63,12 +63,12 @@ public class TableQuery implements NativeObject {
     }
 
     @Override
-    public long getNativePointer() {
+    public long getNativePtr() {
         return nativePtr;
     }
 
     @Override
-    public long getNativeFinalizer() {
+    public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
     }
 
@@ -776,5 +776,5 @@ public class TableQuery implements NativeObject {
     public static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedGroupPtr);
     public static native void nativeCloseQueryHandover(long nativePtr);
     public static native long[] nativeBatchUpdateQueries(long bgSharedGroupPtr, long[] handoverQueries, long[][] parameters, long[][] queriesParameters, boolean[][] multiSortOrder) throws BadVersionException;
-    private static native long nativeGetFinalizer();
+    private static native long nativeGetFinalizerPtr();
 }

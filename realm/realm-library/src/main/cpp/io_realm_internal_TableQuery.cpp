@@ -49,6 +49,7 @@ const char* ERR_SORT_NOT_SUPPORTED = "Sort is not supported on binary data, obje
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr)
 {
+    TR_ENTER_PTR(nativeQueryPtr)
     finalize_table_query(nativeQueryPtr);
 }
 
@@ -1916,9 +1917,10 @@ static void finalize_table_query(jlong ptr)
     delete Q(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizer
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr
   (JNIEnv *, jclass)
 {
+    TR_ENTER()
     return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_table_query));
 }
 

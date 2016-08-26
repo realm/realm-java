@@ -22,6 +22,6 @@ package io.realm.internal;
  * All Java classes wrapping a core class should implement NativeObject.
  */
 interface NativeObject {
-    long getNativePointer();
-    long getNativeFinalizer();
+    long getNativePtr();
+    long getNativeFinalizerPtr();
 }

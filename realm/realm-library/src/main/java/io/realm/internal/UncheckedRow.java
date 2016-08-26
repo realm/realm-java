@@ -33,13 +33,13 @@ public class UncheckedRow implements NativeObject, Row {
 
     final Context context; // This is only kept because for now it's needed by the constructor of LinkView
     private final Table parent;
-    private final long nativePointer;
-    private static final long nativeFinalizerPointer = nativeGetFinalizer();
+    private final long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     UncheckedRow(Context context, Table parent, long nativePtr) {
         this.context = context;
         this.parent = parent;
-        this.nativePointer = nativePtr;
+        this.nativePtr = nativePtr;
         context.addReference(this);
     }
 
@@ -48,18 +48,18 @@ public class UncheckedRow implements NativeObject, Row {
     UncheckedRow(UncheckedRow row) {
         this.context = row.context;
         this.parent = row.parent;
-        this.nativePointer = row.nativePointer;
+        this.nativePtr = row.nativePtr;
         // The destruction is handled by the source UncheckedRow. No need to add to the ref pool.
     }
 
     @Override
-    public long getNativePointer() {
-        return nativePointer;
+    public long getNativePtr() {
+        return nativePtr;
     }
 
     @Override
-    public long getNativeFinalizer() {
-        return nativeFinalizerPointer;
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     /**
@@ -96,18 +96,18 @@ public class UncheckedRow implements NativeObject, Row {
      * @return an instance of Row for the LinkView and index specified.
      */
     static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePointer(), index);
+        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
         return new UncheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
 
     @Override
     public long getColumnCount() {
-        return nativeGetColumnCount(nativePointer);
+        return nativeGetColumnCount(nativePtr);
     }
 
     @Override
     public String getColumnName(long columnIndex) {
-        return nativeGetColumnName(nativePointer, columnIndex);
+        return nativeGetColumnName(nativePtr, columnIndex);
     }
 
 
@@ -116,12 +116,12 @@ public class UncheckedRow implements NativeObject, Row {
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
         }
-        return nativeGetColumnIndex(nativePointer, columnName);
+        return nativeGetColumnIndex(nativePtr, columnName);
     }
 
     @Override
     public RealmFieldType getColumnType(long columnIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePointer, columnIndex));
+        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
 
     // Getters
@@ -133,57 +133,57 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public long getIndex() {
-        return nativeGetIndex(nativePointer);
+        return nativeGetIndex(nativePtr);
     }
 
     @Override
     public long getLong(long columnIndex) {
-        return nativeGetLong(nativePointer, columnIndex);
+        return nativeGetLong(nativePtr, columnIndex);
     }
 
     @Override
     public boolean getBoolean(long columnIndex) {
-        return nativeGetBoolean(nativePointer, columnIndex);
+        return nativeGetBoolean(nativePtr, columnIndex);
     }
 
     @Override
     public float getFloat(long columnIndex) {
-        return nativeGetFloat(nativePointer, columnIndex);
+        return nativeGetFloat(nativePtr, columnIndex);
     }
 
     @Override
     public double getDouble(long columnIndex) {
-        return nativeGetDouble(nativePointer, columnIndex);
+        return nativeGetDouble(nativePtr, columnIndex);
     }
 
     @Override
     public Date getDate(long columnIndex) {
-        return new Date(nativeGetTimestamp(nativePointer, columnIndex));
+        return new Date(nativeGetTimestamp(nativePtr, columnIndex));
     }
 
     @Override
     public String getString(long columnIndex) {
-        return nativeGetString(nativePointer, columnIndex);
+        return nativeGetString(nativePtr, columnIndex);
     }
 
     @Override
     public byte[] getBinaryByteArray(long columnIndex) {
-        return nativeGetByteArray(nativePointer, columnIndex);
+        return nativeGetByteArray(nativePtr, columnIndex);
     }
 
     @Override
     public long getLink(long columnIndex) {
-        return nativeGetLink(nativePointer, columnIndex);
+        return nativeGetLink(nativePtr, columnIndex);
     }
 
     @Override
     public boolean isNullLink(long columnIndex) {
-        return nativeIsNullLink(nativePointer, columnIndex);
+        return nativeIsNullLink(nativePtr, columnIndex);
     }
 
     @Override
     public LinkView getLinkList(long columnIndex) {
-        long nativeLinkViewPtr = nativeGetLinkView(nativePointer, columnIndex);
+        long nativeLinkViewPtr = nativeGetLinkView(nativePtr, columnIndex);
         return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
     }
 
@@ -193,25 +193,25 @@ public class UncheckedRow implements NativeObject, Row {
     public void setLong(long columnIndex, long value) {
         parent.checkImmutable();
         getTable().checkIntValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetLong(nativePointer, columnIndex, value);
+        nativeSetLong(nativePtr, columnIndex, value);
     }
 
     @Override
     public void setBoolean(long columnIndex, boolean value) {
         parent.checkImmutable();
-        nativeSetBoolean(nativePointer, columnIndex, value);
+        nativeSetBoolean(nativePtr, columnIndex, value);
     }
 
     @Override
     public void setFloat(long columnIndex, float value) {
         parent.checkImmutable();
-        nativeSetFloat(nativePointer, columnIndex, value);
+        nativeSetFloat(nativePtr, columnIndex, value);
     }
 
     @Override
     public void setDouble(long columnIndex, double value) {
         parent.checkImmutable();
-        nativeSetDouble(nativePointer, columnIndex, value);
+        nativeSetDouble(nativePtr, columnIndex, value);
     }
 
     @Override
@@ -221,7 +221,7 @@ public class UncheckedRow implements NativeObject, Row {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
         long timestamp = date.getTime();
-        nativeSetTimestamp(nativePointer, columnIndex, timestamp);
+        nativeSetTimestamp(nativePtr, columnIndex, timestamp);
     }
 
     /**
@@ -235,34 +235,34 @@ public class UncheckedRow implements NativeObject, Row {
         parent.checkImmutable();
         if (value == null) {
             getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
-            nativeSetNull(nativePointer, columnIndex);
+            nativeSetNull(nativePtr, columnIndex);
         } else {
             getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
-            nativeSetString(nativePointer, columnIndex, value);
+            nativeSetString(nativePtr, columnIndex, value);
         }
     }
 
     @Override
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        nativeSetByteArray(nativePointer, columnIndex, data);
+        nativeSetByteArray(nativePtr, columnIndex, data);
     }
 
     @Override
     public void setLink(long columnIndex, long value) {
         parent.checkImmutable();
-        nativeSetLink(nativePointer, columnIndex, value);
+        nativeSetLink(nativePtr, columnIndex, value);
     }
 
     @Override
     public void nullifyLink(long columnIndex) {
         parent.checkImmutable();
-        nativeNullifyLink(nativePointer, columnIndex);
+        nativeNullifyLink(nativePtr, columnIndex);
     }
 
     @Override
     public boolean isNull(long columnIndex) {
-        return nativeIsNull(nativePointer, columnIndex);
+        return nativeIsNull(nativePtr, columnIndex);
     }
 
     /**
@@ -274,7 +274,7 @@ public class UncheckedRow implements NativeObject, Row {
     public void setNull(long columnIndex) {
         parent.checkImmutable();
         getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
-        nativeSetNull(nativePointer, columnIndex);
+        nativeSetNull(nativePtr, columnIndex);
     }
 
     /**
@@ -288,12 +288,12 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public boolean isAttached() {
-        return nativePointer != 0 && nativeIsAttached(nativePointer);
+        return nativePtr != 0 && nativeIsAttached(nativePtr);
     }
 
     @Override
     public boolean hasColumn(String fieldName) {
-        return nativeHasColumn(nativePointer, fieldName);
+        return nativeHasColumn(nativePtr, fieldName);
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
@@ -325,5 +325,5 @@ public class UncheckedRow implements NativeObject, Row {
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
     protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
-    private static native long nativeGetFinalizer();
+    private static native long nativeGetFinalizerPtr();
 }

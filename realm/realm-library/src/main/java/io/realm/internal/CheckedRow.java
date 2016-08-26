@@ -63,7 +63,7 @@ public class CheckedRow extends UncheckedRow {
      * @return a checked instance of {@link Row} for the {@link LinkView} and index specified.
      */
     public static CheckedRow get(Context context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePointer(), index);
+        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
         return new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
 

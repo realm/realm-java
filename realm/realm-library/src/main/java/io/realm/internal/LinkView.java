@@ -26,27 +26,27 @@ public class LinkView implements NativeObject {
     private final Context context;
     final Table parent;
     final long columnIndexInParent;
-    private final long nativePointer;
-    private static final long nativeFinalizerPointer = nativeGetFinalizer();
+    private final long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
         this.parent = parent;
         this.columnIndexInParent = columnIndexInParent;
-        this.nativePointer = nativeLinkViewPtr;
+        this.nativePtr = nativeLinkViewPtr;
 
         context.addReference(this);
     }
 
 
     @Override
-    public long getNativePointer() {
-        return nativePointer;
+    public long getNativePtr() {
+        return nativePtr;
     }
 
     @Override
-    public long getNativeFinalizer() {
-        return nativeFinalizerPointer;
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     /**
@@ -75,59 +75,59 @@ public class LinkView implements NativeObject {
     }
 
     public long getTargetRowIndex(long pos) {
-        return nativeGetTargetRowIndex(nativePointer, pos);
+        return nativeGetTargetRowIndex(nativePtr, pos);
     }
 
     public void add(long rowIndex) {
         checkImmutable();
-        nativeAdd(nativePointer, rowIndex);
+        nativeAdd(nativePtr, rowIndex);
     }
 
     public void insert(long pos, long rowIndex) {
         checkImmutable();
-        nativeInsert(nativePointer, pos, rowIndex);
+        nativeInsert(nativePtr, pos, rowIndex);
     }
 
     public void set(long pos, long rowIndex) {
         checkImmutable();
-        nativeSet(nativePointer, pos, rowIndex);
+        nativeSet(nativePtr, pos, rowIndex);
     }
 
     public void move(long oldPos, long newPos) {
         checkImmutable();
-        nativeMove(nativePointer, oldPos, newPos);
+        nativeMove(nativePtr, oldPos, newPos);
     }
 
     public void remove(long pos) {
         checkImmutable();
-        nativeRemove(nativePointer, pos);
+        nativeRemove(nativePtr, pos);
     }
 
     public void clear() {
         checkImmutable();
-        nativeClear(nativePointer);
+        nativeClear(nativePtr);
     }
 
     public boolean contains(long tableRowIndex) {
-        long index = nativeFind(nativePointer, tableRowIndex);
+        long index = nativeFind(nativePtr, tableRowIndex);
         return (index != TableOrView.NO_MATCH);
     }
 
     public long size() {
-        return nativeSize(nativePointer);
+        return nativeSize(nativePtr);
     }
 
     public boolean isEmpty() {
-        return nativeIsEmpty(nativePointer);
+        return nativeIsEmpty(nativePtr);
     }
 
     public TableQuery where() {
-        long nativeQueryPtr = nativeWhere(nativePointer);
+        long nativeQueryPtr = nativeWhere(nativePtr);
         return new TableQuery(this.context, this.parent, nativeQueryPtr);
     }
 
     public boolean isAttached() {
-        return nativeIsAttached(nativePointer);
+        return nativeIsAttached(nativePtr);
     }
 
     /**
@@ -142,7 +142,7 @@ public class LinkView implements NativeObject {
      */
     public void removeAllTargetRows() {
         checkImmutable();
-        nativeRemoveAllTargetRows(nativePointer);
+        nativeRemoveAllTargetRows(nativePtr);
     }
 
     /**
@@ -150,11 +150,11 @@ public class LinkView implements NativeObject {
      */
     public void removeTargetRow(int index) {
         checkImmutable();
-        nativeRemoveTargetRow(nativePointer, index);
+        nativeRemoveTargetRow(nativePtr, index);
     }
 
     public Table getTargetTable() {
-        long nativeTablePointer = nativeGetTargetTable(nativePointer);
+        long nativeTablePointer = nativeGetTargetTable(nativePtr);
         Table table = new Table(context, this.parent, nativeTablePointer);
         return table;
     }
@@ -182,5 +182,5 @@ public class LinkView implements NativeObject {
     private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
     private native long nativeGetTargetTable(long nativeLinkViewPtr);
-    private static native long nativeGetFinalizer();
+    private static native long nativeGetFinalizerPtr();
 }

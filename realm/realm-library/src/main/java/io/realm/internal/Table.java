@@ -62,7 +62,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     static {
         RealmCore.loadLibrary();
-        nativeFinalizerPtr = nativeGetFinalizer();
+        nativeFinalizerPtr = nativeGetFinalizerPtr();
     }
 
     /**
@@ -98,12 +98,12 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     @Override
-    public long getNativePointer() {
+    public long getNativePtr() {
         return nativePtr;
     }
 
     @Override
-    public long getNativeFinalizer() {
+    public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
     }
 
@@ -1428,5 +1428,5 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     private native String nativeToJson(long nativeTablePtr);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
-    private static native long nativeGetFinalizer();
+    private static native long nativeGetFinalizerPtr();
 }

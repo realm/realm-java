@@ -24,6 +24,7 @@ static void finalize_link_view(jlong ptr);
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClose
   (JNIEnv*, jclass, jlong nativeLinkViewPtr)
 {
+    TR_ENTER_PTR(nativeLinkViewPtr)
     finalize_link_view(nativeLinkViewPtr);
 }
 
@@ -257,8 +258,9 @@ static void finalize_link_view(jlong ptr)
     LangBindHelper::unbind_linklist_ptr(*LV(ptr));
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetFinalizer
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetFinalizerPtr
   (JNIEnv *, jclass)
 {
+    TR_ENTER()
     return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_link_view));
 }

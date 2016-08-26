@@ -37,7 +37,7 @@ public class TableView implements TableOrView, NativeObject {
     private long version; // Last seen version number. Call refresh() to update this.
 
     protected long nativePtr;
-    private static final long nativeFinalizerPtr = nativeGetFinalizer();
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     protected final Table parent;
     private final Context context;
 
@@ -75,12 +75,12 @@ public class TableView implements TableOrView, NativeObject {
     }
 
     @Override
-    public long getNativePointer() {
+    public long getNativePtr() {
         return nativePtr;
     }
 
     @Override
-    public long getNativeFinalizer() {
+    public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
     }
 
@@ -795,5 +795,5 @@ public class TableView implements TableOrView, NativeObject {
     private native long nativeSyncIfNeeded(long nativeTablePtr);
     private native void nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
-    private static native long nativeGetFinalizer();
+    private static native long nativeGetFinalizerPtr();
 }

@@ -1397,12 +1397,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
     JNIEnv*, jobject, jlong nativeTablePtr)
 {
+    TR_ENTER_PTR(nativeTablePtr)
     return TBL(nativeTablePtr)->is_attached();  // noexcept
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
     JNIEnv*, jclass, jlong nativeTablePtr)
 {
+    TR_ENTER_PTR(nativeTablePtr)
     finalize_table(nativeTablePtr);
 }
 
@@ -1604,9 +1606,10 @@ static void finalize_table(jlong ptr)
     LangBindHelper::unbind_table_ptr(TBL(ptr));
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetFinalizer
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetFinalizerPtr
   (JNIEnv *, jclass)
 {
+    TR_ENTER()
     return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_table));
 }
 
