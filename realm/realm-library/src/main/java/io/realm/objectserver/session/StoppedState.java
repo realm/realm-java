@@ -1,6 +1,7 @@
 package io.realm.objectserver.session;
 
 import io.realm.objectserver.Credentials;
+import io.realm.objectserver.Error;
 
 /**
  * STOPPED State. This is the final state for a {@link Session}. After this, all actions will throw an
@@ -50,5 +51,10 @@ class StoppedState extends FsmState {
     @Override
     public void onSetCredentials(Credentials credentials) {
         throw new IllegalStateException(SESSION_STOPPED_MSG);
+    }
+
+    @Override
+    public void onError(Error error, String errorMessage) {
+        // Ignore all errors at this state. None of them would have any impact.
     }
 }

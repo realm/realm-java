@@ -27,18 +27,49 @@ public final class SyncManager {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
-    private static final ErrorHandler NO_OP_ERROR_HANDLER = new ErrorHandler() {
+    private static final ErrorHandler CLIENT_NO_OP_ERROR_HANDLER = new SyncManager.ErrorHandler() {
         @Override
         public void onError(Error errorCode, String errorMessage) {
-
+            switch (errorCode.getCategory()) {
+                case FATAL:
+                    RealmLog.e(errorCode.toString() + ":" + errorMessage);
+                    break;
+                case RECOVERABLE:
+                    RealmLog.i(errorCode.toString() + ":" + errorMessage);
+                    break;
+                case INFO:
+                    RealmLog.d(errorCode.toString() + ":" + errorMessage);
+                    break;
+            }
         }
     };
+    private static final Session.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
+        @Override
+        public void onError(Session session, Error errorCode, String errorMessage) {
+            String errorMsg = String.format("Session Error[%s]: %s : %s",
+                    session.getConfiguration().getServerUrl(),
+                    errorCode.toString(),
+                    errorMessage);
+            switch (errorCode.getCategory()) {
+                case FATAL:
+                    RealmLog.e(errorMsg);
+                    break;
+                case RECOVERABLE:
+                    RealmLog.i(errorMsg);
+                    break;
+                case INFO:
+                    RealmLog.d(errorMsg);
+                    break;
+            }
+        }
+    };
+
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static long nativeSyncClientPointer;
     private static volatile AuthenticationServer authServer = new OkHttpAuthentificationServer();
-    private static volatile ErrorHandler globalErrorHandler = NO_OP_ERROR_HANDLER;
-    static volatile ErrorHandler defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
+    private static volatile SyncManager.ErrorHandler globalErrorHandler = CLIENT_NO_OP_ERROR_HANDLER;
+    static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
     // Map of between a local Realm path and any associated sessionInfo
     private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
@@ -52,23 +83,22 @@ public final class SyncManager {
      * Sets the global error handler used by underlying network client. All connection errors will be reported here,
      * while all session related errors will be posted to the sessions error handler
      */
-    public static void setGlobalErrorHandler(ErrorHandler errorHandler) {
+    public static void setGlobalErrorHandler(SyncManager.ErrorHandler errorHandler) {
         if (errorHandler == null) {
-            globalErrorHandler = NO_OP_ERROR_HANDLER;
+            globalErrorHandler = CLIENT_NO_OP_ERROR_HANDLER;
         } else {
             globalErrorHandler = errorHandler;
         }
     }
-
 
     /**
      * Sets the default error handler used by all {@link SyncConfiguration} objects when they are created.
      *
      * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setDefaultSessionErrorHandler(ErrorHandler errorHandler) {
+    public static void setDefaultSessionErrorHandler(Session.ErrorHandler errorHandler) {
         if (errorHandler == null) {
-            defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
+            defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
         } else {
             defaultSessionErrorHandler = errorHandler;
         }
@@ -113,6 +143,7 @@ public final class SyncManager {
 
     /**
      * Remove a session once it has been closed
+     *
      * @param info
      */
     static void removeSession(Session info) {
@@ -121,7 +152,7 @@ public final class SyncManager {
         }
 
         Iterator<Map.Entry<String, Session>> it = sessions.entrySet().iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Map.Entry<String, Session> entry = it.next();
             if (entry.getValue().equals(info)) {
                 it.remove();
@@ -133,14 +164,14 @@ public final class SyncManager {
     /**
      * TODO Internal only? Developers can also use this to inject stubs.
      * TODO Find a better method name.
-     *
+     * <p>
      * Sets the auth server implementation used when validating credentials.
      */
     static void setAuthServerImpl(AuthenticationServer authServerImpl) {
         authServer = authServerImpl;
     }
 
-//    //
+    //    //
 //    // OLD IMPLEMENTATION
 //    //
 //    public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
@@ -194,4 +225,19 @@ public final class SyncManager {
 
     private static native long nativeCreateSyncClient();
 
+    /**
+     * Interface used by Object Server Network Client to report back errors.
+     *
+     * @see SyncManager#setGlobalErrorHandler(ErrorHandler)
+     */
+    public interface ErrorHandler {
+        /**
+         * Callback for errors on the Realm Object Server Network Client.
+         * Only errors with an ID between 100-199 will be reported here.
+         *
+         * @param errorCode type of error.
+         * @param errorMessage additional error message.
+         */
+        void onError(Error errorCode, String errorMessage);
+    }
 }

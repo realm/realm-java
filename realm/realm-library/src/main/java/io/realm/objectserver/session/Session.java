@@ -29,7 +29,6 @@ import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
-import io.realm.objectserver.ErrorHandler;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
@@ -131,21 +130,32 @@ public final class Session {
         nextState.entry(this);
     }
 
+    /**
+     * Starts the session. This will just setup and configure the session.
+     * {@link #bind()} must be called to actually start synchronizing data.
+     */
     public synchronized void start() {
         currentState.onStart();
     }
 
+
+    /**
+     * Stops the session. This session no longer be used.
+     *
+     * A new session must be created using {@link SyncManager#getSession(SyncConfiguration)} or
+     * {@link SyncManager#connect(SyncConfiguration)}.
+     */
     public synchronized void stop() {
         currentState.onStop();
     }
 
     /**
-     * Binds a local Realm to a remote one by using the credentials provided by the
-     * {@link SyncConfiguration}. Once bound, changes on either the local or Remote Realm will be synchronized
-     * immediately.
+     * Binds the local Realm to the remote Realm as specified by the {@link SyncConfiguration}. Once bound, changes on
+     * either the local or Remote Realm will be synchronized immediately.
      *
-     * Note that binding a Realm is not guaranteed to succeed. If a device is offline or credentials are no longer valid,
-     *
+     * Binding a Realm is not guaranteed to succeed. Possible reasons for failure could be either if the device is
+     * offline or credentials have expired. Binding is an asynchronous operation and all errors will be reported
+     * to the {@link ErrorHandler} defined by the {@link SyncConfiguration.Builder#errorHandler(ErrorHandler)}.
      */
     public synchronized void bind() {
         currentState.onBind();
@@ -153,6 +163,7 @@ public final class Session {
 
     /**
      * Stops a local Realm from synchronizing changes with the remote Realm.
+     *
      * It is possible to call {@link #bind()} again after a Realm has been unbound.
      */
     public synchronized void unbind() {
@@ -160,7 +171,8 @@ public final class Session {
     }
 
     /**
-     * Refreshes the access token. Each access token has a predetermined lifetime after which it will no longer work.
+     * Refreshes the access token used by this session. Each access token has a predetermined lifetime after which it
+     * will no longer work.
      *
      * In order to provide a smoother sync experience for end users, it is recommended to refresh the access token
      * before it expires. Otherwise there is a chance that the access token must be refreshed as part of trying
@@ -169,6 +181,7 @@ public final class Session {
      * Refreshing is handled automatically by this class, but this method will trigger it manually as well.
      */
     public synchronized void refresh() {
+        // TODO Can we remove this with the new auth scheme?
         currentState.onRefresh();
 //        if (!isAuthenticated()) {
 //            throw new IllegalStateException("Can only refresh already validated credentials. " +
@@ -183,7 +196,6 @@ public final class Session {
 
     // Called from
     synchronized void handleError(Error error, String errorMessage) {
-        RealmLog.d(String.format("Session[%s] - ERORR: %s", configuration.getServerUrl(), error.toString()));
         currentState.onError(error, errorMessage);
     }
 
@@ -193,7 +205,7 @@ public final class Session {
         Error error = Error.fromInt(errorCode);
         handleError(error, errorMessage);
         // FSM needs to respond to the error first, before notifying the User
-        errorHandler.onError(error, errorMessage);
+        errorHandler.onError(this, error, errorMessage);
     }
 
     /**
@@ -369,5 +381,27 @@ public final class Session {
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
+
+    public SyncConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    /**
+     * Interface used by both the Object Server network client and sessions to report back errors.
+     *
+     * @see SyncManager#setDefaultSessionErrorHandler(ErrorHandler)
+     * @see io.realm.objectserver.SyncConfiguration.Builder#errorHandler(ErrorHandler)
+     */
+    public interface ErrorHandler {
+        /**
+         * Callback for errors on this session object.
+         * Only errors with an ID between 0-99 and 200-299 and will be reported here.
+         *
+         * @param session {@link Session} this error happened on.
+         * @param errorCode type of error.
+         * @param errorMessage additional error message.
+         */
+        void onError(Session session, Error errorCode, String errorMessage);
+    }
 }
 

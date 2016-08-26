@@ -75,6 +75,6 @@ abstract class FsmState implements FsmAction {
 
     @Override
     public void onError(Error error, String errorMessage) {
-        // Do nothing
+        gotoNextState(SessionState.STOPPED);
     }
 }

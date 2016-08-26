@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.objectserver.session.Session;
 import io.realm.objectserver.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
 import io.realm.rx.RxObservableFactory;
@@ -58,7 +59,7 @@ public final class SyncConfiguration extends RealmConfiguration {
     private final User user;
     private final boolean autoConnect;
     private final SyncPolicy syncPolicy;
-    private final ErrorHandler errorHandler;
+    private final Session.ErrorHandler errorHandler;
 
     private SyncConfiguration(Builder builder) {
         super(builder);
@@ -140,7 +141,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         return serverUrl;
     }
 
-    public ErrorHandler getErrorHandler() {
+    public Session.ErrorHandler getErrorHandler() {
         return errorHandler;
     }
 
@@ -154,7 +155,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         private User user = null;
         private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
-        private ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private Session.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private boolean overrideDefaultFolder = false;
         private boolean overrideDefaultLocalFileName = false;
         private File defaultFolder;
@@ -384,11 +385,11 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the error handler used by this configuration.
-         * This will override any handler set by calling {@link SyncManager#setDefaultSessionErrorHandler(ErrorHandler)}.
+         * This will override any handler set by calling {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
          *
          * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
          */
-        public Builder errorHandler(ErrorHandler errorHandler) {
+        public Builder errorHandler(Session.ErrorHandler errorHandler) {
             this.errorHandler = errorHandler;
             return this;
         }

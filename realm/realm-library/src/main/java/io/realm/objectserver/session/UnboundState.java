@@ -1,6 +1,7 @@
 package io.realm.objectserver.session;
 
 import io.realm.objectserver.Credentials;
+import io.realm.objectserver.Error;
 
 /**
  * UNBOUND State. This is the default state after a session has been started and no attempt at binding the local Realm
@@ -28,5 +29,10 @@ public class UnboundState extends FsmState {
     @Override
     public void onBind() {
         gotoNextState(SessionState.BINDING_REALM);
+    }
+
+    @Override
+    public void onError(Error error, String errorMessage) {
+        // Ignore all errors at this state. None of them would have any impact.
     }
 }

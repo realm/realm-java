@@ -31,6 +31,8 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.objectserver.model.CRDTCounter;
 import io.realm.examples.objectserver.model.CounterOperation;
+import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorHandler;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.User;
 import io.realm.objectserver.util.UserStore;
