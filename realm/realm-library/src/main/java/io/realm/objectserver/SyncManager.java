@@ -89,18 +89,18 @@ public final class SyncManager {
      * Gets any cached {@link Session} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
-     * @param objectServerConfiguration configuration object for the Realm that s
+     * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link Session} for the specified Realm.
      */
-    public static Session getSession(SyncConfiguration objectServerConfiguration) {
-        if (objectServerConfiguration == null) {
-            throw new IllegalArgumentException("A non-empty 'objectServerConfiguration' is required.");
+    public static Session getSession(SyncConfiguration syncConfiguration) {
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
 
-        String localPath = objectServerConfiguration.getPath();
+        String localPath = syncConfiguration.getPath();
         Session session = sessions.get(localPath);
         if (session == null) {
-            session = new Session(objectServerConfiguration, nativeSyncClientPointer, authServer);
+            session = new Session(syncConfiguration, nativeSyncClientPointer, authServer);
             sessions.put(localPath, session);
         }
 

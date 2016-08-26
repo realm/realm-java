@@ -104,6 +104,10 @@ public enum Error {
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
     }
 
+    public static Error fromAuthType(String type) {
+        return null;
+    }
+
     public enum Category {
         FATAL,          // Abort session as soon as possible
         RECOVERABLE,    // Still possible to recover by providing additional information to the session

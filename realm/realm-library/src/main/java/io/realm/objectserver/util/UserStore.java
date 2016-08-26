@@ -30,7 +30,7 @@ public interface UserStore {
      * @param key Key used to store the User. The same key is used to retrieve it again
      * @param user User object to store.
      */
-    void save(String key, User user);
+    boolean save(String key, User user);
 
     /**
      * TODO
@@ -60,6 +60,15 @@ public interface UserStore {
 
 
 
-    class Callback {
+    interface Callback {
+        /**
+         * User was successfully saved.
+         */
+         void onSuccess(User user);
+
+        /**
+         * The user could not be saved.
+         */
+        void onError();
     }
 }
