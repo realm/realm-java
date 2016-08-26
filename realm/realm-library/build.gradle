@@ -440,7 +440,7 @@ project.afterEvaluate {
 task checkNdk() << {
     def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
     if (!ndkPathInEnvVariable) {
-        throw new GradleException("environment variable 'ANDROID_NDK_HOME' must be set.")
+        throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
     }
     checkNdk(ndkPathInEnvVariable)
 
