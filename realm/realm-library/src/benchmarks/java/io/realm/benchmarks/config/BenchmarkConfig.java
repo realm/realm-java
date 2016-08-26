@@ -31,13 +31,13 @@ import dk.ilios.spanner.output.ResultProcessor;
 public class BenchmarkConfig {
 
     public static SpannerConfig getConfiguration(String className) {
-        // Document folder is located at: /sdcard/realm-benchmarks
+        // Document directory is located at: /sdcard/realm-benchmarks
         // Benchmarks results should be saved in <documentFolder>/results/<className>.json
         // Baseline data should be found in <documentFolder>/baselines/<className>.json
         // Custom CSV files should be found in <documentFolder>/csv/<className>.csv
         File externalDocuments = new File(Environment.getExternalStorageDirectory(), "realm-benchmarks");
         if (!externalDocuments.exists() && !externalDocuments.mkdir()) {
-            throw new RuntimeException("Could not create benchmark folder: " + externalDocuments);
+            throw new RuntimeException("Could not create benchmark directory: " + externalDocuments);
         }
         File resultsDir = new File(externalDocuments, "results");
         File baselineDir = new File(externalDocuments, "baselines");

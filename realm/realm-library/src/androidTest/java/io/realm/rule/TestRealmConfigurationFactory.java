@@ -88,7 +88,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 throw e;
             }
         } finally {
-            // This will delete the temp folder.
+            // This will delete the temp directory.
             super.after();
         }
     }

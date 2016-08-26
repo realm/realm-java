@@ -523,7 +523,7 @@ public class RealmObjectTests {
             realm_differentName.close();
         }
 
-        // Check the hash code of the object from a Realm in different folder.
+        // Check the hash code of the object from a Realm in different directory.
         RealmConfiguration realmConfig_differentPath = configFactory.createConfiguration(
                 "anotherDir", realmConfig.getRealmFileName());
         Realm realm_differentPath = Realm.getInstance(realmConfig_differentPath);
