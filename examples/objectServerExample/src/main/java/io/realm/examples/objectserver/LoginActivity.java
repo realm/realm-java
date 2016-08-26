@@ -16,9 +16,6 @@ import io.realm.objectserver.util.UserStore;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private static final String TAG = "LoginActivity";
-    private static final int REQUEST_SIGNUP = 0;
-
     private UserStore userStore = MyApplication.USER_STORE;
 
     @BindView(R.id.input_username) EditText username;
@@ -63,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = this.password.getText().toString();
 
         Credentials creds = Credentials.fromUsernamePassword(username, password);
-        String authUrl = "http://127.0.0.1:8080/auth";
+        String authUrl = "http://192.168.1.3:8080/auth";
         User.Callback callback = new User.Callback() {
             @Override
             public void onSuccess(User user) {
@@ -110,15 +107,15 @@ public class LoginActivity extends AppCompatActivity {
         String email = username.getText().toString();
         String password = this.password.getText().toString();
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            username.setError("Enter a valid email address");
+        if (email.isEmpty()) {
+            username.setError("Username required");
             valid = false;
         } else {
             username.setError(null);
         }
 
         if (password.isEmpty()) {
-            this.password.setError("Non-empty password required.");
+            this.password.setError("Password required");
             valid = false;
         } else {
             this.password.setError(null);

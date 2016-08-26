@@ -70,7 +70,7 @@ public class CounterActivity extends AppCompatActivity {
                         }
                     })
                     .user(userStore.getCurrentUser())
-                    .serverUrl("realm://127.0.0.1/~/default")
+                    .serverUrl("realm://192.168.1.3/~/default")
                     .build();
 
             // This will automatically sync all changes in the background for as long as the Realm is open
@@ -93,14 +93,16 @@ public class CounterActivity extends AppCompatActivity {
             counter.addChangeListener(new RealmChangeListener<RealmResults<CounterOperation>>() {
                 @Override
                 public void onChange(RealmResults<CounterOperation> result) {
+                    // FIXME Why isn't this triggered when the DB is opened?
                     Number sum = result.sum("adjustment");
                     if (sum != null) {
-                        counterView.setText(String.format(Locale.US, "%d", sum.longValue()));
+                        counterView.setText(Long.toString(sum.longValue()));
                     } else {
-                        counterView.setText("-");
+                        counterView.setText("0");
                     }
                 }
             });
+            counterView.setText("0");
         }
     }
 

@@ -26,8 +26,8 @@
             <EditText android:id="@+id/input_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
-                android:hint="Email" />
+                android:inputType="text"
+                android:hint="Username" />
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
