@@ -1,11 +1,11 @@
 package io.realm.internal.objectserver.network;
 
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 
 public class RefreshResponse {
     private Token refreshToken;
-    private Error error;
+    private ErrorCode errorCode;
     private String errorMessage;
 
     public boolean isValid() {
@@ -16,8 +16,8 @@ public class RefreshResponse {
         return refreshToken;
     }
 
-    public Error getError() {
-        return error;
+    public ErrorCode getErrorCode() {
+        return errorCode;
     }
 
     public String getErrorMessage() {

@@ -2,6 +2,7 @@ package io.realm.objectserver.session;
 
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.Credentials;
+import io.realm.objectserver.ErrorCode;
 
 /**
  * AUTHENTICATING_REQUIRED State. This step is entered if authentication fails for some reason. This means that an
@@ -79,5 +80,10 @@ class AuthenticationRequiredState extends FsmState {
     public void onSetCredentials(Credentials credentials) {
         session.replaceCredentials(credentials);
         gotoNextState(SessionState.BINDING_REALM);
+    }
+
+    @Override
+    public void onError(ErrorCode errorCode, String errorMessage) {
+        // Ignore all errors at this state. None of them would have any impact.
     }
 }

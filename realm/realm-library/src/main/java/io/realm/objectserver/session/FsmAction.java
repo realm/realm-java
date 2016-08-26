@@ -1,7 +1,7 @@
 package io.realm.objectserver.session;
 
 import io.realm.objectserver.Credentials;
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 
 /**
  * As {@link Session} is modeled as a state machine, this interface describe all
@@ -17,5 +17,5 @@ interface FsmAction {
     void onRefresh();
     void onSetCredentials(Credentials credentials);
 
-    void onError(Error error, String errorMessage);
+    void onError(ErrorCode errorCode, String errorMessage);
 }

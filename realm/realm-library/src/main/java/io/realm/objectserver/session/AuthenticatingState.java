@@ -2,7 +2,6 @@ package io.realm.objectserver.session;
 
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.Credentials;
-import io.realm.objectserver.Error;
 
 /**
  * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this

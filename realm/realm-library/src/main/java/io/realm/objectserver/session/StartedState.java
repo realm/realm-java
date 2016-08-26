@@ -1,6 +1,6 @@
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 
 /**
  * STARTED State. This is just an intermediate step that can be used to initialize the session properly.
@@ -20,7 +20,7 @@ class StartedState extends FsmState {
     }
 
     @Override
-    public void onError(Error error, String errorMessage) {
+    public void onError(ErrorCode errorCode, String errorMessage) {
         // Ignore all errors at this state. None of them would have any impact.
     }
 }

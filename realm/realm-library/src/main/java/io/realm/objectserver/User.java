@@ -134,14 +134,14 @@ public class User {
                         User user = new User(result.getIdentifier(), result.getRefreshToken(), authUrl);
                         postSuccess(user);
                     } else {
-                        postError(result.getError(), result.getErrorMessage());
+                        postError(result.getErrorCode(), result.getErrorMessage());
                     }
                 } catch (IOException e) {
-                    postError(Error.OTHER_ERROR, e.getMessage());
+                    postError(ErrorCode.OTHER_ERROR, e.getMessage());
                 }
             }
 
-            private void postError(final Error error, final String errorMessage) {
+            private void postError(final ErrorCode error, final String errorMessage) {
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
@@ -210,7 +210,7 @@ public class User {
                             break;
                         } else {
                             // FIXME: Log to session events instead
-                            RealmLog.w("Refreshing login failed: " + result.getError() + " : " + result.getErrorMessage());
+                            RealmLog.w("Refreshing login failed: " + result.getErrorCode() + " : " + result.getErrorMessage());
                         }
                     } catch (IOException e) {
                         // FIXME: Log to session events instead.
@@ -295,6 +295,6 @@ public class User {
 
     public interface Callback {
         void onSuccess(User user);
-        void onError(Error errorCode, String errorMsg);
+        void onError(ErrorCode errorCodeCode, String errorMsg);
     }
 }

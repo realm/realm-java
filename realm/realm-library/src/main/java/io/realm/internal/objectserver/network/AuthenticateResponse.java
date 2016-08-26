@@ -7,13 +7,13 @@ import java.io.IOException;
 
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 import okhttp3.Response;
 
 public class AuthenticateResponse {
 
-    private final Error error;
+    private final ErrorCode errorCode;
     private final String errorMessage;
 
     private final String identifier;
@@ -31,7 +31,7 @@ public class AuthenticateResponse {
         try {
             serverResponse = response.body().string();
         } catch (IOException e) {
-            return new AuthenticateResponse(Error.IO_ERROR, "Failed to read response." + Util.getStackTrace(e));
+            return new AuthenticateResponse(ErrorCode.IO_ERROR, "Failed to read response." + Util.getStackTrace(e));
         }
         RealmLog.d("Authenticate response: " + serverResponse);
         if (response.code() != 200) {
@@ -39,10 +39,10 @@ public class AuthenticateResponse {
                 JSONObject obj = new JSONObject(serverResponse);
                 String type = obj.getString("type");
                 String hint = obj.getString("hint");
-                Error error = Error.fromAuthError(type);
-                return new AuthenticateResponse(error, hint);
+                ErrorCode errorCode = ErrorCode.fromAuthError(type);
+                return new AuthenticateResponse(errorCode, hint);
             } catch (JSONException e) {
-                return new AuthenticateResponse(Error.UNEXPECTED_JSON_FORMAT, "Server failed with " + response.code() +
+                return new AuthenticateResponse(ErrorCode.UNEXPECTED_JSON_FORMAT, "Server failed with " + response.code() +
                         ", but could not parse error." + Util.getStackTrace(e));
             }
         } else {
@@ -53,8 +53,8 @@ public class AuthenticateResponse {
     /**
      * Create a unsuccessful authentication response. This should only happen in case of network / IO problems.
      */
-    public AuthenticateResponse(Error reason, String errorMessage) {
-        this.error = reason;
+    public AuthenticateResponse(ErrorCode reason, String errorMessage) {
+        this.errorCode = reason;
         this.errorMessage = errorMessage;
         this.identifier = null;
         this.path = null;
@@ -67,7 +67,7 @@ public class AuthenticateResponse {
      * Parse a valid (200) server response. It might still result in a unsuccessful authentication attemp.
      */
     public AuthenticateResponse(String serverResponse) {
-        Error error;
+        ErrorCode errorCode;
         String errorMessage;
         String identifier;
         String path;
@@ -81,7 +81,7 @@ public class AuthenticateResponse {
             appId = obj.optString("app_id"); // FIXME No longer sent?
             accessToken = obj.has("token") ? Token.from(obj) : null;
             refreshToken = obj.has("refresh") ? Token.from(obj.getJSONObject("refresh")) : null;
-            error = null;
+            errorCode = null;
             errorMessage = null;
         } catch (JSONException ex) {
             identifier = null;
@@ -89,7 +89,7 @@ public class AuthenticateResponse {
             appId = null;
             accessToken = null;
             refreshToken = null;
-            error = Error.BAD_SYNTAX;
+            errorCode = ErrorCode.BAD_SYNTAX;
             errorMessage = "Unexpected JSON: " + Util.getStackTrace(ex);
         }
         this.identifier = identifier;
@@ -97,19 +97,19 @@ public class AuthenticateResponse {
         this.appId = appId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.error = error;
+        this.errorCode = errorCode;
         this.errorMessage = errorMessage;
     }
 
     public boolean isValid() {
-        return (error == null);
+        return (errorCode == null);
     }
     public String getErrorMessage() {
         return errorMessage;
     }
 
-    public Error getError() {
-        return error;
+    public ErrorCode getErrorCode() {
+        return errorCode;
     }
 
     public String getIdentifier() {

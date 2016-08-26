@@ -5,7 +5,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Util;
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
 import okhttp3.Call;
@@ -34,7 +34,7 @@ public class OkHttpAuthentificationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.fromCredentials(credentials, createUser).toJson();
             return authenticate(authentificationUrl, requestBody);
         } catch (Exception e) {
-            return new AuthenticateResponse(Error.OTHER_ERROR, Util.getStackTrace(e));
+            return new AuthenticateResponse(ErrorCode.OTHER_ERROR, Util.getStackTrace(e));
         }
     }
 
@@ -44,7 +44,7 @@ public class OkHttpAuthentificationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken, path).toJson();
             return authenticate(authentificationUrl, requestBody);
         } catch (Exception e) {
-            return new AuthenticateResponse(Error.OTHER_ERROR, Util.getStackTrace(e));
+            return new AuthenticateResponse(ErrorCode.OTHER_ERROR, Util.getStackTrace(e));
         }
     }
 

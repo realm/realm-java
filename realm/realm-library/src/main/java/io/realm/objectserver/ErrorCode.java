@@ -1,8 +1,6 @@
 package io.realm.objectserver;
 
-import static android.R.attr.path;
-
-public enum Error {
+public enum ErrorCode {
 
     // See https://github.com/realm/realm-sync/issues/585
     // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
@@ -57,11 +55,11 @@ public enum Error {
     private final int code;
     private final Category category;
 
-    Error(int errorCode) {
+    ErrorCode(int errorCode) {
         this(errorCode, Category.FATAL);
     }
 
-    Error(int errorCode, Category category) {
+    ErrorCode(int errorCode, Category category) {
         this.code = errorCode;
         this.category = category;
     }
@@ -95,10 +93,10 @@ public enum Error {
         return category;
     }
 
-    public static Error fromInt(int errorCode) {
-        Error[] errors = values();
-        for (int i = 0; i < errors.length; i++) {
-            Error error = errors[i];
+    public static ErrorCode fromInt(int errorCode) {
+        ErrorCode[] errorCodes = values();
+        for (int i = 0; i < errorCodes.length; i++) {
+            ErrorCode error = errorCodes[i];
             if (error.errorCode() == errorCode) {
                 return error;
             }
@@ -106,16 +104,16 @@ public enum Error {
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
     }
 
-    public static Error fromAuthError(String type) {
+    public static ErrorCode fromAuthError(String type) {
         switch(type) {
-            case "https://realm.io/docs/object-server/problems/invalid-credentials" : return Error.INVALID_CREDENTIALS;
-            case "https://realm.io/docs/object-server/problems/unknown-account" : return Error.UNKNOWN_ACCOUNT;
-            case "https://realm.io/docs/object-server/problems/existing-account" : return Error.EXISTING_ACCOUNT;
-            case "https://realm.io/docs/object-server/problems/access-denied" : return Error.ACCESS_DENIED;
-            case "https://realm.io/docs/object-server/problems/expired-refresh-token" : return Error.EXPIRED_REFRESH_TOKEN;
-            case "https://realm.io/docs/object-server/problems/internal-server-error" : return Error.INTERNAL_SERVER_ERROR;
+            case "https://realm.io/docs/object-server/problems/invalid-credentials" : return ErrorCode.INVALID_CREDENTIALS;
+            case "https://realm.io/docs/object-server/problems/unknown-account" : return ErrorCode.UNKNOWN_ACCOUNT;
+            case "https://realm.io/docs/object-server/problems/existing-account" : return ErrorCode.EXISTING_ACCOUNT;
+            case "https://realm.io/docs/object-server/problems/access-denied" : return ErrorCode.ACCESS_DENIED;
+            case "https://realm.io/docs/object-server/problems/expired-refresh-token" : return ErrorCode.EXPIRED_REFRESH_TOKEN;
+            case "https://realm.io/docs/object-server/problems/internal-server-error" : return ErrorCode.INTERNAL_SERVER_ERROR;
             default:
-                return Error.UNEXPECTED_JSON_FORMAT;
+                return ErrorCode.UNEXPECTED_JSON_FORMAT;
         }
     }
 

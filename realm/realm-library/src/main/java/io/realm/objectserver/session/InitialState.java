@@ -1,6 +1,6 @@
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 
 /**
  * INITIAL State. Starting point for the Session Finite-State-Machine.
@@ -23,7 +23,7 @@ class InitialState extends FsmState {
     }
 
     @Override
-    public void onError(Error error, String errorMessage) {
+    public void onError(ErrorCode errorCode, String errorMessage) {
         // Ignore all errors at this state. None of them would have any impact.
     }
 }

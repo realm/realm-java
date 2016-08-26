@@ -24,7 +24,7 @@ import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
-import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthenticationServer;
@@ -195,14 +195,14 @@ public final class Session {
     }
 
     // Called from
-    synchronized void handleError(Error error, String errorMessage) {
-        currentState.onError(error, errorMessage);
+    synchronized void handleError(ErrorCode errorCode, String errorMessage) {
+        currentState.onError(errorCode, errorMessage);
     }
 
     // Called from Session.cpp
     // This callback will happen on the thread running the Sync Client.
     private void notifySessionError(int errorCode, String errorMessage) {
-        Error error = Error.fromInt(errorCode);
+        ErrorCode error = ErrorCode.fromInt(errorCode);
         handleError(error, errorMessage);
         // FSM needs to respond to the error first, before notifying the User
         errorHandler.onError(this, error, errorMessage);
@@ -398,10 +398,10 @@ public final class Session {
          * Only errors with an ID between 0-99 and 200-299 and will be reported here.
          *
          * @param session {@link Session} this error happened on.
-         * @param errorCode type of error.
+         * @param errorCodeCode type of error.
          * @param errorMessage additional error message.
          */
-        void onError(Session session, Error errorCode, String errorMessage);
+        void onError(Session session, ErrorCode errorCodeCode, String errorMessage);
     }
 }
 
