@@ -196,7 +196,7 @@ Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass type, jlong shared_realm_ptr, jobject dynamic_realm,
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong shared_realm_ptr, jobject dynamic_realm,
                                                       jlong schema_ptr, jlong schema_version, jobject migration_object) {
 
     TR_ENTER_PTR(shared_realm_ptr)
@@ -205,20 +205,29 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass type, 
     auto schema = reinterpret_cast<Schema*>(schema_ptr);
     auto version = static_cast<uint64_t>(schema_version);
     try {
-        jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
-        jmethodID realm_migration_method = env->GetMethodID(realm_migration_class, "migration", "()Lio/realm/DynamicRealm;JJ");
-        if (realm_migration_method == nullptr) {
-            ThrowException(env, NoSuchMethod, "io.realm.RealmMigration", "migration"); // FIXME: class name might be misleading
-            return 0;
+        if (migration_object != NULL) {
+            jmethodID realm_migration_method = nullptr;
+            jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
+            realm_migration_method = env->GetMethodID(realm_migration_class, "migration",
+                                                      "()Lio/realm/DynamicRealm;JJ");
+            if (realm_migration_method == nullptr) {
+                ThrowException(env, NoSuchMethod, "io.realm.RealmMigration", "migration");
+                return 0;
+            }
+            Realm::MigrationFunction migration_function;
+            migration_function = [=](SharedRealm old_realm, SharedRealm realm, Schema &mutable_schema) {
+                auto &config = shared_realm->config();
+                jlong schema_new_version = jlong(config.schema_version);
+                env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version,
+                                    schema_new_version);
+            };
+            shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
         }
-        Realm::MigrationFunction migration_function;
-        migration_function = [=](SharedRealm old_realm, SharedRealm realm, Schema& mutable_schema) {
-            auto& config = shared_realm->config();
-            jlong schema_new_version = jlong(config.schema_version);
-            env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version, schema_new_version);
-        };
-        shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
+        else {
+            shared_realm->update_schema(std::move(*schema), version);
+        }
     } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -292,7 +301,7 @@ Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong 
             return;
         }
         JStringAccessor new_name(env, new_table_name);
-        shared_realm->read_group().rename_table(old_name, new_name);
+        shared_realm->read_group().rename_table(old_name, new_name, true);
     } CATCH_STD()
 }
 

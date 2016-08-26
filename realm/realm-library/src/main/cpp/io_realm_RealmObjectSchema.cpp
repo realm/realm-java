@@ -150,6 +150,9 @@ Java_io_realm_RealmObjectSchema_nativeAddProperty
         auto* property = reinterpret_cast<Property*>(native_property_ptr);
         TR("native_property_ptr = %p", VOID_PTR(property))
         object_schema->persisted_properties.push_back(*property);
+        if (property->is_primary) {
+            object_schema->primary_key = property->name;
+        }
     }
     CATCH_STD()
 }

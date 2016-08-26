@@ -214,23 +214,7 @@ public final class Realm extends BaseRealm {
      * @return a {@link Realm} instance.
      */
     static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
-        try {
-            return createAndValidate(configuration, columnIndices);
-
-        } catch (RealmMigrationNeededException e) {
-            if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
-                deleteRealm(configuration);
-            } else {
-                try {
-                    migrateRealm(configuration);
-                } catch (FileNotFoundException fileNotFoundException) {
-                    // Should never happen
-                    throw new RealmIOException(fileNotFoundException);
-                }
-            }
-
-            return createAndValidate(configuration, columnIndices);
-        }
+        return createAndValidate(configuration, columnIndices);
     }
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
@@ -245,7 +229,7 @@ public final class Realm extends BaseRealm {
             realm.doClose();
             throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
         }
-
+*/
         // Initialize Realm schema if needed
         if (columnIndices == null) {
             try {
@@ -257,7 +241,6 @@ public final class Realm extends BaseRealm {
         } else {
             realm.schema.columnIndices = columnIndices;
         }
-*/
         try {
             initializeRealm(realm);
         } catch (RuntimeException e) {
@@ -271,42 +254,24 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     private static void initializeRealm(Realm realm) {
         long version = realm.getVersion();
-        boolean commitNeeded = false;
-        try {
-            realm.beginTransaction();
+        ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+        final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
+        columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+        for (Class<? extends RealmModel> modelClass : modelClasses) {
             if (version == UNVERSIONED) {
-                commitNeeded = true;
-                realm.setVersion(realm.configuration.getSchemaVersion());
+                realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, realm.getSchema()));
             }
-
-            ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
-            RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
-            columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Create and validate table
-                if (version == UNVERSIONED) {
-                    //mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
-                    realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, realm.getSchema()));
-                }
-                //columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
-            }
-            realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
-            RealmSchema schema = new RealmSchema(realm, realmObjectSchemas);
-            realm.sharedRealm.updateSchema(schema, realm.getVersion(), realm.configuration.getMigration());
-            if (version == UNVERSIONED) {
-                final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
-                if (transaction != null) {
-                    transaction.execute(realm);
-                }
-            }
-        } finally {
-            if (commitNeeded) {
-                realm.commitTransaction(false, true, null);
-            } else {
-                realm.cancelTransaction();
+            columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+        }
+        realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+        RealmSchema schema = new RealmSchema(realm, realmObjectSchemas);
+        realm.sharedRealm.updateSchema(schema, realm.configuration.getSchemaVersion(), realm.configuration.getMigration());
+        if (version == UNVERSIONED) {
+            final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
+            if (transaction != null) {
+                transaction.execute(realm);
             }
         }
     }

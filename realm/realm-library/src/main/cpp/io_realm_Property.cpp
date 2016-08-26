@@ -44,7 +44,8 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_Stri
         JStringAccessor name(env, j_name);
         JStringAccessor link_name(env, j_link_name);
         auto  p_type = static_cast<PropertyType>(static_cast<int>(type)); // FIXME: is validation done by object store?
-        auto *property = new Property(name, p_type, link_name, "", false, false, false);
+        bool is_nullable = (p_type == PropertyType::Object);
+        auto *property = new Property(name, p_type, link_name, "", false, false, is_nullable);
         return reinterpret_cast<jlong>(property);
     }
     CATCH_STD()
@@ -81,6 +82,17 @@ Java_io_realm_Property_nativeRequiresIndex
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
         return property->requires_index();
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_Property_nativeIsNullable(JNIEnv *env, jclass, jlong property_ptr) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        return static_cast<jboolean>(property->is_nullable);
     }
     CATCH_STD()
     return JNI_FALSE;

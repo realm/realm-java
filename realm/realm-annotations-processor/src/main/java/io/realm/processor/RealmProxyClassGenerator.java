@@ -410,7 +410,7 @@ public class RealmProxyClassGenerator {
                 "RealmSchema", "realmSchema"); // Argument type & argument name
 
         writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + this.simpleClassName + "\"))");
-        writer.emitStatement("RealmObjectSchema realmObjectSchema = new RealmObjectSchema(\"" + this.simpleClassName + "\")");
+        writer.emitStatement("RealmObjectSchema realmObjectSchema = realmSchema.create(\"" + this.simpleClassName + "\")");
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {
@@ -440,7 +440,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.LIST, realmSchema.getObjectSchemaByName(\"%s\")))",
-                        fieldName, fieldTypeSimpleName);
+                        fieldName, genericTypeSimpleName);
             }
         }
         writer.emitStatement("return realmObjectSchema");
@@ -461,10 +461,12 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
+        /*
         writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
         writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count does not match - expected %d but was \" + table.getColumnCount())",
                 metadata.getFields().size());
         writer.endControlFlow();
+        */
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
@@ -476,7 +478,7 @@ public class RealmProxyClassGenerator {
         // create an instance of ColumnInfo
         writer.emitStatement("final %1$s columnInfo = new %1$s(sharedRealm.getPath(), table)", columnInfoClassName());
         writer.emitEmptyLine();
-
+/*
         // For each field verify there is a corresponding
         long fieldIndex = 0;
         for (VariableElement field : metadata.getFields()) {
@@ -611,6 +613,13 @@ public class RealmProxyClassGenerator {
         writer.nextControlFlow("else");
         writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"The '%s' class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
+        */
+
+        writer.emitStatement("return %s", "columnInfo");
+        writer.nextControlFlow("else");
+        writer.emitStatement("return null");
+        writer.endControlFlow();
+
         writer.endMethod();
         writer.emitEmptyLine();
     }

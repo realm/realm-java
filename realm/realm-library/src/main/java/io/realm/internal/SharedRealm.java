@@ -172,7 +172,7 @@ public final class SharedRealm implements Closeable {
 
     public void updateSchema(RealmSchema realmSchema, long schemaVersion, RealmMigration realmMigration) {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
-        nativeUpdateSchema(nativePtr, realmSchema.getNativePtr(), dynamicRealm, schemaVersion, realmMigration);
+        nativeUpdateSchema(nativePtr, dynamicRealm, realmSchema.getNativePtr(), schemaVersion, realmMigration);
         dynamicRealm.close();
     }
 
@@ -310,7 +310,7 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
     private static native long nativeSchema(long nativeSharedRealmPtr);
-    private static native long nativeUpdateSchema(long nativeSharedRealmPtr, long nativeSchemaPtr, Object dynamicRealm, long schemaVersion, Object migration);
+    private static native long nativeUpdateSchema(long nativeSharedRealmPtr, Object dynamicRealm, long nativeSchemaPtr, long schemaVersion, Object migration);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);

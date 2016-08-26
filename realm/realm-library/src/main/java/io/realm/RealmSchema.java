@@ -59,9 +59,8 @@ public final class RealmSchema {
      */
     RealmSchema(BaseRealm realm) {
         this.realm = realm;
-        nativePtr = nativeCreateSchema();
+        nativePtr = realm.sharedRealm.schema().getNativePtr();
     }
-
 
     RealmSchema(BaseRealm realm, ArrayList<RealmObjectSchema> realmObjectSchemas) {
         long[] nativeRealmObjectSchemaPtrs = new long[realmObjectSchemas.size()];
@@ -133,11 +132,14 @@ public final class RealmSchema {
      */
     public RealmObjectSchema create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
+        RealmObjectSchema realmObjectSchema = null;
         if (realm == null) {
-            return new RealmObjectSchema(className);
+            realmObjectSchema = new RealmObjectSchema(className);
         } else {
-            return new RealmObjectSchema(realm.sharedRealm, className);
+            realmObjectSchema = new RealmObjectSchema(realm.sharedRealm, className);
         }
+        dynamicClassToSchema.put(className, realmObjectSchema);
+        return realmObjectSchema;
     }
 
     /**
@@ -159,6 +161,7 @@ public final class RealmSchema {
             table.setPrimaryKey(null);
         }
         realm.sharedRealm.removeTable(internalTableName);
+        dynamicClassToSchema.remove(className);
     }
 
     /**
@@ -172,19 +175,19 @@ public final class RealmSchema {
         checkEmpty(oldClassName, "Class names cannot be empty or null");
         checkEmpty(newClassName, "Class names cannot be empty or null");
 
-        if (realm == null) {
-            if (hasObjectSchemaByName(oldClassName)) {
-                RealmObjectSchema realmObjectSchema = getObjectSchemaByName(oldClassName);
+        if (hasObjectSchemaByName(oldClassName)) {
+            RealmObjectSchema realmObjectSchema = getObjectSchemaByName(oldClassName);
+            dynamicClassToSchema.remove(oldClassName);
+            dynamicClassToSchema.put(newClassName, realmObjectSchema);
+            if (realm == null) {
                 realmObjectSchema.setClassName(newClassName);
-                // FIXME: will primary key be updated by object store?
                 return realmObjectSchema;
             } else {
-                return null;
+                realm.sharedRealm.renameTable(oldClassName, newClassName);
+                return getObjectSchemaByName(newClassName); // FIXME: is object_schema updated?
             }
         } else {
-            checkHasTable(oldClassName, "Cannot rename class because it is not in this Realm: " + oldClassName);
-            realm.sharedRealm.renameTable(oldClassName, newClassName);
-            return getObjectSchemaByName(newClassName); // FIXME: is object_schema updated?
+            throw new IllegalArgumentException("Cannot rename class because it is not in this Realm: " + oldClassName);
         }
     }
 
@@ -271,11 +274,27 @@ public final class RealmSchema {
      * @return {@code true} if schema has object schema, {@code false} otherwise
      */
     public boolean hasObjectSchemaByName(String name) {
-        return nativeHasObjectSchemaByName(nativePtr, name);
+        if (dynamicClassToSchema.containsKey(name)) {
+            return true;
+        } else {
+            if (realm == null) {
+                return nativeHasObjectSchemaByName(nativePtr, name);
+            } else {
+                return realm.sharedRealm.hasTable(Table.TABLE_PREFIX + name);
+            }
+        }
     }
 
     public RealmObjectSchema getObjectSchemaByName(String name) {
-        return new RealmObjectSchema(nativeGetObjectSchemaByName(nativePtr, name));
+        if (dynamicClassToSchema.containsKey(name)) {
+            return dynamicClassToSchema.get(name);
+        } else {
+            if (realm == null) {
+                return new RealmObjectSchema(nativeGetObjectSchemaByName(nativePtr, name));
+            } else {
+                return null;
+            }
+        }
     }
 
     private static native long nativeCreateSchema();

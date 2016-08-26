@@ -20,6 +20,7 @@
 #include <object-store/src/object_schema.hpp>
 #include <object-store/src/property.hpp>
 
+#include "io_realm_RealmSchema.h"
 #include "util.hpp"
 
 using namespace realm;
