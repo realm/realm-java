@@ -149,7 +149,7 @@ public class User {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(error.errorCode(), errorMessage);
+                            callback.onError(error, errorMessage);
                         }
                     });
                 }
@@ -298,6 +298,6 @@ public class User {
 
     public interface Callback {
         void onSuccess(User user);
-        void onError(int errorCode, String errorMsg);
+        void onError(Error errorCode, String errorMsg);
     }
 }

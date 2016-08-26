@@ -63,6 +63,7 @@ public final class SyncConfiguration extends RealmConfiguration {
     private final User user;
     private final boolean autoConnect;
     private final SyncPolicy syncPolicy;
+    private final ErrorHandler errorHandler;
 
     private SyncConfiguration(Builder builder) {
         super(builder);
@@ -74,6 +75,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
         this.autoConnect = builder.autoConnect;
         this.syncPolicy = builder.syncPolicy;
+        this.errorHandler = builder.errorHandler;
 
         // Determine location on disk
         // Use the objectServerUrl + user to create a unique filepath unless it has been explicitly overridden.
@@ -143,6 +145,10 @@ public final class SyncConfiguration extends RealmConfiguration {
         return serverUrl;
     }
 
+    public ErrorHandler getErrorHandler() {
+        return errorHandler;
+    }
+
     /**
      * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
      */
@@ -153,8 +159,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         private User user = null;
         private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
-        private ErrorHandler errorHandler;
-        private Session.EventHandler eventHandler;
+        private ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private boolean overrideDefaultFolder = false;
         private boolean overrideDefaultLocalFileName = false;
         private File defaultFolder;
@@ -191,7 +196,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         /**
          * Sets the local directory where the Realm file can be saved.
          * This will override the default location defined by the {@link #objectServerUrl(String)}
-         *
+         * <p>
          * <b>WARNING:</b> Overriding the default location should be done with extreme care. If two users write
          * to the same locale Realm, it can no longer be synchronized with the remote Realm.
          *

@@ -40,7 +40,6 @@ public class SyncConfigurationtests {
         // Not authenticated user
     }
 
-
     @Test
     public void serverUrl() {
 

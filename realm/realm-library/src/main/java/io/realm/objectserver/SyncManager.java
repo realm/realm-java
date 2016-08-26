@@ -35,66 +35,12 @@ public final class SyncManager {
 
         }
     };
-    private static final Session.EventHandler NO_OP_EVENT_HANDLER = new Session.EventHandler() {
-        @Override
-        public void sessionCreated(Session session) {
-
-        }
-
-        @Override
-        public void sessionStarted(Session session) {
-
-        }
-
-        @Override
-        public void realmUnbound(Session session) {
-
-        }
-
-        @Override
-        public void bindingRealm(Session session) {
-
-        }
-
-        @Override
-        public void realmBound(Session session) {
-
-        }
-
-        @Override
-        public void sessionStopped(Session session) {
-
-        }
-
-        @Override
-        public void authenticating(Session session) {
-
-        }
-
-        @Override
-        public void authorizationMissing(Session session) {
-
-        }
-
-        @Override
-        public void authorizationExpired(Session session) {
-
-        }
-
-        @Override
-        public void error(Error error, String errorMessage) {
-
-        }
-    };
-
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static long nativeSyncClientPointer;
     private static volatile AuthentificationServer authServer = new OkHttpAuthentificationServer();
     private static volatile ErrorHandler globalErrorHandler = NO_OP_ERROR_HANDLER;
-    private static volatile ErrorHandler defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
-    private static volatile Session.EventHandler defaultEventHandler = NO_OP_EVENT_HANDLER;
-
+    static volatile ErrorHandler defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
 
     // Map of between a local Realm path and any associated sessionInfo
     private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
@@ -127,19 +73,6 @@ public final class SyncManager {
             defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
         } else {
             defaultSessionErrorHandler = errorHandler;
-        }
-    }
-
-    /**
-     * Sets the default event handler used by all {@link SyncConfiguration} objects when they are created.
-     *
-     * @param eventHandler the default event handler used when interacting with a Realm managed by a Realm Object Server.
-     */
-    public static void setDefaultEventHandler(Session.EventHandler eventHandler) {
-        if (eventHandler == null) {
-            defaultEventHandler = NO_OP_EVENT_HANDLER;
-        } else {
-            defaultEventHandler = eventHandler;
         }
     }
 

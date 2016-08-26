@@ -29,6 +29,7 @@ import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
+import io.realm.objectserver.ErrorHandler;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
@@ -82,6 +83,7 @@ public final class Session {
     final SyncConfiguration configuration;
     final long nativeSyncClientPointer;
     final AuthentificationServer authServer;
+    private final ErrorHandler errorHandler;
     public long nativeSessionPointer;
     final User user;
     RealmAsyncTask networkRequest;
@@ -99,6 +101,7 @@ public final class Session {
         this.user = configuration.getUser();
         this.nativeSyncClientPointer = nativeSyncClientPointer;
         this.authServer = authServer;
+        this.errorHandler = configuration.getErrorHandler();
         setupStateMachine();
     }
 
@@ -189,6 +192,8 @@ public final class Session {
     private void notifySessionError(int errorCode, String errorMessage) {
         Error error = Error.fromInt(errorCode);
         handleError(error, errorMessage);
+        // FSM needs to respond to the error first, before notifying the User
+        errorHandler.onError(error, errorMessage);
     }
 
     /**
@@ -227,7 +232,6 @@ public final class Session {
 
     private void abortBind() {
         // TODO Abort any bind currently in progress
-        notifyBindAborded();
     }
 
     // IDEAS
@@ -286,7 +290,6 @@ public final class Session {
     void unbindActiveConnection() {
         nativeUnbind(nativeSessionPointer);
         nativeSessionPointer = 0;
-        notifyUnbinded();
     }
 
     void replaceCredentials(Credentials credentials) {
@@ -342,8 +345,6 @@ public final class Session {
         networkRequest = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
-
-
     public void refreshAccessToken(Token accessToken) {
         // TODO Refresh access token in the auth server
         user.setAccesToken(configuration, accessToken);
@@ -353,30 +354,6 @@ public final class Session {
     public boolean isAuthenticated(SyncConfiguration configuration) {
         Token token = user.getAccessToken(configuration);
         return token != null && token.expires() < System.currentTimeMillis();
-    }
-
-    private void notifyStarted() {
-
-    }
-
-    private void notifyAuthentifcationRequired() {
-
-    }
-
-    private void notifyUnbinded() {
-
-    }
-
-    private void notifyAttemptBind() {
-
-    }
-
-    private void notifyStopped() {
-
-    }
-
-    private void notifyBindAborded() {
-
     }
 
     @Override
@@ -392,18 +369,5 @@ public final class Session {
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
-
-    public interface EventHandler {
-        void sessionCreated(Session session);
-        void sessionStarted(Session session);
-        void realmUnbound(Session session);
-        void bindingRealm(Session session);
-        void realmBound(Session session);
-        void sessionStopped(Session session);
-        void authenticating(Session session);
-        void authorizationMissing(Session session);
-        void authorizationExpired(Session session);
-        void error(Error error, String errorMessage);
-    }
 }
 

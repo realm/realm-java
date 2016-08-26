@@ -5,14 +5,25 @@ public enum Error {
     // See https://github.com/realm/realm-sync/issues/585
     // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
 
-    // Realm Java errors / Authentication
+    // Realm Java errors (0-49)
 
     IO_ERROR(0, Category.RECOVERABLE),              // Some IO error while either contacting the server or reading the response
     UNEXPECTED_JSON_FORMAT(1, Category.FATAL),      // JSON input could not be parsed correctly
-    USER_ALREADY_EXISTS(2, Category.FATAL),         // Could not create a user because it already existed
-    INVALID_USERNAME_PASSWORD(3, Category.FATAL),   // Could not authenticate user
 
-    // Realm Object Server errors
+    // Realm Authentication Server response errors (50 - 99)
+
+    REALM_PROBLEM(50),
+    INVALID_PARAMETERS(51),
+    MISSING_PARAMETERS(52),
+    INVALID_CREDENTIALS(53),
+    UNKNOWN_ACCOUNT(54),
+    EXISTING_ACCOUNT(55),
+    ACCESS_DENIED(56),
+    INVALID_REFRESH_TOKEN(57),
+    EXPIRED_REFRESH_TOKEN(58),
+    INTERNAL_SERVER_ERROR(59),
+
+    // Realm Object Server errors (100 - 199)
 
     // Connection level and protocol errors
     CONNECTION_CLOSED(100, Category.INFO),      // Connection closed (no error)
@@ -26,7 +37,7 @@ public enum Error {
     BOUND_IN_OTHER_SESSION(108, Category.INFO), // Client file bound in other session (IDENT)
     BAD_MESSAGE_ORDER(109, Category.INFO),      // Bad input message order
 
-    // Session level errors
+    // Session level errors (200 - 299)
     SESSION_CLOSED(200),                        // Session closed (no error)
     OTHER_SESSION_ERROR(201),                   // Other session level error
     TOKEN_EXPIRED(202, Category.RECOVERABLE),   // Access token expired
