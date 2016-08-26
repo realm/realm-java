@@ -103,7 +103,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 ### Download sources
 
-You can download the source code of Realm Java by using git. Since realm-java has git submodules, use `--recursive` when clone.
+You can download the source code of Realm Java by using git. Since realm-java has git submodules, use `--recursive` when cloning the repository.
 
 ```
 git clone git@github.com:realm/realm-java.git --recursive
