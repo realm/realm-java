@@ -24,10 +24,9 @@ else()
 endif()
 
 create_javah(TARGET jni_headers
-  CLASSES io.realm.internal.Table io.realm.internal.TableView
-  io.realm.internal.CheckedRow io.realm.internal.SharedGroup io.realm.internal.Group
+  CLASSES io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
   io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
-  io.realm.internal.TableQuery
+  io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
 
   CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
@@ -62,9 +61,9 @@ set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PAT
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/jni_include)
+    ${CMAKE_SOURCE_DIR}/jni_include
+    ${CMAKE_SOURCE_DIR}/object-store/src)
 
-# Set compile flags
 set(ANDROID_STL "gnustl_static")
 
 if (ARMEABI)
@@ -92,7 +91,13 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS
 file(GLOB jni_SRC
     "*.cpp"
 )
-add_library(realm-jni SHARED ${jni_SRC})
+file(GLOB objectstore_SRC
+    "object-store/src/*.cpp"
+    "object-store/src/impl/*.cpp"
+    "object-store/src/impl/android/*.cpp"
+    "object-store/src/util/*.cpp"
+)
+add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC})
 add_dependencies(realm-jni jni_headers)
 # -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
 target_link_libraries(realm-jni log android atomic lib_realm_core)

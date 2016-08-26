@@ -3,6 +3,7 @@
 ### Breaking Changes
 
 * `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
+* armeabi is not supported anymore.
 
 ### Enhancements
 

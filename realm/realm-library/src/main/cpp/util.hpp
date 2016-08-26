@@ -56,29 +56,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 // Exception handling
-
-#define CATCH_FILE(fileName) \
-    catch (InvalidDatabase&) { \
-        ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
-    } \
-    catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path()); \
-    } \
-    catch (util::File::NotFound& e) { \
-        ThrowException(env, FileNotFound, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path());    \
-    } \
-    catch (util::File::AccessError& e) { \
-        ThrowException(env, FileAccessError, string(fileName), \
-                std::string(e.what()) + " path: " + e.get_path()); \
-    } \
-    catch (realm::IncompatibleLockFile& e) { \
-        ThrowException(env, LockFileError, std::string(e.what())); \
-    } \
-
-
-
 #define CATCH_STD() \
     catch (...) { \
         ConvertException(env, __FILE__, __LINE__); \
@@ -93,8 +70,6 @@ std::string num_to_string(T pNumber)
 }
 
 
-#define MAX_JLONG  0x7FFFFFFFFFFFFFFFLL
-#define MIN_JLONG -0x8000000000000000LL
 #define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
@@ -107,32 +82,33 @@ std::string num_to_string(T pNumber)
 #define TV(x)   reinterpret_cast<realm::TableView*>(x)
 #define LV(x)   reinterpret_cast<realm::LinkViewRef*>(x)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
-#define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
-#define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
-#define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling
+// FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
 enum ExceptionKind {
     ClassNotFound = 0,
-    NoSuchField = 1,
-    NoSuchMethod = 2,
-    IllegalArgument = 3,
-    IOFailed = 4,
-    FileNotFound = 5,
-    FileAccessError = 6,
-    IndexOutOfBounds = 7,
-    TableInvalid = 8,
-    UnsupportedOperation = 9,
-    OutOfMemory = 10,
-    FatalError = 11,
-    RuntimeError = 12,
-    RowInvalid = 13,
-    CrossTableLink = 15,
-    BadVersion = 16,
-    LockFileError = 17
-// NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
+    NoSuchField,
+    NoSuchMethod,
+    IllegalArgument,
+    IOFailed,
+    FileNotFound,
+    FileAccessError,
+    IndexOutOfBounds,
+    TableInvalid,
+    UnsupportedOperation,
+    OutOfMemory,
+    FatalError,
+    RuntimeError,
+    RowInvalid,
+    CrossTableLink,
+    BadVersion,
+    LockFileError,
+    IllegalState,
+    // NOTE!!!!: Please also add test cases to io_realm_internal_TestUtil when introducing a
+    // new exception kind.
+    ExceptionKindMax // Always keep this as the last one!
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);
@@ -520,45 +496,18 @@ public:
         }
     }
 
+    operator std::string() const noexcept
+    {
+        if (m_is_null) {
+            return std::string();
+        }
+        return std::string(m_data.get(), m_size);
+    }
+
 private:
     bool m_is_null;
     std::unique_ptr<char[]> m_data;
     std::size_t m_size;
-};
-
-class KeyBuffer {
-public:
-    KeyBuffer(JNIEnv* env, jbyteArray arr)
-    : m_env(env)
-    , m_array(arr)
-    , m_ptr(0)
-    {
-#ifdef REALM_ENABLE_ENCRYPTION
-        if (arr) {
-            if (env->GetArrayLength(m_array) != 64)
-                ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");
-            m_ptr = env->GetByteArrayElements(m_array, NULL);
-        }
-#else
-        if (arr)
-            ThrowException(env, UnsupportedOperation,
-                           "Encryption was disabled in the native library at compile time.");
-#endif
-    }
-
-    const char *data() const {
-        return reinterpret_cast<const char *>(m_ptr);
-    }
-
-    ~KeyBuffer() {
-        if (m_ptr)
-            m_env->ReleaseByteArrayElements(m_array, m_ptr, JNI_ABORT);
-    }
-
-private:
-    JNIEnv* m_env;
-    jbyteArray m_array;
-    jbyte* m_ptr;
 };
 
 class JniLongArray {
@@ -636,6 +585,20 @@ public:
     inline jbyte& operator[](const int index) noexcept
     {
         return m_array[index];
+    }
+
+    inline operator realm::BinaryData() const noexcept {
+        return realm::BinaryData(reinterpret_cast<const char *>(m_array), m_arrayLength);
+    }
+
+    inline operator std::vector<char>() const noexcept {
+        if (m_array == nullptr) {
+            return {};
+        }
+
+        std::vector<char> v(m_arrayLength);
+        std::copy_n(m_array, v.size(), v.begin());
+        return v;
     }
 
     inline void updateOnRelease() noexcept

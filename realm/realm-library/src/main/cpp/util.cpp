@@ -23,6 +23,7 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
+#include "shared_realm.hpp"
 
 using namespace std;
 using namespace realm;
@@ -58,8 +59,16 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
-    catch (File::AccessError& e) {
-        ss << e.what() << " path: " << e.get_path() << " in " << file << " line " << line;
+    catch (RealmFileException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (InvalidTransactionException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
+    catch (InvalidEncryptionKeyException& e) {
+        ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (exception& e) {
@@ -167,6 +176,14 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = classStr;
             break;
 
+        case IllegalState:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = classStr;
+            break;
+        // Should never get here.
+        case ExceptionKindMax:
+        default:
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());

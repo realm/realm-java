@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,15 @@
 
 package io.realm.internal;
 
-public class ReadTransaction extends Group {
+class TestUtil {
 
-    private final SharedGroup db;
-
-    ReadTransaction(Context context, SharedGroup db, long nativePointer) {
-        super(context, nativePointer, true); // make Group immutable
-        this.db = db;
+    static {
+        // Any internal class with static native methods that uses Realm Core must load the Realm Core library
+        // themselves as it otherwise might not have been loaded.
+        RealmCore.loadLibrary();
     }
 
-    public void endRead() {
-        db.endRead();
-    }
-
-    @Override
-    public void close() {
-        db.endRead();
-    }
-
-    protected void finalize() {} // Nullify the actions of Group.finalize()
+    public native static long getMaxExceptionNumber();
+    public native static String getExpectedMessage(long exceptionKind);
+    public native static void testThrowExceptions(long exceptionKind);
 }

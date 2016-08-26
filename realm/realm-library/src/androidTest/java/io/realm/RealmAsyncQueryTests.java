@@ -1871,8 +1871,8 @@ public class RealmAsyncQueryTests {
             public void run() {
                 Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
                 // Advancing the Realm without generating notifications
-                bgRealm.sharedGroupManager.promoteToWrite();
-                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                bgRealm.sharedRealm.beginTransaction();
+                bgRealm.sharedRealm.commitTransaction();
                 Realm.asyncTaskExecutor.resume();
                 bgRealm.close();
                 signalClosedRealm.countDown();
