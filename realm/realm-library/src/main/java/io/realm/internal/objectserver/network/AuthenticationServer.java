@@ -15,7 +15,7 @@ import io.realm.objectserver.Credentials;
  * All {@link NetworkRequest} are asynchronous and must be manually triggered by calling
  * {@link NetworkRequest#run(OkHttpNetworkRequest.Callback)}.
  */
-public interface AuthentificationServer {
+public interface AuthenticationServer {
     AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl, boolean createUser);
     AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authentificationUrl);
     RefreshResponse refresh(String token, URL authentificationUrl);

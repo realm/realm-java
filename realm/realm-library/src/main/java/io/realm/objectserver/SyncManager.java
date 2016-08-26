@@ -14,11 +14,9 @@ import io.realm.BuildConfig;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.objectserver.network.AuthentificationServer;
+import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
 import io.realm.objectserver.session.Session;
-
-import static io.realm.objectserver.Error.fromInt;
 
 @Keep
 public final class SyncManager {
@@ -38,7 +36,7 @@ public final class SyncManager {
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static long nativeSyncClientPointer;
-    private static volatile AuthentificationServer authServer = new OkHttpAuthentificationServer();
+    private static volatile AuthenticationServer authServer = new OkHttpAuthentificationServer();
     private static volatile ErrorHandler globalErrorHandler = NO_OP_ERROR_HANDLER;
     static volatile ErrorHandler defaultSessionErrorHandler = NO_OP_ERROR_HANDLER;
 
@@ -109,7 +107,7 @@ public final class SyncManager {
         return session;
     }
 
-    public static AuthentificationServer getAuthServer() {
+    public static AuthenticationServer getAuthServer() {
         return authServer;
     }
 
@@ -138,7 +136,7 @@ public final class SyncManager {
      *
      * Sets the auth server implementation used when validating credentials.
      */
-    static void setAuthServerImpl(AuthentificationServer authServerImpl) {
+    static void setAuthServerImpl(AuthenticationServer authServerImpl) {
         authServer = authServerImpl;
     }
 
@@ -190,6 +188,7 @@ public final class SyncManager {
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         Error error = Error.fromInt(errorCode);
         globalErrorHandler.onError(error, errorMessage);
+        // FIXME Still need to test this. After that we can remove this
         throw new RuntimeException("BOOM FROM JNI:" + error + errorMessage);
     }
 

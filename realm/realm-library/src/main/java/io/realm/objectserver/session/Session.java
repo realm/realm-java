@@ -27,7 +27,7 @@ import io.realm.internal.log.RealmLog;
 import io.realm.objectserver.Error;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
-import io.realm.internal.objectserver.network.AuthentificationServer;
+import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.objectserver.ErrorHandler;
 import io.realm.objectserver.SyncConfiguration;
@@ -82,7 +82,7 @@ public final class Session {
     // Variables used by the FSM
     final SyncConfiguration configuration;
     final long nativeSyncClientPointer;
-    final AuthentificationServer authServer;
+    final AuthenticationServer authServer;
     private final ErrorHandler errorHandler;
     public long nativeSessionPointer;
     final User user;
@@ -96,7 +96,7 @@ public final class Session {
     /**
      * Creates a new Object Server Session
      */
-    public Session(SyncConfiguration objectServerConfiguration, long nativeSyncClientPointer, AuthentificationServer authServer) {
+    public Session(SyncConfiguration objectServerConfiguration, long nativeSyncClientPointer, AuthenticationServer authServer) {
         this.configuration = objectServerConfiguration;
         this.user = configuration.getUser();
         this.nativeSyncClientPointer = nativeSyncClientPointer;

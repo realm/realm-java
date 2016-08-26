@@ -19,7 +19,6 @@ package io.realm.objectserver;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.telecom.Call;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,10 +37,8 @@ import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
-import io.realm.internal.objectserver.network.AuthentificationServer;
+import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.RefreshResponse;
-
-import static android.R.attr.id;
 
 /**
  * The credentials object describes a credentials on the Realm Object Server.
@@ -126,7 +123,7 @@ public class User {
         // that blocks on a background thread.
         final Handler handler = new Handler(Looper.getMainLooper());
 
-        final AuthentificationServer server = SyncManager.getAuthServer();
+        final AuthenticationServer server = SyncManager.getAuthServer();
         Future<?> authenticateRequest = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
             @Override
             public void run() {
@@ -186,7 +183,7 @@ public class User {
         // or the attempt was successful.
         // TODO Consider combining refresh across all users?
         final long expire = refreshToken.expires();
-        final AuthentificationServer server = SyncManager.getAuthServer();
+        final AuthenticationServer server = SyncManager.getAuthServer();
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
             @Override
             public void run() {
@@ -274,7 +271,7 @@ public class User {
         // TODO Where should the callback happen? Only allow callbacks on Handler threads? Then we need a variant
         // that blocks on a background thread.
 
-        final AuthentificationServer server = SyncManager.getAuthServer();
+        final AuthenticationServer server = SyncManager.getAuthServer();
     }
 
     /**
