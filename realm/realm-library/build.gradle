@@ -479,7 +479,7 @@ def checkNdk(String ndkPath) {
     }
     if (detectedNdkVersion != project.ndkVersion) {
         throw new GradleException("Your NDK version: ${detectedNdkVersion}."
-                +" Realm JNI must be compiled with the version ${ndkVersion} of NDK.")
+                +" Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
     }
 }
 
