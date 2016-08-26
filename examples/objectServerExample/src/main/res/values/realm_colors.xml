@@ -3,6 +3,7 @@
     // Grays
     <color name="charcoal">#1C233F</color>
     <color name="elephant">#9A9BA5</color>
+    <color name="elephant_half">#b1b3bf</color>
     <color name="dove">#EBEBF2</color>
 
     // Orb colors

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.intro;
+package io.realm.examples.objectserver;
 
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -23,25 +23,17 @@ import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
-import io.realm.examples.intro.model.Cat;
-import io.realm.examples.intro.model.Dog;
-import io.realm.examples.intro.model.Person;
-import io.realm.exceptions.ObjectServerException;
-import io.realm.objectserver.Credentials;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.User;
+import io.realm.examples.objectserver.model.Cat;
+import io.realm.examples.objectserver.model.Dog;
+import io.realm.examples.objectserver.model.Person;
 
-public class ObjectServerExampleActivity extends Activity {
+public class IntroExampleActivity extends Activity {
 
-    public static final String TAG = ObjectServerExampleActivity.class.getName();
+    public static final String TAG = IntroExampleActivity.class.getName();
     private LinearLayout rootLayout = null;
 
     private Realm realm;
@@ -53,35 +45,6 @@ public class ObjectServerExampleActivity extends Activity {
         setContentView(R.layout.activity_realm_basic_example);
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
-
-        URL authUrl;
-        try {
-            authUrl = new URL("http://127.0.0.1:8080/auth");
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Synchronized Realms can only be accessed with a configured `User`
-        Credentials creds = Credentials.createAnonymous();
-        User.authenticate(creds, authUrl, new User.Callback() {
-            @Override
-            public void onSuccess(User user) {
-                SyncConfiguration config = new SyncConfiguration.Builder(ObjectServerExampleActivity.this)
-                        .user(user)
-                        .serverUrl("realm://127.0.0.1/~/default")
-                        .build();
-
-                Realm realm = Realm.getInstance(config);
-            }
-
-            @Override
-            public void onError(int i, String s) {
-                throw new RuntimeException("Error: " + i + " -> " + s);
-            }
-        });
-
-
-
 
         // These operations are small enough that
         // we can generally safely run them on the UI thread.

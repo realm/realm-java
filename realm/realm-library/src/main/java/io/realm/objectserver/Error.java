@@ -5,10 +5,12 @@ public enum Error {
     // See https://github.com/realm/realm-sync/issues/585
     // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
 
-    // Realm Java errors
+    // Realm Java errors / Authentication
 
-    IO_ERROR(0, Category.RECOVERABLE),          // Some IO error while either contacting the server or reading the response
-    UNEXPECTED_JSON_FORMAT(1, Category.FATAL),  // JSON input could not be parsed correctly
+    IO_ERROR(0, Category.RECOVERABLE),              // Some IO error while either contacting the server or reading the response
+    UNEXPECTED_JSON_FORMAT(1, Category.FATAL),      // JSON input could not be parsed correctly
+    USER_ALREADY_EXISTS(2, Category.FATAL),         // Could not create a user because it already existed
+    INVALID_USERNAME_PASSWORD(3, Category.FATAL),   // Could not authenticate user
 
     // Realm Object Server errors
 

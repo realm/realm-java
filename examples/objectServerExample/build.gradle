@@ -19,9 +19,9 @@ android {
         release {
             minifyEnabled false
         }
-    }
-
-    productFlavors {
+        debug {
+            minifyEnabled false
+        }
     }
 
     command {
@@ -30,15 +30,8 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:24.2.0'
+    compile 'com.android.support:support-v4:24.2.0'
     compile 'com.android.support:design:24.2.0'
-//    compile 'io.reactivex:rxjava:1.1.0'
-//    compile 'io.reactivex:rxandroid:1.1.0'
-//    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
-//    compile 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
-//    compile 'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2'
-//    compile 'com.jakewharton.timber:timber:4.1.0'
     compile 'com.jakewharton:butterknife:8.3.0'
     apt 'com.jakewharton:butterknife-compiler:8.3.0'
-//    compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
 }

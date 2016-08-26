@@ -153,7 +153,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public SyncConfiguration.Builder schemaVersion(long schemaVersion) {
+        public Builder schemaVersion(long schemaVersion) {
             super.schemaVersion(schemaVersion);
             return this;
         }
@@ -162,7 +162,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public RealmConfiguration.Builder deleteRealmIfMigrationNeeded() {
+        public Builder deleteRealmIfMigrationNeeded() {
             super.deleteRealmIfMigrationNeeded();
             return this;
         }
@@ -171,7 +171,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public RealmConfiguration.Builder inMemory() {
+        public SyncConfiguration.Builder inMemory() {
             super.inMemory();
             return this;
         }
@@ -180,7 +180,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public RealmConfiguration.Builder modules(Object baseModule, Object... additionalModules) {
+        public Builder modules(Object baseModule, Object... additionalModules) {
             super.modules(baseModule, additionalModules);
             return this;
         }
@@ -189,7 +189,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public RealmConfiguration.Builder rxFactory(RxObservableFactory factory) {
+        public SyncConfiguration.Builder rxFactory(RxObservableFactory factory) {
             super.rxFactory(factory);
             return this;
         }
@@ -198,7 +198,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public RealmConfiguration.Builder initialData(Realm.Transaction transaction) {
+        public Builder initialData(Realm.Transaction transaction) {
             super.initialData(transaction);
             return this;
         }
@@ -207,7 +207,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public RealmConfiguration.Builder assetFile(Context context, String assetFile) {
+        public Builder assetFile(Context context, String assetFile) {
             super.assetFile(context, assetFile);
             return this;
         }

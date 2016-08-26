@@ -87,12 +87,15 @@ public class User {
      * @param callback Callback when login has completed or failed. This callback will always happen on the UI thread.
      * @throws IllegalArgumentException
      */
-    public static void login(final Credentials credentials, final String authenticationUrl, final Callback callback) {
+    // FIXME Return task that can be canceled
+    public static RealmAsyncTask login(final Credentials credentials, final String authenticationUrl, final Callback callback) {
         authenticate(credentials, false, authenticationUrl, callback);
+        return null;
     }
 
-    public static void createUserAndLogin(Credentials credentials, String authenticationUrl, Callback callback) {
+    public static RealmAsyncTask createUserAndLogin(Credentials credentials, String authenticationUrl, Callback callback) {
         authenticate(credentials, true, authenticationUrl, callback);
+        return null;
     }
 
     private static void authenticate(final Credentials credentials, final boolean createUser, String authentificationUrl, final Callback callback) {

@@ -1,7 +1,6 @@
-package io.realm.examples.intro;
+package io.realm.examples.objectserver;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -12,13 +11,15 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.objectserver.Credentials;
-import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
+import io.realm.objectserver.util.UserStore;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     private static final int REQUEST_SIGNUP = 0;
+
+    private UserStore userStore = MyApplication.USER_STORE;
 
     @BindView(R.id.input_username) EditText username;
     @BindView(R.id.input_password) EditText password;
@@ -46,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void login(boolean createUser) {
         if (!validate()) {
-            onLoginFailed();
+            onLoginFailed("Invalid username or password");
             return;
         }
 
@@ -61,36 +62,28 @@ public class LoginActivity extends AppCompatActivity {
         String username = this.username.getText().toString();
         String password = this.password.getText().toString();
 
-        User.authenticate(
-                Credentials.fromUsernamePassword(username, password),
-                "http://127.0.0.1:8080/auth",
-                true,
-                new User.Callback() {
-                @Override
-                public void onSuccess(User user) {
-                    progressDialog.dismiss();
-//                    UserUtils.setCurrentUser(user);
-                    onLoginSuccess();
-                }
-
-                @Override
-                public void onError(int i, String s) {
-                    progressDialog.dismiss();
-                    onLoginFailed();
-                }
-        });
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_SIGNUP) {
-            if (resultCode == RESULT_OK) {
-
-                // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
-                this.finish();
+        Credentials creds = Credentials.fromUsernamePassword(username, password);
+        String authUrl = "http://127.0.0.1:8080/auth";
+        User.Callback callback = new User.Callback() {
+            @Override
+            public void onSuccess(User user) {
+                progressDialog.dismiss();
+                userStore.save(MyApplication.APP_USER_KEY, user); // TODO Use Async
+                userStore.setCurrentUser(user);
+                onLoginSuccess();
             }
+
+            @Override
+            public void onError(int errorCode, String errorMsg) {
+                progressDialog.dismiss();
+                onLoginFailed(errorMsg);
+            }
+        };
+
+        if (createUser) {
+            User.createUserAndLogin(creds, authUrl, callback);
+        } else {
+            User.login(creds, authUrl, callback);
         }
     }
 
@@ -106,10 +99,10 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    public void onLoginFailed() {
+    public void onLoginFailed(String errorMsg) {
         loginButton.setEnabled(true);
         createUserButton.setEnabled(true);
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), errorMsg, Toast.LENGTH_LONG).show();
     }
 
     public boolean validate() {
