@@ -452,6 +452,7 @@ task checkNdk() << {
         if (!ndkPathInLocalProperties) {
             throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
         }
+        checkNdk(ndkPathInLocalProperties)
         if (new File(ndkPathInLocalProperties).getCanonicalPath()
                 != new File(ndkPathInEnvVariable).getCanonicalPath()) {
             throw new GradleException(
@@ -459,7 +460,6 @@ task checkNdk() << {
                             + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
                             + ' must point the same directory.')
         }
-        checkNdk(ndkPathInLocalProperties)
     }
 }
 
