@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Locale;
+
 /**
  * This class represents a value from the Realm Authentication Server.
  */
@@ -52,11 +54,27 @@ public class Token {
         return permissions;
     }
 
+    public String toJson() {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("token", value);
+            obj.put("expires", expires);
+            JSONArray perms = new JSONArray();
+            for (int i = 0; i < permissions.length; i++) {
+                perms.put(permissions[i].toString().toLowerCase(Locale.US));
+            }
+            obj.put("access", perms);
+            return obj.toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("Could not convert Token to JSON.", e);
+        }
+    }
+
     public enum Permission {
         UNKNOWN,
         UPLOAD,
         DOWNLOAD,
-        REFRESH
+        REFRESH,
+        MANAGE
     }
-
 }

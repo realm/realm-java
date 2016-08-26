@@ -1381,15 +1381,6 @@ public final class Realm extends BaseRealm {
         return BaseRealm.compactRealm(configuration);
     }
 
-    // Get the canonical path for a given file
-    static String getCanonicalPath(File realmFile) {
-        try {
-            return realmFile.getCanonicalPath();
-        } catch (IOException e) {
-            throw new RealmIOException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
-        }
-    }
-
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
     }

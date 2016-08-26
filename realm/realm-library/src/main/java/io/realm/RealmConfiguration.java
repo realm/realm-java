@@ -32,6 +32,7 @@ import java.util.Set;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
@@ -101,7 +102,7 @@ public class RealmConfiguration {
     protected RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
         this.realmFileName = builder.fileName;
-        this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
+        this.canonicalPath = getCanonicalPath(new File(realmFolder, realmFileName));
         this.assetFilePath = builder.assetFilePath;
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
@@ -347,6 +348,15 @@ public class RealmConfiguration {
 
     public Context getContext() {
         return contextWeakRef.get();
+    }
+
+    // Get the canonical path for a given file
+    protected static String getCanonicalPath(File realmFile) {
+        try {
+            return realmFile.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RealmIOException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
+        }
     }
 
     /**

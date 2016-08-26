@@ -60,7 +60,7 @@ public class ObjectServerTests {
             public void onSuccess(User user) {
                 SyncConfiguration config = new SyncConfiguration.Builder(context)
                         .user(user)
-                        .serverUrl("realm://127.0.0.1/~/default.realm")
+                        .objectServerUrl("realm://127.0.0.1/~/default.realm")
                         .build();
                 Realm.deleteRealm(config);
 
@@ -210,7 +210,7 @@ public class ObjectServerTests {
 //                .name("local.realm"); // Unavoidable if access is possible without a user
 //                .user(user); // Impossible if wanting to generate the config before the concept of a user exists.
 //                .user(callback); // If user is required, means Realm.getInstance() also have to be async.
-//                .remoteRealm("realm://sync.realm.io/~/default.realm") // url / serverUrl / remoteName / syncUrl ...
+//                .remoteRealm("realm://sync.realm.io/~/default.realm") // url / objectServerUrl / remoteName / syncUrl ...
 //                .build();
 //
 //        boolean createUserOnServer = true; // Not sure I am fan of having this

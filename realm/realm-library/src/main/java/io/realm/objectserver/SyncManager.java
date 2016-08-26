@@ -212,7 +212,7 @@ public final class SyncManager {
 //    //
 //    // OLD IMPLEMENTATION
 //    //
-//    public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
+//    public synchronized static long getSession(final String userToken, final String path, final String objectServerUrl) {
 //        if (syncClientPointer == 0) {
 //            // client event loop is not created for this token
 //            // we createFrom 1 client per credentials token

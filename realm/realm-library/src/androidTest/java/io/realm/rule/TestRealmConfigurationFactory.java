@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+import io.realm.objectserver.SyncConfiguration;
 
 import static org.junit.Assert.assertTrue;
 

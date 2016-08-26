@@ -17,11 +17,11 @@
 package io.realm.objectserver;
 
 import android.content.Context;
+import android.net.Uri;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -30,6 +30,9 @@ import io.realm.objectserver.session.Session;
 import io.realm.objectserver.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
 import io.realm.rx.RxObservableFactory;
+
+import static android.R.attr.id;
+import static android.R.attr.path;
 
 /**
  * An {@link SyncConfiguration} is used to setup a replicated .
@@ -53,11 +56,13 @@ import io.realm.rx.RxObservableFactory;
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
+    private final File realmFolder;
+    private final String realmFileName;
+    private final String canonicalPath;
     private final URI serverUrl;
     private final User user;
     private final boolean autoConnect;
     private final SyncPolicy syncPolicy;
-    private final long heartbeatRateMs;
 
     private SyncConfiguration(Builder builder) {
         super(builder);
@@ -65,11 +70,20 @@ public final class SyncConfiguration extends RealmConfiguration {
         try {
             this.serverUrl = new URI(builder.serverUrl.toString().replace("/~/", "/" + user.getIdentifier() + "/"));
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Could not be replaced /~/ with a valid user ID.", e);
+            throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
         }
         this.autoConnect = builder.autoConnect;
         this.syncPolicy = builder.syncPolicy;
-        this.heartbeatRateMs = builder.heartBeatRateMs;
+
+        // Determine location on disk
+        // Use the objectServerUrl + user to create a unique filepath unless it has been explicitly overridden.
+        this.realmFolder = builder.defaultFolder; // TODO Add support for overriding default folder
+        this.realmFileName = builder.overrideDefaultLocalFileName ? getRealmFileName() : builder.defaultLocalFileName;
+        this.canonicalPath = getCanonicalPath(new File(realmFolder, realmFileName));
+
+        // Create the folder on disk (if needed)
+        realmFolder.mkdirs();
+
     }
 
     @Override
@@ -87,6 +101,30 @@ public final class SyncConfiguration extends RealmConfiguration {
         StringBuilder stringBuilder = new StringBuilder();
         // TODO
         return stringBuilder.toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public File getRealmFolder() {
+        return this.realmFolder;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getRealmFileName() {
+        return this.realmFileName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPath() {
+        return this.canonicalPath;
     }
 
     public SyncPolicy getSyncPolicy() {
@@ -110,19 +148,24 @@ public final class SyncConfiguration extends RealmConfiguration {
      */
     public static final class Builder extends RealmConfiguration.Builder {
 
+        private Context context;
         private URI serverUrl;
         private User user = null;
         private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
-        private long heartBeatRateMs = TimeUnit.SECONDS.toMillis(280);
         private ErrorHandler errorHandler;
         private Session.EventHandler eventHandler;
+        private boolean overrideDefaultFolder = false;
+        private boolean overrideDefaultLocalFileName = false;
+        private File defaultFolder;
+        private String defaultLocalFileName;
 
         /**
          * {@inheritDoc}
          */
         public Builder(Context context) {
             super(context);
+            this.context = context;
         }
 
         /**
@@ -133,10 +176,30 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * {@inheritDoc}
+         * Sets the local filename for the Realm.
+         * This will override the default name defined by the {@link #objectServerUrl(String)}
+         *
+         * @param name name of the local file on disk.
          */
         @Override
         public Builder name(String name) {
+            super.name(name);
+            this.overrideDefaultLocalFileName = true;
+            return this;
+        }
+
+        /**
+         * Sets the local directory where the Realm file can be saved.
+         * This will override the default location defined by the {@link #objectServerUrl(String)}
+         *
+         * <b>WARNING:</b> Overriding the default location should be done with extreme care. If two users write
+         * to the same locale Realm, it can no longer be synchronized with the remote Realm.
+         *
+         * @param dir directory on disk where the Realm file can be saved.
+         * @throws IllegalArgumentException if the directory is not valid.
+         */
+        public Builder directory(File dir) {
+            // TODO
             return this;
         }
 
@@ -224,19 +287,41 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Enable server side synchronization for this Realm. The name should be a unique URL that identifies this Realm.
-         * {@code /~/} can be used as a placeholder for a user id in case the Realm should only be available to one
-         * user, e.g. {@code "realm://objectserver.relam.io/~/default.realm"}
+         * Enable server side synchronization for this Realm. The name should be a unique URL that identifies the Realm.
+         * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
+         * user, e.g. {@code "realm://objectserver.realm.io/~/default"}
+         *
+         * The `/~/` will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
+         *
+         * The URL also defines the local location on the device. The default location of a synchronized Realm file is
+         * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}.
+         *
+         * This behaviour can be overwritten using {@link #name(String)} and {@link #directory(File}.
          *
          * @param url URL identifying the Realm.
          * @throws IllegalArgumentException if the URL is not valid.
          */
-        public Builder serverUrl(String url) {
+        public Builder objectServerUrl(String url) {
             try {
                 this.serverUrl = new URI(url);
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid url.", e);
+                throw new IllegalArgumentException("Invalid url: " + url, e);
             }
+
+            // Detect last path segment as it is the default file name
+            String path = serverUrl.getPath();
+            if (path == null) {
+                throw new IllegalArgumentException("Invalid url: " + url);
+            }
+
+            String[] pathSegments = path.split("/");
+            this.defaultLocalFileName = pathSegments[pathSegments.length - 1];
+
+            // Validate filename
+            if (defaultLocalFileName.endsWith(".realm")) {
+                throw new IllegalArgumentException("The URL must not end with '.realm': " + url);
+            }
+
             return this;
         }
 
@@ -253,6 +338,9 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (!user.isAuthenticated()) {
                 throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: " + user.getIdentifier());
             }
+
+            String userId = user.getIdentifier();
+            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server/" + userId);
             this.user = user;
             return this;
         }
@@ -295,49 +383,15 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the heartbeat used by the Object Server. The heartbeat is primarily used to determine if an device is
-         * online or present, but it is also used by the underlying protocol to keep the connection to the Object
-         * Server alive. A live connection is important if changes must be synchronized as fast as possible.
+         * Sets the error handler used by this configuration.
+         * This will override any handler set by calling {@link SyncManager#setDefaultSessionErrorHandler(ErrorHandler)}.
          *
-         * For apps that want to display if another user is "present", the maximum error margin is also the heart rate.
-         * Setting a fast heartbeat can negatively effect users battery.
-         *
-         * The default value is 280 seconds.
-         *
-         * @param heartRate H
-         * @param unit the unit of time
-         *
-         * @see <a href="TODO_LINK">User precense and heart rate</a>
+         * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
          */
-        public Builder heartbeat(long heartRate, TimeUnit unit) {
-            this.heartBeatRateMs = TimeUnit.MILLISECONDS.convert(heartRate, unit);
+        public Builder errorHandler(ErrorHandler errorHandler) {
+            this.errorHandler = errorHandler;
             return this;
         }
-
-//        /**
-//         * Sets the error handler used by this configuration.
-//         * This will override any handler set by calling {@link RealmObjectServer#setGlobalErrorHandler(SyncErrorHandler)}.
-//         *
-//         * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
-//         */
-//        public Builder errorHandler(SyncErrorHandler errorHandler) {
-//            return this;
-//        }
-//
-//        /**
-//         * Sets the log level used by this configuration.
-//         * This will override any handler set by calling {@link RealmObjectServer#setGlobalErrorHandler(SyncErrorHandler)}.
-//         *
-//         * @param logLevel the about of inerror handler used to report back errors when communicating with the Realm Object Server.
-//         */
-//        public Builder logLevel(SyncLogLevel logLevel) {
-//            // TODO What is this used for?
-//            return this;
-//        }
-//
-//        public Builder changeListener(SyncEventHandler changeListener) {
-//
-//        }
 
         /**
          * Creates the RealmConfiguration based on the builder parameters.
@@ -346,15 +400,6 @@ public final class SyncConfiguration extends RealmConfiguration {
          */
         public SyncConfiguration build() {
             return new SyncConfiguration(this);
-        }
-
-        public Builder errorHandler(ErrorHandler errorHandler) {
-            this.errorHandler = errorHandler;
-            return this;
-        }
-
-        public Builder eventHandler(Session.EventHandler sessionEvents) {
-            return this;
         }
     }
 }

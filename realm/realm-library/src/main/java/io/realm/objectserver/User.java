@@ -21,6 +21,9 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.telecom.Call;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -37,6 +40,8 @@ import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthentificationServer;
 import io.realm.internal.objectserver.network.RefreshResponse;
+
+import static android.R.attr.id;
 
 /**
  * The credentials object describes a credentials on the Realm Object Server.
@@ -66,9 +71,20 @@ public class User {
      * @param user Json string representing the user.
      *
      * @return the user object.
+     * @throws IllegalArgumentException if the JSON could be be converted to a valid {@link User} object.
      */
     public static User fromJson(String user) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        try {
+            JSONObject obj = new JSONObject(user);
+            String id = obj.getString("identifier");
+            Token refreshToken = Token.from(obj.getJSONObject("refreshToken"));
+            URL authUrl = new URL(obj.getString("authUrl"));
+            return new User(id, refreshToken, authUrl);
+        } catch (JSONException e) {
+            throw new IllegalArgumentException("Could not parse user json: " + user, e);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("URL in JSON not valid: " + user, e);
+        }
     }
 
     public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
@@ -236,7 +252,15 @@ public class User {
      * @see #fromJson(String)
      */
     public String toJson() {
-        return "";
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("identifier", identifier);
+            obj.put("refreshToken", refreshToken.toJson());
+            obj.put("authenticationUrl", authentificationUrl);
+           return obj.toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("Could not convert User to JSON", e);
+        }
     }
 
     public String getIdentifier() {
