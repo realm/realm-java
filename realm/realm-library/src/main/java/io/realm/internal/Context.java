@@ -19,10 +19,12 @@ package io.realm.internal;
 import java.lang.ref.ReferenceQueue;
 
 // Currently we free native objects in two threads, the SharedGroup is freed in the caller thread, others are freed in
-// PhantomDaemon thread. The only reason we have this class is that there is a concurrency problem when freeing a row
-// which hold the last reference to a table -- freeing row will be locked on a mutex and the same mutex will be freed
-// when the corresponding table gets freed. So this class can go away when core doesn't hold the mutex itself as a
-// member of table.
+// PhantomDaemon thread. And the destruction in both threads are locked by the corresponding context.
+// The purpose of locking on Context is:
+// Destruction of SharedGroup (and hence Group and Table) is currently not thread-safe with respect to destruction of
+// other accessors, you have two ensure mutual exclusion. This is also illustrated by the use of locks in the test
+// test_destructor_thread_safety.cpp. Explicit call of SharedGroup::close() or Table::detach() is also not thread-safe
+// with respect to destruction of other accessors.
 public class Context {
     private final static ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
     private final static Thread phantomThread = new Thread(new FinalizerRunnable(referenceQueue));
