@@ -429,3 +429,69 @@ if (project.hasProperty('dontCleanJniFiles')) {
     }
     clean.dependsOn cleanExternalBuildFiles
 }
+
+project.afterEvaluate {
+    android.libraryVariants.all { variant ->
+        variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
+    }
+}
+
+task checkNdk() << {
+    def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
+    if (!ndkPathInEnvVariable) {
+        throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
+    }
+    checkNdk(ndkPathInEnvVariable)
+
+    def localPropFile = rootProject.file('local.properties')
+    if (!localPropFile.exists()) {
+        // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
+    } else {
+        def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
+        if (!ndkPathInLocalProperties) {
+            throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
+        }
+        checkNdk(ndkPathInLocalProperties)
+        if (new File(ndkPathInLocalProperties).getCanonicalPath()
+                != new File(ndkPathInEnvVariable).getCanonicalPath()) {
+            throw new GradleException(
+                    "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
+                            + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
+                            + ' must point the same directory.')
+        }
+    }
+}
+
+def checkNdk(String ndkPath) {
+    def detectedNdkVersion
+    def releaseFile = new File(ndkPath, 'RELEASE.TXT')
+    def propertyFile = new File(ndkPath, 'source.properties')
+    if (releaseFile.isFile()) {
+        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
+    } else if (propertyFile.isFile()) {
+        detectedNdkVersion = getValueFromPropertiesFile(propertyFile, 'Pkg.Revision')
+        if (detectedNdkVersion == null) {
+            throw new GradleException("Failed to obtain the NDK version information from ${ndkPath}/source.properties")
+        }
+    } else {
+        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
+    }
+    if (detectedNdkVersion != project.ndkVersion) {
+        throw new GradleException("Your NDK version: ${detectedNdkVersion}."
+                +" Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
+    }
+}
+
+def getValueFromPropertiesFile(File propFile, String key) {
+    if (!propFile.isFile() || !propFile.canRead()) {
+        return null
+    }
+    def prop = new Properties()
+    def reader = propFile.newReader()
+    try {
+        prop.load(reader)
+    } finally {
+        reader.close()
+    }
+    return prop.get(key)
+}
