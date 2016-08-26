@@ -55,7 +55,7 @@ See [version.txt](version.txt) for the latest version number.
 
 In case you don't want to use the precompiled version, you can build Realm yourself from source.
 
-Prerequisites:
+### Prerequisites
 
  * Make sure `make` is available in your `$PATH`.
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
@@ -100,6 +100,22 @@ Prerequisites:
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
+
+### Download sources
+
+You can download the source code of Realm Java by using git. Since realm-java has git submodules, use `--recursive` when clone.
+
+```
+git clone git@github.com:realm/realm-java.git --recursive
+```
+
+or
+
+```
+git clone https://github.com/realm/realm-java.git --recursive
+```
+
+### Build
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
