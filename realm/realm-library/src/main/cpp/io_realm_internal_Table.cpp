@@ -1401,13 +1401,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
     return TBL(nativeTablePtr)->is_attached();  // noexcept
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
-    JNIEnv*, jclass, jlong nativeTablePtr)
-{
-    TR_ENTER_PTR(nativeTablePtr)
-    finalize_table(nativeTablePtr);
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, jobject)
 {
     TR_ENTER()

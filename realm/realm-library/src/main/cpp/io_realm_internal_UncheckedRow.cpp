@@ -330,12 +330,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeNullifyLink
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeClose
-  (JNIEnv *, jclass, jlong nativeRowPtr)
-{
-    finalize_unchecked_row(nativeRowPtr);
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
   (JNIEnv *, jobject, jlong nativeRowPtr)
 {

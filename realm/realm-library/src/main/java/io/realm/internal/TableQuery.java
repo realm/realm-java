@@ -702,7 +702,6 @@ public class TableQuery implements NativeObject {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
-    protected static native void nativeClose(long nativeQueryPtr);
     private native String nativeValidateQuery(long nativeQueryPtr);
     private native void nativeTableview(long nativeQueryPtr, long nativeTableViewPtr);
     private native void nativeGroup(long nativeQueryPtr);

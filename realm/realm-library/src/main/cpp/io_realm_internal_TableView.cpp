@@ -150,13 +150,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClose(
-    JNIEnv*, jclass, jlong nativeViewPtr)
-{
-    TR_ENTER_PTR(nativeViewPtr)
-    finalize_table_view(nativeViewPtr);
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSize(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {

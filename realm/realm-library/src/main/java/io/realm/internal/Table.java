@@ -1338,7 +1338,6 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     protected native long createNative();
-    static native void nativeClose(long nativeTablePtr);
     private native boolean nativeIsValid(long nativeTablePtr);
     private native boolean nativeIsRootTable(long nativeTablePtr);
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);

@@ -731,7 +731,6 @@ public class TableView implements TableOrView, NativeObject {
         return version;
     }
 
-    static native void nativeClose(long nativeViewPtr);
     private native long nativeSize(long nativeViewPtr);
     private native long nativeGetSourceRowIndex(long nativeViewPtr, long rowIndex);
     private native long nativeGetColumnCount(long nativeViewPtr);
