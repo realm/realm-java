@@ -46,5 +46,4 @@ public interface SyncPolicy {
      * {@link #apply(Session)} should be stopped and cleaned up.
      */
     void stop();
-
 }

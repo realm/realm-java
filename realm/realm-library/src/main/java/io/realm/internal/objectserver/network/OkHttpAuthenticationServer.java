@@ -31,7 +31,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OkHttpAuthentificationServer implements AuthenticationServer {
+public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 

@@ -302,6 +302,7 @@ public final class Session {
     void unbindActiveConnection() {
         nativeUnbind(nativeSessionPointer);
         nativeSessionPointer = 0;
+        configuration.getSyncPolicy().stop();
     }
 
     void replaceCredentials(Credentials credentials) {

@@ -31,7 +31,7 @@ import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthenticationServer;
-import io.realm.internal.objectserver.network.OkHttpAuthentificationServer;
+import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
 import io.realm.objectserver.session.Session;
 
 @Keep
@@ -83,7 +83,7 @@ public final class SyncManager {
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static long nativeSyncClientPointer;
-    private static volatile AuthenticationServer authServer = new OkHttpAuthentificationServer();
+    private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     private static volatile SyncManager.ErrorHandler globalErrorHandler = CLIENT_NO_OP_ERROR_HANDLER;
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
