@@ -66,6 +66,7 @@ public class Credentials {
     private LoginType loginType;
     private String field1;
     private String field2;
+    private final boolean createUser;
 
     // Factory constructors
 
@@ -85,8 +86,8 @@ public class Credentials {
      *
      * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using username and password</a>
      */
-    public static Credentials fromUsernamePassword(String username, String password) {
-        return new Credentials(LoginType.USERNAME_PASSWORD, username, password);
+    public static Credentials fromUsernamePassword(String username, String password, boolean createUser) {
+        return new Credentials(LoginType.USERNAME_PASSWORD, username, password, createUser);
     }
 
     /**
@@ -101,12 +102,14 @@ public class Credentials {
     private Credentials(LoginType type, String token) {
         this.loginType = type;
         this.field1 = token;
+        this.createUser = false;
     }
 
-    public Credentials(LoginType usernamePassword, String username, String password) {
+    private Credentials(LoginType usernamePassword, String username, String password, boolean createUser) {
         this.loginType = LoginType.USERNAME_PASSWORD;
         this.field1 = username;
         this.field2 = password;
+        this.createUser = createUser;
     }
 
     /**
@@ -135,6 +138,17 @@ public class Credentials {
      */
     public String getField2() {
         return field2;
+    }
+
+
+    /**
+     * Returns {@code true} if a User should be created based on these credentials.
+     * If the user already exists, this will fail.
+     *
+     * @return {@code true} if the user should be created on the Realm Object Server, {@code false} if it already exists.
+     */
+    public boolean shouldCreateUser() {
+        return createUser;
     }
 
     /**

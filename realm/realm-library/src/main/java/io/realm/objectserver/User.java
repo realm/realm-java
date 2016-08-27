@@ -88,10 +88,6 @@ public class User {
         return null; // TODO
     }
 
-    public static User createUserAndLogin(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
-        return null; // TODO
-    }
-
     /**
      * Login the user on the Realm Object Server
      *
@@ -102,19 +98,9 @@ public class User {
      */
     // FIXME Return task that can be canceled
     public static RealmAsyncTask login(final Credentials credentials, final String authenticationUrl, final Callback callback) {
-        authenticate(credentials, false, authenticationUrl, callback);
-        return null;
-    }
-
-    public static RealmAsyncTask createUserAndLogin(Credentials credentials, String authenticationUrl, Callback callback) {
-        authenticate(credentials, true, authenticationUrl, callback);
-        return null;
-    }
-
-    private static void authenticate(final Credentials credentials, final boolean createUser, String authentificationUrl, final Callback callback) {
         final URL authUrl;
         try {
-            authUrl = new URL(authentificationUrl);
+            authUrl = new URL(authenticationUrl);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid URL", e);
         }
@@ -129,7 +115,7 @@ public class User {
             public void run() {
                 // Don't retry authenticateUser requests. The app might want to respond to errors.
                 try {
-                    AuthenticateResponse result = server.authenticateUser(credentials, authUrl, createUser);
+                    AuthenticateResponse result = server.authenticateUser(credentials, authUrl, credentials.shouldCreateUser());
                     if (result.isValid()) {
                         User user = new User(result.getIdentifier(), result.getRefreshToken(), authUrl);
                         postSuccess(user);
@@ -164,6 +150,7 @@ public class User {
             }
         });
         authenticateTask = new RealmAsyncTask(authenticateRequest, SyncManager.NETWORK_POOL_EXECUTOR);
+        return authenticateTask;
     }
 
     private User(String identifier, Token refreshToken, URL authentificationUrl) {
