@@ -330,12 +330,12 @@ public class JNITransactions {
         tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
-        // Create first onEntry with name "foo"
+        // Create first entry with name "foo"
         tbl.setString(0, tbl.addEmptyRow(), "Foo");
 
         long rowIndex = tbl.addEmptyRow();
         try {
-            tbl.setString(0, rowIndex, "Foo"); // Try to create 2nd onEntry with name Foo
+            tbl.setString(0, rowIndex, "Foo"); // Try to create 2nd entry with name Foo
         } catch (RealmPrimaryKeyConstraintException e1) {
             tbl.setPrimaryKey(""); // Primary key check worked, now remove it and try again.
             try {

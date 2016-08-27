@@ -98,6 +98,8 @@ import io.realm.util.ExceptionHolder;
 import io.realm.util.RealmThread;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1964,7 +1966,7 @@ public class RealmTests {
         owner.setName("Peter");
         assertEquals(2, owner.getDogs().size());
 
-        // Updating the credentials should not affect it either. This is actually a no-op since owner is a Realm backed object
+        // Updating the owner should not affect it either. This is actually a no-op since owner is a Realm backed object
         OwnerPrimaryKey owner2 = realm.copyToRealmOrUpdate(owner);
         assertEquals(2, owner.getDogs().size());
         assertEquals(2, owner2.getDogs().size());

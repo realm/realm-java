@@ -885,7 +885,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (isLoaded()) {
             return true;
         } else {
-            // doesn't guarantee to correctly import the result (because the credentials may have advanced)
+            // doesn't guarantee to correctly import the result (because the user may have advanced)
             // in this case the Realm#handler will be responsible of retrying
             return onAsyncQueryCompleted();
         }
@@ -893,7 +893,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * Called to import the handover table_view pointer & notify listeners.
-     * This should be invoked once the {@link #pendingQuery} finish, unless the credentials force {@link #load()}.
+     * This should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}.
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */

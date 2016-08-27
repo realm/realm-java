@@ -39,7 +39,7 @@ import io.realm.internal.RealmObjectProxy;
  * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the content whenever the
  * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.RealmObject}.
  * <p>
- * Unmanaged RealmLists can be created by the credentials and can contain both managed and unmanaged RealmObjects. This is
+ * Unmanaged RealmLists can be created by the user and can contain both managed and unmanaged RealmObjects. This is
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
  * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
  * <p>

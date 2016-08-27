@@ -2196,8 +2196,8 @@ public final class RealmQuery<E extends RealmModel> {
         }
     }
 
-    // We need to prevent the credentials from using the query again (mostly for async)
-    // Ex: if the first query fail with findFirstAsync, if the credentials reuse the same RealmQuery
+    // We need to prevent the user from using the query again (mostly for async)
+    // Ex: if the first query fail with findFirstAsync, if the user reuse the same RealmQuery
     //     with findAllSorted, argumentsHolder of the first query will be overridden,
     //     which cause any retry to use the findAllSorted argumentsHolder.
     private void checkQueryIsNotReused() {

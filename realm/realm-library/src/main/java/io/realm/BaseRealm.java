@@ -190,7 +190,7 @@ public abstract class BaseRealm implements Closeable {
     public abstract Observable asObservable();
 
     /**
-     * Removes all credentials-defined change listeners.
+     * Removes all user-defined change listeners.
      *
      * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
@@ -406,7 +406,7 @@ public abstract class BaseRealm implements Closeable {
                     //
                     // If a user is doing commits inside a RealmChangeListener this can cause the Looper thread to get
                     // event starved as it only starts handling Realm events instead. This is an acceptable risk as
-                    // that behaviour indicate a credentials bug. Previously this would be hidden as the UI would still
+                    // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
                     // be responsive.
                     Message msg = Message.obtain();
                     msg.what = HandlerControllerConstants.LOCAL_COMMIT;
@@ -782,4 +782,5 @@ public abstract class BaseRealm implements Closeable {
     protected interface MigrationCallback {
         void migrationComplete();
     }
+
 }

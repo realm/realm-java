@@ -265,7 +265,7 @@ public abstract class RealmObject implements RealmModel {
             return true;
         } else {
             if (object instanceof RealmObjectProxy) {
-                // doesn't guarantee to import correctly the result (because the credentials may have advanced)
+                // doesn't guarantee to import correctly the result (because the user may have advanced)
                 // in this case the Realm#handler will be responsible of retrying
                 return ((RealmObjectProxy) object).realmGet$proxyState().onCompleted$realm();
             } else {

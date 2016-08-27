@@ -49,7 +49,7 @@ public class JNISortedLongTest extends TestCase {
     public void testShouldTestSortedIntTable() {
         init();
 
-        // before first onEntry
+        // before first entry
         assertEquals(0, table.lowerBoundLong(0, 0));
         assertEquals(0, table.upperBoundLong(0, 0));
 
@@ -61,7 +61,7 @@ public class JNISortedLongTest extends TestCase {
         assertEquals(5, table.lowerBoundLong(0, 41));
         assertEquals(5, table.upperBoundLong(0, 41));
 
-        // beyond last onEntry
+        // beyond last entry
         assertEquals(8, table.lowerBoundLong(0, 100));
         assertEquals(8, table.upperBoundLong(0, 100));
 

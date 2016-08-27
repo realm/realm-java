@@ -30,7 +30,7 @@ import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
 import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
-import io.realm.examples.objectserver.R;
+import io.realm.examples.intro.R;
 
 public class IntroExampleActivity extends Activity {
 

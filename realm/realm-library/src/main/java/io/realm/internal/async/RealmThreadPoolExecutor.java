@@ -25,7 +25,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.realm.Realm;
-import okhttp3.Call;
 
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
