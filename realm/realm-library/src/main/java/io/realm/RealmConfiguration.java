@@ -421,11 +421,11 @@ public final class RealmConfiguration {
             }
             if (!dir.exists()) {
                 if (dir.mkdirs()) {
-                    throw new RuntimeException("Could not create the specified directory: " + dir.getAbsolutePath());
+                    throw new IllegalArgumentException("Could not create the specified directory: " + dir.getAbsolutePath());
                 }
             }
-            if (dir.canWrite()) {
-                throw new RuntimeException("Realm directory is not writable: " + dir.getAbsolutePath());
+            if (!dir.canWrite()) {
+                throw new IllegalArgumentException("Realm directory is not writable: " + dir.getAbsolutePath());
             }
             this.directory = dir;
             return this;
