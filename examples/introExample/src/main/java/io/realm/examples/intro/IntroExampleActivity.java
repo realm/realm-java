@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver;
+package io.realm.examples.intro;
 
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -27,9 +27,10 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
-import io.realm.examples.objectserver.model.Cat;
-import io.realm.examples.objectserver.model.Dog;
-import io.realm.examples.objectserver.model.Person;
+import io.realm.examples.intro.model.Cat;
+import io.realm.examples.intro.model.Dog;
+import io.realm.examples.intro.model.Person;
+import io.realm.examples.objectserver.R;
 
 public class IntroExampleActivity extends Activity {
 

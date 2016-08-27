@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.model;
+package io.realm.examples.intro.model;
 
 import io.realm.RealmObject;
 
