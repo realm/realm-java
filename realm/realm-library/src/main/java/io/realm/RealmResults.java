@@ -72,7 +72,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
 
-    BaseRealm realm;
+    final BaseRealm realm;
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
@@ -158,7 +158,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     public boolean isValid() {
-        return realm != null && !realm.isClosed();
+        return !realm.isClosed();
+    }
+
+    /**
+     * A {@link RealmResults} is always a managed collection.
+     *
+     * @return {@code true}.
+     * @see RealmCollection#isManaged()
+     */
+    public boolean isManaged() {
+        return true;
     }
 
     /**
@@ -837,7 +847,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     void swapTableViewPointer(long handoverTableViewPointer) {
         try {
-            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
+            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedRealm);
             asyncQueryCompleted = true;
         } catch (BadVersionException e) {
             throw new IllegalStateException("Caller and Worker Realm should have been at the same version");
@@ -903,7 +913,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             // this may fail with BadVersionException if the caller and/or the worker thread
             // are not in sync. COMPLETED_ASYNC_REALM_RESULTS will be fired by the worker thread
             // this should handle more complex use cases like retry, ignore etc
-            table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
+            table = query.importHandoverTableView(tvHandover, realm.sharedRealm);
             asyncQueryCompleted = true;
             notifyChangeListeners(true);
         } catch (Exception e) {

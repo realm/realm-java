@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.Dog;
+import io.realm.exceptions.RealmFileException;
 
 public class RealmInMemoryTest extends AndroidTestCase {
 
@@ -127,7 +128,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
     }
 
     // Test if an in-memory Realm can be written to disk with/without encryption
-    public void testWriteCopyTo() throws IOException {
+    public void testWriteCopyTo() {
         byte[] key = TestHelper.getRandomKey();
         String fileName = IDENTIFIER + ".realm";
         String encFileName = IDENTIFIER + ".enc.realm";
@@ -165,8 +166,9 @@ public class RealmInMemoryTest extends AndroidTestCase {
                     .encryptionKey(TestHelper.getRandomKey(42))
                     .build();
             Realm.getInstance(wrongKeyConf);
-            fail("Realm.getInstance should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
+            fail("Realm.getInstance should fail with RealmFileException");
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
         }
     }
 

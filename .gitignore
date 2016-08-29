@@ -1,7 +1,6 @@
 # Gradle build artifacts
 build
 realm/build
-realm-jni/build
 
 # Gradle cache
 .gradle
@@ -46,3 +45,9 @@ distribution/RealmGridViewExample/app/src
 distribution/RealmIntroExample/app/src
 distribution/RealmMigrationExample/app/src
 
+# Generated JNI headers
+realm/realm-library/src/main/cpp/jni_include
+# Downloaded core
+realm/realm-library/distribution
+# Cmake output
+realm/realm-library/.externalNativeBuild

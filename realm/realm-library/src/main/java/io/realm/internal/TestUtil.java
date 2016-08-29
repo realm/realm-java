@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.exceptions;
+package io.realm.internal;
 
-import io.realm.internal.Keep;
+class TestUtil {
 
-/**
- * Class for reporting problems with Realm files.
- */
-@Keep
-public class RealmIOException extends RuntimeException {
-
-    public RealmIOException(Throwable cause) {
-        super(cause);
+    static {
+        // Any internal class with static native methods that uses Realm Core must load the Realm Core library
+        // themselves as it otherwise might not have been loaded.
+        RealmCore.loadLibrary();
     }
 
-    public RealmIOException() {
-    }
-
-    public RealmIOException(String message) {
-        super(message);
-    }
-
-    public RealmIOException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+    public native static long getMaxExceptionNumber();
+    public native static String getExpectedMessage(long exceptionKind);
+    public native static void testThrowExceptions(long exceptionKind);
 }

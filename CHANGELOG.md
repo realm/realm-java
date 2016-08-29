@@ -1,3 +1,23 @@
+## 2.0.0
+
+### Breaking Changes
+
+* `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
+* armeabi is not supported anymore.
+* Added new `RealmFileException`.
+  - `IncompatibleLockFileException` has been removed and replaced by `RealmFileException` with kind `INCOMPATIBLE_LOCK_FILE`.
+  - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
+
+### Enhancements
+
+* Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
+
+## 1.2.1
+
+### Internal
+
+* Moved JNI build to CMake.
+
 ## 1.2.0
 
 ### Bug fixes

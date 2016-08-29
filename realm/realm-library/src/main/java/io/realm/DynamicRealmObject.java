@@ -49,9 +49,14 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
             throw new IllegalArgumentException("The object is already a DynamicRealmObject: " + obj);
         }
 
-        if (!RealmObject.isValid(obj)) {
+        if (!RealmObject.isManaged(obj)) {
             throw new IllegalArgumentException("An object managed by Realm must be provided. This " +
-                    "is an unmanaged object or it was deleted.");
+                    "is an unmanaged object.");
+        }
+
+        if (!RealmObject.isValid(obj)) {
+            throw new IllegalArgumentException("A valid object managed by Realm must be provided. " +
+                    "This object was deleted.");
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) obj;
