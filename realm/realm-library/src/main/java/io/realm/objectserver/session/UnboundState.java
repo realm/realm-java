@@ -16,19 +16,22 @@
 
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.Credentials;
-import io.realm.objectserver.ErrorCode;
+import io.realm.objectserver.ObjectServerError;
 
 /**
  * UNBOUND State. This is the default state after a session has been started and no attempt at binding the local Realm
  * has been made.
  */
-public class UnboundState extends FsmState {
+class UnboundState extends FsmState {
 
     @Override
     public void onEnterState() {
-        // Do nothing. Just wait for further user action.
-        session.applySyncPolicy();
+        // We can enter this state from multiple states which might have had an active session.
+        // In those cases cleanup any old native session
+        session.stopNativeSession();
+
+        // Create the native session so it is ready to be bound.
+        session.createNativeSession();
     }
 
     @Override
@@ -37,18 +40,12 @@ public class UnboundState extends FsmState {
     }
 
     @Override
-    public void onSetCredentials(Credentials credentials) {
-        // Just replace current credentials and wait for further action.
-        session.replaceCredentials(credentials);
-    }
-
-    @Override
     public void onBind() {
-        gotoNextState(SessionState.BINDING_REALM);
+        gotoNextState(SessionState.BINDING);
     }
 
     @Override
-    public void onError(ErrorCode errorCode, String errorMessage) {
+    public void onError(ObjectServerError error) {
         // Ignore all errors at this state. None of them would have any impact.
     }
 }

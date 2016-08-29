@@ -16,34 +16,69 @@
 
 package io.realm.objectserver.syncpolicy;
 
+import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.session.Session;
 
 /**
  * Interface describing a given synchronization policy with the Realm Object Server.
- * The sole purpose of this class is to call {@link Session#bind()} and {@link Session#unbind()} as needed,
- * which controls when changes can be synchronized between an local and remote Realm.
+ * <p>
+ * The sole purpose of classes implementing this class is to call {@link Session#bind()} and {@link Session#unbind()}
+ * as needed, which will control when changes are synchronized between a local and remote Realm.
  *
  * The SyncPolicy is not responsible for managing the lifecycle of the {@link Session} in general. So any
- * implementation of this class should not call {@link Session#stop()} or {@link Session#start()}.
+ * implementation of this class should avoid calling {@link Session#stop()} and {@link Session#start()}.
  *
- * When {@link Session#stop()} is called by whatever controls the session, {@link Session#unbind()} is
- * automatically called and any further calls to {@link Session#bind()} and {@link Session#unbind()} are
- * ignored. {@link #stop()} will then be called so the sync policy have a chance to
- * clean up any resources it might be using.
+ * If a session is stopped, {@link Session#unbind()} is automatically called and any further calls to
+ * {@link Session#bind()} and {@link Session#unbind()} are ignored. {@link #onSessionStopped(Session)} ()} will then be
+ * called so the sync policy have a chance to clean up any resources it might be using.
  */
+// TODO: Still experimental API. We need to figure out exactly which events we expose and how
+// TODO: Should we keep this protected for now?
 public interface SyncPolicy {
 
     /**
-     * Start applying any given synchronization policy, by calling {@code session.bind()} and {@code session.unbind()}
-     * as needed.
+     * Called when the session object is created. At this point it is possible to register any relevant error and event
+     * listeners in either the Android framework or for the session itself.
      *
-     * @param session the session to control.
+     * {@link Session#start()} will be automatically called after this method.
+     *
+     * @param session the {@link Session} just created. It has not yet been started.
      */
-    void apply(Session session);
+    void onSessionCreated(Session session);
 
     /**
-     * The local Realm is no longer able to synchronize changes with the remote one. Any code running as part of
-     * {@link #apply(Session)} should be stopped and cleaned up.
+     * The {@link Session} has been stopped and will ignore any further calls to {@link Session#bind()} and
+     * {@link Session#unbind()}. All external resources should be cleaned up.
+     *
+     * @param session {@link Session} that has been stopped.
      */
-    void stop();
+    void onSessionStopped(Session session);
+
+    /**
+     * Called the first time a Realm is opened on any thread.
+     *
+     * @param session {@link Session} associated with this Realm.
+     */
+    void onRealmOpened(Session session);
+
+    /**
+     * Called when the last Realm instance across all threads have been closed.
+     *
+     * @param session {@link Session} associated with this Realm.
+     */
+    void onRealmClosed(Session session);
+
+    /**
+     * Called if an error occurred in the underlying session. In many cases this has caused the session to become
+     * unbound.
+     *
+     * @param error {@link io.realm.objectserver.ObjectServerError} object describing the error.
+     * @return {@code true} if the error was handled, or {@code false} if it should be propagated further out to the
+     * SyncConfigurations error handler.
+     *
+     * This method is always called from a background thread, never the UI thread.
+     *
+     * @see io.realm.objectserver.SyncConfiguration.Builder#errorHandler(Session.ErrorHandler)
+     */
+    boolean onError(Session session, ObjectServerError error);
 }

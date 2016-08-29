@@ -34,6 +34,9 @@ import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
 import io.realm.objectserver.session.Session;
 
+import static io.realm.objectserver.ErrorCode.Category.FATAL;
+import static io.realm.objectserver.ErrorCode.Category.RECOVERABLE;
+
 @Keep
 public final class SyncManager {
 
@@ -45,28 +48,28 @@ public final class SyncManager {
 
     private static final ErrorHandler CLIENT_NO_OP_ERROR_HANDLER = new SyncManager.ErrorHandler() {
         @Override
-        public void onError(ErrorCode errorCodeCode, String errorMessage) {
-            switch (errorCodeCode.getCategory()) {
+        public void onError(ObjectServerError error) {
+            ErrorCode errorCode = error.errorCode();
+            switch (errorCode.getCategory()) {
                 case FATAL:
-                    RealmLog.e(errorCodeCode.toString() + ":" + errorMessage);
+                    RealmLog.e(error.toString());
                     break;
                 case RECOVERABLE:
-                    RealmLog.i(errorCodeCode.toString() + ":" + errorMessage);
+                    RealmLog.i(error.toString());
                     break;
                 case INFO:
-                    RealmLog.d(errorCodeCode.toString() + ":" + errorMessage);
+                    RealmLog.d(error.toString());
                     break;
             }
         }
     };
     private static final Session.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
         @Override
-        public void onError(Session session, ErrorCode errorCodeCode, String errorMessage) {
-            String errorMsg = String.format("Session Error[%s]: %s : %s",
+        public void onError(Session session, ObjectServerError error) {
+            String errorMsg = String.format("Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
-                    errorCodeCode.toString(),
-                    errorMessage);
-            switch (errorCodeCode.getCategory()) {
+                    error.toString());
+            switch (error.errorCode().getCategory()) {
                 case FATAL:
                     RealmLog.e(errorMsg);
                     break;
@@ -234,7 +237,7 @@ public final class SyncManager {
     // This is called for SyncManager.cpp from the worker thread the Sync Client is running on
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ErrorCode error = ErrorCode.fromInt(errorCode);
-        globalErrorHandler.onError(error, errorMessage);
+        globalErrorHandler.onError(new ObjectServerError(error, errorMessage));
         // FIXME Still need to test this. After that we can remove this
         throw new RuntimeException("BOOM FROM JNI:" + error + errorMessage);
     }
@@ -251,9 +254,8 @@ public final class SyncManager {
          * Callback for errors on the Realm Object Server Network Client.
          * Only errors with an ID between 100-199 will be reported here.
          *
-         * @param errorCodeCode type of error.
-         * @param errorMessage additional error message.
+         * @param error type of error.
          */
-        void onError(ErrorCode errorCodeCode, String errorMessage);
+        void onError(ObjectServerError error);
     }
 }

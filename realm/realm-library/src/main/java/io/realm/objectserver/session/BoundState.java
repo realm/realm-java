@@ -16,11 +16,11 @@
 
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.Credentials;
-import io.realm.objectserver.ErrorCode;
+import io.realm.objectserver.ObjectServerError;
 
 /**
- * STARTED State. This is just an intermediate step that can be used to initialize the session properly.
+ * BOUND State. At this state the local Realm is connected to the remote Realm and changes in either is sent in both
+ * directions immediately.
  */
 class BoundState extends FsmState {
 
@@ -32,7 +32,7 @@ class BoundState extends FsmState {
 
     @Override
     public void onExitState() {
-        session.unbindActiveConnection();
+        session.stopNativeSession();
     }
 
     @Override
@@ -46,23 +46,11 @@ class BoundState extends FsmState {
     }
 
     @Override
-    public void onRefresh() {
-        // TODO How to replace an access token on an active connection
-        gotoNextState(SessionState.STOPPED); // TODO: Stop? Really?
-    }
-
-    @Override
-    public void onSetCredentials(Credentials credentials) {
-        session.replaceCredentials(credentials);
-        gotoNextState(SessionState.BINDING_REALM); // Retry binding immediately
-    }
-
-    @Override
-    public void onError(ErrorCode errorCode, String errorMessage) {
-        switch(errorCode) {
+    public void onError(ObjectServerError error) {
+        switch(error.errorCode()) {
             // Auth protocol errors (should not happen). If credentials are being replaced
-            case IO_ERROR:
-            case UNEXPECTED_JSON_FORMAT:
+            case IO_EXCEPTION:
+            case JSON_EXCEPTION:
             case REALM_PROBLEM:
             case INVALID_PARAMETERS:
             case MISSING_PARAMETERS:
@@ -73,9 +61,10 @@ class BoundState extends FsmState {
             case INVALID_REFRESH_TOKEN:
             case EXPIRED_REFRESH_TOKEN:
             case INTERNAL_SERVER_ERROR:
-                throw new IllegalStateException("Authentication protocol errors should not happen: " + errorCode.toString());
+                throw new IllegalStateException("Authentication protocol errors should not happen: " + error.toString());
 
             // Ignore Network client errors (irrelevant)
+            // FIXME: Not accurate: https://github.com/realm/realm-sync/issues/659 How should these be handled?
             case CONNECTION_CLOSED:
             case OTHER_ERROR:
             case UNKNOWN_MESSAGE:
@@ -97,7 +86,7 @@ class BoundState extends FsmState {
             case TOKEN_EXPIRED:
                 // Only known case we can actually work around.
                 // Trigger a rebind which will cause access token to be refreshed.
-                gotoNextState(SessionState.BINDING_REALM);
+                gotoNextState(SessionState.BINDING);
 
             case BAD_AUTHENTICATION:
             case ILLEGAL_REALM_PATH:

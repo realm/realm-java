@@ -31,7 +31,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
-import io.realm.exceptions.ObjectServerException;
 import io.realm.internal.IOException;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
@@ -84,7 +83,7 @@ public class User {
         }
     }
 
-    public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerException {
+    public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerError {
         return null; // TODO
     }
 

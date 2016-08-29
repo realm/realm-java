@@ -17,26 +17,28 @@
 package io.realm.objectserver.session;
 
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
-import io.realm.objectserver.Credentials;
+import io.realm.objectserver.ObjectServerError;
 
 /**
  * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this
- * Realm. This can happen in 2 ways:
+ * Realm. This can happen in 3 ways:
  *
  * <ol>
  *     <li>
- *          <b>Refresh token has expired:</b> This effectively means the user has been logged out and credentials has
- *          to be re-verified on the Authentication Server. Refreshing this token should happen automatically in the
- *          background, but could be delayed for a number of reasons.
+ *          <b>Refresh token has expired:</b>
+ *          This effectively means the user has been logged out from the Realm Object Server and credentials has
+ *          to be re-verified on the Authentication Server. Since this involves creating a new User object object,
+ *          this session will be stopped and and error reported.
  *     </li>
  *     <li>
  *          <b>Access token has expired:</b>
- *          The access token has expired. This state will refresh it
+ *          This state will automatically refresh it and retry binding the Realm.
  *     </li>
  *     <li>
  *          <b>Access token does not exists:</b>
- *          This state will acquire an access token and attach it to the user.
- *     </li>
+ *          This state means the user has logged in, but not yet gained a specific access token for this Realm.
+ *          This state will automatically fetch the access token and retry binding the Realm.
+ *      </li>
  * </ol>
  */
 class AuthenticatingState extends FsmState {
@@ -81,19 +83,19 @@ class AuthenticatingState extends FsmState {
         session.authenticateRealm(new Runnable() {
             @Override
             public void run() {
-                gotoNextState(SessionState.BINDING_REALM);
+                gotoNextState(SessionState.BINDING);
             }
-        }, new Runnable() {
+        }, new Session.ErrorHandler() {
             @Override
-            public void run() {
-                gotoNextState(SessionState.STOPPED);
+            public void onError(Session session, ObjectServerError error) {
+                gotoNextState(SessionState.UNBOUND);
             }
         });
     }
 
     @Override
     public void onBind() {
-        gotoNextState(SessionState.BINDING_REALM); // Equivalent to forcing a retry
+        gotoNextState(SessionState.BINDING); // Equivalent to forcing a retry
     }
 
     @Override
@@ -104,11 +106,5 @@ class AuthenticatingState extends FsmState {
     @Override
     public void onStop() {
         gotoNextState(SessionState.STOPPED);
-    }
-
-    @Override
-    public void onSetCredentials(Credentials credentials) {
-        session.replaceCredentials(credentials);
-        gotoNextState(SessionState.BINDING_REALM);
     }
 }

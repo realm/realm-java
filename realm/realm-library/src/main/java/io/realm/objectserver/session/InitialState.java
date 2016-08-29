@@ -16,7 +16,7 @@
 
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.ErrorCode;
+import io.realm.objectserver.ObjectServerError;
 
 /**
  * INITIAL State. Starting point for the Session Finite-State-Machine.
@@ -30,16 +30,17 @@ class InitialState extends FsmState {
 
     @Override
     protected void onExitState() {
-        // Do nothing.
+        // Do nothing. Right now the underlying Realm Core session cannot bound/unbind multiple times, so instead
+        // we create a new session object each time the Session becomes unbound.
     }
 
     @Override
     public void onStart() {
-        gotoNextState(SessionState.STARTED);
+        gotoNextState(SessionState.UNBOUND);
     }
 
     @Override
-    public void onError(ErrorCode errorCode, String errorMessage) {
+    public void onError(ObjectServerError error) {
         // Ignore all errors at this state. None of them would have any impact.
     }
 }

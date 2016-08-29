@@ -23,8 +23,8 @@ public enum ErrorCode {
 
     // Realm Java errors (0-49)
 
-    IO_ERROR(0, Category.RECOVERABLE),              // Some IO error while either contacting the server or reading the response
-    UNEXPECTED_JSON_FORMAT(1, Category.FATAL),      // JSON input could not be parsed correctly
+    IO_EXCEPTION(0, Category.RECOVERABLE),      // Some IO error while either contacting the server or reading the response
+    JSON_EXCEPTION(1),                          // JSON input could not be parsed correctly
 
     // Realm Authentication Server response errors (50 - 99)
 
@@ -42,31 +42,35 @@ public enum ErrorCode {
     // Realm Object Server errors (100 - 199)
 
     // Connection level and protocol errors
-    CONNECTION_CLOSED(100, Category.INFO),      // Connection closed (no error)
-    OTHER_ERROR(101, Category.INFO),            // Other connection level error
-    UNKNOWN_MESSAGE(102, Category.INFO),        // Unknown type of input message
-    BAD_SYNTAX(103, Category.INFO),             // Bad syntax in input message head
-    LIMITS_EXCEEDED(104, Category.INFO),        // Limits exceeded in input message
-    WRONG_PROTOCOL_VERSION(105, Category.INFO), // Wrong protocol version (CLIENT)
-    BAD_SESSION_IDENT(106, Category.INFO),      // Bad session identifier in input message
-    REUSE_OF_SESSION_IDENT(107, Category.INFO), // Overlapping reuse of session identifier (BIND)
-    BOUND_IN_OTHER_SESSION(108, Category.INFO), // Client file bound in other session (IDENT)
-    BAD_MESSAGE_ORDER(109, Category.INFO),      // Bad input message order
+    CONNECTION_CLOSED(100, Category.INFO),          // Connection closed (no error)
+    OTHER_ERROR(101, Category.INFO),                // Other connection level error
+    UNKNOWN_MESSAGE(102, Category.INFO),            // Unknown type of input message
+    BAD_SYNTAX(103, Category.INFO),                 // Bad syntax in input message head
+    LIMITS_EXCEEDED(104, Category.INFO),            // Limits exceeded in input message
+    WRONG_PROTOCOL_VERSION(105, Category.INFO),     // Wrong protocol version (CLIENT)
+    BAD_SESSION_IDENT(106, Category.INFO),          // Bad session identifier in input message
+    REUSE_OF_SESSION_IDENT(107, Category.INFO),     // Overlapping reuse of session identifier (BIND)
+    BOUND_IN_OTHER_SESSION(108, Category.INFO),     // Client file bound in other session (IDENT)
+    BAD_MESSAGE_ORDER(109, Category.INFO),          // Bad input message order
 
     // Session level errors (200 - 299)
-    SESSION_CLOSED(200),                        // Session closed (no error)
-    OTHER_SESSION_ERROR(201),                   // Other session level error
-    TOKEN_EXPIRED(202, Category.RECOVERABLE),   // Access token expired
-    BAD_AUTHENTICATION(203),                    // Bad user authentication (BIND, REFRESH)
-    ILLEGAL_REALM_PATH(204),                    // Illegal Realm path (BIND)
-    NO_SUCH_PATH(205),                          // No such Realm (BIND)
-    PERMISSION_DENIED(206),                     // Permission denied (BIND, REFRESH)
-    BAD_SERVER_FILE_IDENT(207),                 // Bad server file identifier (IDENT)
-    BAD_CLIENT_FILE_IDENT(208),                 // Bad client file identifier (IDENT)
-    BAD_SERVER_VERSION(209),                    // Bad server version (IDENT, UPLOAD)
-    BAD_CLIENT_VERSION(210),                    // Bad client version (IDENT, UPLOAD)
-    DIVERGING_HISTORIES(211),                   // Diverging histories (IDENT)
-    BAD_CHANGESET(212);                         // Bad changeset (UPLOAD)
+    SESSION_CLOSED(200, Category.RECOVERABLE),      // Session closed (no error)
+    OTHER_SESSION_ERROR(201, Category.RECOVERABLE), // Other session level error
+    TOKEN_EXPIRED(202, Category.RECOVERABLE),       // Access token expired
+
+    // Session fatal: Auth wrong. Cannot be fixed without a new User/SyncConfiguration.
+    BAD_AUTHENTICATION(203),                        // Bad user authentication (BIND, REFRESH)
+    ILLEGAL_REALM_PATH(204),                        // Illegal Realm path (BIND)
+    NO_SUCH_PATH(205),                              // No such Realm (BIND)
+    PERMISSION_DENIED(206),                         // Permission denied (BIND, REFRESH)
+
+    // Fatal: Wrong server/client versions. Trying to sync incompatible files or corrupted.
+    BAD_SERVER_FILE_IDENT(207),                     // Bad server file identifier (IDENT)
+    BAD_CLIENT_FILE_IDENT(208),                     // Bad client file identifier (IDENT)
+    BAD_SERVER_VERSION(209),                        // Bad server version (IDENT, UPLOAD)
+    BAD_CLIENT_VERSION(210),                        // Bad client version (IDENT, UPLOAD)
+    DIVERGING_HISTORIES(211),                       // Diverging histories (IDENT)
+    BAD_CHANGESET(212);                             // Bad changeset (UPLOAD)
 
     private final int code;
     private final Category category;
@@ -129,13 +133,13 @@ public enum ErrorCode {
             case "https://realm.io/docs/object-server/problems/expired-refresh-token" : return ErrorCode.EXPIRED_REFRESH_TOKEN;
             case "https://realm.io/docs/object-server/problems/internal-server-error" : return ErrorCode.INTERNAL_SERVER_ERROR;
             default:
-                return ErrorCode.UNEXPECTED_JSON_FORMAT;
+                throw new IllegalArgumentException("Unknown error: " + type);
         }
     }
 
 public enum Category {
         FATAL,          // Abort session as soon as possible
-        RECOVERABLE,    // Still possible to recover by providing additional information to the session
+        RECOVERABLE,    // Still possible to recover the session by either rebinding or providing the required information.
         INFO            // Just FYI. The underlying network client will automatically try to recover.
     }
 }

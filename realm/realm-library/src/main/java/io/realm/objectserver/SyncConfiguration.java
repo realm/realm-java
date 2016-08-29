@@ -57,7 +57,6 @@ public final class SyncConfiguration extends RealmConfiguration {
     private final String canonicalPath;
     private final URI serverUrl;
     private final User user;
-    private final boolean autoConnect;
     private final SyncPolicy syncPolicy;
     private final Session.ErrorHandler errorHandler;
 
@@ -69,7 +68,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
         }
-        this.autoConnect = builder.autoConnect;
         this.syncPolicy = builder.syncPolicy;
         this.errorHandler = builder.errorHandler;
 
@@ -133,10 +131,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         return user;
     }
 
-    public boolean isAutoConnectEnabled() {
-        return autoConnect;
-    }
-
     public URI getServerUrl() {
         return serverUrl;
     }
@@ -153,7 +147,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         private Context context;
         private URI serverUrl;
         private User user = null;
-        private boolean autoConnect = true;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
         private Session.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private boolean overrideDefaultFolder = false;
@@ -347,38 +340,17 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * If this is set. Realm will automatically handle connections to the Realm Object Server as part of the normal
-         * Realm lifecycle.
-         *
-         * Specifically this means that the connection will be established when the first local Realm is opened and
-         * closed again after it has been closed and all changes locally have been sent to the server.
-         *
-         * If this is set to {@code false}, the connection must manually be established using
-         * {@link SyncManager#connect(SyncConfiguration)}.
-         *
-         * The default value is {@code true}.
-         */
-        public Builder autoConnect(boolean autoConnect) {
-            this.autoConnect = autoConnect;
-            return this;
-        }
-
-        /**
          * Sets the sync policy used to control when changes should be synchronized with the remote Realm.
-         * The {@link SyncPolicy} only takes effect after a Realm have been <i>bound</i> to the remote Realm.
+         * The default policy is {@link AutomaticSyncPolicy}.
          *
-         * The default value policy is a {@link AutomaticSyncPolicy}.
+         * @param syncPolicy policy to use.
          *
-         * TODO Think about how a sync policy could also control if _any_ connection is made, not just sync changes.
-         * TODO Does the core SyncClient support starting/stopping sync yet?
-         *
-         * @param syncPolicy
-         * @return
-         *
-         * @see SyncConfiguration.Builder#autoConnect(boolean)
          * @see SyncManager#connect(SyncConfiguration)
+         * @see Session;
          */
         public Builder syncPolicy(SyncPolicy syncPolicy) {
+            // TODO: Decide if we should launch with this as package protected since the sync notification API might
+            // change quite a bit.
             this.syncPolicy = syncPolicy;
             return this;
         }
@@ -386,6 +358,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         /**
          * Sets the error handler used by this configuration.
          * This will override any handler set by calling {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
+         *
+         * Only errors not handled by the defined {@link SyncPolicy} will be reported to this error handler.
          *
          * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
          */

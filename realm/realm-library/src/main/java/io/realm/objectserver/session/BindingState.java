@@ -17,12 +17,13 @@
 package io.realm.objectserver.session;
 
 import io.realm.objectserver.Credentials;
-import io.realm.objectserver.ErrorCode;
+import io.realm.objectserver.ObjectServerError;
+
 /**
  * BINDING State. After bind() is called, this state will attempt to bind the local Realm to the remote. This is an
- * asynchronous operation, that must be able to be interrupted.
+ * asynchronous operation that must be able to be interrupted.
  */
-public class BindingRealmState extends FsmState {
+class BindingState extends FsmState {
 
     @Override
     public void onEnterState() {
@@ -43,7 +44,7 @@ public class BindingRealmState extends FsmState {
 
     @Override
     public void onBind() {
-        gotoNextState(SessionState.BINDING_REALM); // Will trigger a retry.
+        gotoNextState(SessionState.BINDING); // Will trigger a retry.
     }
 
     @Override
@@ -52,13 +53,7 @@ public class BindingRealmState extends FsmState {
     }
 
     @Override
-    public void onSetCredentials(Credentials credentials) {
-        session.replaceCredentials(credentials);
-        gotoNextState(SessionState.BINDING_REALM); // Retry with new credentials
-    }
-
-    @Override
-    public void onError(ErrorCode errorCode, String errorMessage) {
+    public void onError(ObjectServerError error) {
         // Ignore all errors. This is just a transient state. We are not bound yet, and any error should not
         // happen until we are BOUND.
     }

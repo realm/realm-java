@@ -25,13 +25,12 @@ import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
+import io.realm.objectserver.ObjectServerError;
 import okhttp3.Response;
 
 public class AuthenticateResponse {
 
-    private final ErrorCode errorCode;
-    private final String errorMessage;
-
+    private final ObjectServerError error;
     private final String identifier;
     private final String path;
     private final String appId;
@@ -47,7 +46,8 @@ public class AuthenticateResponse {
         try {
             serverResponse = response.body().string();
         } catch (IOException e) {
-            return new AuthenticateResponse(ErrorCode.IO_ERROR, "Failed to read response." + Util.getStackTrace(e));
+            ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, null, e);
+            return new AuthenticateResponse(error);
         }
         RealmLog.d("Authenticate response: " + serverResponse);
         if (response.code() != 200) {
@@ -56,10 +56,12 @@ public class AuthenticateResponse {
                 String type = obj.getString("type");
                 String hint = obj.getString("hint");
                 ErrorCode errorCode = ErrorCode.fromAuthError(type);
-                return new AuthenticateResponse(errorCode, hint);
+                ObjectServerError error = new ObjectServerError(errorCode, hint);
+                return new AuthenticateResponse(error);
             } catch (JSONException e) {
-                return new AuthenticateResponse(ErrorCode.UNEXPECTED_JSON_FORMAT, "Server failed with " + response.code() +
-                        ", but could not parse error." + Util.getStackTrace(e));
+                ObjectServerError error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, "Server failed with " +
+                        response.code() + ", but could not parse error.", e);
+                return new AuthenticateResponse(error);
             }
         } else {
             return new AuthenticateResponse(serverResponse);
@@ -69,9 +71,8 @@ public class AuthenticateResponse {
     /**
      * Create a unsuccessful authentication response. This should only happen in case of network / IO problems.
      */
-    public AuthenticateResponse(ErrorCode reason, String errorMessage) {
-        this.errorCode = reason;
-        this.errorMessage = errorMessage;
+    public AuthenticateResponse(ObjectServerError error) {
+        this.error = error;
         this.identifier = null;
         this.path = null;
         this.appId = null;
@@ -83,8 +84,7 @@ public class AuthenticateResponse {
      * Parse a valid (200) server response. It might still result in a unsuccessful authentication attemp.
      */
     public AuthenticateResponse(String serverResponse) {
-        ErrorCode errorCode;
-        String errorMessage;
+        ObjectServerError error;
         String identifier;
         String path;
         String appId;
@@ -97,35 +97,29 @@ public class AuthenticateResponse {
             appId = obj.optString("app_id"); // FIXME No longer sent?
             accessToken = obj.has("token") ? Token.from(obj) : null;
             refreshToken = obj.has("refresh") ? Token.from(obj.getJSONObject("refresh")) : null;
-            errorCode = null;
-            errorMessage = null;
+            error = null;
         } catch (JSONException ex) {
             identifier = null;
             path =  null;
             appId = null;
             accessToken = null;
             refreshToken = null;
-            errorCode = ErrorCode.BAD_SYNTAX;
-            errorMessage = "Unexpected JSON: " + Util.getStackTrace(ex);
+            error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, null, ex);
         }
         this.identifier = identifier;
         this.path = path;
         this.appId = appId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.errorCode = errorCode;
-        this.errorMessage = errorMessage;
+        this.error = error;
     }
 
     public boolean isValid() {
-        return (errorCode == null);
-    }
-    public String getErrorMessage() {
-        return errorMessage;
+        return (error == null);
     }
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
+    public ObjectServerError getError() {
+        return error;
     }
 
     public String getIdentifier() {

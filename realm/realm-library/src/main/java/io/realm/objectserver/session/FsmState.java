@@ -16,16 +16,16 @@
 
 package io.realm.objectserver.session;
 
-import io.realm.objectserver.Credentials;
-import io.realm.objectserver.ErrorCode;
+import io.realm.objectserver.ObjectServerError;
 
 /**
- * Abstract class describing all states used in the Session Finite-State-Machine.
+ * Abstract class containing shared logic for all {@link Session} states. All states must extend this class as it
+ * contains the logic for entering and leaving states.
  */
 abstract class FsmState implements FsmAction {
 
     volatile Session session; // This is non-null when this state is active.
-    private boolean exiting;
+    private boolean exiting; // TODO: Remind me again what race condition necessitated this.
 
     /**
      * Entry into the state. This method is also responsible for executing any asynchronous work
@@ -40,7 +40,7 @@ abstract class FsmState implements FsmAction {
     }
 
     /**
-     * Called just before leaving state. Once this method is called no more state changes can be triggered from
+     * Called just before leaving the state. Once this method is called no more state changes can be triggered from
      * this state until {@link #entry(Session)} has been called again.
      *
      * This should only be called from {@link Session}.
@@ -80,17 +80,7 @@ abstract class FsmState implements FsmAction {
     }
 
     @Override
-    public void onRefresh() {
-        // Do nothing
-    }
-
-    @Override
-    public void onSetCredentials(Credentials credentials) {
-        // Do nothing
-    }
-
-    @Override
-    public void onError(ErrorCode errorCode, String errorMessage) {
+    public void onError(ObjectServerError error) {
         gotoNextState(SessionState.STOPPED);
     }
 }
