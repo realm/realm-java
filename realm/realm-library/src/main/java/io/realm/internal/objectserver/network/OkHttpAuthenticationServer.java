@@ -24,6 +24,7 @@ import io.realm.internal.Util;
 import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
+import io.realm.objectserver.ObjectServerError;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -50,7 +51,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.fromCredentials(credentials, createUser).toJson();
             return authenticate(authentificationUrl, requestBody);
         } catch (Exception e) {
-            return new AuthenticateResponse(ErrorCode.OTHER_ERROR, Util.getStackTrace(e));
+            return new AuthenticateResponse(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
         }
     }
 
@@ -60,7 +61,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken, path).toJson();
             return authenticate(authentificationUrl, requestBody);
         } catch (Exception e) {
-            return new AuthenticateResponse(ErrorCode.OTHER_ERROR, Util.getStackTrace(e));
+            return new AuthenticateResponse(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
 

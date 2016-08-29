@@ -51,10 +51,8 @@ public class User {
 
     // Time left on current refresh token, when we want to begin refreshing it.
     // Failing to refresh it before it expires, will result in the user getting logged out.
-    private static final long REFRESH_WINDOW_MS = TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
     private static RealmAsyncTask authenticateTask;
     private static RealmAsyncTask refreshTask;
-    private static volatile User currentUser;
 
     private final String identifier;
     private Token refreshToken;
@@ -119,19 +117,19 @@ public class User {
                         User user = new User(result.getIdentifier(), result.getRefreshToken(), authUrl);
                         postSuccess(user);
                     } else {
-                        postError(result.getErrorCode(), result.getErrorMessage());
+                        postError(result.getError());
                     }
                 } catch (IOException e) {
-                    postError(ErrorCode.OTHER_ERROR, e.getMessage());
+                    postError(new ObjectServerError(ErrorCode.IO_EXCEPTION, e));
                 }
             }
 
-            private void postError(final ErrorCode error, final String errorMessage) {
+            private void postError(final ObjectServerError error) {
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(error, errorMessage);
+                            callback.onError(error);
                         }
                     });
                 }
@@ -217,7 +215,6 @@ public class User {
         return refreshToken != null && refreshToken.expires() < System.currentTimeMillis();
     }
 
-
     public void logout() {
         // TODO Stop any session
         // TODO Clear all tokens
@@ -281,6 +278,6 @@ public class User {
 
     public interface Callback {
         void onSuccess(User user);
-        void onError(ErrorCode errorCodeCode, String errorMsg);
+        void onError(ObjectServerError error);
     }
 }

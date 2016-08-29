@@ -23,6 +23,7 @@ public enum ErrorCode {
 
     // Realm Java errors (0-49)
 
+    UNKNOWN(-1),                                // Catch-all
     IO_EXCEPTION(0, Category.RECOVERABLE),      // Some IO error while either contacting the server or reading the response
     JSON_EXCEPTION(1),                          // JSON input could not be parsed correctly
 

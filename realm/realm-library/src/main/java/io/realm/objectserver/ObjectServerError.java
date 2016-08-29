@@ -16,6 +16,8 @@
 
 package io.realm.objectserver;
 
+import org.json.JSONException;
+
 /**
  * This class is a wrapper around all errors happening when communicating with the Realm Object Server.
  * This include both exceptions and protocol errors.
@@ -26,18 +28,22 @@ package io.realm.objectserver;
  *
  * @see io.realm.objectserver.ErrorCode for a list of possible errors.
  */
-public class ObjectServerError {
+public class ObjectServerError extends RuntimeException {
 
     private final ErrorCode error;
     private final String errorMessage;
     private final Throwable exception;
 
-    public ObjectServerError(ErrorCode error, String errorMessage) {
-        this(error, errorMessage, null);
+    public ObjectServerError(ErrorCode errorCode, String errorMessage) {
+        this(errorCode, errorMessage, null);
     }
 
-    public ObjectServerError(ErrorCode error, String errorMessage, Throwable exception) {
-        this.error = error;
+    public ObjectServerError(ErrorCode errorCode, Throwable exception) {
+        this(errorCode, null, exception);
+    }
+
+    public ObjectServerError(ErrorCode errorCode, String errorMessage, Throwable exception) {
+        this.error = errorCode;
         this.errorMessage = errorMessage;
         this.exception = exception;
     }

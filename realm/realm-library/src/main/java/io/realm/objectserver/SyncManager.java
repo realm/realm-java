@@ -150,6 +150,7 @@ public final class SyncManager {
         Session session = sessions.get(localPath);
         if (session == null) {
             session = new Session(syncConfiguration, nativeSyncClientPointer, authServer);
+            syncConfiguration.getSyncPolicy().onSessionCreated(session);
             sessions.put(localPath, session);
         }
 

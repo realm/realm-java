@@ -38,7 +38,7 @@ public class AutomaticSyncPolicy implements SyncPolicy {
 
     @Override
     public void onSessionCreated(Session session) {
-        // Do nothing
+        session.start();
     }
 
     @Override

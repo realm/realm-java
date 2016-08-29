@@ -26,7 +26,11 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.SyncManager;
+import io.realm.objectserver.session.Session;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -152,6 +156,15 @@ final class RealmCache {
 
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
+
+        // Notify SyncPolicy that the Realm has been opened for the first time
+        if (refAndCount.globalCount == 1) {
+            if (RealmCore.SYNC_AVAILABLE && realm.getConfiguration() instanceof SyncConfiguration) {
+                Session session = SyncManager.getSession((SyncConfiguration) realm.getConfiguration());
+                ((SyncConfiguration) realm.getConfiguration()).getSyncPolicy().onRealmOpened(session);
+            }
+        }
+
         return realm;
     }
 
@@ -207,13 +220,19 @@ final class RealmCache {
             for (RealmCacheType type : RealmCacheType.values()) {
                 totalRefCount += cache.refAndCountMap.get(type).globalCount;
             }
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
-            if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
-            }
 
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
+
+            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
+            if (totalRefCount == 0) {
+                cachesMap.remove(canonicalPath);
+                if (RealmCore.SYNC_AVAILABLE && realm.getConfiguration() instanceof SyncConfiguration) {
+                    Session session = SyncManager.getSession((SyncConfiguration) realm.getConfiguration());
+                    ((SyncConfiguration) realm.getConfiguration()).getSyncPolicy().onRealmClosed(session);
+                }
+            }
+
         } else {
             refAndCount.localCount.set(refCount);
         }

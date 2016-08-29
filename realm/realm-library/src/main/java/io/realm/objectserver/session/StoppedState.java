@@ -27,7 +27,7 @@ class StoppedState extends FsmState {
     @Override
     public void onEnterState() {
         session.stopNativeSession();
-        // Do nothing. All relevant state was cleared when unbinding.
+        session.configuration.getSyncPolicy().onSessionStopped(session);
     }
 
     @Override

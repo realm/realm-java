@@ -46,7 +46,7 @@ public class AuthenticateResponse {
         try {
             serverResponse = response.body().string();
         } catch (IOException e) {
-            ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, null, e);
+            ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new AuthenticateResponse(error);
         }
         RealmLog.d("Authenticate response: " + serverResponse);
@@ -104,7 +104,7 @@ public class AuthenticateResponse {
             appId = null;
             accessToken = null;
             refreshToken = null;
-            error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, null, ex);
+            error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
         }
         this.identifier = identifier;
         this.path = path;

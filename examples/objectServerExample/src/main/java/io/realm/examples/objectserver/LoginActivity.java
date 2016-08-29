@@ -28,9 +28,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.Error;
+import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.User;
 import io.realm.objectserver.util.UserStore;
 
+import static android.net.sip.SipErrorCode.INVALID_CREDENTIALS;
 import static io.realm.objectserver.Error.UNKNOWN_ACCOUNT;
 
 public class LoginActivity extends AppCompatActivity {
@@ -78,7 +80,7 @@ public class LoginActivity extends AppCompatActivity {
         String username = this.username.getText().toString();
         String password = this.password.getText().toString();
 
-        Credentials creds = Credentials.fromUsernamePassword(username, password);
+        Credentials creds = Credentials.fromUsernamePassword(username, password, createUser);
         String authUrl = "http://192.168.1.3:8080/auth";
         User.Callback callback = new User.Callback() {
             @Override
@@ -90,10 +92,10 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(Error error, String errorMessage) {
+            public void onError(ObjectServerError error) {
                 progressDialog.dismiss();
                 String errorMsg;
-                switch (error) {
+                switch (error.errorCode()) {
                     case UNKNOWN_ACCOUNT:
                         errorMsg = "Account does not exists.";
                         break;
@@ -107,11 +109,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        if (createUser) {
-            User.createUserAndLogin(creds, authUrl, callback);
-        } else {
-            User.login(creds, authUrl, callback);
-        }
+        User.login(creds, authUrl, callback);
     }
 
     @Override
