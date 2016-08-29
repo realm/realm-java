@@ -14,7 +14,7 @@ try {
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
-      buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+      buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android") {
         stage 'JVM tests'
         try {
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
@@ -33,11 +33,11 @@ try {
           publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
           publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
           step([$class: 'CheckStylePublisher',
-          canComputeNew: false,
-          defaultEncoding: '',
-          healthy: '',
-          pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-          unHealthy: ''
+                canComputeNew: false,
+                defaultEncoding: '',
+                healthy: '',
+                pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+                unHealthy: ''
           ])
         }
 
@@ -78,13 +78,13 @@ try {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
-          username: 'Mr. Jenkins',
-          icon_emoji: ':jenkins:',
-          attachments: [[
-            'title': "The ${env.BRANCH_NAME} branch is ${buildSuccess?'healthy.':'broken!'}",
-            'text': "<${env.BUILD_URL}|Click here> to check the build.",
-            'color': "${buildSuccess?'good':'danger'}"
-          ]]
+                username: 'Mr. Jenkins',
+                icon_emoji: ':jenkins:',
+                attachments: [[
+                                      'title': "The ${env.BRANCH_NAME} branch is ${buildSuccess?'healthy.':'broken!'}",
+                                      'text': "<${env.BUILD_URL}|Click here> to check the build.",
+                                      'color': "${buildSuccess?'good':'danger'}"
+                              ]]
         ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
@@ -105,9 +105,9 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
   sh "kill ${backgroundPid}"
   if (archiveLog) {
     zip([
-      'zipFile': 'logcat.zip',
-      'archive': true,
-      'glob' : 'logcat.txt'
+            'zipFile': 'logcat.zip',
+            'archive': true,
+            'glob' : 'logcat.txt'
     ])
   }
   sh 'rm logcat.txt '
@@ -127,8 +127,8 @@ def sendTaggedMetric(String metric, String value, String tagName, String tagValu
 
 def storeJunitResults(String path) {
   step([
-    $class: 'JUnitResultArchiver',
-    testResults: path
+          $class: 'JUnitResultArchiver',
+          testResults: path
   ])
 }
 
@@ -148,9 +148,9 @@ def collectAarMetrics() {
 
   def soFiles = findFiles(glob: 'realm/realm-library/build/outputs/aar/unzipped/jni/*/librealm-jni.so')
   for (int i = 0; i < soFiles.length; i++) {
-      def abiName = soFiles[i].path.tokenize('/')[-2]
-      def libSize = soFiles[i].length as String
-      sendTaggedMetric('abi_size', libSize, 'type', abiName)
+    def abiName = soFiles[i].path.tokenize('/')[-2]
+    def libSize = soFiles[i].length as String
+    sendTaggedMetric('abi_size', libSize, 'type', abiName)
   }
 }
 

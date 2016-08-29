@@ -126,27 +126,29 @@ def getNdk() {
     if (!System.env.NDK_HOME) {
         throw new GradleException('The NDK_HOME environment variable is not set.')
     }
-    def ndkDir = file(System.env.NDK_HOME)
+    def ndkDir = new File(System.env.NDK_HOME)
     if (!ndkDir.directory) {
         throw new GradleException('The path provided in the NDK_HOME environment variable is not a folder.')
     }
     def detectedNdkVersion
-    if (file("${ndkDir}/RELEASE.TXT").file) {
-        detectedNdkVersion = file("${ndkDir}/RELEASE.TXT").text.trim().split()[0].split('-')[0]
-    } else if (file("${ndkDir}/source.properties").file) {
-        def reader = file("${ndkDir}/source.properties").newReader()
+    def releaseFile = new File(ndkDir, 'RELEASE.TXT')
+    def propertyFile = new File(ndkDir, 'source.properties')
+    if (releaseFile.isFile()) {
+        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
+    } else if (propertyFile.isFile()) {
+        def reader = propertyFile.newReader()
         try {
             def props = new Properties()
             props.load(reader)
             detectedNdkVersion = props.get('Pkg.Revision')
             if (detectedNdkVersion == null) {
-                throw new GradleException("failed to obtain ndk version information from ${ndkDir}/source.properties")
+                throw new GradleException("Failed to obtain the NDK version information from ${ndkDir}/source.properties")
             }
         } finally {
             reader.close()
         }
     } else {
-        throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
+        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
     }
     //noinspection GroovyVariableNotAssigned
     if (detectedNdkVersion != ndkVersion) {
@@ -171,15 +173,13 @@ ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
 
-task downloadCore() {
-    group = 'build setup'
-    description = 'Download the latest version of realm core'
+task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
     def calcSha256Hash = {File targetFile ->
-        MessageDigest sha = MessageDigest.getInstance("SHA-256")
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
         Formatter hexHash = new Formatter()
         sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
         return hexHash.toString()
@@ -209,14 +209,13 @@ task downloadCore() {
 
     doLast {
         if (shouldDownloadCore()) {
-            // CI artifacts are only available if on the internal network or VPN
-            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
-
-            println "Downloading ${downloadUrl}"
-            exec {
-                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+            download {
+                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
+                dest project.coreArchiveFile
+                onlyIfNewer false
             }
             coreDownloaded = true
+
             if (isHashCheckingEnabled()) {
                 def calculatedHash = calcSha256Hash(project.coreArchiveFile)
                 if (!project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
@@ -284,9 +283,9 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
             from tarTree(project.coreArchiveFile)
             into project.coreDir
         }
-	exec {
-	    commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
-	}
+        exec {
+            commandLine = [ 'git', 'clean', '-xfd', "${projectDir}/src" ]
+        }
     }
 }
 
@@ -297,11 +296,11 @@ toolchains.each { toolchain ->
         description "Generate the NDK standalone toolchain for the ${toolchain.name.capitalize()} platform"
         outputs.dir file("${buildDir}/standalone-toolchains/${toolchain.name}")
         commandLine = [
-            "bash",
-            "${ndkDir}/build/tools/make-standalone-toolchain.sh",
-            "--platform=android-${toolchain.platform}",
-            "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
-            "--toolchain=${toolchain.fullName}-${clang?'clang'+toolchain.version[Compiler.CLANG]:toolchain.version[Compiler.GCC]}"
+                "bash",
+                "${ndkDir}/build/tools/make-standalone-toolchain.sh",
+                "--platform=android-${toolchain.platform}",
+                "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
+                "--toolchain=${toolchain.fullName}-${clang?'clang'+toolchain.version[Compiler.CLANG]:toolchain.version[Compiler.GCC]}"
         ]
     }
 }
@@ -317,17 +316,17 @@ targets.each { target ->
         environment STRIP: "${target.toolchain.commandPrefix}-strip -o librealm-jni-${target.name}-stripped.so"
         environment REALM_ANDROID: '1'
         commandLine = [
-            'make',
-            "-j${Runtime.getRuntime().availableProcessors() * 2}",
-            "-l${Runtime.getRuntime().availableProcessors()}",
-            '-C', "${projectDir}/src",
-            "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
-            "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
-            "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-sync-android-${target.name} -lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -lz -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
-            'LIB_SUFFIX_SHARED=.so',
-            "librealm-jni-${target.name}${getDebugExt()}.so"
+                'make',
+                "-j${Runtime.getRuntime().availableProcessors() * 2}",
+                "-l${Runtime.getRuntime().availableProcessors()}",
+                '-C', "${projectDir}/src",
+                "CC_IS=${clang?'clang':'gcc'}",
+                "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
+                "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
+                "BASE_DENOM=${target.name}",
+                "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
+                'LIB_SUFFIX_SHARED=.so',
+                "librealm-jni-${target.name}${getDebugExt()}.so"
         ]
     }
 
