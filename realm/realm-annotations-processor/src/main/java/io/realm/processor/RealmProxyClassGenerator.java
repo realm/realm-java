@@ -62,6 +62,8 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         ArrayList<String> imports = new ArrayList<String>();
+        imports.add("android.annotation.TargetApi");
+        imports.add("android.os.Build");
         imports.add("android.util.JsonReader");
         imports.add("android.util.JsonToken");
         imports.add("io.realm.RealmFieldType");
@@ -1553,6 +1555,7 @@ public class RealmProxyClassGenerator {
 
     private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
         writer.emitAnnotation("SuppressWarnings", "\"cast\"");
+        writer.emitAnnotation("TargetApi", "Build.VERSION_CODES.HONEYCOMB");
         writer.beginMethod(
                 qualifiedClassName,
                 "createUsingJsonStream",
