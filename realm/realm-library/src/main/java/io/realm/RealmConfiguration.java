@@ -406,28 +406,28 @@ public final class RealmConfiguration {
         }
 
         /**
-         * Specify the dir where the Realm file will be saved. The default value is {@code context.getFiles()}.
+         * Specify the directory where the Realm file will be saved. The default value is {@code context.getFiles()}.
          * If the directory does not exists. It will be created.
          *
-         * @param dir the directory to save the Realm file in. Folder must be writable.
-         * @throws IllegalArgumentException if {@code dir} is null, not writable or a file.
+         * @param directory the directory to save the Realm file in. Folder must be writable.
+         * @throws IllegalArgumentException if {@code directory} is null, not writable or a file.
          */
-        public Builder directory(File dir) {
-            if (dir == null) {
-                throw new IllegalArgumentException("Non-null 'dir' required");
+        public Builder directory(File directory) {
+            if (directory == null) {
+                throw new IllegalArgumentException("Non-null 'dir' required.");
             }
-            if (dir.isFile()) {
-                throw new IllegalArgumentException("'dir' is a file, not a directory: " + dir.getAbsolutePath());
+            if (directory.isFile()) {
+                throw new IllegalArgumentException("'dir' is a file, not a directory: " + directory.getAbsolutePath() + ".");
             }
-            if (!dir.exists()) {
-                if (dir.mkdirs()) {
-                    throw new IllegalArgumentException("Could not create the specified directory: " + dir.getAbsolutePath());
+            if (!directory.exists()) {
+                if (directory.mkdirs()) {
+                    throw new IllegalArgumentException("Could not create the specified directory: " + directory.getAbsolutePath() + ".");
                 }
             }
-            if (!dir.canWrite()) {
-                throw new IllegalArgumentException("Realm directory is not writable: " + dir.getAbsolutePath());
+            if (!directory.canWrite()) {
+                throw new IllegalArgumentException("Realm directory is not writable: " + directory.getAbsolutePath() + ".");
             }
-            this.directory = dir;
+            this.directory = directory;
             return this;
         }
 
