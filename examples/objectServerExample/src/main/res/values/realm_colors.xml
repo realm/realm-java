@@ -18,6 +18,6 @@
 
     // Material adjustments
     <color name="flamingo_darker">#d64881</color>
-    <color name="touch_area_pressed">#BDBDBD</color>
+    <color name="touch_area_pressed">#dadada</color>
 
 </resources>
