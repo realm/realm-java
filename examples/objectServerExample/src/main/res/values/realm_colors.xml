@@ -15,4 +15,9 @@
     <color name="sexy_salmon">#F77C88</color>
     <color name="peach">#FC9F95</color>
     <color name="melon">#FCC397</color>
+
+    // Material adjustments
+    <color name="flamingo_darker">#d64881</color>
+    <color name="touch_area_pressed">#BDBDBD</color>
+
 </resources>

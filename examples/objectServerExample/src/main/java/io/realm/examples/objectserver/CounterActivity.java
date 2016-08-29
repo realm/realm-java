@@ -23,8 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import java.util.Locale;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -33,13 +31,8 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.objectserver.model.CRDTCounter;
 import io.realm.examples.objectserver.model.CounterOperation;
-import io.realm.objectserver.Error;
-import io.realm.objectserver.ErrorCode;
-import io.realm.objectserver.ErrorHandler;
-import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.User;
-import io.realm.objectserver.session.Session;
 import io.realm.objectserver.util.UserStore;
 
 public class CounterActivity extends AppCompatActivity {

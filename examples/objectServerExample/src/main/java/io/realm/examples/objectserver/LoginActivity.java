@@ -27,13 +27,9 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.objectserver.Credentials;
-import io.realm.objectserver.Error;
 import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.User;
 import io.realm.objectserver.util.UserStore;
-
-import static android.net.sip.SipErrorCode.INVALID_CREDENTIALS;
-import static io.realm.objectserver.Error.UNKNOWN_ACCOUNT;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -72,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
         createUserButton.setEnabled(false);
         loginButton.setEnabled(false);
 
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this, R.style.AppTheme_Dark_Dialog);
+        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
@@ -136,17 +132,11 @@ public class LoginActivity extends AppCompatActivity {
         String password = this.password.getText().toString();
 
         if (email.isEmpty()) {
-            username.setError("Username required");
             valid = false;
-        } else {
-            username.setError(null);
         }
 
         if (password.isEmpty()) {
-            this.password.setError("Password required");
             valid = false;
-        } else {
-            this.password.setError(null);
         }
 
         return valid;

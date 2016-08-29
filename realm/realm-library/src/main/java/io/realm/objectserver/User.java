@@ -73,6 +73,7 @@ public class User {
             String id = obj.getString("identifier");
             Token refreshToken = Token.from(obj.getJSONObject("refreshToken"));
             URL authUrl = new URL(obj.getString("authUrl"));
+            // FIXME: Add support for  storing access tokens as well
             return new User(id, refreshToken, authUrl);
         } catch (JSONException e) {
             throw new IllegalArgumentException("Could not parse user json: " + user, e);
@@ -237,6 +238,7 @@ public class User {
             obj.put("identifier", identifier);
             obj.put("refreshToken", refreshToken.toJson());
             obj.put("authenticationUrl", authentificationUrl);
+            // FIXME: Add support for  storing access tokens as well
            return obj.toString();
         } catch (JSONException e) {
             throw new RuntimeException("Could not convert User to JSON", e);
