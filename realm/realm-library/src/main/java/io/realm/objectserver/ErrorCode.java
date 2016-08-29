@@ -43,6 +43,7 @@ public enum ErrorCode {
     // Realm Object Server errors (100 - 199)
 
     // Connection level and protocol errors
+
     CONNECTION_CLOSED(100, Category.INFO),          // Connection closed (no error)
     OTHER_ERROR(101, Category.INFO),                // Other connection level error
     UNKNOWN_MESSAGE(102, Category.INFO),            // Unknown type of input message

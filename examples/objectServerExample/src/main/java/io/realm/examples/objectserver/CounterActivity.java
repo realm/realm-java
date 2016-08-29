@@ -19,6 +19,8 @@ package io.realm.examples.objectserver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import java.util.Locale;
@@ -32,9 +34,12 @@ import io.realm.RealmResults;
 import io.realm.examples.objectserver.model.CRDTCounter;
 import io.realm.examples.objectserver.model.CounterOperation;
 import io.realm.objectserver.Error;
+import io.realm.objectserver.ErrorCode;
 import io.realm.objectserver.ErrorHandler;
+import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.User;
+import io.realm.objectserver.session.Session;
 import io.realm.objectserver.util.UserStore;
 
 public class CounterActivity extends AppCompatActivity {
@@ -54,8 +59,7 @@ public class CounterActivity extends AppCompatActivity {
         // Check if we have a valid user, otherwise redirect to login
         User user = userStore.getCurrentUser();
         if (user == null) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+            gotoLoginActivity();
         }
     }
 
@@ -111,9 +115,32 @@ public class CounterActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (counter != null) {
-            counter.removeChangeListeners();
-            realm.close(); // Remember to close Realm when done.
+        closeRealm();
+    }
+
+    private void closeRealm() {
+        if (realm != null && !realm.isClosed()) {
+            realm.close();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_counter, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.action_logout:
+                userStore.getCurrentUser().logout();
+                closeRealm();
+                gotoLoginActivity();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -136,5 +163,10 @@ public class CounterActivity extends AppCompatActivity {
                 realm.copyToRealm(ops);
             }
         });
+    }
+
+    private void gotoLoginActivity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
     }
 }
