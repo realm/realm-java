@@ -1,6 +1,8 @@
 package io.realm;
 
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
@@ -490,6 +492,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @SuppressWarnings("cast")
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         some.test.AllTypes obj = realm.createObject(some.test.AllTypes.class);
