@@ -3,6 +3,7 @@
 
 #include "shared_realm.hpp"
 #include "util.hpp"
+#include "sync_config.hpp"
 
 using namespace realm;
 
@@ -20,7 +21,7 @@ static_assert(SchemaMode::Manual ==
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
-        jboolean auto_change_notification)
+        jboolean auto_change_notification, jstring sync_server_url, jstring sync_user_token)
 {
     TR_ENTER()
 
@@ -35,6 +36,13 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
+        if (sync_server_url) {
+            JStringAccessor url(env, sync_server_url);
+            JStringAccessor token(env, sync_user_token);
+            config->sync_config = std::make_shared<SyncConfig>();
+            config->sync_config->user_tag = token;
+            config->sync_config->realm_url = url;
+        }
         return reinterpret_cast<jlong>(config);
     } CATCH_STD()
 
