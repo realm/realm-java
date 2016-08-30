@@ -2121,8 +2121,8 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void batchUpdate_localRefIsDeletedInLoopOfNativeBatchUpdateQueries() {
         final Realm realm = looperThread.realm;
-        // For Android, the size of local ref map is 512
-        final int TEST_COUNT = 512;
+        // For Android, the size of local ref map is 512. Use 1024 for more pressure.
+        final int TEST_COUNT = 1024;
         final AtomicBoolean updatesTriggered = new AtomicBoolean(false);
         // The first time onChange gets called for every results.
         final AtomicInteger firstOnChangeCounter = new AtomicInteger(0);
