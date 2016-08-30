@@ -1,6 +1,8 @@
 package io.realm;
 
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
@@ -910,6 +912,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     @SuppressWarnings("cast")
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         some.test.NullTypes obj = realm.createObject(some.test.NullTypes.class);
