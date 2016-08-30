@@ -46,23 +46,6 @@ public final class SyncManager {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
-    private static final ErrorHandler CLIENT_NO_OP_ERROR_HANDLER = new SyncManager.ErrorHandler() {
-        @Override
-        public void onError(ObjectServerError error) {
-            ErrorCode errorCode = error.errorCode();
-            switch (errorCode.getCategory()) {
-                case FATAL:
-                    RealmLog.e(error.toString());
-                    break;
-                case RECOVERABLE:
-                    RealmLog.i(error.toString());
-                    break;
-                case INFO:
-                    RealmLog.d(error.toString());
-                    break;
-            }
-        }
-    };
     private static final Session.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
         @Override
         public void onError(Session session, ObjectServerError error) {
@@ -87,7 +70,6 @@ public final class SyncManager {
     // Right now it just lives and dies together with the process.
     private static long nativeSyncClientPointer;
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
-    private static volatile SyncManager.ErrorHandler globalErrorHandler = CLIENT_NO_OP_ERROR_HANDLER;
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
     // Map of between a local Realm path and any associated sessionInfo
@@ -96,18 +78,6 @@ public final class SyncManager {
     static {
         RealmCore.loadLibrary();
         nativeSyncClientPointer = nativeCreateSyncClient();
-    }
-
-    /**
-     * Sets the global error handler used by underlying network client. All connection errors will be reported here,
-     * while all session related errors will be posted to the sessions error handler
-     */
-    public static void setGlobalErrorHandler(SyncManager.ErrorHandler errorHandler) {
-        if (errorHandler == null) {
-            globalErrorHandler = CLIENT_NO_OP_ERROR_HANDLER;
-        } else {
-            globalErrorHandler = errorHandler;
-        }
     }
 
     /**
@@ -236,27 +206,14 @@ public final class SyncManager {
     }
 
     // This is called for SyncManager.cpp from the worker thread the Sync Client is running on
+    // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
+    // from here. This can be removed once proper error propagation is implemented in Sync Core.
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
-        ErrorCode error = ErrorCode.fromInt(errorCode);
-        globalErrorHandler.onError(new ObjectServerError(error, errorMessage));
-        // FIXME Still need to test this. After that we can remove this
-        throw new RuntimeException("BOOM FROM JNI:" + error + errorMessage);
+        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
+        for(Session session : sessions.values()) {
+            session.onError(error);
+        }
     }
 
     private static native long nativeCreateSyncClient();
-
-    /**
-     * Interface used by Object Server Network Client to report back errors.
-     *
-     * @see SyncManager#setGlobalErrorHandler(ErrorHandler)
-     */
-    public interface ErrorHandler {
-        /**
-         * Callback for errors on the Realm Object Server Network Client.
-         * Only errors with an ID between 100-199 will be reported here.
-         *
-         * @param error type of error.
-         */
-        void onError(ObjectServerError error);
-    }
 }

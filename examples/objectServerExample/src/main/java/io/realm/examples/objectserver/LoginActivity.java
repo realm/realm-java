@@ -77,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = this.password.getText().toString();
 
         Credentials creds = Credentials.fromUsernamePassword(username, password, createUser);
-        String authUrl = "http://192.168.1.3:8080/auth";
+        String authUrl = "http://" + MyApplication.OBJECT_SERVER_IP + ":8080/auth";
         User.Callback callback = new User.Callback() {
             @Override
             public void onSuccess(User user) {

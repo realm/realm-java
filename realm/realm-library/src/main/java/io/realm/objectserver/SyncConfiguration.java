@@ -183,17 +183,19 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the local directory where the Realm file can be saved.
-         * This will override the default location defined by the {@link #serverUrl(String)}
-         * <p>
-         * <b>WARNING:</b> Overriding the default location should be done with extreme care. If two users write
-         * to the same locale Realm, it can no longer be synchronized with the remote Realm.
+         * Sets the local root directory where synchronized Realm files can be saved.
+         *
+         * Synchronized Realms will not be saved directly in the provided directory, but instead in a
+         * subfolder that matches the path defined by {@link #serverUrl(String)}. As Realm server URLs are unique
+         * this means that multiple users can save their Realms on disk without the risk of them overriding each other.
+         *
+         * The default location is {@code context.getFilesDir()}.
          *
          * @param dir directory on disk where the Realm file can be saved.
          * @throws IllegalArgumentException if the directory is not valid.
          */
         public Builder directory(File dir) {
-            // TODO
+            // TODO Implement this once the changes have been merged to master
             return this;
         }
 
@@ -290,7 +292,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * The URL also defines the local location on the device. The default location of a synchronized Realm file is
          * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}.
          *
-         * This behaviour can be overwritten using {@link #name(String)} and {@link #directory(File}.
+         * This behaviour can be overwritten using {@link #name(String)} and {@link #directory(File)}.
          *
          * @param url URL identifying the Realm.
          * @throws IllegalArgumentException if the URL is not valid.
@@ -346,7 +348,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @param syncPolicy policy to use.
          *
          * @see SyncManager#connect(SyncConfiguration)
-         * @see Session;
+         * @see Session
          */
         public Builder syncPolicy(SyncPolicy syncPolicy) {
             // TODO: Decide if we should launch with this as package protected since the sync notification API might

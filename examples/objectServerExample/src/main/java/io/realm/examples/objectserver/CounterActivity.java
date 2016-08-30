@@ -69,7 +69,7 @@ public class CounterActivity extends AppCompatActivity {
                         }
                     })
                     .user(userStore.getCurrentUser())
-                    .serverUrl("realm://192.168.1.3/~/default")
+                    .serverUrl("realm://" + MyApplication.OBJECT_SERVER_IP + "/~/default")
                     .build();
 
             // This will automatically sync all changes in the background for as long as the Realm is open

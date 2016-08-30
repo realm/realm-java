@@ -20,6 +20,8 @@ import io.realm.objectserver.User;
 
 /**
  * Interface for describing how a given user object can be persisted and retrieved again.
+ *
+ * @see SharedPrefsUserStore
  */
 public interface UserStore {
 
@@ -49,7 +51,8 @@ public interface UserStore {
     boolean save(String key, User user);
 
     /**
-     * TODO
+     * Saves a User object under the given key. If another user already exists, it will be replaced.
+     *
      * @param key
      * @param user
      */

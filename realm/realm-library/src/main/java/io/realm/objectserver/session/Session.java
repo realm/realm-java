@@ -39,13 +39,13 @@ import io.realm.objectserver.syncpolicy.SyncPolicy;
  * This class controls the connection to a Realm Object Server for one Realm.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
- * a Realm instance. Once a session have been created it will continue to exists until explicitly closed or the
+ * a Realm instance. Once a session has been created it will continue to exists until explicitly closed or the
  * underlying Realm file is deleted.
  * <p>
  * It is normally not necessary to interact directly with a session. That should be done by the {@link SyncPolicy}
  * defined using {@link io.realm.objectserver.SyncConfiguration.Builder#syncPolicy(SyncPolicy)}.
  * <p>
- * A session has the The SessionInfo lifecycle consists of the following states:
+ * A session has a lifecycle consisting of the following states:
  * <p>
  * <ol>
  * <li>
@@ -75,6 +75,7 @@ import io.realm.objectserver.syncpolicy.SyncPolicy;
  *     <b>STOPPED</b> The session has been stopped and no longer work. A new session will be created the next time
  *     either the Realm is opened or {@link SyncManager#getSession(SyncConfiguration)} is called.
  * </li>
+ * </ol>
  *
  * This object is thread safe.
  *
@@ -146,20 +147,20 @@ public final class Session {
     }
 
     /**
-     * Stops the session. This session can no longer be used.
+     * Stops the session. The session can no longer be used.
      */
     public synchronized void stop() {
         currentState.onStop();
     }
 
     /**
-     * Binds the local Realm to the remote Realm. Once bound, changes on either the local or Remote Realm will be
+     * Binds the local Realm to the remote Realm. Once bound, changes to either the local or Remote Realm will be
      * synchronized immediately.
      *
      * Binding a Realm is not guaranteed to succeed. Possible reasons for failure could be either if the device is
-     * offline or credentials have expired. Binding is an asynchronous operation and all errors will be sent first
-     * {@link SyncPolicy#onError(Session, ObjectServerError)} and then to the the {@link ErrorHandler} defined by the
-     * {@link SyncConfiguration.Builder#errorHandler(ErrorHandler)} if the SyncPolicy didn't handle it.
+     * offline or credentials have expired. Binding is an asynchronous operation and all errors will be sent first to
+     * {@link SyncPolicy#onError(Session, ObjectServerError)} and if the SyncPolicy didn't handle it, to the
+     * {@link ErrorHandler} defined by {@link SyncConfiguration.Builder#errorHandler(ErrorHandler)}.
      */
     public synchronized void bind() {
         currentState.onBind();
@@ -174,16 +175,26 @@ public final class Session {
         currentState.onUnbind();
     }
 
-    // Called from Session.cpp
-    // This callback will happen on the thread running the Sync Client.
-    private void notifySessionError(int errorCode, String errorMessage) {
-        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
+
+    /**
+     * // FIXME This method shouldn't be public
+     * Notify the session that an error has occurred.
+     * @param error the kind of err
+     */
+    public synchronized void onError(ObjectServerError error) {
         currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
         errorHandler.onError(this, error);
     }
 
+    // Called from Session.cpp and SyncMaanger
+    // This callback will happen on the thread running the Sync Client.
+    void notifySessionError(int errorCode, String errorMessage) {
+        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
+        onError(error);
+    }
+
     /**
-     * Checks if the local Realm is bound to to the remote Realm and can synchronize any changes happening on either
+     * Checks if the local Realm is bound to the remote Realm and can synchronize any changes happening on either
      * side.
      *
      * @return {@code true} if the local Realm is bound to the remote Realm, {@code false} otherwise.
