@@ -419,10 +419,8 @@ public final class RealmConfiguration {
             if (directory.isFile()) {
                 throw new IllegalArgumentException("'dir' is a file, not a directory: " + directory.getAbsolutePath() + ".");
             }
-            if (!directory.exists()) {
-                if (directory.mkdirs()) {
-                    throw new IllegalArgumentException("Could not create the specified directory: " + directory.getAbsolutePath() + ".");
-                }
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw new IllegalArgumentException("Could not create the specified directory: " + directory.getAbsolutePath() + ".");
             }
             if (!directory.canWrite()) {
                 throw new IllegalArgumentException("Realm directory is not writable: " + directory.getAbsolutePath() + ".");
