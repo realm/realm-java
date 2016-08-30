@@ -57,6 +57,11 @@ public final class RealmSchema {
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
+    RealmSchema() {
+        realm = null;
+        nativePtr = nativeCreateSchema();
+    }
+
     RealmSchema(BaseRealm realm) {
         this.realm = realm;
         nativePtr = realm.sharedRealm.schema().getNativePtr();
@@ -102,6 +107,7 @@ public final class RealmSchema {
         // FIXME: if realm == null?
         if (hasObjectSchemaByName(className)) {
             RealmObjectSchema realmObjectSchema = getObjectSchemaByName(className);
+            dynamicClassToSchema.put(className, realmObjectSchema);
             return realmObjectSchema;
         } else {
             return null;
@@ -132,14 +138,22 @@ public final class RealmSchema {
      */
     public RealmObjectSchema create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
-        RealmObjectSchema realmObjectSchema = null;
-        if (realm == null) {
-            realmObjectSchema = new RealmObjectSchema(className);
+        if (dynamicClassToSchema.containsKey(className)) {
+            return dynamicClassToSchema.get(className);
         } else {
-            realmObjectSchema = new RealmObjectSchema(realm.sharedRealm, className);
+            RealmObjectSchema realmObjectSchema;
+            if (realm == null) {
+                realmObjectSchema = new RealmObjectSchema(className);
+            } else {
+                if (realm.sharedRealm.hasTable(Table.TABLE_PREFIX + className)) {
+                    throw new IllegalArgumentException("Class already exists: " + className);
+                }
+                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+                realmObjectSchema = realm.sharedRealm.schema().getObjectSchemaByName(className);
+            }
+            dynamicClassToSchema.put(className, realmObjectSchema);
+            return realmObjectSchema;
         }
-        dynamicClassToSchema.put(className, realmObjectSchema);
-        return realmObjectSchema;
     }
 
     /**
@@ -290,9 +304,9 @@ public final class RealmSchema {
             return dynamicClassToSchema.get(name);
         } else {
             if (realm == null) {
-                return new RealmObjectSchema(nativeGetObjectSchemaByName(nativePtr, name));
+                return new RealmObjectSchema(name);
             } else {
-                return null;
+                return new RealmObjectSchema(realm, name, null);
             }
         }
     }

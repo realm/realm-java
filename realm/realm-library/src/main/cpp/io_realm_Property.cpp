@@ -17,7 +17,9 @@
 #include <jni.h>
 #include "io_realm_Property.h"
 
+#include <stdexcept>
 #include <object-store/src/property.hpp>
+#include <object-store/src/object_store.hpp>
 
 #include "util.hpp"
 
@@ -29,8 +31,18 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ
     TR_ENTER()
     try {
         JStringAccessor str(env, name);
-        PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type)); // FIXME: is validation done by object store?
-        Property *property = new Property(str, p_type, "", "", to_bool(is_primary), to_bool(is_indexed), to_bool(is_nullable));
+        PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
+        Property *property = new Property(str, p_type, "", "", to_bool(is_primary), to_bool(is_indexed),
+                                          to_bool(is_nullable));
+        if (to_bool(is_indexed) && !property->is_indexable()) {
+            throw std::invalid_argument(
+                    "This field cannot be indexed - Only String/byte/short/int/long/boolean/Date fields are supported.");
+        }
+        if (to_bool(is_primary) && p_type != PropertyType::Int && p_type != PropertyType::String) {
+            std::string typ = property->type_string();
+            delete property;
+            throw std::invalid_argument("Invalid primary key type: " + typ);
+        }
         return reinterpret_cast<jlong>(property);
     }
     CATCH_STD()
@@ -75,6 +87,22 @@ Java_io_realm_Property_nativeIsIndexable
     return JNI_FALSE;
 }
 
+JNIEXPORT void JNICALL
+Java_io_realm_Property_nativeSetIndexable(JNIEnv *env, jclass type, jlong property_ptr, jboolean indexable) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        if (!to_bool(indexable) && !property->is_indexed) {
+            throw std::domain_error("Field not indexed: " + property->name);
+        }
+        if (to_bool(indexable) && !property->is_indexable()) {
+            throw std::invalid_argument("This field cannot be indexed - Only String/byte/short/int/long/boolean/Date fields are supported.");
+        }
+        property->is_indexed = to_bool(indexable);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT jboolean JNICALL
 Java_io_realm_Property_nativeRequiresIndex
 (JNIEnv *env, jclass, jlong property_ptr) {
@@ -96,6 +124,22 @@ Java_io_realm_Property_nativeIsNullable(JNIEnv *env, jclass, jlong property_ptr)
     }
     CATCH_STD()
     return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_Property_nativeSetNullable(JNIEnv *env, jclass type, jlong property_ptr, jboolean nullable) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        if (property->type == PropertyType::Object) {
+            throw std::invalid_argument("Cannot modify the required state for RealmObject references:" + property->name);
+        }
+        if (property->type == PropertyType::Array) {
+            throw std::invalid_argument("Cannot modify the required state for RealmList references: " + property->name);
+        }
+        property->is_nullable = to_bool(nullable);
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jstring JNICALL

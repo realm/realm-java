@@ -167,6 +167,9 @@ Java_io_realm_RealmObjectSchema_nativeRemovePropertyByName
         object_schema->persisted_properties.erase(std::remove_if(object_schema->persisted_properties.begin(),
                                                                  object_schema->persisted_properties.end(),
                                                                  [&str](const Property& p){ return p.name == str; }));
+        if (object_schema->primary_key == str) {
+            object_schema->primary_key = "";
+        }
     }
     CATCH_STD()
 }
@@ -181,4 +184,25 @@ Java_io_realm_RealmObjectSchema_nativeHasPrimaryKey(JNIEnv *env, jclass, jlong n
     }
     CATCH_STD()
     return JNI_FALSE;
+}
+
+
+JNIEXPORT void JNICALL
+Java_io_realm_RealmObjectSchema_nativeSetPrimaryKey(JNIEnv *env, jclass type, jlong native_ptr, jstring name_) {
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
+        auto* primary_key = object_schema->primary_key_property();
+        if (primary_key != nullptr) {
+            primary_key->is_primary = false;
+        }
+        JStringAccessor str(env, name_);
+        auto *property = object_schema->property_for_name(str);
+        if (property->type != PropertyType::String && property->type != PropertyType::Int) {
+            throw std::invalid_argument("Field cannot be a primary key.");
+        }
+        property->is_primary = true;
+        object_schema->primary_key = str;
+    }
+    CATCH_STD()
 }

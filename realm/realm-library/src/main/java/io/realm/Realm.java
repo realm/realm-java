@@ -261,7 +261,8 @@ public final class Realm extends BaseRealm {
         columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
         for (Class<? extends RealmModel> modelClass : modelClasses) {
             if (version == UNVERSIONED) {
-                realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, realm.getSchema()));
+                RealmSchema tmp = new RealmSchema();
+                realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, tmp));
             }
             columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
         }

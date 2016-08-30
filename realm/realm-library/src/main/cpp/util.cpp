@@ -71,6 +71,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch (domain_error& e) { // FIXME: find a better exception
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());

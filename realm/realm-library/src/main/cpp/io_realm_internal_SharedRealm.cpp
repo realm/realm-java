@@ -296,7 +296,7 @@ Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong 
         JStringAccessor old_name(env, old_table_name);
         if (!shared_realm->is_in_transaction()) {
             std::ostringstream ss;
-            ss << "Table " << old_name << " cannot be removed when the shared realm is not in transaction.";
+            ss << "Table " << old_name << " cannot be renamed when the shared realm is not in transaction.";
             ThrowException(env, IllegalState, ss.str());
             return;
         }
