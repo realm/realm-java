@@ -8,11 +8,17 @@ try {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
       stage 'SCM'
-      checkout scm
+      checkout([
+              $class: 'GitSCM',
+              branches: scm.branches,
+              doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+              extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, recursiveSubmodules: true, reference: '', trackingSubmodules: false]],
+              submoduleCfg: [],
+              gitTool: 'native git',
+              userRemoteConfigs: scm.userRemoteConfigs
+      ])
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
-      // Update submodule for object-store
-      sh 'git submodule update --init --force'
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
