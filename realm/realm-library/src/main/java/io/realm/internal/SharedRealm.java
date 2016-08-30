@@ -139,7 +139,9 @@ public final class SharedRealm implements Closeable {
                 config.getDurability() == Durability.MEM_ONLY,
                 false,
                 false,
-                false);
+                false,
+                null,
+                null);
         try {
             return new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
         } finally {
@@ -274,7 +276,8 @@ public final class SharedRealm implements Closeable {
 
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
-                                                  boolean autoChangeNotification);
+                                                  boolean autoChangeNotification,
+                                                  String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
