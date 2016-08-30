@@ -9,14 +9,16 @@ try {
     ws('/tmp/realm-java') {
       stage 'SCM'
       checkout([
-              $class: 'GitSCM',
-              branches: scm.branches,
-              doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-              extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, recursiveSubmodules: true, reference: '', trackingSubmodules: false]],
-              submoduleCfg: [],
-              gitTool: 'native git',
-              userRemoteConfigs: scm.userRemoteConfigs
+        $class: 'GitSCM',
+        branches: scm.branches,
+        gitTool: 'native git',
+        extensions: scm.extensions + [[$class: 'CleanCheckout']],
+        userRemoteConfigs: scm.userRemoteConfigs
       ])
+      sshagent(['realm-ci-ssh']) {
+        sh 'git submodule sync'
+        sh 'git submodule update --init --recursive'
+      }
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
 
