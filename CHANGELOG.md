@@ -8,7 +8,7 @@
   - `IncompatibleLockFileException` has been removed and replaced by `RealmFileException` with kind `INCOMPATIBLE_LOCK_FILE`.
   - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
 * Removed `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
-* `RealmConfiguration.Builder.assetFile(Context, String)` have been renamed to `RealmConfiguration.Builder.assetFile(String)`.
+* `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
 
 ### Enhancements
 
