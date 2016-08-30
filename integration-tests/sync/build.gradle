@@ -66,6 +66,9 @@ task startServer(dependsOn: untarRealmServer)  {
         //start new process
         def processBuilder = new ProcessBuilder(['nodejs','server.js', 'deebug.log'])
 //        def processBuilder = new ProcessBuilder(['node','server.js', 'deebug.log'])
+        File log = new File("$projectDir/test_server/process_builder.log");
+        processBuilder.redirectErrorStream(true)
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(log))
         processBuilder.directory(new File("$projectDir/test_server"))
         Process process = processBuilder.start()
 
@@ -90,7 +93,6 @@ task startServer(dependsOn: untarRealmServer)  {
         }
     }
 }
-
 
 task reverseSyncServerPort(type: Exec) {
     def adb = android.getAdbExe()?.toString() ?: 'false'
