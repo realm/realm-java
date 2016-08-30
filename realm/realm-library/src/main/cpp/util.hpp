@@ -114,29 +114,36 @@ jclass GetClass(JNIEnv* env, const char* classStr);
 
 // Debug trace
 extern int trace_level;
-extern const char* log_tag;
+extern jclass realmlog_class;
+extern jmethodID log_trace;
+extern jmethodID log_debug;
+extern jmethodID log_info;
+extern jmethodID log_warn;
+extern jmethodID log_error;
+extern jmethodID log_fatal;
+
+
 
 #if TRACE
   #if defined(ANDROID)
     #include <android/log.h>
-    #define LOG_DEBUG ANDROID_LOG_DEBUG
-    #define TR_ENTER() if (trace_level >= 1) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s", __FUNCTION__); } else {}
-    #define TR_ENTER_PTR(ptr) if (trace_level >= 1) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s %" PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
-    #define TR(...) if (trace_level >= 2) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, __VA_ARGS__); } else {}
-    #define TR_ERR(...) if (trace_level >= 0) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, __VA_ARGS__); } else {}
-    #define TR_LEAVE() if (trace_level >= 3) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " <-- %s", __FUNCTION__); } else {}
+    #define TR_ENTER(env) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, " --> %s", __FUNCTION__); } else {}
+    #define TR_ENTER_PTR(env, ptr) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, " --> %s %", PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
+    #define TR(env, ...) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, __VA_ARGS__); } else {}
+    #define TR_ERR(env, ...) if (trace_level <= 6) { env->CallStaticVoidMethod(realmlog_class, log_error, __VA_ARGS__); } else {}
+    #define TR_LEAVE(env) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, " <-- %s", __FUNCTION__); } else {}
   #else // ANDROID
-    #define TR_ENTER()
-    #define TR_ENTER_PTR(ptr)
+    #define TR_ENTER(env)
+    #define TR_ENTER_PTR(env, ptr)
     #define TR(...)
-    #define TR_ERR(...)
+    #define TR_ERR(env, ...)
     #define TR_LEAVE()
   #endif
 #else // TRACE - these macros must be empty
-  #define TR_ENTER()
-  #define TR_ENTER_PTR(ptr)
+  #define TR_ENTER(env)
+  #define TR_ENTER_PTR(env, ptr)
   #define TR(...)
-  #define TR_ERR(...)
+  #define TR_ERR(env, ...)
   #define TR_LEAVE()
 #endif
 
@@ -212,7 +219,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
 
     }
     if (!valid) {
-        TR_ERR("Table %p is no longer attached!", VOID_PTR(objPtr))
+        TR_ERR(env, "Table %p is no longer attached!", VOID_PTR(objPtr))
         ThrowException(env, IllegalState, "Table is no longer valid to operate on.");
     }
     return valid;
@@ -222,7 +229,7 @@ inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
-        TR_ERR("Row %p is no longer attached!", VOID_PTR(rowPtr))
+        TR_ERR(env, "Row %p is no longer attached!", VOID_PTR(rowPtr))
         ThrowException(env, IllegalState, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
@@ -236,29 +243,29 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
     if (endIndex == -1)
         endIndex = maxIndex;
     if (startIndex < 0) {
-        TR_ERR("startIndex %" PRId64 " < 0 - invalid!", S64(startIndex))
+        TR_ERR(env, "startIndex %" PRId64 " < 0 - invalid!", S64(startIndex))
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
         return false;
     }
     if (realm::util::int_greater_than(startIndex, maxIndex)) {
-        TR_ERR("startIndex %" PRId64 " > %" PRId64 " - invalid!", S64(startIndex), S64(maxIndex))
+        TR_ERR(env, "startIndex %" PRId64 " > %" PRId64 " - invalid!", S64(startIndex), S64(maxIndex))
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
     if (realm::util::int_greater_than(endIndex, maxIndex)) {
-        TR_ERR("endIndex %" PRId64 " > %" PRId64 " - invalid!", S64(endIndex), S64(maxIndex))
+        TR_ERR(env, "endIndex %" PRId64 " > %" PRId64 " - invalid!", S64(endIndex), S64(maxIndex))
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
     }
     if (startIndex > endIndex) {
-        TR_ERR("startIndex %" PRId64 " > endIndex %" PRId64 " - invalid!", S64(startIndex), S64(endIndex))
+        TR_ERR(env, "startIndex %" PRId64 " > endIndex %" PRId64 " - invalid!", S64(startIndex), S64(endIndex))
         ThrowException(env, IndexOutOfBounds, "startIndex > endIndex.");
         return false;
     }
 
     if (range != -1 && range < 0) {
-        TR_ERR("range %" PRId64 " < 0 - invalid!", S64(range))
+        TR_ERR(env, "range %" PRId64 " < 0 - invalid!", S64(range))
         ThrowException(env, IndexOutOfBounds, "range < 0.");
         return false;
     }
@@ -278,7 +285,7 @@ inline bool RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset=fal
         size -= 1;
     bool rowErr = realm::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
-        TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(size))
+        TR_ERR(env, "rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(size))
         ThrowException(env, IndexOutOfBounds,
             "rowIndex > available rows: " +
             num_to_string(rowIndex) + " > " + num_to_string(size));
@@ -305,7 +312,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
     }
     bool colErr = realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
-        TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
+        TR_ERR(env, "columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
     }
     return !colErr;
@@ -347,7 +354,7 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
         return false;
     bool rowErr = realm::util::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
-        TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(pTable->size()))
+        TR_ERR(env, "rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(pTable->size()))
         ThrowException(env, IndexOutOfBounds,
             "rowIndex " + num_to_string(rowIndex) +
             " > available rows " + num_to_string(pTable->size()) + ".");
@@ -361,7 +368,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColTy
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
     if (colType != expectColType) {
-        TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
+        TR_ERR(env, "Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
         ThrowException(env, IllegalArgument, "ColumnType invalid.");
         return false;
     }
@@ -377,7 +384,7 @@ inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
         return true;
     }
 
-    TR_ERR("Expected columnType %d or %d, but got %d", realm::type_Link, realm::type_LinkList, colType)
+    TR_ERR(env, "Expected columnType %d or %d, but got %d", realm::type_Link, realm::type_LinkList, colType)
     ThrowException(env, IllegalArgument, "ColumnType invalid: expected type_Link or type_LinkList");
     return false;
 }
@@ -400,7 +407,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
         return true;
     }
 
-    TR_ERR("Expected nullable column type")
+    TR_ERR(env, "Expected nullable column type")
     ThrowException(env, IllegalArgument, "This field is not nullable.");
     return false;
 }

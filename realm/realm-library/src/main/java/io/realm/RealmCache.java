@@ -26,7 +26,7 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -176,7 +176,7 @@ final class RealmCache {
         }
 
         if (refCount <= 0) {
-            RealmLog.w("Realm " + canonicalPath + " has been closed already.");
+            RealmLog.warn("%s has been closed already.", canonicalPath);
             return;
         }
 

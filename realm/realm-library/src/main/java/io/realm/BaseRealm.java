@@ -19,8 +19,7 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-
-import com.getkeepsafe.relinker.BuildConfig;
+import android.util.Log;
 
 import java.io.Closeable;
 import java.io.File;
@@ -39,10 +38,9 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.android.DebugAndroidLogger;
-import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.AndroidLogger;
+import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
@@ -79,7 +77,7 @@ abstract class BaseRealm implements Closeable {
 
     static {
         //noinspection ConstantConditions
-        RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
+        RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
     }
 
     protected BaseRealm(RealmConfiguration configuration) {
@@ -420,7 +418,7 @@ abstract class BaseRealm implements Closeable {
                     }
                 }
                 if (!messageHandled) {
-                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                    RealmLog.warn("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                             "to prevent this.");
                 }
             }
@@ -642,7 +640,7 @@ abstract class BaseRealm implements Closeable {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
                     realmDeleted.set(false);
-                    RealmLog.w("Could not delete the file " + fileToDelete);
+                    RealmLog.warn("Could not delete the file %s", fileToDelete);
                 }
             }
         }
@@ -770,9 +768,9 @@ abstract class BaseRealm implements Closeable {
     @Override
     protected void finalize() throws Throwable {
         if (sharedRealm != null && !sharedRealm.isClosed()) {
-            RealmLog.w("Remember to call close() on all Realm instances. " +
-                    "Realm " + configuration.getPath() + " is being finalized without being closed, " +
-                    "this can lead to running out of native memory."
+            RealmLog.warn("Remember to call close() on all Realm instances. " +
+                    "Realm %s is being finalized without being closed, " +
+                    "this can lead to running out of native memory.", configuration.getPath()
             );
         }
         super.finalize();

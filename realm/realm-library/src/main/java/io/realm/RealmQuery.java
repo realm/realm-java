@@ -40,7 +40,7 @@ import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
@@ -1409,7 +1409,7 @@ public final class RealmQuery<E extends RealmModel> {
 
                         return handoverTableViewPointer;
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
+                        RealmLog.error(e);
                         closeSharedRealmAndSendMessageToHandler(sharedRealm,
                                 weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
@@ -1716,11 +1716,11 @@ public final class RealmQuery<E extends RealmModel> {
 
                     } catch (BadVersionException e) {
                         // In some rare race conditions, this can happen. In that case, just ignore the error.
-                        RealmLog.d("findAllAsync handover could not complete due to a BadVersionException. " +
+                        RealmLog.debug("findAllAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
+                        RealmLog.error(e);
                         closeSharedRealmAndSendMessageToHandler(sharedRealm,
                                 weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
                     } finally {
@@ -1830,11 +1830,11 @@ public final class RealmQuery<E extends RealmModel> {
                         return handoverTableViewPointer;
                     } catch (BadVersionException e) {
                         // In some rare race conditions, this can happen. In that case, just ignore the error.
-                        RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                        RealmLog.debug("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
+                        RealmLog.error(e);
                         closeSharedRealmAndSendMessageToHandler(sharedRealm,
                                 weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
@@ -2000,11 +2000,11 @@ public final class RealmQuery<E extends RealmModel> {
                             return handoverTableViewPointer;
                         } catch (BadVersionException e) {
                             // In some rare race conditions, this can happen. In that case, just ignore the error.
-                            RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                            RealmLog.debug("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                     "Retry is scheduled by a REALM_CHANGED event.");
 
                         } catch (Throwable e) {
-                            RealmLog.e(e.getMessage(), e);
+                            RealmLog.error(e);
                             closeSharedRealmAndSendMessageToHandler(sharedRealm,
                                     weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
@@ -2139,7 +2139,7 @@ public final class RealmQuery<E extends RealmModel> {
                         return handoverRowPointer;
 
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
+                        RealmLog.error(e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
                         closeSharedRealmAndSendMessageToHandler(sharedRealm,
                                 weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));

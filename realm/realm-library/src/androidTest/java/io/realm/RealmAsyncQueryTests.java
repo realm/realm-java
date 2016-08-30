@@ -45,7 +45,7 @@ import io.realm.instrumentation.MockActivityManager;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;

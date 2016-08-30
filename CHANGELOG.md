@@ -11,6 +11,7 @@
 ### Enhancements
 
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
+* `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to LogCat. See the `RealmLog` class for more details.
 
 ## 1.2.1
 
