@@ -7,12 +7,13 @@
 * Added new `RealmFileException`.
   - `IncompatibleLockFileException` has been removed and replaced by `RealmFileException` with kind `INCOMPATIBLE_LOCK_FILE`.
   - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
+* Removed `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
+* `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
 
 ### Enhancements
 
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
-
-## 1.2.1
+* Added `RealmConfiguration.Builder.directory(File)`.
 
 ### Internal
 

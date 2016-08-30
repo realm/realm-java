@@ -182,7 +182,7 @@ public class RealmCacheTests {
 
         // 1. Write a copy of the encrypted Realm to a new file
         Realm testRealm = Realm.getInstance(config);
-        File copiedRealm = new File(config.getRealmFolder(), "encrypted-copy.realm");
+        File copiedRealm = new File(config.getRealmDirectory(), "encrypted-copy.realm");
         if (copiedRealm.exists()) {
             assertTrue(copiedRealm.delete());
         }
@@ -193,7 +193,7 @@ public class RealmCacheTests {
         Realm.deleteRealm(config);
 
         // 3. Rename the new file to the old file name.
-        assertTrue(copiedRealm.renameTo(new File(config.getRealmFolder(), REALM_NAME)));
+        assertTrue(copiedRealm.renameTo(new File(config.getRealmDirectory(), REALM_NAME)));
 
         // 4. Try to open the file again with the new password
         // If the configuration cache wasn't cleared this would fail as we would detect two
