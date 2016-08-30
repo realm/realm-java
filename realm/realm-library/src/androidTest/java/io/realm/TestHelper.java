@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import org.junit.Assert;
@@ -352,7 +353,9 @@ public class TestHelper {
      */
     @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(dir)
+                .name(name);
         if (key != null) {
             config.encryptionKey(key);
         }

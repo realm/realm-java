@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import android.content.Context;
@@ -70,11 +71,16 @@ public class RealmConfigurationTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    RealmConfiguration defaultConfig;
-    Realm realm;
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
+    private Context context;
+    private  RealmConfiguration defaultConfig;
+    private Realm realm;
 
     @Before
     public void setUp() {
+        context = InstrumentationRegistry.getTargetContext();
         defaultConfig = configFactory.createConfiguration();
     }
 
@@ -121,28 +127,9 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void constructBuilder_nullDirThrows() {
-        try {
-            new RealmConfiguration.Builder((File) null).build();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void constructBuilder_createSubFoldersThrows() {
-        File folder = new File(configFactory.getRoot() + "/subfolder1/subfolder2/");
-        try {
-            new RealmConfiguration.Builder(folder).build();
-            fail("Assuming that sub folders are created automatically should fail.");
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
     public void constructBuilder_nullNameThrows() {
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).name(null).build();
+            new RealmConfiguration.Builder(context).name(null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -151,10 +138,31 @@ public class RealmConfigurationTests {
     @Test
     public void constructBuilder_emptyNameThrows() {
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).name("").build();
+            new RealmConfiguration.Builder(context).name("");
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void directory_null() {
+        new RealmConfiguration.Builder(context).directory(null);
+    }
+
+    @Test
+    public void directory_writeProtectedDir() {
+        File dir = new File("/");
+        thrown.expect(IllegalArgumentException.class);
+        new RealmConfiguration.Builder(context).directory(dir);
+    }
+
+    @Test
+    public void directory_dirIsAFile() throws IOException {
+        File dir = configFactory.getRoot();
+        File file = new File(dir, "dummyfile");
+        assertTrue(file.createNewFile());
+        thrown.expect(IllegalArgumentException.class);
+        new RealmConfiguration.Builder(context).directory(file);
     }
 
     @Test
@@ -173,7 +181,7 @@ public class RealmConfigurationTests {
     @Test
     public void constructBuilder_nullKeyThrows() {
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).encryptionKey(null).build();
+            new RealmConfiguration.Builder(context).encryptionKey(null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -188,7 +196,7 @@ public class RealmConfigurationTests {
         };
         for (byte[] key : wrongKeys) {
             try {
-                new RealmConfiguration.Builder(configFactory.getRoot()).encryptionKey(key).build();
+                new RealmConfiguration.Builder(context).encryptionKey(key);
                 fail("Key with length " + key.length + " should throw an exception");
             } catch (IllegalArgumentException ignored) {
             }
@@ -198,7 +206,7 @@ public class RealmConfigurationTests {
     @Test
     public void constructBuilder_negativeVersionThrows() {
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).schemaVersion(-1).build();
+            new RealmConfiguration.Builder(context).schemaVersion(-1);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -206,14 +214,19 @@ public class RealmConfigurationTests {
 
     @Test
     public void constructBuilder_versionLessThanDiscVersionThrows() {
-        realm = Realm.getInstance(new RealmConfiguration.Builder(configFactory.getRoot()).schemaVersion(42).build());
+        realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schemaVersion(42)
+                .build());
         realm.close();
 
         int[] wrongVersions = new int[] { 0, 1, 41 };
         for (int version : wrongVersions) {
             try {
-                realm = Realm.getInstance(new RealmConfiguration.Builder(configFactory.getRoot())
-                        .schemaVersion(version).build());
+                realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                        .directory(configFactory.getRoot())
+                        .schemaVersion(version)
+                        .build());
                 fail("Version " + version + " should throw an exception");
             } catch (IllegalArgumentException ignored) {
             }
@@ -223,14 +236,20 @@ public class RealmConfigurationTests {
     @Test
     public void constructBuilder_versionEqualWhenSchemaChangesThrows() {
         // Create initial Realm
-        RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .schemaVersion(42).schema(Dog.class).build();
+        RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schemaVersion(42)
+                .schema(Dog.class)
+                .build();
         Realm.getInstance(config).close();
 
         // Create new instance with a configuration containing another schema
         try {
-            config = new RealmConfiguration.Builder(configFactory.getRoot())
-                    .schemaVersion(42).schema(AllTypesPrimaryKey.class).build();
+            config = new RealmConfiguration.Builder(context)
+                    .directory(configFactory.getRoot())
+                    .schemaVersion(42)
+                    .schema(AllTypesPrimaryKey.class)
+                    .build();
             realm = Realm.getInstance(config);
             fail("A migration should be required");
         } catch (RealmMigrationNeededException ignored) {
@@ -239,7 +258,10 @@ public class RealmConfigurationTests {
 
     @Test
     public void customSchemaDontIncludeLinkedClasses() {
-        RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot()).schema(Dog.class).build();
+        RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schema(Dog.class)
+                .build();
         realm = Realm.getInstance(config);
         try {
             assertEquals(3, realm.getTable(Owner.class).getColumnCount());
@@ -251,7 +273,7 @@ public class RealmConfigurationTests {
     @Test
     public void migration_nullThrows() {
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).migration(null).build();
+            new RealmConfiguration.Builder(context).migration(null).build();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -261,14 +283,14 @@ public class RealmConfigurationTests {
     public void modules_nonRealmModulesThrows() {
         // Test first argument
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).modules(new Object());
+            new RealmConfiguration.Builder(context).modules(new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Test second argument
         try {
-            new RealmConfiguration.Builder(configFactory.getRoot()).modules(Realm.getDefaultModule(), new Object());
+            new RealmConfiguration.Builder(context).modules(Realm.getDefaultModule(), new Object());
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -276,8 +298,10 @@ public class RealmConfigurationTests {
 
     @Test
     public void modules() {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(configFactory.getRoot())
-                .modules(Realm.getDefaultModule(), (Object) null).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .modules(Realm.getDefaultModule(), (Object) null)
+                .build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
     }
@@ -298,7 +322,8 @@ public class RealmConfigurationTests {
 
     @Test
     public void standardSetup() {
-        RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .name("foo.realm")
                 .encryptionKey(TestHelper.getRandomKey())
                 .schemaVersion(42)
@@ -320,7 +345,8 @@ public class RealmConfigurationTests {
     @Test
     public void deleteRealmIfMigrationNeeded() {
         // Populate v0 of a Realm with an object
-        RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .schema(Dog.class)
                 .schemaVersion(0)
                 .build();
@@ -333,7 +359,8 @@ public class RealmConfigurationTests {
         realm.close();
 
         // Change schema and verify that Realm has been cleared
-        config = new RealmConfiguration.Builder(configFactory.getRoot())
+        config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .schema(Owner.class, Dog.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
@@ -350,8 +377,8 @@ public class RealmConfigurationTests {
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context);
         try {
             builder
-                    .assetFile(context, "asset_file.realm")
-                    .deleteRealmIfMigrationNeeded();
+                .assetFile("asset_file.realm")
+                .deleteRealmIfMigrationNeeded();
             fail();
         } catch (IllegalStateException expected) {
             assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
@@ -367,8 +394,10 @@ public class RealmConfigurationTests {
 
         // Version upgrades should always require a migration.
         try {
-            realm = Realm.getInstance(new RealmConfiguration.Builder(configFactory.getRoot())
-                    .schemaVersion(42).build());
+            realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                    .directory(configFactory.getRoot())
+                    .schemaVersion(42)
+                    .build());
             fail();
         } catch (RealmMigrationNeededException ignored) {
         }
@@ -376,35 +405,37 @@ public class RealmConfigurationTests {
 
     @Test
     public void equals() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).build();
         assertTrue(config1.equals(config2));
     }
 
     @Test
     public void equalsWhenRxJavaUnavailable() {
         // test for https://github.com/realm/realm-java/issues/2416
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
         TestHelper.emulateRxJavaUnavailable(config1);
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
         TestHelper.emulateRxJavaUnavailable(config2);
         assertTrue(config1.equals(config2));
     }
 
     @Test
     public void hashCode_Test() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
         assertEquals(config1.hashCode(), config2.hashCode());
     }
 
     @Test
     public void equals_withCustomModules() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .modules(new HumanModule(), new AnimalModule())
                 .build();
 
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .modules(new AnimalModule(), new HumanModule())
                 .build();
 
@@ -413,10 +444,12 @@ public class RealmConfigurationTests {
 
     @Test
     public void hashCode_withCustomModules() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .modules(new HumanModule(), new AnimalModule())
                 .build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .modules(new AnimalModule(), new HumanModule())
                 .build();
 
@@ -425,10 +458,12 @@ public class RealmConfigurationTests {
 
     @Test
     public void hashCode_withDifferentRxObservableFactory() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .rxFactory(new RealmObservableFactory())
                 .build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .rxFactory(new RealmObservableFactory() {
                     @Override
                     public int hashCode() {
@@ -442,8 +477,8 @@ public class RealmConfigurationTests {
 
     @Test
     public void equals_configurationsReturnCachedRealm() {
-        Realm realm1 = Realm.getInstance(new RealmConfiguration.Builder(configFactory.getRoot()).build());
-        Realm realm2 = Realm.getInstance(new RealmConfiguration.Builder(configFactory.getRoot()).build());
+        Realm realm1 = Realm.getInstance(new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build());
+        Realm realm2 = Realm.getInstance(new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build());
         try {
             assertEquals(realm1, realm2);
         } finally {
@@ -454,8 +489,8 @@ public class RealmConfigurationTests {
 
     @Test
     public void schemaVersion_differentVersionsThrows() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).schemaVersion(1).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).schemaVersion(2).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).schemaVersion(1).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).schemaVersion(2).build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {
@@ -469,10 +504,14 @@ public class RealmConfigurationTests {
 
     @Test
     public void encryptionKey_differentEncryptionKeysThrows() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .encryptionKey(TestHelper.getRandomKey()).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .encryptionKey(TestHelper.getRandomKey()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {
@@ -486,9 +525,12 @@ public class RealmConfigurationTests {
 
     @Test
     public void schema_differentSchemasThrows() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
-                .schema(AllTypes.class).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schema(AllTypes.class)
+                .build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
                 .schema(CyclicType.class).build();
 
         Realm realm1 = Realm.getInstance(config1);
@@ -504,8 +546,13 @@ public class RealmConfigurationTests {
     // Creating Realm instances with same name but different durabilities is not allowed.
     @Test
     public void inMemory_differentDurabilityThrows() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).inMemory().build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .inMemory()
+                .build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .build();
 
         // Create In-memory Realm first.
         Realm realm1 = Realm.getInstance(config1);
@@ -533,8 +580,8 @@ public class RealmConfigurationTests {
     // It is allowed to create multiple Realm with same name but in different directory
     @Test
     public void constructBuilder_differentDirSameName() throws IOException {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.newFolder()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(context).directory(configFactory.getRoot()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(context).directory(configFactory.newFolder()).build();
 
         Realm realm1 = Realm.getInstance(config1);
         Realm realm2 = Realm.getInstance(config2);
@@ -547,7 +594,10 @@ public class RealmConfigurationTests {
         // Generate a key and use it in a RealmConfiguration
         byte[] oldKey = TestHelper.getRandomKey(12345);
         byte[] key = oldKey;
-        RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot()).encryptionKey(key).build();
+        RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .encryptionKey(key)
+                .build();
 
         // Generate a different key and assign it to the same variable
         byte[] newKey = TestHelper.getRandomKey(67890);
@@ -577,8 +627,10 @@ public class RealmConfigurationTests {
 
     @Test
     public void modelClasses_forGeneratedMediator() throws Exception {
-        final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .modules(new HumanModule()).build();
+        final RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .modules(new HumanModule())
+                .build();
         assertTrue(config.getSchemaMediator() instanceof HumanModuleMediator);
 
         final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
@@ -597,8 +649,10 @@ public class RealmConfigurationTests {
 
     @Test
     public void modelClasses_forCompositeMediator() throws Exception {
-        final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .modules(new HumanModule(), new AnimalModule()).build();
+        final RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .modules(new HumanModule(), new AnimalModule())
+                .build();
         assertTrue(config.getSchemaMediator() instanceof CompositeMediator);
 
         final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
@@ -618,8 +672,10 @@ public class RealmConfigurationTests {
     @Test
     public void modelClasses_forFilterableMediator() throws Exception {
         //noinspection unchecked
-        final RealmConfiguration config = new RealmConfiguration.Builder(configFactory.getRoot())
-                .schema(AllTypes.class, CatOwner.class).build();
+        final RealmConfiguration config = new RealmConfiguration.Builder(context)
+                .directory(configFactory.getRoot())
+                .schema(AllTypes.class, CatOwner.class)
+                .build();
         assertTrue(config.getSchemaMediator() instanceof FilterableMediator);
 
         final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
@@ -800,15 +856,14 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileNullAndEmptyFileName() {
-        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         try {
-            new RealmConfiguration.Builder(context).assetFile(context, null).build();
+            new RealmConfiguration.Builder(context).assetFile(null).build();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         try {
-            new RealmConfiguration.Builder(context).assetFile(context, "").build();
+            new RealmConfiguration.Builder(context).assetFile("").build();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -816,13 +871,11 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileWithInMemoryConfig() {
-        Context context = InstrumentationRegistry.getInstrumentation().getContext();
-
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         try {
-            new RealmConfiguration.Builder(context).assetFile(context, "asset_file.realm").inMemory().build();
+            new RealmConfiguration.Builder(context).assetFile("asset_file.realm").inMemory().build();
             fail();
         } catch (RealmException ignored) {
         }
@@ -830,12 +883,10 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileFakeFile() {
-        Context context = InstrumentationRegistry.getInstrumentation().getContext();
-
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
-        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile(context, "no_file").build();
+        RealmConfiguration configuration = new RealmConfiguration.Builder(context).assetFile("no_file").build();
         try {
             Realm.getInstance(configuration);
             fail();
@@ -846,15 +897,13 @@ public class RealmConfigurationTests {
 
     @Test
     public void assetFileValidFile() throws IOException {
-        Context context = InstrumentationRegistry.getInstrumentation().getContext();
-
         // Ensure that there is no data
         Realm.deleteRealm(new RealmConfiguration.Builder(context).build());
 
         RealmConfiguration configuration = new RealmConfiguration
                 .Builder(context)
                 .modules(new AssetFileModule())
-                .assetFile(context, "asset_file.realm")
+                .assetFile("asset_file.realm")
                 .build();
         Realm.deleteRealm(configuration);
 
@@ -888,7 +937,7 @@ public class RealmConfigurationTests {
         try {
             builder
                     .deleteRealmIfMigrationNeeded()
-                    .assetFile(context, "asset_file.realm");
+                    .assetFile("asset_file.realm");
             fail();
         } catch (IllegalStateException expected) {
             assertEquals("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().",

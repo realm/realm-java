@@ -174,30 +174,6 @@ public class RealmTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getInstance_nullDir() {
-        Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
-    }
-
-    @Test
-    public void getInstance_writeProtectedDir() {
-        File folder = new File("/");
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(folder).build());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getInstance_nullContextWithCustomDirThrows() {
-        Realm.getInstance(new RealmConfiguration.Builder((Context) null, configFactory.getRoot()).build());
-    }
-
-    @Test
-    public void getInstance_writeProtectedDirWithContext() {
-        File folder = new File("/");
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(context, folder).build());
-    }
-
     @Test
     public void getInstance_writeProtectedFile() throws IOException {
         String REALM_FILE = "readonly.realm";
@@ -208,7 +184,10 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+            Realm.getInstance(new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                    .directory(folder)
+                    .name(REALM_FILE)
+                    .build());
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
         }
@@ -224,7 +203,7 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+            Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
         }
@@ -1980,7 +1959,9 @@ public class RealmTests {
         File tempDirRenamed = new File(configFactory.getRoot(), "delete_test_dir_2");
         assertTrue(tempDir.mkdir());
 
-        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
+        final RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(tempDir)
+                .build();
 
         final CountDownLatch bgThreadReadyLatch = new CountDownLatch(1);
         final CountDownLatch readyToCloseLatch = new CountDownLatch(1);

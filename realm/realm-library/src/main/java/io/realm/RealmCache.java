@@ -293,7 +293,7 @@ final class RealmCache {
     private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
         IOException exceptionWhenClose = null;
         if (configuration.hasAssetFile()) {
-            File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
+            File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
             if (realmFile.exists()) {
                 return;
             }

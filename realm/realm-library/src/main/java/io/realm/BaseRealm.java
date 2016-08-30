@@ -663,12 +663,12 @@ abstract class BaseRealm implements Closeable {
                 }
 
                 String canonicalPath = configuration.getPath();
-                File realmFolder = configuration.getRealmFolder();
+                File realmFolder = configuration.getRealmDirectory();
                 String realmFileName = configuration.getRealmFileName();
                 File managementFolder = new File(realmFolder, realmFileName + management);
 
-                // delete files in management folder and the folder
-                // there is no subfolders in the management folder
+                // delete files in management directory and the directory
+                // there is no subfolders in the management directory
                 File[] files = managementFolder.listFiles();
                 if (files != null) {
                     for (File file : files) {
@@ -677,7 +677,7 @@ abstract class BaseRealm implements Closeable {
                 }
                 realmDeleted.set(realmDeleted.get() && managementFolder.delete());
 
-                // delete specific files in root folder
+                // delete specific files in root directory
                 realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
             }
         });
