@@ -27,14 +27,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import dk.ilios.spanner.All;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
@@ -2109,6 +2112,57 @@ public class RealmAsyncQueryTests {
         }
 
         realm.close();
+    }
+
+    // This test reproduce the issue in https://secure.helpscout.net/conversation/244053233/6163/?folderId=366141
+    // First it creates 512 async queries, then trigger a transaction to make the queries gets update with
+    // nativeBatchUpdateQueries. It should not exceed the limits of local ref map size in JNI.
+    @Test
+    @RunTestInLooperThread
+    public void batchUpdate_localRefIsDeletedInLoopOfNativeBatchUpdateQueries() {
+        final Realm realm = looperThread.realm;
+        // For Android, the size of local ref map is 512
+        final int TEST_COUNT = 512;
+        final AtomicBoolean updatesTriggered = new AtomicBoolean(false);
+        // The first time onChange gets called for every results.
+        final AtomicInteger firstOnChangeCounter = new AtomicInteger(0);
+        // The second time onChange gets called for every results which is triggered by the transaction.
+        final AtomicInteger secondOnChangeCounter = new AtomicInteger(0);
+
+        final RealmChangeListener<RealmResults<AllTypes>> listener = new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> element) {
+                if (updatesTriggered.get())  {
+                    // Step 4: Test finished after all results's onChange gets called the 2nd time.
+                    int count  = secondOnChangeCounter.addAndGet(1);
+                    if (count == TEST_COUNT) {
+                        realm.removeAllChangeListeners();
+                        looperThread.testComplete();
+                    }
+                } else {
+                    int count  = firstOnChangeCounter.addAndGet(1);
+                    if (count == TEST_COUNT) {
+                        // Step 3: Commit the transaction to trigger queries updates.
+                        updatesTriggered.set(true);
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.createObject(AllTypes.class);
+                            }
+                        });
+                    } else {
+                        // Step 2: Create 2nd - TEST_COUNT queries.
+                        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+                        results.addChangeListener(this);
+                        looperThread.keepStrongReference.add(results);
+                    }
+                }
+            }
+        };
+        // Step 1. Create first async to kick the test start.
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(listener);
+        looperThread.keepStrongReference.add(results);
     }
 
     // *** Helper methods ***
