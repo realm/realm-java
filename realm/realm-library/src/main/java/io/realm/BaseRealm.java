@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.annotations.internal.OptionalAPI;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
@@ -177,7 +177,6 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public abstract Observable asObservable();
 
     /**
@@ -210,6 +209,8 @@ abstract class BaseRealm implements Closeable {
      * the last transaction was committed.
      *
      * @param destination file to save the Realm to.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
+     * destination file.
      */
     public void writeCopyTo(File destination) {
         writeEncryptedCopyTo(destination, null);
@@ -227,6 +228,8 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws IllegalArgumentException if destination argument is null.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
+     * destination file.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) {
         if (destination == null) {
@@ -301,13 +304,13 @@ abstract class BaseRealm implements Closeable {
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * realm.beginTransaction();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      *
      * // Do this instead
      * realm.beginTransaction();
      * RealmResults<Person> persons = realm.where(Person.class).findAll();
      * persons.first().setName("John");
-     * realm.commitTransaction;
+     * realm.commitTransaction();
      * }
      * </pre>
      * <p>
@@ -576,12 +579,12 @@ abstract class BaseRealm implements Closeable {
                 }
 
                 String canonicalPath = configuration.getPath();
-                File realmFolder = configuration.getRealmFolder();
+                File realmFolder = configuration.getRealmDirectory();
                 String realmFileName = configuration.getRealmFileName();
                 File managementFolder = new File(realmFolder, realmFileName + management);
 
-                // delete files in management folder and the folder
-                // there is no subfolders in the management folder
+                // delete files in management directory and the directory
+                // there is no subfolders in the management directory
                 File[] files = managementFolder.listFiles();
                 if (files != null) {
                     for (File file : files) {
@@ -590,7 +593,7 @@ abstract class BaseRealm implements Closeable {
                 }
                 realmDeleted.set(realmDeleted.get() && managementFolder.delete());
 
-                // delete specific files in root folder
+                // delete specific files in root directory
                 realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
             }
         });

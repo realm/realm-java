@@ -108,7 +108,7 @@ public final class HandlerController implements Handler.Callback {
         // aware when this threads handler is removed before they send messages to it. We don't wish to synchronize
         // access to the handlers as they are the prime mean of notifying about updates. Instead we make sure
         // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
-        // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
+        // longer exists. `sharedRealm` will only be null if a Realm is really closed.
         if (realm.sharedRealm != null) {
             QueryUpdateTask.Result result;
             switch (message.what) {
@@ -156,6 +156,7 @@ public final class HandlerController implements Handler.Callback {
      * @param onSuccess onSuccess callback to run for the async transaction that completed.
      */
     public void handleAsyncTransactionCompleted(Runnable onSuccess) {
+        // Same reason as handleMessage()
         if (realm.sharedRealm != null) {
             if (onSuccess != null) {
                 pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);

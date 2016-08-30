@@ -21,7 +21,6 @@ import android.app.IntentService;
 import java.util.List;
 
 import io.realm.annotations.RealmClass;
-import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -115,7 +114,7 @@ public abstract class RealmObject implements RealmModel {
 
     /**
      * Checks if the RealmObject is still valid to use i.e., the RealmObject hasn't been deleted nor has the
-     * {@link io.realm.Realm} been closed. It will always return {@code false} for unmanaged objects.
+     * {@link io.realm.Realm} been closed. It will always return {@code true} for unmanaged objects.
      * <p>
      * Note that this can be used to check the validity of certain conditions such as being {@code null}
      * when observed.
@@ -127,7 +126,7 @@ public abstract class RealmObject implements RealmModel {
      * }
      * </pre>
      *
-     * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is an unmanaged object.
+     * @return {@code true} if the object is still accessible or an unmanaged object, {@code false} otherwise.
      * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">Examples using Realm with RxJava</a>
      */
     public final boolean isValid() {
@@ -136,10 +135,10 @@ public abstract class RealmObject implements RealmModel {
 
     /**
      * Checks if the RealmObject is still valid to use i.e., the RealmObject hasn't been deleted nor has the
-     * {@link io.realm.Realm} been closed. It will always return {@code false} for unmanaged objects.
+     * {@link io.realm.Realm} been closed. It will always return {@code true} for unmanaged objects.
      *
      * @param object RealmObject to check validity for.
-     * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is an unmanaged object.
+     * @return {@code true} if the object is still accessible or an unmanaged object, {@code false} otherwise.
      */
     public static <E extends RealmModel> boolean isValid(E object) {
         if (object instanceof RealmObjectProxy) {
@@ -147,7 +146,7 @@ public abstract class RealmObject implements RealmModel {
             Row row = proxy.realmGet$proxyState().getRow$realm();
             return row != null && row.isAttached();
         } else {
-            return false;
+            return true;
         }
     }
 
@@ -240,6 +239,52 @@ public abstract class RealmObject implements RealmModel {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
+     * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
+     * is possible to register a change listener using {@link #addChangeListener(RealmChangeListener)} to be notified
+     * when changes happen. Managed objects are thread confined so that they cannot be accessed from other threads than
+     * the one that created them.
+     * <p>
+     *
+     * If this method returns {@code false}, the object is unmanaged. An unmanaged object is just a normal Java object,
+     * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
+     * so it will not be live updated.
+     * <p>
+     *
+     * It is possible to create a managed object from an unmanaged object by using
+     * {@link Realm#copyToRealm(RealmModel)}. An unmanaged object can be created from a managed object by using
+     * {@link Realm#copyFromRealm(RealmModel)}.
+     *
+     * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
+     */
+    public boolean isManaged() {
+        return isManaged(this);
+    }
+
+    /**
+     * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
+     * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
+     * is possible to register a change listener using {@link #addChangeListener(RealmModel, RealmChangeListener)} to be
+     * notified when changes happen. Managed objects are thread confined so that they cannot be accessed from other threads
+     * than the one that created them.
+     * <p>
+     *
+     * If this method returns {@code false}, the object is unmanaged. An unmanaged object is just a normal Java object,
+     * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
+     * so it will not be live updated.
+     * <p>
+     *
+     * It is possible to create a managed object from an unmanaged object by using
+     * {@link Realm#copyToRealm(RealmModel)}. An unmanaged object can be created from a managed object by using
+     * {@link Realm#copyFromRealm(RealmModel)}.
+     *
+     * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
+     */
+    public static <E extends RealmModel> boolean isManaged(E object) {
+        return object instanceof RealmObjectProxy;
     }
 
     /**
@@ -417,7 +462,6 @@ public abstract class RealmObject implements RealmModel {
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public final <E extends RealmObject> Observable<E> asObservable() {
         return (Observable<E>) RealmObject.asObservable(this);
     }

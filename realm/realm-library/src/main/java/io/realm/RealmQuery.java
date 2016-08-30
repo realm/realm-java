@@ -293,6 +293,24 @@ public final class RealmQuery<E extends RealmModel> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
+    public RealmQuery<E> equalTo(String fieldName, byte[] value) {
+        long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
+        if (value == null) {
+            this.query.isNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> equalTo(String fieldName, Short value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
         if (value == null) {
@@ -634,6 +652,24 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, Byte value) {
         long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.INTEGER);
+        if (value == null) {
+            this.query.isNotNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, byte[] value) {
+        long[] columnIndices = schema.getColumnIndices(fieldName, RealmFieldType.BINARY);
         if (value == null) {
             this.query.isNotNull(columnIndices);
         } else {
@@ -1376,7 +1412,6 @@ public final class RealmQuery<E extends RealmModel> {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedRealmAndSendEventToNotifier(sharedRealm,
                                 weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-
                     } finally {
                         if (sharedRealm != null && !sharedRealm.isClosed()) {
                             sharedRealm.close();
@@ -1971,7 +2006,6 @@ public final class RealmQuery<E extends RealmModel> {
                             RealmLog.e(e.getMessage(), e);
                             closeSharedRealmAndSendEventToNotifier(sharedRealm,
                                     weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-
                         } finally {
                             if (sharedRealm != null && !sharedRealm.isClosed()) {
                                 sharedRealm.close();
@@ -2107,7 +2141,6 @@ public final class RealmQuery<E extends RealmModel> {
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
                         closeSharedRealmAndSendEventToNotifier(sharedRealm,
                                 weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-
                     } finally {
                         if (sharedRealm != null && !sharedRealm.isClosed()) {
                             sharedRealm.close();
@@ -2207,7 +2240,7 @@ public final class RealmQuery<E extends RealmModel> {
         }
 
         Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
+        if (columnIndex == null) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 

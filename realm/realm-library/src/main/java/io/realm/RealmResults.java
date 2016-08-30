@@ -31,7 +31,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.annotations.internal.OptionalAPI;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
@@ -73,7 +72,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
 
-    BaseRealm realm;
+    final BaseRealm realm;
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
@@ -159,7 +158,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     public boolean isValid() {
-        return realm != null && !realm.isClosed();
+        return !realm.isClosed();
+    }
+
+    /**
+     * A {@link RealmResults} is always a managed collection.
+     *
+     * @return {@code true}.
+     * @see RealmCollection#isManaged()
+     */
+    public boolean isManaged() {
+        return true;
     }
 
     /**
@@ -984,9 +993,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-
     @SuppressWarnings("unchecked")
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<RealmResults<E>> asObservable() {
         if (realm instanceof Realm) {
             return realm.configuration.getRxFactory().from((Realm) realm, this);

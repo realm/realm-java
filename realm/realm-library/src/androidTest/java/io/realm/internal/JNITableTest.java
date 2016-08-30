@@ -182,64 +182,6 @@ public class JNITableTest {
     }
 
     @Test
-    public void getSortedView() {
-        Table t = new Table();
-        t.addColumn(RealmFieldType.INTEGER, "");
-        t.addColumn(RealmFieldType.STRING, "");
-        t.addColumn(RealmFieldType.DOUBLE, "");
-
-        t.add(1, "s", 1000d);
-        t.add(3,"sss", 10d);
-        t.add(2, "ss", 100d);
-
-
-        // Check the order is as it is added
-        assertEquals(1, t.getLong(0, 0));
-        assertEquals(3, t.getLong(0, 1));
-        assertEquals(2, t.getLong(0, 2));
-        assertEquals("s", t.getString(1, 0));
-        assertEquals("sss", t.getString(1, 1));
-        assertEquals("ss", t.getString(1, 2));
-        assertEquals(1000d, t.getDouble(2, 0));
-        assertEquals(10d, t.getDouble(2, 1));
-        assertEquals(100d, t.getDouble(2, 2));
-
-        // Get the sorted view on first column
-        TableView v = t.getSortedView(new long[]{0}, new Sort[]{Sort.ASCENDING});
-
-        // Check the new order
-        assertEquals(1, v.getLong(0, 0));
-        assertEquals(2, v.getLong(0, 1));
-        assertEquals(3, v.getLong(0, 2));
-        assertEquals("s", v.getString(1, 0));
-        assertEquals("ss", v.getString(1, 1));
-        assertEquals("sss", v.getString(1, 2));
-        assertEquals(1000d, v.getDouble(2, 0));
-        assertEquals(100d, v.getDouble(2, 1));
-        assertEquals(10d, v.getDouble(2, 2));
-
-        // Get the sorted view on first column descending
-        v = t.getSortedView(new long[]{0}, new Sort[]{Sort.DESCENDING});
-
-        // Check the new order
-        assertEquals(3, v.getLong(0, 0));
-        assertEquals(2, v.getLong(0, 1));
-        assertEquals(1, v.getLong(0, 2));
-        assertEquals("sss", v.getString(1, 0));
-        assertEquals("ss", v.getString(1, 1));
-        assertEquals("s", v.getString(1, 2));
-        assertEquals(10d, v.getDouble(2, 0));
-        assertEquals(100d, v.getDouble(2, 1));
-        assertEquals(1000d, v.getDouble(2, 2));
-
-        // Some out of bounds test cases
-        try { t.getSortedView(new long[]{-1}, new Sort[]{Sort.DESCENDING});    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getSortedView(new long[]{-100}, new Sort[]{Sort.DESCENDING});  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-        try { t.getSortedView(new long[]{100}, new Sort[]{Sort.DESCENDING});   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException ignored) { }
-
-    }
-
-    @Test
     public void setNulls() {
         Table t = new Table();
         t.addColumn(RealmFieldType.STRING, "");

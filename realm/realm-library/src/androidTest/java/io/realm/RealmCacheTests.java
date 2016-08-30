@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmFileException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -105,7 +106,8 @@ public class RealmCacheTests {
         realm.close();
         try {
             Realm.getInstance(configB); // Try to open with key 2
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
@@ -152,7 +154,8 @@ public class RealmCacheTests {
         try {
             Realm.getInstance(wrongConfig);
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
         }
 
         // Try again with proper key
@@ -179,7 +182,7 @@ public class RealmCacheTests {
 
         // 1. Write a copy of the encrypted Realm to a new file
         Realm testRealm = Realm.getInstance(config);
-        File copiedRealm = new File(config.getRealmFolder(), "encrypted-copy.realm");
+        File copiedRealm = new File(config.getRealmDirectory(), "encrypted-copy.realm");
         if (copiedRealm.exists()) {
             assertTrue(copiedRealm.delete());
         }
@@ -190,7 +193,7 @@ public class RealmCacheTests {
         Realm.deleteRealm(config);
 
         // 3. Rename the new file to the old file name.
-        assertTrue(copiedRealm.renameTo(new File(config.getRealmFolder(), REALM_NAME)));
+        assertTrue(copiedRealm.renameTo(new File(config.getRealmDirectory(), REALM_NAME)));
 
         // 4. Try to open the file again with the new password
         // If the configuration cache wasn't cleared this would fail as we would detect two

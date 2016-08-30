@@ -21,24 +21,7 @@ import android.test.AndroidTestCase;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
-
-// Tables get detached
-
 public class JNICloseTest extends AndroidTestCase {
-
-    public void testShouldCloseTable() throws Throwable {
-        Table table = new Table();
-        Table.nativeClose(table.nativePtr);
-
-        try {
-            table.size();                            fail("Table is closed");
-        } catch (IllegalStateException e) {
-        }
-        try { table.getColumnCount();                  fail("Table is closed"); } catch (IllegalStateException e) { }
-        try { table.addColumn(RealmFieldType.STRING, "");  fail("Table is closed"); } catch (IllegalStateException e) { }
-
-        // TODO: Test all methods...
-    }
 
     /**
      * Make sure, that it's possible to use the query on a closed table

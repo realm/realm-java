@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
@@ -58,6 +59,9 @@ public class DynamicRealmTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private RealmConfiguration defaultConfig;
     private DynamicRealm realm;
@@ -663,5 +667,19 @@ public class DynamicRealmTests {
                 }
             }
         });
+    }
+
+    @Test
+    public void equalTo_noFieldObjectShouldThrow() {
+        final String className = "NoField";
+        RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(emptyConfig);
+        dynamicRealm.beginTransaction();
+        dynamicRealm.getSchema().create(className);
+        dynamicRealm.commitTransaction();
+
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Field 'nonExisting' does not exist.");
+        dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 }

@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmCore;
@@ -84,7 +85,7 @@ public final class RealmConfiguration {
         }
     }
 
-    private final File realmFolder;
+    private final File realmDirectory;
     private final String realmFileName;
     private final String canonicalPath;
     private final String assetFilePath;
@@ -99,9 +100,9 @@ public final class RealmConfiguration {
     private final WeakReference<Context> contextWeakRef;
 
     private RealmConfiguration(Builder builder) {
-        this.realmFolder = builder.folder;
+        this.realmDirectory = builder.directory;
         this.realmFileName = builder.fileName;
-        this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
+        this.canonicalPath = Realm.getCanonicalPath(new File(realmDirectory, realmFileName));
         this.assetFilePath = builder.assetFilePath;
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
@@ -114,8 +115,8 @@ public final class RealmConfiguration {
         this.contextWeakRef = builder.contextWeakRef;
     }
 
-    public File getRealmFolder() {
-        return realmFolder;
+    public File getRealmDirectory() {
+        return realmDirectory;
     }
 
     public String getRealmFileName() {
@@ -222,7 +223,7 @@ public final class RealmConfiguration {
 
         if (schemaVersion != that.schemaVersion) return false;
         if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) return false;
-        if (!realmFolder.equals(that.realmFolder)) return false;
+        if (!realmDirectory.equals(that.realmDirectory)) return false;
         if (!realmFileName.equals(that.realmFileName)) return false;
         if (!canonicalPath.equals(that.canonicalPath)) return false;
         if (!Arrays.equals(key, that.key)) return false;
@@ -236,7 +237,7 @@ public final class RealmConfiguration {
 
     @Override
     public int hashCode() {
-        int result = realmFolder.hashCode();
+        int result = realmDirectory.hashCode();
         result = 31 * result + realmFileName.hashCode();
         result = 31 * result + canonicalPath.hashCode();
         result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
@@ -304,7 +305,7 @@ public final class RealmConfiguration {
     public String toString() {
         //noinspection StringBufferReplaceableByString
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("realmFolder: ").append(realmFolder.toString());
+        stringBuilder.append("realmDirectory: ").append(realmDirectory.toString());
         stringBuilder.append("\n");
         stringBuilder.append("realmFileName : ").append(realmFileName);
         stringBuilder.append("\n");
@@ -346,7 +347,7 @@ public final class RealmConfiguration {
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static final class Builder {
-        private File folder;
+        private File directory;
         private String fileName;
         private String assetFilePath;
         private byte[] key;
@@ -362,20 +363,6 @@ public final class RealmConfiguration {
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
-         * The Realm file will be saved in the provided folder.
-         *
-         * @param folder the folder to save Realm file in. Folder must be writable.
-         * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
-         * @deprecated Please use {@link #Builder(Context, File)} instead.
-         */
-        @Deprecated
-        public Builder(File folder) {
-            RealmCore.loadLibrary();
-            initializeBuilder(folder);
-        }
-
-        /**
-         * Creates an instance of the Builder for the RealmConfiguration.
          * <p>
          * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
@@ -388,37 +375,13 @@ public final class RealmConfiguration {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
             RealmCore.loadLibrary(context);
-            initializeBuilder(context.getFilesDir());
-        }
-
-        /**
-         * Creates an instance of the Builder for the RealmConfiguration.
-         * <p>
-         * The Realm file will be saved in the provided folder, and it might require additional permissions.
-         *
-         * @param context the Android application context.
-         * @param folder the folder to save Realm file in. Folder must be writable.
-         * @throws IllegalArgumentException if folder doesn't exist or isn't writable.
-         */
-        public Builder(Context context, File folder) {
-            if (context == null) {
-                throw new IllegalArgumentException("A non-null Context must be provided");
-            }
-            RealmCore.loadLibrary(context);
-            initializeBuilder(folder);
+            initializeBuilder(context);
         }
 
         // Setup builder in its initial state
-        private void initializeBuilder(File folder) {
-            if (folder == null || !folder.isDirectory()) {
-                throw new IllegalArgumentException(("An existing folder must be provided. " +
-                        "Yours was " + (folder != null ? folder.getAbsolutePath() : "null")));
-            }
-            if (!folder.canWrite()) {
-                throw new IllegalArgumentException("Folder is not writable: " + folder.getAbsolutePath());
-            }
-
-            this.folder = folder;
+        private void initializeBuilder(Context context) {
+            this.contextWeakRef = new WeakReference<Context>(context);
+            this.directory = context.getFilesDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
             this.schemaVersion = 0;
@@ -431,7 +394,7 @@ public final class RealmConfiguration {
         }
 
         /**
-         * Sets the filename for the Realm.
+         * Sets the filename for the Realm file.
          */
         public Builder name(String filename) {
             if (filename == null || filename.isEmpty()) {
@@ -439,6 +402,30 @@ public final class RealmConfiguration {
             }
 
             this.fileName = filename;
+            return this;
+        }
+
+        /**
+         * Specify the directory where the Realm file will be saved. The default value is {@code context.getFiles()}.
+         * If the directory does not exist, it will be created.
+         *
+         * @param directory the directory to save the Realm file in. Directory must be writable.
+         * @throws IllegalArgumentException if {@code directory} is null, not writable or a file.
+         */
+        public Builder directory(File directory) {
+            if (directory == null) {
+                throw new IllegalArgumentException("Non-null 'dir' required.");
+            }
+            if (directory.isFile()) {
+                throw new IllegalArgumentException("'dir' is a file, not a directory: " + directory.getAbsolutePath() + ".");
+            }
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw new IllegalArgumentException("Could not create the specified directory: " + directory.getAbsolutePath() + ".");
+            }
+            if (!directory.canWrite()) {
+                throw new IllegalArgumentException("Realm directory is not writable: " + directory.getAbsolutePath() + ".");
+            }
+            this.directory = directory;
             return this;
         }
 
@@ -493,11 +480,11 @@ public final class RealmConfiguration {
          * with the new Realm schema.
          *
          * <p>This cannot be configured to have an asset file at the same time by calling
-         * {@link #assetFile(Context, String)} as the provided asset file will be deleted in migrations.
+         * {@link #assetFile(String)} as the provided asset file will be deleted in migrations.
          *
          * <p><b>WARNING!</b> This will result in loss of data.
          *
-         * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(Context, String)} previously.
+         * @throws IllegalStateException if configured to use an asset file by calling {@link #assetFile(String)} previously.
          */
         public Builder deleteRealmIfMigrationNeeded() {
             if (this.assetFilePath != null && this.assetFilePath.length() != 0) {
@@ -587,14 +574,10 @@ public final class RealmConfiguration {
          * <p>
          * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
          *
-         * @param context Android application context.
          * @param assetFile path to the asset database file.
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
-        public Builder assetFile(Context context, final String assetFile) {
-            if (context == null) {
-                throw new IllegalArgumentException("A non-null Context must be provided");
-            }
+        public Builder assetFile(final String assetFile) {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
@@ -605,7 +588,6 @@ public final class RealmConfiguration {
                 throw new IllegalStateException("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().");
             }
 
-            this.contextWeakRef = new WeakReference<>(context);
             this.assetFilePath = assetFile;
 
             return this;

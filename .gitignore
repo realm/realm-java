@@ -1,7 +1,6 @@
 # Gradle build artifacts
 build
 realm/build
-realm-jni/build
 
 # Gradle cache
 .gradle

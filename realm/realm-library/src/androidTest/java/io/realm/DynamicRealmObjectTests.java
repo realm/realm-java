@@ -122,6 +122,11 @@ public class DynamicRealmObjectTests {
         new DynamicRealmObject(typedObj);
     }
 
+    @Test (expected = IllegalArgumentException.class)
+    public void constructor_unmanagedObjectThrows() {
+        new DynamicRealmObject(new AllTypes());
+    }
+
     // Test that all getters fail if given invalid field name
     @Test
     public void typedGetter_illegalFieldNameThrows() {
@@ -139,6 +144,22 @@ public class DynamicRealmObjectTests {
             try {
                 callGetter(type, args);
                 fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void typedGetter_wrongUnderlyingTypeThrows() {
+        for (SupportedType type : SupportedType.values()) {
+            try {
+                // Make sure we hit the wrong underlying type for all types.
+                if (type == SupportedType.DOUBLE) {
+                    callGetter(type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                } else {
+                    callGetter(type, Arrays.asList(AllJavaTypes.FIELD_DOUBLE));
+                }
+                fail(type + " failed to throw.");
             } catch (IllegalArgumentException ignored) {
             }
         }
@@ -182,6 +203,25 @@ public class DynamicRealmObjectTests {
                 callSetter(type, args);
                 fail();
             } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void typedSetter_wrongUnderlyingTypeThrows() {
+        for (SupportedType type : SupportedType.values()) {
+            realm.beginTransaction();
+            try {
+                // Make sure we hit the wrong underlying type for all types.
+                if (type == SupportedType.STRING) {
+                    callSetter(type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
+                } else {
+                    callSetter(type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                }
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            } finally {
+                realm.cancelTransaction();
             }
         }
     }
