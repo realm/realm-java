@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.5.1'
+ext.coreVersion = '0.28.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'a034d3250c820a15126721142d168a2ac4a12223b75bb324958ca2a70442720d'
+ext.coreSha256Hash = 'e4d8ed7342824a1574449700b16cd36f663f4d6768fc09c1aca986f19e27162b'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -326,13 +326,15 @@ artifacts {
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of Realm Core') {
+task downloadCore() {
+    group = 'build setup'
+    description = 'Download the latest version of Realm Core'
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
     def calcSha256Hash = {File targetFile ->
-        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        MessageDigest sha = MessageDigest.getInstance("SHA-256")
         Formatter hexHash = new Formatter()
         sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
         return hexHash.toString()
@@ -362,10 +364,12 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
 
     doLast {
         if (shouldDownloadCore()) {
-            download {
-                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
-                dest project.coreArchiveFile
-                onlyIfNewer false
+            // CI artifacts are only available if on the internal network or VPN
+            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
+
+            println "Downloading ${downloadUrl}"
+            exec {
+                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
             }
             coreDownloaded = true
 

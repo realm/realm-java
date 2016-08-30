@@ -27,6 +27,7 @@ create_javah(TARGET jni_headers
   CLASSES io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
   io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
   io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
+  io.realm.sync.SyncManager
 
   CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
@@ -58,6 +59,23 @@ endif()
 add_library(lib_realm_core STATIC IMPORTED)
 set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH})
 
+# Sync static library
+set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
+# Workaround for old core's funny ABI nicknames
+if (NOT EXISTS ${sync_lib_PATH})
+    if (ARMEABI)
+        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm.a)
+    elseif (ARMEABI_V7A)
+        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm-v7a.a)
+    elseif (ARM64_V8A)
+        set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-arm64.a)
+    else()
+        message(FATAL_ERROR "Cannot find core lib file: ${core_lib_PATH}")
+    endif()
+endif()
+add_library(lib_realm_sync STATIC IMPORTED)
+set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH})
+
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}
@@ -65,6 +83,8 @@ include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}/object-store/src)
 
 set(ANDROID_STL "gnustl_static")
+set(ANDROID_NO_UNDEFINED OFF)
+set(ANDROID_SO_UNDEFINED ON)
 
 if (ARMEABI)
     set(ABI_CXX_FLAGS "-mthumb")
@@ -76,16 +96,16 @@ endif()
 #      d.init(ValueBase::m_from_link_list, ValueBase::m_values, D{});
 #FIXME maybe-uninitialized is reported by table_view.cpp:272:15:
 #     'best.m_nanoseconds' was declared here
-set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros \
+set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros \
 -Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
-set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14")
+set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG -flto")
 #-ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Os -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
-set(REALM_LINKER_FLAGS "")
+set(REALM_LINKER_FLAGS "-lz")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS}")
 
 file(GLOB jni_SRC
@@ -100,7 +120,8 @@ file(GLOB objectstore_SRC
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC})
 add_dependencies(realm-jni jni_headers)
 # -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
-target_link_libraries(realm-jni log android atomic lib_realm_core)
+# FIXME: The order matters! lib_realm_sync needs to be in front of lib_realm_core!! Find out why!!
+target_link_libraries(realm-jni log android atomic lib_realm_sync lib_realm_core)
 
 # Strip the release so files and backup the unstripped versions
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
