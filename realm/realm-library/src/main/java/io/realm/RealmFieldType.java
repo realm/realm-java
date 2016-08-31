@@ -29,7 +29,7 @@ import io.realm.internal.Keep;
  */
 @Keep
 public enum RealmFieldType {
-    // Make sure numbers match with <realm/column_type.hpp>
+    // Make sure numbers match with <realm/column_type.hpp> and <property.hpp>
     INTEGER(0),
     BOOLEAN(1),
     STRING(2),

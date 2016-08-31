@@ -373,6 +373,23 @@ public class ClassMetaData {
         return nullableFields.contains(variableElement);
     }
 
+    /**
+     * Checks if a VariableElement is indexed.
+     *
+     * @param variableElement the element/field
+     * @return {@code true} if a VariableElement is indexed, {@code false} otherwise.
+     */
+    public boolean isIndexed(VariableElement variableElement) {
+        return indexedFields.contains(variableElement);
+    }
+
+    public boolean isPrimaryKey(VariableElement variableElement) {
+        if (primaryKey == null) {
+            return false;
+        }
+        return primaryKey.equals(variableElement);
+    }
+
     private boolean isValidPrimaryKeyType(TypeMirror type) {
         for (TypeMirror validType : validPrimaryKeyTypes) {
             if (typeUtils.isAssignable(type, validType)) {

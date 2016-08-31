@@ -107,6 +107,7 @@ public class RealmProxyClassGenerator {
         emitConstructor(writer);
         emitAccessors(writer);
         emitInitTableMethod(writer);
+        emitCreateRealmObjectSchemaMethod(writer);
         emitValidateTableMethod(writer);
         emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
@@ -403,6 +404,54 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
+    private void emitCreateRealmObjectSchemaMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod(
+                "RealmObjectSchema", // Return type
+                "createRealmObjectSchema", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+                "RealmSchema", "realmSchema"); // Argument type & argument name
+
+        writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + this.simpleClassName + "\"))");
+        writer.emitStatement("RealmObjectSchema realmObjectSchema = realmSchema.create(\"" + this.simpleClassName + "\")");
+
+        // For each field generate corresponding table index constant
+        for (VariableElement field : metadata.getFields()) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
+
+            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+                String nullableFlag = (metadata.isNullable(field)?"":"!") + "Property.REQUIRED";
+                String indexedFlag = (metadata.isIndexed(field)?"":"!") + "Property.INDEXED";
+                String primaryKeyFlag = (metadata.isPrimaryKey(field)?"":"!") + "Property.PRIMARY_KEY";
+                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", %s, %s, %s, %s))",
+                        fieldName,
+                        Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
+                        primaryKeyFlag,
+                        indexedFlag,
+                        nullableFlag);
+            } else if (Utils.isRealmModel(field)) {
+                writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + fieldTypeSimpleName + "\"))");
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.endControlFlow();
+                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.OBJECT, realmSchema.getObjectSchemaByName(\"%s\")))",
+                        fieldName, fieldTypeSimpleName);
+            } else if (Utils.isRealmList(field)) {
+                String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
+                writer.beginControlFlow("if (!realmSchema.hasObjectSchemaByName(\"" + genericTypeSimpleName +"\"))");
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.endControlFlow();
+                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.LIST, realmSchema.getObjectSchemaByName(\"%s\")))",
+                        fieldName, genericTypeSimpleName);
+            }
+        }
+        writer.emitStatement("return realmObjectSchema");
+        writer.endControlFlow();
+        writer.emitStatement("return realmSchema.getObjectSchemaByName(\"" + this.simpleClassName + "\")");
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
     private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 columnInfoClassName(), // Return type
@@ -414,10 +463,12 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
+        /*
         writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
         writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count does not match - expected %d but was \" + table.getColumnCount())",
                 metadata.getFields().size());
         writer.endControlFlow();
+        */
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
@@ -429,7 +480,7 @@ public class RealmProxyClassGenerator {
         // create an instance of ColumnInfo
         writer.emitStatement("final %1$s columnInfo = new %1$s(sharedRealm.getPath(), table)", columnInfoClassName());
         writer.emitEmptyLine();
-
+/*
         // For each field verify there is a corresponding
         long fieldIndex = 0;
         for (VariableElement field : metadata.getFields()) {
@@ -564,6 +615,13 @@ public class RealmProxyClassGenerator {
         writer.nextControlFlow("else");
         writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"The '%s' class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
+        */
+
+        writer.emitStatement("return %s", "columnInfo");
+        writer.nextControlFlow("else");
+        writer.emitStatement("return null");
+        writer.endControlFlow();
+
         writer.endMethod();
         writer.emitEmptyLine();
     }

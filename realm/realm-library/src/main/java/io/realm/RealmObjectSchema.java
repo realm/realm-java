@@ -16,10 +16,7 @@
 
 package io.realm;
 
-import io.realm.annotations.Required;
-import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -27,6 +24,11 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.realm.annotations.Required;
+import io.realm.internal.SharedRealm;
+import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -66,20 +68,65 @@ public final class RealmObjectSchema {
     }
 
     private final BaseRealm realm;
-    final Table table;
+    private String className;
     private final Map<String, Long> columnIndices;
+    private final ArrayList<Property> properties;
+    private final long nativePtr; // pointer to ObjectSchema (C++)
 
     /**
      * Creates a schema object for a given Realm class.
      *
      * @param realm Realm holding the objects.
-     * @param table table representation of the Realm class
+     * @param className name of the Realm class
      * @param columnIndices mapping between field names and column indexes for the given table
      */
-    RealmObjectSchema(BaseRealm realm, Table table, Map<String, Long> columnIndices) {
+    RealmObjectSchema(BaseRealm realm, String className, Map<String, Long> columnIndices) {
         this.realm = realm;
-        this.table = table;
+        this.className = className;
         this.columnIndices = columnIndices;
+        this.properties = new ArrayList<>();
+        this.nativePtr = realm.sharedRealm.objectSchema(className).getNativePtr();
+    }
+
+    RealmObjectSchema(SharedRealm sharedRealm, String className) {
+        this.realm = null;
+        this.className = className;
+        this.columnIndices = null;
+        this.properties = new ArrayList<>();
+        this.nativePtr = nativeCreateObjectSchema(className);
+    }
+
+    RealmObjectSchema(String className) {
+        this.realm = null;
+        this.className = className;
+        this.columnIndices = null;
+        this.properties = new ArrayList<>();
+        this.nativePtr = nativeCreateObjectSchema(className);
+    }
+
+    public RealmObjectSchema(long nativePtr) {
+        this.realm = null;
+        this.className = nativeGetClassName(nativePtr);
+        this.columnIndices = null;
+        this.properties = new ArrayList<>();
+        this.nativePtr = nativePtr;
+    }
+
+    public RealmObjectSchema(String className, long nativePtr) {
+        this.realm = null;
+        this.className = className;
+        this.columnIndices = null;
+        this.properties = new ArrayList<>();
+        this.nativePtr = nativePtr;
+    }
+
+    /**
+     * Returns the native/C++ pointer.
+     *
+     * @return
+     */
+    public long getNativePtr() {
+        return this.nativePtr;
     }
 
     /**
@@ -93,7 +140,7 @@ public final class RealmObjectSchema {
      * @return the name of the RealmObject class represented by this schema.
      */
     public String getClassName() {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
+        return className;
     }
 
     /**
@@ -106,32 +153,13 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
-        String internalTableName = Table.TABLE_PREFIX + className;
-        //FIXME : when core implements class name length check, please remove.
-        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
+        if (realm == null) {
+            nativeSetClassName(nativePtr, className);
+        } else {
+            // FIXME: how to get rid of Table and use object store?
+            realm.sharedRealm.renameTable(Table.TABLE_PREFIX + getClassName(), Table.TABLE_PREFIX + className);
         }
-        if (realm.sharedRealm.hasTable(internalTableName)) {
-            throw new IllegalArgumentException("Class already exists: " + className);
-        }
-        // in case this table has a primary key, we need to transfer it after renaming the table.
-        String oldTableName = null;
-        String pkField = null;
-        if (table.hasPrimaryKey()) {
-            oldTableName = table.getName();
-            pkField = getPrimaryKey();
-            table.setPrimaryKey(null);
-        }
-        realm.sharedRealm.renameTable(table.getName(), internalTableName);
-        if (pkField != null && !pkField.isEmpty()) {
-            try {
-                table.setPrimaryKey(pkField);
-            } catch (Exception e) {
-                // revert the table name back when something goes wrong
-                realm.sharedRealm.renameTable(table.getName(), oldTableName);
-                throw e;
-            }
-        }
+        this.className = className;
         return this;
     }
 
@@ -152,6 +180,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
+
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
                 throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
@@ -167,13 +196,25 @@ public final class RealmObjectSchema {
             nullable = false;
         }
 
-        long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
-        try {
-            addModifiers(fieldName, attributes);
-        } catch (Exception e) {
-            // Modifiers have been removed by the addModifiers method()
-            table.removeColumn(columnIndex);
-            throw e;
+        if (realm == null) {
+            boolean indexed = containsAttribute(attributes, FieldAttribute.INDEXED) || containsAttribute(attributes, FieldAttribute.PRIMARY_KEY);
+            Property property = new Property(fieldName, metadata.realmType,
+                    containsAttribute(attributes, FieldAttribute.PRIMARY_KEY),
+                    indexed,
+                    !nullable);
+            nativeAddProperty(nativePtr, property.getNativePtr());
+            properties.add(property);
+        } else {
+            // FIXME: how to get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
+            try {
+                addModifiers(fieldName, attributes);
+            } catch (Exception e) {
+                // Modifiers have been removed by the addModifiers method()
+                table.removeColumn(columnIndex);
+                throw e;
+            }
         }
         return this;
     }
@@ -189,7 +230,15 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        if (realm == null) {
+            Property property = new Property(fieldName, RealmFieldType.OBJECT, objectSchema);
+            nativeAddProperty(nativePtr, property.getNativePtr());
+            properties.add(property);
+        } else {
+            // FIXME: how to get rid of Table?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        }
         return this;
     }
 
@@ -204,8 +253,26 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        if (realm == null) {
+            Property property = new Property(fieldName, RealmFieldType.LIST, objectSchema);
+            nativeAddProperty(nativePtr, property.getNativePtr());
+            properties.add(property);
+        } else {
+            // FIXME: how to get rid of Table?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        }
+
         return this;
+    }
+
+    public void add(Property property) {
+        nativeAddProperty(nativePtr, property.getNativePtr());
+        properties.add(property);
+    }
+
+    public Property getPropertyByName(String name) {
+        return new Property(nativeGetPropertyByName(nativePtr, name));
     }
 
     /**
@@ -220,11 +287,17 @@ public final class RealmObjectSchema {
         if (!hasField(fieldName)) {
             throw new IllegalStateException(fieldName + " does not exist.");
         }
-        long columnIndex = getColumnIndex(fieldName);
-        if (table.getPrimaryKey() == columnIndex) {
-            table.setPrimaryKey(null);
+
+        if (realm == null) {
+            nativeRemovePropertyByName(nativePtr, fieldName);
+        } else {
+            long columnIndex = getColumnIndex(fieldName);
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            if (table.getPrimaryKey() == columnIndex) {
+                table.setPrimaryKey(null);
+            }
+            table.removeColumn(columnIndex);
         }
-        table.removeColumn(columnIndex);
         return this;
     }
 
@@ -241,9 +314,18 @@ public final class RealmObjectSchema {
         checkFieldExists(currentFieldName);
         checkLegalName(newFieldName);
         checkFieldNameIsAvailable(newFieldName);
-        long columnIndex = getColumnIndex(currentFieldName);
-        table.renameColumn(columnIndex, newFieldName);
 
+        if (realm == null) {
+            Property property = getPropertyByName(currentFieldName);
+            property.setName(newFieldName);
+            if (hasPrimaryKey()) {
+                if (getPrimaryKey() == currentFieldName) {
+                    nativeSetPrimaryKey(nativePtr, newFieldName);
+                }
+            }
+        } else {
+            realm.sharedRealm.renameField(getClassName(), currentFieldName, newFieldName);
+        }
         // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
 
         return this;
@@ -256,7 +338,12 @@ public final class RealmObjectSchema {
      * @return {@code true} if the field exists, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
-        return table.getColumnIndex(fieldName) != TableOrView.NO_MATCH;
+        if (realm == null) {
+            return nativeHasProperty(nativePtr, fieldName);
+        } else {
+            // FIXME: how to get rid of Table?
+            return realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName()).getColumnIndex(fieldName) != TableOrView.NO_MATCH;
+        }
     }
 
     /**
@@ -271,11 +358,18 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        long columnIndex = getColumnIndex(fieldName);
-        if (table.hasSearchIndex(columnIndex)) {
-            throw new IllegalStateException(fieldName + " already has an index.");
+        if (realm == null) {
+            Property property = getPropertyByName(fieldName);
+            property.setIndexable(true);
+        } else {
+            // FIXME: how can we get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            long columnIndex = getColumnIndex(fieldName);
+            if (table.hasSearchIndex(columnIndex)) {
+                throw new IllegalStateException(fieldName + " already has an index.");
+            }
+            table.addSearchIndex(columnIndex);
         }
-        table.addSearchIndex(columnIndex);
         return this;
     }
 
@@ -290,7 +384,14 @@ public final class RealmObjectSchema {
     public boolean hasIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        return table.hasSearchIndex(table.getColumnIndex(fieldName));
+        if (realm == null) {
+            Property property = getPropertyByName(fieldName);
+            return property.isIndexable();
+        } else {
+            // FIXME: how can we get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            return table.hasSearchIndex(table.getColumnIndex(fieldName));
+        }
     }
 
 
@@ -302,13 +403,20 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
-        checkLegalName(fieldName);
-        checkFieldExists(fieldName);
-        long columnIndex = getColumnIndex(fieldName);
-        if (!table.hasSearchIndex(columnIndex)) {
-            throw new IllegalStateException("Field is not indexed: " + fieldName);
+        if (realm == null) {
+            Property property = getPropertyByName(fieldName);
+            property.setIndexable(false);
+        } else {
+            checkLegalName(fieldName);
+            checkFieldExists(fieldName);
+            // FIXME: how can we get rid of Table and use object store?
+            long columnIndex = getColumnIndex(fieldName);
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            if (!table.hasSearchIndex(columnIndex)) {
+                throw new IllegalStateException("Field is not indexed: " + fieldName);
+            }
+            table.removeSearchIndex(columnIndex);
         }
-        table.removeSearchIndex(columnIndex);
         return this;
     }
 
@@ -322,16 +430,19 @@ public final class RealmObjectSchema {
      * has a primary key defined.
      */
     public RealmObjectSchema addPrimaryKey(String fieldName) {
-        checkLegalName(fieldName);
-        checkFieldExists(fieldName);
-        if (table.hasPrimaryKey()) {
+        if (hasPrimaryKey()) {
             throw new IllegalStateException("A primary key is already defined");
         }
-        table.setPrimaryKey(fieldName);
-        long columnIndex = getColumnIndex(fieldName);
-        if (!table.hasSearchIndex(columnIndex)) {
-            // No exception will be thrown since adding PrimaryKey implies the column has an index.
-            table.addSearchIndex(columnIndex);
+        if (realm == null) {
+            nativeSetPrimaryKey(nativePtr, fieldName);
+        } else {
+            checkLegalName(fieldName);
+            checkFieldExists(fieldName);
+            RealmFieldType type = getFieldType(fieldName);
+            // FIXME: How to get rid of table?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            table.setPrimaryKey(fieldName);
+            table.addSearchIndex(table.getColumnIndex(fieldName));
         }
         return this;
     }
@@ -344,14 +455,24 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
     public RealmObjectSchema removePrimaryKey() {
-        if (!table.hasPrimaryKey()) {
-            throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
+        if (!hasPrimaryKey()) {
+            throw new IllegalStateException(className + " doesn't have a primary key.");
         }
-        long columnIndex = table.getPrimaryKey();
-        if (table.hasSearchIndex(columnIndex)) {
-            table.removeSearchIndex(columnIndex);
+        if (realm == null) {
+            nativeSetPrimaryKey(nativePtr, "");
+        } else {
+            String className = getClassName();
+            String currentPrimaryKey = realm.sharedRealm.getPrimaryKey(className);
+
+            realm.sharedRealm.setPrimaryKey(className, "");
+
+            // FIXME: move to either object store or JNI level
+            if (!currentPrimaryKey.equals("")) {
+                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+                long index = table.getColumnIndex(currentPrimaryKey);
+                table.removeSearchIndex(index);
+            }
         }
-        table.setPrimaryKey("");
         return this;
     }
 
@@ -367,27 +488,34 @@ public final class RealmObjectSchema {
      * @see Required
      */
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
-        long columnIndex = table.getColumnIndex(fieldName);
-        boolean currentColumnRequired = isRequired(fieldName);
-        RealmFieldType type = table.getColumnType(columnIndex);
-
-        if (type == RealmFieldType.OBJECT) {
-            throw new IllegalArgumentException("Cannot modify the required state for RealmObject references: " + fieldName);
-        }
-        if (type == RealmFieldType.LIST) {
-            throw new IllegalArgumentException("Cannot modify the required state for RealmList references: " + fieldName);
-        }
-        if (required && currentColumnRequired) {
-            throw new IllegalStateException("Field is already required: " + fieldName);
-        }
-        if (!required && !currentColumnRequired) {
-            throw new IllegalStateException("Field is already nullable: " + fieldName);
-        }
-
-        if (required) {
-            table.convertColumnToNotNullable(columnIndex);
+        if (realm == null) {
+            Property property = getPropertyByName(fieldName);
+            property.setNullable(!required);
         } else {
-            table.convertColumnToNullable(columnIndex);
+            // FIXME: how to get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            long columnIndex = table.getColumnIndex(fieldName);
+            boolean currentColumnRequired = isRequired(fieldName);
+            RealmFieldType type = table.getColumnType(columnIndex);
+
+            if (type == RealmFieldType.OBJECT) {
+                throw new IllegalArgumentException("Cannot modify the required state for RealmObject references: " + fieldName);
+            }
+            if (type == RealmFieldType.LIST) {
+                throw new IllegalArgumentException("Cannot modify the required state for RealmList references: " + fieldName);
+            }
+            if (required && currentColumnRequired) {
+                throw new IllegalStateException("Field is already required: " + fieldName);
+            }
+            if (!required && !currentColumnRequired) {
+                throw new IllegalStateException("Field is already nullable: " + fieldName);
+            }
+
+            if (required) {
+                table.convertColumnToNotNullable(columnIndex);
+            } else {
+                table.convertColumnToNullable(columnIndex);
+            }
         }
         return this;
     }
@@ -415,8 +543,16 @@ public final class RealmObjectSchema {
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return !table.isColumnNullable(columnIndex);
+        checkFieldExists(fieldName);
+        if (realm == null) {
+            Property property = getPropertyByName(fieldName);
+            return !property.isNullable();
+        } else {
+            // FIXME: how to get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            long columnIndex = table.getColumnIndex(fieldName);
+            return !table.isColumnNullable(columnIndex);
+        }
     }
 
     /**
@@ -428,8 +564,7 @@ public final class RealmObjectSchema {
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return table.isColumnNullable(columnIndex);
+        return !isRequired(fieldName);
     }
 
     /**
@@ -441,8 +576,17 @@ public final class RealmObjectSchema {
      * @see #addPrimaryKey(String)
      */
     public boolean isPrimaryKey(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return columnIndex == table.getPrimaryKey();
+        checkFieldExists(fieldName);
+        if (realm == null) {
+            Property property = getPropertyByName(fieldName);
+            return property.isPrimaryKey();
+        } else {
+            String className = getClassName();
+            if (realm.sharedRealm.hasPrimaryKey(className)) {
+                return (realm.sharedRealm.getPrimaryKey(className).equals(fieldName));
+            }
+            return false;
+        }
     }
 
     /**
@@ -452,7 +596,12 @@ public final class RealmObjectSchema {
      * @see io.realm.annotations.PrimaryKey
      */
     public boolean hasPrimaryKey() {
-        return table.hasPrimaryKey();
+        if (realm == null) {
+            return nativeHasPrimaryKey(nativePtr);
+        } else {
+            String key = realm.sharedRealm.getPrimaryKey(getClassName());
+            return (key != null && !key.equals(""));
+        }
     }
 
     /**
@@ -462,10 +611,15 @@ public final class RealmObjectSchema {
      * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public String getPrimaryKey() {
-        if (!table.hasPrimaryKey()) {
+        if (!hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
-        return table.getColumnName(table.getPrimaryKey());
+        if (realm == null) {
+            Property property = new Property(nativeGetPropertyByPrimaryKey(nativePtr));
+            return property.getName();
+        } else {
+            return realm.sharedRealm.getPrimaryKey(getClassName());
+        }
     }
 
     /**
@@ -474,12 +628,22 @@ public final class RealmObjectSchema {
      * @return a list of all the fields in this class.
      */
     public Set<String> getFieldNames() {
-        int columnCount = (int) table.getColumnCount();
-        Set<String> columnNames = new LinkedHashSet<>(columnCount);
-        for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+        if (realm == null) {
+            Set<String> fieldNames = new LinkedHashSet<>(properties.size());
+            for (int i = 0; i < properties.size(); i++) {
+                fieldNames.add(properties.get(i).getName());
+            }
+            return fieldNames;
+        } else {
+            // FIXME: how to get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            int columnCount = (int) table.getColumnCount();
+            Set<String> columnNames = new LinkedHashSet<>(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                columnNames.add(table.getColumnName(i));
+            }
+            return columnNames;
         }
-        return columnNames;
     }
 
     /**
@@ -489,7 +653,13 @@ public final class RealmObjectSchema {
      * @return this schema.
      */
     public RealmObjectSchema transform(Function function) {
+        if (realm == null) {
+            throw new IllegalArgumentException("You cannot transform a standalone schema.");
+        }
+
         if (function != null) {
+            // FIXME: how to get rid of Table and use object store?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
             long size = table.size();
             for (long i = 0; i < size; i++) {
                 function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
@@ -501,6 +671,10 @@ public final class RealmObjectSchema {
 
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
     private void addModifiers(String fieldName, FieldAttribute[] attributes) {
+        if (realm == null) {
+            throw new IllegalArgumentException("You cannot add modifiers to standalone schema - set them when constructing properties.");
+        }
+
         boolean indexAdded = false;
         try {
             if (attributes != null && attributes.length > 0) {
@@ -521,6 +695,7 @@ public final class RealmObjectSchema {
             // If something went wrong, revert all attributes
             long columnIndex = getColumnIndex(fieldName);
             if (indexAdded) {
+                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
                 table.removeSearchIndex(columnIndex);
             }
             throw e;
@@ -554,18 +729,24 @@ public final class RealmObjectSchema {
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
-        if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
+        if (hasField(fieldName)) {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }
 
     private void checkFieldExists(String fieldName) {
-        if (table.getColumnIndex(fieldName) == TableOrView.NO_MATCH) {
+        if (!hasField(fieldName)) {
             throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
         }
     }
 
     private long getColumnIndex(String fieldName) {
+        if (realm == null) {
+            throw new IllegalArgumentException("You cannot get a column index for a standalone schema.");
+        }
+
+        // FIXME: how to get rid of Table and use object store?
+        Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(
@@ -592,13 +773,17 @@ public final class RealmObjectSchema {
      */
     // TODO: consider another caching strategy so linked classes are included in the cache.
     long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+        if (realm == null) {
+            throw new IllegalArgumentException("You cannot get column indices for a standalone schema.");
+        }
+
         if (fieldDescription == null || fieldDescription.equals("")) {
             throw new IllegalArgumentException("Non-empty fieldname must be provided");
         }
         if (fieldDescription.startsWith(".") || fieldDescription.endsWith(".")) {
             throw new IllegalArgumentException("Illegal field name. It cannot start or end with a '.': " + fieldDescription);
         }
-        Table table = this.table;
+        Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
         boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
         if (fieldDescription.contains(".")) {
             // Resolve field description down to last field name
@@ -656,10 +841,21 @@ public final class RealmObjectSchema {
      * Returns the column index in the underlying table for the given field name.
      *
      * @param fieldName field name to find index for.
-     * @return column index or null if it doesn't exists.
+     * @return column index or null if it doesn't exist.
      */
     Long getFieldIndex(String fieldName) {
-        return columnIndices.get(fieldName);
+        if (realm == null) {
+            return null;
+        } else {
+            // FIXME: cache column index
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            long index = table.getColumnIndex(fieldName);
+            if (index == Table.NO_MATCH) {
+                return null;
+            } else {
+                return index;
+            }
+        }
     }
 
     /**
@@ -670,7 +866,8 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the field does not exists.
      */
     long getAndCheckFieldIndex(String fieldName) {
-        Long index = columnIndices.get(fieldName);
+        // FIXME: cache column index
+        Long index = getColumnIndex(fieldName);
         if (index == null) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
@@ -683,8 +880,18 @@ public final class RealmObjectSchema {
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return table.getColumnType(columnIndex);
+        if (hasField(fieldName)) {
+            if (realm == null) {
+                Property property = getPropertyByName(fieldName);
+                return property.getType();
+            } else {
+                long columnIndex = getColumnIndex(fieldName);
+                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+                return table.getColumnType(columnIndex);
+            }
+        } else {
+            throw new IllegalArgumentException("Field does not exist.");
+        }
     }
 
     /**
@@ -708,15 +915,17 @@ public final class RealmObjectSchema {
     }
 
     static final class DynamicColumnMap implements Map<String, Long> {
-        private final Table table;
+        private final SharedRealm sharedRealm;
+        private final String className;
 
-        public DynamicColumnMap(Table table) {
-            this.table = table;
+        public DynamicColumnMap(SharedRealm sharedRealm, String className) {
+            this.sharedRealm = sharedRealm;
+            this.className = className;
         }
 
         @Override
         public Long get(Object key) {
-            long ret = table.getColumnIndex((String) key);
+            long ret = sharedRealm.getTable(className).getColumnIndex((String) key);
             return ret < 0 ? null : ret;
         }
 
@@ -775,4 +984,18 @@ public final class RealmObjectSchema {
             throw new UnsupportedOperationException();
         }
     }
+
+    private static native long nativeCreateObjectSchema();
+    private static native long nativeCreateObjectSchema(String className);
+    private static native long nativeCreateObjectSchema(long nativeSharedRealmPtr, String className);
+    private static native String nativeGetClassName(long nativePtr);
+    private static native void nativeSetClassName(long nativePtr, String className);
+    private static native void nativeClose(long nativePtr);
+    private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
+    private static native boolean nativeHasProperty(long nativePtr, String name);
+    private static native long nativeGetPropertyByName(long nativePtr, String name);
+    private static native void nativeRemovePropertyByName(long nativePtr, String name);
+    private static native boolean nativeHasPrimaryKey(long nativePtr);
+    private static native void nativeSetPrimaryKey(long nativePtr, String name);
+    private static native long nativeGetPropertyByPrimaryKey(long nativePtr);
 }

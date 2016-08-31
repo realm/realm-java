@@ -74,6 +74,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch (domain_error& e) { // FIXME: find a better exception
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -399,7 +403,9 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         size_t error_code;
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
-    m_data.reset(new char[buf_size]);  // throws
+    auto c = new char[buf_size]; // throws
+    std::memset(c, 0, buf_size);
+    m_data.reset(c);
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end   = in_begin + chars.size();

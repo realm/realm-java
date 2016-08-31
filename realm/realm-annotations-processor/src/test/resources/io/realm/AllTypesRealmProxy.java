@@ -262,6 +262,29 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return sharedRealm.getTable("class_AllTypes");
     }
 
+    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
+        if (!realmSchema.hasObjectSchemaByName("AllTypes")) {
+            RealmObjectSchema realmObjectSchema = new RealmObjectSchema("AllTypes");
+            realmObjectSchema.add(new Property("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            if (!realmSchema.hasObjectSchemaByName("AllTypes")) {
+                AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
+            }
+            realmObjectSchema.add(new Property("columnObject", RealmFieldType.OBJECT, realmSchema.getObjectSchemaByName("AllTypes")));
+            if (!realmSchema.hasObjectSchemaByName("AllTypes")) {
+                AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
+            }
+            realmObjectSchema.add(new Property("columnRealmList", RealmFieldType.LIST, realmSchema.getObjectSchemaByName("AllTypes")));
+            return realmObjectSchema;
+        }
+        return realmSchema.getObjectSchemaByName("AllTypes");
+    }
+
     public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_AllTypes")) {
             Table table = sharedRealm.getTable("class_AllTypes");

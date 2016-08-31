@@ -86,6 +86,7 @@ std::string num_to_string(T pNumber)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling
+// FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
 enum ExceptionKind {
     // FIXME: This is not something should be exposed to java, ClassNotFound is something we should
     // crash hard in native code and fix it.
@@ -651,6 +652,10 @@ private:
     jboolean*     const m_array;
     jint                m_releaseMode;
 };
+
+inline bool to_bool(jboolean b) {
+    return (b == JNI_TRUE);
+}
 
 // Wraps jobject and automatically calls DeleteLocalRef when this object is destroyed.
 // DeleteLocalRef is not necessary to be called in most cases since all local references will be cleaned up when the

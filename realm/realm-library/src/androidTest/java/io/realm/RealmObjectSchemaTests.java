@@ -63,8 +63,10 @@ public class RealmObjectSchemaTests {
 
     @After
     public void tearDown() {
-        realm.cancelTransaction();
-        realm.close();
+        if (realm != null) {
+            realm.cancelTransaction();
+            realm.close();
+        }
     }
 
     public enum SchemaFieldType {

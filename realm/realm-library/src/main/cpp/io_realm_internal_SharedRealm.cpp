@@ -1,4 +1,5 @@
 #include <object-store/src/object_store.hpp>
+#include <object-store/src/object_schema.hpp>
 #include "io_realm_internal_SharedRealm.h"
 
 #include "shared_realm.hpp"
@@ -208,6 +209,41 @@ Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong
     return NULL;
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong shared_realm_ptr, jobject dynamic_realm,
+                                                      jlong schema_ptr, jlong schema_version, jobject migration_object) {
+
+    TR_ENTER_PTR(shared_realm_ptr)
+    TR("schema %p", VOID_PTR(schema_ptr))
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    auto schema = reinterpret_cast<Schema*>(schema_ptr);
+    auto version = static_cast<uint64_t>(schema_version);
+    try {
+        if (migration_object != NULL) {
+            jmethodID realm_migration_method = nullptr;
+            jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
+            realm_migration_method = env->GetMethodID(realm_migration_class, "migration",
+                                                      "()Lio/realm/DynamicRealm;JJ");
+            if (realm_migration_method == nullptr) {
+                throw std::runtime_error("Cannot find method 'migration' of class 'io.realm.RealmMigration'.");
+                return 0;
+            }
+            Realm::MigrationFunction migration_function;
+            migration_function = [=](SharedRealm /*old_realm*/, SharedRealm /*realm*/, Schema &/*mutable_schema*/) {
+                auto &config = shared_realm->config();
+                jlong schema_new_version = jlong(config.schema_version);
+                env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version,
+                                    schema_new_version);
+            };
+            shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
+        }
+        else {
+            shared_realm->update_schema(std::move(*schema), version);
+        }
+    } CATCH_STD()
+    return 0;
+}
+
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv *, jclass, jlong shared_realm_ptr)
 {
@@ -369,3 +405,94 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
 
     return JNI_FALSE;
 }
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr) {
+    TR_ENTER_PTR(shared_realm_ptr);
+
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        const Schema tmp = shared_realm->schema();
+        Schema *schema = new Schema(std::move(tmp));
+        return reinterpret_cast<jlong>(schema);
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeObjectSchema(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                      jstring className_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor name(env, className_);
+        Schema schema = ObjectStore::schema_from_group(shared_realm->read_group());
+        auto it = schema.find(name);
+        if (it == schema.end()) {
+            return 0;
+        }
+        else {
+            auto object_schema = *it;
+            return reinterpret_cast<jlong>(new ObjectSchema(std::move(object_schema)));
+        }
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeRenameField(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
+                                                     jstring className_,
+                                                     jstring oldName_, jstring newName_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        JStringAccessor oldName(env, oldName_);
+        JStringAccessor newName(env, newName_);
+        Schema schema = shared_realm->schema();
+        ObjectStore::rename_property(shared_realm->read_group(), schema, className, oldName, newName);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeHasPrimaryKey(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
+                                                       jstring className_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        StringData name = ObjectStore::get_primary_key_for_object(shared_realm->read_group(), className);
+        return static_cast<jboolean>(name != "");
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeSetPrimaryKey(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
+                                                       jstring className_, jstring fieldName_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm *>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        JStringAccessor fieldName(env, fieldName_);
+        ObjectStore::set_primary_key_for_object(shared_realm->read_group(), className, fieldName);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_realm_internal_SharedRealm_nativeGetPrimaryKey(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
+                                                       jstring className_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor className(env, className_);
+        StringData name = ObjectStore::get_primary_key_for_object(shared_realm->read_group(), className);
+        return to_jstring(env, name);
+    }
+    CATCH_STD()
+    return nullptr;
+}
+

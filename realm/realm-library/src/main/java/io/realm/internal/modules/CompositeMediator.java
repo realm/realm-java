@@ -31,6 +31,8 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -61,6 +63,12 @@ public class CompositeMediator extends RealmProxyMediator {
     public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.createTable(clazz, sharedRealm);
+    }
+
+    @Override
+    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema) {
+        RealmProxyMediator mediator = getMediator(clazz);
+        return mediator.createRealmObjectSchema(clazz, realmSchema);
     }
 
     @Override

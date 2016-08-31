@@ -207,28 +207,12 @@ public final class Realm extends BaseRealm {
      * @return a {@link Realm} instance.
      */
     static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
-        try {
-            return createAndValidate(configuration, columnIndices);
-
-        } catch (RealmMigrationNeededException e) {
-            if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
-                deleteRealm(configuration);
-            } else {
-                try {
-                    migrateRealm(configuration);
-                } catch (FileNotFoundException fileNotFoundException) {
-                    // Should never happen
-                    throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
-                }
-            }
-
-            return createAndValidate(configuration, columnIndices);
-        }
+        return createAndValidate(configuration, columnIndices);
     }
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
         Realm realm = new Realm(configuration);
-        long currentVersion = realm.getVersion();
+/*        long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
             realm.doClose();
@@ -238,7 +222,7 @@ public final class Realm extends BaseRealm {
             realm.doClose();
             throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
         }
-
+*/
         // Initialize Realm schema if needed
         if (columnIndices == null) {
             try {
@@ -250,6 +234,12 @@ public final class Realm extends BaseRealm {
         } else {
             realm.schema.columnIndices = columnIndices;
         }
+        try {
+            initializeRealm(realm);
+        } catch (RuntimeException e) {
+            realm.doClose();
+            throw e;
+        }
 
         return realm;
     }
@@ -257,38 +247,25 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     private static void initializeRealm(Realm realm) {
         long version = realm.getVersion();
-        boolean commitNeeded = false;
-        try {
-            realm.beginTransaction();
+        ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+        final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
+        columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+        for (Class<? extends RealmModel> modelClass : modelClasses) {
             if (version == UNVERSIONED) {
-                commitNeeded = true;
-                realm.setVersion(realm.configuration.getSchemaVersion());
+                RealmSchema tmp = new RealmSchema();
+                realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, tmp));
             }
-
-            RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
-            columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
-            for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Create and validate table
-                if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedRealm);
-                }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
-            }
-            realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
-
-            if (version == UNVERSIONED) {
-                final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
-                if (transaction != null) {
-                    transaction.execute(realm);
-                }
-            }
-        } finally {
-            if (commitNeeded) {
-                realm.commitTransaction(false, true);
-            } else {
-                realm.cancelTransaction();
+            columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+        }
+        realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+        RealmSchema schema = new RealmSchema(realm, realmObjectSchemas);
+        realm.sharedRealm.updateSchema(schema, realm.configuration.getSchemaVersion(), realm.configuration.getMigration());
+        if (version == UNVERSIONED) {
+            final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
+            if (transaction != null) {
+                transaction.execute(realm);
             }
         }
     }
@@ -994,7 +971,7 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
      * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects, and can potentially override changes made by other threads.
      *
@@ -1015,9 +992,9 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
-     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed. 
-     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being 
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
      * reached. This can also potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy.
