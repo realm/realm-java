@@ -23,8 +23,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
+import org.powermock.modules.junit4.internal.impl.PowerMockJUnit44RunnerDelegateImpl;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
@@ -41,6 +44,9 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.examples.unittesting.model.Person;
 import io.realm.internal.RealmCore;
+import io.realm.internal.Util;
+import io.realm.log.Logger;
+import io.realm.log.RealmLog;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -60,7 +66,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
-@PrepareForTest({Realm.class, RealmConfiguration.class, RealmQuery.class, RealmResults.class, RealmCore.class})
+@SuppressStaticInitializationFor("io.realm.internal.Util")
+@PrepareForTest({Realm.class, RealmConfiguration.class, RealmQuery.class, RealmResults.class, RealmCore.class, RealmLog.class})
 public class ExampleActivityTest {
 
     // Robolectric, Using Power Mock https://github.com/robolectric/robolectric/wiki/Using-PowerMock
@@ -74,10 +81,11 @@ public class ExampleActivityTest {
     @Before
     public void setup() throws Exception {
 
-        // Setup Realm to be mocked
+        // Setup Realm to be mocked. The order of these matters
+        mockStatic(RealmCore.class);
+        mockStatic(RealmLog.class);
         mockStatic(Realm.class);
         mockStatic(RealmConfiguration.class);
-        mockStatic(RealmCore.class);
 
         // Create the mock
         final Realm mockRealm = mock(Realm.class);
@@ -88,6 +96,7 @@ public class ExampleActivityTest {
         // will be called by RealmConfiguration.Builder's constructor.
         doNothing().when(RealmCore.class);
         RealmCore.loadLibrary(any(Context.class));
+
 
         // TODO: Mock the RealmConfiguration's constructor. If the RealmConfiguration.Builder.build can be mocked, this
         // is not necessary anymore.
