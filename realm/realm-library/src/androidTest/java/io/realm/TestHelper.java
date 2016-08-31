@@ -230,30 +230,45 @@ public class TestHelper {
      */
     public static class TestLogger implements Logger {
 
+        private final int minimumLevel;
         public String message;
         public Throwable throwable;
 
+        public TestLogger() {
+            this(LogLevel.TRACE);
+        }
+
+        public TestLogger(int minimumLevel) {
+            this.minimumLevel = minimumLevel;
+        }
+
         @Override
         public int getMinimumLogLevel() {
-            return LogLevel.TRACE;
+            return minimumLevel;
         }
 
         @Override
         public void trace(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
+            if (minimumLevel <= LogLevel.TRACE) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
 
         @Override
         public void debug(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
+            if (minimumLevel <= LogLevel.DEBUG) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
 
         @Override
         public void info(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
+            if (minimumLevel <= LogLevel.INFO) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
 
         @Override
@@ -264,14 +279,18 @@ public class TestHelper {
 
         @Override
         public void error(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
+            if (minimumLevel <= LogLevel.ERROR) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
 
         @Override
         public void fatal(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
+            if (minimumLevel <= LogLevel.FATAL) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
     }
 
