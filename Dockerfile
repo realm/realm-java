@@ -47,5 +47,5 @@ RUN mkdir /tmp/opt/android-ndk-tmp
 RUN cd /tmp/opt/android-ndk-tmp && wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin
 RUN cd /tmp/opt/android-ndk-tmp && chmod a+x ./android-ndk.bin && sync && ./android-ndk.bin
 RUN cd /tmp/opt/android-ndk-tmp && mv ./android-ndk-r10e /tmp/opt/android-ndk
-RUN chmod a+r /tmp/opt/android-ndk-tmp/RELEASE.TXT
+RUN chmod a+r /tmp/opt/android-ndk/RELEASE.TXT
 RUN rm -rf /tmp/opt/android-ndk-tmp
