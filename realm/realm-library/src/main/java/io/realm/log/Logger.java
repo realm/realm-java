@@ -40,7 +40,7 @@ public interface Logger {
      *
      * @param throwable optional exception to log.
      * @param message optional additional message.
-     * @param args optional args used to format the message using {@link String#format(String, Object...)}.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
     void trace(Throwable throwable, String message, Object... args);
 
@@ -49,7 +49,7 @@ public interface Logger {
      *
      * @param throwable optional exception to log.
      * @param message optional additional message.
-     * @param args optional args used to format the message using {@link String#format(String, Object...)}.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
     void debug(Throwable throwable, String message, Object... args);
 
@@ -58,7 +58,7 @@ public interface Logger {
      *
      * @param throwable optional exception to log.
      * @param message optional additional message.
-     * @param args optional args used to format the message using {@link String#format(String, Object...)}.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
     void info(Throwable throwable, String message, Object... args);
 
@@ -67,7 +67,7 @@ public interface Logger {
      *
      * @param throwable optional exception to log.
      * @param message optional additional message.
-     * @param args optional args used to format the message using {@link String#format(String, Object...)}.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
     void warn(Throwable throwable, String message, Object... args);
 
@@ -76,7 +76,7 @@ public interface Logger {
      *
      * @param throwable optional exception to log.
      * @param message optional additional message.
-     * @param args optional args used to format the message using {@link String#format(String, Object...)}.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
     void error(Throwable throwable, String message, Object... args);
 
@@ -85,7 +85,7 @@ public interface Logger {
      *
      * @param throwable optional exception to log.
      * @param message optional additional message.
-     * @param args optional args used to format the message using {@link String#format(String, Object...)}.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
     void fatal(Throwable throwable, String message, Object... args);
 }

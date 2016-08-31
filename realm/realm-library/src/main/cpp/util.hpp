@@ -138,8 +138,9 @@ inline void log_message(JNIEnv *env, jmethodID log_method, const char *msg, ...)
     vsnprintf(buf, 1024, msg, ap);
     va_end(ap);
 
-    jstring jlogmessage = env->NewStringUTF(buf);
-    env->CallStaticVoidMethod(realmlog_class, log_method, jlogmessage, NULL);
+    jstring log_message = env->NewStringUTF(buf);
+    env->CallStaticVoidMethod(realmlog_class, log_method, log_message, NULL);
+    env->DeleteLocalRef(log_message);
 }
 
 #if TRACE

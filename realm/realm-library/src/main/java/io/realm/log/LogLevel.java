@@ -32,12 +32,12 @@ public class LogLevel {
     public static final int ALL = 1;
 
     /**
-     * The TRACE Level designates finer-grained informational events than DEBUG.
+     * The TRACE level designates finer-grained informational events than DEBUG.
      */
     public static final int TRACE = 2;
 
     /**
-     * The DEBUG Level designates fine-grained informational events that are most useful to debug an application.
+     * The DEBUG level designates fine-grained informational events that are mostly useful to debug an application.
      */
     public static final int DEBUG = 3;
 

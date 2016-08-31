@@ -14,13 +14,13 @@
 
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
 * Added `RealmConfiguration.Builder.directory(File)`.
-* `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to LogCat. See the `RealmLog` class for more details.
+* `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
 
 ### Bug fixes
 
 * Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
 * Fixed a potential crash when there were lots of async queries waiting in the queue.
-s
+
 ### Internal
 
 * Moved JNI build to CMake.
