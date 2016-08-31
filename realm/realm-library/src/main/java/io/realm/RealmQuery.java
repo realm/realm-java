@@ -2201,6 +2201,9 @@ public final class RealmQuery<E extends RealmModel> {
                 case THROW_BACKGROUND_EXCEPTION:
                     notifier.throwBackgroundException((Throwable)obj);
                     break;
+                default:
+                    // Should not get here.
+                    break;
             }
         }
     }

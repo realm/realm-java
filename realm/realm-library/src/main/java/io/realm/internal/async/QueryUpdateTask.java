@@ -100,7 +100,7 @@ public class QueryUpdateTask implements Runnable {
             }
 
             RealmNotifier notifier = callerNotifier.get();
-            if (updateSuccessful && !isTaskCancelled() && callerNotifier != null) {
+            if (updateSuccessful && !isTaskCancelled() && notifier != null) {
                 switch (event) {
                     case COMPLETE_ASYNC_RESULTS:
                         notifier.completeAsyncResults(result);
