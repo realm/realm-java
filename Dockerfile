@@ -23,7 +23,7 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
                        build-essential \
                        openjdk-8-jdk-headless \
                        libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 \
-                       s3cmd lsof nodejs\
+                       s3cmd lsof nodejs libconfig++9v5\
     && apt-get clean
 
 # Install the Android SDK
