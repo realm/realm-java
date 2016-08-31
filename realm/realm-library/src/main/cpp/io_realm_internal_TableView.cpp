@@ -363,7 +363,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetDouble(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetTimestamp(
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetTimestampValue(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong timestampValue)
 {
     try {

@@ -25,6 +25,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import io.realm.RealmConfiguration;
+import io.realm.exceptions.RealmError;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertFalse;

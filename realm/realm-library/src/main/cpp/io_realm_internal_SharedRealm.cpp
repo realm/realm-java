@@ -7,6 +7,7 @@
 #include "util.hpp"
 
 using namespace realm;
+using namespace realm::_impl;
 
 static_assert(SchemaMode::Automatic ==
                       static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_AUTOMATIC), "");
@@ -20,29 +21,6 @@ static_assert(SchemaMode::Manual ==
               static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL), "");
 
 JNIEXPORT jlong JNICALL
-<<<<<<< HEAD
-Java_io_realm_internal_SharedRealm_nativeCreateConfig
-(JNIEnv *env, jclass, jstring realm_path, jbyteArray key, jbyte schema_mode, jboolean in_memory,
- jboolean cache, jboolean disable_format_upgrade, jboolean auto_change_notification) {
-    TR_ENTER()
-
-    JStringAccessor path(env, realm_path);
-    JniByteArray key_array(env, key);
-    Realm::Config *config = new Realm::Config();
-    config->path = path;
-    config->encryption_key = key_array;
-    config->schema_mode = static_cast<SchemaMode>(schema_mode);
-    config->in_memory = in_memory;
-    config->cache = cache;
-    config->disable_format_upgrade = disable_format_upgrade;
-    config->automatic_change_notifications = auto_change_notification;
-    return reinterpret_cast<jlong>(config);
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeCloseConfig
-(JNIEnv *, jclass, jlong config_ptr) {
-=======
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
         jboolean auto_change_notification)
@@ -69,7 +47,6 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv *, jclass, jlong config_ptr)
 {
->>>>>>> origin/master
     TR_ENTER_PTR(config_ptr)
 
     auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
