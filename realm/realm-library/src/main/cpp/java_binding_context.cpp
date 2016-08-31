@@ -31,7 +31,7 @@ JavaBindingContext::JavaBindingContext(const ConcreteJavaBindContext& concrete_c
     if (concrete_context.java_notifier) {
         m_java_notifier = m_local_jni_env->NewWeakGlobalRef(concrete_context.java_notifier);
         jclass cls = m_local_jni_env->GetObjectClass(m_java_notifier);
-        m_notify_by_other_method = m_local_jni_env->GetMethodID(cls, "notifyByOtherThread", "()V");
+        m_notify_by_other_method = m_local_jni_env->GetMethodID(cls, "notifyCommitByOtherThread", "()V");
     } else {
         m_java_notifier = nullptr;
     }

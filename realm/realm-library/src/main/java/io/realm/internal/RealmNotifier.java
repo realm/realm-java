@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import io.realm.internal.async.QueryUpdateTask;
 
-
 /**
  * This interface needs to be implemented by Java and pass to OS in order to get notifications when other thread/process
  * changes the Realm file.
@@ -27,8 +26,7 @@ public interface RealmNotifier {
     /**
      * This is called from Java when the changes have been made on the same thread.
      */
-    void notifyByLocalThread();
-
+    void notifyCommitByLocalThread();
 
     /**
      * This is called in OS's JavaBindingContext::changes_available.
@@ -36,7 +34,7 @@ public interface RealmNotifier {
      * other thread. The changes on the same thread should not trigger this call.
      */
     @SuppressWarnings("unused")
-    void notifyByOtherThread();
+    void notifyCommitByOtherThread();
 
     /**
      * Post a runnable to be run in the next event loop on the thread which creates the corresponding Realm.

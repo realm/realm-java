@@ -74,8 +74,6 @@ public final class RealmQuery<E extends RealmModel> {
     private final static Long INVALID_NATIVE_POINTER = 0L;
     private ArgumentsHolder argumentsHolder;
 
-    ;
-
     /**
      * Creates a query for objects of a given class from a {@link Realm}.
      *
@@ -2203,7 +2201,7 @@ public final class RealmQuery<E extends RealmModel> {
                     break;
                 default:
                     // Should not get here.
-                    break;
+                    throw new IllegalStateException(String.format("%s is not handled here.", event));
             }
         }
     }

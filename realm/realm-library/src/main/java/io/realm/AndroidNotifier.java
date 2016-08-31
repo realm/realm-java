@@ -40,8 +40,10 @@ class AndroidNotifier implements RealmNotifier {
 
     // Called by Java when transaction committed to send LOCAL_COMMIT to current thread's handler.
     @Override
-    public void notifyByLocalThread() {
-        if (handler == null) return;
+    public void notifyCommitByLocalThread() {
+        if (handler == null) {
+            return;
+        }
 
         // Force any updates on the current thread to the front the queue. Doing this is mostly
         // relevant on the UI thread where it could otherwise process a motion event before the
@@ -63,22 +65,23 @@ class AndroidNotifier implements RealmNotifier {
     }
 
     // This is called by OS when other thread/process changes the Realm.
-    // This is getting called on the same thread which creates the Realm.
+    // This is getting called on the same thread which created the Realm.
     // FIXME: The whole calling routine is twisted and needs to be rewritten in the near future.
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
     // | Thread A                                                      | Thread B     | Daemon Thread                                  |
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
     // |                                                               | Make changes |                                                |
     // |                                                               |              | Detect and notify thread A through JNI ALooper |
-    // | Call Realm::notify() in ALooper callback                      |              |                                                |
+    // | Call OS's Realm::notify() from OS's ALooper callback          |              |                                                |
     // | Realm::notify() calls JavaBindingContext:change_available()   |              |                                                |
     // | change_available calls into this method to send REALM_CHANGED |              |                                                |
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
     @Override
-    public void notifyByOtherThread() {
-        if (handler == null) return;
+    public void notifyCommitByOtherThread() {
+        if (handler == null) {
+            return;
+        }
 
-        // For all other threads, use the Handler
         // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
         // as the target thread consumes messages at the same time. In this case it is not a problem as worst
         // case we end up with two REALM_CHANGED messages in the queue.
@@ -110,6 +113,7 @@ class AndroidNotifier implements RealmNotifier {
     public void close() {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
+            handler = null;
         }
     }
 
@@ -148,7 +152,6 @@ class AndroidNotifier implements RealmNotifier {
 
     private static boolean isAutoRefreshAvailable() {
         return (Looper.myLooper() != null && !isIntentServiceThread());
-
     }
 
     private static boolean isIntentServiceThread() {

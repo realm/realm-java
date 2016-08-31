@@ -339,7 +339,7 @@ abstract class BaseRealm implements Closeable {
         // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
         // file will make a commit in order to create the schema. Users should not be notified about that.
         if (notifyLocalThread) {
-            sharedRealm.realmNotifier.notifyByLocalThread();
+            sharedRealm.realmNotifier.notifyCommitByLocalThread();
         }
     }
 

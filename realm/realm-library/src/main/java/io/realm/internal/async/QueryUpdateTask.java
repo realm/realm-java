@@ -112,7 +112,7 @@ public class QueryUpdateTask implements Runnable {
                         notifier.completeUpdateAsyncQueries(result);
                         break;
                     default:
-                        throw new RuntimeException("Wrong event " + event);
+                        throw new IllegalStateException(String.format("%s is not handled here.", event));
                 }
             }
 
