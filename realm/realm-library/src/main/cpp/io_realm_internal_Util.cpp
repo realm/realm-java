@@ -19,9 +19,9 @@
 #include <realm/string_data.hpp>
 #include <realm/unicode.hpp>
 
-#include "util.hpp"
+#include "io_realm_log_LogLevel.h"
 #include "mem_usage.hpp"
-#include "io_realm_internal_Util.h"
+#include "util.hpp"
 
 using std::string;
 

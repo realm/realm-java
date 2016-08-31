@@ -149,7 +149,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         TR_ERR(env, "Exception has been throw: %s", message.c_str())
     }
     else {
-        TR_ERR(env, "ERROR: Couldn't throw exception.")
+        TR_ERR(env, "ERROR: Couldn't throw exception.", NULL)
     }
 
     env->DeleteLocalRef(jExceptionClass);

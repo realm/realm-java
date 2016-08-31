@@ -34,7 +34,7 @@
 #include <realm/timestamp.hpp>
 
 #include "io_realm_internal_Util.h"
-
+#include "io_realm_log_LogLevel.h"
 
 #define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
@@ -123,30 +123,33 @@ extern jmethodID log_error;
 extern jmethodID log_fatal;
 
 
+// Inspired by From http://www.netmite.com/android/mydroid/system/core/liblog/logd_write.c
+inline void log_message(JNIEnv *env, jmethodID log_method, const char *msg, ...)
+{
+    va_list ap;
+    char buf[1024]; // Max logcat line length
+    va_start(ap, msg);
+    // Do formatting in C++. I gave up trying to send C++ variadic arguments back as Java var args.
+    vsnprintf(buf, 1024, msg, ap);
+    va_end(ap);
+
+    jstring jlogmessage = env->NewStringUTF(buf);
+    env->CallStaticVoidMethod(realmlog_class, log_method, jlogmessage, NULL);
+}
 
 #if TRACE
-  #if defined(ANDROID)
-    #include <android/log.h>
-    #define TR_ENTER(env) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, " --> %s", __FUNCTION__); } else {}
-    #define TR_ENTER_PTR(env, ptr) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, " --> %s %", PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
-    #define TR(env, ...) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, __VA_ARGS__); } else {}
-    #define TR_ERR(env, ...) if (trace_level <= 6) { env->CallStaticVoidMethod(realmlog_class, log_error, __VA_ARGS__); } else {}
-    #define TR_LEAVE(env) if (trace_level <= 2) { env->CallStaticVoidMethod(realmlog_class, log_trace, " <-- %s", __FUNCTION__); } else {}
-  #else // ANDROID
+    #define TR_ENTER(env) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " --> %s", __FUNCTION__); } else {}
+    #define TR_ENTER_PTR(env, ptr) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " --> %s %" PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
+    #define TR(env, msg, ...) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, msg, __VA_ARGS__)); } else {}
+    #define TR_ERR(env, msg, ...) if (trace_level <= io_realm_log_LogLevel_ERROR) { log_message(env, log_error, msg, __VA_ARGS__); } else {}
+    #define TR_LEAVE(env) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " <-- %s", __FUNCTION__); } else {}
+#else // TRACE - these macros must be empty
     #define TR_ENTER(env)
     #define TR_ENTER_PTR(env, ptr)
-    #define TR(...)
-    #define TR_ERR(env, ...)
-    #define TR_LEAVE()
-  #endif
-#else // TRACE - these macros must be empty
-  #define TR_ENTER(env)
-  #define TR_ENTER_PTR(env, ptr)
-  #define TR(...)
-  #define TR_ERR(env, ...)
-  #define TR_LEAVE()
+    #define TR(env, msg, ...)
+    #define TR_ERR(env, msg, ...)
+    #define TR_LEAVE(env)
 #endif
-
 
 // Check parameters
 
@@ -173,7 +176,7 @@ extern jmethodID log_fatal;
 #define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      TblIndexAndTypeValid(env, ptr, col, row, type)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) TblIndexAndTypeInsertValid(env, ptr, col, row, type)
 
-#define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     RowColIndexAndTypeValid(env, ptr, col, type)
+#define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)     RowColIndexAndTypeValid(env, ptr, col, type)
 #define ROW_AND_COL_INDEX_VALID(env,ptr,col)                    RowColIndexValid(env, ptr, col)
 
 #else
@@ -407,7 +410,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
         return true;
     }
 
-    TR_ERR(env, "Expected nullable column type")
+    TR_ERR(env, "Expected nullable column type", NULL)
     ThrowException(env, IllegalArgument, "This field is not nullable.");
     return false;
 }
