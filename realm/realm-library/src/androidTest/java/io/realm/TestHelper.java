@@ -235,7 +235,7 @@ public class TestHelper {
         public Throwable throwable;
 
         public TestLogger() {
-            this(LogLevel.TRACE);
+            this(LogLevel.DEBUG);
         }
 
         public TestLogger(int minimumLevel) {
