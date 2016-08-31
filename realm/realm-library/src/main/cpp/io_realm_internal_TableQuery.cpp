@@ -1209,7 +1209,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 
         // Step3: Run & export the queries against the latest shared group
         for (size_t i = 0; i < number_of_queries; ++i) {
-            JniLongArray query_param_array(env, (jlongArray) env->GetObjectArrayElement(query_param_matrix, i));
+            // Delete the local ref since we might have a long loop
+            JniLocalRef<jlongArray> local_ref(env, (jlongArray) env->GetObjectArrayElement(query_param_matrix, i));
+            JniLongArray query_param_array(env, local_ref);
+
             switch (query_param_array[0]) { // 0, index of the type of query, the next indicies are parameters
                 case QUERY_TYPE_FIND_ALL: {// nativeFindAllWithHandover
                     exported_handover_tableview_array[i] =

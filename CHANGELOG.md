@@ -4,6 +4,11 @@
 
 * Move JNI build to CMake.
 
+### Bug fixes
+
+* Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
+* Fixed a potential crash when there were lots of async queries waiting in the queue.
+
 ## 1.2.0
 
 ### Bug fixes
