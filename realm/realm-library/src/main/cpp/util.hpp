@@ -86,7 +86,6 @@ std::string num_to_string(T pNumber)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling
-// FIXME: RowInvalid and IllegalState both throw IllegalStateException, maybe remove the RowInvalid.
 enum ExceptionKind {
     // FIXME: This is not something should be exposed to java, ClassNotFound is something we should
     // crash hard in native code and fix it.

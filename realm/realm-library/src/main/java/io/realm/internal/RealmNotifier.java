@@ -18,25 +18,43 @@ package io.realm.internal;
 
 import io.realm.internal.async.QueryUpdateTask;
 
-// Interface needs to be implemented by Java and pass to OS in order to get notifications when other thread/process
-// changes the Realm file.
+
+/**
+ * This interface needs to be implemented by Java and pass to OS in order to get notifications when other thread/process
+ * changes the Realm file.
+ */
 public interface RealmNotifier {
-    // This is called from Java when the changes have been made on the same thread.
+    /**
+     * This is called from Java when the changes have been made on the same thread.
+     */
     void notifyByLocalThread();
 
-    // This is called in OS's JavaBindingContext::changes_available.
-    // This is getting called on the same thread which created this Realm when the same Realm file has been changed by
-    // other thread. The changes on the same thread should not trigger this call.
+
+    /**
+     * This is called in OS's JavaBindingContext::changes_available.
+     * This is getting called on the same thread which created this Realm when the same Realm file has been changed by
+     * other thread. The changes on the same thread should not trigger this call.
+     */
     @SuppressWarnings("unused")
     void notifyByOtherThread();
 
-    // Post a runnable to be run in the next event loop on the thread which creates the corresponding Realm.
+    /**
+     * Post a runnable to be run in the next event loop on the thread which creates the corresponding Realm.
+     *
+     * @param runnable to be posted.
+     */
     void post(Runnable runnable);
 
-    // Is the current notifier valid? eg. Notifier created on non-looper thread cannot be notified.
+    /**
+     * Is the current notifier valid? eg. Notifier created on non-looper thread cannot be notified.
+     *
+     * @return {@code true} if the thread which owns this notifier can be notified. Otherwise {@code false}
+     */
     boolean isValid();
 
-    // Called when close SharedRealm to clean up any event left in to queue.
+    /**
+     * Called when close SharedRealm to clean up any event left in to queue.
+     */
     void close();
 
     // FIXME: These are for decoupling handler from async query. Async query needs refactor to either adapt the OS or

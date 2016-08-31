@@ -26,6 +26,9 @@ import io.realm.internal.RealmNotifier;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
 
+/**
+ * Implementation of {@link RealmNotifier} for Android based on {@link Handler}.
+ */
 public class AndroidNotifier implements RealmNotifier {
     private Handler handler;
 
