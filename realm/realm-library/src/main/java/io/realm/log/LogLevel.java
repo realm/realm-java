@@ -32,7 +32,7 @@ public class LogLevel {
     public static final int ALL = 1;
 
     /**
-     * The TRACE Level designates finer-grained informational events than the DEBUG
+     * The TRACE Level designates finer-grained informational events than DEBUG.
      */
     public static final int TRACE = 2;
 
