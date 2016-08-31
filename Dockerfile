@@ -26,6 +26,9 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
                        s3cmd lsof nodejs libconfig++9v5\
     && apt-get clean
 
+# Install writable dir
+RUN mkdir /tmp/opt
+
 # Install the Android SDK
 RUN cd /tmp/opt && wget -q https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz -O android-sdk.tgz
 RUN cd /tmp/opt && tar -xvzf android-sdk.tgz
