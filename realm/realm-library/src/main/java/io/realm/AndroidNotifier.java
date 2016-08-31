@@ -29,7 +29,7 @@ import io.realm.internal.log.RealmLog;
  * Implementation of {@link RealmNotifier} for Android based on {@link Handler}.
  */
 // FIXME: Please move me to the io.realm.internal when HandlerController is there.
-public class AndroidNotifier implements RealmNotifier {
+class AndroidNotifier implements RealmNotifier {
     private Handler handler;
 
     public AndroidNotifier(HandlerController handlerController) {
