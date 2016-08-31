@@ -188,7 +188,7 @@ Java_io_realm_RealmObjectSchema_nativeHasPrimaryKey(JNIEnv *env, jclass, jlong n
 
 
 JNIEXPORT void JNICALL
-Java_io_realm_RealmObjectSchema_nativeSetPrimaryKey(JNIEnv *env, jclass type, jlong native_ptr, jstring name_) {
+Java_io_realm_RealmObjectSchema_nativeSetPrimaryKey(JNIEnv *env, jclass /*type*/, jlong native_ptr, jstring name_) {
     TR_ENTER_PTR(native_ptr)
     try {
         auto* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);

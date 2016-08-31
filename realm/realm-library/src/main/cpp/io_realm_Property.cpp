@@ -27,7 +27,8 @@ using namespace realm;
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ
-(JNIEnv *env, jclass, jstring name, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable) {
+(JNIEnv *env, jclass, jstring name, jint type, jboolean is_primary, jboolean is_indexed, jboolean is_nullable)
+{
     TR_ENTER()
     try {
         JStringAccessor str(env, name);
@@ -50,7 +51,9 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(JNIEnv *env, jclass, jstring j_name, jint type, jstring j_link_name) {
+Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(JNIEnv *env, jclass,
+        jstring j_name, jint type, jstring j_link_name)
+{
     TR_ENTER()
     try {
         JStringAccessor name(env, j_name);
@@ -65,8 +68,8 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_Stri
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_Property_nativeClose
-(JNIEnv *env, jclass, jlong property_ptr) {
+Java_io_realm_Property_nativeClose(JNIEnv *env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
@@ -76,8 +79,8 @@ Java_io_realm_Property_nativeClose
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_Property_nativeIsIndexable
-(JNIEnv *env, jclass, jlong property_ptr) {
+Java_io_realm_Property_nativeIsIndexable(JNIEnv *env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
@@ -88,7 +91,8 @@ Java_io_realm_Property_nativeIsIndexable
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_Property_nativeSetIndexable(JNIEnv *env, jclass type, jlong property_ptr, jboolean indexable) {
+Java_io_realm_Property_nativeSetIndexable(JNIEnv *env, jclass, jlong property_ptr, jboolean indexable)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
@@ -104,8 +108,8 @@ Java_io_realm_Property_nativeSetIndexable(JNIEnv *env, jclass type, jlong proper
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_Property_nativeRequiresIndex
-(JNIEnv *env, jclass, jlong property_ptr) {
+Java_io_realm_Property_nativeRequiresIndex(JNIEnv *env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
@@ -116,7 +120,8 @@ Java_io_realm_Property_nativeRequiresIndex
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_Property_nativeIsNullable(JNIEnv *env, jclass, jlong property_ptr) {
+Java_io_realm_Property_nativeIsNullable(JNIEnv *env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
@@ -127,15 +132,18 @@ Java_io_realm_Property_nativeIsNullable(JNIEnv *env, jclass, jlong property_ptr)
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_Property_nativeSetNullable(JNIEnv *env, jclass type, jlong property_ptr, jboolean nullable) {
+Java_io_realm_Property_nativeSetNullable(JNIEnv *env, jclass /*type*/, jlong property_ptr, jboolean nullable)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
         if (property->type == PropertyType::Object) {
-            throw std::invalid_argument("Cannot modify the required state for RealmObject references:" + property->name);
+            throw std::invalid_argument("Cannot modify the required state for RealmObject references:"
+                    + property->name);
         }
         if (property->type == PropertyType::Array) {
-            throw std::invalid_argument("Cannot modify the required state for RealmList references: " + property->name);
+            throw std::invalid_argument("Cannot modify the required state for RealmList references: "
+                    + property->name);
         }
         property->is_nullable = to_bool(nullable);
     }
@@ -143,7 +151,8 @@ Java_io_realm_Property_nativeSetNullable(JNIEnv *env, jclass type, jlong propert
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_Property_nativeGetName(JNIEnv *env, jclass, jlong property_ptr) {
+Java_io_realm_Property_nativeGetName(JNIEnv *env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);
@@ -154,7 +163,8 @@ Java_io_realm_Property_nativeGetName(JNIEnv *env, jclass, jlong property_ptr) {
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_Property_nativeSetName(JNIEnv *env, jclass, jlong property_ptr, jstring name_) {
+Java_io_realm_Property_nativeSetName(JNIEnv *env, jclass, jlong property_ptr, jstring name_)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         JStringAccessor name(env, name_);
@@ -165,7 +175,8 @@ Java_io_realm_Property_nativeSetName(JNIEnv *env, jclass, jlong property_ptr, js
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_Property_nativeIsPrimaryKey(JNIEnv *env, jclass, jlong property_ptr) {
+Java_io_realm_Property_nativeIsPrimaryKey(JNIEnv *env, jclass, jlong property_ptr)
+{
     TR_ENTER_PTR(property_ptr)
     try {
         auto *property = reinterpret_cast<Property *>(property_ptr);

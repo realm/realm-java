@@ -224,11 +224,11 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
             realm_migration_method = env->GetMethodID(realm_migration_class, "migration",
                                                       "()Lio/realm/DynamicRealm;JJ");
             if (realm_migration_method == nullptr) {
-                ThrowException(env, NoSuchMethod, "io.realm.RealmMigration", "migration");
+                throw std::runtime_error("Cannot find method 'migration' of class 'io.realm.RealmMigration'.");
                 return 0;
             }
             Realm::MigrationFunction migration_function;
-            migration_function = [=](SharedRealm old_realm, SharedRealm realm, Schema &mutable_schema) {
+            migration_function = [=](SharedRealm /*old_realm*/, SharedRealm /*realm*/, Schema &/*mutable_schema*/) {
                 auto &config = shared_realm->config();
                 jlong schema_new_version = jlong(config.schema_version);
                 env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version,
@@ -406,7 +406,7 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass type, jlong shared_realm_ptr) {
+Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr) {
     TR_ENTER_PTR(shared_realm_ptr);
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
@@ -419,7 +419,7 @@ Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass type, jlong 
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeRenameField(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+Java_io_realm_internal_SharedRealm_nativeRenameField(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
                                                      jstring className_,
                                                      jstring oldName_, jstring newName_) {
     TR_ENTER_PTR(shared_realm_ptr)
@@ -435,7 +435,7 @@ Java_io_realm_internal_SharedRealm_nativeRenameField(JNIEnv *env, jclass type, j
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_SharedRealm_nativeHasPrimaryKey(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+Java_io_realm_internal_SharedRealm_nativeHasPrimaryKey(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
                                                        jstring className_) {
     TR_ENTER_PTR(shared_realm_ptr)
     try {
@@ -449,7 +449,7 @@ Java_io_realm_internal_SharedRealm_nativeHasPrimaryKey(JNIEnv *env, jclass type,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeSetPrimaryKey(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+Java_io_realm_internal_SharedRealm_nativeSetPrimaryKey(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
                                                        jstring className_, jstring fieldName_) {
     TR_ENTER_PTR(shared_realm_ptr)
     try {
@@ -462,7 +462,7 @@ Java_io_realm_internal_SharedRealm_nativeSetPrimaryKey(JNIEnv *env, jclass type,
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetPrimaryKey(JNIEnv *env, jclass type, jlong shared_realm_ptr,
+Java_io_realm_internal_SharedRealm_nativeGetPrimaryKey(JNIEnv *env, jclass /*type*/, jlong shared_realm_ptr,
                                                        jstring className_) {
     TR_ENTER_PTR(shared_realm_ptr)
     try {

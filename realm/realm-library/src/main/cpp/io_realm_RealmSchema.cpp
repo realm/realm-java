@@ -52,6 +52,7 @@ Java_io_realm_RealmSchema_nativeCreateSchemaFromArray(JNIEnv *env, jclass, jlong
         return reinterpret_cast<jlong>(schema);
     }
     CATCH_STD();
+    return 0;
 }
 
 JNIEXPORT void JNICALL
