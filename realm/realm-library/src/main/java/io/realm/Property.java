@@ -45,6 +45,10 @@ public class Property {
         return nativePtr;
     }
 
+    public RealmFieldType getType() {
+        return RealmFieldType.fromNativeValue(nativeGetType(nativePtr));
+    }
+
     public boolean isIndexable() {
         return nativeIsIndexable(nativePtr);
     }
@@ -79,6 +83,7 @@ public class Property {
 
     private static native long nativeCreateProperty(String name, int type, boolean isPrimary, boolean isIndexed, boolean isNullable);
     private static native long nativeCreateProperty(String name, int type, String linkedToName);
+    private static native int nativeGetType(long nativePtr);
     private static native boolean nativeIsIndexable(long nativePtr);
     private static native void nativeSetIndexable(long nativePtr, boolean indexable);
     private static native boolean nativeRequiresIndex(long nativePtr);

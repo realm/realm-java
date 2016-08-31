@@ -85,7 +85,7 @@ public final class RealmObjectSchema {
         this.className = className;
         this.columnIndices = columnIndices;
         this.properties = new ArrayList<>();
-        this.nativePtr = nativeCreateObjectSchema(className);
+        this.nativePtr = realm.sharedRealm.objectSchema(className).getNativePtr();
     }
 
     RealmObjectSchema(SharedRealm sharedRealm, String className) {
@@ -104,9 +104,17 @@ public final class RealmObjectSchema {
         this.nativePtr = nativeCreateObjectSchema(className);
     }
 
-    RealmObjectSchema(long nativePtr) {
+    public RealmObjectSchema(long nativePtr) {
         this.realm = null;
         this.className = nativeGetClassName(nativePtr);
+        this.columnIndices = null;
+        this.properties = new ArrayList<>();
+        this.nativePtr = nativePtr;
+    }
+
+    public RealmObjectSchema(String className, long nativePtr) {
+        this.realm = null;
+        this.className = className;
         this.columnIndices = null;
         this.properties = new ArrayList<>();
         this.nativePtr = nativePtr;
@@ -431,11 +439,10 @@ public final class RealmObjectSchema {
             checkLegalName(fieldName);
             checkFieldExists(fieldName);
             RealmFieldType type = getFieldType(fieldName);
-            if (type == RealmFieldType.INTEGER || type == RealmFieldType.STRING) {
-                realm.sharedRealm.setPrimaryKey(getClassName(), fieldName);
-            } else {
-                throw new IllegalArgumentException("Field cannot be a primary key: " + fieldName);
-            }
+            // FIXME: How to get rid of table?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            table.setPrimaryKey(fieldName);
+            table.addSearchIndex(table.getColumnIndex(fieldName));
         }
         return this;
     }
@@ -455,7 +462,16 @@ public final class RealmObjectSchema {
             nativeSetPrimaryKey(nativePtr, "");
         } else {
             String className = getClassName();
+            String currentPrimaryKey = realm.sharedRealm.getPrimaryKey(className);
+
             realm.sharedRealm.setPrimaryKey(className, "");
+
+            // FIXME: move to either object store or JNI level
+            if (!currentPrimaryKey.equals("")) {
+                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+                long index = table.getColumnIndex(currentPrimaryKey);
+                table.removeSearchIndex(index);
+            }
         }
         return this;
     }
@@ -560,13 +576,14 @@ public final class RealmObjectSchema {
      * @see #addPrimaryKey(String)
      */
     public boolean isPrimaryKey(String fieldName) {
+        checkFieldExists(fieldName);
         if (realm == null) {
             Property property = getPropertyByName(fieldName);
             return property.isPrimaryKey();
         } else {
             String className = getClassName();
             if (realm.sharedRealm.hasPrimaryKey(className)) {
-                return (realm.sharedRealm.getPrimaryKey(className) == fieldName);
+                return (realm.sharedRealm.getPrimaryKey(className).equals(fieldName));
             }
             return false;
         }
@@ -583,7 +600,7 @@ public final class RealmObjectSchema {
             return nativeHasPrimaryKey(nativePtr);
         } else {
             String key = realm.sharedRealm.getPrimaryKey(getClassName());
-            return (key != null && key != "");
+            return (key != null && !key.equals(""));
         }
     }
 
@@ -824,10 +841,21 @@ public final class RealmObjectSchema {
      * Returns the column index in the underlying table for the given field name.
      *
      * @param fieldName field name to find index for.
-     * @return column index or null if it doesn't exists.
+     * @return column index or null if it doesn't exist.
      */
     Long getFieldIndex(String fieldName) {
-        return columnIndices.get(fieldName);
+        if (realm == null) {
+            return null;
+        } else {
+            // FIXME: cache column index
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + getClassName());
+            long index = table.getColumnIndex(fieldName);
+            if (index == Table.NO_MATCH) {
+                return null;
+            } else {
+                return index;
+            }
+        }
     }
 
     /**
@@ -838,7 +866,8 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the field does not exists.
      */
     long getAndCheckFieldIndex(String fieldName) {
-        Long index = columnIndices.get(fieldName);
+        // FIXME: cache column index
+        Long index = getColumnIndex(fieldName);
         if (index == null) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
@@ -851,9 +880,18 @@ public final class RealmObjectSchema {
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
-        return table.getColumnType(columnIndex);
+        if (hasField(fieldName)) {
+            if (realm == null) {
+                Property property = getPropertyByName(fieldName);
+                return property.getType();
+            } else {
+                long columnIndex = getColumnIndex(fieldName);
+                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+                return table.getColumnType(columnIndex);
+            }
+        } else {
+            throw new IllegalArgumentException("Field does not exist.");
+        }
     }
 
     /**

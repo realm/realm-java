@@ -149,7 +149,7 @@ public final class RealmSchema {
                     throw new IllegalArgumentException("Class already exists: " + className);
                 }
                 Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
-                realmObjectSchema = realm.sharedRealm.schema().getObjectSchemaByName(className);
+                realmObjectSchema = realm.sharedRealm.objectSchema(className);
             }
             dynamicClassToSchema.put(className, realmObjectSchema);
             return realmObjectSchema;

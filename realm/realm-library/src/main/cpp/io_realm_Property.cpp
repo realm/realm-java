@@ -185,3 +185,14 @@ Java_io_realm_Property_nativeIsPrimaryKey(JNIEnv *env, jclass, jlong property_pt
     CATCH_STD()
     return JNI_FALSE;
 }
+
+
+JNIEXPORT jint JNICALL
+Java_io_realm_Property_nativeGetType(JNIEnv *env, jclass, jlong property_ptr) {
+    TR_ENTER_PTR(property_ptr)
+    try {
+        auto *property = reinterpret_cast<Property *>(property_ptr);
+        return static_cast<jint>(property->type);
+    }
+    CATCH_STD()
+}

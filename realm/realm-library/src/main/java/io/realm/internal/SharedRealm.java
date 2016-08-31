@@ -22,6 +22,7 @@ import java.io.File;
 import io.realm.DynamicRealm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 import io.realm.internal.async.BadVersionException;
 
@@ -157,7 +158,8 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    long getNativePtr() {
+    // FIXME: better be protected
+    public long getNativePtr() {
         return nativePtr;
     }
 
@@ -222,6 +224,13 @@ public final class SharedRealm implements Closeable {
 
     public void setPrimaryKey(String className, String fieldName) {
         nativeSetPrimaryKey(nativePtr, className, fieldName);
+
+        // FIXME: move to either object store or JNI level
+        if (!fieldName.equals("")) {
+            Table table = getTable(Table.TABLE_PREFIX + className);
+            long index = table.getColumnIndex(fieldName);
+            table.addSearchIndex(index);
+        }
     }
 
     public String getPrimaryKey(String className) {
@@ -284,6 +293,10 @@ public final class SharedRealm implements Closeable {
         return new RealmSchema(nativeSchema(nativePtr));
     }
 
+    public RealmObjectSchema objectSchema(String className) {
+        return new RealmObjectSchema(className, nativeObjectSchema(nativePtr, className));
+    }
+
     @Override
     public void close() {
         synchronized (context) {
@@ -321,6 +334,7 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
     private static native long nativeSchema(long nativeSharedRealmPtr);
+    private static native long nativeObjectSchema(long nativeSharedRealmPtr, String className);
     private static native long nativeUpdateSchema(long nativeSharedRealmPtr, Object dynamicRealm, long nativeSchemaPtr,
             long schemaVersion, Object migration);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);

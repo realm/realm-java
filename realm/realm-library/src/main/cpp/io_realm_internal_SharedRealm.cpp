@@ -1,4 +1,5 @@
 #include <object-store/src/object_store.hpp>
+#include <object-store/src/object_schema.hpp>
 #include "io_realm_internal_SharedRealm.h"
 
 #include "shared_realm.hpp"
@@ -414,6 +415,26 @@ Java_io_realm_internal_SharedRealm_nativeSchema(JNIEnv *env, jclass /*type*/, jl
         const Schema tmp = shared_realm->schema();
         Schema *schema = new Schema(std::move(tmp));
         return reinterpret_cast<jlong>(schema);
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeObjectSchema(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                      jstring className_) {
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor name(env, className_);
+        Schema schema = ObjectStore::schema_from_group(shared_realm->read_group());
+        auto it = schema.find(name);
+        if (it == schema.end()) {
+            return 0;
+        }
+        else {
+            auto object_schema = *it;
+            return reinterpret_cast<jlong>(new ObjectSchema(std::move(object_schema)));
+        }
     } CATCH_STD()
     return 0;
 }
