@@ -126,6 +126,11 @@ extern jmethodID log_fatal;
 // Inspired by From http://www.netmite.com/android/mydroid/system/core/liblog/logd_write.c
 inline void log_message(JNIEnv *env, jmethodID log_method, const char *msg, ...)
 {
+    // Check if a exception has already bee cast. In that case trying to log anything will crash.
+    if (env->ExceptionCheck()) {
+        return;
+    }
+
     va_list ap;
     char buf[1024]; // Max logcat line length
     va_start(ap, msg);
