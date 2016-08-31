@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
@@ -148,7 +148,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      *         RealmObject classes or version has has changed so a migration is required.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -164,7 +164,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
      *         classes or version has has changed so a migration is required.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
@@ -218,7 +218,7 @@ public final class Realm extends BaseRealm {
                     migrateRealm(configuration);
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen
-                    throw new RealmIOException(fileNotFoundException);
+                    throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
                 }
             }
 
@@ -272,9 +272,9 @@ public final class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
+                    mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
 
@@ -1165,7 +1165,7 @@ public final class Realm extends BaseRealm {
                     " and you provided a callback, we need a Handler to invoke your callback");
         }
 
-        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
@@ -1316,8 +1316,8 @@ public final class Realm extends BaseRealm {
         if (realmObject == null) {
             throw new IllegalArgumentException("Null objects cannot be copied from Realm.");
         }
-        if (!RealmObject.isValid(realmObject)) {
-            throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
+        if (!(RealmObject.isManaged(realmObject) && RealmObject.isValid(realmObject))) {
+            throw new IllegalArgumentException("Only valid managed objects can be copied from Realm.");
         }
         if (realmObject instanceof DynamicRealmObject) {
             throw new IllegalArgumentException("DynamicRealmObject cannot be copied from Realm.");

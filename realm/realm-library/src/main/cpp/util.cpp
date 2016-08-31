@@ -23,6 +23,8 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
+#include "io_realm_internal_SharedRealm.h"
+#include "shared_realm.hpp"
 
 using namespace std;
 using namespace realm;
@@ -42,6 +44,8 @@ jmethodID sync_manager_notify_error_handler;
 jclass session_class_ref;
 jmethodID session_error_handler;
 
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
+
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
     ostringstream ss;
@@ -54,7 +58,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     }
     catch (CrossTableLinkTarget& e) {
         ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, CrossTableLink, ss.str());
+        ThrowException(env, IllegalState, ss.str());
     }
     catch (SharedGroup::BadVersion& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -64,8 +68,16 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
-    catch (File::AccessError& e) {
-        ss << e.what() << " path: " << e.get_path() << " in " << file << " line " << line;
+    catch (RealmFileException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowRealmFileException(env, ss.str(), e.kind());
+    }
+    catch (InvalidTransactionException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
+    catch (InvalidEncryptionKeyException& e) {
+        ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (exception& e) {
@@ -93,39 +105,9 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = "Class '" + classStr + "' could not be located.";
             break;
 
-        case NoSuchField:
-            jExceptionClass = env->FindClass("java/lang/NoSuchFieldException");
-            message = "Field '" + itemStr + "' could not be located in class io.realm." + classStr;
-            break;
-
-        case NoSuchMethod:
-            jExceptionClass = env->FindClass("java/lang/NoSuchMethodException");
-            message = "Method '" + itemStr + "' could not be located in class io.realm." + classStr;
-            break;
-
         case IllegalArgument:
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
             message = "Illegal Argument: " + classStr;
-            break;
-
-        case TableInvalid:
-            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
-            message = "Illegal State: " + classStr;
-            break;
-
-        case IOFailed:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
-            message = "Failed to open " + classStr + ". " + itemStr;
-            break;
-
-        case FileNotFound:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
-            message = "File not found: " + classStr + ".";
-            break;
-
-        case FileAccessError:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
-            message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
         case IndexOutOfBounds:
@@ -153,26 +135,20 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = classStr;
             break;
 
-        case RowInvalid:
-            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
-            message = "Illegal State: " + classStr;
-            break;
-
-        case CrossTableLink:
-            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
-            message = "This class is referenced by other classes. Remove those fields first before removing this class.";
-            break;
-
         case BadVersion:
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
             message = classStr;
             break;
 
-        case LockFileError:
-            jExceptionClass = env->FindClass("io/realm/exceptions/IncompatibleLockFileException");
+        case IllegalState:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = classStr;
             break;
 
+        // Should never get here.
+        case ExceptionKindMax:
+        default:
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
@@ -183,6 +159,39 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     }
 
     env->DeleteLocalRef(jExceptionClass);
+}
+
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind)
+{
+    jclass cls = env->FindClass("io/realm/exceptions/RealmFileException");
+
+    jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
+    jbyte kind_code;
+    switch (kind) {
+        case realm::RealmFileException::Kind::AccessError:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
+            break;
+        case realm::RealmFileException::Kind::PermissionDenied:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
+            break;
+        case realm::RealmFileException::Kind::Exists:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_EXISTS;
+            break;
+        case realm::RealmFileException::Kind::NotFound:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
+            break;
+        case realm::RealmFileException::Kind::IncompatibleLockFile:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE;
+            break;
+        case realm::RealmFileException::Kind::FormatUpgradeRequired:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
+            break;
+    }
+    jstring jstr = env->NewStringUTF(message.c_str());
+    jobject exception = env->NewObject(cls, constructor, kind_code, jstr);
+    env->Throw(reinterpret_cast<jthrowable>(exception));
+    env->DeleteLocalRef(cls);
+    env->DeleteLocalRef(exception);
 }
 
 jclass GetClass(JNIEnv* env, const char* classStr)

@@ -167,7 +167,7 @@ public class RealmAsyncQueryTests {
         });
     }
 
-    // Test that an async transaction that throws an exception propagate it properly to the credentials.
+    // Test that an async transaction that throws an exception propagate it properly to the user.
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_exceptionHandling() throws Throwable {
@@ -365,7 +365,8 @@ public class RealmAsyncQueryTests {
         dog.setAge(10);
 
         assertTrue(dog.isLoaded());
-        assertFalse(dog.isValid());
+        assertTrue(dog.isValid());
+        assertFalse(dog.isManaged());
     }
 
     @Test
@@ -1870,8 +1871,8 @@ public class RealmAsyncQueryTests {
             public void run() {
                 Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
                 // Advancing the Realm without generating notifications
-                bgRealm.sharedGroupManager.promoteToWrite();
-                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                bgRealm.sharedRealm.beginTransaction();
+                bgRealm.sharedRealm.commitTransaction();
                 Realm.ASYNC_TASK_EXECUTOR.resume();
                 bgRealm.close();
                 signalClosedRealm.countDown();

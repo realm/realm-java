@@ -120,7 +120,7 @@ public class RealmListTests extends CollectionTests {
     public void isValid_unmanagedMode() {
         //noinspection MismatchedQueryAndUpdateOfCollection
         RealmList<AllTypes> list = new RealmList<AllTypes>();
-        assertFalse(list.isValid());
+        assertTrue(list.isValid());
     }
 
     @Test
@@ -724,6 +724,7 @@ public class RealmListTests extends CollectionTests {
                     case MAX_DATE: results.maxDate(CyclicType.FIELD_DATE); break;
                     case DELETE_ALL_FROM_REALM: results.deleteAllFromRealm(); break;
                     case IS_VALID: continue; // Does not throw
+                    case IS_MANAGED: continue; // Does not throw
                 }
                 fail(method + " should have thrown an Exception.");
             } catch (IllegalStateException ignored) {

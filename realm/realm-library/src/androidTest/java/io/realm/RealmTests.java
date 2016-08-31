@@ -40,7 +40,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -85,10 +84,10 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -210,8 +209,11 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        thrown.expect(RealmIOException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+        }
     }
 
     @Test
@@ -223,8 +225,11 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        thrown.expect(RealmIOException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+        }
     }
 
     @Test
@@ -511,7 +516,7 @@ public class RealmTests {
             realm.beginTransaction();
             fail();
         } catch (IllegalStateException e) {
-            assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
+            assertTrue(e.getMessage().startsWith("The Realm is already in a write transaction"));
         }
         realm.commitTransaction();
     }
@@ -665,13 +670,14 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_null() {
+        SharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
         try {
             realm.executeTransaction(null);
             fail("null transaction should throw");
         } catch (IllegalArgumentException ignored) {
-
         }
-        assertFalse(realm.hasChanged());
+        SharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
+        assertEquals(oldVersion, newVersion);
     }
 
     @Test
@@ -1847,11 +1853,7 @@ public class RealmTests {
 
         // Write encrypted copy from a unencrypted Realm
         File destination = new File(encryptedRealmConfig.getPath());
-        try {
-            realm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+        realm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
 
         Realm encryptedRealm = null;
         try {
@@ -1861,11 +1863,7 @@ public class RealmTests {
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
             destination = new File(reEncryptedRealmConfig.getPath());
-            try {
-                encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
-            } catch (Exception e) {
-                fail(e.getMessage());
-            }
+            encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
 
             // Verify re-encrypted copy
             Realm reEncryptedRealm = null;
@@ -1883,11 +1881,7 @@ public class RealmTests {
 
             // Write non-encrypted copy from the encrypted version
             destination = new File(decryptedRealmConfig.getPath());
-            try {
-                encryptedRealm.writeEncryptedCopyTo(destination, null);
-            } catch (Exception e) {
-                fail(e.getMessage());
-            }
+            encryptedRealm.writeEncryptedCopyTo(destination, null);
 
             // Verify decrypted Realm and cleanup
             Realm decryptedRealm = null;
@@ -1910,6 +1904,14 @@ public class RealmTests {
                 }
             }
         }
+    }
+
+    @Test
+    public void writeEncryptedCopyTo_wrongKeyLength() {
+        byte[]  wrongLengthKey = new byte[42];
+        File destination = new File(configFactory.getRoot(), "wrong_key.realm");
+        thrown.expect(IllegalArgumentException.class);
+        realm.writeEncryptedCopyTo(destination, wrongLengthKey);
     }
 
     @Test
@@ -3429,25 +3431,5 @@ public class RealmTests {
         thread.end();
         TestHelper.awaitOrFail(bgRealmFished);
         assertFalse(bgRealmChangeResult.get());
-    }
-
-    @Test
-    public void incompatibleLockFile() throws IOException {
-        // Replace .lock file with a corrupted one
-        File lockFile = new File(realmConfig.getPath() + ".lock");
-        assertTrue(lockFile.exists());
-        FileOutputStream fooStream = new FileOutputStream(lockFile, false);
-        fooStream.write("Boom".getBytes());
-        fooStream.close();
-
-        try {
-            // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
-            DynamicRealm.getInstance(realm.getConfiguration());
-            fail();
-        } catch (RealmError expected) {
-            assertTrue(expected.getMessage().contains("Info size doesn't match"));
-        } finally {
-            lockFile.delete();
-        }
     }
 }

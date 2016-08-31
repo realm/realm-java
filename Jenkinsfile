@@ -8,7 +8,17 @@ try {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
       stage 'SCM'
-      checkout scm
+      checkout([
+        $class: 'GitSCM',
+        branches: scm.branches,
+        gitTool: 'native git',
+        extensions: scm.extensions + [[$class: 'CleanCheckout']],
+        userRemoteConfigs: scm.userRemoteConfigs
+      ])
+      sshagent(['realm-ci-ssh']) {
+        sh 'git submodule sync'
+        sh 'git submodule update --init --recursive'
+      }
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
 

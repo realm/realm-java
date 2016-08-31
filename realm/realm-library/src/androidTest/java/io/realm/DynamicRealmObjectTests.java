@@ -122,6 +122,11 @@ public class DynamicRealmObjectTests {
         new DynamicRealmObject(typedObj);
     }
 
+    @Test (expected = IllegalArgumentException.class)
+    public void constructor_unmanagedObjectThrows() {
+        new DynamicRealmObject(new AllTypes());
+    }
+
     // Test that all getters fail if given invalid field name
     @Test
     public void typedGetter_illegalFieldNameThrows() {

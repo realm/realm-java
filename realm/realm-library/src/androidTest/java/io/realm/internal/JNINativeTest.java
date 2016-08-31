@@ -16,22 +16,26 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.support.test.runner.AndroidJUnit4;
 
-public class JNI_nativeTests extends TestCase {
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    public void testNativeExceptions() {
-        String expect = "";
-        for (Util.Testcase test : Util.Testcase.values()) {
-            expect = test.expectedResult(0);
+import static junit.framework.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class JNINativeTest {
+
+    @Test
+    public void nativeExceptions() {
+        long maxExceptionNumber = TestUtil.getMaxExceptionNumber();
+        for (long i = 0; i < maxExceptionNumber; i++) {
+            String expect = TestUtil.getExpectedMessage(i);
             try {
-                test.execute(0);
-            } catch (Exception e) {
-                assertEquals(expect, e.toString());
-            } catch (Error e) {
-                assertEquals(expect, e.toString());
+                TestUtil.testThrowExceptions(i);
+            } catch (Throwable throwable) {
+                assertEquals("Exception kind: " + i, expect, throwable.toString());
             }
-
         }
     }
 }

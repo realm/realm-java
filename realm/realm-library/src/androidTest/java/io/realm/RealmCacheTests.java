@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmFileException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -105,7 +106,8 @@ public class RealmCacheTests {
         realm.close();
         try {
             Realm.getInstance(configB); // Try to open with key 2
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
@@ -152,7 +154,8 @@ public class RealmCacheTests {
         try {
             Realm.getInstance(wrongConfig);
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
         }
 
         // Try again with proper key
@@ -263,9 +266,9 @@ public class RealmCacheTests {
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         RealmCache.release(realmA);
-        assertNotNull(realmA.sharedGroupManager);
+        assertNotNull(realmA.sharedRealm);
         RealmCache.release(realmB);
-        assertNull(realmB.sharedGroupManager);
+        assertNull(realmB.sharedRealm);
         // No crash but warning in the log
         RealmCache.release(realmB);
 
@@ -275,9 +278,9 @@ public class RealmCacheTests {
         DynamicRealm dynamicRealmB = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
         RealmCache.release(dynamicRealmA);
-        assertNotNull(dynamicRealmA.sharedGroupManager);
+        assertNotNull(dynamicRealmA.sharedRealm);
         RealmCache.release(dynamicRealmB);
-        assertNull(dynamicRealmB.sharedGroupManager);
+        assertNull(dynamicRealmB.sharedRealm);
         // No crash but warning in the log
         RealmCache.release(dynamicRealmB);
 
@@ -285,8 +288,8 @@ public class RealmCacheTests {
         realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig, DynamicRealm.class);
         RealmCache.release(realmA);
-        assertNull(realmA.sharedGroupManager);
+        assertNull(realmA.sharedRealm);
         RealmCache.release(dynamicRealmA);
-        assertNull(realmA.sharedGroupManager);
+        assertNull(realmA.sharedRealm);
     }
 }
