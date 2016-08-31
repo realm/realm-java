@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.internal.android;
+package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import io.realm.HandlerController;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.async.QueryUpdateTask;
@@ -29,6 +28,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Implementation of {@link RealmNotifier} for Android based on {@link Handler}.
  */
+// FIXME: Please move me to the io.realm.internal when HandlerController is there.
 public class AndroidNotifier implements RealmNotifier {
     private Handler handler;
 

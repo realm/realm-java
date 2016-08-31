@@ -37,7 +37,8 @@ JavaBindingContext::JavaBindingContext(const ConcreteJavaBindContext& concrete_c
     }
 }
 
-JavaBindingContext::~JavaBindingContext() {
+JavaBindingContext::~JavaBindingContext()
+{
     if (m_java_notifier) {
         // Always try to attach here since this may be called in the finalizer/phantom thread where m_local_jni_env
         // should not be used on. No need to call DetachCurrentThread since this thread should always be created by
@@ -48,7 +49,8 @@ JavaBindingContext::~JavaBindingContext() {
     }
 }
 
-void JavaBindingContext::changes_available() {
+void JavaBindingContext::changes_available()
+{
     jobject notifier = m_local_jni_env->NewLocalRef(m_java_notifier);
     if (notifier) {
         m_local_jni_env->CallVoidMethod(m_java_notifier, m_notify_by_other_method);

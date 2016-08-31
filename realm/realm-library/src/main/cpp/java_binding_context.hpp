@@ -18,10 +18,9 @@
 #define JAVA_BINDING_CONTEXT_HPP
 
 #include <jni.h>
+#include <memory>
 
 #include "binding_context.hpp"
-
-#include <memory>
 
 namespace realm {
 
@@ -53,7 +52,8 @@ public:
     virtual void changes_available();
 
     JavaBindingContext(const ConcreteJavaBindContext&);
-    static std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier) {
+    static inline std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier)
+    {
         return std::make_unique<JavaBindingContext>(ConcreteJavaBindContext{env, notifier});
     };
 };

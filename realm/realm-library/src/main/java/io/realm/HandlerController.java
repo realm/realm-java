@@ -45,7 +45,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
-public final class HandlerController implements Handler.Callback {
+final class HandlerController implements Handler.Callback {
 
     private final static Boolean NO_REALM_QUERY = Boolean.TRUE;
 

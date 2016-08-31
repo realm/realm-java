@@ -18,7 +18,6 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -27,20 +26,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.android.AndroidNotifier;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
