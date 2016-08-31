@@ -27,7 +27,7 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
     && apt-get clean
 
 # Install writable dir
-RUN mkdir /tmp/opt
+RUN mkdir /tmp/opt && chmod 777 /tmp/opt
 
 # Install the Android SDK
 RUN cd /tmp/opt && wget -q https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz -O android-sdk.tgz
