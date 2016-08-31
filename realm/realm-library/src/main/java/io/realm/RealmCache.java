@@ -24,7 +24,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.log.RealmLog;
 
@@ -275,7 +275,7 @@ final class RealmCache {
     }
 
    /**
-     * Runs the callback function with synchronization on {@class RealmCache}.
+     * Runs the callback function with synchronization on {@link RealmCache}.
      *
      * @param callback the callback will be executed.
      */
@@ -288,11 +288,12 @@ final class RealmCache {
      * Copy is performed only at the first time when there is no Realm database file.
      *
      * @param configuration configuration object for Realm instance.
-     * @throws IOException if copying the file fails.
+     * @throws RealmFileException if copying the file fails.
      */
     private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
+        IOException exceptionWhenClose = null;
         if (configuration.hasAssetFile()) {
-            File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
+            File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
             if (realmFile.exists()) {
                 return;
             }
@@ -302,7 +303,8 @@ final class RealmCache {
             try {
                 inputStream = configuration.getAssetFile();
                 if (inputStream == null) {
-                    throw new RealmIOException("Invalid input stream to asset file.");
+                    throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                            "Invalid input stream to asset file.");
                 }
 
                 outputStream = new FileOutputStream(realmFile);
@@ -312,22 +314,31 @@ final class RealmCache {
                     outputStream.write(buf, 0, bytesRead);
                 }
             } catch (IOException e) {
-                throw new RealmIOException("Could not resolve the path to the Realm asset file.", e);
+                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                        "Could not resolve the path to the Realm asset file.", e);
             } finally {
                 if (inputStream != null) {
                     try {
                         inputStream.close();
                     } catch (IOException e) {
-                        // Ignore this exception because any significant errors should already have been handled
+                        exceptionWhenClose = e;
                     }
                 }
                 if (outputStream != null) {
                     try {
                         outputStream.close();
                     } catch (IOException e) {
-                        throw new RealmIOException("Invalid output stream to " + realmFile.getPath(), e);
+                        // Ignore this one if there was an exception when close inputStream.
+                        if (exceptionWhenClose == null) {
+                            exceptionWhenClose = e;
+                        }
                     }
                 }
+            }
+
+            // No other exception has been thrown, only the exception when close. So, throw it.
+            if (exceptionWhenClose != null) {
+                throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
             }
         }
     }

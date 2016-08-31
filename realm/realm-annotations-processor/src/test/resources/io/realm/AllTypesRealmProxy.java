@@ -1,6 +1,8 @@
 package io.realm;
 
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
@@ -196,7 +198,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             proxyState.getRow$realm().nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
-        if (!RealmObject.isValid(value)) {
+        if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
         if (((RealmObjectProxy)value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
@@ -225,7 +227,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return;
         }
         for (RealmModel linkedObject : (RealmList<? extends RealmModel>) value) {
-            if (!RealmObject.isValid(linkedObject)) {
+            if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject))) {
                 throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
             }
             if (((RealmObjectProxy)linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
@@ -513,6 +515,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @SuppressWarnings("cast")
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         some.test.AllTypes obj = realm.createObject(some.test.AllTypes.class);
@@ -688,6 +691,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     public static long insert(Realm realm, some.test.AllTypes object, Map<RealmModel,Long> cache) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+        }
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativeTablePointer();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
@@ -755,6 +761,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         while (objects.hasNext()) {
             object = (some.test.AllTypes) objects.next();
             if(!cache.containsKey(object)) {
+                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
+                    continue;
+                }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
                 long rowIndex = TableOrView.NO_MATCH;
                 if (primaryKeyValue == null) {
@@ -811,6 +821,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     public static long insertOrUpdate(Realm realm, some.test.AllTypes object, Map<RealmModel,Long> cache) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            return ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex();
+        }
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativeTablePointer();
         AllTypesColumnInfo columnInfo = (AllTypesColumnInfo) realm.schema.getColumnInfo(some.test.AllTypes.class);
@@ -883,6 +896,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         while (objects.hasNext()) {
             object = (some.test.AllTypes) objects.next();
             if(!cache.containsKey(object)) {
+                if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    cache.put(object, ((RealmObjectProxy)object).realmGet$proxyState().getRow$realm().getIndex());
+                    continue;
+                }
                 String primaryKeyValue = ((AllTypesRealmProxyInterface) object).realmGet$columnString();
                 long rowIndex = TableOrView.NO_MATCH;
                 if (primaryKeyValue == null) {

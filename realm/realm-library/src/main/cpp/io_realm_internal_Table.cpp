@@ -18,7 +18,6 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Table.h"
-#include "java_lang_List_Util.hpp"
 #include "tablebase_tpl.hpp"
 
 using namespace std;
@@ -1288,7 +1287,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         return 0;
     }
 
-    std::vector<size_t> indices(S(arr_len));
+    std::vector<std::vector<size_t>> indices(S(arr_len));
     std::vector<bool> ascendings(S(arr_len));
 
     for (int i = 0; i < arr_len; ++i) {
@@ -1303,7 +1302,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_Double:
             case type_Float:
             case type_Timestamp:
-                indices[i] = S(long_arr[i]);
+                indices[i] = std::vector<size_t> { S(long_arr[i]) };
                 ascendings[i] = S(bool_arr[i]);
                 break;
             default:
@@ -1313,7 +1312,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
     }
 
     try {
-        TableView* pTableView = new TableView(pTable->get_sorted_view(indices, ascendings));
+        TableView* pTableView = new TableView(pTable->get_sorted_view(SortDescriptor(*pTable, indices, ascendings)));
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
@@ -1557,7 +1556,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
     bool valid = (TBL(nativeTablePtr) != NULL);
     if (valid) {
         if (!TBL(nativeTablePtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return 0;
         }
     }

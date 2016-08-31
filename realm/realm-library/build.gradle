@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.4.2'
+ext.coreVersion = '1.5.1'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '1dfa2b4852b1cfccb18fd1a164cfeeea2b84f8de03f1024594837ca54840665c'
+ext.coreSha256Hash = 'a034d3250c820a15126721142d168a2ac4a12223b75bb324958ca2a70442720d'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -41,10 +41,15 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}"
-                // gcc for armeabi has problem to compile std::excpetion_ptr. Disable this ABI for now. We might drop it or
-                // use the new NDK clang to compile it.
-                abiFilters 'x86', 'x86_64', /*'armeabi',*/ 'armeabi-v7a', 'arm64-v8a', 'mips'
+                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
+                          // FIXME:
+                          // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
+                          // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
+                          // JNI build currently (lack of lto linking support).
+                          // This file should be removed and use the one from Android SDK cmake package when it supports lto.
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                // armeabi is not supported anymore.
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
             }
         }
     }
@@ -295,7 +300,7 @@ artifacts {
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore(group: 'build setup', description: 'Download the latest version of Realm Core') {
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -324,7 +329,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
             return false
         }
 
-        println "Existing archive hash mismatch(Expected: ${project.coreSha256Hash.toLowerCase()}" +
+        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
                 " but got ${calculatedHash.toLowerCase()}). Download new version."
         return true
     }
@@ -347,7 +352,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
                             "${calculatedHash.toLowerCase()}.");
                 }
             } else {
-                println 'Skipping hash check(empty \'coreSha256Hash\').'
+                println 'Skipping hash check (empty \'coreSha256Hash\').'
             }
         }
     }
@@ -379,7 +384,7 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
     }
 }
 
-task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
+task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
         coreSourcePath ? compileCore : downloadCore
     }
@@ -410,3 +415,84 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 }
 
 preBuild.dependsOn deployCore
+
+if (project.hasProperty('dontCleanJniFiles')) {
+    project.afterEvaluate {
+        tasks.all { task ->
+            if (task.name.startsWith('externalNativeBuildClean')) {
+                task.enabled = false
+            }
+        }
+    }
+} else {
+    task cleanExternalBuildFiles(type: Delete) {
+        delete project.file('.externalNativeBuild')
+    }
+    clean.dependsOn cleanExternalBuildFiles
+}
+
+project.afterEvaluate {
+    android.libraryVariants.all { variant ->
+        variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
+    }
+}
+
+task checkNdk() << {
+    def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
+    if (!ndkPathInEnvVariable) {
+        throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
+    }
+    checkNdk(ndkPathInEnvVariable)
+
+    def localPropFile = rootProject.file('local.properties')
+    if (!localPropFile.exists()) {
+        // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
+    } else {
+        def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
+        if (!ndkPathInLocalProperties) {
+            throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
+        }
+        checkNdk(ndkPathInLocalProperties)
+        if (new File(ndkPathInLocalProperties).getCanonicalPath()
+                != new File(ndkPathInEnvVariable).getCanonicalPath()) {
+            throw new GradleException(
+                    "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
+                            + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
+                            + ' must point the same directory.')
+        }
+    }
+}
+
+def checkNdk(String ndkPath) {
+    def detectedNdkVersion
+    def releaseFile = new File(ndkPath, 'RELEASE.TXT')
+    def propertyFile = new File(ndkPath, 'source.properties')
+    if (releaseFile.isFile()) {
+        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
+    } else if (propertyFile.isFile()) {
+        detectedNdkVersion = getValueFromPropertiesFile(propertyFile, 'Pkg.Revision')
+        if (detectedNdkVersion == null) {
+            throw new GradleException("Failed to obtain the NDK version information from ${ndkPath}/source.properties")
+        }
+    } else {
+        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
+    }
+    if (detectedNdkVersion != project.ndkVersion) {
+        throw new GradleException("Your NDK version: ${detectedNdkVersion}."
+                +" Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
+    }
+}
+
+def getValueFromPropertiesFile(File propFile, String key) {
+    if (!propFile.isFile() || !propFile.canRead()) {
+        return null
+    }
+    def prop = new Properties()
+    def reader = propFile.newReader()
+    try {
+        prop.load(reader)
+    } finally {
+        reader.close()
+    }
+    return prop.get(key)
+}

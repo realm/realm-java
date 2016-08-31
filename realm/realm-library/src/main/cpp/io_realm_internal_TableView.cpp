@@ -29,7 +29,7 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
     bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return false;
         }
         // depends_on_deleted_linklist() will return true if and only if the current TableView was created from a
@@ -85,30 +85,33 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
     if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
         return;
     try {
+        TableView* tv = TV(nativeViewPtr);
         JniLongArray indexes(env, columnIndexes);
         jsize indexes_len = indexes.len();
-        std::vector<size_t> columns;
+        std::vector<std::vector<size_t>> columns;
+        std::vector<bool> ascending;
         for (int i = 0; i < indexes_len; ++i) {
-            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), indexes[i])) {
+            if (!COL_INDEX_VALID(env, tv, indexes[i])) {
                 return;
             }
-            if (!TV(nativeViewPtr)->get_parent().has_search_index(S(indexes[i]))) {
+            if (!tv->get_parent().has_search_index(S(indexes[i]))) {
                 ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
                 return;
             }
-            switch (TV(nativeViewPtr)->get_column_type(S(indexes[i]))) {
+            switch (tv->get_column_type(S(indexes[i]))) {
                 case type_Bool:
                 case type_Int:
                 case type_String:
                 case type_Timestamp:
-                    columns.push_back(S(indexes[i]));
+                    columns.push_back(std::vector<size_t> { S(indexes[i]) });
+                    ascending.push_back(true);
                     break;
                 default:
                     ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
                     return;
             }
         }
-        TV(nativeViewPtr)->distinct(columns);
+        tv->distinct(SortDescriptor(tv->get_parent(), columns, ascending));
     } CATCH_STD()
 }
 
@@ -883,14 +886,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
             return;
         }
 
-        std::vector<size_t> indices;
+        TableView* tv = TV(nativeViewPtr);
+        std::vector<std::vector<size_t>> indices;
         std::vector<bool> ascendings;
 
         for (int i = 0; i < arr_len; ++i) {
-            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), long_arr[i])) {
+            if (!COL_INDEX_VALID(env, tv, long_arr[i])) {
                 return;
             }
-            int colType = TV(nativeViewPtr)->get_column_type( S(long_arr[i]) );
+            int colType = tv->get_column_type( S(long_arr[i]) );
             switch (colType) {
                 case type_Bool:
                 case type_Int:
@@ -898,7 +902,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                 case type_Double:
                 case type_String:
                 case type_Timestamp:
-                    indices.push_back( S(long_arr[i]) );
+                    indices.push_back(std::vector<size_t> { S(long_arr[i]) });
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:
@@ -906,7 +910,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                     return;
             }
         }
-        TV(nativeViewPtr)->sort(indices, ascendings);
+        tv->sort(SortDescriptor(tv->get_parent(), indices, ascendings));
     } CATCH_STD()
 }
 
@@ -947,7 +951,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
     bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return 0;
         }
     }

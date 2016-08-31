@@ -25,6 +25,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import io.realm.RealmConfiguration;
+import io.realm.exceptions.RealmError;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertFalse;
@@ -114,6 +115,15 @@ public class SharedRealmTests {
     }
 
     @Test
+    public void removeTable_tableNotExist() {
+        sharedRealm.beginTransaction();
+        assertFalse(sharedRealm.hasTable("TableToRemove"));
+        thrown.expect(RealmError.class);
+        sharedRealm.removeTable("TableToRemove");
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
     public void renameTable() {
         sharedRealm.beginTransaction();
         sharedRealm.getTable("OldTable");
@@ -131,5 +141,14 @@ public class SharedRealmTests {
         sharedRealm.commitTransaction();
         thrown.expect(IllegalStateException.class);
         sharedRealm.renameTable("OldTable", "NewTable");
+    }
+
+    @Test
+    public void renameTable_tableNotExist() {
+        sharedRealm.beginTransaction();
+        assertFalse(sharedRealm.hasTable("TableToRemove"));
+        thrown.expect(RealmError.class);
+        sharedRealm.renameTable("TableToRemove", "newName");
+        sharedRealm.cancelTransaction();
     }
 }

@@ -69,8 +69,6 @@ public class RealmCore {
             System.loadLibrary(jnilib);
         }
         libraryIsLoaded = true;
-
-        Version.coreLibVersionCompatible(true);
     }
 
     /**

@@ -27,6 +27,14 @@ import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
 
+    // Const value for RealmFileException conversion
+    public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
+    public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 1;
+    public static final byte FILE_EXCEPTION_KIND_EXISTS = 2;
+    public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 3;
+    public static final byte FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE = 4;
+    public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -96,8 +104,12 @@ public final class SharedRealm implements Closeable {
 
         @Override
         public boolean equals(Object object) {
-            if (this == object) return true;
-            if (object == null || getClass() != object.getClass()) return false;
+            if (this == object) {
+                return true;
+            }
+            if (object == null || getClass() != object.getClass()) {
+                return false;
+            }
 
             VersionID versionID = (VersionID) object;
             return (version == versionID.version && index == versionID.index);
@@ -145,8 +157,7 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    // FIXME: should be protected
-    public long getNativePtr() {
+    long getNativePtr() {
         return nativePtr;
     }
 
@@ -310,7 +321,8 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
     private static native long nativeSchema(long nativeSharedRealmPtr);
-    private static native long nativeUpdateSchema(long nativeSharedRealmPtr, Object dynamicRealm, long nativeSchemaPtr, long schemaVersion, Object migration);
+    private static native long nativeUpdateSchema(long nativeSharedRealmPtr, Object dynamicRealm, long nativeSchemaPtr,
+            long schemaVersion, Object migration);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);
@@ -321,7 +333,8 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
     private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
-    private static native void nativeRenameField(long natveSharedRealmPtr, String className, String oldName, String newName);
+    private static native void nativeRenameField(long natveSharedRealmPtr, String className, String oldName,
+            String newName);
     private static native long nativeSize(long nativeSharedRealmPtr);
     private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, byte[] key);
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);

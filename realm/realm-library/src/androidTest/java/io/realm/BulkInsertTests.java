@@ -816,6 +816,82 @@ public class BulkInsertTests {
         assertEquals(2, realm.where(AllJavaTypes.class).count());
     }
 
+    @Test
+    public void insertManagedObjectWillNotDuplicate() {
+        realm.beginTransaction();
+        Dog managedRealmObject = realm.createObject(Dog.class);
+        managedRealmObject.setName("dog1");
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        realm.insert(managedRealmObject);
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(Dog.class).count());
+    }
+
+    @Test
+    public void insertOrUpdate_collectionOfManagedObjects() {
+        realm.beginTransaction();
+        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class);
+        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class));
+        realm.commitTransaction();
+        assertEquals(1, allTypes.getColumnRealmList().size());
+
+        List<AllTypesPrimaryKey>  list = new ArrayList<AllTypesPrimaryKey>();
+        // Although there are two same objects in the list, none of them should be saved to the db since they are managed
+        // already.
+        list.add(allTypes);
+        list.add(allTypes);
+
+        realm.beginTransaction();
+        realm.insertOrUpdate(list);
+        realm.commitTransaction();
+        allTypes = realm.where(AllTypesPrimaryKey.class).findFirst();
+        assertNotNull(allTypes);
+        assertEquals(1, allTypes.getColumnRealmList().size());
+    }
+
+    // To reproduce https://github.com/realm/realm-java/issues/3105
+    @Test
+    public void insertOrUpdate_shouldNotClearRealmList() {
+        realm.beginTransaction();
+        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class);
+        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class));
+        realm.commitTransaction();
+        assertEquals(1, allTypes.getColumnRealmList().size());
+
+        realm.beginTransaction();
+        realm.insertOrUpdate(allTypes);
+        realm.commitTransaction();
+        allTypes = realm.where(AllTypesPrimaryKey.class).findFirst();
+        assertNotNull(allTypes);
+        assertEquals(1, allTypes.getColumnRealmList().size());
+    }
+
+    @Test
+    public void insert_collectionOfManagedObjects() {
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.getColumnRealmList().add(realm.createObject(Dog.class));
+        realm.commitTransaction();
+        assertEquals(1, allTypes.getColumnRealmList().size());
+
+        List<AllTypes>  list = new ArrayList<AllTypes>();
+        // Although there are two same objects in the list, none of them should be saved to the db since they are managed
+        // already.
+        list.add(allTypes);
+        list.add(allTypes);
+
+        realm.beginTransaction();
+        realm.insert(list);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(AllTypes.class).count());
+        allTypes = realm.where(AllTypes.class).findFirst();
+        assertNotNull(allTypes);
+        assertEquals(1, allTypes.getColumnRealmList().size());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void insert_collection_notInTransaction() {
         realm.insert(Arrays.asList(new AllTypes(), new AllTypes()));

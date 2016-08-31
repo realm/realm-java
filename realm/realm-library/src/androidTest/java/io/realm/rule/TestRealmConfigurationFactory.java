@@ -18,6 +18,7 @@ package io.realm.rule;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.support.test.InstrumentationRegistry;
 
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
@@ -34,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.TestHelper;
 
 import static org.junit.Assert.assertTrue;
 
@@ -73,6 +75,10 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void after() {
+        // Wait all async tasks done to ensure successful deleteRealm call.
+        // This will throw when timeout. And the reason of timeout needs to be solved properly.
+        TestHelper.waitRealmThreadExecutorFinish();
+
         try {
             for (RealmConfiguration configuration : configurations) {
                 Realm.deleteRealm(configuration);
@@ -83,13 +89,14 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 throw e;
             }
         } finally {
-            // This will delete the temp folder.
+            // This will delete the temp directory.
             super.after();
         }
     }
 
     public RealmConfiguration createConfiguration() {
-        RealmConfiguration configuration = new RealmConfiguration.Builder(getRoot())
+        RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(getRoot())
                 .build();
 
         configurations.add(configuration);
@@ -99,7 +106,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     public RealmConfiguration createConfiguration(String subDir, String name) {
         final File folder = new File(getRoot(), subDir);
         assertTrue(folder.mkdirs());
-        RealmConfiguration configuration = new RealmConfiguration.Builder(folder)
+        RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(folder)
                 .name(name)
                 .build();
 
@@ -108,7 +116,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public RealmConfiguration createConfiguration(String name) {
-        RealmConfiguration configuration = new RealmConfiguration.Builder(getRoot())
+        RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(getRoot())
                 .name(name)
                 .build();
 
@@ -117,7 +126,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public RealmConfiguration createConfiguration(String name, byte[] key) {
-        RealmConfiguration configuration = new RealmConfiguration.Builder(getRoot())
+        RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(getRoot())
                 .name(name)
                 .encryptionKey(key)
                 .build();
@@ -127,14 +137,15 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public RealmConfiguration.Builder createConfigurationBuilder() {
-        return new RealmConfiguration.Builder(getRoot());
+        return new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).directory(getRoot());
     }
 
     // Copies a Realm file from assets to temp dir
     public void copyRealmFromAssets(Context context, String realmPath, String newName)
             throws IOException {
         // Delete the existing file before copy
-        RealmConfiguration configToDelete = new RealmConfiguration.Builder(getRoot())
+        RealmConfiguration configToDelete = new RealmConfiguration.Builder(context)
+                .directory(getRoot())
                 .name(newName)
                 .build();
         Realm.deleteRealm(configToDelete);

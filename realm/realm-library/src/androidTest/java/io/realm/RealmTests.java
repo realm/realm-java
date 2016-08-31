@@ -40,7 +40,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -85,9 +84,8 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.log.RealmLog;
@@ -176,30 +174,6 @@ public class RealmTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getInstance_nullDir() {
-        Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
-    }
-
-    @Test
-    public void getInstance_writeProtectedDir() {
-        File folder = new File("/");
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(folder).build());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getInstance_nullContextWithCustomDirThrows() {
-        Realm.getInstance(new RealmConfiguration.Builder((Context) null, configFactory.getRoot()).build());
-    }
-
-    @Test
-    public void getInstance_writeProtectedDirWithContext() {
-        File folder = new File("/");
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(context, folder).build());
-    }
-
     @Test
     public void getInstance_writeProtectedFile() throws IOException {
         String REALM_FILE = "readonly.realm";
@@ -209,10 +183,14 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        // FIXME: Why do we throw RealmIOException for this case, but IAE for other cases when opening Realm?
-        //thrown.expect(RealmIOException.class);
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                    .directory(folder)
+                    .name(REALM_FILE)
+                    .build());
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+        }
     }
 
     @Test
@@ -224,10 +202,11 @@ public class RealmTests {
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
 
-        // FIXME: Why do we throw RealmIOException for this case, but IAE for other cases when opening Realm?
-        //thrown.expect(RealmIOException.class);
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
+        } catch (RealmFileException expected) {
+            assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
+        }
     }
 
     @Test
@@ -1906,10 +1885,10 @@ public class RealmTests {
 
     @Test
     public void writeEncryptedCopyTo_wrongKeyLength() {
-        byte[]  wrongLentKey = new byte[42];
+        byte[]  wrongLengthKey = new byte[42];
         File destination = new File(configFactory.getRoot(), "wrong_key.realm");
         thrown.expect(IllegalArgumentException.class);
-        realm.writeEncryptedCopyTo(destination, wrongLentKey);
+        realm.writeEncryptedCopyTo(destination, wrongLengthKey);
     }
 
     @Test
@@ -1980,7 +1959,9 @@ public class RealmTests {
         File tempDirRenamed = new File(configFactory.getRoot(), "delete_test_dir_2");
         assertTrue(tempDir.mkdir());
 
-        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
+        final RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(tempDir)
+                .build();
 
         final CountDownLatch bgThreadReadyLatch = new CountDownLatch(1);
         final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
@@ -3429,27 +3410,5 @@ public class RealmTests {
         thread.end();
         TestHelper.awaitOrFail(bgRealmFished);
         assertFalse(bgRealmChangeResult.get());
-    }
-
-    @Test
-    public void incompatibleLockFile() throws IOException {
-        // Replace .lock file with a corrupted one
-        File lockFile = new File(realmConfig.getPath() + ".lock");
-        assertTrue(lockFile.exists());
-        FileOutputStream fooStream = new FileOutputStream(lockFile, false);
-        fooStream.write("Boom".getBytes());
-        fooStream.close();
-
-        try {
-            // This will try to open a second SharedGroup which should fail when the .lock file is corrupt
-            DynamicRealm.getInstance(realm.getConfiguration());
-            fail();
-        } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Realm file is currently open in another process which cannot" +
-                    " share access with this process." +
-                    " All processes sharing a single file must be the same architecture."));
-        } finally {
-            lockFile.delete();
-        }
     }
 }

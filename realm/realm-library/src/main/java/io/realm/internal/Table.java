@@ -568,16 +568,6 @@ public class Table implements TableOrView, TableSchema {
         return columnIndex == getPrimaryKey();
     }
 
-    public TableView getSortedView(long columnIndices[], Sort sortOrders[]) {
-        context.executeDelayedDisposal();
-        boolean[] nativeSortOrder = new boolean[sortOrders.length];
-        for (int i = 0; i < sortOrders.length; i++) {
-            nativeSortOrder[i] = sortOrders[i].getValue();
-        }
-        long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, columnIndices, nativeSortOrder);
-        return new TableView(this.context, this, nativeViewPtr);
-    }
-
     /**
      * Returns the column index for the primary key.
      *
@@ -1301,6 +1291,7 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long createNative();
+    // Free the underlying table ref. It is important that the nativeTablePtr become a invalid pointer after return.
     static native void nativeClose(long nativeTablePtr);
     private native boolean nativeIsValid(long nativeTablePtr);
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
