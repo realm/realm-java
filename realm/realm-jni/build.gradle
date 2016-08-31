@@ -146,7 +146,8 @@ def getNdk() {
             reader.close()
         }
     } else {
-        throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
+        def release = file("${ndkDir}/RELEASE.TXT")?.text
+        throw new GradleException("The path provided in the NDK_HOME environment variable does not seem to be an Android NDK: ${ndkDir} rel: ${release}")
     }
     //noinspection GroovyVariableNotAssigned
     if (detectedNdkVersion != ndkVersion) {
