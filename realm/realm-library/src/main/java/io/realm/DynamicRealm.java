@@ -77,7 +77,12 @@ public final class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className) {
         checkIfValid();
         Table table = schema.getTable(className);
-        long rowIndex = table.addEmptyRow();
+        // Check and throw the exception earlier for a better exception message.
+        if (table.hasPrimaryKey()) {
+            throw new RealmException(String.format("'%s' has a primary key, use" +
+                    " 'createObject(String, Object)' to create it.", className));
+        }
+        long rowIndex = table.addEmptyRow(false);
         return get(DynamicRealmObject.class, className, rowIndex);
     }
 

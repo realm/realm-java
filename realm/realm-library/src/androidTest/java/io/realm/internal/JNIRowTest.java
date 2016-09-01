@@ -86,7 +86,7 @@ public class JNIRowTest extends TestCase {
         table.addColumn(RealmFieldType.DATE, "date");
         table.addColumn(RealmFieldType.BINARY, "binary");
 
-        long rowIndex = table.addEmptyRow();
+        long rowIndex = table.addEmptyRow(true);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
 
         row.setString(colStringIndex, "test");

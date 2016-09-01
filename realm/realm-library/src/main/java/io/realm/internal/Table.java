@@ -373,25 +373,18 @@ public class Table implements TableOrView, TableSchema {
         nativeMoveLastOver(nativePtr, rowIndex);
     }
 
-    public long addEmptyRow() {
+    /**
+     * Add an empty row to the table.
+     *
+     * @param checkPrimaryKey set to true to check if this table has a primary key defined. Throw an exception if yes.
+     * @return row index.
+     * @throws RealmException if row cannot be added.
+     */
+    public long addEmptyRow(boolean checkPrimaryKey) {
         checkImmutable();
-        if (hasPrimaryKey()) {
-            long primaryKeyColumnIndex = getPrimaryKey();
-            RealmFieldType type = getColumnType(primaryKeyColumnIndex);
-            switch (type) {
-                case STRING:
-                    if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
-                    }
-                    break;
-                case INTEGER:
-                    if (findFirstLong(primaryKeyColumnIndex, INTEGER_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
-                    }
-                    break;
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
+        if (!checkPrimaryKey && hasPrimaryKey()) {
+            throw new RealmException(String.format("Class '%s' has a primary key defined and the primary key needs to" +
+                    " be set when creating new object.", getName()));
         }
 
         return nativeAddEmptyRow(nativePtr, 1);
@@ -469,7 +462,7 @@ public class Table implements TableOrView, TableSchema {
            if (rows > 1) {
                throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
            }
-           return addEmptyRow();
+           return addEmptyRow(false);
         }
         return nativeAddEmptyRow(nativePtr, rows);
     }
@@ -481,7 +474,7 @@ public class Table implements TableOrView, TableSchema {
      * @return the row index of the appended row.
      */
     protected long add(Object... values) {
-        long rowIndex = addEmptyRow();
+        long rowIndex = addEmptyRow(false);
 
         checkImmutable();
 

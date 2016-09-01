@@ -2087,6 +2087,12 @@ public class RealmTests {
         }
     }
 
+    @Test(expected = RealmException.class)
+    public void createObject_absentPrimaryKeyThrows() {
+        realm.beginTransaction();
+        realm.createObject(DogPrimaryKey.class);
+    }
+
     @Test
     public void createObjectWithPrimaryKey() {
         realm.beginTransaction();

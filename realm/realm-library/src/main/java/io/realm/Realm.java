@@ -675,7 +675,12 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
         Table table = schema.getTable(clazz);
-        long rowIndex = table.addEmptyRow();
+        // Check and throw the exception earlier for a better exception message.
+        if (table.hasPrimaryKey()) {
+            throw new RealmException(String.format("'%s' has a primary key, use" +
+                    " 'createObject(Class<E>, Object)' to create it.", clazz.getSimpleName()));
+        }
+        long rowIndex = table.addEmptyRow(false);
         return get(clazz, rowIndex);
     }
 
