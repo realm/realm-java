@@ -421,7 +421,7 @@ public class RealmProxyClassGenerator {
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                String nullableFlag = (metadata.isNullable(field)?"":"!") + "Property.REQUIRED";
+                String nullableFlag = (metadata.isNullable(field)?"!":"") + "Property.REQUIRED";
                 String indexedFlag = (metadata.isIndexed(field)?"":"!") + "Property.INDEXED";
                 String primaryKeyFlag = (metadata.isPrimaryKey(field)?"":"!") + "Property.PRIMARY_KEY";
                 writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", %s, %s, %s, %s))",
