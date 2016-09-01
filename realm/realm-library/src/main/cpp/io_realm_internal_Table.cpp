@@ -1356,15 +1356,15 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
-    JNIEnv*, jclass, jlong nativeTablePtr)
+    JNIEnv* env, jclass, jlong nativeTablePtr)
 {
-    TR_ENTER_PTR(nativeTablePtr)
+    TR_ENTER_PTR(env, nativeTablePtr)
     LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, jobject)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     try {
         return reinterpret_cast<jlong>(LangBindHelper::new_table());
     } CATCH_STD()
@@ -1532,7 +1532,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
-  (JNIEnv *, jobject, jlong thisTablePtr, jlong otherTablePtr)
+  (JNIEnv*, jobject, jlong thisTablePtr, jlong otherTablePtr)
 {
     return *TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor();
 }

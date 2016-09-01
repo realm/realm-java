@@ -29,7 +29,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * Manages the update of async queries.
@@ -118,11 +118,11 @@ public class QueryUpdateTask implements Runnable {
 
         } catch (BadVersionException e) {
             // In some rare race conditions, this can happen. In that case, just ignore the error.
-            RealmLog.d("Query update task could not complete due to a BadVersionException. " +
+            RealmLog.debug("Query update task could not complete due to a BadVersionException. " +
                     "Retry is scheduled by a REALM_CHANGED event.");
 
         } catch (Throwable e) {
-            RealmLog.e(e.getMessage(), e);
+            RealmLog.error(e);
             RealmNotifier notifier = callerNotifier.get();
             if (notifier!= null) {
                 notifier.throwBackgroundException(e);

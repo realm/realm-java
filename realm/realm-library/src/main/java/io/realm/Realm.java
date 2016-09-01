@@ -50,7 +50,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
@@ -1089,7 +1089,7 @@ public final class Realm extends BaseRealm {
             if (isInTransaction()) {
                 cancelTransaction();
             } else {
-                RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+                RealmLog.warn("Could not cancel transaction, not currently in a transaction.");
             }
             throw e;
         }
@@ -1198,7 +1198,7 @@ public final class Realm extends BaseRealm {
                         if (bgRealm.isInTransaction()) {
                             bgRealm.cancelTransaction();
                         } else if (exception[0] != null) {
-                            RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+                            RealmLog.warn("Could not cancel transaction, not currently in a transaction.");
                         }
                         bgRealm.close();
                     }

@@ -91,7 +91,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     string message;
     jclass jExceptionClass = NULL;
 
-    TR_ERR("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
+    TR_ERR(env, "jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
 
     switch (exception) {
         case ClassNotFound:
@@ -146,10 +146,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
-        TR_ERR("Exception has been throw: %s", message.c_str())
+        TR_ERR(env, "Exception has been throw: %s", message.c_str())
     }
     else {
-        TR_ERR("ERROR: Couldn't throw exception.")
+        TR_ERR(env, "ERROR: Couldn't throw exception.", NULL)
     }
 
     env->DeleteLocalRef(jExceptionClass);

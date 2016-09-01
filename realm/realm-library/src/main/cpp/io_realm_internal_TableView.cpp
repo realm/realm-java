@@ -616,9 +616,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllString(
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
             return 0;
         JStringAccessor value2(env, value); // throws
-        TR("nativeFindAllString(col %" PRId64 ", string '%s') ", S64(columnIndex), StringData(value2).data())
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), value2) );
-        TR("-- resultview size=%" PRId64 ".", S64(pResultView->size()))
         return reinterpret_cast<jlong>(pResultView);
     } CATCH_STD()
     return 0;
@@ -934,7 +932,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
     JNIEnv *env, jobject, jlong nativeViewPtr)
 {
-    TR_ENTER_PTR(nativeViewPtr)
+    TR_ENTER_PTR(env, nativeViewPtr)
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
@@ -964,7 +962,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
         (JNIEnv *env, jobject, jlong nativeViewPtr, jlong sourceIndex)
 {
-    TR_ENTER_PTR(nativeViewPtr);
+    TR_ENTER_PTR(env, nativeViewPtr);
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !ROW_INDEX_VALID(env, &(TV(nativeViewPtr)->get_parent()), sourceIndex))
             return -1;

@@ -48,7 +48,8 @@ import io.realm.instrumentation.MockActivityManager;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -174,7 +175,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_exceptionHandling() throws Throwable {
-        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger(LogLevel.DEBUG);
         RealmLog.add(testLogger);
 
         final Realm realm = looperThread.realm;

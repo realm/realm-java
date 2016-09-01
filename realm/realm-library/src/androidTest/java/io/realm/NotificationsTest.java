@@ -33,9 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.ref.WeakReference;
-import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -48,8 +46,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.internal.log.Logger;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.Logger;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1179,7 +1177,7 @@ public class NotificationsTest {
         final AtomicBoolean warningLogged = new AtomicBoolean(false);
         final TestHelper.TestLogger testLogger = new TestHelper.TestLogger() {
             @Override
-            public void w(String message) {
+            public void warn(Throwable t, String message, Object... args) {
                 assertTrue(message.contains("Mixing asynchronous queries with local writes should be avoided."));
                 warningLogged.set(true);
             }

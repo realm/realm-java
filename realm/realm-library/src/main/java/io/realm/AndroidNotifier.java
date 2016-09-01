@@ -23,7 +23,7 @@ import android.os.Message;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.async.QueryUpdateTask;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * Implementation of {@link RealmNotifier} for Android based on {@link Handler}.
@@ -91,7 +91,7 @@ class AndroidNotifier implements RealmNotifier {
             messageHandled = handler.sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
         }
         if (!messageHandled) {
-            RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+            RealmLog.warn("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                     "to prevent this.");
         }
     }
