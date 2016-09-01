@@ -40,8 +40,7 @@ try {
           storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/**/TEST-*.xml'
           storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/**/TEST-*.xml'
           step([$class: 'LintPublisher'])
-          sh "cat integration-tests/sync/test_server/deebug.log"
-          sh "cat integration-tests/sync/test_server/process_builder.log"
+          sh "cat integration-tests/sync/test_server/debug.log"
         }
 
         stage 'Static code analysis'

@@ -17,18 +17,13 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
     tasks.withType(JavaCompile) {
         compileTask -> compileTask.dependsOn reverseNodeServerPort, reverseSyncServerPort, startServer
     }
-}
-
-task untarRealmServer(type: Exec) {
-    commandLine 'pwd'
-//    commandLine 'tar', 'zxf', '/tmp/opt/realm-sync-0.27.4-101.tgz'
 }
 
 task reverseNodeServerPort(type: Exec) {
@@ -49,48 +44,12 @@ task reverseNodeServerPort(type: Exec) {
     }
 }
 
-task startServer(dependsOn: untarRealmServer)  {
+task startServer()  {
     doLast {
-//        def pidFile = new File('.', '.pid.lock')//TODO use BUIld var location to have a consistent path whenever we run the script
-//        if (pidFile.exists()) {
-//            // try to kill the previous process
-//            def pid = pidFile.text
-//            def process = "kill -9 $pid".execute()
-//
-//            try {
-//                process.waitFor()
-//            } finally {
-//                pidFile.delete()
-//            }
-//        }
         //start new process
-        def processBuilder = new ProcessBuilder(['nodejs','server.js', 'deebug.log'])
-//        def processBuilder = new ProcessBuilder(['node','server.js', 'deebug.log'])
-        File log = new File("$projectDir/test_server/process_builder.log");
-        processBuilder.redirectErrorStream(true)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(log))
+        def processBuilder = new ProcessBuilder(['nodejs','server.js', 'debug.log'])
         processBuilder.directory(new File("$projectDir/test_server"))
-        Process process = processBuilder.start()
-
-//         block until the server is up
-//        while (true) {
-//            def proc = "lsof -n -i4TCP:8888".execute()
-//            try {
-//                proc.waitFor()
-//            } finally {
-//                def exitValue = proc.exitValue()
-//                if (exitValue == 0) {
-//                    //set pid
-////                    def pidField = process.class.getDeclaredField('pid')
-////                    pidField.accessible = true
-////                    pidFile << pidField.getInt(process)
-//                    break;
-//                } else {
-//                    // TODO add sleep to timeout
-//                    logger.error("Waiting for server to be up")
-//                }
-//            }
-//        }
+        processBuilder.start()
     }
 }
 
