@@ -200,7 +200,7 @@ public abstract class CollectionTests {
                 return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
 
             case MANAGED_REALMLIST:
-                AllJavaTypes first = realm.createObject(AllJavaTypes.class);
+                AllJavaTypes first = realm.createObject(AllJavaTypes.class, 0);
                 first.setFieldString(args[0]);
                 first.getFieldList().add(first);
                 for (int i = 1; i < args.length; i++) {

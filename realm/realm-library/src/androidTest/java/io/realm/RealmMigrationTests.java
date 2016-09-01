@@ -515,9 +515,9 @@ public class RealmMigrationTests {
             realm.executeTransaction(new DynamicRealm.Transaction() {
                 @Override
                 public void execute(DynamicRealm realm) {
-                    realm.createObject(className).setString(MigrationPrimaryKey.FIELD_PRIMARY, "12");
+                    realm.createObject(className, "12");
                     if (insertNullValue) {
-                        realm.createObject(className).setString(MigrationPrimaryKey.FIELD_PRIMARY, null);
+                        realm.createObject(className, null);
                     }
                 }
             });
