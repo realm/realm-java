@@ -49,3 +49,4 @@ RUN cd /tmp/opt/android-ndk-tmp && chmod a+x ./android-ndk.bin && sync && ./andr
 RUN cd /tmp/opt/android-ndk-tmp && mv ./android-ndk-r10e /tmp/opt/android-ndk
 RUN chmod 777 /tmp/opt/android-ndk/RELEASE.TXT
 RUN rm -rf /tmp/opt/android-ndk-tmp
+RUN chmod 755 /tmp/opt/android-ndk
