@@ -26,7 +26,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.BaseRealm;
-import io.realm.BuildConfig;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
 import io.realm.internal.log.RealmLog;
@@ -34,13 +33,10 @@ import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
 import io.realm.objectserver.session.Session;
 
-import static io.realm.objectserver.ErrorCode.Category.FATAL;
-import static io.realm.objectserver.ErrorCode.Category.RECOVERABLE;
-
 @Keep
 public final class SyncManager {
 
-    public static final String APP_ID = BuildConfig.APPLICATION_ID;
+    public static final String APP_ID = "foo"; // FIXME Find a way to get an application ID
     // Thread pool used when doing network requests against the Realm Authentication Server.
     // FIXME Set proper parameters
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
