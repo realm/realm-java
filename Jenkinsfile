@@ -22,6 +22,7 @@ try {
       def buildEnv = docker.build 'realm-java:snapshot'
       buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android") {
         withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+          sh "ls -l /tmp/opt/"          
           sh "s3cmd -c ${env.S3CFG} sync s3://realm-ci-artifacts/sync/v${syncVersion}/linux/ /tmp/opt/"
           sh 'tar zxf /tmp/opt/*.tgz -C /tmp/opt'
         }
@@ -32,7 +33,7 @@ try {
         try {
           backgroundPid = startLogCatCollector()
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-            sh "chmod +x gradlew && ./gradlew --debug installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
+            sh "chmod +x gradlew && ./gradlew installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
           }
           archiveLog = false;
         } finally {
