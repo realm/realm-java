@@ -19,7 +19,6 @@ package io.realm.internal;
 import junit.framework.TestCase;
 
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.internal.TableOrView.PivotType;
 
 public class PivotTest extends TestCase {
