@@ -559,7 +559,7 @@ public class BulkInsertTests {
     public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, Dog.class, DogPrimaryKey.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
