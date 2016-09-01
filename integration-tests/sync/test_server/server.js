@@ -39,7 +39,7 @@ dispatcher.onGet("/start", function(req, res) {
 //        syncServerChildProcess = spawn(syncServerBinaryDir + '/realm-server-noinst', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
 //        syncServerChildProcess = spawn('./realm-sync-server-0.28.0/realm-server-dbg-noinst', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
 
-        syncServerChildProcess = spawn('/tmp/opt/realm-sync-0.27.4-101/bin/realm-server', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem'], {env: {LD_LIBRARY_PATH: '/opt/realm-sync-0.27.4-101/lib/'}});
+        syncServerChildProcess = spawn('/tmp/opt/realm-sync-0.27.4-101/bin/realm-server', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem'], {env: {LD_LIBRARY_PATH: '/tmp/opt/realm-sync-0.27.4-101/lib/'}});
 //        syncServerChildProcess = spawn('realm-server', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem']);
 
         syncServerChildProcess.stdout.on('data', (data) => {
