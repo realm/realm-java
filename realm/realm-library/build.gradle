@@ -127,9 +127,9 @@ task javadoc(type: Javadoc) {
         locale = 'en_US'
         overview = 'src/overview.html'
 
-        links "http://docs.oracle.com/javase/7/docs/api/"
+        links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "http://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
