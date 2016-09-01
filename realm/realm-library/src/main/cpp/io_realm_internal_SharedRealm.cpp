@@ -219,7 +219,10 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
     auto schema = reinterpret_cast<Schema*>(schema_ptr);
     auto version = static_cast<uint64_t>(schema_version);
     try {
-        if (migration_object != NULL) {
+        if (migration_object == NULL) {
+            shared_realm->update_schema(std::move(*schema), version, nullptr);
+        }
+        else {
             jmethodID realm_migration_method = nullptr;
             jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
             realm_migration_method = env->GetMethodID(realm_migration_class, "migration",
@@ -228,17 +231,13 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
                 throw std::runtime_error("Cannot find method 'migration' of class 'io.realm.RealmMigration'.");
                 return 0;
             }
-            Realm::MigrationFunction migration_function;
-            migration_function = [=](SharedRealm /*old_realm*/, SharedRealm /*realm*/, Schema &/*mutable_schema*/) {
+            Realm::MigrationFunction migration_function = [=](SharedRealm /*old_realm*/, SharedRealm /*realm*/, Schema &/*mutable_schema*/) {
                 auto &config = shared_realm->config();
                 jlong schema_new_version = jlong(config.schema_version);
                 env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version,
                                     schema_new_version);
             };
             shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
-        }
-        else {
-            shared_realm->update_schema(std::move(*schema), version);
         }
     } CATCH_STD()
     return 0;

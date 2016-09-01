@@ -270,8 +270,8 @@ public final class RealmSchema {
     }
 
     RealmObjectSchema getSchemaForClass(Class<? extends RealmModel> clazz) {
-        String className = clazz.getName();
-        return getSchemaForClass(className);
+        // FIXME: add original implementation
+        return getSchemaForClass(realm.configuration.getSchemaMediator().getTableName(clazz).substring(Table.TABLE_PREFIX.length()));
     }
 
     private static boolean isProxyClass(Class<? extends RealmModel> modelClass,
