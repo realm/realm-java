@@ -1,27 +1,49 @@
-## 1.2.0
+## 2.0.0
+
+### Breaking Changes
+
+* `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
+* armeabi is not supported anymore.
+* Added new `RealmFileException`.
+  - `IncompatibleLockFileException` has been removed and replaced by `RealmFileException` with kind `INCOMPATIBLE_LOCK_FILE`.
+  - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
 
 ### Enhancements
 
-* Added `RealmQuery.in()` for a comparison against multiple values.
+* Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
 
-## 1.1.2
+## 1.2.1
+
+### Internal
+
+* Moved JNI build to CMake.
+
+## 1.2.0
 
 ### Bug fixes
 
 * Throw a proper exception when operating on a non-existing field with the dynamic API (#3292).
 * `DynamicRealmObject.setList` should only accept `RealmList<DynamicRealmObject>` (#3280).
 * `DynamicRealmObject.getX(fieldName)` now throws a proper exception instead of a native crash when called with a field name of the wrong type (#3294).
-
-### Internal
-
-* Updated Realm Core to 1.5.0.
-* Improved sorting speed.
-
-## 1.1.1
+* Fixed a concurrency crash which might happen when `Realm.executeTransactionAsync()` tried to call `onSucess` after the Realm was closed.
 
 ### Enhancements
 
-* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
+* Added `RealmQuery.in()` for a comparison against multiple values.
+* Added byte array (`byte[]`) support to `RealmQuery`'s `equalTo` and `notEqualTo` methods.
+* Optimized internal caching of schema classes (#3315).
+
+### Internal
+
+* Updated Realm Core to 1.5.1.
+* Improved sorting speed.
+* Completely removed the `OptionalAPITransformer`.
+
+### Credits
+
+* Thanks to Brenden Kromhout (@bkromhout) for adding binary array support to `equalTo` and `notEqualTo`.
+
+## 1.1.1
 
 ### Bug fixes
 
@@ -37,6 +59,10 @@
 * Blackberry Z10 throwing "Function not implemented" (#3178).
 * Reduced the number of file descriptors used by Realm Core (#3197).
 * Throw a proper `IllegalStateException` if a `RealmChangeListener` is used inside an IntentService (#2875).
+
+### Enhancements
+
+* The Realm Annotation processor no longer consumes the Realm annotations. Allowing other annotation processors to run.
 
 ### Internal
 

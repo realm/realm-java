@@ -18,9 +18,8 @@ package io.realm;
 
 import android.app.IntentService;
 
-import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -58,7 +57,7 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @return the DynamicRealm defined by the configuration.
      * @see RealmConfiguration for details on how to configure a Realm.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
@@ -110,7 +109,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
-        if (!sharedGroupManager.hasTable(Table.TABLE_PREFIX + className)) {
+        if (!sharedRealm.hasTable(Table.TABLE_PREFIX + className)) {
             throw new IllegalArgumentException("Class does not exist in the Realm and cannot be queried: " + className);
         }
         return RealmQuery.createDynamicQuery(this, className);
@@ -145,6 +144,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public void delete(String className) {
         checkIfValid();
+        checkIfInTransaction();
         schema.getTable(className).clear();
     }
 
@@ -188,7 +188,6 @@ public final class DynamicRealm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<DynamicRealm> asObservable() {
         return configuration.getRxFactory().from(this);
     }

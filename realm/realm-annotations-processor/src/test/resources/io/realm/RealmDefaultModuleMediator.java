@@ -3,9 +3,9 @@ package io.realm;
 
 import android.util.JsonReader;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import java.io.IOException;
 import java.util.Collection;
@@ -30,22 +30,22 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction) {
+    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.initTable(transaction);
+            return io.realm.AllTypesRealmProxy.initTable(sharedRealm);
         } else {
             throw getMissingProxyClassException(clazz);
         }
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.validateTable(transaction);
+            return io.realm.AllTypesRealmProxy.validateTable(sharedRealm);
         } else {
             throw getMissingProxyClassException(clazz);
         }

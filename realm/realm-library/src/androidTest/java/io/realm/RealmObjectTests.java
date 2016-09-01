@@ -933,7 +933,7 @@ public class RealmObjectTests {
     @Test
     public void isValid_unmanagedObject() {
         AllTypes allTypes = new AllTypes();
-        assertFalse(allTypes.isValid());
+        assertTrue(allTypes.isValid());
     }
 
     @Test
@@ -1225,6 +1225,21 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertFalse(dog.isValid());
+    }
+
+    @Test
+    public void isManaged_managedObject() {
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        realm.commitTransaction();
+
+        assertTrue(dog.isManaged());
+    }
+
+    @Test
+    public void isManaged_unmanagedObject() {
+        Dog dog = new Dog();
+        assertFalse(dog.isManaged());
     }
 
     // Test NaN value on float and double columns

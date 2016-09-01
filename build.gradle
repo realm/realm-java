@@ -89,19 +89,10 @@ task check {
     dependsOn checkExamples
 }
 
-task integrationTestsConnectedCheck(type:GradleBuild) {
-    group = 'Test'
-    description = 'Run the integration tests of the Realm project'
-    dependsOn installTransformer
-    buildFile = file('integration-tests/build.gradle')
-    tasks = ['connectedCheck']
-}
-
 task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
     dependsOn installTransformer
-    dependsOn integrationTestsConnectedCheck
     buildFile = file('realm/build.gradle')
     tasks = ['connectedUnitTests']
     if (project.hasProperty('buildTargetABIs')) {
@@ -228,7 +219,7 @@ task distributionJniUnstrippedPackage(type:Zip) {
     archiveName = "realm-java-jni-libs-unstripped-${currentVersion}.zip"
     destinationDir = file("${buildDir}/outputs/distribution")
 
-    from("realm/realm-jni/build/outputs/jniLibs-unstripped") {
+    from("realm/realm-library/build/outputs/jniLibs-unstripped") {
         include '**/*.so'
     }
 }

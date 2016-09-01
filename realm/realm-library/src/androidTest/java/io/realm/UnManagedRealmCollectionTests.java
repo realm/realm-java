@@ -99,7 +99,8 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
                     case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
 
                     // Supported methods
-                    case IS_VALID: assertFalse(collection.isValid()); continue;
+                    case IS_VALID: assertTrue(collection.isValid()); continue;
+                    case IS_MANAGED: assertFalse(collection.isManaged()); continue;
                 }
                 fail(method + " should have thrown an exception.");
             } catch (UnsupportedOperationException ignored) {
@@ -119,7 +120,12 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void isValid() {
-        assertFalse(collection.isValid());
+        assertTrue(collection.isValid());
+    }
+
+    @Test
+    public void isManaged() {
+        assertFalse(collection.isManaged());
     }
 
     @Test

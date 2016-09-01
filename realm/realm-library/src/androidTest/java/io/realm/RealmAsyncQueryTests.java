@@ -365,7 +365,8 @@ public class RealmAsyncQueryTests {
         dog.setAge(10);
 
         assertTrue(dog.isLoaded());
-        assertFalse(dog.isValid());
+        assertTrue(dog.isValid());
+        assertFalse(dog.isManaged());
     }
 
     @Test
@@ -1534,7 +1535,7 @@ public class RealmAsyncQueryTests {
         });
         looperThread.keepStrongReference.add(allAsync);
 
-        looperThread.realm.handler.postDelayed(new Runnable() {
+        looperThread.postRunnableDelayed(new Runnable() {
             @Override
             public void run() {
                 backgroundThread.start();
@@ -1870,8 +1871,8 @@ public class RealmAsyncQueryTests {
             public void run() {
                 Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
                 // Advancing the Realm without generating notifications
-                bgRealm.sharedGroupManager.promoteToWrite();
-                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                bgRealm.sharedRealm.beginTransaction();
+                bgRealm.sharedRealm.commitTransaction();
                 Realm.asyncTaskExecutor.resume();
                 bgRealm.close();
                 signalClosedRealm.countDown();
@@ -1884,7 +1885,7 @@ public class RealmAsyncQueryTests {
     @Test
     @UiThreadTest
     public void badVersion_findAll() throws NoSuchFieldException, IllegalAccessException {
-        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
         RealmConfiguration config = configFactory.createConfiguration();
         Realm realm = Realm.getInstance(config);
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -1911,6 +1912,7 @@ public class RealmAsyncQueryTests {
         } finally {
             realm.close();
         }
+        TestHelper.resetRealmThreadExecutor();
     }
 
     // Test case for https://github.com/realm/realm-java/issues/2417
@@ -1918,7 +1920,7 @@ public class RealmAsyncQueryTests {
     @Test
     @UiThreadTest
     public void badVersion_findAllSortedAsync() throws NoSuchFieldException, IllegalAccessException {
-        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
         RealmConfiguration config = configFactory.createConfiguration();
         Realm realm = Realm.getInstance(config);
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -1943,6 +1945,7 @@ public class RealmAsyncQueryTests {
                 .findAllSortedAsync(AllTypes.FIELD_STRING, Sort.ASCENDING, AllTypes.FIELD_LONG, Sort.DESCENDING)
                 .load();
         realm.close();
+        TestHelper.resetRealmThreadExecutor();
     }
 
     // Test case for https://github.com/realm/realm-java/issues/2417
@@ -1950,7 +1953,7 @@ public class RealmAsyncQueryTests {
     @Test
     @UiThreadTest
     public void badVersion_distinct() throws NoSuchFieldException, IllegalAccessException {
-        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
         RealmConfiguration config = configFactory.createConfiguration();
         Realm realm = Realm.getInstance(config);
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -1976,6 +1979,7 @@ public class RealmAsyncQueryTests {
                 .load();
 
         realm.close();
+        TestHelper.resetRealmThreadExecutor();
     }
 
     // Test case for https://github.com/realm/realm-java/issues/2417
@@ -1983,7 +1987,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void badVersion_syncTransaction() throws NoSuchFieldException, IllegalAccessException {
-        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
         Realm realm = looperThread.realm;
 
         // 1. Make sure that async query is not started
@@ -2009,6 +2013,7 @@ public class RealmAsyncQueryTests {
 
         // 3. The async query should now (hopefully) fail with a BadVersion
         result.load();
+        TestHelper.resetRealmThreadExecutor();
     }
 
     // handlerController#emptyAsyncRealmObject is accessed from different threads

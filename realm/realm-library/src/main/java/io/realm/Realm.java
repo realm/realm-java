@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.os.Build;
-import android.os.Looper;
 import android.util.JsonReader;
 
 import org.json.JSONArray;
@@ -43,18 +42,14 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
-import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -125,10 +120,6 @@ public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
-    // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmModel>, Table> classToTable =
-            new HashMap<Class<? extends RealmModel>, Table>();
-
     private static RealmConfiguration defaultConfiguration;
 
     /**
@@ -145,7 +136,6 @@ public final class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
-    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<Realm> asObservable() {
         return configuration.getRxFactory().from(this);
     }
@@ -158,7 +148,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      *         RealmObject classes or version has has changed so a migration is required.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -174,7 +164,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
      *         classes or version has has changed so a migration is required.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
@@ -236,7 +226,7 @@ public final class Realm extends BaseRealm {
                     migrateRealm(configuration);
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen
-                    throw new RealmIOException(fileNotFoundException);
+                    throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
                 }
             }
 
@@ -290,9 +280,9 @@ public final class Realm extends BaseRealm {
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
+                    mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
 
@@ -304,7 +294,7 @@ public final class Realm extends BaseRealm {
             }
         } finally {
             if (commitNeeded) {
-                realm.commitTransaction(false, true, null);
+                realm.commitTransaction(false, true);
             } else {
                 realm.cancelTransaction();
             }
@@ -613,7 +603,7 @@ public final class Realm extends BaseRealm {
             return null;
         }
         E realmObject;
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         if (table.hasPrimaryKey()) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
             // case that value might be the last property :(
@@ -692,7 +682,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
     }
@@ -712,7 +702,7 @@ public final class Realm extends BaseRealm {
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex);
     }
@@ -1183,7 +1173,7 @@ public final class Realm extends BaseRealm {
                     " and you provided a callback, we need a Handler to invoke your callback");
         }
 
-        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
@@ -1202,15 +1192,11 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitAsyncTransaction(new Runnable() {
-                            @Override
-                            public void run() {
-                                // The bgRealm needs to be closed before post event to caller's handler to avoid
-                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
-                                // This will close Realm before sending REALM_CHANGED.
-                                bgRealm.close();
-                            }
-                        });
+                        bgRealm.commitAsyncTransaction();
+                        // The bgRealm needs to be closed before posting the REALM_CHANGED event to the caller's handler
+                        // to avoid currency problems. This is currently guaranteed by posting
+                        // handleAsyncTransactionCompleted below.
+                        bgRealm.close();
                         transactionCommitted = true;
                     }
                 } catch (final Throwable e) {
@@ -1301,7 +1287,7 @@ public final class Realm extends BaseRealm {
      */
     public void delete(Class<? extends RealmModel> clazz) {
         checkIfValid();
-        getTable(clazz).clear();
+        schema.getTable(clazz).clear();
     }
 
 
@@ -1323,7 +1309,7 @@ public final class Realm extends BaseRealm {
     }
 
     private void checkHasPrimaryKey(Class<? extends RealmModel> clazz) {
-        if (!getTable(clazz).hasPrimaryKey()) {
+        if (!schema.getTable(clazz).hasPrimaryKey()) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
     }
@@ -1338,8 +1324,8 @@ public final class Realm extends BaseRealm {
         if (realmObject == null) {
             throw new IllegalArgumentException("Null objects cannot be copied from Realm.");
         }
-        if (!RealmObject.isValid(realmObject)) {
-            throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
+        if (!(RealmObject.isManaged(realmObject) && RealmObject.isValid(realmObject))) {
+            throw new IllegalArgumentException("Only valid managed objects can be copied from Realm.");
         }
         if (realmObject instanceof DynamicRealmObject) {
             throw new IllegalArgumentException("DynamicRealmObject cannot be copied from Realm.");
@@ -1408,18 +1394,14 @@ public final class Realm extends BaseRealm {
         try {
             return realmFile.getCanonicalPath();
         } catch (IOException e) {
-            throw new RealmIOException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                    "Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath(),
+                    e);
         }
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {
-        Table table = classToTable.get(clazz);
-        if (table == null) {
-            clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
-            classToTable.put(clazz, table);
-        }
-        return table;
+        return schema.getTable(clazz);
     }
 
     /**
