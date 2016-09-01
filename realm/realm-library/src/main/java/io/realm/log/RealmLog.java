@@ -19,12 +19,14 @@ package io.realm.log;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.internal.Keep;
 import io.realm.internal.Util;
 
 /**
  * Global logger used by all Realm components.
  * Custom loggers can be added by registering classes implementing {@link Logger}.
  */
+@Keep
 public final class RealmLog {
 
     private static final Logger[] NO_LOGGERS = new Logger[0];
@@ -33,7 +35,6 @@ public final class RealmLog {
     private static final List<Logger> LOGGERS = new ArrayList<>();
     private static volatile Logger[] loggersAsArray = NO_LOGGERS;
     private static volatile int minimumNativeLogLevel = Integer.MAX_VALUE;
-    private static int minimumNativeDebugLevel;
 
     /**
      * Adds a logger implementation that will be notified on log events.
@@ -55,8 +56,7 @@ public final class RealmLog {
     }
 
     private static void setMinimumNativeDebugLevel(int nativeDebugLevel) {
-        minimumNativeDebugLevel = nativeDebugLevel;
-        Util.setDebugLevel(minimumNativeDebugLevel); // Log level for Realm Core
+        Util.setDebugLevel(nativeDebugLevel); // Log level for Realm Core
     }
 
     /**
