@@ -43,10 +43,10 @@ RUN echo y | android update sdk --no-ui --all --filter extra-android-m2repositor
 RUN echo y | android update sdk --no-ui --all --filter android-24 | grep 'package installed'
 
 # Install the NDK
-RUN mkdir /tmp/opt/android-ndk-tmp
-RUN cd /tmp/opt/android-ndk-tmp && wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin
-RUN cd /tmp/opt/android-ndk-tmp && chmod a+x ./android-ndk.bin && sync && ./android-ndk.bin
-RUN cd /tmp/opt/android-ndk-tmp && mv ./android-ndk-r10e /tmp/opt/android-ndk
-RUN chmod 777 /tmp/opt/android-ndk/RELEASE.TXT
-RUN rm -rf /tmp/opt/android-ndk-tmp
-RUN chmod 755 /tmp/opt/android-ndk
+RUN mkdir /tmp/opt/android-ndk-tmp && \
+    cd /tmp/opt/android-ndk-tmp && \
+    wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin && \
+    chmod a+x ./android-ndk.bin && sync && ./android-ndk.bin && \
+    mv ./android-ndk-r10e /tmp/opt/android-ndk && \
+    chmod -R a+rX /tmp/opt/android-ndk && \
+    rm -rf /tmp/opt/android-ndk-tmp
