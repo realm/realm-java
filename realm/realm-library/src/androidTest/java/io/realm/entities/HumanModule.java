@@ -18,6 +18,6 @@ package io.realm.entities;
 
 import io.realm.annotations.RealmModule;
 
-@RealmModule(classes = {CatOwner.class})
+@RealmModule(classes = {CatOwner.class, Owner.class})
 public class HumanModule {
 }

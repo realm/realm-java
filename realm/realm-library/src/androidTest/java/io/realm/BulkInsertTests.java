@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,6 +43,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
 import io.realm.entities.NoPrimaryKeyWithPrimaryKeyObjectRelation;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
@@ -463,7 +463,7 @@ public class BulkInsertTests {
     public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
