@@ -65,7 +65,7 @@ public class AndroidLogger implements Logger {
     }
 
     @Override
-    public int getMinimumLogLevel() {
+    public int getMinimumNativeDebugLevel() {
         // Map Android log level to Realms log levels
         switch (minimumLogLevel) {
             case Log.VERBOSE:   return LogLevel.TRACE;

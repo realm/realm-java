@@ -47,7 +47,7 @@ public final class RealmLog {
         }
         synchronized (LOGGERS) {
             LOGGERS.add(logger);
-            int minimumLogLevel = logger.getMinimumLogLevel();
+            int minimumLogLevel = logger.getMinimumNativeDebugLevel();
             if (minimumLogLevel < minimumNativeLogLevel) {
                 setMinimumNativeDebugLevel(minimumLogLevel);
             }
@@ -72,7 +72,7 @@ public final class RealmLog {
             LOGGERS.remove(logger);
             int newMinLevel = Integer.MAX_VALUE;
             for (int i = 0; i < LOGGERS.size(); i++) {
-                int logMin = LOGGERS.get(i).getMinimumLogLevel();
+                int logMin = LOGGERS.get(i).getMinimumNativeDebugLevel();
                 if (logMin < newMinLevel) {
                     newMinLevel = logMin;
                 }

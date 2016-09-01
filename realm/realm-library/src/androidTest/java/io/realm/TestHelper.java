@@ -243,7 +243,7 @@ public class TestHelper {
         }
 
         @Override
-        public int getMinimumLogLevel() {
+        public int getMinimumNativeDebugLevel() {
             return minimumLevel;
         }
 

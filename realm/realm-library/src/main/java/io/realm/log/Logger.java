@@ -23,17 +23,16 @@ package io.realm.log;
 public interface Logger {
 
     /**
-     * Defines which {@link LogLevel} events this logger cares about. This value is used primarily by Realms underlying
-     * storage engine to determine which events are sent to {@link RealmLog}.
+     * Defines which {@link LogLevel} events this logger cares about from the native components.
      * <p>
      * If multiple loggers are registered, the minimum value among all loggers is used.
      * <p>
      * Note that sending log events from the native layer is relatively expensive, so only set this value to events
      * that are truly useful.
      *
-     * @return the minimum {@link LogLevel} events this logger cares about.
+     * @return the minimum {@link LogLevel} native events this logger cares about.
      */
-    int getMinimumLogLevel();
+    int getMinimumNativeDebugLevel();
 
     /**
      * Handles a {@link LogLevel#TRACE} event.
