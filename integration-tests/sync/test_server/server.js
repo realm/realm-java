@@ -36,6 +36,8 @@ dispatcher.onGet("/start", function(req, res) {
     temp.mkdir('naruto', function(err, path) {
       if (!err) {
         winston.info("Starting sync server in ", path);
+        //TODO get the full path of the build by running
+        //     s3cmd -c /tmp/.s3cfg ls  s3://realm-ci-artifacts/sync/
         syncServerChildProcess = spawn('/tmp/opt/realm-sync-0.27.4-101/bin/realm-server', ['-r', path, '-L', '127.0.0.1', '-l', 'all', '-k', './keys/public.pem', '-K', './keys/private.pem'], {env: {LD_LIBRARY_PATH: '/tmp/opt/realm-sync-0.27.4-101/lib/'}});
         syncServerChildProcess.stdout.on('data', (data) => {
           winston.info(`stdout: ${data}`);
