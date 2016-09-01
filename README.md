@@ -55,14 +55,15 @@ See [version.txt](version.txt) for the latest version number.
 
 In case you don't want to use the precompiled version, you can build Realm yourself from source.
 
-Prerequisites:
+### Prerequisites
 
- * Make sure `make` is available in your `$PATH`
+ * Make sure `make` is available in your `$PATH`.
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install s3cmd (`brew install s3cmd` on Mac, `sudo apt-get install s3cmd` on Ubuntu).
  * Get `.s3cfg` file and put it in your home directory. If you'd like to put it other location, add `s3cfg=<path to .s3cfg>` in `~/.gradle/gradle.properties`.
- * Download & install the Android SDK **Build-Tools 24.0.0**, **Android N (API 24)** (for example through Android Studio’s **Android SDK Manager**)
+ * Download & install the Android SDK **Build-Tools 24.0.0**, **Android N (API 24)** (for example through Android Studio’s **Android SDK Manager**).
  * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
+ * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
  * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
 
     ```
@@ -74,14 +75,20 @@ Prerequisites:
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
+    export ANDROID_NDK_HOME=/usr/local/Cellar/android-ndk-r10e/r10e
+    ```
+
+ * If you want to build with Android Studio, `ndk.dir` has to be defined in the `realm/local.properties` as well.
+
+    ```
+    ndk.dir=/usr/local/Cellar/android-ndk-r10e/r10e
     ```
 
  * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
-    launchctl setenv NDK_HOME "$NDK_HOME"
+    launchctl setenv ANDROID_NDK_HOME "$ANDROID_NDK_HOME"
     ```
 
  * And if you'd like to specify the location to store the archives of Realm's core, set `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep core's archive when executing `git clean -xfd`.
@@ -95,6 +102,22 @@ Prerequisites:
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
+
+### Download sources
+
+You can download the source code of Realm Java by using git. Since realm-java has git submodules, use `--recursive` when cloning the repository.
+
+```
+git clone git@github.com:realm/realm-java.git --recursive
+```
+
+or
+
+```
+git clone https://github.com/realm/realm-java.git --recursive
+```
+
+### Build
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 

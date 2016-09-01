@@ -49,7 +49,7 @@ public abstract class CollectionTests {
 
     // Enumerate all methods from the RealmCollection interface that depend on Realm API's.
     protected enum RealmCollectionMethod {
-        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID
+        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
     }
 
     // Enumerate all methods from the Collection interface

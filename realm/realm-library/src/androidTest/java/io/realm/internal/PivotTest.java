@@ -59,27 +59,4 @@ public class PivotTest extends TestCase {
         try { t.pivot(colIndexHired, colIndexAge, PivotType.SUM); fail("Group by not a String column"); } catch (UnsupportedOperationException e) { }
         try { t.pivot(colIndexSex, colIndexHired, PivotType.SUM); fail("Aggregation not an int column"); } catch (UnsupportedOperationException e) { }
     }
-
-
-    public void testPivotTableView(){
-
-        TableView view = t.getSortedView(colIndexAge);
-
-        Table resultCount = view.pivot(colIndexSex, colIndexAge, PivotType.COUNT);
-        assertEquals(2, resultCount.size());
-        assertEquals(25000, resultCount.getLong(1, 0));
-        assertEquals(25000, resultCount.getLong(1, 1));
-
-        Table resultMin = view.pivot(colIndexSex, colIndexAge, PivotType.MIN);
-        assertEquals(20, resultMin.getLong(1, 0));
-        assertEquals(21, resultMin.getLong(1, 1));
-
-        Table resultMax = view.pivot(colIndexSex, colIndexAge, PivotType.MAX);
-        assertEquals(38, resultMax.getLong(1, 0));
-        assertEquals(39, resultMax.getLong(1, 1));
-
-
-        try { view.pivot(colIndexHired, colIndexAge, PivotType.SUM); fail("Group by not a String column"); } catch (UnsupportedOperationException e) { }
-        try { view.pivot(colIndexSex, colIndexHired, PivotType.SUM); fail("Aggregation not an int column"); } catch (UnsupportedOperationException e) { }
-    }
 }

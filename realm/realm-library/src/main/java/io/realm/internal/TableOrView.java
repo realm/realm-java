@@ -37,8 +37,6 @@ public interface TableOrView {
      */
     Table getTable();
 
-    void close();
-
     /**
      * Returns the number of entries of the table/view.
      *

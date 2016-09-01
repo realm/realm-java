@@ -17,7 +17,6 @@
 package io.realm;
 
 import io.realm.annotations.Required;
-import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
@@ -68,7 +67,6 @@ public final class RealmObjectSchema {
 
     private final BaseRealm realm;
     final Table table;
-    private final ImplicitTransaction transaction;
     private final Map<String, Long> columnIndices;
 
     /**
@@ -80,7 +78,6 @@ public final class RealmObjectSchema {
      */
     RealmObjectSchema(BaseRealm realm, Table table, Map<String, Long> columnIndices) {
         this.realm = realm;
-        this.transaction = realm.sharedGroupManager.getTransaction();
         this.table = table;
         this.columnIndices = columnIndices;
     }
@@ -114,7 +111,7 @@ public final class RealmObjectSchema {
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
         }
-        if (transaction.hasTable(internalTableName)) {
+        if (realm.sharedRealm.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
         // in case this table has a primary key, we need to transfer it after renaming the table.
@@ -125,13 +122,13 @@ public final class RealmObjectSchema {
             pkField = getPrimaryKey();
             table.setPrimaryKey(null);
         }
-        transaction.renameTable(table.getName(), internalTableName);
+        realm.sharedRealm.renameTable(table.getName(), internalTableName);
         if (pkField != null && !pkField.isEmpty()) {
             try {
                 table.setPrimaryKey(pkField);
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
-                transaction.renameTable(table.getName(), oldTableName);
+                realm.sharedRealm.renameTable(table.getName(), oldTableName);
                 throw e;
             }
         }
@@ -192,7 +189,7 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
@@ -207,7 +204,7 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 

@@ -6,9 +6,9 @@ import android.util.JsonToken;
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -85,51 +85,51 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.getRow$realm().setLong(columnInfo.ageIndex, value);
     }
 
-    public static Table initTable(ImplicitTransaction transaction) {
-        if (!transaction.hasTable("class_Simple")) {
-            Table table = transaction.getTable("class_Simple");
+    public static Table initTable(SharedRealm sharedRealm) {
+        if (!sharedRealm.hasTable("class_Simple")) {
+            Table table = sharedRealm.getTable("class_Simple");
             table.addColumn(RealmFieldType.STRING, "name", Table.NULLABLE);
             table.addColumn(RealmFieldType.INTEGER, "age", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
-        return transaction.getTable("class_Simple");
+        return sharedRealm.getTable("class_Simple");
     }
 
-    public static SimpleColumnInfo validateTable(ImplicitTransaction transaction) {
-        if (transaction.hasTable("class_Simple")) {
-            Table table = transaction.getTable("class_Simple");
+    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm) {
+        if (sharedRealm.hasTable("class_Simple")) {
+            Table table = sharedRealm.getTable("class_Simple");
             if (table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
-            final SimpleColumnInfo columnInfo = new SimpleColumnInfo(transaction.getPath(), table);
+            final SimpleColumnInfo columnInfo = new SimpleColumnInfo(sharedRealm.getPath(), table);
 
             if (!columnTypes.containsKey("name")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("name") != RealmFieldType.STRING) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
             }
             if (!table.isColumnNullable(columnInfo.nameIndex)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using RealmObjectSchema.setNullable().");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using RealmObjectSchema.setNullable().");
             }
             if (!columnTypes.containsKey("age")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("age") != RealmFieldType.INTEGER) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.ageIndex)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using RealmObjectSchema.setNullable().");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using RealmObjectSchema.setNullable().");
             }
             return columnInfo;
         } else {
-            throw new RealmMigrationNeededException(transaction.getPath(), "The 'Simple' class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(sharedRealm.getPath(), "The 'Simple' class is missing from the schema for this Realm.");
         }
     }
 

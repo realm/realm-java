@@ -29,7 +29,7 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
     bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return false;
         }
         // depends_on_deleted_linklist() will return true if and only if the current TableView was created from a
@@ -951,7 +951,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
     bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return 0;
         }
     }

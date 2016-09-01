@@ -37,7 +37,7 @@ import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.IdentitySet;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedGroup;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
@@ -108,8 +108,8 @@ final class HandlerController implements Handler.Callback {
         // aware when this threads handler is removed before they send messages to it. We don't wish to synchronize
         // access to the handlers as they are the prime mean of notifying about updates. Instead we make sure
         // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
-        // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
-        if (realm.sharedGroupManager != null) {
+        // longer exists. `sharedRealm` will only be null if a Realm is really closed.
+        if (realm.sharedRealm != null) {
             QueryUpdateTask.Result result;
             switch (message.what) {
 
@@ -157,7 +157,7 @@ final class HandlerController implements Handler.Callback {
      */
     public void handleAsyncTransactionCompleted(Runnable onSuccess) {
         // Same reason as handleMessage()
-        if (realm.sharedGroupManager != null) {
+        if (realm.sharedRealm != null) {
             if (onSuccess != null) {
                 pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
             }
@@ -442,7 +442,7 @@ final class HandlerController implements Handler.Callback {
             // localCommit && threadContainsAsyncQueries (this is the case the warning above is about)
             // localCommit && !threadContainsAsyncQueries
             // !localCommit && !threadContainsAsyncQueries
-            realm.sharedGroupManager.advanceRead();
+            realm.sharedRealm.refresh();
 
             List<RealmResults<? extends RealmModel>> resultsToBeNotified = new ArrayList<RealmResults<? extends RealmModel>>();
             collectAsyncRealmResultsCallbacks(resultsToBeNotified);
@@ -462,7 +462,7 @@ final class HandlerController implements Handler.Callback {
                 RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] realm:"+ HandlerController.this + " RealmResults GC'd ignore results");
 
             } else {
-                SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
+                SharedRealm.VersionID callerVersionID = realm.sharedRealm.getVersionID();
                 int compare = callerVersionID.compareTo(result.versionID);
                 if (compare == 0) {
                     // if the RealmResults is empty (has not completed yet) then use the value
@@ -520,7 +520,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void completedAsyncQueriesUpdate(QueryUpdateTask.Result result) {
-        SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
+        SharedRealm.VersionID callerVersionID = realm.sharedRealm.getVersionID();
         int compare = callerVersionID.compareTo(result.versionID);
         if (compare > 0) {
             // if the caller thread is more advanced than the worker thread, it means it did a local commit.
@@ -542,7 +542,7 @@ final class HandlerController implements Handler.Callback {
                 // (advanceRead to the latest version may cause a version mismatch error) preventing us
                 // from importing correctly the handover table view
                 try {
-                    realm.sharedGroupManager.advanceRead(result.versionID);
+                    realm.sharedRealm.refresh(result.versionID);
                 } catch (BadVersionException e) {
                     // The version comparison above should have ensured that that the Caller version is less than the
                     // Worker version. In that case it should always be safe to advance_read.
@@ -601,7 +601,7 @@ final class HandlerController implements Handler.Callback {
             RealmObjectProxy proxy = realmObjectWeakReference.get();
 
             if (proxy != null) {
-                SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
+                SharedRealm.VersionID callerVersionID = realm.sharedRealm.getVersionID();
                 int compare = callerVersionID.compareTo(result.versionID);
                 // we always query on the same version
                 // only two use cases could happen 1. we're on the same version or 2. the caller has advanced in the meanwhile

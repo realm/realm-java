@@ -18,7 +18,6 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Table.h"
-#include "java_lang_List_Util.hpp"
 #include "tablebase_tpl.hpp"
 
 using namespace std;
@@ -391,13 +390,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         table->remove_column(column_index + 1);
         table->rename_column(table->get_column_index(tmp_column_name), column_name);
     } CATCH_STD()
-}
-
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsRootTable
-  (JNIEnv *, jobject, jlong nativeTablePtr)
-{
-    //If the spec is shared, it is a subtable, and this method will return false
-    return !TBL(nativeTablePtr)->has_shared_type();
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(
@@ -1272,31 +1264,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
 }
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jboolean ascending)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
-        return 0;
-    int colType = pTable->get_column_type( S(columnIndex) );
-    switch (colType) {
-        case type_Int:
-        case type_Bool:
-        case type_String:
-        case type_Double:
-        case type_Float:
-        case type_Timestamp:
-            try {
-                TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
-                return reinterpret_cast<jlong>(pTableView);
-            } CATCH_STD()
-        default:
-            ThrowException(env, IllegalArgument, "Sort is only support on String, Date, boolean, byte, short, int, long and their boxed variants.");
-            return 0;
-    }
-    return 0;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
    JNIEnv *env, jobject, jlong nativeTablePtr, jlongArray columnIndices, jbooleanArray ascending)
 {
@@ -1349,16 +1316,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeOptimize(
-    JNIEnv* env, jobject, jlong nativeTablePtr)
-{
-    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
-        return;
-    try {
-        TBL(nativeTablePtr)->optimize();
-    } CATCH_STD()
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
@@ -1537,7 +1494,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
     const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
 
-    Group* group = G(groupNativePtr);
+    auto group = reinterpret_cast<Group*>(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
 
     // Fix wrong types (string, int) -> (string, string)
@@ -1587,7 +1544,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
     bool valid = (TBL(nativeTablePtr) != NULL);
     if (valid) {
         if (!TBL(nativeTablePtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            ThrowException(env, IllegalState, "The Realm has been closed and is no longer accessible.");
             return 0;
         }
     }

@@ -8,13 +8,23 @@ try {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
       stage 'SCM'
-      checkout scm
+      checkout([
+        $class: 'GitSCM',
+        branches: scm.branches,
+        gitTool: 'native git',
+        extensions: scm.extensions + [[$class: 'CleanCheckout']],
+        userRemoteConfigs: scm.userRemoteConfigs
+      ])
+      sshagent(['realm-ci-ssh']) {
+        sh 'git submodule sync'
+        sh 'git submodule update --init --recursive'
+      }
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
 
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
-      buildEnv.inside("--privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/root/.gradle -v /root/adbkeys:/root/.android") {
+      buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android") {
         stage 'JVM tests'
         try {
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {

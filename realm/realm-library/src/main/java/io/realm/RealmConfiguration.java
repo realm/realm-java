@@ -37,7 +37,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedGroup;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rx.RealmObservableFactory;
@@ -95,7 +95,7 @@ public final class RealmConfiguration {
     private final long schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
-    private final SharedGroup.Durability durability;
+    private final SharedRealm.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
@@ -145,7 +145,7 @@ public final class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
-    public SharedGroup.Durability getDurability() {
+    public SharedRealm.Durability getDurability() {
         return durability;
     }
 
@@ -398,7 +398,7 @@ public final class RealmConfiguration {
         private long schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
-        private SharedGroup.Durability durability;
+        private SharedRealm.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private WeakReference<Context> contextWeakRef;
@@ -471,7 +471,7 @@ public final class RealmConfiguration {
             this.schemaVersion = 0;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
-            this.durability = SharedGroup.Durability.FULL;
+            this.durability = SharedRealm.Durability.FULL;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -568,7 +568,7 @@ public final class RealmConfiguration {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
 
-            this.durability = SharedGroup.Durability.MEM_ONLY;
+            this.durability = SharedRealm.Durability.MEM_ONLY;
 
             return this;
         }
@@ -645,7 +645,7 @@ public final class RealmConfiguration {
             if (TextUtils.isEmpty(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
-            if (durability == SharedGroup.Durability.MEM_ONLY) {
+            if (durability == SharedRealm.Durability.MEM_ONLY) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
             if (this.deleteRealmIfMigrationNeeded) {
