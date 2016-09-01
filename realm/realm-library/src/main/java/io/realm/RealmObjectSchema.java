@@ -71,7 +71,7 @@ public final class RealmObjectSchema {
     private String className;
     private final Map<String, Long> columnIndices;
     private final ArrayList<Property> properties;
-    private final long nativePtr; // pointer to ObjectSchema (C++)
+    private long nativePtr; // pointer to ObjectSchema (C++)
 
     /**
      * Creates a schema object for a given Realm class.
@@ -210,6 +210,8 @@ public final class RealmObjectSchema {
             long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
             try {
                 addModifiers(fieldName, attributes);
+                nativeClose(this.nativePtr); // clean up before refreshing
+                this.nativePtr = realm.sharedRealm.objectSchema(className).getNativePtr(); // refreshing schema
             } catch (Exception e) {
                 // Modifiers have been removed by the addModifiers method()
                 table.removeColumn(columnIndex);
@@ -324,7 +326,12 @@ public final class RealmObjectSchema {
                 }
             }
         } else {
-            realm.sharedRealm.renameField(getClassName(), currentFieldName, newFieldName);
+            // FIXME: how to use realm.sharedRealm.renameField(getClassName(), currentFieldName, newFieldName) instead?
+            Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+            long index = table.getColumnIndex(currentFieldName);
+            table.renameColumn(index, newFieldName);
+            nativeClose(this.nativePtr); // clean up before refreshing
+            nativePtr = realm.sharedRealm.objectSchema(className).getNativePtr(); // refresh schema
         }
         // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
 

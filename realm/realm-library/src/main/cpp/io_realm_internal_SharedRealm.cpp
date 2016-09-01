@@ -426,15 +426,8 @@ Java_io_realm_internal_SharedRealm_nativeObjectSchema(JNIEnv *env, jclass, jlong
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         JStringAccessor name(env, className_);
-        Schema schema = ObjectStore::schema_from_group(shared_realm->read_group());
-        auto it = schema.find(name);
-        if (it == schema.end()) {
-            return 0;
-        }
-        else {
-            auto object_schema = *it;
-            return reinterpret_cast<jlong>(new ObjectSchema(std::move(object_schema)));
-        }
+        ObjectSchema object_schema(shared_realm->read_group(), name);
+        return reinterpret_cast<jlong>(new ObjectSchema(std::move(object_schema)));
     } CATCH_STD()
     return 0;
 }

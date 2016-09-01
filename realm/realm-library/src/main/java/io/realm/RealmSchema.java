@@ -136,7 +136,7 @@ public final class RealmSchema {
      * @param className name of the class.
      * @return a Realm schema object for that class.
      */
-    public RealmObjectSchema create(String className) {
+    public RealmObjectSchema  create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         if (dynamicClassToSchema.containsKey(className)) {
             return dynamicClassToSchema.get(className);
@@ -149,7 +149,7 @@ public final class RealmSchema {
                     throw new IllegalArgumentException("Class already exists: " + className);
                 }
                 Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
-                realmObjectSchema = realm.sharedRealm.objectSchema(className);
+                realmObjectSchema = new RealmObjectSchema(realm, className, null);
             }
             dynamicClassToSchema.put(className, realmObjectSchema);
             return realmObjectSchema;
