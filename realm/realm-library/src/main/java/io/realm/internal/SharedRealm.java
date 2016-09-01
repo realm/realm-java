@@ -21,6 +21,7 @@ import java.io.File;
 
 import io.realm.RealmConfiguration;
 import io.realm.internal.async.BadVersionException;
+import io.realm.objectserver.SyncConfiguration;
 
 public final class SharedRealm implements Closeable {
 
@@ -132,6 +133,13 @@ public final class SharedRealm implements Closeable {
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
+        String rosServerUrl = null;
+        String rosUserToken = null;
+        if (RealmCore.SYNC_AVAILABLE && config instanceof SyncConfiguration) {
+            SyncConfiguration rosConfig = (SyncConfiguration) config;
+            rosServerUrl = rosConfig.getServerUrl().toString();
+            rosUserToken = rosConfig.getUser().getRefreshToken().value();
+        }
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
@@ -140,8 +148,8 @@ public final class SharedRealm implements Closeable {
                 false,
                 false,
                 false,
-                null,
-                null);
+                rosServerUrl,
+                rosUserToken);
         try {
             return new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
         } finally {
