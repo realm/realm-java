@@ -1196,7 +1196,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_primaryKeyIsSetDirectly() {
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class);
+        realm.createObject(OwnerPrimaryKey.class, 0);
         realm.copyToRealm(new OwnerPrimaryKey(1, "Foo"));
         realm.commitTransaction();
         assertEquals(2, realm.where(OwnerPrimaryKey.class).count());
@@ -1276,9 +1276,8 @@ public class RealmTests {
         realm.beginTransaction();
 
         // Child object is managed by Realm
-        CyclicTypePrimaryKey childObj = realm.createObject(CyclicTypePrimaryKey.class);
+        CyclicTypePrimaryKey childObj = realm.createObject(CyclicTypePrimaryKey.class, 1);
         childObj.setName("Child");
-        childObj.setId(1);
 
         // Parent object is an unmanaged object
         CyclicTypePrimaryKey parentObj = new CyclicTypePrimaryKey(2);
@@ -1690,7 +1689,7 @@ public class RealmTests {
         final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
 
         realm.beginTransaction();
-        final OwnerPrimaryKey ownerPrimaryKey = realm.createObject(OwnerPrimaryKey.class);
+        final OwnerPrimaryKey ownerPrimaryKey = realm.createObject(OwnerPrimaryKey.class, 0);
         realm.commitTransaction();
 
         new Thread(new Runnable() {
@@ -1898,8 +1897,7 @@ public class RealmTests {
         realm.beginTransaction();
 
         // Create an owner with two dogs
-        OwnerPrimaryKey owner = realm.createObject(OwnerPrimaryKey.class);
-        owner.setId(1);
+        OwnerPrimaryKey owner = realm.createObject(OwnerPrimaryKey.class, 1);
         owner.setName("Jack");
         Dog rex = realm.createObject(Dog.class);
         rex.setName("Rex");

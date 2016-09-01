@@ -971,7 +971,7 @@ public class RealmObjectTests {
     @Test
     public void set_get_nullOnNullableFields() {
         realm.beginTransaction();
-        NullTypes nullTypes = realm.createObject(NullTypes.class);
+        NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
         // 1 String
         nullTypes.setFieldStringNull(null);
         // 2 Bytes
@@ -1024,7 +1024,7 @@ public class RealmObjectTests {
         final byte[] testBytes = new byte[] {42};
         final Date testDate = newDate(2000, 1, 1);
         realm.beginTransaction();
-        NullTypes nullTypes = realm.createObject(NullTypes.class);
+        NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
         // 1 String
         nullTypes.setFieldStringNull(testString);
         // 2 Bytes
@@ -1075,7 +1075,7 @@ public class RealmObjectTests {
     public void set_nullValuesToNonNullableFields() {
         try {
             realm.beginTransaction();
-            NullTypes nullTypes = realm.createObject(NullTypes.class);
+            NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
             // 1 String
             try {
                 nullTypes.setFieldStringNotNull(null);
@@ -1144,7 +1144,7 @@ public class RealmObjectTests {
     @Test
     public void defaultValuesForNewObject() {
         realm.beginTransaction();
-        NullTypes nullTypes = realm.createObject(NullTypes.class);
+        NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
         realm.commitTransaction();
 
         assertNotNull(nullTypes);
