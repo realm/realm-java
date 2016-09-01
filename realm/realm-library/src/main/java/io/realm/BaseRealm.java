@@ -18,7 +18,6 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 
 import com.getkeepsafe.relinker.BuildConfig;
 
@@ -27,13 +26,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
@@ -63,9 +59,6 @@ abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
-    // Map between a Handler and the canonical path to a Realm file
-    protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
-
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
@@ -74,7 +67,6 @@ abstract class BaseRealm implements Closeable {
     protected SharedRealm sharedRealm;
 
     RealmSchema schema;
-    Handler handler;
     HandlerController handlerController;
 
     static {
@@ -86,9 +78,9 @@ abstract class BaseRealm implements Closeable {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
 
-        this.sharedRealm = SharedRealm.getInstance(configuration);
-        this.schema = new RealmSchema(this);
         this.handlerController = new HandlerController(this);
+        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController));
+        this.schema = new RealmSchema(this);
 
         if (handlerController.isAutoRefreshAvailable()) {
             setAutoRefresh(true);
@@ -109,12 +101,6 @@ abstract class BaseRealm implements Closeable {
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
         handlerController.checkCanBeAutoRefreshed();
-        if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
-            handler = new Handler(handlerController);
-            handlers.put(handler, configuration.getPath());
-        } else if (!autoRefresh && handlerController.isAutoRefreshEnabled() && handler != null) { // Switch it off
-            removeHandler();
-        }
         handlerController.setAutoRefresh(autoRefresh);
     }
 
@@ -204,21 +190,9 @@ abstract class BaseRealm implements Closeable {
     // WARNING: If this method is used after calling any async method, the old handler will still be used.
     //          package private, for test purpose only
     void setHandler(Handler handler) {
-        // remove the old one
-        handlers.remove(this.handler);
-        handlers.put(handler, configuration.getPath());
-        this.handler = handler;
+        ((AndroidNotifier)sharedRealm.realmNotifier).setHandler(handler);
     }
 
-    /**
-     * Removes and stops the current thread handler as gracefully as possible.
-     */
-    protected void removeHandler() {
-        handlers.remove(handler);
-        // Warning: This only clears the Looper queue. Handler.Callback is not removed.
-        handler.removeCallbacksAndMessages(null);
-        this.handler = null;
-    }
 
     /**
      * Writes a compacted copy of the Realm to the given destination File.
@@ -349,81 +323,23 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true, true);
+        commitTransaction(true);
     }
 
     /**
-     * Commits an async transaction. This will not trigger any REALM_CHANGED events. Caller is responsible for handling
-     * that.
-     */
-    void commitAsyncTransaction() {
-        commitTransaction(false, false);
-    }
-
-    /**
-     * Commits transaction, runs the given runnable and then sends notifications. The runnable is useful to meet some
-     * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
-     * other threads see the changes to majoyly avoid the flaky tests.
+     * Commits transaction and sends notifications to local thread.
      *
-     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
+     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change
+     *                          listeners.
      */
-    void commitTransaction(boolean notifyLocalThread, boolean notifyOtherThreads) {
+    void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
 
-        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
-            Handler handler = handlerIntegerEntry.getKey();
-            String realmPath = handlerIntegerEntry.getValue();
-
-            // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
-            // file will make a commit in order to create the schema. Users should not be notified about that.
-            if (!notifyLocalThread && handler.equals(this.handler)) {
-                continue;
-            }
-
-            // Sometimes we don't want to notify other threads about changes because we need a custom message, e.g. when
-            // doing async transactions.
-            if (!notifyOtherThreads && !handler.equals(this.handler)) {
-                continue;
-            }
-
-            // For all other threads, use the Handler
-            // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
-            // as the target thread consumes messages at the same time. In this case it is not a problem as worst
-            // case we end up with two REALM_CHANGED messages in the queue.
-            Looper looper = handler.getLooper();
-            if (realmPath.equals(configuration.getPath())  // It's the right realm
-                    && looper.getThread().isAlive()) {     // The receiving thread is alive
-
-                boolean messageHandled = true;
-                if (looper == Looper.myLooper()) {
-                    // Force any updates on the current thread to the front the queue. Doing this is mostly
-                    // relevant on the UI thread where it could otherwise process a motion event before the
-                    // REALM_CHANGED event. This could in turn cause a UI component like ListView to crash. See
-                    // https://github.com/realm/realm-android-adapters/issues/11 for such a case.
-                    // Other Looper threads could process similar events. For that reason all looper threads will
-                    // prioritize local commits.
-                    //
-                    // If a user is doing commits inside a RealmChangeListener this can cause the Looper thread to get
-                    // event starved as it only starts handling Realm events instead. This is an acceptable risk as
-                    // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
-                    // be responsive.
-                    Message msg = Message.obtain();
-                    msg.what = HandlerControllerConstants.LOCAL_COMMIT;
-                    if (!handler.hasMessages(HandlerControllerConstants.LOCAL_COMMIT)) {
-                        handler.removeMessages(HandlerControllerConstants.REALM_CHANGED);
-                        messageHandled = handler.sendMessageAtFrontOfQueue(msg);
-                    }
-                } else {
-                    if (!handler.hasMessages(HandlerControllerConstants.REALM_CHANGED)) {
-                        messageHandled = handler.sendEmptyMessage(HandlerControllerConstants.REALM_CHANGED);
-                    }
-                }
-                if (!messageHandled) {
-                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                            "to prevent this.");
-                }
-            }
+        // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
+        // file will make a commit in order to create the schema. Users should not be notified about that.
+        if (notifyLocalThread) {
+            sharedRealm.realmNotifier.notifyCommitByLocalThread();
         }
     }
 
@@ -522,9 +438,6 @@ abstract class BaseRealm implements Closeable {
             sharedRealm.close();
             sharedRealm = null;
         }
-        if (handler != null) {
-            removeHandler();
-        }
     }
 
     /**
@@ -559,11 +472,6 @@ abstract class BaseRealm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
-    }
-
-    // Return all handlers registered for this Realm
-    static Map<Handler, String> getHandlers() {
-        return handlers;
     }
 
     /**
@@ -765,6 +673,11 @@ abstract class BaseRealm implements Closeable {
             throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
                     + configuration.getPath());
         }
+    }
+
+    // Return true if this Realm can receive notifications.
+    boolean hasValidNotifier() {
+        return sharedRealm.realmNotifier != null && sharedRealm.realmNotifier.isValid();
     }
 
     @Override

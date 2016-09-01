@@ -286,7 +286,7 @@ public final class Realm extends BaseRealm {
             }
         } finally {
             if (commitNeeded) {
-                realm.commitTransaction(false, true);
+                realm.commitTransaction(false);
             } else {
                 realm.cancelTransaction();
             }
@@ -1160,7 +1160,7 @@ public final class Realm extends BaseRealm {
 
         // If the user provided a Callback then we make sure, the current Realm has a Handler
         // we can use to deliver the result
-        if ((onSuccess != null || onError != null)  && handler == null) {
+        if ((onSuccess != null || onError != null)  && !hasValidNotifier()) {
             throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
                     " and you provided a callback, we need a Handler to invoke your callback");
         }
@@ -1184,10 +1184,10 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitAsyncTransaction();
-                        // The bgRealm needs to be closed before posting the REALM_CHANGED event to the caller's handler
-                        // to avoid currency problems. This is currently guaranteed by posting
-                        // handleAsyncTransactionCompleted below.
+                        // No need to send change notification to the work thread.
+                        bgRealm.commitTransaction(false);
+                        // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
+                        // problem. This is currently guaranteed by posting handleAsyncTransactionCompleted below.
                         bgRealm.close();
                         transactionCommitted = true;
                     }
@@ -1205,13 +1205,11 @@ public final class Realm extends BaseRealm {
 
                     final Throwable backgroundException = exception[0];
                     // Send response as the final step to ensure the bg thread quit before others get the response!
-                    if (handler != null
-                            && !Thread.currentThread().isInterrupted()
-                            && handler.getLooper().getThread().isAlive()) {
+                    if (hasValidNotifier() && !Thread.currentThread().isInterrupted()) {
 
                         if (transactionCommitted) {
                             // This will be treated like a special REALM_CHANGED event
-                            handler.post(new Runnable() {
+                            sharedRealm.realmNotifier.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     handlerController.handleAsyncTransactionCompleted(onSuccess != null ? new Runnable() {
@@ -1227,14 +1225,14 @@ public final class Realm extends BaseRealm {
                         // Send errors directly to the looper, so they don't get intercepted by the HandlerController.
                         if (backgroundException != null) {
                             if (onError != null) {
-                                handler.post(new Runnable() {
+                                sharedRealm.realmNotifier.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         onError.onError(backgroundException);
                                     }
                                 });
                             } else {
-                                handler.post(new Runnable() {
+                                sharedRealm.realmNotifier.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         if (backgroundException instanceof RuntimeException) {
