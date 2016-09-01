@@ -244,38 +244,6 @@ public class RealmTests {
     }
 
     @Test
-    @UiThreadTest
-    public void internalRealmChangedHandlersRemoved() {
-        realm.close(); // Clear handler created by testRealm in setUp()
-        assertEquals(0, Realm.getHandlers().size());
-        final String REALM_NAME = "test-internalhandlers";
-        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
-        Realm.deleteRealm(realmConfig);
-
-        // Open and close first instance of a Realm
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(realmConfig);
-            assertFalse(this.realm == realm);
-            assertEquals(1, Realm.getHandlers().size());
-            realm.close();
-
-            // All Realms closed. No handlers should be alive.
-            assertEquals(0, Realm.getHandlers().size());
-
-            // Open instance the 2nd time. Old handler should now be gone
-            realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.getHandlers().size());
-            realm.close();
-
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
-    }
-
-    @Test
     public void getInstance() {
         assertNotNull("Realm.getInstance unexpectedly returns null", realm);
         assertTrue("Realm.getInstance does not contain expected table", realm.getSchema().contains(AllTypes.CLASS_NAME));
@@ -2002,7 +1970,9 @@ public class RealmTests {
         assertTrue(Realm.deleteRealm(configuration));
 
         // Directory should be empty now
-        assertEquals(0, tempDir.listFiles().length);
+        // FIXME: .note file is the named pipe for OS android notification. Just don't delete it until we figure out
+        // one single daemon thread for notification.
+        assertEquals(/*0*/1, tempDir.listFiles().length);
     }
 
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)

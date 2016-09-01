@@ -316,24 +316,6 @@ public class NotificationsTest {
     }
 
     @Test
-    @UiThreadTest
-    public void handlerNotRemovedToSoon() {
-        RealmConfiguration realmConfig = configFactory.createConfiguration("private-realm");
-        Realm.deleteRealm(realmConfig);
-        Realm instance1 = Realm.getInstance(realmConfig);
-        Realm instance2 = Realm.getInstance(realmConfig);
-        assertEquals(instance1.getPath(), instance2.getPath());
-        assertNotNull(instance1.handler);
-
-        // If multiple instances are open on the same thread, don't remove handler on that thread
-        // until last instance is closed.
-        instance2.close();
-        assertNotNull(instance1.handler);
-        instance1.close();
-        assertNull(instance1.handler);
-    }
-
-    @Test
     @RunTestInLooperThread
     public void commitTransaction_delayChangeListenerOnSameThread() {
         final AtomicInteger success = new AtomicInteger(0);

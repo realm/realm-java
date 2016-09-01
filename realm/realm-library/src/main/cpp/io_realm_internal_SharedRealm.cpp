@@ -1,10 +1,13 @@
-#include <object-store/src/object_store.hpp>
 #include "io_realm_internal_SharedRealm.h"
 
+#include "object_store.hpp"
 #include "shared_realm.hpp"
+
+#include "java_binding_context.hpp"
 #include "util.hpp"
 
 using namespace realm;
+using namespace realm::_impl;
 
 static_assert(SchemaMode::Automatic ==
                       static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_AUTOMATIC), "");
@@ -51,13 +54,16 @@ Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv* env, jclass, jlong 
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlong config_ptr)
+Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlong config_ptr, jobject notifier)
 {
     TR_ENTER_PTR(env, config_ptr)
 
     auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
     try {
         auto shared_realm = Realm::get_shared_realm(*config);
+        shared_realm->m_binding_context = JavaBindingContext::create(env, notifier);
+        // advance_read needs to be handled by Java because of async query.
+        shared_realm->set_auto_refresh(false);
         return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm)));
     } CATCH_STD()
     return static_cast<jlong>(NULL);
@@ -347,7 +353,6 @@ Java_io_realm_internal_SharedRealm_nativeWaitForChange(JNIEnv *env, jclass, jlon
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeStopWaitForChange(JNIEnv *env, jclass, jlong shared_realm_ptr)
 {
-
     TR_ENTER_PTR(env, shared_realm_ptr);
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
