@@ -34,7 +34,7 @@ public final class RealmLog {
     // All of the below should be modified together under under a lock on LOGGERS.
     private static final List<Logger> LOGGERS = new ArrayList<>();
     private static volatile Logger[] loggersAsArray = NO_LOGGERS;
-    private static volatile int minimumNativeLogLevel = Integer.MAX_VALUE;
+    private static int minimumNativeLogLevel = Integer.MAX_VALUE;
 
     /**
      * Adds a logger implementation that will be notified on log events.
