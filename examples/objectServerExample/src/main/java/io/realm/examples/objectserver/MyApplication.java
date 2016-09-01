@@ -23,7 +23,7 @@ import io.realm.objectserver.util.UserStore;
 
 public class MyApplication extends Application {
 
-    public static final String OBJECT_SERVER_IP = "192.168.104.22";
+    public static final String OBJECT_SERVER_IP = "192.168.1.3";
     public static final String APP_USER_KEY = "defaultAppUser";
     public static UserStore USER_STORE;
 

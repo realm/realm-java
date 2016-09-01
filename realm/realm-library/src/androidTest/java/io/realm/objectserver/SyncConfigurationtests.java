@@ -26,12 +26,19 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.realm.Realm;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncConfigurationtests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
+
     private Context context;
 
     @Before
@@ -42,6 +49,27 @@ public class SyncConfigurationtests {
     @After
     public void tearDown() throws Exception {
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void workDammit() {
+        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.3/auth", new User.Callback() {
+            @Override
+            public void onSuccess(User user) {
+                SyncConfiguration config = new SyncConfiguration.Builder(context)
+                        .user(user)
+                        .serverUrl("realm://192.168.1.3/~/default")
+                        .build();
+                Realm realm = Realm.getInstance(config);
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+
+            }
+        });
+    }
+
 
     @Test
     public void user() {
