@@ -21,8 +21,6 @@ try {
       }
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
-      // Make sure Object store is installed
-      sh 'git submodule update --init --recursive'
 
       stage 'Collect info'
       def dependencies = readProperties file: 'dependencies.list'
@@ -44,8 +42,7 @@ try {
         try {
           backgroundPid = startLogCatCollector()
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-            sh "cd realm && chmod +x gradlew &&./gradlew assemble"
-            sh "cd .. && chmod +x gradlew && ./gradlew installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
+            sh "chmod +x gradlew && ./gradlew installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
           }
           archiveLog = false;
         } finally {
