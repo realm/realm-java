@@ -376,13 +376,14 @@ public class Table implements TableOrView, TableSchema {
     /**
      * Add an empty row to the table.
      *
-     * @param checkPrimaryKey set to true to check if this table has a primary key defined. Throw an exception if yes.
+     * @param checkPrimaryKey set to {@code true } to check if this table has a primary key defined. Throw an exception
+     *                        if yes.
      * @return row index.
      * @throws RealmException if row cannot be added.
      */
     public long addEmptyRow(boolean checkPrimaryKey) {
         checkImmutable();
-        if (!checkPrimaryKey && hasPrimaryKey()) {
+        if (checkPrimaryKey && hasPrimaryKey()) {
             throw new RealmException(String.format("Class '%s' has a primary key defined and the primary key needs to" +
                     " be set when creating new object.", getName()));
         }

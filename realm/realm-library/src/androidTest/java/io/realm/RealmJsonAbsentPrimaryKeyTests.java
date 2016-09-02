@@ -59,7 +59,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
         }
     }
 
-    // parameters for testing absent primary key value. PrimaryKey field isabsent.
+    // parameters for testing absent primary key value. PrimaryKey field is absent.
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{

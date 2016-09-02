@@ -9,8 +9,8 @@
   - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
 * Removed `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
 * `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
-* `Realm.createObject(Class<E>)` and `DynamicRealm.createObjec(String)` throws a `RealmException` if they are called to create an object with a primary key defined.
-* Importing from JSON without the primary key field defined in the JSON object now throws an exception.
+* `Realm.createObject(Class<E>)` and `DynamicRealm.createObjec(String)` throws `RealmException` if they are called to create an object with a primary key defined.
+* Importing from JSON without the primary key field defined in the JSON object now throws `IllegalArgumentException`.
 
 ### Enhancements
 
