@@ -64,7 +64,7 @@ public class JNILinkTest {
 
         table1.addColumnLink(RealmFieldType.OBJECT, "Link", table2);
 
-        table1.addEmptyRow(true);
+        table1.addEmptyRow();
         table1.setLink(0, 0, 1);
 
         Table target = table1.getLinkTarget(0);
@@ -92,7 +92,7 @@ public class JNILinkTest {
 
         table2.addColumnLink(RealmFieldType.LIST, "LinkList", table1);
 
-        table2.addEmptyRow(true);
+        table2.addEmptyRow();
 
         LinkView links = table2.getUncheckedRow(0).getLinkList(0);
 

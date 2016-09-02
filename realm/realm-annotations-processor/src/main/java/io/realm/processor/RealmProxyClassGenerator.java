@@ -1632,7 +1632,6 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
-
     }
 
     private String columnInfoClassName() {

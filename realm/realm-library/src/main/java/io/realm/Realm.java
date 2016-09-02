@@ -680,7 +680,7 @@ public final class Realm extends BaseRealm {
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' to create it.", clazz.getSimpleName()));
         }
-        long rowIndex = table.addEmptyRow(false);
+        long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
     }
 

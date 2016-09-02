@@ -28,7 +28,6 @@ import java.util.Date;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -87,7 +86,7 @@ public class JNITableTest {
 
         // Add rows
         try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IndexOutOfBoundsException ignored) {}
-        try { tableZeroCols.addEmptyRow(true);      fail("No columns in table"); } catch (IndexOutOfBoundsException ignored) {}
+        try { tableZeroCols.addEmptyRow();      fail("No columns in table"); } catch (IndexOutOfBoundsException ignored) {}
         try { tableZeroCols.addEmptyRows(10);   fail("No columns in table"); } catch (IndexOutOfBoundsException ignored) {}
 
 
@@ -349,7 +348,7 @@ public class JNITableTest {
                     Table table = new Table();
                     long colIndex = table.addColumn(columnType, columnName, nullable);
                     table.addColumn(RealmFieldType.BOOLEAN, "bool");
-                    table.addEmptyRow(true);
+                    table.addEmptyRow();
                     if (columnType == RealmFieldType.BOOLEAN) {
                         table.setBoolean(colIndex, 0, true);
                     } else if (columnType == RealmFieldType.DATE) {
@@ -366,7 +365,7 @@ public class JNITableTest {
                         table.setString(colIndex, 0, "Foo");
                     }
                     try {
-                        table.addEmptyRow(true);
+                        table.addEmptyRow();
                         if (columnType == RealmFieldType.BINARY) {
                             table.setBinaryByteArray(colIndex, 1, null);
                         } else if (columnType == RealmFieldType.STRING) {
@@ -390,7 +389,7 @@ public class JNITableTest {
                     assertTrue(table.getColumnIndex(columnName) >= 0);
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
-                    table.addEmptyRow(true);
+                    table.addEmptyRow();
                     if (columnType == RealmFieldType.BINARY) {
                         table.setBinaryByteArray(colIndex, 0, null);
                     } else if (columnType == RealmFieldType.STRING) {
@@ -425,7 +424,7 @@ public class JNITableTest {
                     Table table = new Table();
                     long colIndex = table.addColumn(columnType, columnName, nullable);
                     table.addColumn(RealmFieldType.BOOLEAN, "bool");
-                    table.addEmptyRow(true);
+                    table.addEmptyRow();
                     if (columnType == RealmFieldType.BOOLEAN)
                         table.setBoolean(colIndex, 0, true);
                     else if (columnType == RealmFieldType.DATE)
@@ -441,7 +440,7 @@ public class JNITableTest {
                     else if (columnType == RealmFieldType.STRING)
                         table.setString(colIndex, 0, "Foo");
                     try {
-                        table.addEmptyRow(true);
+                        table.addEmptyRow();
                         if (columnType == RealmFieldType.BINARY) {
                             table.setBinaryByteArray(colIndex, 1, null);
                         } else if (columnType == RealmFieldType.STRING) {
@@ -464,7 +463,7 @@ public class JNITableTest {
                     assertTrue(table.getColumnIndex(columnName) >= 0);
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
-                    table.addEmptyRow(true);
+                    table.addEmptyRow();
                     try {
                         if (columnType == RealmFieldType.BINARY) {
                             table.setBinaryByteArray(colIndex, 0, null);

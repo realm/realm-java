@@ -19,7 +19,6 @@ package io.realm.internal;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
@@ -374,20 +373,15 @@ public class Table implements TableOrView, TableSchema {
     }
 
     /**
-     * Add an empty row to the table.
+     * Add an empty row to the table which doesn't have a primary key defined.
+     * <p>
+     * NOTE: To add a table with a primary key defined, use {@link #addEmptyRowWithPrimaryKey(Object)} instead. This
+     * won't check if this table has a primary key.
      *
-     * @param checkPrimaryKey set to {@code true } to check if this table has a primary key defined. Throw an exception
-     *                        if yes.
      * @return row index.
-     * @throws RealmException if row cannot be added.
      */
-    public long addEmptyRow(boolean checkPrimaryKey) {
+    public long addEmptyRow() {
         checkImmutable();
-        if (checkPrimaryKey && hasPrimaryKey()) {
-            throw new RealmException(String.format("Class '%s' has a primary key defined and the primary key needs to" +
-                    " be set when creating new object.", getName()));
-        }
-
         return nativeAddEmptyRow(nativePtr, 1);
     }
 
@@ -463,7 +457,7 @@ public class Table implements TableOrView, TableSchema {
            if (rows > 1) {
                throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
            }
-           return addEmptyRow(false);
+           return addEmptyRow();
         }
         return nativeAddEmptyRow(nativePtr, rows);
     }
@@ -475,7 +469,7 @@ public class Table implements TableOrView, TableSchema {
      * @return the row index of the appended row.
      */
     protected long add(Object... values) {
-        long rowIndex = addEmptyRow(false);
+        long rowIndex = addEmptyRow();
 
         checkImmutable();
 

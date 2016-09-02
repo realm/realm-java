@@ -467,7 +467,7 @@ abstract class BaseRealm implements Closeable {
         Table metadataTable = sharedRealm.getTable(Table.METADATA_TABLE_NAME);
         if (metadataTable.getColumnCount() == 0) {
             metadataTable.addColumn(RealmFieldType.INTEGER, "version");
-            metadataTable.addEmptyRow(false);
+            metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
     }
