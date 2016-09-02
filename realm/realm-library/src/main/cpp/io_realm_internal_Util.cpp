@@ -19,9 +19,9 @@
 #include <realm/string_data.hpp>
 #include <realm/unicode.hpp>
 
-#include "util.hpp"
+#include "io_realm_log_LogLevel.h"
 #include "mem_usage.hpp"
-#include "io_realm_internal_Util.h"
+#include "util.hpp"
 
 using std::string;
 
@@ -32,7 +32,13 @@ using std::string;
 
 // used by logging
 int trace_level = 0;
-const char* log_tag = "REALM";
+jclass realmlog_class;
+jmethodID log_trace;
+jmethodID log_debug;
+jmethodID log_info;
+jmethodID log_warn;
+jmethodID log_error;
+jmethodID log_fatal;
 
 const string TABLE_PREFIX("class_");
 
@@ -54,6 +60,13 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
         sync_manager          = GetClass(env, "io/realm/sync/SyncManager");
         sync_manager_notify_handler = env->GetStaticMethodID(sync_manager, "notifyHandlers", "(Ljava/lang/String;)V");
+        realmlog_class        = GetClass(env, "io/realm/log/RealmLog");
+        log_trace             = env->GetStaticMethodID(realmlog_class, "trace", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        log_debug             = env->GetStaticMethodID(realmlog_class, "debug", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        log_info              = env->GetStaticMethodID(realmlog_class, "info", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        log_warn              = env->GetStaticMethodID(realmlog_class, "warn", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        log_error             = env->GetStaticMethodID(realmlog_class, "error", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        log_fatal             = env->GetStaticMethodID(realmlog_class, "fatal", "(Ljava/lang/String;[Ljava/lang/Object;)V");
     }
 
     return JNI_VERSION_1_6;
@@ -74,6 +87,17 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Util_nativeSetDebugLevel(JNIEnv*, jclass, jint level)
 {
+    /**
+     * level should match one of the levels defined in LogLevel.java
+     * ALL = 1
+     * TRACE = 2
+     * DEBUG = 3
+     * INFO = 4
+     * WARN = 5
+     * ERROR = 6
+     * FATAL = 7
+     * OFF = 8
+     */
     trace_level = level;
 }
 

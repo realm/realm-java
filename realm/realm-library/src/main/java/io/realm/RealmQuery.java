@@ -17,8 +17,6 @@
 package io.realm;
 
 
-import android.os.Handler;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,8 +26,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.Required;
-import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
@@ -40,7 +38,7 @@ import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
@@ -1362,7 +1360,7 @@ public final class RealmQuery<E extends RealmModel> {
     public RealmResults<E> distinctAsync(String fieldName) {
         checkQueryIsNotReused();
         final long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
-        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
@@ -1404,15 +1402,14 @@ public final class RealmQuery<E extends RealmModel> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
 
                         return handoverTableViewPointer;
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
-
+                        RealmLog.error(e);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
                     } finally {
                         if (sharedRealm != null && !sharedRealm.isClosed()) {
                             sharedRealm.close();
@@ -1667,7 +1664,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmResults<E> findAllAsync() {
         checkQueryIsNotReused();
-        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
@@ -1709,20 +1706,20 @@ public final class RealmQuery<E extends RealmModel> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
 
                         return handoverTableViewPointer;
 
                     } catch (BadVersionException e) {
                         // In some rare race conditions, this can happen. In that case, just ignore the error.
-                        RealmLog.d("findAllAsync handover could not complete due to a BadVersionException. " +
+                        RealmLog.debug("findAllAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                        RealmLog.error(e);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
                     } finally {
                         if (sharedRealm != null && !sharedRealm.isClosed()) {
                             sharedRealm.close();
@@ -1787,7 +1784,7 @@ public final class RealmQuery<E extends RealmModel> {
         argumentsHolder.sortOrder = sortOrder;
         argumentsHolder.columnIndex = columnIndex;
 
-        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
@@ -1824,19 +1821,19 @@ public final class RealmQuery<E extends RealmModel> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
 
                         return handoverTableViewPointer;
                     } catch (BadVersionException e) {
                         // In some rare race conditions, this can happen. In that case, just ignore the error.
-                        RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                        RealmLog.debug("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                 "Retry is scheduled by a REALM_CHANGED event.");
 
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+                        RealmLog.error(e);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
 
                     } finally {
                         if (sharedRealm!= null && !sharedRealm.isClosed()) {
@@ -1947,7 +1944,7 @@ public final class RealmQuery<E extends RealmModel> {
             return findAllSortedAsync(fieldNames[0], sortOrders[0]);
 
         } else {
-            final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+            final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
             // Handover the query (to be used by a worker thread)
             final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
@@ -1994,20 +1991,19 @@ public final class RealmQuery<E extends RealmModel> {
                             QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                             result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                             result.versionID = sharedRealm.getVersionID();
-                            closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                    weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result);
+                            closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                    weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
 
                             return handoverTableViewPointer;
                         } catch (BadVersionException e) {
                             // In some rare race conditions, this can happen. In that case, just ignore the error.
-                            RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                            RealmLog.debug("findAllSortedAsync handover could not complete due to a BadVersionException. " +
                                     "Retry is scheduled by a REALM_CHANGED event.");
 
                         } catch (Throwable e) {
-                            RealmLog.e(e.getMessage(), e);
-                            closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                    weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
-
+                            RealmLog.error(e);
+                            closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                    weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
                         } finally {
                             if (sharedRealm != null && !sharedRealm.isClosed()) {
                                 sharedRealm.close();
@@ -2090,7 +2086,7 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public E findFirstAsync() {
         checkQueryIsNotReused();
-        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
@@ -2133,17 +2129,16 @@ public final class RealmQuery<E extends RealmModel> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObjectResponse();
                         result.updatedRow.put(realmObjectWeakReference, handoverRowPointer);
                         result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT, result);
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_OBJECT, result);
 
                         return handoverRowPointer;
 
                     } catch (Throwable e) {
-                        RealmLog.e(e.getMessage(), e);
+                        RealmLog.error(e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
-                        closeSharedRealmAndSendMessageToHandler(sharedRealm,
-                                weakHandler, HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
-
+                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
+                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
                     } finally {
                         if (sharedRealm != null && !sharedRealm.isClosed()) {
                             sharedRealm.close();
@@ -2175,24 +2170,39 @@ public final class RealmQuery<E extends RealmModel> {
         }
     }
 
-    private WeakReference<Handler> getWeakReferenceHandler() {
-        if (realm.handler == null) {
+    private WeakReference<RealmNotifier> getWeakReferenceNotifier() {
+        if (realm.sharedRealm.realmNotifier == null || !realm.sharedRealm.realmNotifier.isValid()) {
             throw new IllegalStateException("Your Realm is opened from a thread without a Looper." +
                     " Async queries need a Handler to send results of your query");
         }
-        return new WeakReference<Handler>(realm.handler); // use caller Realm's Looper
+        return new WeakReference<RealmNotifier>(realm.sharedRealm.realmNotifier); // use caller Realm's Looper
     }
 
     // The shared group needs to be closed before sending the message to other threads to avoid timing problems.
     // eg.: The other thread wants to delete Realm when getting notified.
-    private void closeSharedRealmAndSendMessageToHandler(SharedRealm sharedRealm, WeakReference<Handler> weakHandler,
-                                                         int what, Object obj) {
+    private void closeSharedRealmAndSendEventToNotifier(SharedRealm sharedRealm,
+                                                         WeakReference<RealmNotifier> weakNotifier,
+                                                        QueryUpdateTask.NotifyEvent event, Object obj) {
         if (sharedRealm != null) {
             sharedRealm.close();
         }
-        Handler handler = weakHandler.get();
-        if (handler != null && handler.getLooper().getThread().isAlive()) {
-            handler.obtainMessage(what, obj).sendToTarget();
+
+        RealmNotifier notifier = weakNotifier.get();
+        if (notifier!= null) {
+            switch (event) {
+                case COMPLETE_ASYNC_RESULTS:
+                    notifier.completeAsyncResults((QueryUpdateTask.Result)obj);
+                    break;
+                case COMPLETE_ASYNC_OBJECT:
+                    notifier.completeAsyncObject((QueryUpdateTask.Result)obj);
+                    break;
+                case THROW_BACKGROUND_EXCEPTION:
+                    notifier.throwBackgroundException((Throwable)obj);
+                    break;
+                default:
+                    // Should not get here.
+                    throw new IllegalStateException(String.format("%s is not handled here.", event));
+            }
         }
     }
 

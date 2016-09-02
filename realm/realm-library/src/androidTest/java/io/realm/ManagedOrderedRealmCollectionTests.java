@@ -170,7 +170,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
-                NullTypes obj = realm.createObject(NullTypes.class);
+                NullTypes obj = realm.createObject(NullTypes.class, 0);
                 realm.commitTransaction();
                 return obj.getFieldListNull();
 

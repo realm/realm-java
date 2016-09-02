@@ -833,8 +833,8 @@ public class BulkInsertTests {
     @Test
     public void insertOrUpdate_collectionOfManagedObjects() {
         realm.beginTransaction();
-        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class);
-        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class));
+        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class, 0);
+        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class, 0));
         realm.commitTransaction();
         assertEquals(1, allTypes.getColumnRealmList().size());
 
@@ -856,8 +856,8 @@ public class BulkInsertTests {
     @Test
     public void insertOrUpdate_shouldNotClearRealmList() {
         realm.beginTransaction();
-        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class);
-        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class));
+        AllTypesPrimaryKey allTypes = realm.createObject(AllTypesPrimaryKey.class, 0);
+        allTypes.getColumnRealmList().add(realm.createObject(DogPrimaryKey.class, 0));
         realm.commitTransaction();
         assertEquals(1, allTypes.getColumnRealmList().size());
 
