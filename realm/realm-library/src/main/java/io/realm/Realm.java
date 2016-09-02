@@ -302,8 +302,8 @@ public final class Realm extends BaseRealm {
      * @param clazz type of Realm objects to create.
      * @param json an array where each JSONObject must map to the specified class.
      * @throws RealmException if mapping from JSON fails.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, JSONArray json) {
         if (clazz == null || json == null) {
@@ -328,10 +328,9 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json array with object data.
-     * @throws IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if trying to update a class without a {@link io.realm.annotations.PrimaryKey}.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if unable to map JSON.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
@@ -357,8 +356,8 @@ public final class Realm extends BaseRealm {
      * @param clazz type of Realm objects to create.
      * @param json the JSON array as a String where each object can map to the specified class.
      * @throws RealmException if mapping from JSON fails.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -384,11 +383,10 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with an array of JSON objects.
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *         {@link io.realm.annotations.PrimaryKey}.
+     * @throws IllegalArgumentException if trying to update a class without a {@link io.realm.annotations.PrimaryKey}.
      * @throws RealmException if unable to create a JSON array from the json string.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
@@ -415,8 +413,8 @@ public final class Realm extends BaseRealm {
      * @param clazz type of Realm objects created.
      * @param inputStream the JSON array as a InputStream. All objects in the array must be of the specified class.
      * @throws RealmException if mapping from JSON fails.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something was wrong with the input stream.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -447,8 +445,8 @@ public final class Realm extends BaseRealm {
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
      * @throws IllegalArgumentException if trying to update a class without a {@link io.realm.annotations.PrimaryKey}.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if unable to read JSON.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
@@ -486,8 +484,8 @@ public final class Realm extends BaseRealm {
      * @param json the JSONObject with object data.
      * @return created object or {@code null} if no JSON data was provided.
      * @throws RealmException if the mapping from JSON fails.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @see #createOrUpdateObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, JSONObject json) {
@@ -512,8 +510,8 @@ public final class Realm extends BaseRealm {
      * @param json {@link org.json.JSONObject} with object data.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws IllegalArgumentException if trying to update a class without a {@link io.realm.annotations.PrimaryKey}.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if JSON data cannot be mapped.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
@@ -539,10 +537,8 @@ public final class Realm extends BaseRealm {
      * @param json the JSON string with object data.
      * @return created object or {@code null} if JSON string was empty or null.
      * @throws RealmException if mapping to json failed.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      */
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -570,8 +566,8 @@ public final class Realm extends BaseRealm {
      * @param json string with object data in JSON format.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws IllegalArgumentException if trying to update a class without a {@link io.realm.annotations.PrimaryKey}.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if JSON object cannot be mapped from the string parameter.
      * @see #createObjectFromJson(Class, String)
      */
@@ -600,8 +596,8 @@ public final class Realm extends BaseRealm {
      * @param inputStream the JSON object data as a InputStream.
      * @return created object or {@code null} if JSON string was empty or null.
      * @throws RealmException if the mapping from JSON failed.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something went wrong with the input stream.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -649,9 +645,9 @@ public final class Realm extends BaseRealm {
      * @param in the {@link InputStream} with object data in JSON format.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws IllegalArgumentException if trying to update a class without a {@link io.realm.annotations.PrimaryKey}.
+     * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
+     * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if failure to read JSON.
-     * @throws IllegalArgumentException if the JSON object doesn't have the primary key property but the corresponding
-     * {@link RealmObjectSchema} has {@link io.realm.annotations.PrimaryKey} defined.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
