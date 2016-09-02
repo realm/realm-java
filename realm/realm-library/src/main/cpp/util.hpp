@@ -28,10 +28,12 @@
 #include <inttypes.h>
 
 #include <realm.hpp>
-#include <realm/util/meta.hpp>
-#include <realm/util/safe_int_ops.hpp>
 #include <realm/lang_bind_helper.hpp>
 #include <realm/timestamp.hpp>
+#include <realm/util/meta.hpp>
+#include <realm/util/safe_int_ops.hpp>
+
+#include <util/format.hpp>
 
 #include "io_realm_internal_Util.h"
 #include "io_realm_log_LogLevel.h"
@@ -572,6 +574,10 @@ public:
         , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
         , m_array(javaArray == NULL ? NULL : env->GetByteArrayElements(javaArray, NULL))
         , m_releaseMode(JNI_ABORT) {
+        if (m_javaArray != nullptr && m_array == nullptr) {
+            // javaArray is not null but GetByteArrayElements returns null, something is really wrong.
+            throw std::runtime_error(realm::util::format("GetByteArrayElements failed on byte array %x", m_javaArray));
+        }
     }
 
     ~JniByteArray()

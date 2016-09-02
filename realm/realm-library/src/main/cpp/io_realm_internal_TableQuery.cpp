@@ -16,7 +16,6 @@
 
 #include <realm.hpp>
 #include <realm/group_shared.hpp>
-#include <realm/commit_log.hpp>
 #include <shared_realm.hpp>
 #include <object_store.hpp>
 #include "util.hpp"

@@ -712,15 +712,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
         return;
     try {
-        if (dataArray == NULL) {
-            if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
+        if (dataArray == NULL && (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex))) {
                 return;
-            }
-            TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), BinaryData());
         }
-        else {
-            tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
-        }
+
+        JniByteArray byteAccessor(env, dataArray);
+        TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), byteAccessor);
     } CATCH_STD()
 }
 
