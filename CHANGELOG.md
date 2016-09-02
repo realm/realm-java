@@ -32,6 +32,7 @@
 
 * Moved JNI build to CMake.
 * Updated Realm Core to 2.0.0-rc4.
+* Call `set_int_unique()` and `set_string_unique()` for primary keys.
 
 ## 1.2.0
 

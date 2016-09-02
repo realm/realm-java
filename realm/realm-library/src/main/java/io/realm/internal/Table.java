@@ -385,9 +385,30 @@ public class Table implements TableOrView, TableSchema {
         return nativeAddEmptyRow(nativePtr, 1);
     }
 
+    /**
+     * Add an empty row to the table and set the primary key with the given value. Equivalent to call
+     * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code skipChecking = false}.
+     *
+     * @param primaryKeyValue the primary key value
+     * @return the row index.
+     */
     public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
-        checkImmutable();
-        checkHasPrimaryKey();
+        return addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+    }
+
+    /**
+     * Add an empty row to the table and set the primary key with the given value.
+     *
+     * @param primaryKeyValue the primary key value.
+     * @param skipChecking set to {@code true} to skip all validations. This is currently used by bulk insert which
+     *                     has its own validations.
+     * @return the row index.
+     */
+    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue, boolean skipChecking) {
+        if (!skipChecking) {
+            checkImmutable();
+            checkHasPrimaryKey();
+        }
 
         long primaryKeyColumnIndex = getPrimaryKey();
         RealmFieldType type = getColumnType(primaryKeyColumnIndex);
@@ -399,11 +420,12 @@ public class Table implements TableOrView, TableSchema {
             switch (type) {
                 case STRING:
                 case INTEGER:
-                    if (findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
+                    if (!skipChecking && findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException("null");
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
                     row = getUncheckedRow(rowIndex);
+                    // FIXME: Use core's set_null_unique when core supports it.
                     row.setNull(primaryKeyColumnIndex);
                     break;
 
@@ -417,12 +439,11 @@ public class Table implements TableOrView, TableSchema {
                     if (!(primaryKeyValue instanceof String)) {
                         throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
                     }
-                    if (findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
+                    if (!skipChecking && findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(primaryKeyValue);
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    row = getUncheckedRow(rowIndex);
-                    row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                    nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, (String) primaryKeyValue);
                     break;
 
                 case INTEGER:
@@ -432,12 +453,11 @@ public class Table implements TableOrView, TableSchema {
                     } catch (RuntimeException e) {
                         throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
                     }
-                    if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
+                    if (!skipChecking && findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(pkValue);
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    row = getUncheckedRow(rowIndex);
-                    row.setLong(primaryKeyColumnIndex, pkValue);
+                    nativeSetLongUnique(nativePtr, primaryKeyColumnIndex, rowIndex, pkValue);
                     break;
 
                 default:
@@ -1315,11 +1335,13 @@ public class Table implements TableOrView, TableSchema {
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
     native long nativeGetRowPtr(long nativePtr, long index);
     public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    public static native void nativeSetLongUnique(long nativeTablePtr, long columnIndex, long rowIndex, long value);
     public static native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
     public static native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
     public static native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
     public static native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
     public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    public static native void nativeSetStringUnique(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
