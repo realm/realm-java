@@ -712,7 +712,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
         return;
     try {
-        if (dataArray == NULL && (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex))) {
+        if (dataArray == NULL && !TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
                 return;
         }
 
