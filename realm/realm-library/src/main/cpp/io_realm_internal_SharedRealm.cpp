@@ -223,10 +223,8 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
             shared_realm->update_schema(std::move(*schema), version, nullptr);
         }
         else {
-            jmethodID realm_migration_method = nullptr;
             jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
-            realm_migration_method = env->GetMethodID(realm_migration_class, "migration",
-                                                      "()Lio/realm/DynamicRealm;JJ");
+            jmethodID realm_migration_method = env->GetMethodID(realm_migration_class, "migrate", "(Lio/realm/DynamicRealm;JJ)V");
             if (realm_migration_method == nullptr) {
                 throw std::runtime_error("Cannot find method 'migration' of class 'io.realm.RealmMigration'.");
                 return 0;
