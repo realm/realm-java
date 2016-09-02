@@ -15,7 +15,7 @@ allprojects {
             jcenter()
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:2.1.2'
+            classpath 'com.android.tools.build:gradle:2.1.3'
             classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
             classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
@@ -31,4 +31,8 @@ allprojects {
         mavenLocal()
         jcenter()
     }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
