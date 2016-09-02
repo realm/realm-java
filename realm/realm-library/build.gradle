@@ -87,15 +87,7 @@ android {
     }
 }
 
-//task untarRealmServer(type: Exec) {
-//    commandLine 'tar', 'xvf', '/opt/realm-sync-0.27.4-101.tgz'
-//}
-
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
-
-import io.realm.transformer.RealmTransformer
-
-android.registerTransform(new RealmTransformer())
 
 repositories {
     maven { url "https://jitpack.io" }

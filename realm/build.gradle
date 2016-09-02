@@ -15,7 +15,6 @@ buildscript {
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
-        classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
     }
 }
 
