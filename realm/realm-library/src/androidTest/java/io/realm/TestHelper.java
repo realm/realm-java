@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import org.junit.Assert;
@@ -56,9 +57,13 @@ import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.log.Logger;
+import io.realm.log.AndroidLogger;
+import io.realm.log.LogLevel;
+import io.realm.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static android.R.id.message;
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
@@ -171,7 +176,7 @@ public class TestHelper {
      * @return Logger implementation
      */
     public static Logger getFailureLogger(final int failureLevel) {
-        return new Logger() {
+        return new AndroidLogger(Log.VERBOSE) {
 
             private void failIfEqualOrAbove(int logLevel, int failureLevel) {
                 if (logLevel >= failureLevel) {
@@ -180,54 +185,35 @@ public class TestHelper {
             }
 
             @Override
-            public void v(String message) {
+            public void trace(Throwable t, String message, Object... args) {
                 failIfEqualOrAbove(Log.VERBOSE, failureLevel);
             }
 
             @Override
-            public void v(String message, Throwable t) {
-                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
-            }
-
-            @Override
-            public void d(String message) {
+            public void debug(Throwable t, String message, Object... args) {
                 failIfEqualOrAbove(Log.DEBUG, failureLevel);
             }
 
             @Override
-            public void d(String message, Throwable t) {
-                failIfEqualOrAbove(Log.DEBUG, failureLevel);
-            }
-
-            @Override
-            public void i(String message) {
+            public void info(Throwable t, String message, Object... args) {
                 failIfEqualOrAbove(Log.INFO, failureLevel);
             }
 
             @Override
-            public void i(String message, Throwable t) {
-                failIfEqualOrAbove(Log.INFO, failureLevel);
-            }
-
-            @Override
-            public void w(String message) {
+            public void warn(Throwable t, String message, Object... args) {
                 failIfEqualOrAbove(Log.WARN, failureLevel);
             }
 
             @Override
-            public void w(String message, Throwable t) {
-                failIfEqualOrAbove(Log.WARN, failureLevel);
-            }
-
-            @Override
-            public void e(String message) {
+            public void error(Throwable t, String message, Object... args) {
                 failIfEqualOrAbove(Log.ERROR, failureLevel);
             }
 
             @Override
-            public void e(String message, Throwable t) {
+            public void fatal(Throwable t, String message, Object... args) {
                 failIfEqualOrAbove(Log.ERROR, failureLevel);
             }
+
         };
     }
 
@@ -245,62 +231,67 @@ public class TestHelper {
      */
     public static class TestLogger implements Logger {
 
+        private final int minimumLevel;
         public String message;
         public Throwable throwable;
 
-        @Override
-        public void v(String message) {
-            this.message = message;
+        public TestLogger() {
+            this(LogLevel.DEBUG);
+        }
+
+        public TestLogger(int minimumLevel) {
+            this.minimumLevel = minimumLevel;
         }
 
         @Override
-        public void v(String message, Throwable t) {
-            this.message = message;
+        public int getMinimumNativeDebugLevel() {
+            return minimumLevel;
+        }
+
+        @Override
+        public void trace(Throwable t, String message, Object... args) {
+            if (minimumLevel <= LogLevel.TRACE) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
+        }
+
+        @Override
+        public void debug(Throwable t, String message, Object... args) {
+            if (minimumLevel <= LogLevel.DEBUG) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
+        }
+
+        @Override
+        public void info(Throwable t, String message, Object... args) {
+            if (minimumLevel <= LogLevel.INFO) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
+        }
+
+        @Override
+        public void warn(Throwable t, String message, Object... args) {
+            this.message = (message != null) ? String.format(message, args) : null;
             this.throwable = t;
         }
 
         @Override
-        public void d(String message) {
-            this.message = message;
+        public void error(Throwable t, String message, Object... args) {
+            if (minimumLevel <= LogLevel.ERROR) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
 
         @Override
-        public void d(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void i(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void i(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void w(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void w(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void e(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void e(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
+        public void fatal(Throwable t, String message, Object... args) {
+            if (minimumLevel <= LogLevel.FATAL) {
+                this.message = (message != null) ? String.format(message, args) : null;
+                this.throwable = t;
+            }
         }
     }
 
@@ -382,7 +373,9 @@ public class TestHelper {
      */
     @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(dir)
+                .name(name);
         if (key != null) {
             config.encryptionKey(key);
         }

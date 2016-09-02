@@ -103,7 +103,7 @@ public final class SyncConfiguration extends RealmConfiguration {
      * {@inheritDoc}
      */
     @Override
-    public File getRealmFolder() {
+    public File getRealmDirectory() {
         return this.realmFolder;
     }
 
@@ -160,13 +160,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         public Builder(Context context) {
             super(context);
             this.context = context;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public Builder(Context context, File folder) {
-            super(context, folder);
         }
 
         /**
@@ -266,8 +259,8 @@ public final class SyncConfiguration extends RealmConfiguration {
          * {@inheritDoc}
          */
         @Override
-        public Builder assetFile(Context context, String assetFile) {
-            super.assetFile(context, assetFile);
+        public Builder assetFile(String assetFile) {
+            super.assetFile(assetFile);
             return this;
         }
 

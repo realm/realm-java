@@ -1,6 +1,8 @@
 package io.realm;
 
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
@@ -225,6 +227,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     @SuppressWarnings("cast")
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.Booleans createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         some.test.Booleans obj = realm.createObject(some.test.Booleans.class);

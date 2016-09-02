@@ -23,11 +23,11 @@ import java.util.concurrent.TimeUnit;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
-import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.ErrorCode;
 import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.SyncConfiguration;
@@ -119,7 +119,7 @@ public final class Session {
         FSM.put(SessionState.AUTHENTICATING, new AuthenticatingState());
         FSM.put(SessionState.BOUND, new BoundState());
         FSM.put(SessionState.STOPPED, new StoppedState());
-        RealmLog.d("Session started: " + configuration.getServerUrl());
+        RealmLog.debug("Session started: " + configuration.getServerUrl());
         currentState = FSM.get(SessionState.INITIAL);
         currentState.entry(this);
     }
@@ -132,7 +132,7 @@ public final class Session {
         if (nextState == null) {
             throw new IllegalStateException("No state was configured to handle: " + nextStateDescription);
         }
-        RealmLog.d(String.format("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription));
+        RealmLog.debug(String.format("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription));
         currentStateDescription = nextStateDescription;
         currentState = nextState;
         nextState.entry(this);
@@ -298,7 +298,7 @@ public final class Session {
     protected void finalize() throws Throwable {
         super.finalize();
         if (currentStateDescription != SessionState.STOPPED) {
-            RealmLog.w("Session was not closed before being finalized. This is a potential resource leak.");
+            RealmLog.warn("Session was not closed before being finalized. This is a potential resource leak.");
             stop();
         }
     }

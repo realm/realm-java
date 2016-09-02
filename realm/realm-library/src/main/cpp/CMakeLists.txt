@@ -28,6 +28,7 @@ create_javah(TARGET jni_headers
   io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
   io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
   io.realm.objectserver.SyncManager io.realm.objectserver.session.Session
+  io.realm.log.LogLevel
 
   CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include

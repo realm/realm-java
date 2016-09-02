@@ -68,7 +68,7 @@ public class DynamicRealmObjectTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
-        typedObj = realm.createObject(AllJavaTypes.class);
+        typedObj = realm.createObject(AllJavaTypes.class, 0);
         typedObj.setFieldString("str");
         typedObj.setFieldShort((short) 1);
         typedObj.setFieldInt(1);
@@ -252,7 +252,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void typedGettersAndSetters() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -316,7 +316,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void setter_null() {
         realm.beginTransaction();
-        NullTypes obj = realm.createObject(NullTypes.class);
+        NullTypes obj = realm.createObject(NullTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -389,7 +389,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void setter_nullOnRequiredFieldsThrows() {
         realm.beginTransaction();
-        NullTypes obj = realm.createObject(NullTypes.class);
+        NullTypes obj = realm.createObject(NullTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -423,7 +423,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void typedSetter_null() {
         realm.beginTransaction();
-        NullTypes obj = realm.createObject(NullTypes.class);
+        NullTypes obj = realm.createObject(NullTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -483,7 +483,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void setObject_wrongTypeThrows() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         Dog otherObj = realm.createObject(Dog.class);
         DynamicRealmObject dynamicObj = new DynamicRealmObject(obj);
         DynamicRealmObject dynamicWrongType = new DynamicRealmObject(otherObj);
@@ -616,8 +616,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void untypedSetter_listMixedTypesThrows() {
         realm.beginTransaction();
-        AllJavaTypes obj1 = realm.createObject(AllJavaTypes.class);
-        obj1.setFieldLong(2);
+        AllJavaTypes obj1 = realm.createObject(AllJavaTypes.class, 2);
         CyclicType obj2 = realm.createObject(CyclicType.class);
 
         RealmList<DynamicRealmObject> list = new RealmList<DynamicRealmObject>();
@@ -649,7 +648,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void untypedGetterSetter() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -718,7 +717,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void untypedSetter_usingStringConversion() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -772,7 +771,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void untypedSetter_illegalImplicitConversionThrows() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
@@ -832,7 +831,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void isNull_true() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         realm.commitTransaction();
 
         assertTrue(new DynamicRealmObject(obj).isNull(AllJavaTypes.FIELD_OBJECT));
@@ -918,7 +917,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void toString_nullValues() {
         dynamicRealm.beginTransaction();
-        final DynamicRealmObject obj = dynamicRealm.createObject(NullTypes.CLASS_NAME);
+        final DynamicRealmObject obj = dynamicRealm.createObject(NullTypes.CLASS_NAME, 0);
         dynamicRealm.commitTransaction();
 
         String str = obj.toString();

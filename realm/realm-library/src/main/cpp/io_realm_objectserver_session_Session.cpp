@@ -41,7 +41,7 @@ using namespace sync;
 JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateSession
   (JNIEnv *env, jobject obj, jlong clientPointer, jstring localRealmPath)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     Client* sync_client = SC(clientPointer);
     if (sync_client == NULL) {
         return 0;
@@ -60,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateS
 JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeBind
   (JNIEnv *env, jobject, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     try {
         JNISession* session_wrapper = SS(sessionPointer);
 
@@ -78,9 +78,9 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeBind
 
 
 JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeUnbind
-  (JNIEnv *, jobject, jlong sessionPointer)
+  (JNIEnv *env, jobject, jlong sessionPointer)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     JNISession* session = SS(sessionPointer);
     delete session; // TODO Can we avoid killing the session here?
 }
@@ -88,7 +88,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeUnbind
 JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
   (JNIEnv *env, jobject, jlong sessionPointer, jstring accessToken)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     try {
         JNISession* session_wrapper = SS(sessionPointer);
 

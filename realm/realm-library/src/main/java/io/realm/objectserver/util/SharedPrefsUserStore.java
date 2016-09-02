@@ -23,16 +23,11 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.Realm;
-import io.realm.RealmAsyncTask;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.User;
-
-import static android.R.attr.key;
 
 /**
  * A User Store backed by a SharedPreferences file.
@@ -104,7 +99,7 @@ public class SharedPrefsUserStore implements UserStore {
                     success = save(key, user);
                 } catch (Exception e) {
                     success = false;
-                    RealmLog.e("Failed to save user", e);
+                    RealmLog.error("Failed to save user", e);
                 }
                 if (callback != null) {
                     final boolean finalSuccess = success;
@@ -147,7 +142,7 @@ public class SharedPrefsUserStore implements UserStore {
                 try {
                     user = load(key);
                 } catch (Exception e) {
-                    RealmLog.e("Failed to save user", e);
+                    RealmLog.error("Failed to save user", e);
                 }
                 if (callback != null) {
                     final User finalUser = user;

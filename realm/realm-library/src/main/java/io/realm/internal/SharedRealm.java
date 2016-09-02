@@ -69,6 +69,9 @@ public final class SharedRealm implements Closeable {
         }
     }
 
+    // JNI will only hold a weak global ref to this.
+    public final RealmNotifier realmNotifier;
+
     public static class VersionID implements Comparable<VersionID> {
         final long version;
         final long index;
@@ -126,13 +129,18 @@ public final class SharedRealm implements Closeable {
     private RealmConfiguration configuration;
     final Context context;
 
-    private SharedRealm(long nativePtr, RealmConfiguration configuration) {
+    private SharedRealm(long nativePtr, RealmConfiguration configuration, RealmNotifier notifier) {
         this.nativePtr = nativePtr;
         this.configuration = configuration;
+        this.realmNotifier = notifier;
         context = new Context();
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
+        return getInstance(config, null);
+    }
+
+    public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier) {
         String rosServerUrl = null;
         String rosUserToken = null;
         if (RealmCore.SYNC_AVAILABLE && config instanceof SyncConfiguration) {
@@ -140,6 +148,7 @@ public final class SharedRealm implements Closeable {
             rosServerUrl = rosConfig.getServerUrl().toString();
             rosUserToken = rosConfig.getUser().getRefreshToken().value();
         }
+
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
@@ -147,11 +156,11 @@ public final class SharedRealm implements Closeable {
                 config.getDurability() == Durability.MEM_ONLY,
                 false,
                 false,
-                false,
+                true,
                 rosServerUrl,
                 rosUserToken);
         try {
-            return new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
+            return new SharedRealm(nativeGetSharedRealm(nativeConfigPtr, realmNotifier), config, realmNotifier);
         } finally {
             nativeCloseConfig(nativeConfigPtr);
         }
@@ -260,6 +269,9 @@ public final class SharedRealm implements Closeable {
 
     @Override
     public void close() {
+        if (realmNotifier != null) {
+            realmNotifier.close();
+        }
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeCloseSharedRealm(nativePtr);
@@ -287,7 +299,7 @@ public final class SharedRealm implements Closeable {
                                                   boolean autoChangeNotification,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
-    private static native long nativeGetSharedRealm(long nativeConfigPtr);
+    private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
     private static native boolean nativeIsClosed(long nativeSharedRealmPtr);
     private static native void nativeBeginTransaction(long nativeSharedRealmPtr);

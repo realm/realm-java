@@ -7,12 +7,19 @@
 * Added new `RealmFileException`.
   - `IncompatibleLockFileException` has been removed and replaced by `RealmFileException` with kind `INCOMPATIBLE_LOCK_FILE`.
   - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
+* Removed `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
+* `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
 
 ### Enhancements
 
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
+* Added `RealmConfiguration.Builder.directory(File)`.
+* `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
 
-## 1.2.1
+### Bug fixes
+
+* Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
+* Fixed a potential crash when there were lots of async queries waiting in the queue.
 
 ### Internal
 

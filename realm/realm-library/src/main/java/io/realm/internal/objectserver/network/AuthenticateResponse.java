@@ -21,8 +21,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import io.realm.internal.Util;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.ObjectServerError;
@@ -49,7 +48,7 @@ public class AuthenticateResponse {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new AuthenticateResponse(error);
         }
-        RealmLog.d("Authenticate response: " + serverResponse);
+        RealmLog.debug("Authenticate response: " + serverResponse);
         if (response.code() != 200) {
             try {
                 JSONObject obj = new JSONObject(serverResponse);

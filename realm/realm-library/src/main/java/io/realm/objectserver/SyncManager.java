@@ -16,8 +16,6 @@
 
 package io.realm.objectserver;
 
-import android.os.Handler;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -28,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 import io.realm.BaseRealm;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
-import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.session.Session;
 
 @Keep
@@ -50,13 +48,13 @@ public final class SyncManager {
                     error.toString());
             switch (error.errorCode().getCategory()) {
                 case FATAL:
-                    RealmLog.e(errorMsg);
+                    RealmLog.error(errorMsg);
                     break;
                 case RECOVERABLE:
-                    RealmLog.i(errorMsg);
+                    RealmLog.info(errorMsg);
                     break;
                 case INFO:
-                    RealmLog.d(errorMsg);
+                    RealmLog.debug(errorMsg);
                     break;
             }
         }
@@ -157,27 +155,6 @@ public final class SyncManager {
         authServer = authServerImpl;
     }
 
-    //    //
-//    // OLD IMPLEMENTATION
-//    //
-//    public synchronized static long getSession(final String userToken, final String path, final String serverUrl) {
-//        if (syncClientPointer == 0) {
-//            // client event loop is not created for this token
-//            // we createFrom 1 client per credentials token
-//            syncClientPointer = nativeCreateSyncClient();
-//        }
-//
-//        // check if the session is not already available for the provided RealmConfiguration
-//        Long syncSessionPointer = SYNC_SESSIONS.get(path);
-//        if (syncSessionPointer == null) {
-//            syncSessionPointer = nativeCreateSession(syncClientPointer, path);
-//        }
-//
-//        SYNC_SESSIONS.put(path, syncSessionPointer);
-//        return syncSessionPointer;
-//    }
-//
-//
     // Called from native code whenever a commit from sync is detected
     // TODO Remove once the Object Store is introduced.
     public static void notifyHandlers(String path) {
@@ -200,7 +177,6 @@ public final class SyncManager {
             }
         }
     }
-
     // This is called for SyncManager.cpp from the worker thread the Sync Client is running on
     // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
     // from here. This can be removed once proper error propagation is implemented in Sync Core.

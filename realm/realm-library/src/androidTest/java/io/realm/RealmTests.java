@@ -88,7 +88,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -174,30 +174,6 @@ public class RealmTests {
         populateTestRealm(realm, TEST_DATA_SIZE);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getInstance_nullDir() {
-        Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
-    }
-
-    @Test
-    public void getInstance_writeProtectedDir() {
-        File folder = new File("/");
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(folder).build());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getInstance_nullContextWithCustomDirThrows() {
-        Realm.getInstance(new RealmConfiguration.Builder((Context) null, configFactory.getRoot()).build());
-    }
-
-    @Test
-    public void getInstance_writeProtectedDirWithContext() {
-        File folder = new File("/");
-        thrown.expect(IllegalArgumentException.class);
-        Realm.getInstance(new RealmConfiguration.Builder(context, folder).build());
-    }
-
     @Test
     public void getInstance_writeProtectedFile() throws IOException {
         String REALM_FILE = "readonly.realm";
@@ -208,7 +184,10 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
+            Realm.getInstance(new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                    .directory(folder)
+                    .name(REALM_FILE)
+                    .build());
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
         }
@@ -224,7 +203,7 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(context, folder).name(REALM_FILE).build());
+            Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.PERMISSION_DENIED);
         }
@@ -262,38 +241,6 @@ public class RealmTests {
         } catch (IllegalStateException ignored) {
         }
         realm = null;
-    }
-
-    @Test
-    @UiThreadTest
-    public void internalRealmChangedHandlersRemoved() {
-        realm.close(); // Clear handler created by testRealm in setUp()
-        assertEquals(0, Realm.getHandlers().size());
-        final String REALM_NAME = "test-internalhandlers";
-        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
-        Realm.deleteRealm(realmConfig);
-
-        // Open and close first instance of a Realm
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(realmConfig);
-            assertFalse(this.realm == realm);
-            assertEquals(1, Realm.getHandlers().size());
-            realm.close();
-
-            // All Realms closed. No handlers should be alive.
-            assertEquals(0, Realm.getHandlers().size());
-
-            // Open instance the 2nd time. Old handler should now be gone
-            realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.getHandlers().size());
-            realm.close();
-
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
     }
 
     @Test
@@ -1249,7 +1196,7 @@ public class RealmTests {
     @Test
     public void copyToRealm_primaryKeyIsSetDirectly() {
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class);
+        realm.createObject(OwnerPrimaryKey.class, 0);
         realm.copyToRealm(new OwnerPrimaryKey(1, "Foo"));
         realm.commitTransaction();
         assertEquals(2, realm.where(OwnerPrimaryKey.class).count());
@@ -1329,9 +1276,8 @@ public class RealmTests {
         realm.beginTransaction();
 
         // Child object is managed by Realm
-        CyclicTypePrimaryKey childObj = realm.createObject(CyclicTypePrimaryKey.class);
+        CyclicTypePrimaryKey childObj = realm.createObject(CyclicTypePrimaryKey.class, 1);
         childObj.setName("Child");
-        childObj.setId(1);
 
         // Parent object is an unmanaged object
         CyclicTypePrimaryKey parentObj = new CyclicTypePrimaryKey(2);
@@ -1743,7 +1689,7 @@ public class RealmTests {
         final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
 
         realm.beginTransaction();
-        final OwnerPrimaryKey ownerPrimaryKey = realm.createObject(OwnerPrimaryKey.class);
+        final OwnerPrimaryKey ownerPrimaryKey = realm.createObject(OwnerPrimaryKey.class, 0);
         realm.commitTransaction();
 
         new Thread(new Runnable() {
@@ -1951,8 +1897,7 @@ public class RealmTests {
         realm.beginTransaction();
 
         // Create an owner with two dogs
-        OwnerPrimaryKey owner = realm.createObject(OwnerPrimaryKey.class);
-        owner.setId(1);
+        OwnerPrimaryKey owner = realm.createObject(OwnerPrimaryKey.class, 1);
         owner.setName("Jack");
         Dog rex = realm.createObject(Dog.class);
         rex.setName("Rex");
@@ -1980,7 +1925,9 @@ public class RealmTests {
         File tempDirRenamed = new File(configFactory.getRoot(), "delete_test_dir_2");
         assertTrue(tempDir.mkdir());
 
-        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
+        final RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(tempDir)
+                .build();
 
         final CountDownLatch bgThreadReadyLatch = new CountDownLatch(1);
         final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
@@ -2021,7 +1968,9 @@ public class RealmTests {
         assertTrue(Realm.deleteRealm(configuration));
 
         // Directory should be empty now
-        assertEquals(0, tempDir.listFiles().length);
+        // FIXME: .note file is the named pipe for OS android notification. Just don't delete it until we figure out
+        // one single daemon thread for notification.
+        assertEquals(/*0*/1, tempDir.listFiles().length);
     }
 
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)

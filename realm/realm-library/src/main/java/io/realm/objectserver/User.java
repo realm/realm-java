@@ -33,11 +33,11 @@ import java.util.concurrent.TimeUnit;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.IOException;
 import io.realm.internal.Util;
-import io.realm.internal.log.RealmLog;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.RefreshResponse;
+import io.realm.log.RealmLog;
 
 /**
  * The credentials object describes a credentials on the Realm Object Server.
@@ -195,11 +195,11 @@ public class User {
                             break;
                         } else {
                             // FIXME: Log to session events instead
-                            RealmLog.w("Refreshing login failed: " + result.getErrorCode() + " : " + result.getErrorMessage());
+                            RealmLog.warn("Refreshing login failed: " + result.getErrorCode() + " : " + result.getErrorMessage());
                         }
                     } catch (IOException e) {
                         // FIXME: Log to session events instead.
-                        RealmLog.i("Refreshing login failed: " + e.toString());
+                        RealmLog.info("Refreshing login failed: " + e.toString());
                     }
                 }
             }

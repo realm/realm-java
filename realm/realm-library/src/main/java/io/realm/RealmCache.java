@@ -27,10 +27,10 @@ import java.util.Map;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.RealmCore;
-import io.realm.internal.log.RealmLog;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.session.Session;
+import io.realm.log.RealmLog;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -189,7 +189,7 @@ final class RealmCache {
         }
 
         if (refCount <= 0) {
-            RealmLog.w("Realm " + canonicalPath + " has been closed already.");
+            RealmLog.warn("%s has been closed already.", canonicalPath);
             return;
         }
 
@@ -312,7 +312,7 @@ final class RealmCache {
     private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
         IOException exceptionWhenClose = null;
         if (configuration.hasAssetFile()) {
-            File realmFile = new File(configuration.getRealmFolder(), configuration.getRealmFileName());
+            File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
             if (realmFile.exists()) {
                 return;
             }

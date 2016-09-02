@@ -43,7 +43,9 @@ class AndroidLogger: public realm::util::RootLogger
 public:
     void do_log(std::string msg)
     {
-        __android_log_print(ANDROID_LOG_INFO, "[SYNC]", "> %s", msg.c_str());
+        // Figure out how to log properly. We need level/code/string
+//
+//        log__android_log_print(ANDROID_LOG_INFO, "[SYNC]", "> %s", msg.c_str());
     }
 };
 
@@ -54,7 +56,7 @@ JNIEnv* sync_client_env;
 JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
     (JNIEnv *env, jclass)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     try {
         // Setup SyncManager
         realm::SyncLoginFunction loginDelegate = [=](const realm::Realm::Config& config) {
