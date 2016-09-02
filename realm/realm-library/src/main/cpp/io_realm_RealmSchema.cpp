@@ -122,9 +122,10 @@ Java_io_realm_RealmSchema_nativeGetRealmObjectSchemas(JNIEnv *env, jclass, jlong
         auto it = schema->begin();
         size_t index = 0;
         while (it != schema->end()) {
-            auto& object_schema = *it;
-            tmp[index] = reinterpret_cast<jlong>(&object_schema);
+            auto object_schema = *it;
+            tmp[index] = reinterpret_cast<jlong>(new ObjectSchema(std::move(object_schema)));
             ++index;
+            ++it;
         }
         env->SetLongArrayRegion(native_ptr_array, 0, static_cast<jsize>(size), tmp);
         delete tmp;
