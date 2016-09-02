@@ -128,25 +128,19 @@ public class RealmJsonNullPrimaryKeyTests {
     // Testing null primary key value for createObject() -> createOrUpdateObjectFromJson()
     @Test
     public void createOrUpdateObjectFromJson_primaryKey_isNull_updateFromJsonObject() throws JSONException {
+        realm.beginTransaction();
+        realm.createObject(clazz, null); // name = null, id =null
+        realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
+        realm.commitTransaction();
+
         // PrimaryKeyAsString
         if (clazz.equals(PrimaryKeyAsString.class)) {
-            realm.beginTransaction();
-            realm.createObject(clazz, null); // name = null, id =null
-            realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
-            realm.commitTransaction();
-
             RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
-
         // PrimaryKeyAsNumber
         } else {
-            realm.beginTransaction();
-            realm.createObject(clazz, null); // name = null, id =null
-            realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
-            realm.commitTransaction();
-
             RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
             assertEquals(null, ((NullPrimaryKey)results.first()).getId());
