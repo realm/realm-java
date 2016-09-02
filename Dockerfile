@@ -49,7 +49,7 @@ RUN mkdir /tmp/opt/android-ndk-tmp && \
     wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin && \
     chmod a+x ./android-ndk.bin && \
     ./android-ndk.bin && \
-    mv android-ndk-r10e /opt/android-ndk && \
+    mv android-ndk-r10e /tmp/opt/android-ndk && \
     rm -rf /tmp/opt/android-ndk-tmp && \
     chmod -R a+rX /tmp/opt/android-ndk
 
