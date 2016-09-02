@@ -43,9 +43,8 @@ class AndroidLogger: public realm::util::RootLogger
 public:
     void do_log(std::string msg)
     {
-        // Figure out how to log properly. We need level/code/string
-//
-//        log__android_log_print(ANDROID_LOG_INFO, "[SYNC]", "> %s", msg.c_str());
+        // Figure out how to log properly. We need level/code/message
+        // log__android_log_print(ANDROID_LOG_INFO, "[SYNC]", "> %s", msg.c_str());
     }
 };
 

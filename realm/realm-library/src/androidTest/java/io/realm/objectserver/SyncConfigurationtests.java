@@ -56,21 +56,21 @@ public class SyncConfigurationtests {
     @RunTestInLooperThread
     public void workDammit() {
         // Works!!!
-//        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
-//            @Override
-//            public void onSuccess(User user) {
-//                SyncConfiguration config = new SyncConfiguration.Builder(context)
-//                        .user(user)
-//                        .serverUrl("realm://192.168.1.21/~/default")
-//                        .build();
-//                Realm realm = Realm.getInstance(config);
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                fail(error.toString());
-//            }
-//        });
+        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
+            @Override
+            public void onSuccess(User user) {
+                SyncConfiguration config = new SyncConfiguration.Builder(context)
+                        .user(user)
+                        .serverUrl("realm://192.168.1.21/~/default")
+                        .build();
+                Realm realm = Realm.getInstance(config);
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
     }
 
 

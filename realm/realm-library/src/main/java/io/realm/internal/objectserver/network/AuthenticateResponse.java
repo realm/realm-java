@@ -53,7 +53,7 @@ public class AuthenticateResponse {
             try {
                 JSONObject obj = new JSONObject(serverResponse);
                 String type = obj.getString("type");
-                String hint = obj.getString("hint");
+                String hint = obj.optString("hint", null);
                 ErrorCode errorCode = ErrorCode.fromAuthError(type);
                 ObjectServerError error = new ObjectServerError(errorCode, hint);
                 return new AuthenticateResponse(error);

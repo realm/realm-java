@@ -99,7 +99,7 @@ public class LoginActivity extends AppCompatActivity {
                         errorMsg = "User name and password does not match";
                         break;
                     default:
-                        errorMsg = "Unknown error. Try again";
+                        errorMsg = error.toString();
                 }
                 onLoginFailed(errorMsg);
             }
