@@ -16,7 +16,7 @@
 
 package io.realm.objectserver;
 
-import org.json.JSONException;
+import io.realm.internal.Util;
 
 /**
  * This class is a wrapper around all errors happening when communicating with the Realm Object Server.
@@ -62,5 +62,19 @@ public class ObjectServerError extends RuntimeException {
 
     public ErrorCode.Category category() {
         return error.getCategory();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(errorCode().toString());
+        if (errorMessage != null) {
+            sb.append('\n');
+            sb.append(errorMessage);
+        }
+        if (exception != null) {
+            sb.append('\n');
+            sb.append(Util.getStackTrace(exception));
+        }
+        return sb.toString();
     }
 }

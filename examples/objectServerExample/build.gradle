@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 
 android {

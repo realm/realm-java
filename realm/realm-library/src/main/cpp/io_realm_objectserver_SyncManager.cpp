@@ -32,6 +32,7 @@
 #include <chrono>
 #include <functional>
 #include <android/log.h>
+#include <object-store/src/sync_manager.hpp>
 
 using namespace std;
 using namespace realm;
@@ -55,6 +56,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncC
 {
     TR_ENTER()
     try {
+        // Setup SyncManager
+        realm::SyncLoginFunction loginDelegate = [=](const realm::Realm::Config& config) {
+            REALM_ASSERT(config.sync_config);   // Precondition for object store calling this function.
+            // Ignore this for now. We are handling this manually
+        };
+
+        realm::SyncManager::shared().set_login_function(loginDelegate);
+
         AndroidLogger* base_logger = new AndroidLogger();//FIXME find a way to delete it when we delete the client
 
         sync::Client::Config config;
