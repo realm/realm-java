@@ -100,6 +100,7 @@ enum ExceptionKind {
     BadVersion,
     IllegalState,
     RealmFileError,
+    MigrationIsNeeded,
     // NOTE!!!!: Please also add test cases to io_realm_internal_TestUtil when introducing a
     // new exception kind.
     ExceptionKindMax // Always keep this as the last one!

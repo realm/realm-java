@@ -31,7 +31,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         Realm::Config *config = new Realm::Config();
         config->path = path;
         config->encryption_key = key_array;
-        config->schema_mode = static_cast<SchemaMode>(schema_mode);
+        config->schema_mode = SchemaMode(static_cast<uint8_t >(schema_mode));
         config->in_memory = in_memory;
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
@@ -220,13 +220,14 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
     auto version = static_cast<uint64_t>(schema_version);
     try {
         if (migration_object == NULL) {
+            std::vector<SchemaChange> required_changes = ObjectStore::schema_from_group(shared_realm->read_group()).compare(*schema);
             shared_realm->update_schema(std::move(*schema), version, nullptr);
         }
         else {
             jclass realm_migration_class = env->GetObjectClass(migration_object); // will return io.realm.RealmMigration
             jmethodID realm_migration_method = env->GetMethodID(realm_migration_class, "migrate", "(Lio/realm/DynamicRealm;JJ)V");
             if (realm_migration_method == nullptr) {
-                throw std::runtime_error("Cannot find method 'migration' of class 'io.realm.RealmMigration'.");
+                throw std::runtime_error("Cannot find method 'migrate' of class 'io.realm.RealmMigration'.");
                 return 0;
             }
             Realm::MigrationFunction migration_function = [=](SharedRealm /*old_realm*/, SharedRealm /*realm*/, Schema &/*mutable_schema*/) {

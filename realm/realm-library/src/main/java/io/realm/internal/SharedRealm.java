@@ -183,10 +183,11 @@ public final class SharedRealm implements Closeable {
         return nativeGetVersion(nativePtr);
     }
 
-    public void updateSchema(RealmSchema realmSchema, long schemaVersion, RealmMigration realmMigration) {
+    public long updateSchema(RealmSchema realmSchema, long schemaVersion, RealmMigration realmMigration) {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
-        nativeUpdateSchema(nativePtr, dynamicRealm, realmSchema.getNativePtr(), schemaVersion, realmMigration);
+        long retcode = nativeUpdateSchema(nativePtr, dynamicRealm, realmSchema.getNativePtr(), schemaVersion, realmMigration);
         dynamicRealm.close();
+        return retcode;
     }
 
     // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?

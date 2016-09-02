@@ -239,8 +239,8 @@ final class RealmCache {
             // Try to detect this problem specifically so we can throw a better error message.
             RealmMigration newMigration = newConfiguration.getMigration();
             RealmMigration oldMigration = configuration.getMigration();
-            if (oldMigration != null 
-                && newMigration != null 
+            if (oldMigration != null
+                && newMigration != null
                 && oldMigration.getClass().equals(newMigration.getClass())
                 && !newMigration.equals(oldMigration)) {
                 throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +

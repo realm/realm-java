@@ -25,6 +25,7 @@
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
+#include <object-store/src/object_store.hpp>
 
 using namespace std;
 using namespace realm;
@@ -77,6 +78,26 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (domain_error& e) { // FIXME: find a better exception
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
+    }
+    catch (InvalidSchemaChangeException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, MigrationIsNeeded, ss.str());
+    }
+    catch (InvalidSchemaVersionException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, MigrationIsNeeded, ss.str());
+    }
+    catch (ObjectSchemaValidationException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, MigrationIsNeeded, ss.str());
+    }
+    catch (SchemaValidationException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, MigrationIsNeeded, ss.str());
+    }
+    catch (SchemaMismatchException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, MigrationIsNeeded, ss.str());
     }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -140,6 +161,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 
         case IllegalState:
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = classStr;
+            break;
+
+        case MigrationIsNeeded:
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmMigrationNeededException");
             message = classStr;
             break;
 
