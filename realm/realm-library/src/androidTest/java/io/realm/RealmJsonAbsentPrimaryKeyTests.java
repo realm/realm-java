@@ -81,7 +81,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createObjectFromJson()
     @Test
-    public void createObjectFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
+    public void createObjectFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
         realm.createObjectFromJson(clazz, new JSONObject(jsonString));
@@ -90,7 +90,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createOrUpdateObjectFromJson()
     @Test
-    public void createOrUpdateObjectFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
+    public void createOrUpdateObjectFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
         realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
@@ -99,7 +99,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createAllFromJson()
     @Test
-    public void createALlFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
+    public void createAllFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();
@@ -110,7 +110,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createOrUpdateAllFromJson()
     @Test
-    public void createOrUpdateALlFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
+    public void createOrUpdateAllFromJson_primaryKey_isAbsent_fromJsonObject() throws JSONException {
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();
@@ -121,7 +121,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createObjectFromJson() stream version
     @Test
-    public void createObjectFromJson_primaryKey_isNullOrAbsent_fromJsonStream() throws JSONException, IOException {
+    public void createObjectFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
         realm.createObjectFromJson(clazz, TestHelper.stringToStream(jsonString));
@@ -130,7 +130,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createOrUpdateObjectFromJson() stream version
     @Test
-    public void createOrUpdateObjectFromJson_primaryKey_isNullOrAbsent_fromJsonStream() throws JSONException, IOException {
+    public void createOrUpdateObjectFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
         realm.createOrUpdateObjectFromJson(clazz, TestHelper.stringToStream(jsonString));
@@ -139,7 +139,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createAllFromJson() stream version
     @Test
-    public void createALlFromJson_primaryKey_isNullOrAbsent_fromJsonStream() throws JSONException, IOException {
+    public void createAllFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();
@@ -150,7 +150,7 @@ public class RealmJsonAbsentPrimaryKeyTests {
 
     // Testing absent primary key value for createOrUpdateAllFromJson() stream version
     @Test
-    public void createOrUpdateALlFromJson_primaryKey_isNullOrAbsent_fromJsonStream() throws JSONException, IOException {
+    public void createOrUpdateAllFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();
