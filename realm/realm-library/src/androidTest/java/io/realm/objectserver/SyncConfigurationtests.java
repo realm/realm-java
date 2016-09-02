@@ -64,6 +64,8 @@ public class SyncConfigurationtests {
                         .serverUrl("realm://192.168.1.21/~/default")
                         .build();
                 Realm realm = Realm.getInstance(config);
+                realm.beginTransaction();
+                realm.commitTransaction();
             }
 
             @Override

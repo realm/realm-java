@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -37,6 +38,9 @@ import io.realm.internal.UncheckedRow;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.SyncManager;
+import io.realm.objectserver.session.Session;
 import rx.Observable;
 
 /**
@@ -333,6 +337,11 @@ public abstract class BaseRealm implements Closeable {
     void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
+
+        if (RealmCore.SYNC_AVAILABLE && configuration instanceof SyncConfiguration) {
+            Session session = SyncManager.getSession((SyncConfiguration) configuration);
+            session.notifyCommit(sharedRealm.getLastSnapshotVersion());
+        }
 
         // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
         // file will make a commit in order to create the schema. Users should not be notified about that.

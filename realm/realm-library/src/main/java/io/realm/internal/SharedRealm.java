@@ -73,8 +73,8 @@ public final class SharedRealm implements Closeable {
     public final RealmNotifier realmNotifier;
 
     public static class VersionID implements Comparable<VersionID> {
-        final long version;
-        final long index;
+        public final long version;
+        public final long index;
 
         VersionID(long version, long index) {
             this.version = version;
@@ -244,6 +244,10 @@ public final class SharedRealm implements Closeable {
         return new SharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
+    public long getLastSnapshotVersion() {
+        return nativeGetSnapshotVersion(nativePtr);
+    }
+
     public boolean isClosed() {
         return nativePtr == 0 || nativeIsClosed(nativePtr);
     }
@@ -307,6 +311,7 @@ public final class SharedRealm implements Closeable {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
+    private static native long nativeGetSnapshotVersion(long nativeSharedRealmPtr);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);

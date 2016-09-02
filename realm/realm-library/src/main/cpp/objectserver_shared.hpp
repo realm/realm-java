@@ -18,11 +18,13 @@
 #define REALM_OBJECTSERVER_SHARED_HPP
 
 #include <jni.h>
+#include <string>
 #include <thread>
 
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
 #include <realm/util/logger.hpp>
+#include <object-store/src/impl/realm_coordinator.hpp>
 
 #include "util.hpp"
 
@@ -40,10 +42,16 @@ public:
     JNISession() = delete;
     JNISession(realm::sync::Client* sync_client, std::string local_realm_path, jobject java_session_obj, JNIEnv* env)
     {
-            sync_session = new realm::sync::Session(*sync_client, local_realm_path);
-            global_obj_ref = env->NewGlobalRef(java_session_obj);
-            jobject global_obj_ref_tmp(global_obj_ref);
-//            auto sync_transact_callback = [local_realm_path](realm::sync::Session::version_type) {
+        // Get the coordinator for the given path, or null if there is none
+        m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
+            m_global_obj_ref = env->NewGlobalRef(java_session_obj);
+            jobject global_obj_ref_tmp(m_global_obj_ref);
+            auto sync_transact_callback = [local_realm_path](realm::sync::Session::version_type) {
+                auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(realm::StringData(local_realm_path));
+                if (coordinator) {
+                    coordinator->notify_others();
+                }
+                // Do nothing. Handled elsewhere
 //                m_sync_session->set_sync_transact_callback([this] (sync::Session::version_type) {
 //                    if (m_notifier)
 //                        m_notifier->notify_others();
@@ -59,35 +67,29 @@ public:
 //                    java_local_path
 //                );
 //                sync_client_env->DeleteLocalRef(java_local_path);
-//            };
-            auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
-                jstring error_message = sync_client_env->NewStringUTF(message.c_str());
-                sync_client_env->CallVoidMethod(
-                    global_obj_ref_tmp,
-                    session_error_handler,
-                    error_code,
-                    error_message
-                );
-                sync_client_env->DeleteLocalRef(error_message);
             };
-//            sync_session->set_sync_transact_callback(sync_transact_callback);
-            sync_session->set_error_handler(std::move(error_handler));
+            auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
+                std::string log = num_to_string(error_code) + " " + message.c_str();
+                log_message(sync_client_env, log_debug, log.c_str());
+            };
+            m_sync_session->set_sync_transact_callback(sync_transact_callback);
+            m_sync_session->set_error_handler(std::move(error_handler));
     }
 
     inline realm::sync::Session* get_session() const noexcept
     {
-        return sync_session;
+        return m_sync_session;
     }
 
     ~JNISession()
     {
-        sync_client_env->DeleteGlobalRef(global_obj_ref);
-        delete sync_session;
+        sync_client_env->DeleteGlobalRef(m_global_obj_ref);
+        delete m_sync_session;
     }
 
 private:
-    realm::sync::Session* sync_session;
-    jobject global_obj_ref;
+    realm::sync::Session* m_sync_session;
+    jobject m_global_obj_ref;
 };
 
 #endif // REALM_OBJECTSERVER_SHARED_HPP

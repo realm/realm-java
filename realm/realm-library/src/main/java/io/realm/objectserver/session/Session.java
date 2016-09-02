@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
@@ -34,6 +35,8 @@ import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
+
+import static android.R.attr.version;
 
 /**
  * This class controls the connection to a Realm Object Server for one Realm.
@@ -307,6 +310,20 @@ public final class Session {
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
+    private native void nativeNotifyCommitHappened(long sessionPointer, long version);
+
+
+    /**
+     * FIXME: Find a way to keep this out of the public API. Could probably happen as part of moving everything to the
+     * Object Store.
+     *
+     * Notify session that a commit on the device has happened.
+     */
+    public void notifyCommit(long version) {
+        if (isBound()) {
+            nativeNotifyCommitHappened(nativeSessionPointer, version);
+        }
+    }
 
     /**
      * Interface used by both the Object Server network client and sessions to report back errors.

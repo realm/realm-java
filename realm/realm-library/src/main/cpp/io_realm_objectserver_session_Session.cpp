@@ -98,3 +98,16 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
         session_wrapper->get_session()->refresh(access_token);
     } CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_objectserver_session_Session_nativeNotifyCommitHappened
+        (JNIEnv *env, jobject instance, jlong sessionPointer, jlong version) {
+
+    TR_ENTER(env)
+    try {
+        JNISession* session_wrapper = SS(sessionPointer);
+        session_wrapper->get_session()->nonsync_transact_notify(version);
+    } CATCH_STD()
+}
+
+

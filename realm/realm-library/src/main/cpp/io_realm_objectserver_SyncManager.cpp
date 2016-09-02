@@ -66,6 +66,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncC
         realm::SyncManager::shared().set_login_function(loginDelegate);
 
         AndroidLogger* base_logger = new AndroidLogger();//FIXME find a way to delete it when we delete the client
+//        base_logger->set_level_threshold(Level::debug);
 
         sync::Client::Config config;
         config.logger = base_logger;
