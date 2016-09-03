@@ -467,6 +467,9 @@ public class Table implements TableOrView, TableSchema {
      *
      * @param values values.
      * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * withprimary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
      */
     protected long add(Object... values) {
         long rowIndex = addEmptyRow();
