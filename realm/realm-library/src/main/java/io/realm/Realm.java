@@ -25,7 +25,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1169,7 +1168,7 @@ public final class Realm extends BaseRealm {
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
 
-        final Future<?> pendingTransaction = ASYNC_TASK_EXECUTOR.submitTransaction(new Runnable() {
+        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
             @Override
             public void run() {
                 if (Thread.currentThread().isInterrupted()) {
@@ -1266,7 +1265,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new RealmAsyncTask(pendingTransaction, ASYNC_TASK_EXECUTOR);
+        return new RealmAsyncTask(pendingTransaction, asyncTaskExecutor);
     }
 
     /**

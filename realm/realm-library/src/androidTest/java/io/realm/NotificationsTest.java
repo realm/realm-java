@@ -79,7 +79,7 @@ public class NotificationsTest {
 
     @After
     public void tearDown() {
-        Realm.ASYNC_TASK_EXECUTOR.resume();
+        Realm.asyncTaskExecutor.resume();
         if (realm != null) {
             realm.close();
         }
@@ -1139,7 +1139,7 @@ public class NotificationsTest {
     public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithPausedAsync() {
         final Realm realm = looperThread.realm;
 
-        Realm.ASYNC_TASK_EXECUTOR.pause();
+        Realm.asyncTaskExecutor.pause();
         final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAllAsync();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
 

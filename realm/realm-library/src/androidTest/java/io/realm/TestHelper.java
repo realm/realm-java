@@ -62,7 +62,6 @@ import io.realm.log.LogLevel;
 import io.realm.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static android.R.id.message;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
@@ -947,7 +946,7 @@ public class TestHelper {
      */
     public static RealmThreadPoolExecutor replaceRealmThreadExecutor(RealmThreadPoolExecutor executor)
             throws NoSuchFieldException, IllegalAccessException {
-        Field field = BaseRealm.class.getDeclaredField("ASYNC_TASK_EXECUTOR");
+        Field field = BaseRealm.class.getDeclaredField("asyncTaskExecutor");
         field.setAccessible(true);
         RealmThreadPoolExecutor oldExecutor = (RealmThreadPoolExecutor) field.get(null);
         field.set(field, executor);
@@ -972,7 +971,7 @@ public class TestHelper {
     public static void waitRealmThreadExecutorFinish() {
         int counter = 50;
         while (counter > 0) {
-            if (BaseRealm.ASYNC_TASK_EXECUTOR.getActiveCount() == 0) {
+            if (BaseRealm.asyncTaskExecutor.getActiveCount() == 0) {
                 return;
             }
             try {

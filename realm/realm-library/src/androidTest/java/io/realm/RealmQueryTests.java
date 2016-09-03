@@ -2838,7 +2838,7 @@ public class RealmQueryTests {
 
                 Realm asyncRealm = null;
                 try {
-                    Realm.ASYNC_TASK_EXECUTOR.pause();
+                    Realm.asyncTaskExecutor.pause();
                     asyncRealm = openRealmInstance("testDistinctAsyncQueryWithNull");
                     final long numberOfBlocks = 25;
                     final long numberOfObjects = 10; // must be greater than 1
@@ -2855,7 +2855,7 @@ public class RealmQueryTests {
                     assertTrue(distinctString.isValid());
                     assertTrue(distinctString.isEmpty());
 
-                    Realm.ASYNC_TASK_EXECUTOR.resume();
+                    Realm.asyncTaskExecutor.resume();
 
                     distinctDate.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
                         @Override

@@ -20,6 +20,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.getkeepsafe.relinker.BuildConfig;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -62,7 +64,7 @@ public abstract class BaseRealm implements Closeable {
             "Changing Realm data can only be done from inside a transaction.";
 
     // Thread pool for all async operations (Query / transaction / network requests)
-    public static final RealmThreadPoolExecutor ASYNC_TASK_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
+    static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
     protected RealmConfiguration configuration;
