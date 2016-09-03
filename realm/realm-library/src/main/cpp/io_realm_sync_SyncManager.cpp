@@ -54,7 +54,7 @@ JNIEnv* sync_client_env;
 JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateClient
   (JNIEnv *env, jclass)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     try {
         AndroidLogger* base_logger = new AndroidLogger();//FIXME find a way to delete it when we delete the client
 
@@ -83,7 +83,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateClient
 JNIEXPORT jlong JNICALL Java_io_realm_sync_SyncManager_syncCreateSession
   (JNIEnv *env, jclass, jlong clientPointer, jstring realmPath, jstring serverUrl, jstring userToken)
 {
-    TR_ENTER()
+    TR_ENTER(env)
     Client* sync_client = SC(clientPointer);
     if (sync_client == NULL) {
         return 0;
