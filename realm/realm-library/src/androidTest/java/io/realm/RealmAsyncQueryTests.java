@@ -474,7 +474,7 @@ public class RealmAsyncQueryTests {
     //   6- retry automatically the async query
     //   7- the returned RealmResults is now in the same version as the caller thread
     //   8- the notification should be called once (when we retry automatically we shouldn't
-    //      notify the credentials).
+    //      notify the user).
     @Test
     @RunTestInLooperThread
     public void findAllAsync_retry() throws Throwable {
@@ -950,7 +950,7 @@ public class RealmAsyncQueryTests {
     //   6- retry automatically the async query
     //   7- the returned RealmResults is now in the same version as the caller thread
     //   8- the notification should be called once (when we retry automatically we shouldn't
-    //      notify the credentials).
+    //      notify the user).
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_retry() throws Throwable {

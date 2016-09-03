@@ -1911,7 +1911,7 @@ public class RealmTests {
         owner.setName("Peter");
         assertEquals(2, owner.getDogs().size());
 
-        // Updating the owner should not affect it either. This is actually a no-op since owner is a Realm backed object
+        // Updating the user should not affect it either. This is actually a no-op since owner is a Realm backed object
         OwnerPrimaryKey owner2 = realm.copyToRealmOrUpdate(owner);
         assertEquals(2, owner.getDogs().size());
         assertEquals(2, owner2.getDogs().size());
