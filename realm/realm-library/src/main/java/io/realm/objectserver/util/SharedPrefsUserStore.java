@@ -44,7 +44,8 @@ public class SharedPrefsUserStore implements UserStore {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             THREAD_POOL = AsyncTask.THREAD_POOL_EXECUTOR;
         } else {
-            THREAD_POOL = Realm.ASYNC_TASK_EXECUTOR;
+            throw new UnsupportedOperationException("FIXME: Not supported yet. Realm.asyncTaskExecutor must be public first"));
+            // THREAD_POOL = Realm.asyncTaskExecutor; // FIXME Do this better
         }
     }
 
