@@ -67,6 +67,10 @@ public final class SharedRealm implements Closeable {
         SchemaMode(byte value) {
             this .value = value;
         }
+
+        public byte getNativeValue() {
+            return value;
+        }
     }
 
     // JNI will only hold a weak global ref to this.
@@ -149,14 +153,17 @@ public final class SharedRealm implements Closeable {
             rosUserToken = rosConfig.getUser().getRefreshToken().value();
         }
 
+        boolean enable_caching = false; // Handled in Java currently
+        boolean disableFormatUpgrade = false; // TODO Double negatives :/
+        boolean autoChangeNotifications = true;
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
-                SchemaMode.SCHEMA_MODE_MANUAL.value,
+                rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
-                false,
-                false,
-                true,
+                enable_caching,
+                disableFormatUpgrade,
+                autoChangeNotifications,
                 rosServerUrl,
                 rosUserToken);
         try {
