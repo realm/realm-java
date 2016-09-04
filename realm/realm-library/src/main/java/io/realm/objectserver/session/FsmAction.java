@@ -23,6 +23,8 @@ import io.realm.objectserver.ObjectServerError;
  * possible actions in that machine.
  *
  * All states should implement this so all possible permutations of state/actions are covered.
+ *
+ * TODO Move this to the Object Store
  */
 interface FsmAction {
     void onStart();

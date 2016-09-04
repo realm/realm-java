@@ -21,6 +21,8 @@ import io.realm.objectserver.ObjectServerError;
 /**
  * Abstract class containing shared logic for all {@link Session} states. All states must extend this class as it
  * contains the logic for entering and leaving states.
+ *
+ * TODO Move this to the Object Store
  */
 abstract class FsmState implements FsmAction {
 

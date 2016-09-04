@@ -59,7 +59,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_double      = GetClass(env, "java/lang/Double");
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
         sync_manager          = GetClass(env, "io/realm/objectserver/SyncManager");
-        sync_manager_notify_handler = env->GetStaticMethodID(sync_manager, "notifyHandlers", "(Ljava/lang/String;)V");
         realmlog_class        = GetClass(env, "io/realm/log/RealmLog");
         log_trace             = env->GetStaticMethodID(realmlog_class, "trace", "(Ljava/lang/String;[Ljava/lang/Object;)V");
         log_debug             = env->GetStaticMethodID(realmlog_class, "debug", "(Ljava/lang/String;[Ljava/lang/Object;)V");

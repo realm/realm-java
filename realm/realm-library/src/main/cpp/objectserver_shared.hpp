@@ -51,22 +51,6 @@ public:
                 if (coordinator) {
                     coordinator->notify_others();
                 }
-                // Do nothing. Handled elsewhere
-//                m_sync_session->set_sync_transact_callback([this] (sync::Session::version_type) {
-//                    if (m_notifier)
-//                        m_notifier->notify_others();
-//                });
-//
-//
-//
-//                // FIXME Realm changed. Does this come from free with OS notifications?
-//                jstring java_local_path = sync_client_env->NewStringUTF(local_realm_path.c_str());
-//                sync_client_env->CallStaticVoidMethod(
-//                    sync_manager,
-//                    sync_manager_notify_handler,
-//                    java_local_path
-//                );
-//                sync_client_env->DeleteLocalRef(java_local_path);
             };
             auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
                 std::string log = num_to_string(error_code) + " " + message.c_str();
