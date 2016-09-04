@@ -95,7 +95,7 @@ class BytecodeModifierTest extends Specification {
         when: 'the field use is replaced by the accessor'
         BytecodeModifier.useRealmAccessors(ctClass, [ctField], [])
 
-        then: 'the field is not used in the method anymore'
+        then: 'the field is not used and getter is called in the method '
         !isFieldRead(ctMethod) && hasMethodCall(ctMethod)
     }
 
