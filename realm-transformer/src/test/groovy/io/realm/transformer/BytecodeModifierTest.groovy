@@ -96,21 +96,7 @@ class BytecodeModifierTest extends Specification {
         BytecodeModifier.useRealmAccessors(ctClass, [ctField], [])
 
         then: 'the field is not used in the method anymore'
-        def methodInfo = ctMethod.getMethodInfo()
-        def codeAttribute = methodInfo.getCodeAttribute()
-        def methodCalled = false
-        def fieldIsUsed = false
-        for (CodeIterator ci = codeAttribute.iterator(); ci.hasNext();) {
-            int index = ci.next();
-            int op = ci.byteAt(index);
-            if (op == Opcode.GETFIELD) {
-                fieldIsUsed = true
-            } else if (op == Opcode.INVOKEVIRTUAL) {
-                // access to the getter
-                methodCalled = true
-            }
-        }
-        !fieldIsUsed && methodCalled
+        !isFieldRead(ctMethod) && hasMethodCall(ctMethod)
     }
 
     def "UseRealmAccessors_fieldAccessInModelConstructorIsTransformed"() {
