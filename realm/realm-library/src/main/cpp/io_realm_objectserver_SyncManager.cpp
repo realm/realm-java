@@ -44,60 +44,72 @@ public:
     void do_log(std::string msg)
     {
         // Figure out how to log properly. We need level/code/message
-        // log__android_log_print(ANDROID_LOG_INFO, "[SYNC]", "> %s", msg.c_str());
+        // Think it has been fixed in later versions of Core
+        log_message(sync_client_env, log_debug, msg.c_str());
     }
 };
+
+struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
+    std::unique_ptr<realm::util::Logger> make_logger(realm::util::Logger::Level level) {
+        auto logger = std::make_unique<AndroidLogger>();
+        logger->set_level_threshold(level);
+        return std::move(logger);
+    }
+} s_logger_factory;
 
 // Object Server global vars, see objectserver_shared.hpp
 std::thread* sync_client_thread;
 JNIEnv* sync_client_env;
 
-JNIEXPORT jlong JNICALL Java_io_realm_objectserver_SyncManager_nativeCreateSyncClient
+JNIEXPORT void JNICALL Java_io_realm_objectserver_SyncManager_nativeInitializeSyncClient
     (JNIEnv *env, jclass)
 {
     TR_ENTER(env)
     try {
-        // Setup SyncManager
+        // Prepare Sync Client. It will be created on demand
+
         realm::SyncLoginFunction loginDelegate = [=](const realm::Realm::Config& config) {
             REALM_ASSERT(config.sync_config);   // Precondition for object store calling this function.
-            // Ignore this for now. We are handling this manually
+            // Ignore this for now. We are handling this manually.
         };
 
-        realm::SyncManager::shared().set_login_function(loginDelegate);
-
-        AndroidLogger* base_logger = new AndroidLogger();//FIXME find a way to delete it when we delete the client
-//        base_logger->set_level_threshold(Level::debug);
-
-        sync::Client::Config config;
-        config.logger = base_logger;
-        config.reconnect = sync::Client::Reconnect::immediately;
-
-        sync::Client* m_sync_client = new sync::Client(config);
-        // TODO How to test this?
-        auto error_handler = [&](int error_code, std::string message) {
-            jstring error_message = sync_client_env->NewStringUTF(message.c_str());
-            sync_client_env->CallStaticVoidMethod(
-                sync_manager,
-                sync_manager_notify_error_handler,
-                error_code,
-                error_message
-            );
-            sync_client_env->DeleteLocalRef(error_message);
-        };
-        m_sync_client->set_error_handler(error_handler);
-        sync_client_thread = new std::thread([m_sync_client](){
+        realm::SyncClientReadyFunction clientReadyDelegate = [=](const realm::sync::Client&) {
             //Attaching thread to Java so we can perform JNI calls
             JavaVMAttachArgs args;
             args.version = JNI_VERSION_1_6;
             args.name = NULL; // java thread a name
             args.group = NULL; // java thread group
             g_vm->AttachCurrentThread(&sync_client_env, &args);
+        };
 
-            m_sync_client->run();
-        });
-
-        return reinterpret_cast<jlong>(m_sync_client);
-
+        realm::SyncManager::shared().set_login_function(loginDelegate);
+        realm::SyncManager::shared().set_logger_factory(s_logger_factory);
+        realm::SyncManager::shared().set_log_level(util::Logger::Level::warn);
+        realm::SyncManager::shared().set_client_ready_callback(clientReadyDelegate);
     } CATCH_STD()
-    return 0;
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_objectserver_SyncManager_nativeSetSyncClientLogLevel(JNIEnv* env, jclass, jint logLevel)
+{
+    util::Logger::Level native_log_level;
+    bool valid_log_level = true;
+    switch(logLevel) {
+        case io_realm_log_LogLevel_ALL: native_log_level = util::Logger::Level::all; break;
+        case io_realm_log_LogLevel_TRACE: native_log_level = util::Logger::Level::trace; break;
+        case io_realm_log_LogLevel_DEBUG: native_log_level = util::Logger::Level::debug; break;
+        case io_realm_log_LogLevel_INFO: native_log_level = util::Logger::Level::info; break;
+        case io_realm_log_LogLevel_WARN: native_log_level = util::Logger::Level::warn; break;
+        case io_realm_log_LogLevel_ERROR: native_log_level = util::Logger::Level::error; break;
+        case io_realm_log_LogLevel_FATAL: native_log_level = util::Logger::Level::fatal; break;
+        case io_realm_log_LogLevel_OFF: native_log_level = util::Logger::Level::off; break;
+        default:
+            valid_log_level = false;
+            ThrowException(env, IllegalArgument, "Invalid log level: " + logLevel);
+    }
+    if (valid_log_level) {
+        realm::SyncManager::shared().set_log_level(native_log_level);
+    }
+}
+
+

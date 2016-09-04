@@ -91,7 +91,6 @@ public final class Session {
 
     // Variables used by the FSM
     final SyncConfiguration configuration;
-    final long nativeSyncClientPointer;
     final AuthenticationServer authServer;
     private final ErrorHandler errorHandler;
     public long nativeSessionPointer;
@@ -106,10 +105,9 @@ public final class Session {
     /**
      * Creates a new Object Server Session
      */
-    public Session(SyncConfiguration objectServerConfiguration, long nativeSyncClientPointer, AuthenticationServer authServer) {
+    public Session(SyncConfiguration objectServerConfiguration, AuthenticationServer authServer) {
         this.configuration = objectServerConfiguration;
         this.user = configuration.getUser();
-        this.nativeSyncClientPointer = nativeSyncClientPointer;
         this.authServer = authServer;
         this.errorHandler = configuration.getErrorHandler();
         setupStateMachine();
@@ -213,7 +211,7 @@ public final class Session {
     // Create a native session. The session abstraction in Realm Core doesn't support multiple calls to bind()/unbind()
     // yet, so the Java SyncSession must manually create/and close the native sessions as needed.
     void createNativeSession() {
-        nativeSessionPointer = nativeCreateSession(nativeSyncClientPointer, configuration.getPath());
+        nativeSessionPointer = nativeCreateSession(configuration.getPath());
     }
 
     void stopNativeSession() {
@@ -306,7 +304,7 @@ public final class Session {
         }
     }
 
-    private native long nativeCreateSession(long nativeSyncClientPointer, String localRealmPath);
+    private native long nativeCreateSession(String localRealmPath);
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);

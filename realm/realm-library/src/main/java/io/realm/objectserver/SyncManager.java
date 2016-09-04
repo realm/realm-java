@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.BaseRealm;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
 import io.realm.internal.objectserver.network.AuthenticationServer;
@@ -62,7 +61,6 @@ public final class SyncManager {
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
-    private static long nativeSyncClientPointer;
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
@@ -71,7 +69,7 @@ public final class SyncManager {
 
     static {
         RealmCore.loadLibrary();
-        nativeSyncClientPointer = nativeCreateSyncClient();
+        nativeInitializeSyncClient();
     }
 
     /**
@@ -113,7 +111,7 @@ public final class SyncManager {
         String localPath = syncConfiguration.getPath();
         Session session = sessions.get(localPath);
         if (session == null) {
-            session = new Session(syncConfiguration, nativeSyncClientPointer, authServer);
+            session = new Session(syncConfiguration, authServer);
             syncConfiguration.getSyncPolicy().onSessionCreated(session);
             sessions.put(localPath, session);
         }
@@ -165,5 +163,14 @@ public final class SyncManager {
         }
     }
 
-    private static native long nativeCreateSyncClient();
+    /**
+     * Sets the log level for the underlying
+     * @param logLevel
+     */
+    public static void setLogLevel(int logLevel) {
+        nativeSetSyncClientLogLevel(logLevel);
+    }
+
+    private static native void nativeInitializeSyncClient();
+    private static native long nativeSetSyncClientLogLevel(int logLevel);
 }

@@ -32,6 +32,7 @@
 #include <chrono>
 #include <functional>
 #include <android/log.h>
+#include <object-store/src/sync_manager.hpp>
 
 using namespace std;
 using namespace realm;
@@ -39,10 +40,10 @@ using namespace sync;
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateSession
-  (JNIEnv *env, jobject obj, jlong clientPointer, jstring localRealmPath)
+  (JNIEnv *env, jobject obj, jstring localRealmPath)
 {
     TR_ENTER(env)
-    Client* sync_client = SC(clientPointer);
+    Client* sync_client = &SyncManager::shared().get_sync_client()->client;
     if (sync_client == NULL) {
         return 0;
     }
