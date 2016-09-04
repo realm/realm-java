@@ -120,6 +120,8 @@ class BytecodeModifier {
                 if (fieldAccess.isReader()) {
                     if (isInConstructor && isModelClass) {
                         // work around https://github.com/realm/realm-java/issues/2536
+                        // '$0' is the object that owns target field.
+                        // 'this' is the instance where the constructor belongs.
                         fieldAccess.replace('$_ = ($0 == this) ? $0.' + fieldName + ' : $0.realmGet$' + fieldName + '();')
                     } else {
                         fieldAccess.replace('$_ = $0.realmGet$' + fieldName + '();')
@@ -127,6 +129,8 @@ class BytecodeModifier {
                 } else if (fieldAccess.isWriter()) {
                     if (isInConstructor && isModelClass) {
                         // work around https://github.com/realm/realm-java/issues/2536
+                        // '$0' is the object that owns target field.
+                        // 'this' is the instance where the constructor belongs.
                         fieldAccess.replace('if ($0 == this) {$0.' + fieldName + ' = $1;} else { $0.realmSet$' + fieldName + '($1);}')
                     } else {
                         fieldAccess.replace('$0.realmSet$' + fieldName + '($1);')
