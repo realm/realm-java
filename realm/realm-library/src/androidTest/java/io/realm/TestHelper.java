@@ -62,7 +62,6 @@ import io.realm.log.LogLevel;
 import io.realm.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static android.R.id.message;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;

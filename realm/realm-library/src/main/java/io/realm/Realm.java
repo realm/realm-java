@@ -25,7 +25,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -174,14 +173,6 @@ public final class Realm extends BaseRealm {
         }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
     }
-//
-//    public static Realm getSyncInstance(SyncConfig syncConfig) {
-//        //FIXME use corrrect SharedGroup
-//        if (syncConfig.getConfiguration() == null) {
-//            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
-//        }
-//        return RealmCache.createRealmOrGetFromCache(syncConfig.getConfiguration(), Realm.class);
-//    }
 
     /**
      * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}.
@@ -1274,7 +1265,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new RealmAsyncTask(pendingTransaction);
+        return new RealmAsyncTask(pendingTransaction, asyncTaskExecutor);
     }
 
     /**
@@ -1385,17 +1376,6 @@ public final class Realm extends BaseRealm {
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);
-    }
-
-    // Get the canonical path for a given file
-    static String getCanonicalPath(File realmFile) {
-        try {
-            return realmFile.getCanonicalPath();
-        } catch (IOException e) {
-            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                    "Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath(),
-                    e);
-        }
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {
