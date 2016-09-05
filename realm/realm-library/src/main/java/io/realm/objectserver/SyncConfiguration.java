@@ -68,6 +68,10 @@ public final class SyncConfiguration extends RealmConfiguration {
     private SyncConfiguration(Builder builder) {
         super(builder);
         this.user = builder.user;
+        if (builder.serverUrl == null || builder.user == null) {
+            throw new IllegalStateException("serverUrl() and user() are both required.");
+        }
+
         try {
             this.serverUrl = new URI(builder.serverUrl.toString().replace("/~/", "/" + user.getIdentifier() + "/"));
         } catch (URISyntaxException e) {

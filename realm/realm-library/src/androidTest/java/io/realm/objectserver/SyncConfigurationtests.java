@@ -20,26 +20,32 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.Locale;
+import java.util.UUID;
 
 import io.realm.Realm;
+import io.realm.internal.objectserver.Token;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SyncConfigurationtests {
+public class SyncConfigurationTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -61,30 +67,6 @@ public class SyncConfigurationtests {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void workDammit() {
-        // Works!!!
-//        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
-//            @Override
-//            public void onSuccess(User user) {
-//                SyncConfiguration config = new SyncConfiguration.Builder(context)
-//                        .user(user)
-//                        .serverUrl("realm://192.168.1.21/~/default")
-//                        .build();
-//                Realm realm = Realm.getInstance(config);
-//                realm.beginTransaction();
-//                realm.commitTransaction();
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                fail(error.toString());
-//            }
-//        });
-    }
-
-
-    @Test
     public void user() {
 //        new SyncConfiguration.Builder(context);
         // Check that user can be added
@@ -93,8 +75,18 @@ public class SyncConfigurationtests {
 
     @Test
     public void user_invalidUserThrows() {
-        // Null user
-        // Not authenticated user
+        SyncConfiguration.Builder builder = new SyncConfiguration.Builder(context);
+
+        try {
+            builder.user(null);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        User user = createTestUser(0); // Create user that has expired credentials
+        try {
+            builder.user(user);
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     @Test
@@ -123,24 +115,49 @@ public class SyncConfigurationtests {
 
     @Test
     public void serverUrl_invalidUrlThrows() {
-        // null url
-        // non-valid URI
-        // Ending with .realm
+        String[] invalidUrls = {
+            null,
+            "objectserver.realm.io/~/default", // Missing protocol. TODO Should we just default to one?
+            "/~/default", // Missing server
+            "realm://objectserver.realm.io/~/default.realm", // Ending with .realm
+            "realm://objectserver.realm.io/<~>/default.realm", // Invalid chars <>
+            "realm://objectserver.realm.io/~/default.realm/", // Ending with /
+        };
+
+        SyncConfiguration.Builder builder = new SyncConfiguration.Builder(context);
+        for (String invalidUrl : invalidUrls) {
+            try {
+                builder.serverUrl(invalidUrl);
+                fail(invalidUrl + " should have failed.");
+            } catch (IllegalArgumentException ignore) {
+            }
+        }
     }
 
     @Test
     public void userAndServerUrlRequired() {
-        // user/url is required
-    }
+        SyncConfiguration.Builder builder;
 
-    @Test
-    public void autoConnect_true() {
+        // Both missing
+        builder = new SyncConfiguration.Builder(context);
+        try {
+            builder.build();
+        } catch (IllegalStateException ignore) {
+        }
 
-    }
+        // serverUrl missing
+        builder = new SyncConfiguration.Builder(context);
+        try {
+            builder.user(createTestUser(Long.MAX_VALUE)).build();
+        } catch (IllegalStateException ignore) {
+        }
 
-    @Test
-    public void autoConnect_false() {
-
+        // user missing
+        builder = new SyncConfiguration.Builder(context);
+        try {
+            builder.serverUrl("realm://foo.bar/~/default").build();
+        } catch (IllegalStateException ignore) {
+        }
     }
 
     @Test
@@ -161,5 +178,48 @@ public class SyncConfigurationtests {
     @Test
     public void syncPolicy_nullThrows() {
 
+    }
+
+    @Ignore("Only used for quick testing without needing to spin up a full integration test")
+    @Test
+    @RunTestInLooperThread
+    public void basicIntegrationTest() {
+        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
+            @Override
+            public void onSuccess(User user) {
+                SyncConfiguration config = new SyncConfiguration.Builder(context)
+                        .user(user)
+                        .serverUrl("realm://192.168.1.21/~/default")
+                        .build();
+                Realm realm = Realm.getInstance(config);
+                realm.beginTransaction();
+                realm.commitTransaction();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    private User createTestUser(long expires) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("identifier", UUID.randomUUID().toString());
+            JSONObject token = new JSONObject();
+            JSONArray perms = new JSONArray(); // Grant all permissions
+            for (int i = 0; i < Token.Permission.values().length; i++) {
+                perms.put(Token.Permission.values()[i].toString().toLowerCase(Locale.US));
+            }
+            token.put("access", perms);
+            token.put("token", UUID.randomUUID().toString());
+            token.put("expiresSec", expires);
+            obj.put("refreshToken", token);
+            obj.put("authUrl", "http://dummy.org/auth");
+            return User.fromJson(obj.toString());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

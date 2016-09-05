@@ -64,10 +64,19 @@ public class Token {
     }
 
     /**
-     * Returns when this token expires. Timestamp is in UTC seconds.
+     * Returns when this token expiresSec. Timestamp is in UTC seconds.
      */
-    public long expires() {
+    public long expiresSec() {
         return expires;
+    }
+
+    public long expiresMs() {
+        long expiresMs = expires * 1000;
+        if (expiresMs < expires) {
+            return Long.MAX_VALUE; // Overflow
+        } else {
+            return expiresMs;
+        }
     }
 
     public Permission[] permissions() {

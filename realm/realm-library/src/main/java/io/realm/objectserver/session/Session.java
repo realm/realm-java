@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
@@ -35,8 +34,6 @@ import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
-
-import static android.R.attr.version;
 
 /**
  * This class controls the connection to a Realm Object Server for one Realm.
@@ -289,7 +286,7 @@ public final class Session {
 
     public boolean isAuthenticated(SyncConfiguration configuration) {
         Token token = user.getAccessToken(configuration);
-        return token != null && token.expires() * 1000 > System.currentTimeMillis();
+        return token != null && token.expiresMs() > System.currentTimeMillis();
     }
 
     public SyncConfiguration getConfiguration() {
