@@ -179,5 +179,5 @@ public final class SyncManager {
     }
 
     private static native void nativeInitializeSyncClient();
-    private static native long nativeSetSyncClientLogLevel(int logLevel);
+    private static native void nativeSetSyncClientLogLevel(int logLevel);
 }
