@@ -20,11 +20,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.internal.InvalidRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
@@ -114,7 +113,7 @@ public final class ProxyState<E extends RealmModel> {
                 isCompleted = true;
             }
         } catch (Exception e) {
-            RealmLog.d(e.getMessage());
+            RealmLog.debug(e);
             return false;
         }
         return true;

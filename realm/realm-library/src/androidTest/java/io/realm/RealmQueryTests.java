@@ -2547,8 +2547,7 @@ public class RealmQueryTests {
                 // Crash with i == 1000, 500, 100, 89, 85, 84
                 // Doesn't crash for i == 10, 50, 75, 82, 83
                 for (int i = 0; i < 84; i++) {
-                    AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-                    obj.setFieldLong(i + 1);
+                    AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i + 1);
                     obj.setFieldBoolean(i % 2 == 0);
                     obj.setFieldObject(obj);
 

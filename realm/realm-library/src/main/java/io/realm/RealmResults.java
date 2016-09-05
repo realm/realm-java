@@ -38,7 +38,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.BadVersionException;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
@@ -917,7 +917,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             asyncQueryCompleted = true;
             notifyChangeListeners(true);
         } catch (Exception e) {
-            RealmLog.d(e.getMessage());
+            RealmLog.debug(e.getMessage());
             return false;
         }
         return true;

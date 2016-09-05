@@ -16,13 +16,11 @@
 
 package io.realm.internal;
 
-import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
-import io.realm.internal.log.RealmLog;
 
 /**
  * This class represents a view of a particular table. We can think of a tableview as a subset of a table. It contains
@@ -32,7 +30,6 @@ import io.realm.internal.log.RealmLog;
  * with the real data.
  */
 public class TableView implements TableOrView {
-    private static final boolean DEBUG = false; //true;
     // Don't convert this into local variable and don't remove this.
     // Core requests TableView to hold the Query reference.
     @SuppressWarnings({"unused"})
