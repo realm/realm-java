@@ -23,7 +23,7 @@ import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.Credentials;
 
 /**
- * Interface for handling communication with the Realm Mobile Platform Authentication Server.
+ * Interface for handling communication with the Realm Object Server.
  *
  * Note, any implementation of this class is not responsible for handling retries or error handling, it is
  * only responsible for executing a given network request.

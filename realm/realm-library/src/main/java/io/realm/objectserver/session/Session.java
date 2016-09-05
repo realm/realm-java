@@ -133,7 +133,7 @@ public final class Session {
         if (nextState == null) {
             throw new IllegalStateException("No state was configured to handle: " + nextStateDescription);
         }
-        RealmLog.debug(String.format("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription));
+        RealmLog.debug("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription);
         currentStateDescription = nextStateDescription;
         currentState = nextState;
         nextState.entry(this);
@@ -158,10 +158,11 @@ public final class Session {
      * Binds the local Realm to the remote Realm. Once bound, changes to either the local or Remote Realm will be
      * synchronized immediately.
      *
-     * Binding a Realm is not guaranteed to succeed. Possible reasons for failure could be either if the device is
-     * offline or credentials have expired. Binding is an asynchronous operation and all errors will be sent first to
-     * {@link SyncPolicy#onError(Session, ObjectServerError)} and if the SyncPolicy didn't handle it, to the
-     * {@link ErrorHandler} defined by {@link SyncConfiguration.Builder#errorHandler(ErrorHandler)}.
+     * While this method will return immediately, binding a Realm is not guaranteed to succeed. Possible reasons for
+     * failure could be either if the device is offline or credentials have expired. Binding is an asynchronous
+     * operation and all errors will be sent first to {@link SyncPolicy#onError(Session, ObjectServerError)} and if the
+     * SyncPolicy didn't handle it, to the {@link ErrorHandler} defined by
+     * {@link SyncConfiguration.Builder#errorHandler(ErrorHandler)}.
      */
     public synchronized void bind() {
         currentState.onBind();
@@ -222,7 +223,7 @@ public final class Session {
     }
 
     // Bind with proper access tokens
-    // Access tokens are presumed to be present at valid at this point
+    // Access tokens are presumed to be present and valid at this point
     void bindWithTokens() {
         Token accessToken = user.getAccessToken(configuration);
         if (accessToken == null) {

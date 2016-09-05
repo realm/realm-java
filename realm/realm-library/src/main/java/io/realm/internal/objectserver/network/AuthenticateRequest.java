@@ -29,8 +29,8 @@ import io.realm.objectserver.Credentials;
 import io.realm.objectserver.SyncManager;
 
 /**
- * This class encapsulates a request to authenticateUser. It is responsible for constructing the JSON understood by the
- * Realm Authentication Server.
+ * This class encapsulates a request to authenticate a user on the Realm Authentication Server. It is responsible for
+ * constructing the JSON understood by the Realm Authentication Server.
  */
 public class AuthenticateRequest {
 

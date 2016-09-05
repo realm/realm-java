@@ -21,7 +21,7 @@ import io.realm.objectserver.ObjectServerError;
 
 /**
  * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this
- * Realm. This can happen in 3 ways:
+ * Realm when attempting to bind it. This can happen in 3 ways:
  *
  * <ol>
  *     <li>
@@ -49,8 +49,8 @@ class AuthenticatingState extends FsmState {
             authenticate(session);
         } else {
             // Wait for connection to become available, before trying again.
-            // This might potentially block for the lifetime of the application,
-            // which is fine.
+            // The Session might potentially stay in this state for the lifetime of the application.
+            // This is acceptable.
             session.networkListener = new NetworkStateReceiver.ConnectionListener() {
                 @Override
                 public void onChange(boolean connectionAvailable) {
@@ -88,6 +88,7 @@ class AuthenticatingState extends FsmState {
         }, new Session.ErrorHandler() {
             @Override
             public void onError(Session session, ObjectServerError error) {
+                // FIXME For critical errors, got directly to STOPPED
                 gotoNextState(SessionState.UNBOUND);
             }
         });

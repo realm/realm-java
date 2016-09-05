@@ -30,6 +30,13 @@ import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.session.Session;
 
+/**
+ * The SyncManager is the central controller for interacting with the Realm Object Server.
+ * It handles the creation of {@link Session}s and it is possible to configure session defaults and the underlying
+ * network client using this class.
+ *
+ * // TODO Rewrite this section.
+ */
 @Keep
 public final class SyncManager {
 

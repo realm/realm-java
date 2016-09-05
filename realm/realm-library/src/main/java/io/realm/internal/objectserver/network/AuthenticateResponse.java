@@ -27,6 +27,9 @@ import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.ObjectServerError;
 import okhttp3.Response;
 
+/**
+ * This class represents the response for a authenticate request.
+ */
 public class AuthenticateResponse {
 
     private final ObjectServerError error;
@@ -80,7 +83,8 @@ public class AuthenticateResponse {
     }
 
     /**
-     * Parse a valid (200) server response. It might still result in a unsuccessful authentication attemp.
+     * Parse a valid (200) server response. It might still result in a unsuccessful authentication attempt, if the
+     * JSON response could not be parsed correctly.
      */
     public AuthenticateResponse(String serverResponse) {
         ObjectServerError error;

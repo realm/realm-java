@@ -40,12 +40,10 @@ import io.realm.internal.objectserver.network.RefreshResponse;
 import io.realm.log.RealmLog;
 
 /**
- * The credentials object describes a credentials on the Realm Object Server.
+ * This class represents a user on the Realm Object Server.
  *
- * It is a helper object that can hold multiple credentials at the same time and execute actions on those.
  *
- * This is e.g. useful if multiple Realms conceptually belong to the same "credentials". Then a
- *
+ * TODO Rewrite this section
  */
 public class User {
 

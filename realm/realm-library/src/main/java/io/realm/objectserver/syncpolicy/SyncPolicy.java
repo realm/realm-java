@@ -22,7 +22,7 @@ import io.realm.objectserver.session.Session;
 /**
  * Interface describing a given synchronization policy with the Realm Object Server.
  * <p>
- * The sole purpose of classes implementing this class is to call {@link Session#bind()} and {@link Session#unbind()}
+ * The sole purpose of classes implementing this interface is to call {@link Session#bind()} and {@link Session#unbind()}
  * as needed, which will control when changes are synchronized between a local and remote Realm.
  *
  * The SyncPolicy is not responsible for managing the lifecycle of the {@link Session} in general. So any

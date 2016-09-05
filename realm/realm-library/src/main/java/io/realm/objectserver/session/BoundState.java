@@ -19,7 +19,7 @@ package io.realm.objectserver.session;
 import io.realm.objectserver.ObjectServerError;
 
 /**
- * BOUND State. At this state the local Realm is connected to the remote Realm and changes in either is sent in both
+ * BOUND State. At this state the local Realm is bound to the remote Realm and changes is sent in both
  * directions immediately.
  */
 class BoundState extends FsmState {

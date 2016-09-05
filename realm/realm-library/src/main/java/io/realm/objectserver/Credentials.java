@@ -20,23 +20,23 @@ import java.util.UUID;
 
 /**
  * Credentials represents a login with a 3rd party login provider in an oAuth2 login flow, and is used by the Realm
- * Authorization Server to verify the user and grant access to the Realm Object Server.
+ * Object Server to verify the user and grant access.
  *
  * Logging into the Realm Object Server consists of the following steps:
  *
  * <ol>
  * <li>
- *     Login to 3rd party like Facebook, Google or Twitter. The result is usually an Authorization Grant, that must be
+ *     Login to 3rd party like Facebook, Google or Twitter. The result is usually an Authorization Grant that must be
  *     saved in a {@link Credentials} object of the proper type, e.g {@link Credentials#fromFacebook(String)} for a
  *     Facebook login.
  * </li>
  * <li>
- *     Authenticate a {@link User} through the Realm Authentication Server using these credentials. Once authenticated
- *     a Realm Object Server user is returned. This represents can then be used to connect to the Realm Object Server
- *     and synchronize data between the local and remote Realm.
+ *     Authenticate a {@link User} through the Realm Object Server using these credentials. Once authenticated
+ *     a Realm Object Server user is returned. This user can then be attached to a {@link SyncConfiguration}, which
+ *     will make it possible to synchronize data between the local and remote Realm.
  *     <p>
- *     It is possible to persist the Realm Object Server user so logging into e.g Facebook is only required the first
- *     time the app is used.
+ *     It is possible to persist the user object using e.g. the {@link io.realm.objectserver.util.UserStore} so logging
+ *     into e.g Facebook is only required the first time the app is used.
  * </li>
  * </ol>
  *
@@ -46,10 +46,10 @@ import java.util.UUID;
  *
  * Credentials credentials = Credentials.fromFacebook(getFacebookToken());
  * boolean createUser = true;
- * User.authenticateUser(credentials, new URL("http://objectserver.realm.io/auth", createUser, new User.Callback() {
+ * User.authenticateUser(credentials, new URL("http://objectserver.realm.io/auth", new User.Callback() {
  *     \@Override
  *     public void onSuccess(User user) {
- *          SyncManager.saveUser("key", user)
+ *          userStore.saveUser("key", user)
  *          // User is now authenticated and be be used to open Realms.
  *     }
  *

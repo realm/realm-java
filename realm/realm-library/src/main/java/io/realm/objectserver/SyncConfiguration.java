@@ -30,29 +30,35 @@ import io.realm.objectserver.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.syncpolicy.SyncPolicy;
 import io.realm.rx.RxObservableFactory;
 
+import static android.R.attr.path;
+
 /**
- * An {@link SyncConfiguration} is used to setup a replicated .
+ * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
+ * Object Server.
  * <p>
- * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
- * its {@link io.realm.RealmConfiguration.Builder#build()} method.
+ * A valid {@link User} is required to create a SyncConfiguration. See {@link Credentials} and
+ * {@link User#login(Credentials, String, User.Callback)} for more information on
+ * how to get a user object.
  * <p>
- * A commonly used RealmConfiguration can easily be accessed by first saving it as
- * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
- * <p>
- * A minimal configuration can be created using:
- * <p>
- * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
- * <p>
- * This will create a RealmConfiguration with the following properties.
- * <ul>
- * <li>Realm file is called "default.realm"</li>
- * <li>It is saved in Context.getFilesDir()</li>
- * <li>It has its schema version set to 0.</li>
+ * A minimal SyncConfiguration can look like this:
+ * <pre>
+ * {@code
+ * SyncConfiguration config = new SyncConfiguration.Builder(context)
+ *   .serverUrl("realm://objectserver.realm.io/~/default")
+ *   .user(myUser)
+ *   .build();
+ * }
+ * </pre>
+ *
+ * Realms created using a SyncConfiguration is accessed normally using {@link Realm#getInstance(RealmConfiguration)}
+ * and can also be stored using {@link Realm#setDefaultConfiguration(RealmConfiguration)}.
+ *
+ * TODO Need to expand this section I think
  * </ul>
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
-    private final File realmFolder;
+    private final File realmDirectory;
     private final String realmFileName;
     private final String canonicalPath;
     private final URI serverUrl;
@@ -73,23 +79,37 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         // Determine location on disk
         // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
-        this.realmFolder = builder.defaultFolder; // TODO Add support for overriding default folder
-        this.realmFileName = builder.overrideDefaultLocalFileName ? getRealmFileName() : builder.defaultLocalFileName;
-        this.canonicalPath = getCanonicalPath(new File(realmFolder, realmFileName));
+        // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
 
+        File rootDir = builder.overrideDefaultFolder ? getRealmDirectory() : builder.defaultFolder;
+        this.realmDirectory = new File(rootDir, getServerPath(serverUrl));
         // Create the folder on disk (if needed)
-        realmFolder.mkdirs();
+        if (!realmDirectory.exists() && realmDirectory.mkdirs()) {
+            throw new IllegalStateException("Could not create directory for saving the Realm: " + realmDirectory);
+        }
+        this.realmFileName = builder.overrideDefaultLocalFileName ? super.getRealmFileName() : builder.defaultLocalFileName;
+        this.canonicalPath = getCanonicalPath(new File(realmDirectory, realmFileName));
+    }
 
+    // Extract the full server path, minus the file name
+    private String getServerPath(URI serverUrl) {
+        String path = serverUrl.getPath();
+        int endIndex = path.lastIndexOf("/");
+        if (endIndex != -1) {
+            return path.substring(0, endIndex);
+        } else {
+            return path;
+        }
     }
 
     @Override
     public boolean equals(Object obj) {
-        return true; // TODO;
+        return true; // FIXME;
     }
 
     @Override
     public int hashCode() {
-        return 31; // TODO
+        return 31; // FIXME
     }
 
     @Override
@@ -104,7 +124,7 @@ public final class SyncConfiguration extends RealmConfiguration {
      */
     @Override
     public File getRealmDirectory() {
-        return this.realmFolder;
+        return this.realmDirectory;
     }
 
     /**
@@ -188,7 +208,8 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if the directory is not valid.
          */
         public Builder directory(File dir) {
-            // TODO Implement this once the changes have been merged to master
+            super.directory(dir);
+            overrideDefaultFolder = true;
             return this;
         }
 
@@ -307,6 +328,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             this.defaultLocalFileName = pathSegments[pathSegments.length - 1];
 
             // Validate filename
+            // TODO Lift this restriction on the Object Server
             if (defaultLocalFileName.endsWith(".realm")) {
                 throw new IllegalArgumentException("The URL must not end with '.realm': " + url);
             }
