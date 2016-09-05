@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class represents a value from the Realm Authentication Server.
@@ -28,12 +29,12 @@ import java.util.Locale;
 public class Token {
 
     private final String value;
-    private final long expires;
+    private final long expiresMs;
     private final Permission[] permissions;
 
     public static Token from(JSONObject token) throws JSONException {
         String value = token.getString("token");
-        long expires = token.getLong("expires");
+        long expiresSec = token.getLong("expires");
         Permission[] permissions;
         JSONArray access = token.getJSONArray("access");
         if (access != null) {
@@ -49,12 +50,12 @@ public class Token {
             permissions = new Permission[0];
         }
 
-        return new Token(value, expires, permissions);
+        return new Token(value, expiresSec, permissions);
     }
 
-    public Token(String value, long expires, Permission... permissions) {
+    public Token(String value, long expiresSec, Permission... permissions) {
         this.value = value;
-        this.expires = expires;
+        this.expiresMs = TimeUnit.MILLISECONDS.convert(expiresSec, TimeUnit.SECONDS);
         this.permissions = permissions;
     }
 
@@ -62,8 +63,11 @@ public class Token {
         return value;
     }
 
+    /**
+     * Return the timestamp for when this Token expires. Timestamp is milliseconds UTC.
+     */
     public long expires() {
-        return expires;
+        return expiresMs;
     }
 
     public Permission[] permissions() {
@@ -74,7 +78,7 @@ public class Token {
         JSONObject obj = new JSONObject();
         try {
             obj.put("token", value);
-            obj.put("expires", expires);
+            obj.put("expiresMs", expiresMs);
             JSONArray perms = new JSONArray();
             for (int i = 0; i < permissions.length; i++) {
                 perms.put(permissions[i].toString().toLowerCase(Locale.US));
