@@ -38,7 +38,6 @@ import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
-import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
@@ -533,11 +532,11 @@ public class RealmConfigurationTests {
     public void schema_differentSchemasThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(CyclicType.class).build();
+                .schema(StringAndInt.class).build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {

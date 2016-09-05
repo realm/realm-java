@@ -35,8 +35,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
@@ -118,7 +122,7 @@ public class RealmMigrationTests {
         // V1 config
         RealmConfiguration v1Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .schemaVersion(1)
                 .build();
         Realm oldRealm = Realm.getInstance(v1Config);
@@ -137,7 +141,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration v2Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(StringOnly.class, FieldOrder.class)
                 .schemaVersion(2)
                 .migration(migration)
                 .build();
@@ -148,7 +152,7 @@ public class RealmMigrationTests {
         RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
                 .name(NEW_REALM)
                 .schemaVersion(2)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(StringOnly.class, FieldOrder.class)
                 .build();
         Realm newRealm = Realm.getInstance(newConfig);
         newRealm.close();
@@ -163,7 +167,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -181,7 +185,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
@@ -200,7 +204,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -638,7 +642,7 @@ public class RealmMigrationTests {
     public void settingPrimaryKeyWithObjectSchema() {
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -658,7 +662,7 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -709,7 +713,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -726,7 +730,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -829,7 +833,7 @@ public class RealmMigrationTests {
                 "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(0)
-                .schema(AllTypes.class)
+                .schema(AllTypes.class, Cat.class, Dog.class, Owner.class, DogPrimaryKey.class) // classes included for completeness of schema
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 

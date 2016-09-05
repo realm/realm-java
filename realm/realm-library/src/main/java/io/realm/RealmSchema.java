@@ -145,10 +145,14 @@ public final class RealmSchema {
             if (realm == null) {
                 realmObjectSchema = new RealmObjectSchema(className);
             } else {
-                if (realm.sharedRealm.hasTable(Table.TABLE_PREFIX + className)) {
+                String internalTableName = TABLE_PREFIX + className;
+                if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+                    throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: " + className.length());
+                }
+                if (realm.sharedRealm.hasTable(internalTableName)) {
                     throw new IllegalArgumentException("Class already exists: " + className);
                 }
-                Table table = realm.sharedRealm.getTable(Table.TABLE_PREFIX + className);
+                realm.sharedRealm.getTable(internalTableName);
                 realmObjectSchema = new RealmObjectSchema(realm, className, null);
             }
             dynamicClassToSchema.put(className, realmObjectSchema);
