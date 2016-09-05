@@ -140,8 +140,8 @@ public final class SharedRealm implements Closeable {
                 false,
                 false,
                 false,
-                null,
-                null);
+                config.getSyncServerUrl(),
+                config.getSyncUserToken());
         try {
             return new SharedRealm(nativeGetSharedRealm(nativeConfigPtr), config);
         } finally {

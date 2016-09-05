@@ -22,7 +22,7 @@ android {
     }
 
     tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn reverseNodeServerPort, reverseSyncServerPort, startServer
+        compileTask -> compileTask.dependsOn startServer
     }
 }
 
@@ -37,19 +37,10 @@ task reverseNodeServerPort(type: Exec) {
                             'WARNING: Failed to automatically reverse port 8888.\n' +
                             'Please reverse this port from localhost to the device or emulator being used to run the application.\n' +
                             'You may need to add the appropriate flags to the command that failed:\n' +
-                            '    adb -s DEVICE reverse tcp:8082 tcp:8082\n' +
+                            '    adb -s DEVICE reverse tcp:8888 tcp:8888\n' +
                             '===========================================================================\n'
             )
         }
-    }
-}
-
-task startServer()  {
-    doLast {
-        //start new process
-        def processBuilder = new ProcessBuilder(['nodejs','server.js', 'debug.log'])
-        processBuilder.directory(new File("$projectDir/test_server"))
-        processBuilder.start()
     }
 }
 
@@ -70,6 +61,38 @@ task reverseSyncServerPort(type: Exec) {
         }
     }
 }
+
+
+task startServer(dependsOn :[reverseNodeServerPort, reverseSyncServerPort])  {
+    doLast {
+        //start new process
+        def processBuilder = new ProcessBuilder(['/usr/local/bin/node','server.js', 'debug.log'])
+        processBuilder.directory(new File("$projectDir/test_server"))
+        processBuilder.start()
+        sleep(3000)
+//         block until the server is up
+//        while (true) {
+//            def proc = "lsof -n -i4TCP:8888".execute()
+//            try {
+//                proc.waitFor()
+//            } finally {
+//                def exitValue = proc.exitValue()
+//                if (exitValue == 0) {
+//                    //set pid
+////                    def pidField = process.class.getDeclaredField('pid')
+////                    pidField.accessible = true
+////                    pidFile << pidField.getInt(process)
+//                    logger.error(">>>>>>>>>>>> Server is up <<<<<<<<<<<<")
+//                    break;
+//                } else {
+//                    // TODO add sleep to timeout
+//                    logger.error(">>>>>>>>>>>> Waiting for server to be up <<<<<<<<<<<<")
+//                }
+//            }
+//        }
+    }
+}
+
 
 
 dependencies {

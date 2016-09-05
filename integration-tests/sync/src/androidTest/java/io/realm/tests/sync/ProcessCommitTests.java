@@ -44,6 +44,7 @@ import io.realm.tests.sync.utils.Constants;
 import io.realm.tests.sync.utils.HttpUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests {
@@ -99,9 +100,11 @@ public class ProcessCommitTests {
                 }
             }
         });
-        testFinished.await(30, TimeUnit.SECONDS);
+        boolean testTimedOut = testFinished.await(300, TimeUnit.SECONDS);
         if (exception[0] != null) {
             throw exception[0];
+        } else if (!testTimedOut) {
+            fail("Test timed out ");
         }
     }
 
@@ -153,9 +156,11 @@ public class ProcessCommitTests {
                 }
             }
         });
-        testFinished.await(30, TimeUnit.SECONDS);
+        boolean testTimedOut = testFinished.await(30, TimeUnit.SECONDS);
         if (exception[0] != null) {
             throw exception[0];
+        } else if (!testTimedOut) {
+            fail("Test timed out ");
         }
     }
 }

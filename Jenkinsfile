@@ -43,7 +43,7 @@ try {
         try {
           backgroundPid = startLogCatCollector()
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-            sh "chmod +x gradlew && ./gradlew --stacktrace installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
+            sh "chmod +x gradlew && ./gradlew installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
           }
           archiveLog = false;
         } finally {
