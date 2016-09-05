@@ -83,9 +83,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.newInstance(clazz, columnInfo);
+        return mediator.newInstance(clazz);
     }
 
     @Override

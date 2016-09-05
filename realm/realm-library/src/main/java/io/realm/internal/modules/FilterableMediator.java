@@ -98,9 +98,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz) {
         checkSchemaHasClass(clazz);
-        return originalMediator.newInstance(clazz, columnInfo);
+        return originalMediator.newInstance(clazz);
     }
 
     @Override

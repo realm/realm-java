@@ -34,6 +34,8 @@ public final class ProxyState<E extends RealmModel> {
     private String className;
     private Class<? extends RealmModel> clazzName;
 
+    private boolean underConstruction = true;
+
     private Row row;
     private BaseRealm realm;
 
@@ -175,6 +177,14 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public boolean isUnderConstruction() {
+        return underConstruction;
+    }
+
+    public void setConstructionFinished() {
+        underConstruction = false;
     }
 
     private Table getTable () {

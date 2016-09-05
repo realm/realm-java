@@ -492,7 +492,7 @@ public final class RealmObjectSchema {
         if (function != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {
-                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
+                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i), false));
             }
         }
 

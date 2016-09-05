@@ -100,7 +100,7 @@ public final class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(this, table.getCheckedRow(index));
+        return new DynamicRealmObject(this, table.getCheckedRow(index), false);
     }
 
     /**

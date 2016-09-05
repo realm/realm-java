@@ -32,6 +32,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.ColumnInfo;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.async.RealmThreadPoolExecutor;
@@ -491,40 +493,48 @@ abstract class BaseRealm implements Closeable {
     <E extends RealmModel> E get(Class<E> clazz, long rowIndex) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
-        proxy.realmGet$proxyState().setRow$realm(row);
-        proxy.realmGet$proxyState().setRealm$realm(this);
-        proxy.realmGet$proxyState().setTableVersion$realm();
-
-        return result;
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        try {
+            objectContext.set(this, row, schema.getColumnInfo(clazz));
+            E result = configuration.getSchemaMediator().newInstance(clazz);
+            RealmObjectProxy proxy = (RealmObjectProxy) result;
+            proxy.realmGet$proxyState().setTableVersion$realm();
+            return result;
+        } finally {
+            objectContext.clear();
+        }
     }
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
-        Table table;
-        E result;
-        if (dynamicClassName != null) {
-            table = schema.getTable(dynamicClassName);
-            @SuppressWarnings("unchecked")
-            E dynamicObj = (E) new DynamicRealmObject();
-            result = dynamicObj;
-        } else {
-            table = schema.getTable(clazz);
-            result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
-        }
+        final Table table = (dynamicClassName != null) ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
 
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
-        proxy.realmGet$proxyState().setRealm$realm(this);
-        if (rowIndex != Table.NO_MATCH) {
-            proxy.realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex));
-            proxy.realmGet$proxyState().setTableVersion$realm();
-        } else {
-            proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
-        }
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        try {
+            E result;
+            if (dynamicClassName != null) {
+                @SuppressWarnings("unchecked")
+                E dynamicObj = (E) new DynamicRealmObject(this,
+                        (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
+                        false);
+                result = dynamicObj;
+            } else {
+                objectContext.set(this,
+                        (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
+                        schema.getColumnInfo(clazz));
+                result = configuration.getSchemaMediator().newInstance(clazz);
+            }
 
-        return result;
+            RealmObjectProxy proxy = (RealmObjectProxy) result;
+            if (rowIndex != Table.NO_MATCH) {
+                proxy.realmGet$proxyState().setTableVersion$realm();
+            }
+
+            return result;
+        } finally {
+            objectContext.clear();
+        }
     }
 
     /**
@@ -701,4 +711,41 @@ abstract class BaseRealm implements Closeable {
         void migrationComplete();
     }
 
+    public static final class RealmObjectContext {
+        private BaseRealm realm;
+        private Row row;
+        private ColumnInfo columnInfo;
+
+        public void set(BaseRealm realm, Row row, ColumnInfo columnInfo) {
+            this.realm = realm;
+            this.row = row;
+            this.columnInfo = columnInfo;
+        }
+
+        public BaseRealm getRealm() {
+            return realm;
+        }
+
+        public Row getRow() {
+            return row;
+        }
+
+        public ColumnInfo getColumnInfo() {
+            return columnInfo;
+        }
+
+        public void clear() {
+            realm = null;
+            row = null;
+            columnInfo = null;
+        }
+    }
+    static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
+        @Override
+        protected RealmObjectContext initialValue() {
+            return new RealmObjectContext();
+        }
+    }
+
+    public static final ThreadLocalRealmObjectContext objectContext = new ThreadLocalRealmObjectContext();
 }

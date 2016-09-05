@@ -204,12 +204,12 @@ public class RealmProxyMediatorGenerator {
                 "<E extends RealmModel> E",
                 "newInstance",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<E>", "clazz", "ColumnInfo", "columnInfo"
+                "Class<E>", "clazz"
         );
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(new %s(columnInfo))", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return clazz.cast(new %s())", qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();

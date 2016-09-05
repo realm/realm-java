@@ -126,10 +126,9 @@ class BytecodeModifierTest extends Specification {
         when: 'the field use is replaced by the accessor'
         BytecodeModifier.useRealmAccessors(ctClass, [ctField], [ctClass])
 
-        then: 'the field is still used and also getter is called in the constructor'
-        // to work around https://github.com/realm/realm-java/issues/2536 , field access is not removed
-        isFieldRead(ctDefaultConstructor) && hasMethodCall(ctDefaultConstructor) &&
-                isFieldRead(ctNonDefaultConstructor) && hasMethodCall(ctNonDefaultConstructor)
+        then: 'the field is not used in the method anymore'
+        !isFieldRead(ctDefaultConstructor) && hasMethodCall(ctDefaultConstructor) &&
+                !isFieldRead(ctNonDefaultConstructor) && hasMethodCall(ctNonDefaultConstructor)
     }
 
     def "UseRealmAccessors_fieldAccessInNonModelConstructorIsTransformed"() {

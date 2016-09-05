@@ -105,6 +105,7 @@ public class RealmProxyClassGenerator {
 
         emitClassFields(writer);
         emitConstructor(writer);
+        emitInjectContextMethod(writer);
         emitAccessors(writer);
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
@@ -199,8 +200,8 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {
-        writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
-        writer.emitField("ProxyState", "proxyState", EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
+        writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE));
+        writer.emitField("ProxyState", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isRealmList(variableElement)) {
@@ -222,17 +223,19 @@ public class RealmProxyClassGenerator {
 
     private void emitConstructor(JavaWriter writer) throws IOException {
         // FooRealmProxy(ColumnInfo)
-        writer.beginConstructor(EnumSet.noneOf(Modifier.class), "ColumnInfo", "columnInfo");
-        writer.emitStatement("this.columnInfo = (%s) columnInfo", columnInfoClassName());
-        writer.emitStatement("this.proxyState = new ProxyState(%s.class, this)", qualifiedClassName);
+        writer.beginConstructor(EnumSet.noneOf(Modifier.class));
+        writer.beginControlFlow("if (proxyState == null)")
+                .emitStatement("injectObjectContext()")
+                .endControlFlow();
+        writer.emitStatement("proxyState.setConstructionFinished()");
         writer.endConstructor();
         writer.emitEmptyLine();
     }
 
     private void emitAccessors(JavaWriter writer) throws IOException {
         for (VariableElement field : metadata.getFields()) {
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
+            final String fieldName = field.getSimpleName().toString();
+            final String fieldTypeCanonicalName = field.asType().toString();
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 /**
@@ -243,6 +246,7 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("SuppressWarnings", "\"cast\"");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+                emitCodeForInjectingObjectContext(writer, false);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
 
                 // For String and bytes[], null value will be returned by JNI code. Try to save one JNI call here.
@@ -254,7 +258,7 @@ public class RealmProxyClassGenerator {
 
                 // For Boxed types, this should be the corresponding primitive types. Others remain the same.
                 String castingBackType;
-                if (Utils.isBoxedType(field.asType().toString())) {
+                if (Utils.isBoxedType(fieldTypeCanonicalName)) {
                     Types typeUtils = processingEnvironment.getTypeUtils();
                     castingBackType = typeUtils.unboxedType(field.asType()).toString();
                 } else {
@@ -268,6 +272,7 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                emitCodeForInjectingObjectContext(writer, true);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
                 // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
@@ -299,6 +304,7 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+                emitCodeForInjectingObjectContext(writer, false);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 writer.beginControlFlow("if (proxyState.getRow$realm().isNullLink(%s))", fieldIndexVariableReference(field));
                         writer.emitStatement("return null");
@@ -310,6 +316,7 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                emitCodeForInjectingObjectContext(writer, true);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 writer.beginControlFlow("if (value == null)");
                     writer.emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field));
@@ -331,6 +338,7 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+                emitCodeForInjectingObjectContext(writer, false);
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 writer.emitSingleLineComment("use the cached value if available");
                 writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
@@ -348,6 +356,7 @@ public class RealmProxyClassGenerator {
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+                emitCodeForInjectingObjectContext(writer, true);
                 writer.emitStatement("LinkView links = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
                 writer.emitStatement("links.clear()");
                 writer.beginControlFlow("if (value == null)");
@@ -370,6 +379,44 @@ public class RealmProxyClassGenerator {
             writer.emitEmptyLine();
         }
     }
+
+    private void emitCodeForInjectingObjectContext(JavaWriter writer, boolean isSetter) throws IOException {
+        // if invoked from model's constructor, inject BaseRealm and Row
+        writer.beginControlFlow("if (proxyState == null)");
+        {
+            writer.emitSingleLineComment("Called from model's constructor. Inject context.");
+            writer.emitStatement("injectObjectContext()");
+        }
+        writer.endControlFlow();
+        writer.emitEmptyLine();
+
+        if (isSetter) {
+            writer.beginControlFlow(
+                    "if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction())")
+                        .emitStatement("return")
+                        .endControlFlow()
+                        .emitEmptyLine();
+        }
+    }
+
+    private void emitInjectContextMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod(
+                "void", // Return type
+                "injectObjectContext", // Method name
+                EnumSet.of(Modifier.PRIVATE) // Modifiers
+                ); // Argument type & argument name
+
+        writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
+        writer.emitStatement("this.columnInfo = (%1$s) context.getColumnInfo()", columnInfoClassName());
+        writer.emitStatement("this.proxyState = new ProxyState(%1$s.class, this)", qualifiedClassName);
+        writer.emitEmptyLine();
+        writer.emitStatement("proxyState.setRealm$realm(context.getRealm())");
+        writer.emitStatement("proxyState.setRow$realm(context.getRow())");
+
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
 
     private void emitRealmObjectProxyImplementation(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
@@ -650,6 +697,8 @@ public class RealmProxyClassGenerator {
                 .emitStatement("return object")
             .endControlFlow();
 
+        writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();");
+
         writer.emitStatement("RealmObjectProxy cachedRealmObject = cache.get(object)");
         writer.beginControlFlow("if (cachedRealmObject != null)")
                 .emitStatement("return (%s) cachedRealmObject", qualifiedClassName)
@@ -695,12 +744,14 @@ public class RealmProxyClassGenerator {
 
                 writer
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
-                        .emitStatement("realmObject = new %s(realm.schema.getColumnInfo(%s.class))",
-                                qualifiedGeneratedClassName,
-                                qualifiedClassName)
-                        .emitStatement("((RealmObjectProxy)realmObject).realmGet$proxyState().setRealm$realm(realm)")
-                        .emitStatement("((RealmObjectProxy)realmObject).realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex))")
-                        .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
+                        .beginControlFlow("try")
+                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class))", qualifiedClassName)
+                            .emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
+                            .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
+                        .nextControlFlow("finally")
+                            .emitStatement("objectContext.clear();")
+                        .endControlFlow()
+
                     .nextControlFlow("else")
                         .emitStatement("canUpdate = false")
                     .endControlFlow();
@@ -1548,10 +1599,13 @@ public class RealmProxyClassGenerator {
             }
             writer
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
-                        .emitStatement("obj = new %s(realm.schema.getColumnInfo(%s.class))",
-                                qualifiedGeneratedClassName, qualifiedClassName)
-                        .emitStatement("((RealmObjectProxy)obj).realmGet$proxyState().setRealm$realm(realm)")
-                        .emitStatement("((RealmObjectProxy)obj).realmGet$proxyState().setRow$realm(table.getUncheckedRow(rowIndex))")
+                        .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();")
+                        .beginControlFlow("try")
+                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class))", qualifiedClassName)
+                            .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
+                        .nextControlFlow("finally")
+                            .emitStatement("objectContext.clear();")
+                        .endControlFlow()
                     .endControlFlow()
                 .endControlFlow();
 

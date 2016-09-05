@@ -64,20 +64,28 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         Row row = proxy.realmGet$proxyState().getRow$realm();
         proxyState.setRealm$realm(proxy.realmGet$proxyState().getRealm$realm());
         proxyState.setRow$realm(((UncheckedRow) row).convertToChecked());
+        proxyState.setConstructionFinished();
     }
 
-    // Create a dynamic object. Only used internally
-    DynamicRealmObject() {
-
-    }
-
-    DynamicRealmObject(BaseRealm realm, Row row) {
+    DynamicRealmObject(BaseRealm realm, Row row, boolean convertTocheckedRow) {
         proxyState.setRealm$realm(realm);
-        proxyState.setRow$realm((row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked());
+        if (convertTocheckedRow) {
+            proxyState.setRow$realm((row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked());
+        } else {
+            proxyState.setRow$realm(row);
+        }
+        proxyState.setConstructionFinished();
     }
 
-    DynamicRealmObject(String className) {
+    DynamicRealmObject(String className, BaseRealm realm, Row row, boolean convertTocheckedRow) {
         proxyState.setClassName(className);
+        proxyState.setRealm$realm(realm);
+        if (convertTocheckedRow) {
+            proxyState.setRow$realm((row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked());
+        } else {
+            proxyState.setRow$realm(row);
+        }
+        proxyState.setConstructionFinished();
     }
 
     /**
@@ -279,7 +287,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         } else {
             long linkRowIndex = proxyState.getRow$realm().getLink(columnIndex);
             CheckedRow linkRow = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getCheckedRow(linkRowIndex);
-            return new DynamicRealmObject(proxyState.getRealm$realm(), linkRow);
+            return new DynamicRealmObject(proxyState.getRealm$realm(), linkRow, false);
         }
     }
 

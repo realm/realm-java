@@ -85,10 +85,9 @@ public abstract class RealmProxyMediator {
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
-     * @param columnInfo the {@link ColumnInfo} object for the RealmObject class of {@code E}.
      * @return created {@link RealmObjectProxy} object.
      */
-    public abstract <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
+    public abstract <E extends RealmModel> E newInstance(Class<E> clazz);
 
     /**
      * Returns the list of RealmObject classes that can be saved in this Realm.

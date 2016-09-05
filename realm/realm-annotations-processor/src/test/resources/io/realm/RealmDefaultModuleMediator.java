@@ -74,11 +74,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(new io.realm.AllTypesRealmProxy(columnInfo));
+            return clazz.cast(new io.realm.AllTypesRealmProxy());
         } else {
             throw getMissingProxyClassException(clazz);
         }
