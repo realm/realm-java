@@ -222,7 +222,7 @@ public class User {
      * which permissions.
      */
     public boolean isAuthenticated() {
-        return refreshToken != null && refreshToken.expires() > System.currentTimeMillis();
+        return refreshToken != null && refreshToken.expires() * 1000 > System.currentTimeMillis();
     }
 
     public void logout() {

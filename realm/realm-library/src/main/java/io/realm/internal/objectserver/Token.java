@@ -29,12 +29,12 @@ import java.util.concurrent.TimeUnit;
 public class Token {
 
     private final String value;
-    private final long expiresMs;
+    private final long expires;
     private final Permission[] permissions;
 
     public static Token from(JSONObject token) throws JSONException {
         String value = token.getString("token");
-        long expiresSec = token.getLong("expires");
+        long expires = token.getLong("expires");
         Permission[] permissions;
         JSONArray access = token.getJSONArray("access");
         if (access != null) {
@@ -50,12 +50,12 @@ public class Token {
             permissions = new Permission[0];
         }
 
-        return new Token(value, expiresSec, permissions);
+        return new Token(value, expires, permissions);
     }
 
-    public Token(String value, long expiresSec, Permission... permissions) {
+    public Token(String value, long expires, Permission... permissions) {
         this.value = value;
-        this.expiresMs = TimeUnit.MILLISECONDS.convert(expiresSec, TimeUnit.SECONDS);
+        this.expires = expires;
         this.permissions = permissions;
     }
 
@@ -64,10 +64,10 @@ public class Token {
     }
 
     /**
-     * Return the timestamp for when this Token expires. Timestamp is milliseconds UTC.
+     * Returns when this token expires. Timestamp is in UTC seconds.
      */
     public long expires() {
-        return expiresMs;
+        return expires;
     }
 
     public Permission[] permissions() {
@@ -78,7 +78,7 @@ public class Token {
         JSONObject obj = new JSONObject();
         try {
             obj.put("token", value);
-            obj.put("expiresMs", expiresMs);
+            obj.put("expires", expires);
             JSONArray perms = new JSONArray();
             for (int i = 0; i < permissions.length; i++) {
                 perms.put(permissions[i].toString().toLowerCase(Locale.US));

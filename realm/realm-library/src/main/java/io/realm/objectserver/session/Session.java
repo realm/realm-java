@@ -289,7 +289,7 @@ public final class Session {
 
     public boolean isAuthenticated(SyncConfiguration configuration) {
         Token token = user.getAccessToken(configuration);
-        return token != null && token.expires() < System.currentTimeMillis();
+        return token != null && token.expires() * 1000 > System.currentTimeMillis();
     }
 
     public SyncConfiguration getConfiguration() {
