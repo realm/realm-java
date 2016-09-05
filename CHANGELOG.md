@@ -2,7 +2,7 @@
 
 ### Known issues
 
-* When create `RealmObject` from JSON stream, it will takes default values set by the non-managed `RealmObject`'s default constructor for those absent field in JSON object. This behaviour is different from other APIs when creating `RealmObject` (#3386).
+* When creating a `RealmObject` from a JSON stream, it will take the default values defined by its default constructor for those fields that are not defined in the JSON object. This behaviour is different from other APIs when creating `RealmObject`s.
 
 ### Breaking Changes
 
