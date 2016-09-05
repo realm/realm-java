@@ -91,6 +91,6 @@ public class Token {
         UPLOAD,
         DOWNLOAD,
         REFRESH,
-        MANAGE
+        MANAGE;
     }
 }

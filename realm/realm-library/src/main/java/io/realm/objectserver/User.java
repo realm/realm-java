@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +57,16 @@ public class User {
     private Token refreshToken;
     private URL authentificationUrl;
     private Map<SyncConfiguration, Token> accessTokens = new HashMap<SyncConfiguration, Token>();
+
+
+    /**
+     * Creates a User only known to this device.
+     * @return
+     */
+    public static User createLocal() {
+        Token token = new Token(UUID.randomUUID().toString(), Long.MAX_VALUE, Token.Permission.values());
+        return new User(UUID.randomUUID().toString(), token, null);
+    }
 
     /**
      * Load a user that has previously been saved using {@link #toJson()}.
@@ -211,7 +222,7 @@ public class User {
      * which permissions.
      */
     public boolean isAuthenticated() {
-        return refreshToken != null && refreshToken.expires() < System.currentTimeMillis();
+        return refreshToken != null && refreshToken.expires() > System.currentTimeMillis();
     }
 
     public void logout() {

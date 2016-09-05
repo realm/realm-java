@@ -54,7 +54,6 @@ import static android.R.attr.path;
  * and can also be stored using {@link Realm#setDefaultConfiguration(RealmConfiguration)}.
  *
  * TODO Need to expand this section I think
- * </ul>
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
@@ -81,10 +80,11 @@ public final class SyncConfiguration extends RealmConfiguration {
         // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
         // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
 
-        File rootDir = builder.overrideDefaultFolder ? getRealmDirectory() : builder.defaultFolder;
-        this.realmDirectory = new File(rootDir, getServerPath(serverUrl));
+        File rootDir = builder.overrideDefaultFolder ? super.getRealmDirectory() : builder.defaultFolder;
+        String realmPath = getServerPath(serverUrl);
+        this.realmDirectory = new File(rootDir, realmPath);
         // Create the folder on disk (if needed)
-        if (!realmDirectory.exists() && realmDirectory.mkdirs()) {
+        if (!realmDirectory.exists() && !realmDirectory.mkdirs()) {
             throw new IllegalStateException("Could not create directory for saving the Realm: " + realmDirectory);
         }
         this.realmFileName = builder.overrideDefaultLocalFileName ? super.getRealmFileName() : builder.defaultLocalFileName;
@@ -96,7 +96,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         String path = serverUrl.getPath();
         int endIndex = path.lastIndexOf("/");
         if (endIndex != -1) {
-            return path.substring(0, endIndex);
+            return path.substring(1, endIndex); // Also strip leading /
         } else {
             return path;
         }
@@ -351,7 +351,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             }
 
             String userId = user.getIdentifier();
-            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server/" + userId);
+            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
             this.user = user;
             return this;
         }

@@ -24,13 +24,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 import io.realm.Realm;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -41,11 +46,14 @@ public class SyncConfigurationtests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Rule
+    public final TemporaryFolder tempFolder = new TemporaryFolder();
+
     private Context context;
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getContext();
     }
 
     @After
@@ -56,23 +64,23 @@ public class SyncConfigurationtests {
     @RunTestInLooperThread
     public void workDammit() {
         // Works!!!
-        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
-            @Override
-            public void onSuccess(User user) {
-                SyncConfiguration config = new SyncConfiguration.Builder(context)
-                        .user(user)
-                        .serverUrl("realm://192.168.1.21/~/default")
-                        .build();
-                Realm realm = Realm.getInstance(config);
-                realm.beginTransaction();
-                realm.commitTransaction();
-            }
-
-            @Override
-            public void onError(ObjectServerError error) {
-                fail(error.toString());
-            }
-        });
+//        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
+//            @Override
+//            public void onSuccess(User user) {
+//                SyncConfiguration config = new SyncConfiguration.Builder(context)
+//                        .user(user)
+//                        .serverUrl("realm://192.168.1.21/~/default")
+//                        .build();
+//                Realm realm = Realm.getInstance(config);
+//                realm.beginTransaction();
+//                realm.commitTransaction();
+//            }
+//
+//            @Override
+//            public void onError(ObjectServerError error) {
+//                fail(error.toString());
+//            }
+//        });
     }
 
 
@@ -90,8 +98,27 @@ public class SyncConfigurationtests {
     }
 
     @Test
-    public void serverUrl() {
+    public void serverUrl_setsFolderAndFileName() {
+        User user = User.createLocal();
+        String[][] validUrls = {
+                // <URL>, <Folder>, <FileName>
+                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentifier(), "default" },
+                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + user.getIdentifier() + "/sub", "default" }
+        };
 
+        for (String[] validUrl : validUrls) {
+            String serverUrl  = validUrl[0];
+            String expectedFolder = validUrl[1];
+            String expectedFileName = validUrl[2];
+
+            SyncConfiguration config = new SyncConfiguration.Builder(context)
+                    .serverUrl(serverUrl)
+                    .user(user)
+                    .build();
+
+            assertEquals(new File(context.getFilesDir(), expectedFolder), config.getRealmDirectory());
+            assertEquals(expectedFileName, config.getRealmFileName());
+        }
     }
 
     @Test
