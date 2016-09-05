@@ -105,11 +105,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public void realmSet$columnString(String value) {
         proxyState.getRealm$realm().checkIfValid();
-        if (value == null) {
-            proxyState.getRow$realm().setNull(columnInfo.columnStringIndex);
-            return;
-        }
-        proxyState.getRow$realm().setString(columnInfo.columnStringIndex, value);
+        throw new io.realm.exceptions.RealmException("Primary key field 'columnString' cannot be changed after" +
+                " object created.");
     }
 
     @SuppressWarnings("cast")
@@ -414,13 +411,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
             }
         }
-        if (json.has("columnString")) {
-            if (json.isNull("columnString")) {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnString(null);
-            } else {
-                ((AllTypesRealmProxyInterface) obj).realmSet$columnString((String) json.getString("columnString"));
-            }
-        }
         if (json.has("columnLong")) {
             if (json.isNull("columnLong")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnLong' to null.");
@@ -636,7 +626,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         } else {
             some.test.AllTypes realmObject = realm.createObject(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString());
             cache.put(newObject, (RealmObjectProxy) realmObject);
-            ((AllTypesRealmProxyInterface) realmObject).realmSet$columnString(((AllTypesRealmProxyInterface) newObject).realmGet$columnString());
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnLong(((AllTypesRealmProxyInterface) newObject).realmGet$columnLong());
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnFloat(((AllTypesRealmProxyInterface) newObject).realmGet$columnFloat());
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnDouble(((AllTypesRealmProxyInterface) newObject).realmGet$columnDouble());

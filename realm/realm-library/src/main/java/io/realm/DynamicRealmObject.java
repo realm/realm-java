@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -363,6 +364,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
      * to the appropriate input type.
      * @throws NumberFormatException if a String based number cannot be converted properly.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     @SuppressWarnings("unchecked")
     public void set(String fieldName, Object value) {
@@ -445,8 +447,10 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param fieldName field name.
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setShort(String fieldName, short value) {
+        checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
     }
@@ -457,8 +461,10 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param fieldName field name to update.
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setInt(String fieldName, int value) {
+        checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
     }
@@ -469,8 +475,10 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param fieldName field name.
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setLong(String fieldName, long value) {
+        checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
     }
@@ -481,8 +489,10 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param fieldName field name.
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setByte(String fieldName, byte value) {
+        checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setLong(columnIndex, value);
     }
@@ -517,8 +527,10 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      * @param fieldName field name.
      * @param value value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a String field.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setString(String fieldName, String value) {
+        checkIsPrimaryKey(fieldName);
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         proxyState.getRow$realm().setString(columnIndex, value);
     }
@@ -632,6 +644,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      *
      * @param fieldName field name.
      * @throws IllegalArgumentException if field name doesn't exist, or the field isn't nullable.
+     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setNull(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
@@ -639,6 +652,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         if (type == RealmFieldType.OBJECT) {
             proxyState.getRow$realm().nullifyLink(columnIndex);
         } else {
+            checkIsPrimaryKey(fieldName);
             proxyState.getRow$realm().setNull(columnIndex);
         }
     }
@@ -793,5 +807,14 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     @Override
     public ProxyState realmGet$proxyState() {
         return proxyState;
+    }
+
+    // Checks if the given field is primary key field. Throws if it is a PK field.
+    private void checkIsPrimaryKey(String fieldName) {
+        RealmObjectSchema objectSchema = proxyState.getRealm$realm().getSchema().getSchemaForClass(getType());
+        if (objectSchema.hasPrimaryKey() && objectSchema.getPrimaryKey().equals(fieldName)) {
+            throw new RealmException(String.format("Primary key field '%s' cannot be changed after object created."
+                    , fieldName));
+        }
     }
 }
