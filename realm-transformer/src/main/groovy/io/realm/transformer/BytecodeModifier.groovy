@@ -57,7 +57,7 @@ class BytecodeModifier {
      * @param clazz The CtClass to modify
      * @param managedFields List of fields whose access should be replaced
      */
-    public static void useRealmAccessors(CtClass clazz, List<CtField> managedFields, List<CtClass> modelClasses) {
+    public static void useRealmAccessors(CtClass clazz, List<CtField> managedFields) {
         clazz.getDeclaredBehaviors().each { behavior ->
             logger.info "    Behavior: ${behavior.name}"
             if (
@@ -69,7 +69,7 @@ class BytecodeModifier {
                     behavior instanceof CtConstructor
                 )
             ) {
-                behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior, modelClasses.contains(clazz)))
+                behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior))
             }
         }
     }
@@ -96,8 +96,7 @@ class BytecodeModifier {
 
         FieldAccessToAccessorConverter(List<CtField> managedFields,
                                        CtClass ctClass,
-                                       CtBehavior behavior,
-                                       boolean isModelClass) {
+                                       CtBehavior behavior) {
             this.managedFields = managedFields
             this.ctClass = ctClass
             this.behavior = behavior

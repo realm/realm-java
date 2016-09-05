@@ -88,6 +88,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
     }
+    private boolean acceptDefaultValue;
     private AllTypesColumnInfo columnInfo;
     private ProxyState proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
@@ -106,7 +107,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
-    AllTypesRealmProxy() {
+    AllTypesRealmProxy(boolean acceptDefaultValue) {
+        this.acceptDefaultValue = acceptDefaultValue;
         if (proxyState == null) {
             injectObjectContext();
         }
@@ -139,7 +141,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -164,7 +166,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -189,7 +191,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -214,7 +216,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -239,7 +241,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -264,7 +266,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -292,7 +294,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -322,7 +324,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -364,7 +366,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -556,7 +558,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
                 try {
                     objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class));
-                    obj = new io.realm.AllTypesRealmProxy();
+                    obj = new io.realm.AllTypesRealmProxy(true);
                 } finally {
                     objectContext.clear();;
                 }
@@ -767,7 +769,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 if (rowIndex != TableOrView.NO_MATCH) {
                     try {
                         objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class));
-                        realmObject = new io.realm.AllTypesRealmProxy();
+                        realmObject = new io.realm.AllTypesRealmProxy(true);
                         cache.put(object, (RealmObjectProxy) realmObject);
                     } finally {
                         objectContext.clear();;

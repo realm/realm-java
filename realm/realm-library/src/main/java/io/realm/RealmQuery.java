@@ -2099,23 +2099,15 @@ public final class RealmQuery<E extends RealmModel> {
         // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
         // then update it once the query complete in the background.
         final E result;
-        final WeakReference<RealmObjectProxy> realmObjectWeakReference;
-        final RealmObjectProxy proxy;
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
-        try {
-            if (isDynamicQuery()) {
-                //noinspection unchecked
-                result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW, false);
-            } else {
-                objectContext.set(realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz));
-                result = realm.getConfiguration().getSchemaMediator().newInstance(clazz);
-            }
-
-            proxy = (RealmObjectProxy) result;
-            realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
-        } finally {
-            objectContext.clear();
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW, false);
+        } else {
+            result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz), false);
         }
+
+        final RealmObjectProxy proxy = (RealmObjectProxy) result;
+        final WeakReference<RealmObjectProxy> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
 
         final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override

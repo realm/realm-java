@@ -60,6 +60,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
 
     }
+    private boolean acceptDefaultValue;
     private SimpleColumnInfo columnInfo;
     private ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
@@ -70,7 +71,8 @@ public class SimpleRealmProxy extends some.test.Simple
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
-    SimpleRealmProxy() {
+    SimpleRealmProxy(boolean acceptDefaultValue) {
+        this.acceptDefaultValue = acceptDefaultValue;
         if (proxyState == null) {
             injectObjectContext();
         }
@@ -103,7 +105,7 @@ public class SimpleRealmProxy extends some.test.Simple
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -132,7 +134,7 @@ public class SimpleRealmProxy extends some.test.Simple
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 

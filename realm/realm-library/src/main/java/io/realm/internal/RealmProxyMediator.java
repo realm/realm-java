@@ -85,9 +85,14 @@ public abstract class RealmProxyMediator {
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
+     * @param acceptDefaultValue {@code true} to accept the values set in the constructor, {@code false} otherwise.
      * @return created {@link RealmObjectProxy} object.
      */
-    public abstract <E extends RealmModel> E newInstance(Class<E> clazz);
+    public abstract <E extends RealmModel> E newInstance(Class<E> clazz,
+                                                         Object baseRealm,
+                                                         Row row,
+                                                         ColumnInfo columnInfo,
+                                                         boolean acceptDefaultValue);
 
     /**
      * Returns the list of RealmObject classes that can be saved in this Realm.

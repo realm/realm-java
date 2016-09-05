@@ -77,6 +77,7 @@ public class RealmProxyMediatorGenerator {
                 "io.realm.internal.SharedRealm",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
+                "io.realm.internal.Row",
                 "io.realm.internal.Table",
                 "org.json.JSONException",
                 "org.json.JSONObject"
@@ -204,14 +205,24 @@ public class RealmProxyMediatorGenerator {
                 "<E extends RealmModel> E",
                 "newInstance",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<E>", "clazz"
+                "Class<E>", "clazz",
+                "Object", "baseRealm",
+                "Row", "row",
+                "ColumnInfo", "columnInfo",
+                "boolean", "acceptDefaultValue"
         );
+        writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()");
+        writer.beginControlFlow("try")
+                .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo)");
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(new %s())", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return clazz.cast(new %s(acceptDefaultValue))", qualifiedProxyClasses.get(i));
             }
         }, writer);
+        writer.nextControlFlow("finally")
+                .emitStatement("objectContext.clear()")
+                .endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
     }

@@ -34,6 +34,7 @@ public final class ProxyState<E extends RealmModel> {
     private String className;
     private Class<? extends RealmModel> clazzName;
 
+    // true only while executing the constructor of the enclosing proxy object
     private boolean underConstruction = true;
 
     private Row row;

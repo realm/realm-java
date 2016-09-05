@@ -68,6 +68,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
 
     }
+    private boolean acceptDefaultValue;
     private BooleansColumnInfo columnInfo;
     private ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
@@ -80,7 +81,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
-    BooleansRealmProxy() {
+    BooleansRealmProxy(boolean acceptDefaultValue) {
+        this.acceptDefaultValue = acceptDefaultValue;
         if (proxyState == null) {
             injectObjectContext();
         }
@@ -113,7 +115,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -138,7 +140,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -163,7 +165,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 
@@ -188,7 +190,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction()) {
+        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
             return;
         }
 

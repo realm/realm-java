@@ -493,16 +493,10 @@ abstract class BaseRealm implements Closeable {
     <E extends RealmModel> E get(Class<E> clazz, long rowIndex) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
-        try {
-            objectContext.set(this, row, schema.getColumnInfo(clazz));
-            E result = configuration.getSchemaMediator().newInstance(clazz);
-            RealmObjectProxy proxy = (RealmObjectProxy) result;
-            proxy.realmGet$proxyState().setTableVersion$realm();
-            return result;
-        } finally {
-            objectContext.clear();
-        }
+        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz), true);
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        proxy.realmGet$proxyState().setTableVersion$realm();
+        return result;
     }
 
     // Used by RealmList/RealmResults
@@ -510,31 +504,25 @@ abstract class BaseRealm implements Closeable {
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         final Table table = (dynamicClassName != null) ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
 
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
-        try {
-            E result;
-            if (dynamicClassName != null) {
-                @SuppressWarnings("unchecked")
-                E dynamicObj = (E) new DynamicRealmObject(this,
-                        (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                        false);
-                result = dynamicObj;
-            } else {
-                objectContext.set(this,
-                        (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                        schema.getColumnInfo(clazz));
-                result = configuration.getSchemaMediator().newInstance(clazz);
-            }
-
-            RealmObjectProxy proxy = (RealmObjectProxy) result;
-            if (rowIndex != Table.NO_MATCH) {
-                proxy.realmGet$proxyState().setTableVersion$realm();
-            }
-
-            return result;
-        } finally {
-            objectContext.clear();
+        E result;
+        if (dynamicClassName != null) {
+            @SuppressWarnings("unchecked")
+            E dynamicObj = (E) new DynamicRealmObject(this,
+                    (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
+                    false);
+            result = dynamicObj;
+        } else {
+            result = configuration.getSchemaMediator().newInstance(clazz, this,
+                    (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
+                    schema.getColumnInfo(clazz), false);
         }
+
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        if (rowIndex != Table.NO_MATCH) {
+            proxy.realmGet$proxyState().setTableVersion$realm();
+        }
+
+        return result;
     }
 
     /**

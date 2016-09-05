@@ -200,6 +200,7 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {
+        writer.emitField("boolean", "acceptDefaultValue", EnumSet.of(Modifier.PRIVATE));
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE));
         writer.emitField("ProxyState", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
@@ -223,7 +224,8 @@ public class RealmProxyClassGenerator {
 
     private void emitConstructor(JavaWriter writer) throws IOException {
         // FooRealmProxy(ColumnInfo)
-        writer.beginConstructor(EnumSet.noneOf(Modifier.class));
+        writer.beginConstructor(EnumSet.noneOf(Modifier.class), "boolean", "acceptDefaultValue");
+        writer.emitStatement("this.acceptDefaultValue = acceptDefaultValue");
         writer.beginControlFlow("if (proxyState == null)")
                 .emitStatement("injectObjectContext()")
                 .endControlFlow();
@@ -392,7 +394,7 @@ public class RealmProxyClassGenerator {
 
         if (isSetter) {
             writer.beginControlFlow(
-                    "if (proxyState.isUnderConstruction() && !proxyState.getRealm$realm().isInTransaction())")
+                    "if (proxyState.isUnderConstruction() && !this.acceptDefaultValue)")
                         .emitStatement("return")
                         .endControlFlow()
                         .emitEmptyLine();
@@ -746,7 +748,7 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                         .beginControlFlow("try")
                             .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class))", qualifiedClassName)
-                            .emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
+                            .emitStatement("realmObject = new %s(true)", qualifiedGeneratedClassName)
                             .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                         .nextControlFlow("finally")
                             .emitStatement("objectContext.clear();")
@@ -1602,7 +1604,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();")
                         .beginControlFlow("try")
                             .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class))", qualifiedClassName)
-                            .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
+                            .emitStatement("obj = new %s(true)", qualifiedGeneratedClassName)
                         .nextControlFlow("finally")
                             .emitStatement("objectContext.clear();")
                         .endControlFlow()
