@@ -176,7 +176,9 @@ public final class Session {
      */
     public synchronized void onError(ObjectServerError error) {
         currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
-        errorHandler.onError(this, error);
+        if (errorHandler != null) {
+            errorHandler.onError(this, error);
+        }
     }
 
     // Called from Session.cpp and SyncMaanger

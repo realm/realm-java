@@ -20,9 +20,9 @@ import io.realm.objectserver.ErrorCode;
 import io.realm.internal.objectserver.Token;
 
 public class RefreshResponse {
-    private Token refreshToken;
-    private ErrorCode errorCode;
-    private String errorMessage;
+    private Token refreshToken = null;
+    private ErrorCode errorCode = null;
+    private String errorMessage = null;
 
     public boolean isValid() {
         return false;
