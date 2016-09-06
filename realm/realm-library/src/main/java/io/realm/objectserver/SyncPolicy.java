@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.syncpolicy;
+package io.realm.objectserver;
 
 import io.realm.objectserver.ObjectServerError;
-import io.realm.objectserver.session.Session;
+import io.realm.objectserver.Session;
 
 /**
  * Interface describing a given synchronization policy with the Realm Object Server.

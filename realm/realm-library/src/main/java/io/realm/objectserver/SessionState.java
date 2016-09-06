@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.session;
+package io.realm.objectserver;
 
 /**
  * Enum describing the various states the Session Finite-State-Machine can be in.

@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,8 +57,7 @@ public class User {
     private final String identifier;
     private Token refreshToken;
     private URL authentificationUrl;
-    private Map<SyncConfiguration, Token> accessTokens = new HashMap<SyncConfiguration, Token>();
-
+    private Map<URI, Token> accessTokens = new HashMap<URI, Token>();
 
     /**
      * Creates a User only known to this device.
@@ -89,6 +89,21 @@ public class User {
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("URL in JSON not valid: " + user, e);
         }
+    }
+
+    /**
+     * Creates a user from an existing token. This user is automatically consider validated by the device, but the
+     * Realm Object Server might determine that the token has expired or no longer is valid.
+     *
+     * This should only be used when debugging or testing. In most other cases the user object obtained from a
+     * {@link #login(Credentials, String, Callback)} should be saved and reused. This can e.g. be done using a
+     * {@link UserStore}.
+     *
+     * @param token token to represent user.
+     */
+    public static User fromToken(String token) {
+        // Define a user with unlimited access. Object Server will reject any invalid access anyway.
+        return new User(null, new Token(token, Long.MAX_VALUE, Token.Permission.values()), null);
     }
 
     public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerError {
@@ -166,17 +181,20 @@ public class User {
         setRefreshToken(refreshToken);
     }
 
-    public void setRefreshToken(final Token refreshToken) {
+    void setRefreshToken(final Token refreshToken) {
         if (refreshTask != null) {
             refreshTask.cancel();
             refreshTask = null;
         }
         this.refreshToken = refreshToken;
 
+        if (authentificationUrl == null) {
+            return;
+        }
         // Schedule a refresh. This method cannot fail, but will continue retrying until either the app is killed
         // or the attempt was successful.
         // TODO Consider combining refresh across all users?
-        final long expire = refreshToken.expires();
+        final long expire = refreshToken.expiresMs();
         final AuthenticationServer server = SyncManager.getAuthServer();
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
             @Override
@@ -217,12 +235,12 @@ public class User {
     }
 
     /**
-     * Returns true if the User is authenticated by the Realm Authentication Server. Being authenticated means that the
+     * Returns true if the User is authenticated by the Realm Object Server. Being authenticated means that the
      * user is know by the Realm Object Server, but nothing about which Realms that user might have access to and with
-     * which permissions.
+     * what kind of permissions.
      */
     public boolean isAuthenticated() {
-        return refreshToken != null && refreshToken.expires() * 1000 > System.currentTimeMillis();
+        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis();
     }
 
     public void logout() {
@@ -246,7 +264,7 @@ public class User {
         try {
             obj.put("identifier", identifier);
             obj.put("refreshToken", refreshToken.toJson());
-            obj.put("authenticationUrl", authentificationUrl);
+            obj.put("authUrl", authentificationUrl);
             // FIXME: Add support for  storing access tokens as well
            return obj.toString();
         } catch (JSONException e) {
@@ -259,30 +277,46 @@ public class User {
     }
 
     /**
-     * Refresh the users login.
+     * Return the access token for the given Realm or {@code null} if no token exists.
      */
-    void refresh() {
-        // TODO Where should the callback happen? Only allow callbacks on Handler threads? Then we need a variant
-        // that blocks on a background thread.
+    Token getAccessToken(URI serverUrl) {
+        return accessTokens.get(serverUrl);
+    }
 
-        final AuthenticationServer server = SyncManager.getAuthServer();
+    void addAccessToken(URI uri, Token accessToken) {
+        accessTokens.put(uri, accessToken);
     }
 
     /**
-     * Return the access token for the given Realm or {@code null} if no token exists.
+     * Adds an access token to this user.
+     * <p>
+     * An access token is a token granting access to one remote Realm. They are normally fetched transparently when
+     * opening a Realm, but using this method it is possible to add tokens upfront if they have been fetched or
+     * created manually.
+     *
+     * @param uri {@link java.net.URI} pointing to a remote Realm.
+     * @param accessToken
      */
-    public Token getAccessToken(SyncConfiguration configuration) {
-        return accessTokens.get(configuration);
+    void addAccessToken(URI uri, String accessToken) {
+        // TODO Currently package protected as we will be unifying the tokens shortly, so each user only has one
+        // access token that can be used everywhere. Permissions/access are then fully handled by the Object Server.
+        if (uri == null || accessToken == null) {
+            throw new IllegalArgumentException("Non-null 'uri' and 'accessToken' required.");
+        }
+        uri = SyncConfiguration.getFullServerUrl(uri, identifier);
+
+        // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
+        // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used
+        // correctly.
+        addAccessToken(uri, new Token(accessToken, Long.MAX_VALUE, Token.Permission.values()));
     }
 
-    public void setAccesToken(SyncConfiguration configuration, Token accessToken) {
-        accessTokens.put(configuration, accessToken);
-    }
 
-    public URL getAuthentificationUrl() {
+    URL getAuthenticationUrl() {
         return authentificationUrl;
     }
 
+    // TODO Figure out how to make this non-public
     public Token getRefreshToken() {
         return refreshToken;
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.session;
+package io.realm.objectserver;
 
 import java.util.HashMap;
 import java.util.concurrent.Future;
@@ -22,21 +22,12 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.objectserver.network.AuthenticateResponse;
 import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.ErrorCode;
-import io.realm.objectserver.ObjectServerError;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.User;
-import io.realm.objectserver.syncpolicy.SyncPolicy;
-
-import static android.R.attr.version;
 
 /**
  * This class controls the connection to a Realm Object Server for one Realm.
@@ -225,7 +216,7 @@ public final class Session {
     // Bind with proper access tokens
     // Access tokens are presumed to be present and valid at this point
     void bindWithTokens() {
-        Token accessToken = user.getAccessToken(configuration);
+        Token accessToken = user.getAccessToken(configuration.getServerUrl());
         if (accessToken == null) {
             throw new IllegalStateException("User '" + user.toString() + "' does not have an access token for "
                     + configuration.getServerUrl());
@@ -259,10 +250,10 @@ public final class Session {
                     AuthenticateResponse response = authServer.authenticateRealm(
                             user.getRefreshToken(),
                             configuration.getServerUrl(),
-                            user.getAuthentificationUrl()
+                            user.getAuthenticationUrl()
                     );
                     if (response.isValid()) {
-                        user.setAccesToken(configuration, response.getAccessToken());
+                        user.addAccessToken(configuration.getServerUrl(), response.getAccessToken());
                         success = true;
                         break;
                     } else {
@@ -288,8 +279,8 @@ public final class Session {
     }
 
     public boolean isAuthenticated(SyncConfiguration configuration) {
-        Token token = user.getAccessToken(configuration);
-        return token != null && token.expires() * 1000 > System.currentTimeMillis();
+        Token token = user.getAccessToken(configuration.getServerUrl());
+        return token != null && token.expiresMs() > System.currentTimeMillis();
     }
 
     public SyncConfiguration getConfiguration() {
@@ -310,7 +301,6 @@ public final class Session {
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
     private native void nativeNotifyCommitHappened(long sessionPointer, long version);
-
 
     /**
      * FIXME: Find a way to keep this out of the public API. Could probably happen as part of moving everything to the

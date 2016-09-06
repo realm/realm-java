@@ -35,7 +35,7 @@ import java.util.UUID;
  *     a Realm Object Server user is returned. This user can then be attached to a {@link SyncConfiguration}, which
  *     will make it possible to synchronize data between the local and remote Realm.
  *     <p>
- *     It is possible to persist the user object using e.g. the {@link io.realm.objectserver.util.UserStore} so logging
+ *     It is possible to persist the user object using e.g. the {@link UserStore} so logging
  *     into e.g Facebook is only required the first time the app is used.
  * </li>
  * </ol>

@@ -14,34 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.session;
-
-import io.realm.objectserver.ObjectServerError;
+package io.realm.objectserver;
 
 /**
- * UNBOUND State. This is the default state after a session has been started and no attempt at binding the local Realm
- * has been made.
+ * INITIAL State. Starting point for the Session Finite-State-Machine.
  */
-class UnboundState extends FsmState {
+class InitialState extends FsmState {
 
     @Override
     public void onEnterState() {
-        // We can enter this state from multiple states which might have had an active session.
-        // In those cases cleanup any old native session
-        session.stopNativeSession();
-
-        // Create the native session so it is ready to be bound.
-        session.createNativeSession();
+        // Do nothing. We start here
     }
 
     @Override
     protected void onExitState() {
-        // Do nothing.
+        // Do nothing. Right now the underlying Realm Core session cannot bound/unbind multiple times, so instead
+        // we create a new session object each time the Session becomes unbound.
     }
 
     @Override
-    public void onBind() {
-        gotoNextState(SessionState.BINDING);
+    public void onStart() {
+        gotoNextState(SessionState.UNBOUND);
     }
 
     @Override

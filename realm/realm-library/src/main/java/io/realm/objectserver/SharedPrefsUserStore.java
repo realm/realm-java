@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.util;
+package io.realm.objectserver;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -25,9 +25,7 @@ import android.os.Looper;
 
 import java.util.concurrent.Executor;
 
-import io.realm.Realm;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.User;
 
 /**
  * A User Store backed by a SharedPreferences file.
