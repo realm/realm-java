@@ -184,8 +184,17 @@ Above is based on the official guidelines from Oracle regarding Javadoc: http://
 
 ### Branch Strategy
 
-* `releases` branch is where the hotfix versions released from. Releases from this branch will bump the last part of the version number.
-* `master` branch is where the major/minor versions released from. The first or the second part of the version number will be bumped when release from this branch.
-* Every commit to the `releases` branch will be merged to the master brunch automatically when it gets merged.
-* Only new features and breaking changes should go to the `master` branch.
-* Minor fixes like documentation fix, tests fix and build system changes should be committed to the `releases` branch to avoid diversity from `master`. Although those changes might not add any visible values to the end user.
+We have two branches for shared development: `master` and `releases`. We make releases from each.
+
+`master`:
+
+* The `master` branch is where major/minor versions are released from.
+* It is for new features and/or breaking changes.
+
+`releases`:
+
+* The releases branch is where patch versions are released from.
+* It is mainly for bug fixes.
+* Every commit is automatically merged to `master`.
+* Although minor fixes to documentation, tests and build system might not be visible to end users, they should still be committed to releases to avoid divergence.
+
