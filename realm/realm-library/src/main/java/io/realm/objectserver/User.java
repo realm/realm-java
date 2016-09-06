@@ -69,12 +69,12 @@ public class User {
     }
 
     /**
-     * Load a user that has previously been saved using {@link #toJson()}.
+     * Load a user that has previously been serialized using {@link #toJson()}.
      *
-     * @param user Json string representing the user.
+     * @param user JSON string representing the user.
      *
      * @return the user object.
-     * @throws IllegalArgumentException if the JSON could be be converted to a valid {@link User} object.
+     * @throws IllegalArgumentException if the JSON couldn't be converted to a valid {@link User} object.
      */
     public static User fromJson(String user) {
         try {
@@ -96,7 +96,7 @@ public class User {
      * Realm Object Server might determine that the token has expired or no longer is valid.
      *
      * This should only be used when debugging or testing. In most other cases the user object obtained from a
-     * {@link #login(Credentials, String, Callback)} should be saved and reused. This can e.g. be done using a
+     * {@link #loginAsync(Credentials, String, Callback)} should be saved and reused. This can e.g. be done using a
      * {@link UserStore}.
      *
      * @param token token to represent user.
@@ -106,30 +106,32 @@ public class User {
         return new User(null, new Token(token, Long.MAX_VALUE, Token.Permission.values()), null);
     }
 
-    public static User login(final Credentials credentials, final URL authentificationUrl) throws ObjectServerError {
+    public static User login(final Credentials credentials, final URL authentificationUrl)
+            throws ObjectServerError {
         return null; // TODO
     }
 
     /**
      * Login the user on the Realm Object Server
      *
-     * @param credentials Credentials to use
+     * @param credentials credentials to use
      * @param authenticationUrl URL to authenticateUser against
-     * @param callback Callback when login has completed or failed. This callback will always happen on the UI thread.
+     * @param callback callback when login has completed or failed. This callback will always happen on the UI thread.
      * @throws IllegalArgumentException
      */
     // FIXME Return task that can be canceled
-    public static RealmAsyncTask login(final Credentials credentials, final String authenticationUrl, final Callback callback) {
+    public static RealmAsyncTask loginAsync(final Credentials credentials, final String authenticationUrl, final Callback callback) {
         final URL authUrl;
         try {
             authUrl = new URL(authenticationUrl);
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid URL", e);
+            throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
+        }
+        if (Looper.myLooper() == null) {
+            throw new IllegalStateException("Asynchronous login is only possible from looper threads.");
         }
 
-        // TODO Where should the callback happen? Only allow callbacks on Handler threads? Then we need a variant
-        // that blocks on a background thread.
-        final Handler handler = new Handler(Looper.getMainLooper());
+        final Handler handler = new Handler(Looper.myLooper());
 
         final AuthenticationServer server = SyncManager.getAuthServer();
         Future<?> authenticateRequest = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
@@ -150,6 +152,7 @@ public class User {
             }
 
             private void postError(final ObjectServerError error) {
+                RealmLog.info("Failed authenticating user.\n%s", error);
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
@@ -161,6 +164,7 @@ public class User {
             }
 
             private void postSuccess(final User user) {
+                RealmLog.info("Succeeded authenticating user.\n%s", user);
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
@@ -175,9 +179,9 @@ public class User {
         return authenticateTask;
     }
 
-    private User(String identifier, Token refreshToken, URL authentificationUrl) {
+    private User(String identifier, Token refreshToken, URL authenticationUrl) {
         this.identifier = identifier;
-        this.authentificationUrl = authentificationUrl;
+        this.authentificationUrl = authenticationUrl;
         setRefreshToken(refreshToken);
     }
 
@@ -319,6 +323,12 @@ public class User {
     // TODO Figure out how to make this non-public
     public Token getRefreshToken() {
         return refreshToken;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+        // FIXME Print representation of user, but be careful about printing anything sensitive
     }
 
     public interface Callback {

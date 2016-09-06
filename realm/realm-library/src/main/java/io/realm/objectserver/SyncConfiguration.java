@@ -32,7 +32,7 @@ import io.realm.rx.RxObservableFactory;
  * Object Server.
  * <p>
  * A valid {@link User} is required to create a SyncConfiguration. See {@link Credentials} and
- * {@link User#login(Credentials, String, User.Callback)} for more information on
+ * {@link User#loginAsync(Credentials, String, User.Callback)} for more information on
  * how to get a user object.
  * <p>
  * A minimal SyncConfiguration can look like this:

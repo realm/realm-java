@@ -16,29 +16,14 @@
 
 package io.realm.objectserver;
 
+import io.realm.objectserver.android.SharedPrefsUserStore;
+
 /**
  * Interface for describing how a given user object can be persisted and retrieved again.
  *
  * @see SharedPrefsUserStore
  */
 public interface UserStore {
-
-    /**
-     * Returns the user that have been set by calling `{@link #setCurrentUser(User)}.
-     *
-     * This user is not persisted across app restarts.
-     *
-     * @return the current {@link User} object or {@code null} if no user has been set as the current user.
-     */
-    User getCurrentUser();
-
-    /**
-     * Helper method for easily saving a user. Can be retrieved back using {@link #getCurrentUser()}.
-     * This user will not be persisted if the process dies.
-     *
-     * @param user {@link User} to set as the current user.
-     */
-    void setCurrentUser(User user);
 
     /**
      * Saves a User object under the given key. If another user already exists, it will be replaced.
@@ -76,16 +61,18 @@ public interface UserStore {
     void loadAsync(String key, Callback callback);
 
 
-
+    /**
+     * Interface responsible for handling the result of asynchronously saving or loading the user.
+     */
     interface Callback {
         /**
-         * User was successfully saved.
+         * User was successfully saved or loaded.
          */
          void onSuccess(User user);
 
         /**
-         * The user could not be saved.
+         * The user could not be saved or loaded.
          */
-        void onError();
+        void onError(Throwable t);
     }
 }

@@ -228,7 +228,7 @@ public class SyncConfigurationTests {
     @Test
     @RunTestInLooperThread
     public void basicIntegrationTest2() {
-        User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
+        User.loginAsync(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
             @Override
             public void onSuccess(User user) {
                 SyncConfiguration config = new SyncConfiguration.Builder(context)
