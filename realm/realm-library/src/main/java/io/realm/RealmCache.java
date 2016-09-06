@@ -29,7 +29,7 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.RealmCore;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.session.Session;
+import io.realm.objectserver.Session;
 import io.realm.log.RealmLog;
 
 /**

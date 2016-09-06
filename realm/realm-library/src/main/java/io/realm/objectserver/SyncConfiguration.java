@@ -25,12 +25,7 @@ import java.net.URISyntaxException;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
-import io.realm.objectserver.session.Session;
-import io.realm.objectserver.syncpolicy.AutomaticSyncPolicy;
-import io.realm.objectserver.syncpolicy.SyncPolicy;
 import io.realm.rx.RxObservableFactory;
-
-import static android.R.attr.path;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -67,23 +62,25 @@ public final class SyncConfiguration extends RealmConfiguration {
 
     private SyncConfiguration(Builder builder) {
         super(builder);
-        this.user = builder.user;
         if (builder.serverUrl == null || builder.user == null) {
             throw new IllegalStateException("serverUrl() and user() are both required.");
         }
 
-        try {
-            this.serverUrl = new URI(builder.serverUrl.toString().replace("/~/", "/" + user.getIdentifier() + "/"));
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
+        // Check if the user has an identifier, if not, it cannot use /~/.
+        if (builder.serverUrl.toString().contains("/~/") && builder.user.getIdentifier() == null) {
+            throw new IllegalStateException("The serverUrl contained a /~/, but the user does not have an identifier," +
+                    " most likely because it hasn't been authenticated yet or have been created directly from an" +
+                    " access token. Use a path without /~/.");
         }
+
+        this.user = builder.user;
+        this.serverUrl = getFullServerUrl(builder.serverUrl, user.getIdentifier());
         this.syncPolicy = builder.syncPolicy;
         this.errorHandler = builder.errorHandler;
 
         // Determine location on disk
         // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
         // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
-
         File rootDir = builder.overrideDefaultFolder ? super.getRealmDirectory() : builder.defaultFolder;
         String realmPath = getServerPath(serverUrl);
         this.realmDirectory = new File(rootDir, realmPath);
@@ -93,6 +90,14 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
         this.realmFileName = builder.overrideDefaultLocalFileName ? super.getRealmFileName() : builder.defaultLocalFileName;
         this.canonicalPath = getCanonicalPath(new File(realmDirectory, realmFileName));
+    }
+
+    static URI getFullServerUrl(URI serverUrl, String userIdentifier) {
+        try {
+            return new URI(serverUrl.toString().replace("/~/", "/" + userIdentifier + "/"));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
+        }
     }
 
     // Extract the full server path, minus the file name
@@ -155,6 +160,12 @@ public final class SyncConfiguration extends RealmConfiguration {
         return user;
     }
 
+    /**
+     * Returns the fully disambiguated URI for the remote Realm, i.e. any {@code /~/} placeholder has been replaced
+     * by the proper user ID.
+     *
+     * @return {@link URI} identifying the remote Realm this local Realm is synchronized with.
+     */
     public URI getServerUrl() {
         return serverUrl;
     }
@@ -177,6 +188,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         private boolean overrideDefaultLocalFileName = false;
         private File defaultFolder;
         private String defaultLocalFileName;
+        private String accessToken;
 
         /**
          * {@inheritDoc}
@@ -354,7 +366,6 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: " + user.getIdentifier());
             }
 
-            String userId = user.getIdentifier();
             this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
             this.user = user;
             return this;

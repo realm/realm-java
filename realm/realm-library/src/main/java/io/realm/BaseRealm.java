@@ -42,7 +42,7 @@ import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.session.Session;
+import io.realm.objectserver.Session;
 import rx.Observable;
 
 /**

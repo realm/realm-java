@@ -25,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -177,13 +176,15 @@ public class SyncConfigurationTests {
 
     @Test
     public void syncPolicy_nullThrows() {
+        User user = User.createLocal();
+        user.add(con);
 
     }
 
-    @Ignore("Only used for quick testing without needing to spin up a full integration test")
+//    @Ignore("Only used for quick testing without needing to spin up a full integration test")
     @Test
     @RunTestInLooperThread
-    public void basicIntegrationTest() {
+    public void basicIntegrationTest2() {
         User.login(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
             @Override
             public void onSuccess(User user) {

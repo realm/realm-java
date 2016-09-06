@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.util;
-
-import io.realm.objectserver.User;
+package io.realm.objectserver;
 
 /**
  * Interface for describing how a given user object can be persisted and retrieved again.

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.session;
-
-import io.realm.objectserver.ObjectServerError;
+package io.realm.objectserver;
 
 /**
  * STOPPED State. This is the final state for a {@link Session}. After this, all actions will throw an

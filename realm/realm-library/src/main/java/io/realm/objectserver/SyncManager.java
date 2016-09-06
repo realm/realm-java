@@ -28,7 +28,6 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.objectserver.network.AuthenticationServer;
 import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.session.Session;
 
 /**
  * The SyncManager is the central controller for interacting with the Realm Object Server.

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.session;
-
-import io.realm.objectserver.ObjectServerError;
+package io.realm.objectserver;
 
 /**
  * As {@link Session} is modeled as a state machine, this interface describe all

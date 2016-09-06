@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.session;
-
-import io.realm.objectserver.ObjectServerError;
+package io.realm.objectserver;
 
 /**
  * Abstract class containing shared logic for all {@link Session} states. All states must extend this class as it
