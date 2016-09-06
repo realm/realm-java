@@ -165,7 +165,7 @@ public final class SyncManager {
     // from here. This can be removed once better error propagation is implemented in Sync Core.
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for(Session session : sessions.values()) {
+        for (Session session : sessions.values()) {
             session.onError(error);
         }
     }
