@@ -717,17 +717,10 @@ public class TableQuery implements Closeable {
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    // Deletion.
-    public long remove(long start, long end) {
-        validateQuery();
-        if (table.isImmutable()) throwImmutable();
-        return nativeRemove(nativePtr, start, end, Table.INFINITE);
-    }
-
     public long remove() {
         validateQuery();
         if (table.isImmutable()) throwImmutable();
-        return nativeRemove(nativePtr, 0, Table.INFINITE, Table.INFINITE);
+        return nativeRemove(nativePtr);
     }
 
     /**
@@ -808,7 +801,7 @@ public class TableQuery implements Closeable {
     private native void nativeIsNull(long nativePtr, long columnIndices[]);
     private native void nativeIsNotNull(long nativePtr, long columnIndices[]);
     private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
-    private native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeRemove(long nativeQueryPtr);
     private native long nativeImportHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedRealmPtr) throws BadVersionException;
     private native long nativeHandoverQuery(long callerSharedRealmPtr, long nativeQueryPtr);
     private static native long nativeFindAllSortedWithHandover(long bgSharedRealmPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending) throws BadVersionException;
