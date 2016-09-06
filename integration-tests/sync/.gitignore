@@ -1,3 +1,3 @@
 /build
 /test_server/realm-sync-server
-/test_server/node_modules/
+#/test_server/node_modules/
