@@ -62,6 +62,9 @@ public class LinkView extends NativeObject {
         return CheckedRow.get(context, this, index);
     }
 
+    /**
+     * Returns the row index in the underlying table.
+     */
     public long getTargetRowIndex(long pos) {
         return nativeGetTargetRowIndex(nativePointer, pos);
     }

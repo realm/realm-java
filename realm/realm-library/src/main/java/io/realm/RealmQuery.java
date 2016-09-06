@@ -2064,9 +2064,9 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public E findFirst() {
         checkQueryIsNotReused();
-        long sourceRowIndex = getSourceRowIndexForFirstObject();
-        if (sourceRowIndex >= 0) {
-            E realmObject = realm.get(clazz, className, sourceRowIndex);
+        long tableRowIndex = getSourceRowIndexForFirstObject();
+        if (tableRowIndex >= 0) {
+            E realmObject = realm.get(clazz, className, tableRowIndex);
             return realmObject;
         } else {
             return null;
@@ -2217,17 +2217,8 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     private long getSourceRowIndexForFirstObject() {
-        long rowIndex = this.query.find();
-        if (rowIndex < 0) {
-            return rowIndex;
-        }
-        if (this.view != null) {
-            return view.getTargetRowIndex(rowIndex);
-        } else if (table instanceof TableView){
-            return ((TableView) table).getSourceRowIndex(rowIndex);
-        } else {
-            return rowIndex;
-        }
+        long tableRowIndex = this.query.find();
+        return tableRowIndex;
     }
 
     // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist

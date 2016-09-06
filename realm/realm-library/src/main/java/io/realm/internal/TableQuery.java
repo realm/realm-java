@@ -420,11 +420,15 @@ public class TableQuery implements Closeable {
 
     // Searching methods.
 
+    @Deprecated // Doesn't seem to be used
     public long find(long fromTableRow) {
         validateQuery();
         return nativeFind(nativePtr, fromTableRow);
     }
 
+    /**
+     * Return table row index for the first element matching the query.
+     */
     public long find() {
         validateQuery();
         return nativeFind(nativePtr, 0);

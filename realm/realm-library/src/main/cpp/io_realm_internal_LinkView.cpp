@@ -53,7 +53,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetRowIndex
     }
     try {
         LinkViewRef lvr = *lv;
-        return lvr->get( S(pos) ).get_index();
+        return lvr->get(S(pos)).get_index();
     } CATCH_STD()
     return 0;
 }
