@@ -34,8 +34,7 @@ import io.realm.objectserver.UserStore;
  */
 public class SharedPrefsUserStore implements UserStore {
 
-    public static Executor THREAD_POOL;
-
+    public static final Executor THREAD_POOL;
     private final SharedPreferences sp;
     private Handler handler = new Handler(Looper.getMainLooper());
 

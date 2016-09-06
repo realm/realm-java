@@ -57,7 +57,7 @@ public class Token {
     public Token(String value, long expires, Permission... permissions) {
         this.value = value;
         this.expires = expires;
-        this.permissions = permissions;
+        this.permissions = Arrays.copyOf(permissions, permissions.length);
     }
 
     public String value() {

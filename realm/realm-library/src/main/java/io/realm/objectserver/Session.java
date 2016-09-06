@@ -262,9 +262,10 @@ public final class Session {
                         // Only retry in case of IO exceptions, since that might be network timeouts etc.
                         // All other errors indicate a bigger problem, so stop trying to authenticate and
                         // unbind
-                        if (error.errorCode() != ErrorCode.IO_EXCEPTION) {
+                        ObjectServerError responseError = response.getError();
+                        if (responseError.errorCode() != ErrorCode.IO_EXCEPTION) {
                             success = false;
-                            error = response.getError();
+                            error = responseError;
                             break;
                         }
                     }
