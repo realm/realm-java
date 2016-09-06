@@ -74,7 +74,8 @@ final class RealmCache {
 
     // Column indices are cached to speed up opening typed Realm. If a Realm instance is created in one thread, creating
     // Realm instances in other threads doesn't have to initialize the column indices again.
-    private ColumnIndices typedColumnIndices;
+    private static final int MAX_ENTRIES_IN_TYPED_COLUMN_INDICES_ARRAY = 4;
+    private final ColumnIndices[] typedColumnIndicesArray = new ColumnIndices[MAX_ENTRIES_IN_TYPED_COLUMN_INDICES_ARRAY];
 
     // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache map.
@@ -123,7 +124,7 @@ final class RealmCache {
 
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
-                realm = Realm.createInstance(configuration, cache.typedColumnIndices);
+                realm = Realm.createInstance(configuration, cache.typedColumnIndicesArray);
             } else if (realmClass == DynamicRealm.class) {
                 realm = DynamicRealm.createInstance(configuration);
             } else {
@@ -143,7 +144,9 @@ final class RealmCache {
         Integer refCount = refAndCount.localCount.get();
         if (refCount == 0) {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
-                cache.typedColumnIndices = refAndCount.localRealm.get().schema.columnIndices;
+                final BaseRealm realm = refAndCount.localRealm.get();
+                // store a copy of local ColumnIndices as a global cache.
+                RealmCache.store(cache.typedColumnIndicesArray, realm.schema.columnIndices.copyDeeply());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
@@ -200,7 +203,7 @@ final class RealmCache {
             // Clear the column indices cache if needed
             if (realm instanceof Realm && refAndCount.globalCount == 0) {
                 // All typed Realm instances of this file are cleared from cache
-                cache.typedColumnIndices = null;
+                Arrays.fill(cache.typedColumnIndicesArray, null);
             }
 
             int totalRefCount = 0;
@@ -274,6 +277,24 @@ final class RealmCache {
         callback.onResult(totalRefCount);
     }
 
+    static synchronized void updateSchemaCache(String pathOfRealm) {
+        final RealmCache cache = cachesMap.get(pathOfRealm);
+        if (cache == null) {
+            return;
+        }
+        final RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.TYPED_REALM);
+        final BaseRealm realm = refAndCount.localRealm.get();
+        if (realm == null) {
+            return;
+        }
+        final ColumnIndices[] globalCacheArray = cache.typedColumnIndicesArray;
+        final ColumnIndices createdCacheEntry = ((Realm) realm).updateSchemaCache(
+                globalCacheArray);
+        if (createdCacheEntry != null) {
+            RealmCache.store(globalCacheArray, createdCacheEntry);
+        }
+    }
+
    /**
      * Runs the callback function with synchronization on {@link RealmCache}.
      *
@@ -341,5 +362,34 @@ final class RealmCache {
                 throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
             }
         }
+    }
+
+    public static ColumnIndices find(ColumnIndices[] array, long schemaVersion) {
+        for (int i = array.length - 1; 0 <= i; i--) {
+            final ColumnIndices candidate = array[i];
+            if (candidate != null && candidate.getSchemaVersion() == schemaVersion) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static int store(ColumnIndices[] array, ColumnIndices columnIndices) {
+        long oldestSchemaVersion = Long.MAX_VALUE;
+        int candidateIndex = -1;
+        for (int i = array.length - 1; 0 <= i; i--) {
+            if (array[i] == null) {
+                array[i] = columnIndices;
+                return i;
+            }
+
+            ColumnIndices target = array[i];
+            if (target.getSchemaVersion() <= oldestSchemaVersion) {
+                oldestSchemaVersion = target.getSchemaVersion();
+                candidateIndex = i;
+            }
+        }
+        array[candidateIndex] = columnIndices;
+        return candidateIndex;
     }
 }

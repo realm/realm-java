@@ -16,13 +16,12 @@
 
 package io.realm.internal;
 
-import java.util.Collections;
 import java.util.Map;
 
 import io.realm.exceptions.RealmMigrationNeededException;
 
-public class ColumnInfo {
-    private Map<String, Long> indicesMap;
+public abstract class ColumnInfo {
+    protected Map<String, Long> indicesMap;
 
     protected final long getValidColumnIndex(String realmPath, Table table,
                                              String className, String columnName) {
@@ -34,11 +33,23 @@ public class ColumnInfo {
         return columnIndex;
     }
 
-    protected final void setIndicesMap(Map<String, Long> indicesMap) {
-        this.indicesMap = Collections.unmodifiableMap(indicesMap);
-    }
-
     public Map<String, Long> getIndicesMap() {
         return indicesMap;
     }
+
+    /**
+     * Copies the column index value from other {@link ColumnInfo} object.
+     *
+     * @param other The class of {@code other} must be exactly the the same with this instance.
+     *              Of course it must not be {@code null}.
+     * @throws IllegalArgumentException if {@code other} has different class than this.
+     */
+    public abstract void copyFrom(ColumnInfo other);
+
+    /**
+     * Creates a copy of this instance.
+     *
+     * @return a copy.
+     */
+    public abstract ColumnInfo copy();
 }

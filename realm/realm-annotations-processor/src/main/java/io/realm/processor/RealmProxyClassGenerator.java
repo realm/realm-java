@@ -66,7 +66,6 @@ public class RealmProxyClassGenerator {
         imports.add("android.os.Build");
         imports.add("android.util.JsonReader");
         imports.add("android.util.JsonToken");
-        imports.add("io.realm.RealmFieldType");
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
         imports.add("io.realm.internal.ColumnInfo");
         imports.add("io.realm.internal.RealmObjectProxy");
@@ -141,7 +140,7 @@ public class RealmProxyClassGenerator {
         // fields
         for (VariableElement variableElement : metadata.getFields()) {
             writer.emitField("long", columnIndexVarName(variableElement),
-                    EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+                    EnumSet.of(Modifier.PUBLIC));
         }
         writer.emitEmptyLine();
 
@@ -157,13 +156,64 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("this.%s = getValidColumnIndex(path, table, \"%s\", \"%s\")",
                     columnIndexVarName, simpleClassName, columnName);
             writer.emitStatement("indicesMap.put(\"%s\", this.%s)", columnName, columnIndexVarName);
-            writer.emitEmptyLine();
         }
-        writer.emitStatement("setIndicesMap(indicesMap)");
+        writer.emitEmptyLine();
+        writer.emitStatement("this.indicesMap = Collections.unmodifiableMap(indicesMap)");
         writer.endConstructor();
+        writer.emitEmptyLine();
+
+        // copy constructor
+        writer.beginConstructor(EnumSet.of(Modifier.PRIVATE),
+                columnInfoClassName(), "original");
+        {
+            // copy field values
+            for (VariableElement variableElement : metadata.getFields()) {
+                writer.emitStatement("this.%1$s = original.%1$s", columnIndexVarName(variableElement));
+            }
+            writer.emitEmptyLine();
+            writer.emitStatement("this.indicesMap = original.getIndicesMap()");
+        }
+        writer.endConstructor();
+        writer.emitEmptyLine();
+
+        // copyFrom method
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "void",                      // return type
+                "copyFrom",                  // method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), // modifiers
+                "ColumnInfo", "other");      // parameters
+        {
+            writer.beginControlFlow("if (!(other instanceof %1$s))", columnInfoClassName())
+                    .emitStatement("throw new IllegalArgumentException(\"unexpected ColumnInfo. expected:" +
+                            " \" + getClass().getCanonicalName() + \"," +
+                            " actual: \" + other.getClass().getCanonicalName())")
+                    .endControlFlow();
+            writer.emitEmptyLine();
+            writer.emitStatement("final %1$s otherInfo = (%1$s) other", columnInfoClassName());
+
+            // copy field values
+            for (VariableElement variableElement : metadata.getFields()) {
+                writer.emitStatement("this.%1$s = otherInfo.%1$s", columnIndexVarName(variableElement));
+            }
+            writer.emitEmptyLine();
+            writer.emitStatement("this.indicesMap = otherInfo.getIndicesMap()");
+        }
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        // copy method
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                columnInfoClassName(),       // return type
+                "copy",                     // method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL)) // modifiers
+                // method body
+                .emitStatement("return new %1$s(this)", columnInfoClassName())
+                .endMethod()
+                .emitEmptyLine();
 
         writer.endType();
-        writer.emitEmptyLine();
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {

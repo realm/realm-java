@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -31,97 +30,140 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     static final class NullTypesColumnInfo extends ColumnInfo {
 
-        public final long fieldStringNotNullIndex;
-        public final long fieldStringNullIndex;
-        public final long fieldBooleanNotNullIndex;
-        public final long fieldBooleanNullIndex;
-        public final long fieldBytesNotNullIndex;
-        public final long fieldBytesNullIndex;
-        public final long fieldByteNotNullIndex;
-        public final long fieldByteNullIndex;
-        public final long fieldShortNotNullIndex;
-        public final long fieldShortNullIndex;
-        public final long fieldIntegerNotNullIndex;
-        public final long fieldIntegerNullIndex;
-        public final long fieldLongNotNullIndex;
-        public final long fieldLongNullIndex;
-        public final long fieldFloatNotNullIndex;
-        public final long fieldFloatNullIndex;
-        public final long fieldDoubleNotNullIndex;
-        public final long fieldDoubleNullIndex;
-        public final long fieldDateNotNullIndex;
-        public final long fieldDateNullIndex;
-        public final long fieldObjectNullIndex;
+        public long fieldStringNotNullIndex;
+        public long fieldStringNullIndex;
+        public long fieldBooleanNotNullIndex;
+        public long fieldBooleanNullIndex;
+        public long fieldBytesNotNullIndex;
+        public long fieldBytesNullIndex;
+        public long fieldByteNotNullIndex;
+        public long fieldByteNullIndex;
+        public long fieldShortNotNullIndex;
+        public long fieldShortNullIndex;
+        public long fieldIntegerNotNullIndex;
+        public long fieldIntegerNullIndex;
+        public long fieldLongNotNullIndex;
+        public long fieldLongNullIndex;
+        public long fieldFloatNotNullIndex;
+        public long fieldFloatNullIndex;
+        public long fieldDoubleNotNullIndex;
+        public long fieldDoubleNullIndex;
+        public long fieldDateNotNullIndex;
+        public long fieldDateNullIndex;
+        public long fieldObjectNullIndex;
 
         NullTypesColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(21);
             this.fieldStringNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNotNull");
             indicesMap.put("fieldStringNotNull", this.fieldStringNotNullIndex);
-
             this.fieldStringNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNull");
             indicesMap.put("fieldStringNull", this.fieldStringNullIndex);
-
             this.fieldBooleanNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNotNull");
             indicesMap.put("fieldBooleanNotNull", this.fieldBooleanNotNullIndex);
-
             this.fieldBooleanNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNull");
             indicesMap.put("fieldBooleanNull", this.fieldBooleanNullIndex);
-
             this.fieldBytesNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNotNull");
             indicesMap.put("fieldBytesNotNull", this.fieldBytesNotNullIndex);
-
             this.fieldBytesNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNull");
             indicesMap.put("fieldBytesNull", this.fieldBytesNullIndex);
-
             this.fieldByteNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNotNull");
             indicesMap.put("fieldByteNotNull", this.fieldByteNotNullIndex);
-
             this.fieldByteNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNull");
             indicesMap.put("fieldByteNull", this.fieldByteNullIndex);
-
             this.fieldShortNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNotNull");
             indicesMap.put("fieldShortNotNull", this.fieldShortNotNullIndex);
-
             this.fieldShortNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNull");
             indicesMap.put("fieldShortNull", this.fieldShortNullIndex);
-
             this.fieldIntegerNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNotNull");
             indicesMap.put("fieldIntegerNotNull", this.fieldIntegerNotNullIndex);
-
             this.fieldIntegerNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNull");
             indicesMap.put("fieldIntegerNull", this.fieldIntegerNullIndex);
-
             this.fieldLongNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNotNull");
             indicesMap.put("fieldLongNotNull", this.fieldLongNotNullIndex);
-
             this.fieldLongNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNull");
             indicesMap.put("fieldLongNull", this.fieldLongNullIndex);
-
             this.fieldFloatNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNotNull");
             indicesMap.put("fieldFloatNotNull", this.fieldFloatNotNullIndex);
-
             this.fieldFloatNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNull");
             indicesMap.put("fieldFloatNull", this.fieldFloatNullIndex);
-
             this.fieldDoubleNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNotNull");
             indicesMap.put("fieldDoubleNotNull", this.fieldDoubleNotNullIndex);
-
             this.fieldDoubleNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNull");
             indicesMap.put("fieldDoubleNull", this.fieldDoubleNullIndex);
-
             this.fieldDateNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNotNull");
             indicesMap.put("fieldDateNotNull", this.fieldDateNotNullIndex);
-
             this.fieldDateNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNull");
             indicesMap.put("fieldDateNull", this.fieldDateNullIndex);
-
             this.fieldObjectNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldObjectNull");
             indicesMap.put("fieldObjectNull", this.fieldObjectNullIndex);
 
-            setIndicesMap(indicesMap);
+            this.indicesMap = Collections.unmodifiableMap(indicesMap);
         }
-    }
 
+        private NullTypesColumnInfo(NullTypesColumnInfo original) {
+            this.fieldStringNotNullIndex = original.fieldStringNotNullIndex;
+            this.fieldStringNullIndex = original.fieldStringNullIndex;
+            this.fieldBooleanNotNullIndex = original.fieldBooleanNotNullIndex;
+            this.fieldBooleanNullIndex = original.fieldBooleanNullIndex;
+            this.fieldBytesNotNullIndex = original.fieldBytesNotNullIndex;
+            this.fieldBytesNullIndex = original.fieldBytesNullIndex;
+            this.fieldByteNotNullIndex = original.fieldByteNotNullIndex;
+            this.fieldByteNullIndex = original.fieldByteNullIndex;
+            this.fieldShortNotNullIndex = original.fieldShortNotNullIndex;
+            this.fieldShortNullIndex = original.fieldShortNullIndex;
+            this.fieldIntegerNotNullIndex = original.fieldIntegerNotNullIndex;
+            this.fieldIntegerNullIndex = original.fieldIntegerNullIndex;
+            this.fieldLongNotNullIndex = original.fieldLongNotNullIndex;
+            this.fieldLongNullIndex = original.fieldLongNullIndex;
+            this.fieldFloatNotNullIndex = original.fieldFloatNotNullIndex;
+            this.fieldFloatNullIndex = original.fieldFloatNullIndex;
+            this.fieldDoubleNotNullIndex = original.fieldDoubleNotNullIndex;
+            this.fieldDoubleNullIndex = original.fieldDoubleNullIndex;
+            this.fieldDateNotNullIndex = original.fieldDateNotNullIndex;
+            this.fieldDateNullIndex = original.fieldDateNullIndex;
+            this.fieldObjectNullIndex = original.fieldObjectNullIndex;
+
+            this.indicesMap = original.getIndicesMap();
+        }
+
+        @Override
+        public final void copyFrom(ColumnInfo other) {
+            if (!(other instanceof NullTypesColumnInfo)) {
+                throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
+            }
+
+            final NullTypesColumnInfo otherInfo = (NullTypesColumnInfo) other;
+            this.fieldStringNotNullIndex = otherInfo.fieldStringNotNullIndex;
+            this.fieldStringNullIndex = otherInfo.fieldStringNullIndex;
+            this.fieldBooleanNotNullIndex = otherInfo.fieldBooleanNotNullIndex;
+            this.fieldBooleanNullIndex = otherInfo.fieldBooleanNullIndex;
+            this.fieldBytesNotNullIndex = otherInfo.fieldBytesNotNullIndex;
+            this.fieldBytesNullIndex = otherInfo.fieldBytesNullIndex;
+            this.fieldByteNotNullIndex = otherInfo.fieldByteNotNullIndex;
+            this.fieldByteNullIndex = otherInfo.fieldByteNullIndex;
+            this.fieldShortNotNullIndex = otherInfo.fieldShortNotNullIndex;
+            this.fieldShortNullIndex = otherInfo.fieldShortNullIndex;
+            this.fieldIntegerNotNullIndex = otherInfo.fieldIntegerNotNullIndex;
+            this.fieldIntegerNullIndex = otherInfo.fieldIntegerNullIndex;
+            this.fieldLongNotNullIndex = otherInfo.fieldLongNotNullIndex;
+            this.fieldLongNullIndex = otherInfo.fieldLongNullIndex;
+            this.fieldFloatNotNullIndex = otherInfo.fieldFloatNotNullIndex;
+            this.fieldFloatNullIndex = otherInfo.fieldFloatNullIndex;
+            this.fieldDoubleNotNullIndex = otherInfo.fieldDoubleNotNullIndex;
+            this.fieldDoubleNullIndex = otherInfo.fieldDoubleNullIndex;
+            this.fieldDateNotNullIndex = otherInfo.fieldDateNotNullIndex;
+            this.fieldDateNullIndex = otherInfo.fieldDateNullIndex;
+            this.fieldObjectNullIndex = otherInfo.fieldObjectNullIndex;
+
+            this.indicesMap = otherInfo.getIndicesMap();
+        }
+
+        @Override
+        public final NullTypesColumnInfo copy() {
+            return new NullTypesColumnInfo(this);
+        }
+
+    }
     private final NullTypesColumnInfo columnInfo;
     private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;

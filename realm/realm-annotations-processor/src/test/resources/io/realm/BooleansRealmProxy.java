@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -31,29 +30,55 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     static final class BooleansColumnInfo extends ColumnInfo {
 
-        public final long doneIndex;
-        public final long isReadyIndex;
-        public final long mCompletedIndex;
-        public final long anotherBooleanIndex;
+        public long doneIndex;
+        public long isReadyIndex;
+        public long mCompletedIndex;
+        public long anotherBooleanIndex;
 
         BooleansColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(4);
             this.doneIndex = getValidColumnIndex(path, table, "Booleans", "done");
             indicesMap.put("done", this.doneIndex);
-
             this.isReadyIndex = getValidColumnIndex(path, table, "Booleans", "isReady");
             indicesMap.put("isReady", this.isReadyIndex);
-
             this.mCompletedIndex = getValidColumnIndex(path, table, "Booleans", "mCompleted");
             indicesMap.put("mCompleted", this.mCompletedIndex);
-
             this.anotherBooleanIndex = getValidColumnIndex(path, table, "Booleans", "anotherBoolean");
             indicesMap.put("anotherBoolean", this.anotherBooleanIndex);
 
-            setIndicesMap(indicesMap);
+            this.indicesMap = Collections.unmodifiableMap(indicesMap);
         }
-    }
 
+        private BooleansColumnInfo(BooleansColumnInfo original) {
+            this.doneIndex = original.doneIndex;
+            this.isReadyIndex = original.isReadyIndex;
+            this.mCompletedIndex = original.mCompletedIndex;
+            this.anotherBooleanIndex = original.anotherBooleanIndex;
+
+            this.indicesMap = original.getIndicesMap();
+        }
+
+        @Override
+        public final void copyFrom(ColumnInfo other) {
+            if (!(other instanceof BooleansColumnInfo)) {
+                throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
+            }
+
+            final BooleansColumnInfo otherInfo = (BooleansColumnInfo) other;
+            this.doneIndex = otherInfo.doneIndex;
+            this.isReadyIndex = otherInfo.isReadyIndex;
+            this.mCompletedIndex = otherInfo.mCompletedIndex;
+            this.anotherBooleanIndex = otherInfo.anotherBooleanIndex;
+
+            this.indicesMap = otherInfo.getIndicesMap();
+        }
+
+        @Override
+        public final BooleansColumnInfo copy() {
+            return new BooleansColumnInfo(this);
+        }
+
+    }
     private final BooleansColumnInfo columnInfo;
     private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;

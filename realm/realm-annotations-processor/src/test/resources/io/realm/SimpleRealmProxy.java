@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -31,21 +30,45 @@ public class SimpleRealmProxy extends some.test.Simple
 
     static final class SimpleColumnInfo extends ColumnInfo {
 
-        public final long nameIndex;
-        public final long ageIndex;
+        public long nameIndex;
+        public long ageIndex;
 
         SimpleColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(2);
             this.nameIndex = getValidColumnIndex(path, table, "Simple", "name");
             indicesMap.put("name", this.nameIndex);
-
             this.ageIndex = getValidColumnIndex(path, table, "Simple", "age");
             indicesMap.put("age", this.ageIndex);
 
-            setIndicesMap(indicesMap);
+            this.indicesMap = Collections.unmodifiableMap(indicesMap);
         }
-    }
 
+        private SimpleColumnInfo(SimpleColumnInfo original) {
+            this.nameIndex = original.nameIndex;
+            this.ageIndex = original.ageIndex;
+
+            this.indicesMap = original.getIndicesMap();
+        }
+
+        @Override
+        public final void copyFrom(ColumnInfo other) {
+            if (!(other instanceof SimpleColumnInfo)) {
+                throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
+            }
+
+            final SimpleColumnInfo otherInfo = (SimpleColumnInfo) other;
+            this.nameIndex = otherInfo.nameIndex;
+            this.ageIndex = otherInfo.ageIndex;
+
+            this.indicesMap = otherInfo.getIndicesMap();
+        }
+
+        @Override
+        public final SimpleColumnInfo copy() {
+            return new SimpleColumnInfo(this);
+        }
+
+    }
     private final SimpleColumnInfo columnInfo;
     private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;

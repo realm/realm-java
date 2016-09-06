@@ -77,7 +77,13 @@ abstract class BaseRealm implements Closeable {
         this.configuration = configuration;
 
         this.handlerController = new HandlerController(this);
-        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController));
+        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController),
+                new SharedRealm.DataVersionListener() {
+                    @Override
+                    public void onDataVersionChanged(SharedRealm sharedRealm, RealmConfiguration config) {
+                        RealmCache.updateSchemaCache(config.getPath());
+                    }
+                });
         this.schema = new RealmSchema(this);
 
         if (handlerController.isAutoRefreshAvailable()) {

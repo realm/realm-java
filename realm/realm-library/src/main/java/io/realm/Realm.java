@@ -201,14 +201,15 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param columnIndices if this is not  {@code null}, the {@link BaseRealm#schema#columnIndices} will be
-     *                      initialized to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from
-     *                      the Realm file.
+     * @param globalCacheArray if this is not  {@code null} and contains an entry for current schema version,
+     *                         the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
+     *                         the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
+     *                         from the Realm file.
      * @return a {@link Realm} instance.
      */
-    static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
+    static Realm createInstance(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         try {
-            return createAndValidate(configuration, columnIndices);
+            return createAndValidate(configuration, globalCacheArray);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -222,14 +223,15 @@ public final class Realm extends BaseRealm {
                 }
             }
 
-            return createAndValidate(configuration, columnIndices);
+            return createAndValidate(configuration, globalCacheArray);
         }
     }
 
-    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
+    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
+        final ColumnIndices columnIndices = RealmCache.find(globalCacheArray, requiredVersion);
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
             realm.doClose();
             throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
@@ -248,7 +250,8 @@ public final class Realm extends BaseRealm {
                 throw e;
             }
         } else {
-            realm.schema.columnIndices = columnIndices;
+            // copy global cache as a Realm local indices cache
+            realm.schema.columnIndices = columnIndices.copyDeeply();
         }
 
         return realm;
@@ -276,7 +279,9 @@ public final class Realm extends BaseRealm {
                 }
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
             }
-            realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+            realm.schema.columnIndices = new ColumnIndices(
+                    (version == UNVERSIONED) ? realm.configuration.getSchemaVersion() : version,
+                    columnInfoMap);
 
             if (version == UNVERSIONED) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
@@ -1409,6 +1414,37 @@ public final class Realm extends BaseRealm {
 
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
+    }
+
+    ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
+        final long currentSchemaVersion = sharedRealm.getSchemaVersion();
+        final long cacheSchemaVersion = schema.columnIndices.getSchemaVersion();
+        if (currentSchemaVersion == cacheSchemaVersion) {
+            return null;
+        }
+
+        ColumnIndices createdGlobalCache = null;
+        final RealmProxyMediator mediator = getConfiguration().getSchemaMediator();
+        ColumnIndices cacheForCurrentVersion = RealmCache.find(globalCacheArray, currentSchemaVersion);
+        if (cacheForCurrentVersion == null) {
+            // not found in global cache. create it.
+            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+            final Map<Class<? extends RealmModel>, ColumnInfo> map;
+            map = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+            try {
+                for (Class<? extends RealmModel> clazz : modelClasses) {
+                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm);
+                    map.put(clazz, columnInfo);
+                }
+            } catch (RealmMigrationNeededException e) {
+                // TODO incompatible schema change. what to do??
+                throw e;
+            }
+
+            cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
+        }
+        schema.columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+        return createdGlobalCache;
     }
 
     /**

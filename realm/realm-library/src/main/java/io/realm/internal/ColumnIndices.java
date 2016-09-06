@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmModel;
@@ -23,12 +24,17 @@ import io.realm.RealmModel;
 /**
  * Utility class used to cache the mapping between object field names and their column indices.
  */
-public class ColumnIndices {
-
+public final class ColumnIndices {
+    private long schemaVersion;
     private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
 
-    public ColumnIndices(Map<Class<? extends RealmModel>, ColumnInfo> classes) {
+    public ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes) {
+        this.schemaVersion = schemaVersion;
         this.classes = classes;
+    }
+
+    public long getSchemaVersion() {
+        return schemaVersion;
     }
 
     /**
@@ -46,8 +52,33 @@ public class ColumnIndices {
         if (columnInfo != null) {
             Long index = columnInfo.getIndicesMap().get(fieldName);
             return (index != null) ? index : -1;
+
         } else {
             return -1;
         }
+    }
+
+    public ColumnIndices copyDeeply() {
+        return new ColumnIndices(schemaVersion, duplicateColumnInfoMap());
+    }
+
+    private Map<Class<? extends RealmModel>, ColumnInfo> duplicateColumnInfoMap() {
+        final Map<Class<? extends RealmModel>, ColumnInfo> copy = new HashMap<>();
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+            copy.put(entry.getKey(), entry.getValue().copy());
+        }
+        return copy;
+    }
+
+    public void copyFrom(ColumnIndices other, RealmProxyMediator mediator) {
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+            final ColumnInfo otherColumnInfo = other.getColumnInfo(entry.getKey());
+            if (otherColumnInfo == null) {
+                throw new IllegalStateException("failed to copy ColumnIndices cache: "
+                        + Table.tableNameToClassName(mediator.getTableName(entry.getKey())));
+            }
+            entry.getValue().copyFrom(otherColumnInfo);
+        }
+        this.schemaVersion = other.schemaVersion;
     }
 }
