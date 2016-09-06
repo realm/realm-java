@@ -6,7 +6,7 @@ realm/build
 .gradle
 
 # Gradle local properties
-#local.properties
+local.properties
 
 # Core
 core
