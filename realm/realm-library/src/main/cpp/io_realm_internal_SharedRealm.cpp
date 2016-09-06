@@ -384,7 +384,7 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass type, jlong sharedRealmPtr)
+Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass, jlong sharedRealmPtr)
 {
     TR_ENTER_PTR(env, sharedRealmPtr)
 

@@ -19,11 +19,10 @@ package io.realm.objectserver;
 import java.util.UUID;
 
 /**
- * Credentials represents a login with a 3rd party login provider in an oAuth2 login flow, and is used by the Realm
+ * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
  * Object Server to verify the user and grant access.
- *
+ * <p>
  * Logging into the Realm Object Server consists of the following steps:
- *
  * <ol>
  * <li>
  *     Login to 3rd party like Facebook, Google or Twitter. The result is usually an Authorization Grant that must be
@@ -54,7 +53,7 @@ import java.util.UUID;
  *     }
  *
  *     \@Override
- *     public void onError(int errorCode, String errorMsg) {
+ *     public void onError(ObjectServerError error) {
  *
  *     }
  * });
@@ -71,7 +70,7 @@ public class Credentials {
     // Factory constructors
 
     /**
-     * Creates credentials for a local user that is only know by this device.
+     * Creates credentials for a local user that is only known by this device.
      * Loosing these credentials or the User once it has been authenticated means that the data stored in
      * the Realm cannot be recovered.
      *

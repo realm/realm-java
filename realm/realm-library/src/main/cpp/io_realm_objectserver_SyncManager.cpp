@@ -68,12 +68,11 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_SyncManager_nativeInitializeSy
     try {
         // Prepare Sync Client. It will be created on demand
 
-        realm::SyncLoginFunction loginDelegate = [=](const realm::Realm::Config& config) {
-            REALM_ASSERT(config.sync_config);   // Precondition for object store calling this function.
+        SyncLoginFunction loginDelegate = [=](const Realm::Config& config) {
             // Ignore this for now. We are handling this manually.
         };
 
-        realm::SyncClientReadyFunction clientReadyDelegate = [=](const realm::sync::Client&) {
+        SyncClientReadyFunction clientReadyDelegate = [=](const realm::sync::Client&) {
             //Attaching thread to Java so we can perform JNI calls
             JavaVMAttachArgs args;
             args.version = JNI_VERSION_1_6;
@@ -82,10 +81,11 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_SyncManager_nativeInitializeSy
             g_vm->AttachCurrentThread(&sync_client_env, &args);
         };
 
-        realm::SyncManager::shared().set_login_function(loginDelegate);
-        realm::SyncManager::shared().set_logger_factory(s_logger_factory);
-        realm::SyncManager::shared().set_log_level(util::Logger::Level::warn);
-        realm::SyncManager::shared().set_client_ready_callback(clientReadyDelegate);
+        SyncManager& sync_manager = SyncManager::shared();
+        sync_manager.set_login_function(loginDelegate);
+        sync_manager.set_logger_factory(s_logger_factory);
+        sync_manager.set_log_level(util::Logger::Level::warn);
+        sync_manager.set_client_ready_callback(clientReadyDelegate);
     } CATCH_STD()
 }
 

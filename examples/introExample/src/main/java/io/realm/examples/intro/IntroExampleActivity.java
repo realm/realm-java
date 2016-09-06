@@ -30,7 +30,7 @@ import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
 import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
-S
+
 public class IntroExampleActivity extends Activity {
 
     public static final String TAG = IntroExampleActivity.class.getName();

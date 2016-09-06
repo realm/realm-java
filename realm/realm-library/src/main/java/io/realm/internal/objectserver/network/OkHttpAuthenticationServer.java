@@ -75,7 +75,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .url(authenticationUrl)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json")
-                .addHeader("Connection","close") //  See https://github.com/square/okhttp/issues/2363
+                .addHeader("Connection", "close") //  See https://github.com/square/okhttp/issues/2363
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
         Call call = client.newCall(request);

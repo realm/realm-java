@@ -98,15 +98,15 @@ public enum ErrorCode {
 
     /**
      * Returns the category of the error.
-     *
+     * <p>
      * Errors come in 3 categories: FATAL, RECOVERABLE, and INFO.
-     *
+     * <p>
      * FATAL: The session cannot be recovered and needs to be re-created. A likely cause is that the User does not
      * have access to this Realm. Check that the {@link SyncConfiguration} is correct.
-     *
+     * <p>
      * RECOVERABLE: The session is paused until given additional information. Most likely cause is an expired access
      * token or similar.
-     *
+     * <p>
      * INFO: The underlying sync client will automatically try to recover from this.
      *
      * @return the severity of the error.

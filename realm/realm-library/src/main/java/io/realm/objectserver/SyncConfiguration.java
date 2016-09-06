@@ -45,7 +45,7 @@ import io.realm.rx.RxObservableFactory;
  * }
  * </pre>
  *
- * Realms created using a SyncConfiguration is accessed normally using {@link Realm#getInstance(RealmConfiguration)}
+ * Realms created using a {@link SyncConfiguration} is accessed normally using {@link Realm#getInstance(RealmConfiguration)}
  * and can also be stored using {@link Realm#setDefaultConfiguration(RealmConfiguration)}.
  *
  * TODO Need to expand this section I think

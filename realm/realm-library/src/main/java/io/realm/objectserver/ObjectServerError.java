@@ -19,7 +19,7 @@ package io.realm.objectserver;
 import io.realm.internal.Util;
 
 /**
- * This class is a wrapper around all errors happening when communicating with the Realm Object Server.
+ * This class is a wrapper for all errors happening when communicating with the Realm Object Server.
  * This include both exceptions and protocol errors.
  *
  * Only {@link #errorCode()} is guaranteed to be set. If the error was caused by an underlying exception

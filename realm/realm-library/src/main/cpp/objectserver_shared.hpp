@@ -37,11 +37,11 @@ extern JNIEnv* sync_client_env;
 
 // Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
 // TODO Use OS SyncSession instead
-class JNISession {
+class JniSession {
 
 public:
-    JNISession() = delete;
-    JNISession(realm::sync::Client* sync_client, std::string local_realm_path, jobject java_session_obj, JNIEnv* env)
+    JniSession() = delete;
+    JniSession(realm::sync::Client* sync_client, std::string local_realm_path, jobject java_session_obj, JNIEnv* env)
     {
         // Get the coordinator for the given path, or null if there is none
         m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
@@ -66,7 +66,7 @@ public:
         return m_sync_session;
     }
 
-    ~JNISession()
+    ~JniSession()
     {
         sync_client_env->DeleteGlobalRef(m_global_obj_ref);
         delete m_sync_session;
