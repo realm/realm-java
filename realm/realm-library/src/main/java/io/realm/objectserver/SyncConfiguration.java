@@ -27,6 +27,9 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.rx.RxObservableFactory;
 
+import static android.R.attr.path;
+import static android.R.attr.required;
+
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
@@ -104,10 +107,12 @@ public final class SyncConfiguration extends RealmConfiguration {
     private String getServerPath(URI serverUrl) {
         String path = serverUrl.getPath();
         int endIndex = path.lastIndexOf("/");
-        if (endIndex != -1) {
-            return path.substring(1, endIndex); // Also strip leading /
-        } else {
+        if (endIndex == -1 ) {
             return path;
+        } else if (endIndex == 0) {
+            return path.substring(1);
+        } else {
+            return path.substring(1, endIndex); // Also strip leading /
         }
     }
 
@@ -347,6 +352,9 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if the URL is not valid.
          */
         public Builder serverUrl(String url) {
+            if (url == null) {
+                throw new IllegalArgumentException("Non-null 'url' required.");
+            }
             try {
                 this.serverUrl = new URI(url);
             } catch (URISyntaxException e) {
