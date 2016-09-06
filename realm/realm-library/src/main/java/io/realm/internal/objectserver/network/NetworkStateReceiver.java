@@ -38,7 +38,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     /**
      * Add a listener to be notified about any network changes.
      * This method is thread safe.
-     *
+     * <p>
      * IMPORTANT: Not removing it again will result in major leaks.
      */
     public static void addListener(ConnectionListener listener) {
@@ -54,9 +54,9 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     }
 
     /**
-     * Try to detect if a device is online and can transmit or receive data.
+     * Attempt to detect if a device is online and can transmit or receive data.
      * This method is thread safe.
-     *
+     * <p>
      * The Emulator is always considered online, as `getActiveNetworkInfo()` does not report the correct value.
      */
     public static boolean isOnline(Context context) {

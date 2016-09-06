@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver.network;
+package io.realm.objectserver;
 
-import io.realm.objectserver.ErrorCode;
-import io.realm.internal.objectserver.Token;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-public class RefreshResponse {
-    private Token refreshToken = null;
-    private ErrorCode errorCode = null;
-    private String errorMessage = null;
+import io.realm.objectserver.utils.Constants;
 
-    public boolean isValid() {
-        return false;
-    }
-
-    public Token getRefreshToken() {
-        return refreshToken;
-    }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
+// Must be in `io.realm.objectserver` to work around package protected methods.
+public class UserFactory {
+    public static User createDefaultUser() {
+        try {
+            User user = User.createLocal();
+            user.addAccessToken(new URI(Constants.SYNC_SERVER_URL), Constants.USER_TOKEN);
+            return user;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -73,13 +73,10 @@ public class ProcessCommitTests {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-                    User user = User.createLocal();
-                    user.addAccessToken(new URI(Constants.SYNC_SERVER_URL), Constants.USER_TOKEN);
-
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
                             .name("main_process")
                             .serverUrl(Constants.SYNC_SERVER_URL)
-                            .user(user)
+                            .user(UserFactory.createDefaultUser())
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
@@ -128,13 +125,10 @@ public class ProcessCommitTests {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-                    User user = User.createLocal();
-                    user.addAccessToken(new URI(Constants.SYNC_SERVER_URL), Constants.USER_TOKEN);
-
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
                             .name("main_process_2")
                             .serverUrl(Constants.SYNC_SERVER_URL)
-                            .user(user)
+                            .user(UserFactory.createDefaultUser())
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);

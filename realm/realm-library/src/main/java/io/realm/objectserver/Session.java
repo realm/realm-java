@@ -33,7 +33,7 @@ import io.realm.log.RealmLog;
  * This class controls the connection to a Realm Object Server for one Realm.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
- * a Realm instance. Once a session has been created it will continue to exists until explicitly closed or the
+ * a Realm instance. Once a session has been created it will continue to exist until explicitly closed or the
  * underlying Realm file is deleted.
  * <p>
  * It is normally not necessary to interact directly with a session. That should be done by the {@link SyncPolicy}
@@ -176,7 +176,9 @@ public final class Session {
      */
     public synchronized void onError(ObjectServerError error) {
         currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
-        errorHandler.onError(this, error);
+        if (errorHandler != null) {
+            errorHandler.onError(this, error);
+        }
     }
 
     // Called from Session.cpp and SyncMaanger

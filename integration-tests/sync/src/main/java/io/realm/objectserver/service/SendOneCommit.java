@@ -22,6 +22,8 @@ import android.os.IBinder;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.UserFactory;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.utils.Constants;
 
@@ -33,11 +35,10 @@ public class SendOneCommit extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        final RealmConfiguration syncConfig = new RealmConfiguration
-                .Builder(this)
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(this)
                 .name(SendOneCommit.class.getSimpleName())
-                .withSync(Constants.SYNC_SERVER_URL)
-                .syncUserToken(Constants.USER_TOKEN)
+                .serverUrl(Constants.SYNC_SERVER_URL)
+                .user(UserFactory.createDefaultUser())
                 .build();
         Realm.deleteRealm(syncConfig);
         Realm realm = Realm.getInstance(syncConfig);

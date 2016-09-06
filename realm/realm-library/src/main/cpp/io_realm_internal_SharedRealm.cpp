@@ -384,7 +384,7 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass type, jlong sharedRealmPtr)
+Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass, jlong sharedRealmPtr)
 {
     TR_ENTER_PTR(env, sharedRealmPtr)
 
@@ -394,7 +394,7 @@ Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass 
         auto& shared_group = rf::get_shared_group(*shared_realm);
         return LangBindHelper::get_version_of_latest_snapshot(shared_group);
     } CATCH_STD ()
-    return NULL;
+    return 0;
 }
 
 

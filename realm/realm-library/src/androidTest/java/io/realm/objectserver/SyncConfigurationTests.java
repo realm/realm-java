@@ -25,6 +25,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -161,12 +162,54 @@ public class SyncConfigurationTests {
 
     @Test
     public void errorHandler() {
+        SyncConfiguration.Builder builder;
+        builder = new SyncConfiguration.Builder(context)
+                .user(User.createLocal())
+                .serverUrl("realm://objectserver.realm.io/default");
 
+        Session.ErrorHandler errorHandler = new Session.ErrorHandler() {
+            @Override
+            public void onError(Session session, ObjectServerError error) {
+
+            }
+        };
+
+        SyncConfiguration config = builder.errorHandler(errorHandler).build();
+        assertEquals(errorHandler, config.getErrorHandler());
     }
 
     @Test
-    public void errorHandler_null() {
+    public void errorHandler_fromSyncManager() {
+        // Set default error handler
+        Session.ErrorHandler errorHandler = new Session.ErrorHandler() {
+            @Override
+            public void onError(Session session, ObjectServerError error) {
 
+            }
+        };
+        SyncManager.setDefaultSessionErrorHandler(errorHandler);
+
+        // Create configuration using the default handler
+        SyncConfiguration config = new SyncConfiguration.Builder(context)
+                .user(User.createLocal())
+                .serverUrl("realm://objectserver.realm.io/default")
+                .build();
+        assertEquals(errorHandler, config.getErrorHandler());
+        SyncManager.setDefaultSessionErrorHandler(null);
+    }
+
+
+    @Test
+    public void errorHandler_nullThrows() {
+        SyncConfiguration.Builder builder;
+        builder = new SyncConfiguration.Builder(context)
+                .user(User.createLocal())
+                .serverUrl("realm://objectserver.realm.io/default");
+
+        try {
+            builder.errorHandler(null);
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     @Test
@@ -176,12 +219,12 @@ public class SyncConfigurationTests {
 
     @Test
     public void syncPolicy_nullThrows() {
-        User user = User.createLocal();
-        user.add(con);
-
+//        User user = User.createLocal();
+//        user.add(con);
+//
     }
 
-//    @Ignore("Only used for quick testing without needing to spin up a full integration test")
+    @Ignore("Only used for quick testing without needing to spin up a full integration test")
     @Test
     @RunTestInLooperThread
     public void basicIntegrationTest2() {
@@ -215,7 +258,7 @@ public class SyncConfigurationTests {
             }
             token.put("access", perms);
             token.put("token", UUID.randomUUID().toString());
-            token.put("expiresSec", expires);
+            token.put("expires", expires);
             obj.put("refreshToken", token);
             obj.put("authUrl", "http://dummy.org/auth");
             return User.fromJson(obj.toString());

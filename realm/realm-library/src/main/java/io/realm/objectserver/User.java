@@ -52,7 +52,7 @@ public class User {
     // Time left on current refresh token, when we want to begin refreshing it.
     // Failing to refresh it before it expires, will result in the user getting logged out.
     private static RealmAsyncTask authenticateTask;
-    private static RealmAsyncTask refreshTask;
+    private RealmAsyncTask refreshTask;
 
     private final String identifier;
     private Token refreshToken;
