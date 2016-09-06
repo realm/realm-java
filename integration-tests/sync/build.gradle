@@ -6,7 +6,7 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId "io.realm.tests.sync"
+        applicationId "io.realm.objectserver"
         minSdkVersion 9
         targetSdkVersion rootProject.sdkVersion
         versionCode 1

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.tests.sync;
+package io.realm.objectserver;
 
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,12 +37,12 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
-import io.realm.tests.sync.model.ProcessInfo;
-import io.realm.tests.sync.model.TestObject;
-import io.realm.tests.sync.service.SendOneCommit;
-import io.realm.tests.sync.service.SendsALot;
-import io.realm.tests.sync.utils.Constants;
-import io.realm.tests.sync.utils.HttpUtils;
+import io.realm.objectserver.model.ProcessInfo;
+import io.realm.objectserver.model.TestObject;
+import io.realm.objectserver.service.SendOneCommit;
+import io.realm.objectserver.service.SendsALot;
+import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.HttpUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -71,11 +72,14 @@ public class ProcessCommitTests {
                 try {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-                    final RealmConfiguration syncConfig = new RealmConfiguration
-                            .Builder(targetContext)
+
+                    User user = User.createLocal();
+                    user.addAccessToken(new URI(Constants.SYNC_SERVER_URL), Constants.USER_TOKEN);
+
+                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
                             .name("main_process")
-                            .withSync(Constants.SYNC_SERVER_URL)
-                            .syncUserToken(Constants.USER_TOKEN)
+                            .serverUrl(Constants.SYNC_SERVER_URL)
+                            .user(user)
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
@@ -123,11 +127,14 @@ public class ProcessCommitTests {
                 try {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-                    final RealmConfiguration syncConfig = new RealmConfiguration
-                            .Builder(targetContext)
+
+                    User user = User.createLocal();
+                    user.addAccessToken(new URI(Constants.SYNC_SERVER_URL), Constants.USER_TOKEN);
+
+                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
                             .name("main_process_2")
-                            .withSync(Constants.SYNC_SERVER_URL)
-                            .syncUserToken(Constants.USER_TOKEN)
+                            .serverUrl(Constants.SYNC_SERVER_URL)
+                            .user(user)
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);

@@ -1,15 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.realm.tests.sync">
+    package="io.realm.objectserver">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="sync">
+        android:label="Object Server Integration Tests">
         <service
-            android:name=".service.SendOneCommit"
+            android:name="io.realm.objectserver.service.SendOneCommit"
             android:enabled="true"
             android:exported="true"
             android:process=":remote"/>
         <service
-            android:name=".service.SendsALot"
+            android:name="io.realm.objectserver.service.SendsALot"
             android:enabled="true"
             android:exported="true"
             android:process=":remote"/>

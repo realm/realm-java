@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.tests.sync.model;
+package io.realm.objectserver.model;
 
 import io.realm.RealmObject;
 

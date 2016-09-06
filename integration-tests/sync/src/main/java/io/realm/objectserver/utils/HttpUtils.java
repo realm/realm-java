@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.tests.sync.utils;
+package io.realm.objectserver.utils;
 
 import java.io.IOException;
 

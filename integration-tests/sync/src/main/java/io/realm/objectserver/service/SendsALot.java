@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.tests.sync.service;
+package io.realm.objectserver.service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -22,8 +22,8 @@ import android.os.IBinder;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.tests.sync.model.TestObject;
-import io.realm.tests.sync.utils.Constants;
+import io.realm.objectserver.model.TestObject;
+import io.realm.objectserver.utils.Constants;
 
 /**
  * Open a sync Realm on a different process, then send one commit.
