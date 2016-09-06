@@ -23,10 +23,11 @@ import io.realm.objectserver.utils.Constants;
 
 // Must be in `io.realm.objectserver` to work around package protected methods.
 public class UserFactory {
-    public static User createDefaultUser() {
+    public static User createDefaultUser(String SERVER_URL, String USER_TOKEN) {
         try {
             User user = User.createLocal();
-            user.addAccessToken(new URI(Constants.SYNC_SERVER_URL), Constants.USER_TOKEN);
+
+            user.addAccessToken(new URI(SERVER_URL), Constants.USER_TOKEN);
             return user;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);

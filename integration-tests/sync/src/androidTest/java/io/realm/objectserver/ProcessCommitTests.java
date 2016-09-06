@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
@@ -74,9 +72,8 @@ public class ProcessCommitTests {
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
-                            .name("main_process")
-                            .serverUrl(Constants.SYNC_SERVER_URL)
-                            .user(UserFactory.createDefaultUser())
+                            .name(SendOneCommit.class.getSimpleName())                            .serverUrl(Constants.SYNC_SERVER_URL)
+                            .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL, Constants.USER_TOKEN))
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
@@ -126,9 +123,9 @@ public class ProcessCommitTests {
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
-                            .name("main_process_2")
+                            .name(SendsALot.class.getSimpleName())
                             .serverUrl(Constants.SYNC_SERVER_URL)
-                            .user(UserFactory.createDefaultUser())
+                            .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL, Constants.USER_TOKEN_2))
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
