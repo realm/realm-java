@@ -44,7 +44,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SyncConfigurationTests {
+public class SyncConfigTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -176,9 +176,9 @@ public class SyncConfigurationTests {
 
     @Test
     public void syncPolicy_nullThrows() {
-        User user = User.createLocal();
-        user.add(con);
-
+//        User user = User.createLocal();
+//        user.add(con);
+//
     }
 
 //    @Ignore("Only used for quick testing without needing to spin up a full integration test")
