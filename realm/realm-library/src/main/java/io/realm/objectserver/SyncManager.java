@@ -16,6 +16,7 @@
 
 package io.realm.objectserver;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -71,7 +72,7 @@ public final class SyncManager {
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
     // Map of between a local Realm path and any associated sessionInfo
-    private static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<String, Session>();
+    private static HashMap<String, Session> sessions = new HashMap<String, Session>();
 
     static {
         RealmCore.loadLibrary();
@@ -109,7 +110,7 @@ public final class SyncManager {
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link Session} for the specified Realm.
      */
-    public static Session getSession(SyncConfiguration syncConfiguration) {
+    public static synchronized Session getSession(SyncConfiguration syncConfiguration) {
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
@@ -134,7 +135,7 @@ public final class SyncManager {
      *
      * @param info
      */
-    static void removeSession(Session info) {
+    static synchronized void removeSession(Session info) {
         if (info == null) {
             return;
         }

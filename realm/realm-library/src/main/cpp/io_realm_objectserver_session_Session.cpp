@@ -16,7 +16,7 @@
 
 #include <jni.h>
 
-#include "io_realm_objectserver_session_Session.h"
+#include "io_realm_objectserver_Session.h"
 #include "objectserver_shared.hpp"
 #include "util.hpp"
 #include <realm/group_shared.hpp>
@@ -43,16 +43,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_session_Session_nativeCreateS
   (JNIEnv *env, jobject obj, jstring localRealmPath)
 {
     TR_ENTER(env)
-    Client* sync_client = &SyncManager::shared().get_sync_client()->client;
-    if (sync_client == NULL) {
-        return 0;
-    }
     try {
-        const char *path_tmp = env->GetStringUTFChars(localRealmPath, NULL);
-        std::string local_path(path_tmp);
-        env->ReleaseStringUTFChars(localRealmPath, path_tmp);
+        Client* sync_client = &SyncManager::shared().get_sync_client()->client;
+        if (sync_client == NULL) {
+            return 0;
+        }
 
-        JNISession* jni_session = new JNISession(sync_client, local_path, obj, env);
+        JStringAccessor local_path(env, localRealmPath);
+        JniSession* jni_session = new JniSession(sync_client, local_path, obj, env);
         return reinterpret_cast<jlong>(jni_session);
     } CATCH_STD()
     return 0;
@@ -63,7 +61,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeBind
 {
     TR_ENTER(env)
     try {
-        JNISession* session_wrapper = SS(sessionPointer);
+        auto *session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
 
         const char *token_tmp = env->GetStringUTFChars(accessToken, NULL);
         std::string access_token(token_tmp);
@@ -82,7 +80,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeUnbind
   (JNIEnv *env, jobject, jlong sessionPointer)
 {
     TR_ENTER(env)
-    JNISession* session = SS(sessionPointer);
+    JniSession* session = SS(sessionPointer);
     delete session; // TODO Can we avoid killing the session here?
 }
 
@@ -91,7 +89,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
 {
     TR_ENTER(env)
     try {
-        JNISession* session_wrapper = SS(sessionPointer);
+        JniSession* session_wrapper = SS(sessionPointer);
 
         JStringAccessor token_tmp(env, accessToken); // throws
         StringData access_token = StringData(token_tmp);
@@ -102,11 +100,11 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
 
 JNIEXPORT void JNICALL
 Java_io_realm_objectserver_session_Session_nativeNotifyCommitHappened
-        (JNIEnv *env, jobject instance, jlong sessionPointer, jlong version) {
-
+  (JNIEnv *env, jobject, jlong sessionPointer, jlong version)
+{
     TR_ENTER(env)
     try {
-        JNISession* session_wrapper = SS(sessionPointer);
+        JniSession* session_wrapper = SS(sessionPointer);
         session_wrapper->get_session()->nonsync_transact_notify(version);
     } CATCH_STD()
 }

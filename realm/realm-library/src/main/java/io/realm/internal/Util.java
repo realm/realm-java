@@ -72,6 +72,7 @@ public class Util {
 
     public static long calculateExponentialDelay(int failedAttempts, long maxDelayInMs) {
         // https://en.wikipedia.org/wiki/Exponential_backoff
+        //Attempt = FailedAttempts + 1
         //Attempt 1     0s     0s
         //Attempt 2     2s     2s
         //Attempt 3     4s     4s

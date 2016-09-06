@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -80,7 +81,7 @@ public class Token {
     }
 
     public Permission[] permissions() {
-        return permissions;
+        return Arrays.copyOf(permissions, permissions.length);
     }
 
     public String toJson() {

@@ -80,11 +80,13 @@ class BoundState extends FsmState {
             case SESSION_CLOSED:
             case OTHER_SESSION_ERROR:
                 gotoNextState(SessionState.STOPPED);
+                break;
 
             case TOKEN_EXPIRED:
                 // Only known case we can actually work around.
                 // Trigger a rebind which will cause access token to be refreshed.
                 gotoNextState(SessionState.BINDING);
+                break;
 
             case BAD_AUTHENTICATION:
             case ILLEGAL_REALM_PATH:
@@ -98,6 +100,9 @@ class BoundState extends FsmState {
             case BAD_CHANGESET:
                 gotoNextState(SessionState.STOPPED);
                 break;
+
+            default:
+                throw new IllegalArgumentException("Unknown error code:" + error.errorCode());
         }
     }
 }

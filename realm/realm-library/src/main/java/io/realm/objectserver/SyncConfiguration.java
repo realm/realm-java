@@ -45,7 +45,7 @@ import io.realm.rx.RxObservableFactory;
  * }
  * </pre>
  *
- * Realms created using a SyncConfiguration is accessed normally using {@link Realm#getInstance(RealmConfiguration)}
+ * Realms created using a {@link SyncConfiguration} is accessed normally using {@link Realm#getInstance(RealmConfiguration)}
  * and can also be stored using {@link Realm#setDefaultConfiguration(RealmConfiguration)}.
  *
  * TODO Need to expand this section I think
@@ -112,13 +112,33 @@ public final class SyncConfiguration extends RealmConfiguration {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return true; // FIXME;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        SyncConfiguration that = (SyncConfiguration) o;
+
+        if (realmDirectory != null ? !realmDirectory.equals(that.realmDirectory) : that.realmDirectory != null) return false;
+        if (realmFileName != null ? !realmFileName.equals(that.realmFileName) : that.realmFileName != null) return false;
+        if (canonicalPath != null ? !canonicalPath.equals(that.canonicalPath) : that.canonicalPath != null) return false;
+        if (serverUrl != null ? !serverUrl.equals(that.serverUrl) : that.serverUrl != null) return false;
+        if (user != null ? !user.equals(that.user) : that.user != null) return false;
+        if (syncPolicy != null ? !syncPolicy.equals(that.syncPolicy) : that.syncPolicy != null) return false;
+        return errorHandler != null ? errorHandler.equals(that.errorHandler) : that.errorHandler == null;
     }
 
     @Override
     public int hashCode() {
-        return 31; // FIXME
+        int result = super.hashCode();
+        result = 31 * result + (realmDirectory != null ? realmDirectory.hashCode() : 0);
+        result = 31 * result + (realmFileName != null ? realmFileName.hashCode() : 0);
+        result = 31 * result + (canonicalPath != null ? canonicalPath.hashCode() : 0);
+        result = 31 * result + (serverUrl != null ? serverUrl.hashCode() : 0);
+        result = 31 * result + (user != null ? user.hashCode() : 0);
+        result = 31 * result + (syncPolicy != null ? syncPolicy.hashCode() : 0);
+        result = 31 * result + (errorHandler != null ? errorHandler.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -188,7 +208,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         private boolean overrideDefaultLocalFileName = false;
         private File defaultFolder;
         private String defaultLocalFileName;
-        private String accessToken;
 
         /**
          * {@inheritDoc}
@@ -394,8 +413,12 @@ public final class SyncConfiguration extends RealmConfiguration {
          * Only errors not handled by the defined {@link SyncPolicy} will be reported to this error handler.
          *
          * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
+         * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
         public Builder errorHandler(Session.ErrorHandler errorHandler) {
+            if (errorHandler == null) {
+                throw new IllegalArgumentException("Non-null 'errorHandler' required.");
+            }
             this.errorHandler = errorHandler;
             return this;
         }

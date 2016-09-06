@@ -86,7 +86,7 @@ std::string num_to_string(T pNumber)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 #define SC(ptr) reinterpret_cast<realm::sync::Client*>(ptr)
-#define SS(ptr) reinterpret_cast<JNISession*>(ptr)
+#define SS(ptr) reinterpret_cast<JniSession*>(ptr)
 
 // Exception handling
 enum ExceptionKind {

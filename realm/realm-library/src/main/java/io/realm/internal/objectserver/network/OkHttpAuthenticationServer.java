@@ -46,28 +46,28 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
      * Authenticate the given credentials on the specified Realm Authentication Server.
      */
     @Override
-    public AuthenticateResponse authenticateUser(Credentials credentials, URL authentificationUrl, boolean createUser) {
+    public AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl, boolean createUser) {
         try {
             String requestBody = AuthenticateRequest.fromCredentials(credentials, createUser).toJson();
-            return authenticate(authentificationUrl, requestBody);
+            return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return new AuthenticateResponse(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
         }
     }
 
     @Override
-    public AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authentificationUrl) {
+    public AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authenticationUrl) {
         try {
             String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken, path).toJson();
-            return authenticate(authentificationUrl, requestBody);
+            return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return new AuthenticateResponse(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
 
     @Override
-    public RefreshResponse refresh(String token, URL authentificationUrl) {
-        throw new RuntimeException("BOOM");
+    public RefreshResponse refresh(String token, URL authenticationUrl) {
+        throw new UnsupportedOperationException("FIXME");
     }
 
     private AuthenticateResponse authenticate(URL authenticationUrl, String requestBody) throws Exception {
@@ -75,7 +75,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .url(authenticationUrl)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json")
-                .addHeader("Connection","close") //  See https://github.com/square/okhttp/issues/2363
+                .addHeader("Connection", "close") //  See https://github.com/square/okhttp/issues/2363
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
         Call call = client.newCall(request);

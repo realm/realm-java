@@ -60,7 +60,7 @@ public final class RealmLog {
     private static void setMinimumNativeDebugLevel(int nativeDebugLevel) {
         minimumNativeLogLevel = nativeDebugLevel;
         Util.setDebugLevel(nativeDebugLevel); // Log level for Realm Core
-        if (RealmCore.SYNC_AVAILABLE); {
+        if (RealmCore.SYNC_AVAILABLE) {
             SyncManager.setLogLevel(nativeDebugLevel);
         }
     }
