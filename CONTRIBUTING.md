@@ -196,5 +196,5 @@ We have two branches for shared development: `master` and `releases`. We make re
 * The releases branch is where patch versions are released from.
 * It is mainly for bug fixes.
 * Every commit is automatically merged to `master`.
-* Although minor fixes to documentation, tests and build system might not be visible to end users, they should still be committed to releases to avoid divergence.
+* Minor changes (e.g. to documentation, tests, and the build system) may not affect end users but should still be merged to `releases` to avoid diverging too far from `master` and to reduce the likelihood of merge conflicts.
 
