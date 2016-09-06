@@ -34,7 +34,6 @@
 #include <android/log.h>
 #include <object-store/src/sync_manager.hpp>
 
-using namespace std;
 using namespace realm;
 using namespace sync;
 
@@ -68,7 +67,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_SyncManager_nativeInitializeSy
     try {
         // Prepare Sync Client. It will be created on demand
 
-        SyncLoginFunction loginDelegate = [=](const Realm::Config& config) {
+        SyncLoginFunction loginDelegate = [=](const Realm::Config&) {
             // Ignore this for now. We are handling this manually.
         };
 
