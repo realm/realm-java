@@ -258,7 +258,8 @@ public final class Session {
                         user.addAccessToken(configuration.getServerUrl(), response.getAccessToken());
                         success = true;
                         break;
-                    } else {
+                    } else if(response.getError() != null) {
+                        error = response.getError();
                         // Only retry in case of IO exceptions, since that might be network timeouts etc.
                         // All other errors indicate a bigger problem, so stop trying to authenticate and
                         // unbind

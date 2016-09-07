@@ -433,3 +433,4 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
     }
 }
+

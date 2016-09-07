@@ -43,7 +43,7 @@ public final class SyncManager {
     public static final String APP_ID = "foo"; // FIXME Find a way to get an application ID
     // Thread pool used when doing network requests against the Realm Authentication Server.
     // FIXME Set proper parameters
-    public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
+    final public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
     private static final Session.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
@@ -165,7 +165,7 @@ public final class SyncManager {
     // from here. This can be removed once better error propagation is implemented in Sync Core.
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for(Session session : sessions.values()) {
+        for (Session session : sessions.values()) {
             session.onError(error);
         }
     }

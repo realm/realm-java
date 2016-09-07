@@ -32,7 +32,7 @@ import io.realm.log.RealmLog;
  */
 public class SharedPrefsUserStore implements UserStore {
 
-    public static Executor THREAD_POOL;
+    final public static Executor THREAD_POOL;
 
     private final SharedPreferences sp;
     private User currentUser;

@@ -27,7 +27,26 @@
         <Field name="minDepth" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
-
+    <Match>
+        <Class name="io.realm.internal.objectserver.Token" />
+        <Field name="permissions" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.objectserver.network.RefreshResponse" />
+        <Field name="errorCode" />
+        <Bug pattern="UWF_NULL_FIELD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.objectserver.network.RefreshResponse" />
+        <Field name="errorMessage" />
+        <Bug pattern="UWF_NULL_FIELD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.objectserver.network.RefreshResponse" />
+        <Field name="refreshToken" />
+        <Bug pattern="UWF_NULL_FIELD" />
+    </Match>
     <!-- Unit tests -->
     <Match>
         <Class name="io.realm.RealmTests" />
