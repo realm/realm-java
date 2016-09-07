@@ -295,8 +295,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_AllTypes")) {
             Table table = sharedRealm.getTable("class_AllTypes");
-            if (table.getColumnCount() != 9) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 9 but was " + table.getColumnCount());
+            if (table.getColumnCount() < 9) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 9 but was " + table.getColumnCount());
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 9; i++) {

@@ -124,8 +124,8 @@ public class SimpleRealmProxy extends some.test.Simple
     public static SimpleColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_Simple")) {
             Table table = sharedRealm.getTable("class_Simple");
-            if (table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
+            if (table.getColumnCount() < 2) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 2 but was " + table.getColumnCount());
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 2; i++) {

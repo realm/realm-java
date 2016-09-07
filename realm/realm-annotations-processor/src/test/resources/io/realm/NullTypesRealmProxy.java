@@ -571,8 +571,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_NullTypes")) {
             Table table = sharedRealm.getTable("class_NullTypes");
-            if (table.getColumnCount() != 21) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 21 but was " + table.getColumnCount());
+            if (table.getColumnCount() < 21) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + table.getColumnCount());
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 21; i++) {

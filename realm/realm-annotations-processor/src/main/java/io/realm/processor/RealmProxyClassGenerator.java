@@ -464,8 +464,8 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
-        writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
-        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count does not match - expected %d but was \" + table.getColumnCount())",
+        writer.beginControlFlow("if (table.getColumnCount() < " + metadata.getFields().size() + ")");
+        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + table.getColumnCount())",
                 metadata.getFields().size());
         writer.endControlFlow();
 

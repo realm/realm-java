@@ -156,8 +156,8 @@ public class BooleansRealmProxy extends some.test.Booleans
     public static BooleansColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");
-            if (table.getColumnCount() != 4) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
+            if (table.getColumnCount() < 4) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + table.getColumnCount());
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {
