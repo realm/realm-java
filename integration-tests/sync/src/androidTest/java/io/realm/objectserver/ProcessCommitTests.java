@@ -22,8 +22,8 @@ import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -47,15 +47,15 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests {
-    HttpUtils httpUtils = new HttpUtils();
+    static HttpUtils httpUtils = new HttpUtils();
 
-    @Before
-    public void setUp () throws Exception {
+    @BeforeClass
+    public static void setUp () throws Exception {
         httpUtils.startSyncServer();
     }
 
-    @After
-    public void tearDown () throws Exception {
+    @AfterClass
+    public static void tearDown () throws Exception {
         httpUtils.stopSyncServer();
     }
 
@@ -72,7 +72,8 @@ public class ProcessCommitTests {
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
-                            .name(SendOneCommit.class.getSimpleName())                            .serverUrl(Constants.SYNC_SERVER_URL)
+                            .name(SendOneCommit.class.getSimpleName())
+                            .serverUrl(Constants.SYNC_SERVER_URL )
                             .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL, Constants.USER_TOKEN))
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
@@ -124,8 +125,8 @@ public class ProcessCommitTests {
 
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
                             .name(SendsALot.class.getSimpleName())
-                            .serverUrl(Constants.SYNC_SERVER_URL)
-                            .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL, Constants.USER_TOKEN_2))
+                            .serverUrl(Constants.SYNC_SERVER_URL_2)
+                            .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL_2, Constants.USER_TOKEN))
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);

@@ -27,7 +27,7 @@ public class UserFactory {
         try {
             User user = User.createLocal();
 
-            user.addAccessToken(new URI(SERVER_URL), Constants.USER_TOKEN);
+            user.addAccessToken(new URI(SERVER_URL), USER_TOKEN);
             return user;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);

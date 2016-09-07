@@ -104,10 +104,10 @@ public final class SyncConfiguration extends RealmConfiguration {
     private String getServerPath(URI serverUrl) {
         String path = serverUrl.getPath();
         int endIndex = path.lastIndexOf("/");
-        if (endIndex != -1) {
-            return path.substring(1, endIndex); // Also strip leading /
-        } else {
+        if (endIndex <= 0) {
             return path;
+        } else {
+            return path.substring(1, endIndex); // Also strip leading /
         }
     }
 

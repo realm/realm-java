@@ -36,8 +36,8 @@ public class SendsALot extends Service {
         super.onCreate();
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(this)
                 .name(SendsALot.class.getSimpleName())
-                .serverUrl(Constants.SYNC_SERVER_URL)
-                .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL, Constants.USER_TOKEN_2))
+                .serverUrl(Constants.SYNC_SERVER_URL_2)
+                .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL_2, Constants.USER_TOKEN))
                 .build();
         Realm.deleteRealm(syncConfig);
         Realm realm = Realm.getInstance(syncConfig);
