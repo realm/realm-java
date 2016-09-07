@@ -2249,6 +2249,9 @@ public class RealmQueryTests {
         populateTestRealm();
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 3L).findAll();
+        assertEquals(1, results.size());
+        assertEquals("test data 3", results.first().getColumnString());
+
         final RealmQuery<AllTypes> tableViewQuery = results.where();
         assertEquals("test data 3", tableViewQuery.findAll().first().getColumnString());
         assertEquals("test data 3", tableViewQuery.findFirst().getColumnString());

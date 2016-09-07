@@ -427,7 +427,7 @@ public class TableQuery implements Closeable {
     }
 
     /**
-     * Return table row index for the first element matching the query.
+     * Return the table row index for the first element matching the query.
      */
     public long find() {
         validateQuery();

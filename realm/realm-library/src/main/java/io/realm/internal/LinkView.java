@@ -65,8 +65,8 @@ public class LinkView extends NativeObject {
     /**
      * Returns the row index in the underlying table.
      */
-    public long getTargetRowIndex(long pos) {
-        return nativeGetTargetRowIndex(nativePointer, pos);
+    public long getTargetRowIndex(long linkViewIndex) {
+        return nativeGetTargetRowIndex(nativePointer, linkViewIndex);
     }
 
     public void add(long rowIndex) {
@@ -172,7 +172,7 @@ public class LinkView extends NativeObject {
 
     public static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
-    private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
+    private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long linkViewIndex);
     public static native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
     private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
     private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);

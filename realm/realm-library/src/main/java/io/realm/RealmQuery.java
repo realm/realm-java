@@ -65,7 +65,7 @@ public final class RealmQuery<E extends RealmModel> {
     private String className;
     private TableOrView table;
     private RealmObjectSchema schema;
-    private LinkView view;
+    private LinkView linkView;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -136,7 +136,7 @@ public final class RealmQuery<E extends RealmModel> {
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.table;
-        this.view = null;
+        this.linkView = null;
         this.query = table.where();
     }
 
@@ -144,18 +144,18 @@ public final class RealmQuery<E extends RealmModel> {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = queryResults.getTable();
-        this.view = null;
-        this.query = queryResults.getTable().where();
+        this.table = queryResults.getTableOrView();
+        this.linkView = null;
+        this.query = queryResults.getTableOrView().where();
     }
 
-    private RealmQuery(BaseRealm realm, LinkView view, Class<E> clazz) {
+    private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.query = view.where();
-        this.view = view;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.table;
+        this.linkView = linkView;
+        this.query = linkView.where();
     }
 
     private RealmQuery(BaseRealm realm, String className) {
@@ -171,16 +171,16 @@ public final class RealmQuery<E extends RealmModel> {
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
-        this.query = queryResults.getTable().where();
+        this.query = queryResults.getTableOrView().where();
     }
 
-    private RealmQuery(BaseRealm realm, LinkView view, String className) {
+    private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
         this.realm = realm;
         this.className = className;
-        this.query = view.where();
-        this.view = view;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
+        this.linkView = linkView;
+        this.query = linkView.where();
     }
 
     /**
@@ -194,8 +194,8 @@ public final class RealmQuery<E extends RealmModel> {
             return false;
         }
 
-        if (view != null) {
-            return view.isAttached();
+        if (linkView != null) {
+            return linkView.isAttached();
         }
         return table != null && table.getTable().isValid();
     }
@@ -1697,7 +1697,7 @@ public final class RealmQuery<E extends RealmModel> {
                     try {
                         sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                        // Run the query & handover the table view for the caller thread
+                        // Run the query & handover the table linkView for the caller thread
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
                         // to import it.
                         long handoverTableViewPointer = TableQuery.findAllWithHandover(sharedRealm,
@@ -1814,7 +1814,7 @@ public final class RealmQuery<E extends RealmModel> {
 
                         long columnIndex = getColumnIndexForSort(fieldName);
 
-                        // run the query & handover the table view for the caller thread
+                        // run the query & handover the table linkView for the caller thread
                         long handoverTableViewPointer = TableQuery.findAllSortedWithHandover(sharedRealm,
                                  handoverQueryPointer, columnIndex, sortOrder);
 
@@ -1984,7 +1984,7 @@ public final class RealmQuery<E extends RealmModel> {
                         try {
                             sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                            // run the query & handover the table view for the caller thread
+                            // run the query & handover the table linkView for the caller thread
                             long handoverTableViewPointer = TableQuery.findAllMultiSortedWithHandover(sharedRealm,
                                     handoverQueryPointer, indices, sortOrders);
 
@@ -2219,8 +2219,17 @@ public final class RealmQuery<E extends RealmModel> {
     private long getSourceRowIndexForFirstObject() {
         long tableRowIndex = this.query.find();
         return tableRowIndex;
+//        if (tableRowIndex < 0) {
+//            return tableRowIndex; // Not found
+//        }
+//        if (this.linkView != null) {
+//            return linkView.getTargetRowIndex(tableRowIndex); // LinkView
+//        } else if (table instanceof TableView) {
+//            return ((TableView) table).getSourceRowIndex(tableRowIndex); // TableView
+//        } else {
+//            return tableRowIndex; // Table
+//        }
     }
-
     // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
     // or it belongs to the child object.
     private long getColumnIndexForSort(String fieldName) {
