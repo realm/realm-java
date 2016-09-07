@@ -23,10 +23,11 @@ import java.util.concurrent.TimeUnit;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
-import io.realm.internal.objectserver.Token;
-import io.realm.internal.objectserver.network.AuthenticateResponse;
-import io.realm.internal.objectserver.network.AuthenticationServer;
-import io.realm.internal.objectserver.network.NetworkStateReceiver;
+import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
+import io.realm.objectserver.internal.Token;
+import io.realm.objectserver.internal.network.AuthenticateResponse;
+import io.realm.objectserver.internal.network.AuthenticationServer;
+import io.realm.objectserver.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
 
 /**
@@ -88,19 +89,26 @@ public final class Session {
     final User user;
     RealmAsyncTask networkRequest;
     NetworkStateReceiver.ConnectionListener networkListener;
+    private SyncPolicy syncPolicy;
 
     // Keeping track of currrent FSM state
     SessionState currentStateDescription;
     FsmState currentState;
 
     /**
+     /**
      * Creates a new Object Server Session
+     *
+     * @param syncConfiguration Sync configuration defining this session
+     * @param authServer Authentication server used to refresh credentials if needed
+     * @param policy Sync Policy to use by this Session.
      */
-    public Session(SyncConfiguration objectServerConfiguration, AuthenticationServer authServer) {
-        this.configuration = objectServerConfiguration;
+    public Session(SyncConfiguration syncConfiguration, AuthenticationServer authServer, SyncPolicy policy) {
+        this.configuration = syncConfiguration;
         this.user = configuration.getUser();
         this.authServer = authServer;
         this.errorHandler = configuration.getErrorHandler();
+        this.syncPolicy = policy;
         setupStateMachine();
     }
 
@@ -315,6 +323,10 @@ public final class Session {
         if (isBound()) {
             nativeNotifyCommitHappened(nativeSessionPointer, version);
         }
+    }
+
+    public SyncPolicy getSyncPolicy() {
+        return syncPolicy;
     }
 
     /**

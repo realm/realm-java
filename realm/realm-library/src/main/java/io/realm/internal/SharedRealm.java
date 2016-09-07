@@ -22,6 +22,7 @@ import java.io.File;
 import io.realm.RealmConfiguration;
 import io.realm.internal.async.BadVersionException;
 import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.internal.ObjectServerFacade;
 
 public final class SharedRealm implements Closeable {
 
@@ -145,14 +146,9 @@ public final class SharedRealm implements Closeable {
     }
 
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier) {
-        String rosServerUrl = null;
-        String rosUserToken = null;
-        if (RealmCore.SYNC_AVAILABLE && config instanceof SyncConfiguration) {
-            SyncConfiguration rosConfig = (SyncConfiguration) config;
-            rosServerUrl = rosConfig.getServerUrl().toString();
-            rosUserToken = rosConfig.getUser().getRefreshToken().value();
-        }
-
+        String[] userAndServer = ObjectServerFacade.getUserAndServerUrl(config);
+        String rosServerUrl = userAndServer[0];
+        String rosUserToken = userAndServer[1];
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
         boolean autoChangeNotifications = true;

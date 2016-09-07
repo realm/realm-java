@@ -26,11 +26,8 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
-import io.realm.internal.RealmCore;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.Session;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.internal.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -158,12 +155,9 @@ final class RealmCache {
         E realm = (E) refAndCount.localRealm.get();
 
         // Notify SyncPolicy that the Realm has been opened for the first time
-        if (refAndCount.globalCount == 1 && RealmCore.SYNC_AVAILABLE && realm.getConfiguration() instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) realm.getConfiguration();
-            Session session = SyncManager.getSession(syncConfig);
-            syncConfig.getSyncPolicy().onRealmOpened(session);
+        if (refAndCount.globalCount == 1) {
+            ObjectServerFacade.realmOpened(configuration);
         }
-
         return realm;
     }
 
@@ -226,10 +220,7 @@ final class RealmCache {
             // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
             if (totalRefCount == 0) {
                 cachesMap.remove(canonicalPath);
-                if (RealmCore.SYNC_AVAILABLE && realm.getConfiguration() instanceof SyncConfiguration) {
-                    Session session = SyncManager.getSession((SyncConfiguration) realm.getConfiguration());
-                    ((SyncConfiguration) realm.getConfiguration()).getSyncPolicy().onRealmClosed(session);
-                }
+                ObjectServerFacade.realmClosed(realm.getConfiguration());
             }
 
         } else {

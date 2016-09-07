@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal.syncpolicy;
 
 import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.Session;

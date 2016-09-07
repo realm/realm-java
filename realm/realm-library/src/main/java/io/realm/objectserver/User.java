@@ -35,10 +35,10 @@ import java.util.concurrent.TimeUnit;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.IOException;
 import io.realm.internal.Util;
-import io.realm.internal.objectserver.Token;
-import io.realm.internal.objectserver.network.AuthenticateResponse;
-import io.realm.internal.objectserver.network.AuthenticationServer;
-import io.realm.internal.objectserver.network.RefreshResponse;
+import io.realm.objectserver.internal.Token;
+import io.realm.objectserver.internal.network.AuthenticateResponse;
+import io.realm.objectserver.internal.network.AuthenticationServer;
+import io.realm.objectserver.internal.network.RefreshResponse;
 import io.realm.log.RealmLog;
 
 /**

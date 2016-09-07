@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver.network;
+package io.realm.objectserver.internal.network;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import io.realm.log.RealmLog;
 import io.realm.objectserver.ErrorCode;
-import io.realm.internal.objectserver.Token;
+import io.realm.objectserver.internal.Token;
 import io.realm.objectserver.ObjectServerError;
 import okhttp3.Response;
 

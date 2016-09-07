@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal.syncpolicy;
+
+import io.realm.objectserver.ObjectServerError;
+import io.realm.objectserver.Session;
 
 /**
  * This SyncPolicy will automatically start synchronizing changes to a Realm as soon as it is opened.

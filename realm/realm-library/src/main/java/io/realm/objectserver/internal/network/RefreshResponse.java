@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver.network;
+package io.realm.objectserver.internal.network;
 
 import io.realm.objectserver.ErrorCode;
-import io.realm.internal.objectserver.Token;
+import io.realm.objectserver.internal.Token;
 
 public class RefreshResponse {
     private Token refreshToken = null;

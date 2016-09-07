@@ -25,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -35,10 +34,8 @@ import java.io.File;
 import java.util.Locale;
 import java.util.UUID;
 
-import io.realm.Realm;
-import io.realm.internal.objectserver.Token;
+import io.realm.objectserver.internal.Token;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
