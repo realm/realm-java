@@ -21,7 +21,7 @@ import java.util.Map;
 import io.realm.exceptions.RealmMigrationNeededException;
 
 public abstract class ColumnInfo {
-    protected Map<String, Long> indicesMap;
+    private Map<String, Long> indicesMap;
 
     protected final long getValidColumnIndex(String realmPath, Table table,
                                              String className, String columnName) {
@@ -35,6 +35,10 @@ public abstract class ColumnInfo {
 
     public Map<String, Long> getIndicesMap() {
         return indicesMap;
+    }
+
+    protected final void setIndicesMap(Map<String, Long> indicesMap) {
+        this.indicesMap = indicesMap;
     }
 
     /**

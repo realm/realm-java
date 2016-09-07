@@ -97,7 +97,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             this.fieldObjectNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldObjectNull");
             indicesMap.put("fieldObjectNull", this.fieldObjectNullIndex);
 
-            this.indicesMap = Collections.unmodifiableMap(indicesMap);
+            setIndicesMap(Collections.unmodifiableMap(indicesMap));
         }
 
         private NullTypesColumnInfo(NullTypesColumnInfo original) {
@@ -123,7 +123,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             this.fieldDateNullIndex = original.fieldDateNullIndex;
             this.fieldObjectNullIndex = original.fieldObjectNullIndex;
 
-            this.indicesMap = original.getIndicesMap();
+            setIndicesMap(original.getIndicesMap());
         }
 
         @Override
@@ -155,7 +155,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             this.fieldDateNullIndex = otherInfo.fieldDateNullIndex;
             this.fieldObjectNullIndex = otherInfo.fieldObjectNullIndex;
 
-            this.indicesMap = otherInfo.getIndicesMap();
+            setIndicesMap(otherInfo.getIndicesMap());
         }
 
         @Override

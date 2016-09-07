@@ -40,14 +40,14 @@ public class SimpleRealmProxy extends some.test.Simple
             this.ageIndex = getValidColumnIndex(path, table, "Simple", "age");
             indicesMap.put("age", this.ageIndex);
 
-            this.indicesMap = Collections.unmodifiableMap(indicesMap);
+            setIndicesMap(Collections.unmodifiableMap(indicesMap));
         }
 
         private SimpleColumnInfo(SimpleColumnInfo original) {
             this.nameIndex = original.nameIndex;
             this.ageIndex = original.ageIndex;
 
-            this.indicesMap = original.getIndicesMap();
+            setIndicesMap(original.getIndicesMap());
         }
 
         @Override
@@ -60,7 +60,7 @@ public class SimpleRealmProxy extends some.test.Simple
             this.nameIndex = otherInfo.nameIndex;
             this.ageIndex = otherInfo.ageIndex;
 
-            this.indicesMap = otherInfo.getIndicesMap();
+            setIndicesMap(otherInfo.getIndicesMap());
         }
 
         @Override

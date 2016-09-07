@@ -158,7 +158,7 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("indicesMap.put(\"%s\", this.%s)", columnName, columnIndexVarName);
         }
         writer.emitEmptyLine();
-        writer.emitStatement("this.indicesMap = Collections.unmodifiableMap(indicesMap)");
+        writer.emitStatement("setIndicesMap(Collections.unmodifiableMap(indicesMap))");
         writer.endConstructor();
         writer.emitEmptyLine();
 
@@ -171,7 +171,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("this.%1$s = original.%1$s", columnIndexVarName(variableElement));
             }
             writer.emitEmptyLine();
-            writer.emitStatement("this.indicesMap = original.getIndicesMap()");
+            writer.emitStatement("setIndicesMap(original.getIndicesMap())");
         }
         writer.endConstructor();
         writer.emitEmptyLine();
@@ -197,7 +197,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("this.%1$s = otherInfo.%1$s", columnIndexVarName(variableElement));
             }
             writer.emitEmptyLine();
-            writer.emitStatement("this.indicesMap = otherInfo.getIndicesMap()");
+            writer.emitStatement("setIndicesMap(otherInfo.getIndicesMap())");
         }
         writer.endMethod();
         writer.emitEmptyLine();
