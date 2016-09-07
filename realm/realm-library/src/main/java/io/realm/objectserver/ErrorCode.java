@@ -145,4 +145,3 @@ public enum Category {
         INFO            // Just FYI. The underlying network client will automatically try to recover.
     }
 }
-

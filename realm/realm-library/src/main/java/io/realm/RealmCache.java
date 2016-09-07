@@ -159,8 +159,9 @@ final class RealmCache {
 
         // Notify SyncPolicy that the Realm has been opened for the first time
         if (refAndCount.globalCount == 1 && RealmCore.SYNC_AVAILABLE && realm.getConfiguration() instanceof SyncConfiguration) {
-                Session session = SyncManager.getSession((SyncConfiguration) realm.getConfiguration());
-                ((SyncConfiguration) realm.getConfiguration()).getSyncPolicy().onRealmOpened(session);
+            SyncConfiguration syncConfig = (SyncConfiguration) realm.getConfiguration();
+            Session session = SyncManager.getSession(syncConfig);
+            syncConfig.getSyncPolicy().onRealmOpened(session);
         }
 
         return realm;

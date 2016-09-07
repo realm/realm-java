@@ -77,4 +77,3 @@ public class NetworkStateReceiver extends BroadcastReceiver {
         void onChange(boolean connectionAvailable);
     }
 }
-

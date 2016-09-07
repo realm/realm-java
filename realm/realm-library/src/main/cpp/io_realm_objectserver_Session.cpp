@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeUnbind
     delete session; // TODO Can we avoid killing the session here?
 }
 
-JNIEXPORT void JNICALL Java_io_realm_objectserver_session_Session_nativeRefresh
+JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeRefresh
   (JNIEnv *env, jobject, jlong sessionPointer, jstring accessToken)
 {
     TR_ENTER(env)

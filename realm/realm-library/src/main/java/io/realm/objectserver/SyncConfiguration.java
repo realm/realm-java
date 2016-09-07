@@ -27,12 +27,15 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.rx.RxObservableFactory;
 
+import static android.R.attr.path;
+import static android.R.attr.required;
+
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
  * A valid {@link User} is required to create a SyncConfiguration. See {@link Credentials} and
- * {@link User#login(Credentials, String, User.Callback)} for more information on
+ * {@link User#loginAsync(Credentials, String, User.Callback)} for more information on
  * how to get a user object.
  * <p>
  * A minimal SyncConfiguration can look like this:
@@ -104,8 +107,10 @@ public final class SyncConfiguration extends RealmConfiguration {
     private String getServerPath(URI serverUrl) {
         String path = serverUrl.getPath();
         int endIndex = path.lastIndexOf("/");
-        if (endIndex <= 0) {
+        if (endIndex == -1 ) {
             return path;
+        } else if (endIndex == 0) {
+            return path.substring(1);
         } else {
             return path.substring(1, endIndex); // Also strip leading /
         }
@@ -347,6 +352,9 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if the URL is not valid.
          */
         public Builder serverUrl(String url) {
+            if (url == null) {
+                throw new IllegalArgumentException("Non-null 'url' required.");
+            }
             try {
                 this.serverUrl = new URI(url);
             } catch (URISyntaxException e) {
@@ -433,4 +441,3 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
     }
 }
-

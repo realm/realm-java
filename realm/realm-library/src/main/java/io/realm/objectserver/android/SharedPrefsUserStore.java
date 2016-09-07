@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.android;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,16 +26,16 @@ import android.os.Looper;
 import java.util.concurrent.Executor;
 
 import io.realm.log.RealmLog;
+import io.realm.objectserver.User;
+import io.realm.objectserver.UserStore;
 
 /**
  * A User Store backed by a SharedPreferences file.
  */
 public class SharedPrefsUserStore implements UserStore {
 
-    final public static Executor THREAD_POOL;
-
+    public static final Executor THREAD_POOL;
     private final SharedPreferences sp;
-    private User currentUser;
     private Handler handler = new Handler(Looper.getMainLooper());
 
     static {
@@ -49,22 +49,6 @@ public class SharedPrefsUserStore implements UserStore {
 
     public SharedPrefsUserStore(Context context) {
         sp = context.getSharedPreferences("realm_object_server_users", Context.MODE_PRIVATE);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public User getCurrentUser() {
-        return currentUser;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setCurrentUser(User user) {
-        this.currentUser = user;
     }
 
     /**
@@ -94,21 +78,27 @@ public class SharedPrefsUserStore implements UserStore {
             @Override
             public void run() {
                 boolean success;
+                Throwable error = null;
                 try {
                     success = save(key, user);
+                    if (!success) {
+                        error = new RuntimeException("Could not save key");
+                    }
                 } catch (Exception e) {
                     success = false;
+                    error = e;
                     RealmLog.error("Failed to save user", e);
                 }
                 if (callback != null) {
                     final boolean finalSuccess = success;
+                    final Throwable finalError = error;
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             if (finalSuccess) {
                                 callback.onSuccess(user);
                             } else {
-                                callback.onError();
+                                callback.onError(finalError);
                             }
                         }
                     });
@@ -138,20 +128,26 @@ public class SharedPrefsUserStore implements UserStore {
             @Override
             public void run() {
                 User user = null;
+                Throwable error = null;
                 try {
                     user = load(key);
+                    if (user == null) {
+                        error = new RuntimeException("Could not load user:" + key);
+                    }
                 } catch (Exception e) {
+                    error = e;
                     RealmLog.error("Failed to save user", e);
                 }
                 if (callback != null) {
                     final User finalUser = user;
+                    final Throwable finalError = error;
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             if (finalUser != null) {
                                 callback.onSuccess(finalUser);
                             } else {
-                                callback.onError();
+                                callback.onError(finalError);
                             }
                         }
                     });

@@ -24,6 +24,12 @@ public class RefreshResponse {
     private ErrorCode errorCode = null;
     private String errorMessage = null;
 
+    public RefreshResponse(Token refreshToken, ErrorCode errorCode, String errorMessage) {
+        this.refreshToken = refreshToken;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+
     public boolean isValid() {
         return false;
     }
