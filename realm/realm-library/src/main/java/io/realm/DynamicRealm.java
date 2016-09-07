@@ -20,6 +20,7 @@ import android.app.IntentService;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -50,6 +51,11 @@ public final class DynamicRealm extends BaseRealm {
         super(configuration);
     }
 
+    // only used by migrations
+    private DynamicRealm(SharedRealm realm) {
+        super(realm);
+    }
+
     /**
      * Realm static constructor that returns a dynamic variant of the Realm instance defined by provided
      * {@link io.realm.RealmConfiguration}. Dynamic Realms do not care about schemaVersion and schemas, so opening a
@@ -65,6 +71,12 @@ public final class DynamicRealm extends BaseRealm {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class);
+    }
+
+    // only used by migrations
+    public static DynamicRealm fromSharedRealm(long nativePtr) {
+        SharedRealm realm = new SharedRealm(nativePtr);
+        return new DynamicRealm(realm);
     }
 
     /**

@@ -210,7 +210,7 @@ Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong shared_realm_ptr, jobject dynamic_realm,
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong shared_realm_ptr, jobject /*dynamic_realm*/,
                                                       jlong schema_ptr, jlong schema_version, jobject migration_object) {
 
     TR_ENTER_PTR(shared_realm_ptr)
@@ -228,17 +228,33 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
             jmethodID realm_migration_method = env->GetMethodID(realm_migration_class, "migrate", "(Lio/realm/DynamicRealm;JJ)V");
             if (realm_migration_method == nullptr) {
                 throw std::runtime_error("Cannot find method 'migrate' of class 'io.realm.RealmMigration'.");
-                return 0;
             }
-            Realm::MigrationFunction migration_function = [=](SharedRealm /*old_realm*/, SharedRealm /*realm*/, Schema &/*mutable_schema*/) {
-                auto &config = shared_realm->config();
-                jlong schema_new_version = jlong(config.schema_version);
-                env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version,
-                                    schema_new_version);
+
+            jclass io_realm_dynamicrealm = env->FindClass("io/realm/DynamicRealm");
+            if (io_realm_dynamicrealm == nullptr) {
+                throw std::runtime_error("Cannot find io.realm.DynamicRealm");
+            }
+            jmethodID fromSharedRealm = env->GetStaticMethodID(io_realm_dynamicrealm, "fromSharedRealm", "(J)Lio/realm/DynamicRealm;");
+            if (fromSharedRealm == nullptr) {
+                throw std::runtime_error("Cannot find fromSharedRealm");
+            }
+
+            Realm::MigrationFunction migration_function = [=](SharedRealm, SharedRealm realm, Schema &) {
+                TR_ERR("migration_function");
+
+                auto &config = realm->config();
+                jlong schema_version = jlong(config.schema_version);
+                jobject dynamic_realm = env->CallStaticObjectMethod(io_realm_dynamicrealm, fromSharedRealm,
+                                                              reinterpret_cast<jlong>(realm.get()));
+                if (dynamic_realm == nullptr) {
+                    throw std::runtime_error("Cannot get an instance of DynamicRealm.");
+                }
+                env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version);
             };
             shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
         }
     } CATCH_STD()
+
     return 0;
 }
 
@@ -310,7 +326,7 @@ Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong 
         JStringAccessor old_name(env, old_table_name);
         if (!shared_realm->is_in_transaction()) {
             std::ostringstream ss;
-            ss << "Class " << old_name << " cannot be removed when the realm is not in transaction.";
+            ss << "Class " << old_name << " cannot be renamed when the realm is not in transaction.";
             ThrowException(env, IllegalState, ss.str());
             return;
         }

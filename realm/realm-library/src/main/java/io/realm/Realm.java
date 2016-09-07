@@ -213,16 +213,15 @@ public final class Realm extends BaseRealm {
         catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
-            } else {
-                throw e;
+                return createAndValidate(configuration, columnIndices);
             }
-            return createAndValidate(configuration, columnIndices);
+            throw e;
         }
     }
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
         Realm realm = new Realm(configuration);
-        long currentVersion = realm.getVersion();
+        /*long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
             realm.doClose();
@@ -232,7 +231,7 @@ public final class Realm extends BaseRealm {
             realm.doClose();
             throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
         }
-
+*/
         // Initialize Realm schema if needed
         if (columnIndices == null) {
             try {

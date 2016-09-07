@@ -116,6 +116,12 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     string message;
     jclass jExceptionClass = NULL;
 
+    // Only get most recent exception
+    if (env->ExceptionCheck() == JNI_TRUE) {
+        TR_ERR("Clearing pending exceptions.");
+        env->ExceptionClear();
+    }
+
     TR_ERR("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
 
     switch (exception) {
@@ -166,7 +172,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 
         case MigrationIsNeeded:
             jExceptionClass = env->FindClass("io/realm/exceptions/RealmMigrationNeededException");
-            message = classStr;
+            message = classStr + " " + itemStr;
             break;
 
         // Should never get here.

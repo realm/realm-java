@@ -19,7 +19,6 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.io.File;
 
-import io.realm.DynamicRealm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.RealmObjectSchema;
@@ -135,6 +134,12 @@ public final class SharedRealm implements Closeable {
         context = new Context();
     }
 
+    public SharedRealm(long nativePtr) {
+        this.nativePtr = nativePtr;
+        this.configuration = null;
+        context = new Context();
+    }
+
     public static SharedRealm getInstance(RealmConfiguration config) {
         SchemaMode schemaMode;
         // FIXME: Should SCHEMA_MODE_MANUAL be default?
@@ -184,9 +189,9 @@ public final class SharedRealm implements Closeable {
     }
 
     public long updateSchema(RealmSchema realmSchema, long schemaVersion, RealmMigration realmMigration) {
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
-        long retcode = nativeUpdateSchema(nativePtr, dynamicRealm, realmSchema.getNativePtr(), schemaVersion, realmMigration);
-        dynamicRealm.close();
+        //DynamicRealm dynamicRealm = DynamicRealm.getInstance(configuration);
+        long retcode = nativeUpdateSchema(nativePtr, null, realmSchema.getNativePtr(), schemaVersion, realmMigration);
+        //dynamicRealm.close();
         return retcode;
     }
 

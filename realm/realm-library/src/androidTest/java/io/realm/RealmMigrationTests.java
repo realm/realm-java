@@ -222,7 +222,7 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(StringOnly.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
