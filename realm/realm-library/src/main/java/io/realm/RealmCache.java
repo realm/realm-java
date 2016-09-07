@@ -280,20 +280,22 @@ final class RealmCache {
     /**
      * Updates the schema cache in the typed Realm for {@code pathOfRealm}.
      *
-     * @param pathOfRealm absolute path of the Realm database file.
+     * @param realm the instance that contains the schema cache to be updated.
      */
-    static synchronized void updateSchemaCache(String pathOfRealm) {
-        final RealmCache cache = cachesMap.get(pathOfRealm);
+    static synchronized void updateSchemaCache(Realm realm) {
+        final RealmCache cache = cachesMap.get(realm.getPath());
         if (cache == null) {
+            // Called during initialization. just skip it.
             return;
         }
         final RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.TYPED_REALM);
-        final BaseRealm realm = refAndCount.localRealm.get();
-        if (realm == null) {
+        if (refAndCount.localRealm.get() == null) {
+            // Called during initialization. just skip it.
+            // We can reach here if the DynamicRealm instance is initialized first.
             return;
         }
         final ColumnIndices[] globalCacheArray = cache.typedColumnIndicesArray;
-        final ColumnIndices createdCacheEntry = ((Realm) realm).updateSchemaCache(
+        final ColumnIndices createdCacheEntry = realm.updateSchemaCache(
                 globalCacheArray);
         if (createdCacheEntry != null) {
             RealmCache.store(globalCacheArray, createdCacheEntry);
