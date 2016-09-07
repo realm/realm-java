@@ -201,7 +201,7 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param globalCacheArray if this is not  {@code null} and contains an entry for current schema version,
+     * @param globalCacheArray if this is not {@code null} and contains an entry for current schema version,
      *                         the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
      *                         the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
      *                         from the Realm file.
@@ -1416,6 +1416,14 @@ public final class Realm extends BaseRealm {
         return schema.getTable(clazz);
     }
 
+    /**
+     * Updates own schema cache.
+     *
+     * @param globalCacheArray global cache of column indices. If it contains an entry for current
+     *                         schema version, this method only copies the indices information in the entry.
+     * @return newly created indices information for current schema version. Or {@code null} if
+     *          {@code globalCacheArray} already contains the entry for current schema version.
+     */
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
         final long currentSchemaVersion = sharedRealm.getSchemaVersion();
         final long cacheSchemaVersion = schema.columnIndices.getSchemaVersion();

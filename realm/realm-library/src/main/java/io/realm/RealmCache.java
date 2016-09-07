@@ -277,6 +277,11 @@ final class RealmCache {
         callback.onResult(totalRefCount);
     }
 
+    /**
+     * Updates the schema cache in the typed Realm for {@code pathOfRealm}.
+     *
+     * @param pathOfRealm absolute path of the Realm database file.
+     */
     static synchronized void updateSchemaCache(String pathOfRealm) {
         final RealmCache cache = cachesMap.get(pathOfRealm);
         if (cache == null) {
@@ -364,6 +369,13 @@ final class RealmCache {
         }
     }
 
+    /**
+     * Finds an entry for specified schema version in the array.
+     *
+     * @param array target array of schema cache.
+     * @param schemaVersion requested version of the schema.
+     * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
+     */
     public static ColumnIndices find(ColumnIndices[] array, long schemaVersion) {
         for (int i = array.length - 1; 0 <= i; i--) {
             final ColumnIndices candidate = array[i];
@@ -374,6 +386,15 @@ final class RealmCache {
         return null;
     }
 
+    /**
+     * Stores the schema cache to the array.
+     * <p>
+     * If the {@code array} has empty ({@code == null}) slot, this method stores
+     *
+     * @param array target array.
+     * @param columnIndices the item to be stored into the {@code array}.
+     * @return the index in the {@code array} where the {@code columnIndices} was stored.
+     */
     private static int store(ColumnIndices[] array, ColumnIndices columnIndices) {
         long oldestSchemaVersion = Long.MAX_VALUE;
         int candidateIndex = -1;
