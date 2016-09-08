@@ -19,7 +19,6 @@ package io.realm.internal;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
@@ -373,27 +372,16 @@ public class Table implements TableOrView, TableSchema {
         nativeMoveLastOver(nativePtr, rowIndex);
     }
 
+    /**
+     * Add an empty row to the table which doesn't have a primary key defined.
+     * <p>
+     * NOTE: To add a table with a primary key defined, use {@link #addEmptyRowWithPrimaryKey(Object)} instead. This
+     * won't check if this table has a primary key.
+     *
+     * @return row index.
+     */
     public long addEmptyRow() {
         checkImmutable();
-        if (hasPrimaryKey()) {
-            long primaryKeyColumnIndex = getPrimaryKey();
-            RealmFieldType type = getColumnType(primaryKeyColumnIndex);
-            switch (type) {
-                case STRING:
-                    if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
-                    }
-                    break;
-                case INTEGER:
-                    if (findFirstLong(primaryKeyColumnIndex, INTEGER_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
-                    }
-                    break;
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
-        }
-
         return nativeAddEmptyRow(nativePtr, 1);
     }
 
@@ -479,6 +467,9 @@ public class Table implements TableOrView, TableSchema {
      *
      * @param values values.
      * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * withprimary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
      */
     protected long add(Object... values) {
         long rowIndex = addEmptyRow();

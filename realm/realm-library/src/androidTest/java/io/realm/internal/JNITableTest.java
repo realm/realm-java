@@ -28,7 +28,6 @@ import java.util.Date;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
