@@ -20,6 +20,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.getkeepsafe.relinker.BuildConfig;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,6 +39,7 @@ import io.realm.internal.UncheckedRow;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.internal.ObjectServerFacade;
 import rx.Observable;
 
 /**
@@ -57,7 +60,7 @@ public abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
-    // Thread pool for all async operations (Query & transaction)
+    // Thread pool for all async operations (Query / transaction / network requests)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
     final long threadId;
@@ -333,6 +336,7 @@ public abstract class BaseRealm implements Closeable {
     void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
+        ObjectServerFacade.notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
 
         // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
         // file will make a commit in order to create the schema. Users should not be notified about that.

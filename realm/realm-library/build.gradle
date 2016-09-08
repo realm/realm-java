@@ -96,6 +96,7 @@ repositories {
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
+    compile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
     compile 'com.getkeepsafe.relinker:relinker:1.2.1'
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'

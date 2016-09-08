@@ -6,4 +6,5 @@
     <issue id="TrulyRandom" severity="ignore" />
     <issue id="PrngFix" severity="ignore" />
     <issue id="LogNotTimber" severity="ignore" />
+    <issue id="InvalidPackage" severity="ignore" />
 </lint>

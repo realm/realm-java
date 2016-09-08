@@ -86,7 +86,7 @@ std::string num_to_string(T pNumber)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 #define SC(ptr) reinterpret_cast<realm::sync::Client*>(ptr)
-#define SS(ptr) reinterpret_cast<realm::sync::Session*>(ptr)
+#define SS(ptr) reinterpret_cast<JniSession*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
@@ -701,8 +701,12 @@ extern jclass java_lang_float;
 extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
+
+// FIXME Move to own library
 extern jclass sync_manager;
-extern jmethodID sync_manager_notify_handler;
+extern jmethodID sync_manager_notify_error_handler;
+extern jclass session_class_ref;
+extern jmethodID session_error_handler;
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {

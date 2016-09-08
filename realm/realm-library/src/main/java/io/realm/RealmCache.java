@@ -27,6 +27,7 @@ import java.util.Map;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.internal.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -152,6 +153,11 @@ final class RealmCache {
 
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
+
+        // Notify SyncPolicy that the Realm has been opened for the first time
+        if (refAndCount.globalCount == 1) {
+            ObjectServerFacade.realmOpened(configuration);
+        }
         return realm;
     }
 
@@ -207,13 +213,16 @@ final class RealmCache {
             for (RealmCacheType type : RealmCacheType.values()) {
                 totalRefCount += cache.refAndCountMap.get(type).globalCount;
             }
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
-            if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
-            }
 
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
+
+            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
+            if (totalRefCount == 0) {
+                cachesMap.remove(canonicalPath);
+                ObjectServerFacade.realmClosed(realm.getConfiguration());
+            }
+
         } else {
             refAndCount.localCount.set(refCount);
         }
