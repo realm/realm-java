@@ -88,6 +88,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
@@ -99,6 +100,7 @@ import io.realm.util.RealmThread;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -3384,5 +3386,48 @@ public class RealmTests {
         thread.end();
         TestHelper.awaitOrFail(bgRealmFished);
         assertFalse(bgRealmChangeResult.get());
+    }
+
+    @Test
+    public void schemaIndexCacheIsUpdatedAfterSchemaChange() {
+        final CatRealmProxy.CatColumnInfo catColumnInfo;
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) realm.schema.columnIndices.getColumnInfo(Cat.class);
+
+        final long nameIndex = catColumnInfo.nameIndex;
+        final AtomicLong nameIndexNew = new AtomicLong(-1L);
+
+        // change column index of "name"
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final Table catTable = realm.getSchema().getTable(Cat.CLASS_NAME);
+                final long nameIndex = catTable.getColumnIndex(Cat.FIELD_NAME);
+                catTable.removeColumn(nameIndex);
+                final long newIndex = catTable.addColumn(RealmFieldType.STRING,
+                        Cat.FIELD_NAME, true);
+
+                realm.setVersion(realm.getConfiguration().getSchemaVersion() + 1);
+
+                nameIndexNew.set(newIndex);
+            }
+        });
+
+        // check if the index was changed
+        assertNotEquals(nameIndex, nameIndexNew);
+
+        // check if index in the ColumnInfo is updated
+        assertEquals(nameIndexNew.get(), catColumnInfo.nameIndex);
+        assertEquals(nameIndexNew.get(), (long) catColumnInfo.getIndicesMap().get(Cat.FIELD_NAME));
+
+        // check by actual get and set
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final Cat cat = realm.createObject(Cat.class);
+                cat.setName("pochi");
+            }
+        });
+        //noinspection ConstantConditions
+        assertEquals("pochi", realm.where(Cat.class).findFirst().getName());
     }
 }

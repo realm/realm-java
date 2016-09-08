@@ -24,10 +24,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmError;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
@@ -38,11 +42,12 @@ public class SharedRealmTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
+    private RealmConfiguration config;
     private SharedRealm sharedRealm;
 
     @Before
     public void setUp() {
-        RealmConfiguration config = configFactory.createConfiguration();
+        config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
     }
 
@@ -150,5 +155,80 @@ public class SharedRealmTests {
         thrown.expect(RealmError.class);
         sharedRealm.renameTable("TableToRemove", "newName");
         sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void beginTransaction_SchemaVersionListener() {
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
+
+        sharedRealm.close();
+        sharedRealm = SharedRealm.getInstance(config, null, new SharedRealm.SchemaVersionListener() {
+            @Override
+            public void onSchemaVersionChanged(long currentVersion) {
+                listenerCalled.set(true);
+                schemaVersionFromListener.set(currentVersion);
+            }
+        });
+
+        final long before = sharedRealm.getSchemaVersion();
+
+        sharedRealm.beginTransaction();
+        try {
+            // listener is not called if there was no schema change
+            assertFalse(listenerCalled.get());
+
+            // change the schema version
+            sharedRealm.setSchemaVersion(before + 1);
+        } finally {
+            sharedRealm.commitTransaction();
+        }
+
+        // listener is not yet called
+        assertFalse(listenerCalled.get());
+
+        sharedRealm.beginTransaction();
+        try {
+            assertTrue(listenerCalled.get());
+            assertEquals(before + 1, schemaVersionFromListener.get());
+        } finally {
+            sharedRealm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void refresh_SchemaVersionListener() {
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
+
+        sharedRealm.close();
+        sharedRealm = SharedRealm.getInstance(config, null, new SharedRealm.SchemaVersionListener() {
+            @Override
+            public void onSchemaVersionChanged(long currentVersion) {
+                listenerCalled.set(true);
+                schemaVersionFromListener.set(currentVersion);
+            }
+        });
+
+        final long before = sharedRealm.getSchemaVersion();
+
+        sharedRealm.refresh();
+        // listener is not called if there was no schema change
+        assertFalse(listenerCalled.get());
+
+        sharedRealm.beginTransaction();
+        try {
+            // change the schema version
+            sharedRealm.setSchemaVersion(before + 1);
+        } finally {
+            sharedRealm.commitTransaction();
+        }
+
+        // listener is not yet called
+        assertFalse(listenerCalled.get());
+
+        sharedRealm.refresh();
+        assertTrue(listenerCalled.get());
+        assertEquals(before + 1, schemaVersionFromListener.get());
     }
 }
