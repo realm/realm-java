@@ -70,27 +70,6 @@ task startServer(dependsOn :[reverseNodeServerPort, reverseSyncServerPort])  {
         def processBuilder = new ProcessBuilder(['nodejs','server.js', 'debug.log'])
         processBuilder.directory(new File("$projectDir/test_server"))
         processBuilder.start()
-        sleep(3000)
-//         block until the server is up
-//        while (true) {
-//            def proc = "lsof -n -i4TCP:8888".execute()
-//            try {
-//                proc.waitFor()
-//            } finally {
-//                def exitValue = proc.exitValue()
-//                if (exitValue == 0) {
-//                    //set pid
-////                    def pidField = process.class.getDeclaredField('pid')
-////                    pidField.accessible = true
-////                    pidFile << pidField.getInt(process)
-//                    logger.error(">>>>>>>>>>>> Server is up <<<<<<<<<<<<")
-//                    break;
-//                } else {
-//                    // TODO add sleep to timeout
-//                    logger.error(">>>>>>>>>>>> Waiting for server to be up <<<<<<<<<<<<")
-//                }
-//            }
-//        }
     }
 }
 

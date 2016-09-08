@@ -66,11 +66,6 @@ android {
         }
     }
 
-    //Somehow the tar zxf on Jenkins is not working
-//    tasks.withType(JavaCompile) {
-//        compileTask -> compileTask.dependsOn untarRealmServer
-//    }
-
     sourceSets {
         androidTest {
             java.srcDirs += 'src/benchmarks/java'
@@ -86,10 +81,6 @@ android {
         abortOnError false
     }
 }
-
-//task untarRealmServer(type: Exec) {
-//    commandLine 'tar', 'xvf', '/opt/realm-sync-0.27.4-101.tgz'
-//}
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
