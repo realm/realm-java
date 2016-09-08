@@ -25,7 +25,7 @@
     <Match>
         <Class name="io.realm.internal.RealmObjectProxy$CacheData" />
         <Field name="minDepth" />
-        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+        <essiBug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
     <Match>
         <Class name="io.realm.internal.objectserver.Token" />
