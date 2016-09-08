@@ -2219,16 +2219,6 @@ public final class RealmQuery<E extends RealmModel> {
     private long getSourceRowIndexForFirstObject() {
         long tableRowIndex = this.query.find();
         return tableRowIndex;
-//        if (tableRowIndex < 0) {
-//            return tableRowIndex; // Not found
-//        }
-//        if (this.linkView != null) {
-//            return linkView.getTargetRowIndex(tableRowIndex); // LinkView
-//        } else if (table instanceof TableView) {
-//            return ((TableView) table).getSourceRowIndex(tableRowIndex); // TableView
-//        } else {
-//            return tableRowIndex; // Table
-//        }
     }
     // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
     // or it belongs to the child object.
