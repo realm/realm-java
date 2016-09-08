@@ -1697,7 +1697,7 @@ public final class RealmQuery<E extends RealmModel> {
                     try {
                         sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                        // Run the query & handover the table linkView for the caller thread
+                        // Run the query & handover the table view for the caller thread
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
                         // to import it.
                         long handoverTableViewPointer = TableQuery.findAllWithHandover(sharedRealm,
@@ -1814,7 +1814,7 @@ public final class RealmQuery<E extends RealmModel> {
 
                         long columnIndex = getColumnIndexForSort(fieldName);
 
-                        // run the query & handover the table linkView for the caller thread
+                        // run the query & handover the table view for the caller thread
                         long handoverTableViewPointer = TableQuery.findAllSortedWithHandover(sharedRealm,
                                  handoverQueryPointer, columnIndex, sortOrder);
 
@@ -1984,7 +1984,7 @@ public final class RealmQuery<E extends RealmModel> {
                         try {
                             sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                            // run the query & handover the table linkView for the caller thread
+                            // run the query & handover the table view for the caller thread
                             long handoverTableViewPointer = TableQuery.findAllMultiSortedWithHandover(sharedRealm,
                                     handoverQueryPointer, indices, sortOrders);
 
