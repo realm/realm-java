@@ -1,3 +1,3 @@
-include ':sync', ':optionalAPIExists'
+include ':sync'
 
 rootProject.name = 'integration-tests'
