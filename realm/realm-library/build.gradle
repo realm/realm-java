@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '2.0.0-rc3'
+ext.coreVersion = '2.0.0-rc4'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '6ce3b8e9da39e858f01c6a13ba78ba78e78512eb5e772c322ad3d3779ed3d7f0'
+ext.coreSha256Hash = '760d8e889b8d678da36f63be2a49924969bfc8370176696ee977659d59677717'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
