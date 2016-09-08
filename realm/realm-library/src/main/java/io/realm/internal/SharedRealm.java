@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.File;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmFieldType;
 import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
@@ -124,22 +125,24 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    public interface DataVersionListener {
-        void onDataVersionChanged(SharedRealm sharedRealm, RealmConfiguration config);
+    public interface SchemaVersionListener {
+        void onSchemaVersionChanged(long currentVersion);
     }
 
     private long nativePtr;
     private RealmConfiguration configuration;
     final Context context;
-    private final DataVersionListener versionListener;
+    private long lastSchemaVersion;
+    private final SchemaVersionListener schemaChangeListener;
 
     private SharedRealm(long nativePtr, RealmConfiguration configuration, RealmNotifier notifier,
-                        DataVersionListener dataVersionListener) {
+                        SchemaVersionListener schemaVersionListener) {
         this.nativePtr = nativePtr;
         this.configuration = configuration;
         this.realmNotifier = notifier;
-        this.versionListener = dataVersionListener;
+        this.schemaChangeListener = schemaVersionListener;
         context = new Context();
+        this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
@@ -147,7 +150,7 @@ public final class SharedRealm implements Closeable {
     }
 
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
-                                          DataVersionListener dataVersionListener) {
+                                          SchemaVersionListener schemaVersionListener) {
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
@@ -161,7 +164,7 @@ public final class SharedRealm implements Closeable {
                     nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
                     config,
                     realmNotifier,
-                    dataVersionListener);
+                    schemaVersionListener);
         } finally {
             nativeCloseConfig(nativeConfigPtr);
         }
@@ -173,7 +176,7 @@ public final class SharedRealm implements Closeable {
 
     public void beginTransaction() {
         nativeBeginTransaction(nativePtr);
-        onDataVersionChange();
+        invokeListenerIfSchemaChanged();
     }
 
     public void commitTransaction() {
@@ -186,6 +189,16 @@ public final class SharedRealm implements Closeable {
 
     public boolean isInTransaction() {
         return nativeIsInTransaction(nativePtr);
+    }
+
+    public void setSchemaVersion(long schemaVersion) {
+        // FIXME migrate to ObjectStore
+        Table metadataTable = getTable(Table.METADATA_TABLE_NAME);
+        if (metadataTable.getColumnCount() == 0) {
+            metadataTable.addColumn(RealmFieldType.INTEGER, "version");
+            metadataTable.addEmptyRow();
+        }
+        metadataTable.setLong(0, 0, schemaVersion);
     }
 
     public long getSchemaVersion() {
@@ -231,7 +244,7 @@ public final class SharedRealm implements Closeable {
 
     public void refresh() {
         nativeRefresh(nativePtr);
-        onDataVersionChange();
+        invokeListenerIfSchemaChanged();
     }
 
     public void refresh(SharedRealm.VersionID version) throws BadVersionException {
@@ -240,7 +253,7 @@ public final class SharedRealm implements Closeable {
         // or transact log observer involved. Before we use notification & fine grained notification from OS, it is not
         // a problem.
         nativeRefresh(nativePtr, version.version, version.index);
-        onDataVersionChange();
+        invokeListenerIfSchemaChanged();
     }
 
     public SharedRealm.VersionID getVersionID() {
@@ -298,9 +311,16 @@ public final class SharedRealm implements Closeable {
         super.finalize();
     }
 
-    private void onDataVersionChange() {
-        if (versionListener != null) {
-            versionListener.onDataVersionChanged(this, configuration);
+    private void invokeListenerIfSchemaChanged() {
+        if (schemaChangeListener == null) {
+            return;
+        }
+
+        final long before = lastSchemaVersion;
+        final long current = getSchemaVersion();
+        if (current != before) {
+            lastSchemaVersion = current;
+            schemaChangeListener.onSchemaVersionChanged(current);
         }
     }
 

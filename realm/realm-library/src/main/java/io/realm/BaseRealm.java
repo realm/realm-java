@@ -79,9 +79,9 @@ abstract class BaseRealm implements Closeable {
         this.handlerController = new HandlerController(this);
         this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController),
                 !(this instanceof Realm) ? null :
-                new SharedRealm.DataVersionListener() {
+                new SharedRealm.SchemaVersionListener() {
                     @Override
-                    public void onDataVersionChanged(SharedRealm sharedRealm, RealmConfiguration config) {
+                    public void onSchemaVersionChanged(long currentVersion) {
                         RealmCache.updateSchemaCache((Realm) BaseRealm.this);
                     }
                 });
@@ -471,12 +471,7 @@ abstract class BaseRealm implements Closeable {
 
     // package protected so unit tests can access it
     void setVersion(long version) {
-        Table metadataTable = sharedRealm.getTable(Table.METADATA_TABLE_NAME);
-        if (metadataTable.getColumnCount() == 0) {
-            metadataTable.addColumn(RealmFieldType.INTEGER, "version");
-            metadataTable.addEmptyRow();
-        }
-        metadataTable.setLong(0, 0, version);
+        sharedRealm.setSchemaVersion(version);
     }
 
     /**
