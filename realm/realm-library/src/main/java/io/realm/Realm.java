@@ -262,17 +262,23 @@ public final class Realm extends BaseRealm {
         final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
         columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
         for (Class<? extends RealmModel> modelClass : modelClasses) {
+            RealmSchema tmp = new RealmSchema();
             //if (version == UNVERSIONED) {
-                RealmSchema tmp = new RealmSchema();
                 realmObjectSchemas.add(mediator.createRealmObjectSchema(modelClass, tmp));
             //}
-            columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+            //columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
         }
-        realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+        //realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
         RealmSchema schema = new RealmSchema(realm, realmObjectSchemas);
         if (realm.sharedRealm.updateSchema(schema, realm.configuration.getSchemaVersion(), realm.configuration.getMigration()) == -1) {
             throw new RealmMigrationNeededException("Delete Realm file", realm.configuration.getPath());
         }
+
+        for (Class<? extends RealmModel> modelClass : modelClasses) {
+            columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+        }
+        realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+
         if (version == UNVERSIONED) {
             final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
             if (transaction != null) {

@@ -98,7 +98,7 @@ abstract class BaseRealm implements Closeable {
     // only used during migrations
     protected BaseRealm(SharedRealm realm) {
         this.threadId = Thread.currentThread().getId();
-        this.configuration = null; // FIXME: maybe?
+        this.configuration = realm.getConfiguration();
         this.sharedRealm = realm;
         this.schema = new RealmSchema(this);
         this.handlerController = null;

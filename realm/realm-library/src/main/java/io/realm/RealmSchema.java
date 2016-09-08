@@ -47,7 +47,7 @@ public final class RealmSchema {
     // Caches Class objects (both model classes and proxy classes) to their Schema object
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<Class<? extends RealmModel>, RealmObjectSchema>();
     // Caches Class Strings to their Schema object
-    private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<String, RealmObjectSchema>();
+    protected final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<String, RealmObjectSchema>();
 
     private final BaseRealm realm;
     ColumnIndices columnIndices; // Cached field look up
@@ -147,12 +147,12 @@ public final class RealmSchema {
             } else {
                 String internalTableName = TABLE_PREFIX + className;
                 if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
-                    throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: " + className.length());
+                    throw new IllegalArgumentException("Class name is to long. Limit is " + Table.TABLE_MAX_LENGTH + " characters: " + className.length());
                 }
                 if (realm.sharedRealm.hasTable(internalTableName)) {
                     throw new IllegalArgumentException("Class already exists: " + className);
                 }
-                realm.sharedRealm.getTable(internalTableName);
+                Table table = realm.sharedRealm.getTable(internalTableName);
                 realmObjectSchema = new RealmObjectSchema(realm, className, null);
             }
             dynamicClassToSchema.put(className, realmObjectSchema);
@@ -202,6 +202,7 @@ public final class RealmSchema {
                 return realmObjectSchema;
             } else {
                 realm.sharedRealm.renameTable(oldClassName, newClassName);
+
                 return getObjectSchemaByName(newClassName); // FIXME: is object_schema updated?
             }
         } else {

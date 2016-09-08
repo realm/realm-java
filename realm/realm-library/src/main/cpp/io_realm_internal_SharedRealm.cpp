@@ -220,7 +220,10 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
     auto version = static_cast<uint64_t>(schema_version);
     try {
         if (migration_object == NULL) {
-            std::vector<SchemaChange> required_changes = ObjectStore::schema_from_group(shared_realm->read_group()).compare(*schema);
+            auto required_changes = shared_realm->schema().compare(*schema);
+            if (!required_changes.empty() && version > uint64_t(-1)) {
+                return -1;
+            }
             shared_realm->update_schema(std::move(*schema), version, nullptr);
         }
         else {
@@ -250,6 +253,10 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
                     throw std::runtime_error("Cannot get an instance of DynamicRealm.");
                 }
                 env->CallVoidMethod(migration_object, realm_migration_method, dynamic_realm, schema_version);
+                if (env->ExceptionCheck() == JNI_TRUE) {
+                    env->ExceptionClear();
+                    throw std::invalid_argument("migrate() failed");
+                }
             };
             shared_realm->update_schema(std::move(*schema), version, std::move(migration_function));
         }

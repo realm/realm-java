@@ -168,6 +168,11 @@ public final class SharedRealm implements Closeable {
         return nativePtr;
     }
 
+    // FIXME: better be protected
+    public RealmConfiguration getConfiguration() {
+        return this.configuration;
+    }
+
     public void beginTransaction() {
         nativeBeginTransaction(nativePtr);
     }
@@ -209,7 +214,22 @@ public final class SharedRealm implements Closeable {
     }
 
     public void renameTable(String oldName, String newName) {
+        String primaryKey = null;
+
+        String oldClassName = oldName.substring(Table.TABLE_PREFIX.length());
+        String newClassName = newName.substring(Table.TABLE_PREFIX.length());
+
+        boolean hasPrimaryKey = hasPrimaryKey(oldClassName);
+        if (hasPrimaryKey) {
+            primaryKey = getPrimaryKey(oldClassName);
+            setPrimaryKey(oldClassName, "");
+        }
+
         nativeRenameTable(nativePtr, oldName, newName);
+
+        if (hasPrimaryKey) {
+            setPrimaryKey(newClassName, primaryKey);
+        }
     }
 
     public void removeTable(String name) {

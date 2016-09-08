@@ -153,15 +153,24 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
-        if (className.length() > 56) {
-            throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: '" + className +
-                 "' (" + className.length() + ")");
+        if (className.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is to long. Limit is " + Table.TABLE_MAX_LENGTH +
+                    " characters: '" + className + "' (" + className.length() + ")");
         }
         if (realm == null) {
             nativeSetClassName(nativePtr, className);
         } else {
-            // FIXME: how to get rid of Table and use object store?
+            RealmSchema schema = realm.getSchema();
+            RealmObjectSchema realmObjectSchema = null;
+            if (schema.dynamicClassToSchema.containsKey(this.className)) {
+                 realmObjectSchema = schema.dynamicClassToSchema.remove(this.className);
+            }
+
             realm.sharedRealm.renameTable(Table.TABLE_PREFIX + this.className, Table.TABLE_PREFIX + className);
+            if (realmObjectSchema == null) {
+                realmObjectSchema = schema.getObjectSchemaByName(className);
+            }
+            schema.dynamicClassToSchema.put(className, realmObjectSchema);
         }
         this.className = className;
         return this;
