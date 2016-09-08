@@ -21,6 +21,7 @@
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
 * Added `RealmConfiguration.Builder.directory(File)`.
 * `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
+* Now typed `RealmObject`s can access its fields properly if the column index was changed during the relevant Realm is open (#3409).
 
 ### Bug fixes
 
