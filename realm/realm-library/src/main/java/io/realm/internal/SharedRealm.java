@@ -181,6 +181,7 @@ public final class SharedRealm implements Closeable {
 
     public void commitTransaction() {
         nativeCommitTransaction(nativePtr);
+        invokeListenerIfSchemaChanged();
     }
 
     public void cancelTransaction() {
