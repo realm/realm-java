@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver;
+package io.realm.objectserver.internal;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +22,6 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class represents a value from the Realm Authentication Server.

@@ -16,7 +16,7 @@
 
 package io.realm.objectserver;
 
-import io.realm.internal.objectserver.network.NetworkStateReceiver;
+import io.realm.objectserver.internal.network.NetworkStateReceiver;
 
 /**
  * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver.network;
+package io.realm.objectserver.internal.network;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

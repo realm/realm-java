@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application>
-        <receiver android:name=".internal.objectserver.network.NetworkStateReceiver">
+        <receiver android:name=".objectserver.internal.network.NetworkStateReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>

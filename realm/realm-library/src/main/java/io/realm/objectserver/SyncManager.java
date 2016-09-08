@@ -16,18 +16,15 @@
 
 package io.realm.objectserver;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
-import io.realm.internal.objectserver.network.AuthenticationServer;
-import io.realm.internal.objectserver.network.OkHttpAuthenticationServer;
+import io.realm.objectserver.internal.SessionStore;
+import io.realm.objectserver.internal.network.AuthenticationServer;
+import io.realm.objectserver.internal.network.OkHttpAuthenticationServer;
 import io.realm.log.RealmLog;
 
 /**
@@ -71,9 +68,6 @@ public final class SyncManager {
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
-    // Map of between a local Realm path and any associated sessionInfo
-    private static HashMap<String, Session> sessions = new HashMap<String, Session>();
-
     static {
         RealmCore.loadLibrary();
         nativeInitializeSyncClient();
@@ -93,17 +87,6 @@ public final class SyncManager {
     }
 
     /**
-     * Convenience method for creating an {@link Session} using {@link #getSession(SyncConfiguration)} and
-     * calling {@link Session#start()} on it.
-     */
-    public static Session connect(SyncConfiguration configuration) {
-        // Get any cached session or create a new one if needed.
-        Session session = getSession(configuration);
-        session.start();
-        return session;
-    }
-
-    /**
      * Gets any cached {@link Session} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
@@ -111,43 +94,11 @@ public final class SyncManager {
      * @return the {@link Session} for the specified Realm.
      */
     public static synchronized Session getSession(SyncConfiguration syncConfiguration) {
-        if (syncConfiguration == null) {
-            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
-        }
-
-        String localPath = syncConfiguration.getPath();
-        Session session = sessions.get(localPath);
-        if (session == null) {
-            session = new Session(syncConfiguration, authServer);
-            syncConfiguration.getSyncPolicy().onSessionCreated(session);
-            sessions.put(localPath, session);
-        }
-
-        return session;
+        return SessionStore.getSession(syncConfiguration);
     }
 
     public static AuthenticationServer getAuthServer() {
         return authServer;
-    }
-
-    /**
-     * Remove a session once it has been closed
-     *
-     * @param info
-     */
-    static synchronized void removeSession(Session info) {
-        if (info == null) {
-            return;
-        }
-
-        Iterator<Map.Entry<String, Session>> it = sessions.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Session> entry = it.next();
-            if (entry.getValue().equals(info)) {
-                it.remove();
-                break;
-            }
-        }
     }
 
     /**
@@ -165,7 +116,7 @@ public final class SyncManager {
     // from here. This can be removed once better error propagation is implemented in Sync Core.
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for (Session session : sessions.values()) {
+        for (Session session : SessionStore.getSession()) {
             session.onError(error);
         }
     }

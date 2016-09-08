@@ -25,10 +25,9 @@ import java.net.URISyntaxException;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.objectserver.internal.syncpolicy.AutomaticSyncPolicy;
+import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RxObservableFactory;
-
-import static android.R.attr.path;
-import static android.R.attr.required;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -177,7 +176,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         return this.canonicalPath;
     }
 
-    public SyncPolicy getSyncPolicy() {
+    // Keeping this package protected for now. The API might still be subject to change.
+    SyncPolicy getSyncPolicy() {
         return syncPolicy;
     }
 
@@ -404,10 +404,9 @@ public final class SyncConfiguration extends RealmConfiguration {
          *
          * @param syncPolicy policy to use.
          *
-         * @see SyncManager#connect(SyncConfiguration)
          * @see Session
          */
-        public Builder syncPolicy(SyncPolicy syncPolicy) {
+        Builder syncPolicy(SyncPolicy syncPolicy) {
             // TODO: Decide if we should launch with this as package protected since the sync notification API might
             // change quite a bit.
             this.syncPolicy = syncPolicy;

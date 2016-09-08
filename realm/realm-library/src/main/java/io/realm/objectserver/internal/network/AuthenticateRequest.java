@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver.network;
+package io.realm.objectserver.internal.network;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.internal.objectserver.Token;
+import io.realm.objectserver.internal.Token;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.SyncManager;
 

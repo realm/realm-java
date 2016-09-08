@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver.network;
+package io.realm.objectserver.internal.network;
 
 import java.net.URI;
 import java.net.URL;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Util;
 import io.realm.objectserver.ErrorCode;
-import io.realm.internal.objectserver.Token;
+import io.realm.objectserver.internal.Token;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.ObjectServerError;
 import okhttp3.Call;
