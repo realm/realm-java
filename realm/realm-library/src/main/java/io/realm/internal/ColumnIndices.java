@@ -52,7 +52,6 @@ public final class ColumnIndices {
         if (columnInfo != null) {
             Long index = columnInfo.getIndicesMap().get(fieldName);
             return (index != null) ? index : -1;
-
         } else {
             return -1;
         }
