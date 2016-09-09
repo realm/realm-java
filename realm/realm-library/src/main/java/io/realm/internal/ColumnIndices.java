@@ -24,9 +24,9 @@ import io.realm.RealmModel;
 /**
  * Utility class used to cache the mapping between object field names and their column indices.
  */
-public final class ColumnIndices {
+public final class ColumnIndices implements Cloneable {
     private long schemaVersion;
-    private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
+    private Map<Class<? extends RealmModel>, ColumnInfo> classes;
 
     public ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes) {
         this.schemaVersion = schemaVersion;
@@ -57,8 +57,15 @@ public final class ColumnIndices {
         }
     }
 
-    public ColumnIndices copyDeeply() {
-        return new ColumnIndices(schemaVersion, duplicateColumnInfoMap());
+    @Override
+    public ColumnIndices clone() {
+        try {
+            final ColumnIndices clone = (ColumnIndices) super.clone();
+            clone.classes = duplicateColumnInfoMap();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Map<Class<? extends RealmModel>, ColumnInfo> duplicateColumnInfoMap() {

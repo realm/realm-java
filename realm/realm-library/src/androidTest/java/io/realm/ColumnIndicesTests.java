@@ -81,7 +81,7 @@ public class ColumnIndicesTests {
         final long schemaVersion = 100;
 
         final ColumnIndices columnIndices = create(schemaVersion);
-        final ColumnIndices deepCopy = columnIndices.copyDeeply();
+        final ColumnIndices deepCopy = columnIndices.clone();
 
         assertEquals(schemaVersion, deepCopy.getSchemaVersion());
         assertEquals(columnIndices.getColumnIndex(Cat.class, Cat.FIELD_NAME),

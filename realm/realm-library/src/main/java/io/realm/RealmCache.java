@@ -146,7 +146,7 @@ final class RealmCache {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 final BaseRealm realm = refAndCount.localRealm.get();
                 // store a copy of local ColumnIndices as a global cache.
-                RealmCache.store(cache.typedColumnIndicesArray, realm.schema.columnIndices.copyDeeply());
+                RealmCache.store(cache.typedColumnIndicesArray, realm.schema.columnIndices.clone());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;

@@ -251,7 +251,7 @@ public final class Realm extends BaseRealm {
             }
         } else {
             // copy global cache as a Realm local indices cache
-            realm.schema.columnIndices = columnIndices.copyDeeply();
+            realm.schema.columnIndices = columnIndices.clone();
         }
 
         return realm;
