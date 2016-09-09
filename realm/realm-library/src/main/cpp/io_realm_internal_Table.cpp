@@ -638,6 +638,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_Table_nativeSetLongUnique(JNIEnv *env, jclass, jlong nativeTablePtr, jlong columnIndex,
+                                                 jlong rowIndex, jlong value)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int))
+        return;
+    try {
+        TBL(nativeTablePtr)->set_int_unique( S(columnIndex), S(rowIndex), value);
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean(
     JNIEnv* env, jclass, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jboolean value)
 {
@@ -681,6 +692,24 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(
         }
         JStringAccessor value2(env, value); // throws
         TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_Table_nativeSetStringUnique(JNIEnv *env, jclass, jlong nativeTablePtr, jlong columnIndex,
+                                                   jlong rowIndex, jstring value)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String))
+        return;
+    try {
+        if (value == NULL) {
+            if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
+                return;
+            }
+        }
+        JStringAccessor value2(env, value); // throws
+        // FIXME: Check if we need to call set_null_unique when core support it.
+        TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
 }
 
