@@ -442,6 +442,8 @@ inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnInd
         && TypeIsLinkLike(env, pTable, columnIndex);
 }
 
+// FIXME Usually this is called after TBL_AND_INDEX_AND_TYPE_VALID which will validate Table as well.
+// Try to avoid duplicated checks to improve performance.
 template <class T>
 inline bool TblColIndexAndNullable(JNIEnv* env, T* pTable, jlong columnIndex) {
     return TableIsValid(env, pTable)
