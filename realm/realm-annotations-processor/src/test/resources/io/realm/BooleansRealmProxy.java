@@ -70,7 +70,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
 
         @Override
-        public final BooleansColumnInfo copy() {
+        public final BooleansColumnInfo copyColumnInfo() {
             return new BooleansColumnInfo(this);
         }
 

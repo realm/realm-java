@@ -64,7 +64,7 @@ public final class ColumnIndices {
     private Map<Class<? extends RealmModel>, ColumnInfo> duplicateColumnInfoMap() {
         final Map<Class<? extends RealmModel>, ColumnInfo> copy = new HashMap<>();
         for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
-            copy.put(entry.getKey(), entry.getValue().copy());
+            copy.put(entry.getKey(), entry.getValue().copyColumnInfo());
         }
         return copy;
     }

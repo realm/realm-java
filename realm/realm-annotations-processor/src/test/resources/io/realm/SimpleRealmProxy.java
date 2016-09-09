@@ -60,7 +60,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
 
         @Override
-        public final SimpleColumnInfo copy() {
+        public final SimpleColumnInfo copyColumnInfo() {
             return new SimpleColumnInfo(this);
         }
 

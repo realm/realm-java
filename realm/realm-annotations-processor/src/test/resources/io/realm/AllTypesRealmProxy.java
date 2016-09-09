@@ -95,7 +95,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
         @Override
-        public final AllTypesColumnInfo copy() {
+        public final AllTypesColumnInfo copyColumnInfo() {
             return new AllTypesColumnInfo(this);
         }
 

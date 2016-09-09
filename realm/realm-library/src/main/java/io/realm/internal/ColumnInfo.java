@@ -61,5 +61,5 @@ public abstract class ColumnInfo {
      *
      * @return a copy.
      */
-    public abstract ColumnInfo copy();
+    public abstract ColumnInfo copyColumnInfo();
 }

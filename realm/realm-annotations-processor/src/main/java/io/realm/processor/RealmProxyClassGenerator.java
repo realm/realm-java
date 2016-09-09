@@ -196,11 +196,11 @@ public class RealmProxyClassGenerator {
         writer.endMethod();
         writer.emitEmptyLine();
 
-        // copy method
+        // copyColumnInfo method
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 columnInfoClassName(),       // return type
-                "copy",                     // method name
+                "copyColumnInfo",            // method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.FINAL)) // modifiers
                 // method body
                 .emitStatement("return new %1$s(this)", columnInfoClassName())

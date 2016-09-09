@@ -155,7 +155,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
 
         @Override
-        public final NullTypesColumnInfo copy() {
+        public final NullTypesColumnInfo copyColumnInfo() {
             return new NullTypesColumnInfo(this);
         }
 
