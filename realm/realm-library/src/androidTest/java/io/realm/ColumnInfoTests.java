@@ -31,7 +31,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.assertSame;
-import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ColumnInfoTests {
@@ -114,7 +113,7 @@ public class ColumnInfoTests {
         columnInfo.ownerIndex = 7;
         columnInfo.scaredOfDogIndex = 8;
 
-        CatRealmProxy.CatColumnInfo copy = columnInfo.copy();
+        CatRealmProxy.CatColumnInfo copy = columnInfo.copyColumnInfo();
 
         // modify original object
         columnInfo.nameIndex = 0;
