@@ -128,10 +128,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
         @Override
         public final void copyColumnInfoFrom(ColumnInfo other) {
-            if (!(other instanceof NullTypesColumnInfo)) {
-                throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
-            }
-
             final NullTypesColumnInfo otherInfo = (NullTypesColumnInfo) other;
             this.fieldStringNotNullIndex = otherInfo.fieldStringNotNullIndex;
             this.fieldStringNullIndex = otherInfo.fieldStringNullIndex;

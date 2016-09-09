@@ -184,12 +184,6 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), // modifiers
                 "ColumnInfo", "other");      // parameters
         {
-            writer.beginControlFlow("if (!(other instanceof %1$s))", columnInfoClassName())
-                    .emitStatement("throw new IllegalArgumentException(\"unexpected ColumnInfo. expected:" +
-                            " \" + getClass().getCanonicalName() + \"," +
-                            " actual: \" + other.getClass().getCanonicalName())")
-                    .endControlFlow();
-            writer.emitEmptyLine();
             writer.emitStatement("final %1$s otherInfo = (%1$s) other", columnInfoClassName());
 
             // copy field values
