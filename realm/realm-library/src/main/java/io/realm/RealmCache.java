@@ -390,7 +390,9 @@ final class RealmCache {
     /**
      * Stores the schema cache to the array.
      * <p>
-     * If the {@code array} has empty slot ({@code == null}), this method stores
+     * If the {@code array} has an empty slot ({@code == null}), this method stores
+     * the {@code columnIndices} to it. Otherwise, the entry of the oldest schema version is
+     * replaced.
      *
      * @param array target array.
      * @param columnIndices the item to be stored into the {@code array}.
