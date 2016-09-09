@@ -52,7 +52,9 @@ public class RealmProxyMediatorTests {
 
     @After
     public void tearDown() {
-        realm.close();
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     @Test

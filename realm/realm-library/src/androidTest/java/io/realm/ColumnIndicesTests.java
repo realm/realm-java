@@ -58,7 +58,9 @@ public class ColumnIndicesTests {
 
     @After
     public void tearDown() {
-        realm.close();
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     @NonNull
