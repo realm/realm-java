@@ -295,8 +295,7 @@ final class RealmCache {
             return;
         }
         final ColumnIndices[] globalCacheArray = cache.typedColumnIndicesArray;
-        final ColumnIndices createdCacheEntry = realm.updateSchemaCache(
-                globalCacheArray);
+        final ColumnIndices createdCacheEntry = realm.updateSchemaCache(globalCacheArray);
         if (createdCacheEntry != null) {
             RealmCache.store(globalCacheArray, createdCacheEntry);
         }
@@ -391,7 +390,7 @@ final class RealmCache {
     /**
      * Stores the schema cache to the array.
      * <p>
-     * If the {@code array} has empty ({@code == null}) slot, this method stores
+     * If the {@code array} has empty slot ({@code == null}), this method stores
      *
      * @param array target array.
      * @param columnIndices the item to be stored into the {@code array}.

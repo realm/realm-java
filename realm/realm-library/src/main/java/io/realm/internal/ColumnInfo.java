@@ -50,8 +50,8 @@ public abstract class ColumnInfo {
     /**
      * Copies the column index value from other {@link ColumnInfo} object.
      *
-     * @param other The class of {@code other} must be exactly the the same with this instance.
-     *              Of course it must not be {@code null}.
+     * @param other The class of {@code other} must be exactly the same as this instance.
+     *              It must not be {@code null}.
      * @throws IllegalArgumentException if {@code other} has different class than this.
      */
     public abstract void copyColumnInfoFrom(ColumnInfo other);
