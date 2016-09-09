@@ -176,12 +176,11 @@ public final class SharedRealm implements Closeable {
 
     public void beginTransaction() {
         nativeBeginTransaction(nativePtr);
-        invokeListenerIfSchemaChanged();
+        invokeSchemaChangeListenerIfSchemaChanged();
     }
 
     public void commitTransaction() {
         nativeCommitTransaction(nativePtr);
-        invokeListenerIfSchemaChanged();
     }
 
     public void cancelTransaction() {
@@ -245,7 +244,7 @@ public final class SharedRealm implements Closeable {
 
     public void refresh() {
         nativeRefresh(nativePtr);
-        invokeListenerIfSchemaChanged();
+        invokeSchemaChangeListenerIfSchemaChanged();
     }
 
     public void refresh(SharedRealm.VersionID version) throws BadVersionException {
@@ -254,7 +253,7 @@ public final class SharedRealm implements Closeable {
         // or transact log observer involved. Before we use notification & fine grained notification from OS, it is not
         // a problem.
         nativeRefresh(nativePtr, version.version, version.index);
-        invokeListenerIfSchemaChanged();
+        invokeSchemaChangeListenerIfSchemaChanged();
     }
 
     public SharedRealm.VersionID getVersionID() {
@@ -312,7 +311,7 @@ public final class SharedRealm implements Closeable {
         super.finalize();
     }
 
-    private void invokeListenerIfSchemaChanged() {
+    public void invokeSchemaChangeListenerIfSchemaChanged() {
         if (schemaChangeListener == null) {
             return;
         }

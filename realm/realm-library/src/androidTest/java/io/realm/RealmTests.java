@@ -3410,6 +3410,8 @@ public class RealmTests {
                 nameIndexNew.set(newIndex);
             }
         });
+        // we need ↓ to update index cache if the schema version was changed in the same thread.
+        realm.sharedRealm.invokeSchemaChangeListenerIfSchemaChanged();
 
         // check if the index was changed
         assertNotEquals(nameIndex, nameIndexNew);
