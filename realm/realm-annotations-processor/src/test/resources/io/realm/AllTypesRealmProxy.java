@@ -28,7 +28,8 @@ import org.json.JSONObject;
 public class AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
-    static final class AllTypesColumnInfo extends ColumnInfo {
+    static final class AllTypesColumnInfo extends ColumnInfo
+            implements Cloneable {
 
         public long columnStringIndex;
         public long columnLongIndex;
@@ -64,20 +65,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             setIndicesMap(indicesMap);
         }
 
-        private AllTypesColumnInfo(AllTypesColumnInfo original) {
-            this.columnStringIndex = original.columnStringIndex;
-            this.columnLongIndex = original.columnLongIndex;
-            this.columnFloatIndex = original.columnFloatIndex;
-            this.columnDoubleIndex = original.columnDoubleIndex;
-            this.columnBooleanIndex = original.columnBooleanIndex;
-            this.columnDateIndex = original.columnDateIndex;
-            this.columnBinaryIndex = original.columnBinaryIndex;
-            this.columnObjectIndex = original.columnObjectIndex;
-            this.columnRealmListIndex = original.columnRealmListIndex;
-
-            setIndicesMap(original.getIndicesMap());
-        }
-
         @Override
         public final void copyColumnInfoFrom(ColumnInfo other) {
             final AllTypesColumnInfo otherInfo = (AllTypesColumnInfo) other;
@@ -95,8 +82,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
         @Override
-        public final AllTypesColumnInfo copyColumnInfo() {
-            return new AllTypesColumnInfo(this);
+        public final AllTypesColumnInfo clone() {
+            return (AllTypesColumnInfo) super.clone();
         }
 
     }

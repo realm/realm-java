@@ -28,7 +28,8 @@ import org.json.JSONObject;
 public class SimpleRealmProxy extends some.test.Simple
         implements RealmObjectProxy, SimpleRealmProxyInterface {
 
-    static final class SimpleColumnInfo extends ColumnInfo {
+    static final class SimpleColumnInfo extends ColumnInfo
+            implements Cloneable {
 
         public long nameIndex;
         public long ageIndex;
@@ -43,13 +44,6 @@ public class SimpleRealmProxy extends some.test.Simple
             setIndicesMap(indicesMap);
         }
 
-        private SimpleColumnInfo(SimpleColumnInfo original) {
-            this.nameIndex = original.nameIndex;
-            this.ageIndex = original.ageIndex;
-
-            setIndicesMap(original.getIndicesMap());
-        }
-
         @Override
         public final void copyColumnInfoFrom(ColumnInfo other) {
             final SimpleColumnInfo otherInfo = (SimpleColumnInfo) other;
@@ -60,8 +54,8 @@ public class SimpleRealmProxy extends some.test.Simple
         }
 
         @Override
-        public final SimpleColumnInfo copyColumnInfo() {
-            return new SimpleColumnInfo(this);
+        public final SimpleColumnInfo clone() {
+            return (SimpleColumnInfo) super.clone();
         }
 
     }

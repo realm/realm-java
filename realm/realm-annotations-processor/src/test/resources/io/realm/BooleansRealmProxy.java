@@ -28,7 +28,8 @@ import org.json.JSONObject;
 public class BooleansRealmProxy extends some.test.Booleans
         implements RealmObjectProxy, BooleansRealmProxyInterface {
 
-    static final class BooleansColumnInfo extends ColumnInfo {
+    static final class BooleansColumnInfo extends ColumnInfo
+            implements Cloneable {
 
         public long doneIndex;
         public long isReadyIndex;
@@ -49,15 +50,6 @@ public class BooleansRealmProxy extends some.test.Booleans
             setIndicesMap(indicesMap);
         }
 
-        private BooleansColumnInfo(BooleansColumnInfo original) {
-            this.doneIndex = original.doneIndex;
-            this.isReadyIndex = original.isReadyIndex;
-            this.mCompletedIndex = original.mCompletedIndex;
-            this.anotherBooleanIndex = original.anotherBooleanIndex;
-
-            setIndicesMap(original.getIndicesMap());
-        }
-
         @Override
         public final void copyColumnInfoFrom(ColumnInfo other) {
             final BooleansColumnInfo otherInfo = (BooleansColumnInfo) other;
@@ -70,8 +62,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
 
         @Override
-        public final BooleansColumnInfo copyColumnInfo() {
-            return new BooleansColumnInfo(this);
+        public final BooleansColumnInfo clone() {
+            return (BooleansColumnInfo) super.clone();
         }
 
     }

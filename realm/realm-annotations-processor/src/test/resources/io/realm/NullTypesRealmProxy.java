@@ -28,7 +28,8 @@ import org.json.JSONObject;
 public class NullTypesRealmProxy extends some.test.NullTypes
         implements RealmObjectProxy, NullTypesRealmProxyInterface {
 
-    static final class NullTypesColumnInfo extends ColumnInfo {
+    static final class NullTypesColumnInfo extends ColumnInfo
+            implements Cloneable {
 
         public long fieldStringNotNullIndex;
         public long fieldStringNullIndex;
@@ -100,32 +101,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             setIndicesMap(indicesMap);
         }
 
-        private NullTypesColumnInfo(NullTypesColumnInfo original) {
-            this.fieldStringNotNullIndex = original.fieldStringNotNullIndex;
-            this.fieldStringNullIndex = original.fieldStringNullIndex;
-            this.fieldBooleanNotNullIndex = original.fieldBooleanNotNullIndex;
-            this.fieldBooleanNullIndex = original.fieldBooleanNullIndex;
-            this.fieldBytesNotNullIndex = original.fieldBytesNotNullIndex;
-            this.fieldBytesNullIndex = original.fieldBytesNullIndex;
-            this.fieldByteNotNullIndex = original.fieldByteNotNullIndex;
-            this.fieldByteNullIndex = original.fieldByteNullIndex;
-            this.fieldShortNotNullIndex = original.fieldShortNotNullIndex;
-            this.fieldShortNullIndex = original.fieldShortNullIndex;
-            this.fieldIntegerNotNullIndex = original.fieldIntegerNotNullIndex;
-            this.fieldIntegerNullIndex = original.fieldIntegerNullIndex;
-            this.fieldLongNotNullIndex = original.fieldLongNotNullIndex;
-            this.fieldLongNullIndex = original.fieldLongNullIndex;
-            this.fieldFloatNotNullIndex = original.fieldFloatNotNullIndex;
-            this.fieldFloatNullIndex = original.fieldFloatNullIndex;
-            this.fieldDoubleNotNullIndex = original.fieldDoubleNotNullIndex;
-            this.fieldDoubleNullIndex = original.fieldDoubleNullIndex;
-            this.fieldDateNotNullIndex = original.fieldDateNotNullIndex;
-            this.fieldDateNullIndex = original.fieldDateNullIndex;
-            this.fieldObjectNullIndex = original.fieldObjectNullIndex;
-
-            setIndicesMap(original.getIndicesMap());
-        }
-
         @Override
         public final void copyColumnInfoFrom(ColumnInfo other) {
             final NullTypesColumnInfo otherInfo = (NullTypesColumnInfo) other;
@@ -155,8 +130,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
 
         @Override
-        public final NullTypesColumnInfo copyColumnInfo() {
-            return new NullTypesColumnInfo(this);
+        public final NullTypesColumnInfo clone() {
+            return (NullTypesColumnInfo) super.clone();
         }
 
     }
