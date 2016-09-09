@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '0.28.0'
+ext.coreVersion = '1.0.0-beta-31'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'e4d8ed7342824a1574449700b16cd36f663f4d6768fc09c1aca986f19e27162b'
+ext.coreSha256Hash = 'd922d14c5770429aafe57d76b95ae57a77da8625dd1a723d5518e032d167d114'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -129,9 +129,9 @@ task javadoc(type: Javadoc) {
         locale = 'en_US'
         overview = 'src/overview.html'
 
-        links "http://docs.oracle.com/javase/7/docs/api/"
+        links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "http://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'

@@ -915,7 +915,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.NullTypes obj = realm.createObject(some.test.NullTypes.class);
+        some.test.NullTypes obj = new some.test.NullTypes();
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -1082,6 +1082,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
         }
         reader.endObject();
+        obj = realm.copyToRealm(obj);
         return obj;
     }
 

@@ -40,6 +40,7 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -231,6 +232,12 @@ public class DynamicRealmTests {
     public void createObject_illegalPrimaryKeyValue() {
         realm.beginTransaction();
         realm.createObject(DogPrimaryKey.CLASS_NAME, "bar");
+    }
+
+    @Test(expected = RealmException.class)
+    public void createObject_absentPrimaryKeyThrows() {
+        realm.beginTransaction();
+        realm.createObject(DogPrimaryKey.CLASS_NAME);
     }
 
     @Test
