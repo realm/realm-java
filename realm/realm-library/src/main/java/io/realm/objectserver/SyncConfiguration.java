@@ -326,14 +326,14 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Manual migrations are not supported (yet) for Realms that can be synced using the Realm Object Server
+         * Manual migrations are not supported for Realms that can be synced using the Realm Object Server
          * Only additive changes are allowed, and these will be detected and applied automatically.
          *
          * @throws IllegalArgumentException always.
          */
         @Override
         public Builder migration(RealmMigration migration) {
-            throw new IllegalArgumentException("Migrations are not supported for Realms that can be synchronized using the Realm Mobile Platform");
+            throw new IllegalArgumentException("Manual migrations are not supported for Realms that can be synchronized using the Realm Object Server");
         }
 
         /**

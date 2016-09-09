@@ -31,11 +31,17 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Locale;
 import java.util.UUID;
 
+import io.realm.DynamicRealm;
+import io.realm.Realm;
+import io.realm.RealmMigration;
+import io.realm.objectserver.android.SharedPrefsUserStore;
 import io.realm.objectserver.internal.Token;
 import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -210,16 +216,28 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void syncPolicy() {
+    public void migration_alwaysThrows() {
+        SyncConfiguration.Builder builder;
+        builder = new SyncConfiguration.Builder(context)
+                .user(User.createLocal())
+                .serverUrl("realm://objectserver.realm.io/default");
 
+        try {
+            builder.migration(null);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            builder.migration(new RealmMigration() {
+                @Override
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    // Nothing
+                }
+            });
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test
-    public void syncPolicy_nullThrows() {
-//        User user = User.createLocal();
-//        user.add(con);
-//
-    }
 
 //    @Ignore("Only used for quick testing without needing to spin up a full integration test")
 //    @Test
