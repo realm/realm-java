@@ -540,14 +540,19 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return sharedRealm.getTable("class_NullTypes");
     }
 
-    public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_NullTypes")) {
             Table table = sharedRealm.getTable("class_NullTypes");
             final long columnCount = table.getColumnCount();
-            if (columnCount < 21) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + columnCount);
-            } else if (21 < columnCount) {
-                RealmLog.info("Field count is more than expected - expected 21 but was %1$d", columnCount);
+            if (columnCount != 21) {
+                if (columnCount < 21) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.info("Field count is more than expected - expected 21 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 21 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 21; i++) {

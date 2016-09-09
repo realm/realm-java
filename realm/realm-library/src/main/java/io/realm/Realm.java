@@ -277,7 +277,7 @@ public final class Realm extends BaseRealm {
                 if (version == UNVERSIONED) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
             realm.schema.columnIndices = new ColumnIndices(
                     (version == UNVERSIONED) ? realm.configuration.getSchemaVersion() : version,
@@ -1443,7 +1443,7 @@ public final class Realm extends BaseRealm {
             map = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
             try {
                 for (Class<? extends RealmModel> clazz : modelClasses) {
-                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm);
+                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
                     map.put(clazz, columnInfo);
                 }
             } catch (RealmMigrationNeededException e) {

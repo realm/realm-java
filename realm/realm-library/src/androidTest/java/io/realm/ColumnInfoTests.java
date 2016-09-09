@@ -58,8 +58,8 @@ public class ColumnInfoTests {
     public void copyColumnInfoFrom_checkIndex() {
         final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
         final CatRealmProxy.CatColumnInfo sourceColumnInfo, targetColumnInfo;
-        sourceColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
-        targetColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
+        sourceColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        targetColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
         // check precondition
         assertNotSame(sourceColumnInfo, targetColumnInfo);
@@ -102,7 +102,7 @@ public class ColumnInfoTests {
     public void clone_hasSameValue() {
         final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
         final CatRealmProxy.CatColumnInfo columnInfo;
-        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
+        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
 
         columnInfo.nameIndex = 1;
         columnInfo.ageIndex = 2;

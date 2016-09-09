@@ -142,14 +142,19 @@ public class BooleansRealmProxy extends some.test.Booleans
         return sharedRealm.getTable("class_Booleans");
     }
 
-    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");
             final long columnCount = table.getColumnCount();
-            if (columnCount < 4) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + columnCount);
-            } else if (4 < columnCount) {
-                RealmLog.info("Field count is more than expected - expected 4 but was %1$d", columnCount);
+            if (columnCount != 4) {
+                if (columnCount < 4) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.info("Field count is more than expected - expected 4 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 4 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {

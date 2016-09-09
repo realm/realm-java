@@ -67,8 +67,8 @@ public class ColumnIndicesTests {
     private ColumnIndices create(long schemaVersion) {
         final CatRealmProxy.CatColumnInfo catColumnInfo;
         final DogRealmProxy.DogColumnInfo dogColumnInfo;
-        catColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
-        dogColumnInfo = (DogRealmProxy.DogColumnInfo) mediator.validateTable(Dog.class, realm.sharedRealm);
+        catColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm, false);
+        dogColumnInfo = (DogRealmProxy.DogColumnInfo) mediator.validateTable(Dog.class, realm.sharedRealm, false);
 
         return new ColumnIndices(schemaVersion,
                 ImmutableMap.<Class<? extends RealmModel>, ColumnInfo>of(

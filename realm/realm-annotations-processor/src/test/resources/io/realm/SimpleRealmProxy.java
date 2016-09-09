@@ -112,14 +112,19 @@ public class SimpleRealmProxy extends some.test.Simple
         return sharedRealm.getTable("class_Simple");
     }
 
-    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Simple")) {
             Table table = sharedRealm.getTable("class_Simple");
             final long columnCount = table.getColumnCount();
-            if (columnCount < 2) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 2 but was " + columnCount);
-            } else if (2 < columnCount) {
-                RealmLog.info("Field count is more than expected - expected 2 but was %1$d", columnCount);
+            if (columnCount != 2) {
+                if (columnCount < 2) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 2 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.info("Field count is more than expected - expected 2 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 2 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 2; i++) {

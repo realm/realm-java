@@ -437,22 +437,29 @@ public class RealmProxyClassGenerator {
 
     private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
-                columnInfoClassName(), // Return type
-                "validateTable", // Method name
+                columnInfoClassName(),        // Return type
+                "validateTable",              // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm"); // Argument type & argument name
+                "SharedRealm", "sharedRealm", // Argument type & argument name
+                "boolean", "allowExtraColumns");
 
         writer.beginControlFlow("if (sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
         writer.emitStatement("final long columnCount = table.getColumnCount()");
-        writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
-            writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + columnCount)",
-                    metadata.getFields().size());
-        writer.nextControlFlow("else if (%d < columnCount)", metadata.getFields().size());
-            writer.emitStatement("RealmLog.info(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
-                    metadata.getFields().size());
+        writer.beginControlFlow("if (columnCount != %d)", metadata.getFields().size());
+            writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + columnCount)",
+                        metadata.getFields().size());
+            writer.endControlFlow();
+            writer.beginControlFlow("if (allowExtraColumns)");
+                writer.emitStatement("RealmLog.info(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
+                        metadata.getFields().size());
+            writer.nextControlFlow("else");
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is more than expected - expected %d but was \" + columnCount)",
+                        metadata.getFields().size());
+            writer.endControlFlow();
         writer.endControlFlow();
 
         // create type dictionary for lookup
