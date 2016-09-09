@@ -13,6 +13,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -278,8 +279,11 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_AllTypes")) {
             Table table = sharedRealm.getTable("class_AllTypes");
-            if (table.getColumnCount() < 9) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 9 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount < 9) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 9 but was " + columnCount);
+            } else if (9 < columnCount) {
+                RealmLog.info("Field count is more than expected - expected 9 but was %1$d", columnCount);
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 9; i++) {

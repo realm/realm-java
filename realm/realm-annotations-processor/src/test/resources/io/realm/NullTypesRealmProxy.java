@@ -13,6 +13,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -542,8 +543,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_NullTypes")) {
             Table table = sharedRealm.getTable("class_NullTypes");
-            if (table.getColumnCount() < 21) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount < 21) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + columnCount);
+            } else if (21 < columnCount) {
+                RealmLog.info("Field count is more than expected - expected 21 but was %1$d", columnCount);
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 21; i++) {

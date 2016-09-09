@@ -13,6 +13,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -144,8 +145,11 @@ public class BooleansRealmProxy extends some.test.Booleans
     public static BooleansColumnInfo validateTable(SharedRealm sharedRealm) {
         if (sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");
-            if (table.getColumnCount() < 4) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount < 4) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + columnCount);
+            } else if (4 < columnCount) {
+                RealmLog.info("Field count is more than expected - expected 4 but was %1$d", columnCount);
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {

@@ -74,6 +74,7 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.SharedRealm");
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
+        imports.add("io.realm.log.RealmLog");
         imports.add("java.io.IOException");
         imports.add("java.util.ArrayList");
         imports.add("java.util.Collections");
@@ -445,9 +446,13 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
-        writer.beginControlFlow("if (table.getColumnCount() < " + metadata.getFields().size() + ")");
-        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + table.getColumnCount())",
-                metadata.getFields().size());
+        writer.emitStatement("final long columnCount = table.getColumnCount()");
+        writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
+            writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + columnCount)",
+                    metadata.getFields().size());
+        writer.nextControlFlow("else if (%d < columnCount)", metadata.getFields().size());
+            writer.emitStatement("RealmLog.info(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
+                    metadata.getFields().size());
         writer.endControlFlow();
 
         // create type dictionary for lookup
