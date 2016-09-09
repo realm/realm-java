@@ -20,7 +20,7 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmMigrationNeededException;
 
-public abstract class ColumnInfo {
+public abstract class ColumnInfo implements Cloneable {
     private Map<String, Long> indicesMap;
 
     protected final long getValidColumnIndex(String realmPath, Table table,
@@ -57,9 +57,16 @@ public abstract class ColumnInfo {
     public abstract void copyColumnInfoFrom(ColumnInfo other);
 
     /**
-     * Creates a copy of this instance.
+     * Returns a shallow copy of this instance.
      *
-     * @return a copy.
+     * @return shallow copy.
      */
-    public abstract ColumnInfo copyColumnInfo();
+    @Override
+    public ColumnInfo clone() {
+        try {
+            return (ColumnInfo) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    };
 }

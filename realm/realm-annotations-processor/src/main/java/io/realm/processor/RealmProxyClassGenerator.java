@@ -134,7 +134,8 @@ public class RealmProxyClassGenerator {
                 columnInfoClassName(),                       // full qualified name of the item to generate
                 "class",                                     // the type of the item
                 EnumSet.of(Modifier.STATIC, Modifier.FINAL), // modifiers to apply
-                "ColumnInfo")                                // base class
+                "ColumnInfo",                                // base class
+                "Cloneable")                                 // interfaces
                 .emitEmptyLine();
 
         // fields
@@ -162,20 +163,6 @@ public class RealmProxyClassGenerator {
         writer.endConstructor();
         writer.emitEmptyLine();
 
-        // copy constructor
-        writer.beginConstructor(EnumSet.of(Modifier.PRIVATE),
-                columnInfoClassName(), "original");
-        {
-            // copy field values
-            for (VariableElement variableElement : metadata.getFields()) {
-                writer.emitStatement("this.%1$s = original.%1$s", columnIndexVarName(variableElement));
-            }
-            writer.emitEmptyLine();
-            writer.emitStatement("setIndicesMap(original.getIndicesMap())");
-        }
-        writer.endConstructor();
-        writer.emitEmptyLine();
-
         // copyColumnInfoFrom method
         writer.emitAnnotation("Override");
         writer.beginMethod(
@@ -196,14 +183,14 @@ public class RealmProxyClassGenerator {
         writer.endMethod();
         writer.emitEmptyLine();
 
-        // copyColumnInfo method
+        // clone method
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 columnInfoClassName(),       // return type
-                "copyColumnInfo",            // method name
+                "clone",                     // method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.FINAL)) // modifiers
                 // method body
-                .emitStatement("return new %1$s(this)", columnInfoClassName())
+                .emitStatement("return (%1$s) super.clone()", columnInfoClassName())
                 .endMethod()
                 .emitEmptyLine();
 

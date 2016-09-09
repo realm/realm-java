@@ -55,7 +55,7 @@ public class ColumnInfoTests {
     }
 
     @Test
-    public void copyFrom_checkIndex() {
+    public void copyColumnInfoFrom_checkIndex() {
         final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
         final CatRealmProxy.CatColumnInfo sourceColumnInfo, targetColumnInfo;
         sourceColumnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
@@ -99,7 +99,7 @@ public class ColumnInfoTests {
     }
 
     @Test
-    public void copy_hasSameValue() {
+    public void clone_hasSameValue() {
         final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
         final CatRealmProxy.CatColumnInfo columnInfo;
         columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
@@ -113,7 +113,7 @@ public class ColumnInfoTests {
         columnInfo.ownerIndex = 7;
         columnInfo.scaredOfDogIndex = 8;
 
-        CatRealmProxy.CatColumnInfo copy = columnInfo.copyColumnInfo();
+        CatRealmProxy.CatColumnInfo copy = columnInfo.clone();
 
         // modify original object
         columnInfo.nameIndex = 0;
