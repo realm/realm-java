@@ -1125,9 +1125,9 @@ public class RealmProxyClassGenerator {
 
             writer.beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)");
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, true)");
+                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false)");
             } else {
-                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(((%s) object).%s(), true)",
+                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(((%s) object).%s(), false)",
                         interfaceName, primaryKeyGetter);
             }
 

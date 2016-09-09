@@ -387,25 +387,25 @@ public class Table implements TableOrView, TableSchema {
 
     /**
      * Add an empty row to the table and set the primary key with the given value. Equivalent to call
-     * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code skipChecking = false}.
+     * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code validation = true}.
      *
      * @param primaryKeyValue the primary key value
      * @return the row index.
      */
     public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
-        return addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+        return addEmptyRowWithPrimaryKey(primaryKeyValue, true);
     }
 
     /**
      * Add an empty row to the table and set the primary key with the given value.
      *
      * @param primaryKeyValue the primary key value.
-     * @param skipChecking set to {@code true} to skip all validations. This is currently used by bulk insert which
+     * @param validation set to {@code false} to skip all validations. This is currently used by bulk insert which
      *                     has its own validations.
      * @return the row index.
      */
-    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue, boolean skipChecking) {
-        if (!skipChecking) {
+    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue, boolean validation) {
+        if (validation) {
             checkImmutable();
             checkHasPrimaryKey();
         }
@@ -420,7 +420,7 @@ public class Table implements TableOrView, TableSchema {
             switch (type) {
                 case STRING:
                 case INTEGER:
-                    if (!skipChecking && findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
+                    if (validation && findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException("null");
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
@@ -439,7 +439,7 @@ public class Table implements TableOrView, TableSchema {
                     if (!(primaryKeyValue instanceof String)) {
                         throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
                     }
-                    if (!skipChecking && findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
+                    if (validation && findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(primaryKeyValue);
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
@@ -453,7 +453,7 @@ public class Table implements TableOrView, TableSchema {
                     } catch (RuntimeException e) {
                         throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
                     }
-                    if (!skipChecking && findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
+                    if (validation && findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(pkValue);
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
