@@ -246,6 +246,8 @@ abstract class BaseRealm implements Closeable {
      * @return {@code true} if the Realm was updated to the latest version, {@code false} if it was
      * cancelled by calling stopWaitForChange.
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
+     * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
+     * incompatible schema changes.
      */
     public boolean waitForChange() {
         checkIfValid();
@@ -315,6 +317,9 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
      * thrown.
+     *
+     * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
+     * incompatible schema changes.
      */
     public void beginTransaction() {
         checkIfValid();

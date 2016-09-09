@@ -1097,6 +1097,7 @@ public final class Realm extends BaseRealm {
      *
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
+     * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null) {
@@ -1446,7 +1447,6 @@ public final class Realm extends BaseRealm {
                     map.put(clazz, columnInfo);
                 }
             } catch (RealmMigrationNeededException e) {
-                // TODO incompatible schema change. what to do??
                 throw e;
             }
 
