@@ -54,7 +54,7 @@ public abstract class ColumnInfo {
      *              Of course it must not be {@code null}.
      * @throws IllegalArgumentException if {@code other} has different class than this.
      */
-    public abstract void copyFrom(ColumnInfo other);
+    public abstract void copyColumnInfoFrom(ColumnInfo other);
 
     /**
      * Creates a copy of this instance.

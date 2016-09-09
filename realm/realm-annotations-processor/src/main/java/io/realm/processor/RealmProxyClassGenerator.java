@@ -176,11 +176,11 @@ public class RealmProxyClassGenerator {
         writer.endConstructor();
         writer.emitEmptyLine();
 
-        // copyFrom method
+        // copyColumnInfoFrom method
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 "void",                      // return type
-                "copyFrom",                  // method name
+                "copyColumnInfoFrom",        // method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), // modifiers
                 "ColumnInfo", "other");      // parameters
         {

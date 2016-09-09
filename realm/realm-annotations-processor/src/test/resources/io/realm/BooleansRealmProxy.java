@@ -59,7 +59,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
 
         @Override
-        public final void copyFrom(ColumnInfo other) {
+        public final void copyColumnInfoFrom(ColumnInfo other) {
             if (!(other instanceof BooleansColumnInfo)) {
                 throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
             }

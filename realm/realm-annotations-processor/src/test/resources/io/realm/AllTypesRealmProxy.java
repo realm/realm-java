@@ -79,7 +79,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
         @Override
-        public final void copyFrom(ColumnInfo other) {
+        public final void copyColumnInfoFrom(ColumnInfo other) {
             if (!(other instanceof AllTypesColumnInfo)) {
                 throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
             }

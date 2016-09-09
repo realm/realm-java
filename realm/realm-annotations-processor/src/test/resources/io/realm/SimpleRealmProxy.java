@@ -51,7 +51,7 @@ public class SimpleRealmProxy extends some.test.Simple
         }
 
         @Override
-        public final void copyFrom(ColumnInfo other) {
+        public final void copyColumnInfoFrom(ColumnInfo other) {
             if (!(other instanceof SimpleColumnInfo)) {
                 throw new IllegalArgumentException("unexpected ColumnInfo. expected: " + getClass().getCanonicalName() + ", actual: " + other.getClass().getCanonicalName());
             }

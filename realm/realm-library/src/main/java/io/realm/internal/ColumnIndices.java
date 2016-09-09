@@ -76,7 +76,7 @@ public final class ColumnIndices {
                 throw new IllegalStateException("failed to copy ColumnIndices cache: "
                         + Table.tableNameToClassName(mediator.getTableName(entry.getKey())));
             }
-            entry.getValue().copyFrom(otherColumnInfo);
+            entry.getValue().copyColumnInfoFrom(otherColumnInfo);
         }
         this.schemaVersion = other.schemaVersion;
     }

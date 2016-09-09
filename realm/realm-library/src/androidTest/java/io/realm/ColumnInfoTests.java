@@ -24,8 +24,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.util.Map;
-
 import io.realm.entities.Cat;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -86,7 +84,7 @@ public class ColumnInfoTests {
         targetColumnInfo.ownerIndex = 0;
         targetColumnInfo.scaredOfDogIndex = 0;
 
-        targetColumnInfo.copyFrom(sourceColumnInfo);
+        targetColumnInfo.copyColumnInfoFrom(sourceColumnInfo);
 
         assertEquals(1, targetColumnInfo.nameIndex);
         assertEquals(2, targetColumnInfo.ageIndex);
