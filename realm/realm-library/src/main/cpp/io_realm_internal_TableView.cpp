@@ -397,9 +397,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetByteArray(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
             return;
-
-        JniByteArray bytesAccessor(env, byteArray);
-        TV(nativeViewPtr)->set_binary(S(columnIndex), S(rowIndex), bytesAccessor);
+        tbl_nativeDoByteArray(&TableView::set_binary, TV(nativeViewPtr), env, columnIndex, rowIndex, byteArray);
     } CATCH_STD()
 }
 

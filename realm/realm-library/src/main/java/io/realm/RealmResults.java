@@ -146,7 +146,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.currentTableViewVersion = table.syncIfNeeded();
     }
 
-    TableOrView getTableOrView() {
+    TableOrView getTable() {
         if (table == null) {
             return realm.schema.getTable(classSpec);
         } else {
@@ -177,6 +177,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public RealmQuery<E> where() {
         realm.checkIfValid();
+
         return RealmQuery.createQueryFromResult(this);
     }
 
@@ -210,7 +211,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
-        TableOrView table = getTableOrView();
+        TableOrView table = getTable();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
         } else {
@@ -251,7 +252,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
-        TableOrView table = getTableOrView();
+        TableOrView table = getTable();
         table.remove(location);
     }
 
@@ -262,7 +263,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteAllFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            TableOrView table = getTableOrView();
+            TableOrView table = getTable();
             table.clear();
             return true;
         } else {
@@ -381,7 +382,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (!isLoaded()) {
             return 0;
         } else {
-            long size = getTableOrView().size();
+            long size = getTable().size();
             return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
     }
@@ -508,7 +509,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         realm.checkIfValid();
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
 
-        TableOrView tableOrView = getTableOrView();
+        TableOrView tableOrView = getTable();
         if (tableOrView instanceof Table) {
             this.table = ((Table) tableOrView).getDistinctView(columnIndex);
         } else {
@@ -617,7 +618,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteLastFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            TableOrView table = getTableOrView();
+            TableOrView table = getTable();
             table.removeLast();
             return true;
         } else {
@@ -647,7 +648,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean deleteFirstFromRealm() {
         if (size() > 0) {
-            TableOrView table = getTableOrView();
+            TableOrView table = getTable();
             table.removeFirst();
             return true;
         } else {

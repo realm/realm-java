@@ -66,10 +66,11 @@ class BytecodeModifier {
                     !behavior.name.startsWith('realmGet$') &&
                     !behavior.name.startsWith('realmSet$')
                 ) || (
-                    behavior instanceof CtConstructor
+                    behavior instanceof CtConstructor &&
+                    !modelClasses.contains(clazz)
                 )
             ) {
-                behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior, modelClasses.contains(clazz)))
+                behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior))
             }
         }
     }
@@ -93,18 +94,11 @@ class BytecodeModifier {
         final List<CtField> managedFields
         final CtClass ctClass
         final CtBehavior behavior
-        final boolean isModelClass
-        final boolean isInConstructor
 
-        FieldAccessToAccessorConverter(List<CtField> managedFields,
-                                       CtClass ctClass,
-                                       CtBehavior behavior,
-                                       boolean isModelClass) {
+        FieldAccessToAccessorConverter(List<CtField> managedFields, CtClass ctClass, CtBehavior behavior) {
             this.managedFields = managedFields
             this.ctClass = ctClass
             this.behavior = behavior
-            this.isModelClass = isModelClass
-            this.isInConstructor = behavior instanceof CtConstructor
         }
 
         @Override
@@ -118,23 +112,9 @@ class BytecodeModifier {
                 logger.info "        Methods: ${ctClass.declaredMethods}"
                 def fieldName = fieldAccess.fieldName
                 if (fieldAccess.isReader()) {
-                    if (isInConstructor && isModelClass) {
-                        // work around https://github.com/realm/realm-java/issues/2536
-                        // '$0' is the object that owns target field.
-                        // 'this' is the instance where the constructor belongs.
-                        fieldAccess.replace('$_ = ($0 == this) ? $0.' + fieldName + ' : $0.realmGet$' + fieldName + '();')
-                    } else {
-                        fieldAccess.replace('$_ = $0.realmGet$' + fieldName + '();')
-                    }
+                    fieldAccess.replace('$_ = $0.realmGet$' + fieldName + '();')
                 } else if (fieldAccess.isWriter()) {
-                    if (isInConstructor && isModelClass) {
-                        // work around https://github.com/realm/realm-java/issues/2536
-                        // '$0' is the object that owns target field.
-                        // 'this' is the instance where the constructor belongs.
-                        fieldAccess.replace('if ($0 == this) {$0.' + fieldName + ' = $1;} else { $0.realmSet$' + fieldName + '($1);}')
-                    } else {
-                        fieldAccess.replace('$0.realmSet$' + fieldName + '($1);')
-                    }
+                    fieldAccess.replace('$0.realmSet$' + fieldName + '($1);')
                 }
             }
         }

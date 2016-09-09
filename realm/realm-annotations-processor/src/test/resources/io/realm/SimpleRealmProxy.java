@@ -168,7 +168,7 @@ public class SimpleRealmProxy extends some.test.Simple
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.Simple obj = new some.test.Simple();
+        some.test.Simple obj = realm.createObject(some.test.Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -191,7 +191,6 @@ public class SimpleRealmProxy extends some.test.Simple
             }
         }
         reader.endObject();
-        obj = realm.copyToRealm(obj);
         return obj;
     }
 

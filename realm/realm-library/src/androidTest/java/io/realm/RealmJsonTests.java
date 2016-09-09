@@ -409,7 +409,6 @@ public class RealmJsonTests {
     @Test
     public void createObjectFromJson_respectIgnoredFields() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("id", 0);
         json.put("indexString", "Foo");
         json.put("notIndexString", "Bar");
         json.put("ignoreString", "Baz");
@@ -764,7 +763,7 @@ public class RealmJsonTests {
     public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
         InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class, 0); // id = 0
+        realm.createObject(OwnerPrimaryKey.class); // id = 0
         realm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, stream);
         realm.commitTransaction();
 
@@ -962,7 +961,7 @@ public class RealmJsonTests {
     public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
         JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class, 0); // id = 0
+        realm.createObject(OwnerPrimaryKey.class); // id = 0
         realm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, newObject);
         realm.commitTransaction();
 
@@ -1368,7 +1367,7 @@ public class RealmJsonTests {
     public void createObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromJsonObject() throws JSONException {
         JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class, 0); // id = 0
+        realm.createObject(OwnerPrimaryKey.class); // id = 0
         realm.createObjectFromJson(OwnerPrimaryKey.class, newObject);
         realm.commitTransaction();
 
@@ -1394,7 +1393,7 @@ public class RealmJsonTests {
     public void createObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
         InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
-        realm.createObject(OwnerPrimaryKey.class, 0); // id = 0
+        realm.createObject(OwnerPrimaryKey.class); // id = 0
         realm.createObjectFromJson(OwnerPrimaryKey.class, stream);
         realm.commitTransaction();
 

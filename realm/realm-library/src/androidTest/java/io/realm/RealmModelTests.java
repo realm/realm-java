@@ -101,7 +101,8 @@ public class RealmModelTests {
         for (int i = 1; i < 43; i++) { // using i = 0 as PK will crash subsequent createObject
                                        // since createObject uses default values
             realm.beginTransaction();
-            realm.createObject(AllTypesRealmModel.class, i);
+            AllTypesRealmModel allTypesRealmModel = realm.createObject(AllTypesRealmModel.class);
+            allTypesRealmModel.columnLong = i;
             realm.commitTransaction();
         }
 

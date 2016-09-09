@@ -57,7 +57,7 @@ public class RealmJsonNullPrimaryKeyTests {
         }
     }
 
-    // parameters for testing null primary key value. PrimaryKey field is explicitly null
+    // parameters for testing null primary key value. PrimaryKey field is explicitly null or absent.
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
@@ -65,7 +65,12 @@ public class RealmJsonNullPrimaryKeyTests {
             {PrimaryKeyAsBoxedShort.class,   "YouBetItIsNullKey", "{ \"id\":null, \"name\":\"YouBetItIsNullKey\" }"},
             {PrimaryKeyAsBoxedInteger.class, "Gosh Didnt KnowIt", "{ \"id\":null, \"name\":\"Gosh Didnt KnowIt\" }"},
             {PrimaryKeyAsBoxedLong.class,    "?YOUNOWKNOWRIGHT?", "{ \"id\":null, \"name\":\"?YOUNOWKNOWRIGHT?\" }"},
+            {PrimaryKeyAsBoxedByte.class,    "HaHaHaHaHaHaHaHaH", "{ \"name\":\"HaHaHaHaHaHaHaHaH\" }"},
+            {PrimaryKeyAsBoxedShort.class,   "KeyValueTestIsFun", "{ \"name\":\"KeyValueTestIsFun\" }"},
+            {PrimaryKeyAsBoxedInteger.class, "FunValueTestIsKey", "{ \"name\":\"FunValueTestIsKey\" }"},
+            {PrimaryKeyAsBoxedLong.class,    "NameAsBoxedLong-!", "{ \"name\":\"NameAsBoxedLong-!\" }"},
             {PrimaryKeyAsString.class,       "4299121",           "{ \"name\":null, \"id\":4299121  }"},
+            {PrimaryKeyAsString.class,       "2429214",           "{ \"id\":2429214 }"}
         });
     }
 
@@ -79,9 +84,9 @@ public class RealmJsonNullPrimaryKeyTests {
         this.clazz = clazz;
     }
 
-    // Testing null primary key value for createObjectFromJson()
+    // Testing null or absent primary key value for createObjectFromJson()
     @Test
-    public void createObjectFromJson_primaryKey_isNull_fromJsonObject() throws JSONException {
+    public void createObjectFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
         realm.createObjectFromJson(clazz, new JSONObject(jsonString));
         realm.commitTransaction();
@@ -102,9 +107,9 @@ public class RealmJsonNullPrimaryKeyTests {
         }
     }
 
-    // Testing null primary key value for createOrUpdateObjectFromJson()
+    // Testing null or absent primary key value for createOrUpdateObjectFromJson()
     @Test
-    public void createOrUpdateObjectFromJson_primaryKey_isNull_fromJsonObject() throws JSONException {
+    public void createOrUpdateObjectFromJson_primaryKey_isNullOrAbsent_fromJsonObject() throws JSONException {
         realm.beginTransaction();
         realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
         realm.commitTransaction();
@@ -125,11 +130,11 @@ public class RealmJsonNullPrimaryKeyTests {
         }
     }
 
-    // Testing null primary key value for createObject() -> createOrUpdateObjectFromJson()
+    // Testing null or absent primary key value for createObject() -> createOrUpdateObjectFromJson()
     @Test
-    public void createOrUpdateObjectFromJson_primaryKey_isNull_updateFromJsonObject() throws JSONException {
+    public void createOrUpdateObjectFromJson_primaryKey_isNullOrAbsent_updateFromJsonObject() throws JSONException {
         realm.beginTransaction();
-        realm.createObject(clazz, null); // name = null, id =null
+        realm.createObject(clazz); // name = null, id = 0
         realm.createOrUpdateObjectFromJson(clazz, new JSONObject(jsonString));
         realm.commitTransaction();
 
@@ -139,6 +144,7 @@ public class RealmJsonNullPrimaryKeyTests {
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
+
         // PrimaryKeyAsNumber
         } else {
             RealmResults results = realm.where(clazz).findAll();

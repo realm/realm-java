@@ -411,7 +411,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     obj = (io.realm.AllTypesRealmProxy) realm.createObject(some.test.AllTypes.class, json.getString("columnString"));
                 }
             } else {
-                throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
+                obj = (io.realm.AllTypesRealmProxy) realm.createObject(some.test.AllTypes.class);
             }
         }
         if (json.has("columnString")) {
@@ -495,8 +495,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        boolean jsonHasPrimaryKey = false;
-        some.test.AllTypes obj = new some.test.AllTypes();
+        some.test.AllTypes obj = realm.createObject(some.test.AllTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -507,7 +506,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 } else {
                     ((AllTypesRealmProxyInterface) obj).realmSet$columnString((String) reader.nextString());
                 }
-                jsonHasPrimaryKey = true;
             } else if (name.equals("columnLong")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
@@ -568,7 +566,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     reader.skipValue();
                     ((AllTypesRealmProxyInterface) obj).realmSet$columnRealmList(null);
                 } else {
-                    ((AllTypesRealmProxyInterface) obj).realmSet$columnRealmList(new RealmList<some.test.AllTypes>());
                     reader.beginArray();
                     while (reader.hasNext()) {
                         some.test.AllTypes item = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
@@ -581,10 +578,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
         }
         reader.endObject();
-        if (!jsonHasPrimaryKey) {
-            throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
-        }
-        obj = realm.copyToRealm(obj);
         return obj;
     }
 
@@ -690,7 +683,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == TableOrView.NO_MATCH) {
-            rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+            rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+            if (primaryKeyValue != null) {
+                Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue);
+            }
         } else {
             Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
         }
@@ -754,7 +750,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
                 if (rowIndex == TableOrView.NO_MATCH) {
-                    rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+                    rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                    if (primaryKeyValue != null) {
+                        Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue);
+                    }
                 } else {
                     Table.throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
@@ -814,7 +813,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
         }
         if (rowIndex == TableOrView.NO_MATCH) {
-            rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+            rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+            if (primaryKeyValue != null) {
+                Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue);
+            }
         }
         cache.put(object, rowIndex);
         Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface)object).realmGet$columnLong());
@@ -883,7 +885,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnIndex, primaryKeyValue);
                 }
                 if (rowIndex == TableOrView.NO_MATCH) {
-                    rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false);
+                    rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
+                    if (primaryKeyValue != null) {
+                        Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue);
+                    }
                 }
                 cache.put(object, rowIndex);
                 Table.nativeSetLong(tableNativePtr, columnInfo.columnLongIndex, rowIndex, ((AllTypesRealmProxyInterface)object).realmGet$columnLong());

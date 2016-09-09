@@ -79,7 +79,7 @@ class BytecodeModifierTest extends Specification {
     def "UseRealmAccessors"() {
         setup: 'generate an empty class'
         def classPool = ClassPool.getDefault()
-        def ctClass = classPool.makeClass('TestClass')
+        def ctClass = classPool.makeClass('testClass')
 
         and: 'add a field'
         def ctField = new CtField(CtClass.intType, 'age', ctClass)
@@ -95,100 +95,54 @@ class BytecodeModifierTest extends Specification {
         when: 'the field use is replaced by the accessor'
         BytecodeModifier.useRealmAccessors(ctClass, [ctField], [])
 
-        then: 'the field is not used and getter is called in the method '
-        !isFieldRead(ctMethod) && hasMethodCall(ctMethod)
-    }
-
-    def "UseRealmAccessors_fieldAccessInModelConstructorIsTransformed"() {
-        setup: 'generate an empty class'
-        def classPool = ClassPool.getDefault()
-        def ctClass = classPool.makeClass('TestClass')
-
-        and: 'add a field'
-        def ctField = new CtField(CtClass.intType, 'age', ctClass)
-        ctClass.addField(ctField)
-
-        and: 'add a method that sets such field'
-        def ctMethod = CtNewMethod.make('private void setupAge(int age) { this.age = age; }', ctClass)
-        ctClass.addMethod(ctMethod)
-
-        and: 'add a default constructor that uses the method'
-        def ctDefaultConstructor = CtNewConstructor.make('public TestClass() { int myAge = this.age; }', ctClass)
-        ctClass.addConstructor(ctDefaultConstructor)
-
-        and: 'add a non-default constructor that uses the method'
-        def ctNonDefaultConstructor = CtNewConstructor.make('public TestClass(TestClass other) { int otherAge = other.age; }', ctClass)
-        ctClass.addConstructor(ctNonDefaultConstructor)
-
-        and: 'realm accessors are added'
-        BytecodeModifier.addRealmAccessors(ctClass)
-
-        when: 'the field use is replaced by the accessor'
-        BytecodeModifier.useRealmAccessors(ctClass, [ctField], [ctClass])
-
-        then: 'the field is still used and also getter is called in the constructor'
-        // to work around https://github.com/realm/realm-java/issues/2536 , field access is not removed
-        isFieldRead(ctDefaultConstructor) && hasMethodCall(ctDefaultConstructor) &&
-                isFieldRead(ctNonDefaultConstructor) && hasMethodCall(ctNonDefaultConstructor)
-    }
-
-    def "UseRealmAccessors_fieldAccessInNonModelConstructorIsTransformed"() {
-        setup: 'generate an empty class'
-        def classPool = ClassPool.getDefault()
-        def ctClass = classPool.makeClass('TestClass')
-
-        and: 'add a field'
-        def ctField = new CtField(CtClass.intType, 'age', ctClass)
-        ctClass.addField(ctField)
-
-        and: 'add a method that sets such field'
-        def ctMethod = CtNewMethod.make('private void setupAge(int age) { this.age = age; }', ctClass)
-        ctClass.addMethod(ctMethod)
-
-        and: 'add a default constructor that uses the method'
-        def ctDefaultConstructor = CtNewConstructor.make('public TestClass() { int myAge = this.age; }', ctClass)
-        ctClass.addConstructor(ctDefaultConstructor)
-
-        and: 'add a non-default constructor that uses the method'
-        def ctNonDefaultConstructor = CtNewConstructor.make('public TestClass(TestClass other) { int otherAge = other.age; }', ctClass)
-        ctClass.addConstructor(ctNonDefaultConstructor)
-
-        and: 'realm accessors are added'
-        BytecodeModifier.addRealmAccessors(ctClass)
-
-        when: 'the field use is replaced by the accessor'
-        BytecodeModifier.useRealmAccessors(ctClass, [ctField], [/* no ctClass in model class list*/])
-
         then: 'the field is not used in the method anymore'
-        !isFieldRead(ctDefaultConstructor) && hasMethodCall(ctDefaultConstructor) &&
-                !isFieldRead(ctNonDefaultConstructor) && hasMethodCall(ctNonDefaultConstructor)
-    }
-
-    private static def isFieldRead(CtBehavior behavior) {
-        def methodInfo = behavior.getMethodInfo()
+        def methodInfo = ctMethod.getMethodInfo()
         def codeAttribute = methodInfo.getCodeAttribute()
-
+        def fieldIsUsed = false
         for (CodeIterator ci = codeAttribute.iterator(); ci.hasNext();) {
             int index = ci.next();
             int op = ci.byteAt(index);
             if (op == Opcode.GETFIELD) {
-                return true
+                fieldIsUsed = true
             }
         }
-        return false
+        !fieldIsUsed
     }
 
-    private static def hasMethodCall(CtBehavior behavior) {
-        def methodInfo = behavior.getMethodInfo()
-        def codeAttribute = methodInfo.getCodeAttribute()
+    def "UseRealmAccessorsInNonDefaultConstructor"() {
+        setup: 'generate an empty class'
+        def classPool = ClassPool.getDefault()
+        def ctClass = classPool.makeClass('TestClass')
 
+        and: 'add a field'
+        def ctField = new CtField(CtClass.intType, 'age', ctClass)
+        ctClass.addField(ctField)
+
+        and: 'add a method that sets such field'
+        def ctMethod = CtNewMethod.make('private void setupAge(int age) { this.age = age; }', ctClass)
+        ctClass.addMethod(ctMethod)
+
+        and: 'add a constructor that uses the method'
+        def ctConstructor = CtNewConstructor.make('public TestClass(int age) { setupAge(age); }', ctClass)
+        ctClass.addConstructor(ctConstructor)
+
+        and: 'realm accessors are added'
+        BytecodeModifier.addRealmAccessors(ctClass)
+
+        when: 'the field use is replaced by the accessor'
+        BytecodeModifier.useRealmAccessors(ctClass, [ctField], [])
+
+        then: 'the field is not used in the method anymore'
+        def methodInfo = ctMethod.getMethodInfo()
+        def codeAttribute = methodInfo.getCodeAttribute()
+        def fieldIsUsed = false
         for (CodeIterator ci = codeAttribute.iterator(); ci.hasNext();) {
             int index = ci.next();
             int op = ci.byteAt(index);
-            if (op == Opcode.INVOKEVIRTUAL) {
-                return true
+            if (op == Opcode.PUTFIELD) {
+                fieldIsUsed = true
             }
         }
-        return false
+        !fieldIsUsed
     }
 }

@@ -230,7 +230,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.Booleans createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.Booleans obj = new some.test.Booleans();
+        some.test.Booleans obj = realm.createObject(some.test.Booleans.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -267,7 +267,6 @@ public class BooleansRealmProxy extends some.test.Booleans
             }
         }
         reader.endObject();
-        obj = realm.copyToRealm(obj);
         return obj;
     }
 

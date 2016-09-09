@@ -1124,11 +1124,15 @@ public class RealmProxyClassGenerator {
             }
 
             writer.beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)");
+            writer.emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false)");
+                writer.beginControlFlow("if (primaryKeyValue != null)");
+                writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue)");
+                writer.endControlFlow();
             } else {
-                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(((%s) object).%s(), false)",
-                        interfaceName, primaryKeyGetter);
+                writer.beginControlFlow("if (primaryKeyValue != null)");
+                writer.emitStatement("Table.nativeSetLong(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
+                writer.endControlFlow();
             }
 
             if (throwIfPrimaryKeyDuplicate) {
@@ -1549,10 +1553,6 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    // FIXME: Since we need to check the PK in stream before create an object, this is now using copyToRealm instead of
-    // createObject() to avoid parse the stream twice. This brings a problem that the default value behaviour is
-    // different from those which are using the createObject. And it needs to be addressed by
-    // https://github.com/realm/realm-java/issues/777
     private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
         writer.emitAnnotation("SuppressWarnings", "\"cast\"");
         writer.emitAnnotation("TargetApi", "Build.VERSION_CODES.HONEYCOMB");
@@ -1563,10 +1563,7 @@ public class RealmProxyClassGenerator {
                 Arrays.asList("Realm", "realm", "JsonReader", "reader"),
                 Collections.singletonList("IOException"));
 
-        if (metadata.hasPrimaryKey()) {
-            writer.emitStatement("boolean jsonHasPrimaryKey = false");
-        }
-        writer.emitStatement("%s obj = new %s()", qualifiedClassName, qualifiedClassName);
+        writer.emitStatement("%s obj = realm.createObject(%s.class)",qualifiedClassName, qualifiedClassName);
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
@@ -1604,7 +1601,7 @@ public class RealmProxyClassGenerator {
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
                         interfaceName,
-                        metadata,
+                        metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
                         writer
@@ -1619,16 +1616,9 @@ public class RealmProxyClassGenerator {
         }
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");
-        if (metadata.hasPrimaryKey()) {
-            writer.beginControlFlow("if (!jsonHasPrimaryKey)");
-            writer.emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.getPrimaryKey());
-            writer.endControlFlow();
-        }
-        writer.emitStatement("obj = realm.copyToRealm(obj)");
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
-
     }
 
     private String columnInfoClassName() {
