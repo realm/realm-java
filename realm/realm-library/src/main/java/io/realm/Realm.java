@@ -231,7 +231,7 @@ public final class Realm extends BaseRealm {
         Realm realm = new Realm(configuration);
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
-        final ColumnIndices columnIndices = RealmCache.find(globalCacheArray, requiredVersion);
+        final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
             realm.doClose();
             throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
@@ -1433,7 +1433,8 @@ public final class Realm extends BaseRealm {
 
         ColumnIndices createdGlobalCache = null;
         final RealmProxyMediator mediator = getConfiguration().getSchemaMediator();
-        ColumnIndices cacheForCurrentVersion = RealmCache.find(globalCacheArray, currentSchemaVersion);
+        ColumnIndices cacheForCurrentVersion = RealmCache.findColumnIndices(globalCacheArray,
+                currentSchemaVersion);
         if (cacheForCurrentVersion == null) {
             // not found in global cache. create it.
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();

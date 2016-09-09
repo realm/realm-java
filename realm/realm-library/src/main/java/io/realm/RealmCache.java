@@ -146,7 +146,7 @@ final class RealmCache {
             if (realmClass == Realm.class && refAndCount.globalCount == 0) {
                 final BaseRealm realm = refAndCount.localRealm.get();
                 // store a copy of local ColumnIndices as a global cache.
-                RealmCache.store(cache.typedColumnIndicesArray, realm.schema.columnIndices.clone());
+                RealmCache.storeColumnIndices(cache.typedColumnIndicesArray, realm.schema.columnIndices.clone());
             }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
@@ -297,7 +297,7 @@ final class RealmCache {
         final ColumnIndices[] globalCacheArray = cache.typedColumnIndicesArray;
         final ColumnIndices createdCacheEntry = realm.updateSchemaCache(globalCacheArray);
         if (createdCacheEntry != null) {
-            RealmCache.store(globalCacheArray, createdCacheEntry);
+            RealmCache.storeColumnIndices(globalCacheArray, createdCacheEntry);
         }
     }
 
@@ -377,7 +377,7 @@ final class RealmCache {
      * @param schemaVersion requested version of the schema.
      * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
      */
-    public static ColumnIndices find(ColumnIndices[] array, long schemaVersion) {
+    public static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
         for (int i = array.length - 1; 0 <= i; i--) {
             final ColumnIndices candidate = array[i];
             if (candidate != null && candidate.getSchemaVersion() == schemaVersion) {
@@ -398,7 +398,7 @@ final class RealmCache {
      * @param columnIndices the item to be stored into the {@code array}.
      * @return the index in the {@code array} where the {@code columnIndices} was stored.
      */
-    private static int store(ColumnIndices[] array, ColumnIndices columnIndices) {
+    private static int storeColumnIndices(ColumnIndices[] array, ColumnIndices columnIndices) {
         long oldestSchemaVersion = Long.MAX_VALUE;
         int candidateIndex = -1;
         for (int i = array.length - 1; 0 <= i; i--) {
