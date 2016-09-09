@@ -97,7 +97,7 @@ public class ColumnInfoTests {
         assertEquals(7, targetColumnInfo.ownerIndex);
         assertEquals(8, targetColumnInfo.scaredOfDogIndex);
 
-        // current implementation shares the indices map since it's unmodifiable.
+        // current implementation shares the indices map.
         assertSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
     }
 
@@ -139,43 +139,7 @@ public class ColumnInfoTests {
         assertEquals(7, copy.ownerIndex);
         assertEquals(8, copy.scaredOfDogIndex);
 
-        // current implementation shares the indices map between copies, it's OK since map is unmodifiable.
+        // current implementation shares the indices map between copies.
         assertSame(columnInfo.getIndicesMap(), copy.getIndicesMap());
-    }
-
-    @Test
-    public void copyFrom_mapIsUnmodifiable() {
-        final RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        final CatRealmProxy.CatColumnInfo columnInfo, columnInfo2;
-        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
-        columnInfo2 = (CatRealmProxy.CatColumnInfo) mediator.validateTable(Cat.class, realm.sharedRealm);
-
-        // check precondition
-        assertNotSame(columnInfo, columnInfo2);
-
-        Map<String, Long> map;
-
-        map = columnInfo.getIndicesMap();
-        try {
-            map.clear();
-            fail();
-        } catch (UnsupportedOperationException ignored) {
-        }
-
-        map = columnInfo.copy().getIndicesMap();
-        try {
-            map.clear();
-            fail();
-        } catch (UnsupportedOperationException ignored) {
-        }
-
-        final CatRealmProxy.CatColumnInfo copy = columnInfo.copy();
-        copy.copyFrom(columnInfo);
-        map = copy.getIndicesMap();
-        try {
-            map.clear();
-            fail();
-        } catch (UnsupportedOperationException ignored) {
-        }
     }
 }

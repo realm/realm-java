@@ -97,7 +97,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             this.fieldObjectNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldObjectNull");
             indicesMap.put("fieldObjectNull", this.fieldObjectNullIndex);
 
-            setIndicesMap(Collections.unmodifiableMap(indicesMap));
+            setIndicesMap(indicesMap);
         }
 
         private NullTypesColumnInfo(NullTypesColumnInfo original) {

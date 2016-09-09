@@ -33,6 +33,12 @@ public abstract class ColumnInfo {
         return columnIndex;
     }
 
+    /**
+     * Returns a map from column name to column index.
+     *
+     * @return a map from column name to column index. Do not modify returned map because it may be
+     * shared among other {@link ColumnInfo} instances.
+     */
     public Map<String, Long> getIndicesMap() {
         return indicesMap;
     }

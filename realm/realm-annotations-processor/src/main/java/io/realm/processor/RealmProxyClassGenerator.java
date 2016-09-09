@@ -158,7 +158,7 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("indicesMap.put(\"%s\", this.%s)", columnName, columnIndexVarName);
         }
         writer.emitEmptyLine();
-        writer.emitStatement("setIndicesMap(Collections.unmodifiableMap(indicesMap))");
+        writer.emitStatement("setIndicesMap(indicesMap)");
         writer.endConstructor();
         writer.emitEmptyLine();
 

@@ -61,7 +61,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             this.columnRealmListIndex = getValidColumnIndex(path, table, "AllTypes", "columnRealmList");
             indicesMap.put("columnRealmList", this.columnRealmListIndex);
 
-            setIndicesMap(Collections.unmodifiableMap(indicesMap));
+            setIndicesMap(indicesMap);
         }
 
         private AllTypesColumnInfo(AllTypesColumnInfo original) {

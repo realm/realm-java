@@ -46,7 +46,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             this.anotherBooleanIndex = getValidColumnIndex(path, table, "Booleans", "anotherBoolean");
             indicesMap.put("anotherBoolean", this.anotherBooleanIndex);
 
-            setIndicesMap(Collections.unmodifiableMap(indicesMap));
+            setIndicesMap(indicesMap);
         }
 
         private BooleansColumnInfo(BooleansColumnInfo original) {
