@@ -80,7 +80,7 @@ public final class ColumnIndices implements Cloneable {
         for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
             final ColumnInfo otherColumnInfo = other.getColumnInfo(entry.getKey());
             if (otherColumnInfo == null) {
-                throw new IllegalStateException("failed to copy ColumnIndices cache: "
+                throw new IllegalStateException("Failed to copy ColumnIndices cache: "
                         + Table.tableNameToClassName(mediator.getTableName(entry.getKey())));
             }
             entry.getValue().copyColumnInfoFrom(otherColumnInfo);
