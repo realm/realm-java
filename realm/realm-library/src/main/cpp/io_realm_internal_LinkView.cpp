@@ -44,16 +44,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetRow
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetRowIndex
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
+  (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong linkViewIndex)
 {
     TR_ENTER_PTR(env, nativeLinkViewPtr)
     LinkViewRef *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID(env, *lv, pos)) {
+    if (!ROW_INDEX_VALID(env, *lv, linkViewIndex)) {
         return -1;
     }
     try {
         LinkViewRef lvr = *lv;
-        return lvr->get( S(pos) ).get_index();
+        return lvr->get(S(linkViewIndex)).get_index();
     } CATCH_STD()
     return 0;
 }

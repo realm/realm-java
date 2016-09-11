@@ -80,9 +80,11 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros \
 -Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
 set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG -flto")
+# There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
+# And this issue doesn't seem to impact the core compiling.
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
 #-ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Os -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags

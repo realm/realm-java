@@ -1167,15 +1167,11 @@ public class RealmProxyClassGenerator {
             }
 
             writer.beginControlFlow("if (rowIndex == TableOrView.NO_MATCH)");
-            writer.emitStatement("rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1)");
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.beginControlFlow("if (primaryKeyValue != null)");
-                writer.emitStatement("Table.nativeSetString(tableNativePtr, pkColumnIndex, rowIndex, (String)primaryKeyValue)");
-                writer.endControlFlow();
+                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue, false)");
             } else {
-                writer.beginControlFlow("if (primaryKeyValue != null)");
-                writer.emitStatement("Table.nativeSetLong(tableNativePtr, pkColumnIndex, rowIndex, ((%s) object).%s())", interfaceName, primaryKeyGetter);
-                writer.endControlFlow();
+                writer.emitStatement("rowIndex = table.addEmptyRowWithPrimaryKey(((%s) object).%s(), false)",
+                        interfaceName, primaryKeyGetter);
             }
 
             if (throwIfPrimaryKeyDuplicate) {
@@ -1675,6 +1671,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
+
     }
 
     private String columnInfoClassName() {
