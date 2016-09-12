@@ -78,11 +78,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     public <E extends RealmModel> E newInstance(Class<E> clazz, Object baseRealm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue) {
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         try {
-            objectContext.set((BaseRealm) baseRealm, row, columnInfo);
+            objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue);
             checkClass(clazz);
 
             if (clazz.equals(some.test.AllTypes.class)) {
-                return clazz.cast(new io.realm.AllTypesRealmProxy(acceptDefaultValue));
+                return clazz.cast(new io.realm.AllTypesRealmProxy());
             } else {
                 throw getMissingProxyClassException(clazz);
             }

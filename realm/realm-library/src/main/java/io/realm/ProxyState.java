@@ -39,6 +39,7 @@ public final class ProxyState<E extends RealmModel> {
 
     private Row row;
     private BaseRealm realm;
+    private boolean acceptDefaultValue;
 
     private final List<RealmChangeListener<E>> listeners = new CopyOnWriteArrayList<RealmChangeListener<E>>();
     private Future<Long> pendingQuery;
@@ -87,6 +88,14 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setRow$realm(Row row) {
         this.row = row;
+    }
+
+    public boolean getAcceptDefaultValue$realm() {
+        return acceptDefaultValue;
+    }
+
+    public void setAcceptDefaultValue$realm(boolean acceptDefaultValue) {
+        this.acceptDefaultValue = acceptDefaultValue;
     }
 
     public Object getPendingQuery$realm() {

@@ -213,11 +213,11 @@ public class RealmProxyMediatorGenerator {
         );
         writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()");
         writer.beginControlFlow("try")
-                .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo)");
+                .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue)");
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(new %s(acceptDefaultValue))", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return clazz.cast(new %s())", qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.nextControlFlow("finally")

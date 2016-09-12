@@ -200,7 +200,6 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {
-        writer.emitField("boolean", "acceptDefaultValue", EnumSet.of(Modifier.PRIVATE));
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE));
         writer.emitField("ProxyState", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
@@ -224,8 +223,7 @@ public class RealmProxyClassGenerator {
 
     private void emitConstructor(JavaWriter writer) throws IOException {
         // FooRealmProxy(ColumnInfo)
-        writer.beginConstructor(EnumSet.noneOf(Modifier.class), "boolean", "acceptDefaultValue");
-        writer.emitStatement("this.acceptDefaultValue = acceptDefaultValue");
+        writer.beginConstructor(EnumSet.noneOf(Modifier.class));
         writer.beginControlFlow("if (proxyState == null)")
                 .emitStatement("injectObjectContext()")
                 .endControlFlow();
@@ -394,7 +392,7 @@ public class RealmProxyClassGenerator {
 
         if (isSetter) {
             writer.beginControlFlow(
-                    "if (proxyState.isUnderConstruction() && !this.acceptDefaultValue)")
+                    "if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm())")
                         .emitStatement("return")
                         .endControlFlow()
                         .emitEmptyLine();
@@ -411,9 +409,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
         writer.emitStatement("this.columnInfo = (%1$s) context.getColumnInfo()", columnInfoClassName());
         writer.emitStatement("this.proxyState = new ProxyState(%1$s.class, this)", qualifiedClassName);
-        writer.emitEmptyLine();
         writer.emitStatement("proxyState.setRealm$realm(context.getRealm())");
         writer.emitStatement("proxyState.setRow$realm(context.getRow())");
+        writer.emitStatement("proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue())");
 
         writer.endMethod();
         writer.emitEmptyLine();
@@ -747,8 +745,8 @@ public class RealmProxyClassGenerator {
                 writer
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                         .beginControlFlow("try")
-                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class))", qualifiedClassName)
-                            .emitStatement("realmObject = new %s(true)", qualifiedGeneratedClassName)
+                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class), true)", qualifiedClassName)
+                            .emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
                             .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                         .nextControlFlow("finally")
                             .emitStatement("objectContext.clear();")
@@ -1603,8 +1601,8 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                         .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();")
                         .beginControlFlow("try")
-                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class))", qualifiedClassName)
-                            .emitStatement("obj = new %s(true)", qualifiedGeneratedClassName)
+                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class), true)", qualifiedClassName)
+                            .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
                         .nextControlFlow("finally")
                             .emitStatement("objectContext.clear();")
                         .endControlFlow()

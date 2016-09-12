@@ -703,11 +703,13 @@ abstract class BaseRealm implements Closeable {
         private BaseRealm realm;
         private Row row;
         private ColumnInfo columnInfo;
+        private boolean acceptDefaultValue;
 
-        public void set(BaseRealm realm, Row row, ColumnInfo columnInfo) {
+        public void set(BaseRealm realm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue) {
             this.realm = realm;
             this.row = row;
             this.columnInfo = columnInfo;
+            this.acceptDefaultValue = acceptDefaultValue;
         }
 
         public BaseRealm getRealm() {
@@ -722,10 +724,19 @@ abstract class BaseRealm implements Closeable {
             return columnInfo;
         }
 
+        public boolean getAcceptDefaultValue() {
+            return acceptDefaultValue;
+        }
+
+        public void setAcceptDefaultValue(boolean acceptDefaultValue) {
+            this.acceptDefaultValue = acceptDefaultValue;
+        }
+
         public void clear() {
             realm = null;
             row = null;
             columnInfo = null;
+            acceptDefaultValue = false;
         }
     }
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {

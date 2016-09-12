@@ -68,7 +68,6 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
 
     }
-    private boolean acceptDefaultValue;
     private BooleansColumnInfo columnInfo;
     private ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
@@ -81,8 +80,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
-    BooleansRealmProxy(boolean acceptDefaultValue) {
-        this.acceptDefaultValue = acceptDefaultValue;
+    BooleansRealmProxy() {
         if (proxyState == null) {
             injectObjectContext();
         }
@@ -93,9 +91,9 @@ public class BooleansRealmProxy extends some.test.Booleans
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState(some.test.Booleans.class, this);
-
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
+        proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
     }
 
     @SuppressWarnings("cast")
@@ -115,7 +113,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
+        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
             return;
         }
 
@@ -140,7 +138,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
+        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
             return;
         }
 
@@ -165,7 +163,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
+        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
             return;
         }
 
@@ -190,7 +188,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !this.acceptDefaultValue) {
+        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
             return;
         }
 
