@@ -63,6 +63,7 @@ import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
+import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NoPrimaryKeyNullTypes;
@@ -82,6 +83,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
+import io.realm.entities.PrimaryKeyWithNoPrimaryKeyObjectRelation;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -2260,6 +2262,65 @@ public class RealmTests {
         }
 
         realm.cancelTransaction();
+    }
+
+    @Test
+    public void createObject_defaultValueFromModelField() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(DefaultValueOfField.class,
+                        DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
+            }
+        });
+
+        final String createdRandomString = DefaultValueOfField.lastRandomStringValue;
+
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_STRING, DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_RANDOM_STRING, createdRandomString)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_SHORT, DefaultValueOfField.FIELD_SHORT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_INT, DefaultValueOfField.FIELD_INT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_LONG_PRIMARY_KEY, DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_LONG, DefaultValueOfField.FIELD_LONG_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_BYTE, DefaultValueOfField.FIELD_BYTE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_FLOAT, DefaultValueOfField.FIELD_FLOAT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_DOUBLE, DefaultValueOfField.FIELD_DOUBLE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_BOOLEAN, DefaultValueOfField.FIELD_BOOLEAN_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_DATE, DefaultValueOfField.FIELD_DATE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_BINARY, DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE)
+                .count());
+        // FIXME supprting default value of RealmObject and RealmList
+//        assertEquals(1L, realm.where(DefaultValueOfField.class)
+//                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT
+//                        , PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)
+//                .count());
+//        assertEquals(1L, realm.where(DefaultValueOfField.class)
+//                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT,
+//                        PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)
+//                .count());
     }
 
     // Test close Realm in another thread different from where it is created.
