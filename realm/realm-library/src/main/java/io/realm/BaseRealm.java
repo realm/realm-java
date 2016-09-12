@@ -490,10 +490,10 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    <E extends RealmModel> E get(Class<E> clazz, long rowIndex) {
+    <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz), true);
+        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz), acceptDefaultValue);
         RealmObjectProxy proxy = (RealmObjectProxy) result;
         proxy.realmGet$proxyState().setTableVersion$realm();
         return result;

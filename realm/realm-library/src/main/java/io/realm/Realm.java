@@ -698,7 +698,7 @@ public final class Realm extends BaseRealm {
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
         }
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        return get(clazz, rowIndex, true);
     }
 
     /**
@@ -718,7 +718,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex);
+        return get(clazz, rowIndex, true);
     }
 
     /**

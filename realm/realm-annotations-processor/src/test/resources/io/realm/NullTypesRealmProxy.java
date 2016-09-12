@@ -785,7 +785,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (proxyState.getRow$realm().isNullLink(columnInfo.fieldObjectNullIndex)) {
             return null;
         }
-        return proxyState.getRealm$realm().get(some.test.NullTypes.class, proxyState.getRow$realm().getLink(columnInfo.fieldObjectNullIndex));
+        return proxyState.getRealm$realm().get(some.test.NullTypes.class, proxyState.getRow$realm().getLink(columnInfo.fieldObjectNullIndex), false);
     }
 
     public void realmSet$fieldObjectNull(some.test.NullTypes value) {

@@ -313,7 +313,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (proxyState.getRow$realm().isNullLink(columnInfo.columnObjectIndex)) {
             return null;
         }
-        return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectIndex));
+        return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectIndex), false);
     }
 
     public void realmSet$columnObject(some.test.AllTypes value) {
@@ -555,7 +555,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (rowIndex != TableOrView.NO_MATCH) {
                 final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
                 try {
-                    objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), true);
+                    objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false);
                     obj = new io.realm.AllTypesRealmProxy();
                 } finally {
                     objectContext.clear();;
@@ -766,7 +766,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
                 if (rowIndex != TableOrView.NO_MATCH) {
                     try {
-                        objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), true);
+                        objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false);
                         realmObject = new io.realm.AllTypesRealmProxy();
                         cache.put(object, (RealmObjectProxy) realmObject);
                     } finally {
