@@ -119,8 +119,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public void realmSet$columnString(String value) {
         proxyState.getRealm$realm().checkIfValid();
-        throw new io.realm.exceptions.RealmException("Primary key field 'columnString' cannot be changed after" +
-                " object created.");
+        throw new io.realm.exceptions.RealmException("Primary key field 'columnString' cannot be changed after object was created.");
     }
 
     @SuppressWarnings("cast")
