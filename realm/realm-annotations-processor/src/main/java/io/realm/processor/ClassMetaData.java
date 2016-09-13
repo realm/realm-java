@@ -360,6 +360,10 @@ public class ClassMetaData {
         return primaryKey;
     }
 
+    public boolean isPrimaryKey(VariableElement field) {
+        return primaryKey == field;
+    }
+
     public String getPrimaryKeyGetter() {
         return getGetter(primaryKey.getSimpleName().toString());
     }

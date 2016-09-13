@@ -140,9 +140,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
 
         if (proxyState.isUnderConstruction()) {
-            if (!proxyState.getAcceptDefaultValue$realm()) {
-                return;
-            }
+            // default value of the primary key is always ignored.
+            return;
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -386,6 +385,18 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
+            }
+            if (value != null && !value.isManaged()) {
+                final Realm realm = (Realm) proxyState.getRealm$realm();
+                final RealmList<some.test.AllTypes> original = value;
+                value = new RealmList<some.test.AllTypes>();
+                for (some.test.AllTypes item : original) {
+                    if (item == null || RealmObject.isManaged(item)) {
+                        value.add(item);
+                    } else {
+                        value.add(realm.copyToRealm(item));
+                    }
+                }
             }
         }
 

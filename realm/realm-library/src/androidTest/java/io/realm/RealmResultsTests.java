@@ -37,6 +37,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.CyclicType;
+import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
@@ -1037,4 +1038,19 @@ public class RealmResultsTests extends CollectionTests {
 
         assertEquals(0, realm.where(StringOnly.class).findAll().size());
     }
+
+    @Test
+    public void query_defaultValueFromModelField() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(DefaultValueOfField.class,
+                        DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
+            }
+        });
+        final String createdRandomString = DefaultValueOfField.lastRandomStringValue;
+    }
+
+
+
 }

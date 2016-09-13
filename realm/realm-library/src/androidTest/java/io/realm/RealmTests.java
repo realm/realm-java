@@ -2289,8 +2289,10 @@ public class RealmTests {
         assertEquals(1L, realm.where(DefaultValueOfField.class)
                 .equalTo(DefaultValueOfField.FIELD_INT, DefaultValueOfField.FIELD_INT_DEFAULT_VALUE)
                 .count());
+        // default value for pk must be ignored
         assertEquals(1L, realm.where(DefaultValueOfField.class)
-                .equalTo(DefaultValueOfField.FIELD_LONG_PRIMARY_KEY, DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE)
+                .equalTo(DefaultValueOfField.FIELD_LONG_PRIMARY_KEY,
+                        DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3)
                 .count());
         assertEquals(1L, realm.where(DefaultValueOfField.class)
                 .equalTo(DefaultValueOfField.FIELD_LONG, DefaultValueOfField.FIELD_LONG_DEFAULT_VALUE)
@@ -2346,8 +2348,10 @@ public class RealmTests {
         assertEquals(1L, realm.where(DefaultValueConstructor.class)
                 .equalTo(DefaultValueConstructor.FIELD_INT, DefaultValueConstructor.FIELD_INT_DEFAULT_VALUE)
                 .count());
+        // default value for pk must be ignored
         assertEquals(1L, realm.where(DefaultValueConstructor.class)
-                .equalTo(DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY, DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE)
+                .equalTo(DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY,
+                        DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3)
                 .count());
         assertEquals(1L, realm.where(DefaultValueConstructor.class)
                 .equalTo(DefaultValueConstructor.FIELD_LONG, DefaultValueConstructor.FIELD_LONG_DEFAULT_VALUE)
@@ -2403,8 +2407,10 @@ public class RealmTests {
         assertEquals(1L, realm.where(DefaultValueSetter.class)
                 .equalTo(DefaultValueSetter.FIELD_INT, DefaultValueSetter.FIELD_INT_DEFAULT_VALUE)
                 .count());
+        // default value for pk must be ignored
         assertEquals(1L, realm.where(DefaultValueSetter.class)
-                .equalTo(DefaultValueSetter.FIELD_LONG_PRIMARY_KEY, DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE)
+                .equalTo(DefaultValueSetter.FIELD_LONG_PRIMARY_KEY,
+                        DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3)
                 .count());
         assertEquals(1L, realm.where(DefaultValueSetter.class)
                 .equalTo(DefaultValueSetter.FIELD_LONG, DefaultValueSetter.FIELD_LONG_DEFAULT_VALUE)
