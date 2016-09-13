@@ -685,9 +685,8 @@ public final class Realm extends BaseRealm {
     /**
      * Instantiates and adds a new object to the Realm.
      * <p>
-     * This method is only available for the model classes that have no primary key defined
-     * even though the class provides a default value for it.
-     * In order to create an object that has primary key, please use {@link #createObject(Class, Object)}
+     * This method is only available for model classes with no @PrimaryKey annotation.
+     * If you like to create an object that has a primary key, use {@link #createObject(Class, Object)}
      * or {@link #copyToRealm(RealmModel)} instead.
      *
      * @param clazz the Class of the object to create.
