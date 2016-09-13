@@ -32,7 +32,7 @@ public class Constants {
             "throw new IllegalArgumentException(\"JSON object doesn't have the primary key field '%s'.\")";
     static final String STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED =
             "throw new io.realm.exceptions.RealmException(\"Primary key field '%s' cannot be changed after object" +
-                    " created.\")";
+                    " was created.\")";
 
     static final Map<String, String> JAVA_TO_REALM_TYPES;
     static {

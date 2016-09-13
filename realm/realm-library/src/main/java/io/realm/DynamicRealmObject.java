@@ -813,8 +813,8 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
     private void checkIsPrimaryKey(String fieldName) {
         RealmObjectSchema objectSchema = proxyState.getRealm$realm().getSchema().getSchemaForClass(getType());
         if (objectSchema.hasPrimaryKey() && objectSchema.getPrimaryKey().equals(fieldName)) {
-            throw new IllegalArgumentException(String.format("Primary key field '%s' cannot be changed after object created."
-                    , fieldName));
+            throw new IllegalArgumentException(String.format(
+                    "Primary key field '%s' cannot be changed after object was created.", fieldName));
         }
     }
 }
