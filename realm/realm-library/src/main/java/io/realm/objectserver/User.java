@@ -64,10 +64,9 @@ public class User {
      * @return
      */
     public static User createLocal() {
-        Token token = new Token(UUID.randomUUID().toString(), Long.MAX_VALUE, Token.Permission.values());
+        Token token = new Token(UUID.randomUUID().toString(), null, null, Long.MAX_VALUE, Token.Permission.values());
         return new User(UUID.randomUUID().toString(), token, null);
     }
-
     /**
      * Load a user that has previously been serialized using {@link #toJson()}.
      *
@@ -79,11 +78,10 @@ public class User {
     public static User fromJson(String user) {
         try {
             JSONObject obj = new JSONObject(user);
-            String id = obj.getString("identifier");
             Token refreshToken = Token.from(obj.getJSONObject("refreshToken"));
             URL authUrl = new URL(obj.getString("authUrl"));
             // FIXME: Add support for  storing access tokens as well
-            return new User(id, refreshToken, authUrl);
+            return new User(refreshToken.identity(), refreshToken, authUrl);
         } catch (JSONException e) {
             throw new IllegalArgumentException("Could not parse user json: " + user, e);
         } catch (MalformedURLException e) {
@@ -101,9 +99,10 @@ public class User {
      *
      * @param token token to represent user.
      */
+    // FIXME Align with Cocoa on naming
     public static User fromToken(String token) {
         // Define a user with unlimited access. Object Server will reject any invalid access anyway.
-        return new User(null, new Token(token, Long.MAX_VALUE, Token.Permission.values()), null);
+        return new User(null, new Token(token, null, null, Long.MAX_VALUE, Token.Permission.values()), null);
     }
 
     public static User login(final Credentials credentials, final URL authentificationUrl)
@@ -141,7 +140,7 @@ public class User {
                 try {
                     AuthenticateResponse result = server.authenticateUser(credentials, authUrl, credentials.shouldCreateUser());
                     if (result.isValid()) {
-                        User user = new User(result.getIdentifier(), result.getRefreshToken(), authUrl);
+                        User user = new User(result.getRefreshToken().identity(), result.getRefreshToken(), authUrl);
                         postSuccess(user);
                     } else {
                         postError(result.getError());
@@ -312,7 +311,7 @@ public class User {
         // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
         // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used
         // correctly.
-        addAccessToken(uri, new Token(accessToken, Long.MAX_VALUE, Token.Permission.values()));
+        addAccessToken(uri, new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values()));
     }
 
 

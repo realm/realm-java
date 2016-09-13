@@ -33,9 +33,6 @@ import okhttp3.Response;
 public class AuthenticateResponse {
 
     private final ObjectServerError error;
-    private final String identifier;
-    private final String path;
-    private final String appId;
     private final Token accessToken;
     private final Token refreshToken;
 
@@ -57,8 +54,9 @@ public class AuthenticateResponse {
                 JSONObject obj = new JSONObject(serverResponse);
                 String type = obj.getString("type");
                 String hint = obj.optString("hint", null);
-                ErrorCode errorCode = ErrorCode.fromAuthError(type);
-                ObjectServerError error = new ObjectServerError(errorCode, hint);
+                String title = obj.optString("title", null);
+                ErrorCode errorCode = ErrorCode.fromInt(obj.optInt("code", -1));
+                ObjectServerError error = new ObjectServerError(errorCode, title, hint, type);
                 return new AuthenticateResponse(error);
             } catch (JSONException e) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, "Server failed with " +
@@ -75,9 +73,6 @@ public class AuthenticateResponse {
      */
     public AuthenticateResponse(ObjectServerError error) {
         this.error = error;
-        this.identifier = null;
-        this.path = null;
-        this.appId = null;
         this.accessToken = null;
         this.refreshToken = null;
     }
@@ -95,23 +90,15 @@ public class AuthenticateResponse {
         Token refreshToken;
         try {
             JSONObject obj = new JSONObject(serverResponse);
-            identifier = obj.getString("identity");
-            path = obj.optString("path");
-            appId = obj.optString("app_id"); // FIXME No longer sent?
-            accessToken = obj.has("token") ? Token.from(obj) : null;
-            refreshToken = obj.has("refresh") ? Token.from(obj.getJSONObject("refresh")) : null;
+            accessToken = obj.has("accessToken") ? Token.from(obj.getJSONObject("accessToken")) : null;
+            refreshToken = obj.has("refreshToken") ? Token.from(obj.getJSONObject("refreshToken")) : null;
             error = null;
         } catch (JSONException ex) {
-            identifier = null;
-            path =  null;
-            appId = null;
             accessToken = null;
             refreshToken = null;
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
         }
-        this.identifier = identifier;
-        this.path = path;
-        this.appId = appId;
+
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.error = error;
@@ -123,18 +110,6 @@ public class AuthenticateResponse {
 
     public ObjectServerError getError() {
         return error;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getAppId() {
-        return appId;
     }
 
     public Token getAccessToken() {

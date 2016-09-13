@@ -21,7 +21,6 @@
 #include "util.hpp"
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
-#include <realm/commit_log.hpp>
 
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
@@ -40,11 +39,23 @@ using namespace sync;
 class AndroidLogger: public realm::util::RootLogger
 {
 public:
-    void do_log(std::string msg)
+    void do_log(Level level, std::string msg)
     {
-        // Figure out how to log properly. We need level/code/message
-        // Think it has been fixed in later versions of Core
-        log_message(sync_client_env, log_debug, msg.c_str());
+        jmethodID log_method;
+        switch (level) {
+            case Level::trace: log_method = log_trace; break;
+            case Level::debug: log_method = log_debug; break;
+            case Level::detail: log_method = log_debug; break;
+            case Level::info: log_method = log_info; break;
+            case Level::warn: log_method = log_warn; break;
+            case Level::error: log_method = log_error; break;
+            case Level::fatal: log_method = log_fatal; break;
+            case Level::all:
+            case Level::off:
+                ThrowException(sync_client_env, IllegalArgument, "Unknown logger argument: " + num_to_string(level));
+                return;
+        }
+        log_message(sync_client_env, log_method, msg.c_str());
     }
 };
 

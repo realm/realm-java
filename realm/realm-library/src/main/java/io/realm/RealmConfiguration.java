@@ -453,6 +453,7 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 bit key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {

@@ -417,7 +417,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * Sets the error handler used by this configuration.
          * This will override any handler set by calling {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
          *
-         * Only errors not handled by the defined {@link SyncPolicy} will be reported to this error handler.
+         * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
          * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
          * @throws IllegalArgumentException if {@code null} is given as an error handler.

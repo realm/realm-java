@@ -237,43 +237,22 @@ public class SyncConfigurationTests {
         } catch (IllegalArgumentException ignore) {
         }
     }
-
-
-//    @Ignore("Only used for quick testing without needing to spin up a full integration test")
-//    @Test
-//    @RunTestInLooperThread
-//    public void basicIntegrationTest2() {
-//        User.loginAsync(Credentials.fromUsernamePassword("cm", "test", false), "http://192.168.1.21:8080/auth", new User.Callback() {
-//            @Override
-//            public void onSuccess(User user) {
-//                SyncConfiguration config = new SyncConfiguration.Builder(context)
-//                        .user(user)
-//                        .serverUrl("realm://192.168.1.21/~/default")
-//                        .build();
-//                Realm realm = Realm.getInstance(config);
-//                realm.beginTransaction();
-//                realm.commitTransaction();
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                fail(error.toString());
-//            }
-//        });
-//    }
-
+    
     private User createTestUser(long expires) {
         JSONObject obj = new JSONObject();
         try {
-            obj.put("identifier", UUID.randomUUID().toString());
             JSONObject token = new JSONObject();
+            token.put("token", UUID.randomUUID().toString());
+            JSONObject tokenData = new JSONObject();
             JSONArray perms = new JSONArray(); // Grant all permissions
             for (int i = 0; i < Token.Permission.values().length; i++) {
                 perms.put(Token.Permission.values()[i].toString().toLowerCase(Locale.US));
             }
-            token.put("access", perms);
-            token.put("token", UUID.randomUUID().toString());
-            token.put("expires", expires);
+            tokenData.put("identity", UUID.randomUUID().toString());
+            tokenData.put("path", null);
+            tokenData.put("expires", expires);
+            tokenData.put("access", perms);
+            token.put("token_data", tokenData);
             obj.put("refreshToken", token);
             obj.put("authUrl", "http://dummy.org/auth");
             return User.fromJson(obj.toString());

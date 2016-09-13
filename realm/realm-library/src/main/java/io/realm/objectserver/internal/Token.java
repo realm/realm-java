@@ -29,14 +29,19 @@ import java.util.Locale;
 public class Token {
 
     private final String value;
-    private final long expires;
+    private final long expiresSec;
     private final Permission[] permissions;
+    private final String identity;
+    private final String path;
 
     public static Token from(JSONObject token) throws JSONException {
         String value = token.getString("token");
-        long expires = token.getLong("expires");
+        JSONObject tokenData = token.getJSONObject("token_data");
+        String identity = tokenData.getString("identity");
+        String path = tokenData.optString("path");
+        long expiresSec = tokenData.getLong("expires");
         Permission[] permissions;
-        JSONArray access = token.getJSONArray("access");
+        JSONArray access = tokenData.getJSONArray("access");
         if (access != null) {
             permissions = new Permission[access.length()];
             for (int i = 0; i < access.length(); i++) {
@@ -50,12 +55,14 @@ public class Token {
             permissions = new Permission[0];
         }
 
-        return new Token(value, expires, permissions);
+        return new Token(value, identity, path, expiresSec, permissions);
     }
 
-    public Token(String value, long expires, Permission... permissions) {
+    public Token(String value, String identity, String path, long expiresSec, Permission[] permissions) {
         this.value = value;
-        this.expires = expires;
+        this.identity = identity;
+        this.path = path;
+        this.expiresSec = expiresSec;
         this.permissions = Arrays.copyOf(permissions, permissions.length);
     }
 
@@ -63,17 +70,24 @@ public class Token {
         return value;
     }
 
+    public String identity() { return identity; }
+
+    public String path() { return path; }
+
     /**
-     * Returns when this token expiresSec. Timestamp is in UTC seconds.
+     * Returns when this token expires. Timestamp is in UTC seconds.
      */
     public long expiresSec() {
-        return expires;
+        return expiresSec;
     }
 
+    /**
+     * Returns when this token expires. Timestamp is in UTC milliseconds.
+     */
     public long expiresMs() {
-        long expiresMs = expires * 1000;
-        if (expiresMs < expires) {
-            return Long.MAX_VALUE; // Overflow
+        long expiresMs = expiresSec * 1000;
+        if (expiresMs < expiresSec) {
+            return Long.MAX_VALUE; // Prevent overflow
         } else {
             return expiresMs;
         }
@@ -87,7 +101,7 @@ public class Token {
         JSONObject obj = new JSONObject();
         try {
             obj.put("token", value);
-            obj.put("expires", expires);
+            obj.put("expires", expiresSec);
             JSONArray perms = new JSONArray();
             for (int i = 0; i < permissions.length; i++) {
                 perms.put(permissions[i].toString().toLowerCase(Locale.US));

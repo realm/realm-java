@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '0.28.0'
+ext.coreVersion = '1.0.0-beta-33.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'e4d8ed7342824a1574449700b16cd36f663f4d6768fc09c1aca986f19e27162b'
+ext.coreSha256Hash = 'cb86996a80a41b074cfd5162dee85ca0b799dc5fa92e23fd0de33938ed61dbdd'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -25,7 +25,7 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
     ext.coreArchiveDir = ".."
 }
-ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/core-android-${project.coreVersion}.tar.gz")
+ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
 ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 
@@ -129,9 +129,9 @@ task javadoc(type: Javadoc) {
         locale = 'en_US'
         overview = 'src/overview.html'
 
-        links "http://docs.oracle.com/javase/7/docs/api/"
+        links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "http://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
@@ -366,7 +366,7 @@ task downloadCore() {
     doLast {
         if (shouldDownloadCore()) {
             // CI artifacts are only available if on the internal network or VPN
-            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
+            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/realm-sync-android-${project.coreVersion}.tar.gz"
 
             println "Downloading ${downloadUrl}"
             exec {
@@ -410,7 +410,7 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
         copy {
             from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
             into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "core-android-${coreVersion}.tar.gz"
+            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
         }
     }
 }

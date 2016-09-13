@@ -27,19 +27,6 @@ public enum ErrorCode {
     IO_EXCEPTION(0, Category.RECOVERABLE),      // Some IO error while either contacting the server or reading the response
     JSON_EXCEPTION(1),                          // JSON input could not be parsed correctly
 
-    // Realm Authentication Server response errors (50 - 99)
-
-    REALM_PROBLEM(50),
-    INVALID_PARAMETERS(51),
-    MISSING_PARAMETERS(52),
-    INVALID_CREDENTIALS(53),
-    UNKNOWN_ACCOUNT(54),
-    EXISTING_ACCOUNT(55),
-    ACCESS_DENIED(56),
-    INVALID_REFRESH_TOKEN(57),
-    EXPIRED_REFRESH_TOKEN(58),
-    INTERNAL_SERVER_ERROR(59),
-
     // Realm Object Server errors (100 - 199)
 
     // Connection level and protocol errors
@@ -72,7 +59,19 @@ public enum ErrorCode {
     BAD_SERVER_VERSION(209),                        // Bad server version (IDENT, UPLOAD)
     BAD_CLIENT_VERSION(210),                        // Bad client version (IDENT, UPLOAD)
     DIVERGING_HISTORIES(211),                       // Diverging histories (IDENT)
-    BAD_CHANGESET(212);                             // Bad changeset (UPLOAD)
+    BAD_CHANGESET(212),                             // Bad changeset (UPLOAD)
+
+    // 300 - 599 Standard HTTP error codes
+
+    // Realm Authentication Server response errors (600 - 699)
+
+    INVALID_PARAMETERS(601),
+    MISSING_PARAMETERS(602),
+    INVALID_CREDENTIALS(611),
+    UNKNOWN_ACCOUNT(612),
+    EXISTING_ACCOUNT(613),
+    ACCESS_DENIED(614),
+    EXPIRED_REFRESH_TOKEN(615);
 
     private final int code;
     private final Category category;
@@ -124,19 +123,6 @@ public enum ErrorCode {
             }
         }
         throw new IllegalArgumentException("Unknown error code: " + errorCode);
-    }
-
-    public static ErrorCode fromAuthError(String type) {
-        switch(type) {
-            case "https://realm.io/docs/object-server/problems/invalid-credentials" : return ErrorCode.INVALID_CREDENTIALS;
-            case "https://realm.io/docs/object-server/problems/unknown-account" : return ErrorCode.UNKNOWN_ACCOUNT;
-            case "https://realm.io/docs/object-server/problems/existing-account" : return ErrorCode.EXISTING_ACCOUNT;
-            case "https://realm.io/docs/object-server/problems/access-denied" : return ErrorCode.ACCESS_DENIED;
-            case "https://realm.io/docs/object-server/problems/expired-refresh-token" : return ErrorCode.EXPIRED_REFRESH_TOKEN;
-            case "https://realm.io/docs/object-server/problems/internal-server-error" : return ErrorCode.INTERNAL_SERVER_ERROR;
-            default:
-                throw new IllegalArgumentException("Unknown error: " + type);
-        }
     }
 
 public enum Category {

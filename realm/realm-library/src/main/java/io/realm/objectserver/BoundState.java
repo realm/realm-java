@@ -46,19 +46,17 @@ class BoundState extends FsmState {
     @Override
     public void onError(ObjectServerError error) {
         switch(error.errorCode()) {
-            // Auth protocol errors (should not happen). If credentials are being replaced
+            // FIXME: Regenerate this
+            // Auth protocol errors (should not happen).
             case IO_EXCEPTION:
             case JSON_EXCEPTION:
-            case REALM_PROBLEM:
             case INVALID_PARAMETERS:
             case MISSING_PARAMETERS:
             case INVALID_CREDENTIALS:
             case UNKNOWN_ACCOUNT:
             case EXISTING_ACCOUNT:
             case ACCESS_DENIED:
-            case INVALID_REFRESH_TOKEN:
             case EXPIRED_REFRESH_TOKEN:
-            case INTERNAL_SERVER_ERROR:
                 throw new IllegalStateException("Authentication protocol errors should not happen: " + error.toString());
 
             // Ignore Network client errors (irrelevant)

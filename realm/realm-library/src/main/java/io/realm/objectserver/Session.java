@@ -37,8 +37,8 @@ import io.realm.log.RealmLog;
  * a Realm instance. Once a session has been created it will continue to exist until explicitly closed or the
  * underlying Realm file is deleted.
  * <p>
- * It is normally not necessary to interact directly with a session. That should be done by the {@link SyncPolicy}
- * defined using {@link io.realm.objectserver.SyncConfiguration.Builder#syncPolicy(SyncPolicy)}.
+ * It is normally not necessary to interact directly with a session. That should be done by the {@code SyncPolicy}
+ * defined using {@code io.realm.objectserver.SyncConfiguration.Builder#syncPolicy(SyncPolicy)}.
  * <p>
  * A session has a lifecycle consisting of the following states:
  * <p>
@@ -46,8 +46,8 @@ import io.realm.log.RealmLog;
  * <li>
  *     <b>INITIAL</b> Initial state when creating the Session object. No connections to the object server have been
  *     made yet. At this point it is possible to register any relevant error and event listeners. Calling
- *     {@link #start()} will cause the session to become <b>unbound</b> and notify the {@link SyncPolicy} that the
- *     session is ready by calling {@link SyncPolicy#onSessionCreated(Session)}.
+ *     {@link #start()} will cause the session to become <b>unbound</b> and notify the {@code SyncPolicy} that the
+ *     session is ready by calling {@code SyncPolicy#onSessionCreated(Session)}.
  * </li>
  * <li>
  *     <b>UNBOUND</b> When a session is unbound, no synchronization between the local and remote Realm is happening.
@@ -68,13 +68,11 @@ import io.realm.log.RealmLog;
  * </li>
  * <li>
  *     <b>STOPPED</b> The session has been stopped and no longer work. A new session will be created the next time
- *     either the Realm is opened or {@link SyncManager#getSession(SyncConfiguration)} is called.
+ *     either the Realm is opened or {@code SyncManager#getSession(SyncConfiguration)} is called.
  * </li>
  * </ol>
  *
  * This object is thread safe.
- *
- * @see io.realm.objectserver.SyncConfiguration.Builder#syncPolicy(SyncPolicy)
  */
 @Keep
 public final class Session {
@@ -159,7 +157,7 @@ public final class Session {
      *
      * While this method will return immediately, binding a Realm is not guaranteed to succeed. Possible reasons for
      * failure could be either if the device is offline or credentials have expired. Binding is an asynchronous
-     * operation and all errors will be sent first to {@link SyncPolicy#onError(Session, ObjectServerError)} and if the
+     * operation and all errors will be sent first to {@code SyncPolicy#onError(Session, ObjectServerError)} and if the
      * SyncPolicy didn't handle it, to the {@link ErrorHandler} defined by
      * {@link SyncConfiguration.Builder#errorHandler(ErrorHandler)}.
      */

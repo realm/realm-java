@@ -21,7 +21,6 @@
 #include "util.hpp"
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
-#include <realm/commit_log.hpp>
 
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
@@ -50,7 +49,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_Session_nativeCreateSession
         }
 
         JStringAccessor local_path(env, localRealmPath);
-        JniSession* jni_session = new JniSession(sync_client, local_path, obj, env);
+        JniSession* jni_session = new JniSession(env, sync_client, local_path, obj);
         return reinterpret_cast<jlong>(jni_session);
     } CATCH_STD()
     return 0;

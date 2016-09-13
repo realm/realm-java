@@ -42,10 +42,29 @@ public class ObjectServerError extends RuntimeException {
         this(errorCode, null, exception);
     }
 
+    /**
+     * Generic error happening that could happen anywhere.
+     *
+     * @param errorCode
+     * @param errorMessage
+     * @param exception
+     */
     public ObjectServerError(ErrorCode errorCode, String errorMessage, Throwable exception) {
         this.error = errorCode;
         this.errorMessage = errorMessage;
         this.exception = exception;
+    }
+
+    /**
+     * Errors happening while trying to authenticate a user.
+     *
+     * @param errorCode
+     * @param title
+     * @param hint
+     * @param type
+     */
+    public ObjectServerError(ErrorCode errorCode, String title, String hint, String type) {
+        this(errorCode, String.format("%s : %s (%s)", title, hint, type), null);
     }
 
     public ErrorCode errorCode() {

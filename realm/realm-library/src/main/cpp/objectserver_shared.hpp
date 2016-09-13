@@ -41,13 +41,13 @@ class JniSession {
 
 public:
     JniSession() = delete;
-    JniSession(realm::sync::Client* sync_client, std::string local_realm_path, jobject java_session_obj, JNIEnv* env)
+    JniSession(JNIEnv* env, realm::sync::Client* sync_client, std::string local_realm_path, jobject java_session_obj)
     {
         // Get the coordinator for the given path, or null if there is none
         m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
             m_global_obj_ref = env->NewGlobalRef(java_session_obj);
             jobject global_obj_ref_tmp(m_global_obj_ref);
-            auto sync_transact_callback = [local_realm_path](realm::sync::Session::version_type) {
+            auto sync_transact_callback = [local_realm_path](realm::VersionID, realm::VersionID) {
                 auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(realm::StringData(local_realm_path));
                 if (coordinator) {
                     coordinator->notify_others();
