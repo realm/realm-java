@@ -454,7 +454,7 @@ public class RealmProxyClassGenerator {
                         metadata.getFields().size());
             writer.endControlFlow();
             writer.beginControlFlow("if (allowExtraColumns)");
-                writer.emitStatement("RealmLog.info(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
+                writer.emitStatement("RealmLog.debug(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
                         metadata.getFields().size());
             writer.nextControlFlow("else");
                 writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is more than expected - expected %d but was \" + columnCount)",

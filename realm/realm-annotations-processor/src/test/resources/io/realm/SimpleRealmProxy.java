@@ -121,7 +121,7 @@ public class SimpleRealmProxy extends some.test.Simple
                     throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 2 but was " + columnCount);
                 }
                 if (allowExtraColumns) {
-                    RealmLog.info("Field count is more than expected - expected 2 but was %1$d", columnCount);
+                    RealmLog.debug("Field count is more than expected - expected 2 but was %1$d", columnCount);
                 } else {
                     throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 2 but was " + columnCount);
                 }
