@@ -272,7 +272,7 @@ public class DynamicRealmObjectTests {
             try {
                 callSetterOnPrimaryKey(pkClass, object);
                 fail();
-            } catch (RealmException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
             dynamicRealm.cancelTransaction();
         }
@@ -534,7 +534,7 @@ public class DynamicRealmObjectTests {
                     object.setNull("id");
                 }
                 fail();
-            } catch (RealmException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
             dynamicRealm.cancelTransaction();
         }
@@ -912,7 +912,7 @@ public class DynamicRealmObjectTests {
                     object.set("id", value);
                 }
                 fail();
-            } catch (RealmException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
             dynamicRealm.cancelTransaction();
         }
