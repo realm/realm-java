@@ -41,6 +41,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.DogOnlyModule;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmException;
@@ -304,6 +305,16 @@ public class RealmConfigurationTests {
                 .build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
+    }
+
+    // Test if the Owner is not included in the module, but Dog is.
+    @Test
+    public void modules_missingLinkedObjectThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .modules(new DogOnlyModule())
+                .build();
+        thrown.expect(RealmException.class);
+        Realm.getInstance(config);
     }
 
     @Test

@@ -9,6 +9,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -129,7 +130,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         proxyState.getRow$realm().setBoolean(columnInfo.anotherBooleanIndex, value);
     }
 
-    public static Table initTable(SharedRealm sharedRealm) {
+    @SuppressWarnings("UnusedParameters")
+    public static Table initTable(RealmProxyMediator mediator, SharedRealm sharedRealm) {
         if (!sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");
             table.addColumn(RealmFieldType.BOOLEAN, "done", Table.NOT_NULLABLE);

@@ -69,6 +69,7 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
         imports.add("io.realm.internal.ColumnInfo");
         imports.add("io.realm.internal.RealmObjectProxy");
+        imports.add("io.realm.internal.RealmProxyMediator");
         imports.add("io.realm.internal.Table");
         imports.add("io.realm.internal.TableOrView");
         imports.add("io.realm.internal.SharedRealm");
@@ -375,11 +376,13 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitInitTableMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("SuppressWarnings", "\"UnusedParameters\"");
         writer.beginMethod(
                 "Table", // Return type
                 "initTable", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm"); // Argument type & argument name
+                "RealmProxyMediator", "mediator",// Argument type & argument name
+                "SharedRealm", "sharedRealm");
 
         writer.beginControlFlow("if (!sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
@@ -402,14 +405,16 @@ public class RealmProxyClassGenerator {
                         fieldName, nullableFlag);
             } else if (Utils.isRealmModel(field)) {
                 writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.emitStatement("%s%s.initTable(sharedRealm)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.emitStatement("mediator.createTable(%s.class, sharedRealm)",
+                        Utils.getFieldTypeQualifiedName(field));
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(RealmFieldType.OBJECT, \"%s\", sharedRealm.getTable(\"%s%s\"))",
                         fieldName, Constants.TABLE_PREFIX, fieldTypeSimpleName);
             } else if (Utils.isRealmList(field)) {
                 String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
                 writer.beginControlFlow("if (!sharedRealm.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericTypeSimpleName);
-                writer.emitStatement("%s.initTable(sharedRealm)", Utils.getProxyClassName(genericTypeSimpleName));
+                writer.emitStatement("mediator.createTable(%s.class, sharedRealm)",
+                        Utils.getGenericTypeQualifiedName(field));
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(RealmFieldType.LIST, \"%s\", sharedRealm.getTable(\"%s%s\"))",
                         fieldName, Constants.TABLE_PREFIX, genericTypeSimpleName);

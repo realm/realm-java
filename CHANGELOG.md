@@ -23,6 +23,7 @@
 * Added `RealmConfiguration.Builder.directory(File)`.
 * `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
 * Typed `RealmObject`s can now continue to access their fields properly even though the schema was changed while the Realm was open (#3409).
+* Throw a `RealmException` when an object is used as a `RealmObject`/`RealmList` field but is not declared in the `RealmModule` (#3398).
 
 ### Bug fixes
 

@@ -9,6 +9,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -507,7 +508,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
-    public static Table initTable(SharedRealm sharedRealm) {
+    @SuppressWarnings("UnusedParameters")
+    public static Table initTable(RealmProxyMediator mediator, SharedRealm sharedRealm) {
         if (!sharedRealm.hasTable("class_NullTypes")) {
             Table table = sharedRealm.getTable("class_NullTypes");
             table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
@@ -531,7 +533,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
             table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
             if (!sharedRealm.hasTable("class_NullTypes")) {
-                NullTypesRealmProxy.initTable(sharedRealm);
+                mediator.createTable(some.test.NullTypes.class, sharedRealm);
             }
             table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", sharedRealm.getTable("class_NullTypes"));
             table.setPrimaryKey("");

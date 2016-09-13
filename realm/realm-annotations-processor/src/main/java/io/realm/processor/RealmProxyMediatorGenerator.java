@@ -134,7 +134,7 @@ public class RealmProxyMediatorGenerator {
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.initTable(sharedRealm)", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return %s.initTable(this, sharedRealm)", qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();

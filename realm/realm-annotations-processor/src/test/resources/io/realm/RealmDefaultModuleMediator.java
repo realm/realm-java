@@ -34,7 +34,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.initTable(sharedRealm);
+            return io.realm.AllTypesRealmProxy.initTable(this, sharedRealm);
         } else {
             throw getMissingProxyClassException(clazz);
         }
