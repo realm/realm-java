@@ -684,10 +684,16 @@ public final class Realm extends BaseRealm {
 
     /**
      * Instantiates and adds a new object to the Realm.
+     * <p>
+     * This method is only available for the model classes that have no primary key defined
+     * even though the class provides a default value for it.
+     * If you'd like to create an object that has primary key, please use {@link #createObject(Class, Object)}
+     * or {@link #copyToRealm(RealmModel)} instead.
      *
      * @param clazz the Class of the object to create.
      * @return the new object.
      * @throws RealmException if an object cannot be created.
+     * @see #createObject(Class, Object)
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
@@ -706,6 +712,7 @@ public final class Realm extends BaseRealm {
      * <p>
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
+     * The default value for primary key provided by the model class will be ignored.
      *
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
