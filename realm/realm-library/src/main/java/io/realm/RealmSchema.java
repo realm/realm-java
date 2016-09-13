@@ -276,10 +276,6 @@ public final class RealmSchema {
         return dynamicSchema;
     }
 
-    void setColumnIndices(ColumnIndices columnIndices) {
-        this.columnIndices = columnIndices;
-    }
-
     static String getSchemaForTable(Table table) {
         return table.getName().substring(Table.TABLE_PREFIX.length());
     }

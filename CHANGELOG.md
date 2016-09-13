@@ -15,6 +15,7 @@
 * `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
 * Object with primary key is now required to define it when the object is created. This means that `Realm.createObject(Class<E>)` and `DynamicRealm.createObject(String)` now throws `RealmException` if they are used to create an object with a primary key field. Use `Realm.createObject(Class<E>, Object)` or `DynamicRealm.createObject(String, Object)` instead.
 * Importing from JSON without the primary key field defined in the JSON object now throws `IllegalArgumentException`.
+* Now `Realm.beginTransaction()`, `Realm.executeTransaction()` and `Realm.waitForChange()` throw `RealmMigrationNeededException` if a remote process introduces an incompatible schema changes (#3409).
 * The primary key value of an object can no longer be changed after the object was created. Instead a new object must be created and all fields copied over.
 
 ### Enhancements
@@ -22,6 +23,7 @@
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
 * Added `RealmConfiguration.Builder.directory(File)`.
 * `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
+* Typed `RealmObject`s can now continue to access their fields properly even though the schema was changed while the Realm was open (#3409).
 
 ### Bug fixes
 

@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -14,6 +13,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,23 +29,37 @@ import org.json.JSONObject;
 public class SimpleRealmProxy extends some.test.Simple
         implements RealmObjectProxy, SimpleRealmProxyInterface {
 
-    static final class SimpleColumnInfo extends ColumnInfo {
+    static final class SimpleColumnInfo extends ColumnInfo
+            implements Cloneable {
 
-        public final long nameIndex;
-        public final long ageIndex;
+        public long nameIndex;
+        public long ageIndex;
 
         SimpleColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(2);
             this.nameIndex = getValidColumnIndex(path, table, "Simple", "name");
             indicesMap.put("name", this.nameIndex);
-
             this.ageIndex = getValidColumnIndex(path, table, "Simple", "age");
             indicesMap.put("age", this.ageIndex);
 
             setIndicesMap(indicesMap);
         }
-    }
 
+        @Override
+        public final void copyColumnInfoFrom(ColumnInfo other) {
+            final SimpleColumnInfo otherInfo = (SimpleColumnInfo) other;
+            this.nameIndex = otherInfo.nameIndex;
+            this.ageIndex = otherInfo.ageIndex;
+
+            setIndicesMap(otherInfo.getIndicesMap());
+        }
+
+        @Override
+        public final SimpleColumnInfo clone() {
+            return (SimpleColumnInfo) super.clone();
+        }
+
+    }
     private final SimpleColumnInfo columnInfo;
     private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
@@ -98,11 +112,19 @@ public class SimpleRealmProxy extends some.test.Simple
         return sharedRealm.getTable("class_Simple");
     }
 
-    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Simple")) {
             Table table = sharedRealm.getTable("class_Simple");
-            if (table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount != 2) {
+                if (columnCount < 2) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 2 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.debug("Field count is more than expected - expected 2 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 2 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 2; i++) {
