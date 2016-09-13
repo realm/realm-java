@@ -103,8 +103,10 @@ public class SimpleRealmProxy extends some.test.Simple
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -132,8 +134,10 @@ public class SimpleRealmProxy extends some.test.Simple
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();

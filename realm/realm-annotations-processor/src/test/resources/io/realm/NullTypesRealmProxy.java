@@ -198,8 +198,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -226,8 +228,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -255,8 +259,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -286,8 +292,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -315,8 +323,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -343,8 +353,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -372,8 +384,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -403,8 +417,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -432,8 +448,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -463,8 +481,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -492,8 +512,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -523,8 +545,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -552,8 +576,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -583,8 +609,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -612,8 +640,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -643,8 +673,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -672,8 +704,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -703,8 +737,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -732,8 +768,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -763,8 +801,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -794,8 +834,13 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (value != null && !RealmObject.isManaged(value)) {
+                value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();

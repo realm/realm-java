@@ -2312,11 +2312,12 @@ public class RealmTests {
         assertEquals(1L, realm.where(DefaultValueOfField.class)
                 .equalTo(DefaultValueOfField.FIELD_BINARY, DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE)
                 .count());
-        // FIXME supprting default value of RealmObject and RealmList
-//        assertEquals(1L, realm.where(DefaultValueOfField.class)
-//                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT
-//                        , PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)
-//                .count());
+
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT
+                        , PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)
+                .count());
+        // FIXME supporting default value of  RealmList
 //        assertEquals(1L, realm.where(DefaultValueOfField.class)
 //                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT,
 //                        PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)

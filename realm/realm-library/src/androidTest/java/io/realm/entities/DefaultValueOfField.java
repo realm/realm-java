@@ -80,8 +80,8 @@ public class DefaultValueOfField extends RealmObject {
     private boolean fieldBoolean = FIELD_BOOLEAN_DEFAULT_VALUE;
     private Date fieldDate = FIELD_DATE_DEFAULT_VALUE;
     private byte[] fieldBinary = FIELD_BINARY_DEFAULT_VALUE;
+    private PrimaryKeyWithNoPrimaryKeyObjectRelation fieldObject = FIELD_OBJECT_DEFAULT_VALUE;
     // FIXME supports these default values
-    private PrimaryKeyWithNoPrimaryKeyObjectRelation fieldObject;// = FIELD_OBJECT_DEFAULT_VALUE;
     private RealmList<PrimaryKeyWithNoPrimaryKeyObjectRelation> fieldList;// = FIELD_LIST_DEFAULT_VALUE;
 
     public DefaultValueOfField() {

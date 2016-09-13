@@ -139,8 +139,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -164,8 +166,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -189,8 +193,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -214,8 +220,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -239,8 +247,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -264,8 +274,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -292,8 +304,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -322,8 +336,13 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (value != null && !RealmObject.isManaged(value)) {
+                value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
+            }
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -364,8 +383,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             injectObjectContext();
         }
 
-        if (proxyState.isUnderConstruction() && !proxyState.getAcceptDefaultValue$realm()) {
-            return;
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
         }
 
         LinkView links = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
