@@ -63,7 +63,9 @@ import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
+import io.realm.entities.DefaultValueConstructor;
 import io.realm.entities.DefaultValueOfField;
+import io.realm.entities.DefaultValueSetter;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NoPrimaryKeyNullTypes;
@@ -83,7 +85,6 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
-import io.realm.entities.PrimaryKeyWithNoPrimaryKeyObjectRelation;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
@@ -2317,8 +2318,126 @@ public class RealmTests {
                         RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
                 .count());
         assertEquals(1L, realm.where(DefaultValueOfField.class)
-                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + RandomPrimaryKey.FIELD_INT,
+                .equalTo(DefaultValueOfField.FIELD_LIST + "." + RandomPrimaryKey.FIELD_INT,
                         RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
+                .count());
+    }
+
+    @Test
+    public void createObject_defaultValueFromModelConstructor() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(DefaultValueConstructor.class,
+                        DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
+            }
+        });
+        final String createdRandomString = DefaultValueConstructor.lastRandomStringValue;
+
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_STRING, DefaultValueConstructor.FIELD_STRING_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_RANDOM_STRING, createdRandomString)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_SHORT, DefaultValueConstructor.FIELD_SHORT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_INT, DefaultValueConstructor.FIELD_INT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY, DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_LONG, DefaultValueConstructor.FIELD_LONG_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_BYTE, DefaultValueConstructor.FIELD_BYTE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_FLOAT, DefaultValueConstructor.FIELD_FLOAT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_DOUBLE, DefaultValueConstructor.FIELD_DOUBLE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_BOOLEAN, DefaultValueConstructor.FIELD_BOOLEAN_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_DATE, DefaultValueConstructor.FIELD_DATE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_BINARY, DefaultValueConstructor.FIELD_BINARY_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_OBJECT + "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueConstructor.class)
+                .equalTo(DefaultValueConstructor.FIELD_LIST + "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
+                .count());
+    }
+
+    @Test
+    public void createObject_defaultValueSetterInConstructor() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(DefaultValueSetter.class,
+                        DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
+            }
+        });
+        final String createdRandomString = DefaultValueSetter.lastRandomStringValue;
+
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_STRING, DefaultValueSetter.FIELD_STRING_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_RANDOM_STRING, createdRandomString)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_SHORT, DefaultValueSetter.FIELD_SHORT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_INT, DefaultValueSetter.FIELD_INT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_LONG_PRIMARY_KEY, DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_LONG, DefaultValueSetter.FIELD_LONG_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_BYTE, DefaultValueSetter.FIELD_BYTE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_FLOAT, DefaultValueSetter.FIELD_FLOAT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_DOUBLE, DefaultValueSetter.FIELD_DOUBLE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_BOOLEAN, DefaultValueSetter.FIELD_BOOLEAN_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_DATE, DefaultValueSetter.FIELD_DATE_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_BINARY, DefaultValueSetter.FIELD_BINARY_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_OBJECT + "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_LIST + "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
+                .count());
+        assertEquals(1L, realm.where(DefaultValueSetter.class)
+                .equalTo(DefaultValueSetter.FIELD_LIST+ "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1)
                 .count());
     }
 
