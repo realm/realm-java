@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -14,6 +13,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,31 +29,45 @@ import org.json.JSONObject;
 public class BooleansRealmProxy extends some.test.Booleans
         implements RealmObjectProxy, BooleansRealmProxyInterface {
 
-    static final class BooleansColumnInfo extends ColumnInfo {
+    static final class BooleansColumnInfo extends ColumnInfo
+            implements Cloneable {
 
-        public final long doneIndex;
-        public final long isReadyIndex;
-        public final long mCompletedIndex;
-        public final long anotherBooleanIndex;
+        public long doneIndex;
+        public long isReadyIndex;
+        public long mCompletedIndex;
+        public long anotherBooleanIndex;
 
         BooleansColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(4);
             this.doneIndex = getValidColumnIndex(path, table, "Booleans", "done");
             indicesMap.put("done", this.doneIndex);
-
             this.isReadyIndex = getValidColumnIndex(path, table, "Booleans", "isReady");
             indicesMap.put("isReady", this.isReadyIndex);
-
             this.mCompletedIndex = getValidColumnIndex(path, table, "Booleans", "mCompleted");
             indicesMap.put("mCompleted", this.mCompletedIndex);
-
             this.anotherBooleanIndex = getValidColumnIndex(path, table, "Booleans", "anotherBoolean");
             indicesMap.put("anotherBoolean", this.anotherBooleanIndex);
 
             setIndicesMap(indicesMap);
         }
-    }
 
+        @Override
+        public final void copyColumnInfoFrom(ColumnInfo other) {
+            final BooleansColumnInfo otherInfo = (BooleansColumnInfo) other;
+            this.doneIndex = otherInfo.doneIndex;
+            this.isReadyIndex = otherInfo.isReadyIndex;
+            this.mCompletedIndex = otherInfo.mCompletedIndex;
+            this.anotherBooleanIndex = otherInfo.anotherBooleanIndex;
+
+            setIndicesMap(otherInfo.getIndicesMap());
+        }
+
+        @Override
+        public final BooleansColumnInfo clone() {
+            return (BooleansColumnInfo) super.clone();
+        }
+
+    }
     private final BooleansColumnInfo columnInfo;
     private final ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
@@ -128,11 +142,19 @@ public class BooleansRealmProxy extends some.test.Booleans
         return sharedRealm.getTable("class_Booleans");
     }
 
-    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");
-            if (table.getColumnCount() != 4) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount != 4) {
+                if (columnCount < 4) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 4 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.debug("Field count is more than expected - expected 4 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 4 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {

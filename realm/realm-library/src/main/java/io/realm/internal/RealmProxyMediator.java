@@ -55,9 +55,13 @@ public abstract class RealmProxyMediator {
      *
      * @param clazz the {@link RealmObject} model class to validate.
      * @param sharedRealm the wrapper object of underlying native database to validate against.
+     * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
+     *                          is thrown when the column count it more than expected.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
+    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
+                                             SharedRealm sharedRealm,
+                                             boolean allowExtraColumns);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.

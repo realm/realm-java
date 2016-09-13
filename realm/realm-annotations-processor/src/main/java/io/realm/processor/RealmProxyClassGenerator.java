@@ -66,7 +66,6 @@ public class RealmProxyClassGenerator {
         imports.add("android.os.Build");
         imports.add("android.util.JsonReader");
         imports.add("android.util.JsonToken");
-        imports.add("io.realm.RealmFieldType");
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
         imports.add("io.realm.internal.ColumnInfo");
         imports.add("io.realm.internal.RealmObjectProxy");
@@ -75,6 +74,7 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.SharedRealm");
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
+        imports.add("io.realm.log.RealmLog");
         imports.add("java.io.IOException");
         imports.add("java.util.ArrayList");
         imports.add("java.util.Collections");
@@ -135,13 +135,14 @@ public class RealmProxyClassGenerator {
                 columnInfoClassName(),                       // full qualified name of the item to generate
                 "class",                                     // the type of the item
                 EnumSet.of(Modifier.STATIC, Modifier.FINAL), // modifiers to apply
-                "ColumnInfo")                                // base class
+                "ColumnInfo",                                // base class
+                "Cloneable")                                 // interfaces
                 .emitEmptyLine();
 
         // fields
         for (VariableElement variableElement : metadata.getFields()) {
             writer.emitField("long", columnIndexVarName(variableElement),
-                    EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+                    EnumSet.of(Modifier.PUBLIC));
         }
         writer.emitEmptyLine();
 
@@ -157,13 +158,44 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("this.%s = getValidColumnIndex(path, table, \"%s\", \"%s\")",
                     columnIndexVarName, simpleClassName, columnName);
             writer.emitStatement("indicesMap.put(\"%s\", this.%s)", columnName, columnIndexVarName);
-            writer.emitEmptyLine();
         }
+        writer.emitEmptyLine();
         writer.emitStatement("setIndicesMap(indicesMap)");
         writer.endConstructor();
+        writer.emitEmptyLine();
+
+        // copyColumnInfoFrom method
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "void",                      // return type
+                "copyColumnInfoFrom",        // method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), // modifiers
+                "ColumnInfo", "other");      // parameters
+        {
+            writer.emitStatement("final %1$s otherInfo = (%1$s) other", columnInfoClassName());
+
+            // copy field values
+            for (VariableElement variableElement : metadata.getFields()) {
+                writer.emitStatement("this.%1$s = otherInfo.%1$s", columnIndexVarName(variableElement));
+            }
+            writer.emitEmptyLine();
+            writer.emitStatement("setIndicesMap(otherInfo.getIndicesMap())");
+        }
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        // clone method
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                columnInfoClassName(),       // return type
+                "clone",                     // method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL)) // modifiers
+                // method body
+                .emitStatement("return (%1$s) super.clone()", columnInfoClassName())
+                .endMethod()
+                .emitEmptyLine();
 
         writer.endType();
-        writer.emitEmptyLine();
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {
@@ -405,18 +437,29 @@ public class RealmProxyClassGenerator {
 
     private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
-                columnInfoClassName(), // Return type
-                "validateTable", // Method name
+                columnInfoClassName(),        // Return type
+                "validateTable",              // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm"); // Argument type & argument name
+                "SharedRealm", "sharedRealm", // Argument type & argument name
+                "boolean", "allowExtraColumns");
 
         writer.beginControlFlow("if (sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
         writer.emitStatement("Table table = sharedRealm.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.simpleClassName);
 
         // verify number of columns
-        writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
-        writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count does not match - expected %d but was \" + table.getColumnCount())",
-                metadata.getFields().size());
+        writer.emitStatement("final long columnCount = table.getColumnCount()");
+        writer.beginControlFlow("if (columnCount != %d)", metadata.getFields().size());
+            writer.beginControlFlow("if (columnCount < %d)", metadata.getFields().size());
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is less than expected - expected %d but was \" + columnCount)",
+                        metadata.getFields().size());
+            writer.endControlFlow();
+            writer.beginControlFlow("if (allowExtraColumns)");
+                writer.emitStatement("RealmLog.debug(\"Field count is more than expected - expected %d but was %%1$d\", columnCount)",
+                        metadata.getFields().size());
+            writer.nextControlFlow("else");
+                writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Field count is more than expected - expected %d but was \" + columnCount)",
+                        metadata.getFields().size());
+            writer.endControlFlow();
         writer.endControlFlow();
 
         // create type dictionary for lookup

@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -14,6 +13,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,51 +29,65 @@ import org.json.JSONObject;
 public class AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, AllTypesRealmProxyInterface {
 
-    static final class AllTypesColumnInfo extends ColumnInfo {
+    static final class AllTypesColumnInfo extends ColumnInfo
+            implements Cloneable {
 
-        public final long columnStringIndex;
-        public final long columnLongIndex;
-        public final long columnFloatIndex;
-        public final long columnDoubleIndex;
-        public final long columnBooleanIndex;
-        public final long columnDateIndex;
-        public final long columnBinaryIndex;
-        public final long columnObjectIndex;
-        public final long columnRealmListIndex;
+        public long columnStringIndex;
+        public long columnLongIndex;
+        public long columnFloatIndex;
+        public long columnDoubleIndex;
+        public long columnBooleanIndex;
+        public long columnDateIndex;
+        public long columnBinaryIndex;
+        public long columnObjectIndex;
+        public long columnRealmListIndex;
 
         AllTypesColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(9);
             this.columnStringIndex = getValidColumnIndex(path, table, "AllTypes", "columnString");
             indicesMap.put("columnString", this.columnStringIndex);
-
             this.columnLongIndex = getValidColumnIndex(path, table, "AllTypes", "columnLong");
             indicesMap.put("columnLong", this.columnLongIndex);
-
             this.columnFloatIndex = getValidColumnIndex(path, table, "AllTypes", "columnFloat");
             indicesMap.put("columnFloat", this.columnFloatIndex);
-
             this.columnDoubleIndex = getValidColumnIndex(path, table, "AllTypes", "columnDouble");
             indicesMap.put("columnDouble", this.columnDoubleIndex);
-
             this.columnBooleanIndex = getValidColumnIndex(path, table, "AllTypes", "columnBoolean");
             indicesMap.put("columnBoolean", this.columnBooleanIndex);
-
             this.columnDateIndex = getValidColumnIndex(path, table, "AllTypes", "columnDate");
             indicesMap.put("columnDate", this.columnDateIndex);
-
             this.columnBinaryIndex = getValidColumnIndex(path, table, "AllTypes", "columnBinary");
             indicesMap.put("columnBinary", this.columnBinaryIndex);
-
             this.columnObjectIndex = getValidColumnIndex(path, table, "AllTypes", "columnObject");
             indicesMap.put("columnObject", this.columnObjectIndex);
-
             this.columnRealmListIndex = getValidColumnIndex(path, table, "AllTypes", "columnRealmList");
             indicesMap.put("columnRealmList", this.columnRealmListIndex);
 
             setIndicesMap(indicesMap);
         }
-    }
 
+        @Override
+        public final void copyColumnInfoFrom(ColumnInfo other) {
+            final AllTypesColumnInfo otherInfo = (AllTypesColumnInfo) other;
+            this.columnStringIndex = otherInfo.columnStringIndex;
+            this.columnLongIndex = otherInfo.columnLongIndex;
+            this.columnFloatIndex = otherInfo.columnFloatIndex;
+            this.columnDoubleIndex = otherInfo.columnDoubleIndex;
+            this.columnBooleanIndex = otherInfo.columnBooleanIndex;
+            this.columnDateIndex = otherInfo.columnDateIndex;
+            this.columnBinaryIndex = otherInfo.columnBinaryIndex;
+            this.columnObjectIndex = otherInfo.columnObjectIndex;
+            this.columnRealmListIndex = otherInfo.columnRealmListIndex;
+
+            setIndicesMap(otherInfo.getIndicesMap());
+        }
+
+        @Override
+        public final AllTypesColumnInfo clone() {
+            return (AllTypesColumnInfo) super.clone();
+        }
+
+    }
     private final AllTypesColumnInfo columnInfo;
     private final ProxyState proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
@@ -262,11 +276,19 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return sharedRealm.getTable("class_AllTypes");
     }
 
-    public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static AllTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_AllTypes")) {
             Table table = sharedRealm.getTable("class_AllTypes");
-            if (table.getColumnCount() != 9) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 9 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount != 9) {
+                if (columnCount < 9) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 9 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.debug("Field count is more than expected - expected 9 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 9 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 9; i++) {
