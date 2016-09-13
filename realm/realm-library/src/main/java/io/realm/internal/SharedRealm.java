@@ -192,13 +192,7 @@ public final class SharedRealm implements Closeable {
     }
 
     public void setSchemaVersion(long schemaVersion) {
-        // FIXME migrate to ObjectStore
-        Table metadataTable = getTable(Table.METADATA_TABLE_NAME);
-        if (metadataTable.getColumnCount() == 0) {
-            metadataTable.addColumn(RealmFieldType.INTEGER, "version");
-            metadataTable.addEmptyRow();
-        }
-        metadataTable.setLong(0, 0, schemaVersion);
+        nativeSetVersion(nativePtr, schemaVersion);
     }
 
     public long getSchemaVersion() {
@@ -336,6 +330,7 @@ public final class SharedRealm implements Closeable {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
+    private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);
