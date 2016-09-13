@@ -84,6 +84,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.PrimaryKeyWithNoPrimaryKeyObjectRelation;
+import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -2273,7 +2274,6 @@ public class RealmTests {
                         DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
         });
-
         final String createdRandomString = DefaultValueOfField.lastRandomStringValue;
 
         assertEquals(1L, realm.where(DefaultValueOfField.class)
@@ -2312,16 +2312,14 @@ public class RealmTests {
         assertEquals(1L, realm.where(DefaultValueOfField.class)
                 .equalTo(DefaultValueOfField.FIELD_BINARY, DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE)
                 .count());
-
         assertEquals(1L, realm.where(DefaultValueOfField.class)
-                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT
-                        , PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)
+                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
                 .count());
-        // FIXME supporting default value of  RealmList
-//        assertEquals(1L, realm.where(DefaultValueOfField.class)
-//                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT,
-//                        PrimaryKeyWithNoPrimaryKeyObjectRelation.FIELD_COLUMN_INT_DEFAULT_VALUE)
-//                .count());
+        assertEquals(1L, realm.where(DefaultValueOfField.class)
+                .equalTo(DefaultValueOfField.FIELD_OBJECT + "." + RandomPrimaryKey.FIELD_INT,
+                        RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE)
+                .count());
     }
 
     // Test close Realm in another thread different from where it is created.

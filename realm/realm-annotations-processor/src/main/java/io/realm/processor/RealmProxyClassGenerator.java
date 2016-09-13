@@ -401,6 +401,20 @@ public class RealmProxyClassGenerator {
                     writer.beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
                             .emitStatement("value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value)")
                             .endControlFlow();
+                } else if (Utils.isRealmList(field)) {
+                    final String modelFqcn = Utils.getGenericTypeQualifiedName(field);
+                    writer.beginControlFlow("if (value != null && !value.isManaged())")
+                            .emitStatement("final Realm realm = (Realm) proxyState.getRealm$realm()")
+                            .emitStatement("final RealmList<%1$s> original = value", modelFqcn)
+                            .emitStatement("value = new RealmList<%1$s>()", modelFqcn)
+                            .beginControlFlow("for (%1$s item : original)", modelFqcn)
+                                .beginControlFlow("if (item == null || RealmObject.isManaged(item))")
+                                    .emitStatement("value.add(item)")
+                                .nextControlFlow("else")
+                                    .emitStatement("value.add(realm.copyToRealm(item))")
+                                .endControlFlow()
+                            .endControlFlow()
+                        .endControlFlow();
                 }
             }
             writer.endControlFlow()

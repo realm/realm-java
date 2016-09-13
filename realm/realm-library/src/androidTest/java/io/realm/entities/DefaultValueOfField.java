@@ -56,13 +56,13 @@ public class DefaultValueOfField extends RealmObject {
     public static boolean FIELD_BOOLEAN_DEFAULT_VALUE = true;
     public static Date FIELD_DATE_DEFAULT_VALUE = new Date(1473691826000L /*2016/9/12 23:56:26 JST*/);
     public static byte[] FIELD_BINARY_DEFAULT_VALUE = new byte[] {123, -100, 0, 2};
-    public static PrimaryKeyWithNoPrimaryKeyObjectRelation FIELD_OBJECT_DEFAULT_VALUE;
-    public static RealmList<PrimaryKeyWithNoPrimaryKeyObjectRelation> FIELD_LIST_DEFAULT_VALUE;
+    public static RandomPrimaryKey FIELD_OBJECT_DEFAULT_VALUE;
+    public static RealmList<RandomPrimaryKey> FIELD_LIST_DEFAULT_VALUE;
 
     static {
-        FIELD_OBJECT_DEFAULT_VALUE = new PrimaryKeyWithNoPrimaryKeyObjectRelation();
-        FIELD_LIST_DEFAULT_VALUE = new RealmList<PrimaryKeyWithNoPrimaryKeyObjectRelation>();
-        FIELD_LIST_DEFAULT_VALUE.add(new PrimaryKeyWithNoPrimaryKeyObjectRelation());
+        FIELD_OBJECT_DEFAULT_VALUE = new RandomPrimaryKey();
+        FIELD_LIST_DEFAULT_VALUE = new RealmList<RandomPrimaryKey>();
+        FIELD_LIST_DEFAULT_VALUE.add(new RandomPrimaryKey());
     }
 
     public static String lastRandomStringValue;
@@ -80,9 +80,8 @@ public class DefaultValueOfField extends RealmObject {
     private boolean fieldBoolean = FIELD_BOOLEAN_DEFAULT_VALUE;
     private Date fieldDate = FIELD_DATE_DEFAULT_VALUE;
     private byte[] fieldBinary = FIELD_BINARY_DEFAULT_VALUE;
-    private PrimaryKeyWithNoPrimaryKeyObjectRelation fieldObject = FIELD_OBJECT_DEFAULT_VALUE;
-    // FIXME supports these default values
-    private RealmList<PrimaryKeyWithNoPrimaryKeyObjectRelation> fieldList;// = FIELD_LIST_DEFAULT_VALUE;
+    private RandomPrimaryKey fieldObject = FIELD_OBJECT_DEFAULT_VALUE;
+    private RealmList<RandomPrimaryKey> fieldList = FIELD_LIST_DEFAULT_VALUE;
 
     public DefaultValueOfField() {
 
@@ -196,19 +195,19 @@ public class DefaultValueOfField extends RealmObject {
         this.fieldBinary = fieldBinary;
     }
 
-    public PrimaryKeyWithNoPrimaryKeyObjectRelation getFieldObject() {
+    public RandomPrimaryKey getFieldObject() {
         return fieldObject;
     }
 
-    public void setFieldObject(PrimaryKeyWithNoPrimaryKeyObjectRelation fieldObject) {
+    public void setFieldObject(RandomPrimaryKey fieldObject) {
         this.fieldObject = fieldObject;
     }
 
-    public RealmList<PrimaryKeyWithNoPrimaryKeyObjectRelation> getFieldList() {
+    public RealmList<RandomPrimaryKey> getFieldList() {
         return fieldList;
     }
 
-    public void setFieldList(RealmList<PrimaryKeyWithNoPrimaryKeyObjectRelation> fieldList) {
+    public void setFieldList(RealmList<RandomPrimaryKey> fieldList) {
         this.fieldList = fieldList;
     }
 }
