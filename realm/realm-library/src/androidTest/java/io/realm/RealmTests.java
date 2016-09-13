@@ -2271,6 +2271,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                // create a DefaultValueOfField with non-default primary key value
                 realm.createObject(DefaultValueOfField.class,
                         DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
@@ -2330,6 +2331,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                // create a DefaultValueConstructor with non-default primary key value
                 realm.createObject(DefaultValueConstructor.class,
                         DefaultValueConstructor.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
@@ -2389,6 +2391,7 @@ public class RealmTests {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                // create a DefaultValueSetter with non-default primary key value
                 realm.createObject(DefaultValueSetter.class,
                         DefaultValueSetter.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE * 3);
             }
@@ -2445,6 +2448,86 @@ public class RealmTests {
                 .equalTo(DefaultValueSetter.FIELD_LIST+ "." + RandomPrimaryKey.FIELD_INT,
                         RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1)
                 .count());
+    }
+
+    @Test
+    public void copyToRealm_defaultValuesAreIgnored() {
+        final String fieldIgnoredValue = DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE + ".modified";
+        final String fieldStringValue = DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE + ".modified";
+        final String fieldRandomStringValue = "non-random";
+        final short fieldShortValue = (short) (DefaultValueOfField.FIELD_SHORT_DEFAULT_VALUE + 1);
+        final int fieldIntValue = DefaultValueOfField.FIELD_INT_DEFAULT_VALUE + 1;
+        final long fieldLongPrimaryKeyValue = DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE + 1;
+        final long fieldLongValue = DefaultValueOfField.FIELD_LONG_DEFAULT_VALUE + 1;
+        final byte fieldByteValue = (byte) (DefaultValueOfField.FIELD_BYTE_DEFAULT_VALUE + 1);
+        final float fieldFloatValue = DefaultValueOfField.FIELD_FLOAT_DEFAULT_VALUE + 1;
+        final double fieldDoubleValue = DefaultValueOfField.FIELD_DOUBLE_DEFAULT_VALUE + 1;
+        final boolean fieldBooleanValue = !DefaultValueOfField.FIELD_BOOLEAN_DEFAULT_VALUE;
+        final Date fieldDateValue = new Date(DefaultValueOfField.FIELD_DATE_DEFAULT_VALUE.getTime() + 1);
+        final byte[] fieldBinaryValue = {(byte) (DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE[0] - 1)};
+        final int fieldObjectIntValue = RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1;
+        final int fieldListIntValue = RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 2;
+
+        final DefaultValueOfField managedObj;
+        realm.beginTransaction(); {
+            final DefaultValueOfField obj = new DefaultValueOfField();
+            obj.setFieldIgnored(fieldIgnoredValue);
+            obj.setFieldString(fieldStringValue);
+            obj.setFieldRandomString(fieldRandomStringValue);
+            obj.setFieldShort(fieldShortValue);
+            obj.setFieldInt(fieldIntValue);
+            obj.setFieldLongPrimaryKey(fieldLongPrimaryKeyValue);
+            obj.setFieldLong(fieldLongValue);
+            obj.setFieldByte(fieldByteValue);
+            obj.setFieldFloat(fieldFloatValue);
+            obj.setFieldDouble(fieldDoubleValue);
+            obj.setFieldBoolean(fieldBooleanValue);
+            obj.setFieldDate(fieldDateValue);
+            obj.setFieldBinary(fieldBinaryValue);
+
+            final RandomPrimaryKey fieldObjectValue = new RandomPrimaryKey();
+            fieldObjectValue.setFieldInt(fieldObjectIntValue);
+            obj.setFieldObject(fieldObjectValue);
+
+            final RealmList<RandomPrimaryKey> list = new RealmList<>();
+            final RandomPrimaryKey listItem = new RandomPrimaryKey();
+            listItem.setFieldInt(fieldListIntValue);
+            list.add(listItem);
+            obj.setFieldList(list);
+
+            managedObj = realm.copyToRealm(obj);
+        }
+        realm.commitTransaction();
+
+        assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE/*not fieldIgnoredValue*/,
+                managedObj.getFieldIgnored());
+        assertEquals(fieldStringValue,
+                managedObj.getFieldString());
+        assertEquals(fieldRandomStringValue,
+                managedObj.getFieldRandomString());
+        assertEquals(fieldShortValue,
+                managedObj.getFieldShort());
+        assertEquals(fieldIntValue,
+                managedObj.getFieldInt());
+        assertEquals(fieldLongPrimaryKeyValue,
+                managedObj.getFieldLongPrimaryKey());
+        assertEquals(fieldLongValue,
+                managedObj.getFieldLong());
+        assertEquals(fieldByteValue,
+                managedObj.getFieldByte());
+        assertEquals(fieldFloatValue,
+                managedObj.getFieldFloat(), 0f);
+        assertEquals(fieldDoubleValue,
+                managedObj.getFieldDouble(), 0d);
+        assertEquals(fieldBooleanValue,
+                managedObj.isFieldBoolean());
+        assertEquals(fieldDateValue,
+                managedObj.getFieldDate());
+        assertTrue(Arrays.equals(fieldBinaryValue, managedObj.getFieldBinary()));
+        assertEquals(fieldObjectIntValue,
+                managedObj.getFieldObject().getFieldInt());
+        assertEquals(fieldListIntValue,
+                managedObj.getFieldList().first().getFieldInt());
     }
 
     // Test close Realm in another thread different from where it is created.
