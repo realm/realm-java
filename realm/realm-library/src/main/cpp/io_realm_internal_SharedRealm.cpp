@@ -148,6 +148,24 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
     return -1;
 }
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeSetVersion(JNIEnv *env, jclass, jlong shared_realm_ptr, jlong version)
+{
+    TR_ENTER_PTR(env, shared_realm_ptr)
+
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        if (!shared_realm->is_in_transaction()) {
+            std::ostringstream ss;
+            ss << "Cannot set schema version when the realm is not in transaction.";
+            ThrowException(env, IllegalState, ss.str());
+            return;
+        }
+
+        ObjectStore::set_schema_version(shared_realm->read_group(), static_cast<uint64_t>(version));
+    } CATCH_STD()
+}
+
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv *env, jclass, jlong shared_realm_ptr)
 {

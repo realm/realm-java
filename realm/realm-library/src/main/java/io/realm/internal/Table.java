@@ -37,7 +37,6 @@ public class Table implements TableOrView, TableSchema {
     public static final String STRING_DEFAULT_VALUE = "";
     @SuppressWarnings("WeakerAccess")
     public static final long INTEGER_DEFAULT_VALUE = 0;
-    public static final String METADATA_TABLE_NAME = "metadata";
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
 
@@ -1277,10 +1276,10 @@ public class Table implements TableOrView, TableSchema {
     }
 
     /**
-     * Checks if a given table name is a meta-table, i.e. a table used by Realm to track its internal state.
+     * Checks if a given table name is a name for a model table.
      */
-    public static boolean isMetaTable(String tableName) {
-        return (tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME));
+    public static boolean isModelTable(String tableName) {
+        return tableName.startsWith(TABLE_PREFIX);
     }
 
     /**
