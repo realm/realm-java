@@ -276,7 +276,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
                 // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
-                if (field.equals(metadata.getPrimaryKey())) {
+                if (metadata.isPrimaryKey(field)) {
                     // Primary key is not allowed to be changed after object created.
                     writer.emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName);
                 } else {
@@ -577,7 +577,7 @@ public class RealmProxyClassGenerator {
                 if (metadata.isNullable(field)) {
                     writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
                     // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
-                    if (field.equals(metadata.getPrimaryKey())) {
+                    if (metadata.isPrimaryKey(field)) {
                         writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath()," +
                                 "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
                                 "Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.\")",
@@ -598,7 +598,7 @@ public class RealmProxyClassGenerator {
                     writer.endControlFlow();
                 } else {
                     // check before migrating a nullable field containing null value to not-nullable PrimaryKey field for Realm version 0.89+
-                    if (field.equals(metadata.getPrimaryKey())) {
+                    if (metadata.isPrimaryKey(field)) {
                         writer
                             .beginControlFlow("if (table.isColumnNullable(%s) && table.findFirstNull(%s) != TableOrView.NO_MATCH)",
                                     fieldIndexVariableReference(field), fieldIndexVariableReference(field))
@@ -624,7 +624,7 @@ public class RealmProxyClassGenerator {
                 }
 
                 // Validate @PrimaryKey
-                if (field.equals(metadata.getPrimaryKey())) {
+                if (metadata.isPrimaryKey(field)) {
                     writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
                     writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. Add @PrimaryKey.\")", fieldName);
                     writer.endControlFlow();
@@ -1296,7 +1296,7 @@ public class RealmProxyClassGenerator {
                 String setter = metadata.getSetter(fieldName);
                 String getter = metadata.getGetter(fieldName);
 
-                if (field.equals(metadata.getPrimaryKey())) {
+                if (metadata.isPrimaryKey(field)) {
                     // PK has been set when creating object.
                     continue;
                 }
@@ -1647,7 +1647,7 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
-            if (field.equals(metadata.getPrimaryKey())) {
+            if (metadata.isPrimaryKey(field)) {
                 // Primary key has already been set when adding new row or finding the existing row.
                 continue;
             }
