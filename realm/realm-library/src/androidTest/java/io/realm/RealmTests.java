@@ -474,6 +474,7 @@ public class RealmTests {
         METHOD_DELETE_TYPE,
         METHOD_DELETE_ALL,
         METHOD_CREATE_OBJECT,
+        METHOD_CREATE_OBJECT_WITH_PRIMARY_KEY,
         METHOD_COPY_TO_REALM,
         METHOD_COPY_TO_REALM_OR_UPDATE,
         METHOD_CREATE_ALL_FROM_JSON,
@@ -515,6 +516,9 @@ public class RealmTests {
                             break;
                         case METHOD_CREATE_OBJECT:
                             realm.createObject(AllTypes.class);
+                            break;
+                        case METHOD_CREATE_OBJECT_WITH_PRIMARY_KEY:
+                            realm.createObject(AllJavaTypes.class, 1L);
                             break;
                         case METHOD_COPY_TO_REALM:
                             realm.copyToRealm(new AllTypes());
