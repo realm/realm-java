@@ -697,6 +697,7 @@ public final class Realm extends BaseRealm {
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        checkIfValid();
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex);
