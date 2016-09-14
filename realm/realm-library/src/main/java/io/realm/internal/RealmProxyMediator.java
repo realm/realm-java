@@ -43,12 +43,25 @@ import io.realm.exceptions.RealmException;
 public abstract class RealmProxyMediator {
 
     /**
-     * Creates the backing table in Realm for the given RealmObject class.
+     * Creates the backing table in Realm for the given RealmObject class and use this mediator as the root mediator.
      *
      * @param clazz the {@link RealmObject} model class to create backing table for.
      * @param sharedRealm the wrapper object of underlying native database.
      */
-    public abstract Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
+    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+        return createTable(this, clazz, sharedRealm);
+    }
+
+    /**
+     * Creates the backing table in Realm for the given RealmObject class.
+     *
+     * @param rootMediator the {@link RealmProxyMediator} will be used when the {@code clazz} has a linked field needs
+     *                     to be created.
+     * @param clazz the {@link RealmObject} model class to create backing table for.
+     * @param sharedRealm the wrapper object of underlying native database.
+     */
+    public abstract Table createTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz,
+                                      SharedRealm sharedRealm);
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.

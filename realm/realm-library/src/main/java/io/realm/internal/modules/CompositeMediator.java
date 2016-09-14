@@ -58,9 +58,10 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+    public Table createTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz,
+                             SharedRealm sharedRealm) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.createTable(clazz, sharedRealm);
+        return mediator.createTable(rootMediator, clazz, sharedRealm);
     }
 
     @Override
