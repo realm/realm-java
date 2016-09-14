@@ -80,6 +80,7 @@ JNIEXPORT void JNICALL Java_io_realm_objectserver_Session_nativeUnbind
 {
     TR_ENTER(env)
     JniSession* session = SS(sessionPointer);
+    session->close(env);
     delete session; // TODO Can we avoid killing the session here?
 }
 
