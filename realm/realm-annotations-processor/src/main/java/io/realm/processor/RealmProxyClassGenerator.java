@@ -271,21 +271,26 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
                 // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
-                if (metadata.isNullable(field)) {
-                    writer.beginControlFlow("if (value == null)")
-                        .emitStatement("proxyState.getRow$realm().setNull(%s)", fieldIndexVariableReference(field))
-                        .emitStatement("return")
-                    .endControlFlow();
-                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
-                    // Same reason, throw IAE earlier.
-                    writer
-                        .beginControlFlow("if (value == null)")
-                            .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
-                        .endControlFlow();
+                if (field.equals(metadata.getPrimaryKey())) {
+                    // Primary key is not allowed to be changed after object created.
+                    writer.emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName);
+                } else {
+                    if (metadata.isNullable(field)) {
+                        writer.beginControlFlow("if (value == null)")
+                                .emitStatement("proxyState.getRow$realm().setNull(%s)", fieldIndexVariableReference(field))
+                                .emitStatement("return")
+                                .endControlFlow();
+                    } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
+                        // Same reason, throw IAE earlier.
+                        writer
+                                .beginControlFlow("if (value == null)")
+                                .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+                                .endControlFlow();
+                    }
+                    writer.emitStatement(
+                            "proxyState.getRow$realm().set%s(%s, value)",
+                            realmType, fieldIndexVariableReference(field));
                 }
-                writer.emitStatement(
-                        "proxyState.getRow$realm().set%s(%s, value)",
-                        realmType, fieldIndexVariableReference(field));
                 writer.endMethod();
             } else if (Utils.isRealmModel(field)) {
                 /**
@@ -1212,6 +1217,11 @@ public class RealmProxyClassGenerator {
                 String setter = metadata.getSetter(fieldName);
                 String getter = metadata.getGetter(fieldName);
 
+                if (field.equals(metadata.getPrimaryKey())) {
+                    // PK has been set when creating object.
+                    continue;
+                }
+
                 if (Utils.isRealmModel(field)) {
                     writer
                         .emitEmptyLine()
@@ -1556,6 +1566,10 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
+            if (field.equals(metadata.getPrimaryKey())) {
+                // Primary key has already been set when adding new row or finding the existing row.
+                continue;
+            }
             if (Utils.isRealmModel(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
                         interfaceName,

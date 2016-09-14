@@ -526,13 +526,15 @@ public class RealmTests {
                             realm.createAllFromJson(AllTypes.class, "[{}]");
                             break;
                         case METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON:
-                            realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "[{\"columnLong\":1}]");
+                            realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "[{\"columnLong\":1," +
+                                    " \"columnBoolean\": true}]");
                             break;
                         case METHOD_CREATE_FROM_JSON:
                             realm.createObjectFromJson(AllTypes.class, "{}");
                             break;
                         case METHOD_CREATE_OR_UPDATE_FROM_JSON:
-                            realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{\"columnLong\":1}");
+                            realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{\"columnLong\":1," +
+                                    " \"columnBoolean\": true}");
                             break;
                         case METHOD_INSERT_COLLECTION:
                             realm.insert(Arrays.asList(new AllTypes(), new AllTypes()));
@@ -2099,7 +2101,7 @@ public class RealmTests {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 42);
         assertEquals(1, realm.where(AllJavaTypes.class).count());
-        assertEquals(42, obj.getFieldLong());
+        assertEquals(42, obj.getFieldId());
     }
 
     @Test
