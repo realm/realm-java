@@ -32,6 +32,9 @@ import okhttp3.Response;
  */
 public class AuthenticateResponse {
 
+    private static final String JSON_FIELD_ACCESS_TOKEN = "access_token";
+    private static final String JSON_FIELD_REFRESH_TOKEN = "refresh_token";
+
     private final ObjectServerError error;
     private final Token accessToken;
     private final Token refreshToken;
@@ -40,7 +43,7 @@ public class AuthenticateResponse {
      * Helper method for creating the proper Authenticate response. This method will set the appropriate error
      * depending on any HTTP response codes or IO errors.
      */
-    public static AuthenticateResponse createFrom(Response response) {
+    static AuthenticateResponse createFrom(Response response) {
         String serverResponse;
         try {
             serverResponse = response.body().string();
@@ -69,33 +72,33 @@ public class AuthenticateResponse {
     }
 
     /**
-     * Create a unsuccessful authentication response. This should only happen in case of network / IO problems.
+     * Creates a unsuccessful authentication response. This should only happen in case of network / IO problems.
      */
-    public AuthenticateResponse(ObjectServerError error) {
+    AuthenticateResponse(ObjectServerError error) {
         this.error = error;
         this.accessToken = null;
         this.refreshToken = null;
     }
 
     /**
-     * Parse a valid (200) server response. It might still result in a unsuccessful authentication attempt, if the
+     * Parses a valid (200) server response. It might still result in a unsuccessful authentication attempt, if the
      * JSON response could not be parsed correctly.
      */
-    public AuthenticateResponse(String serverResponse) {
+    private AuthenticateResponse(String serverResponse) {
         ObjectServerError error;
-        String identifier;
-        String path;
-        String appId;
         Token accessToken;
         Token refreshToken;
         try {
             JSONObject obj = new JSONObject(serverResponse);
-            accessToken = obj.has("accessToken") ? Token.from(obj.getJSONObject("accessToken")) : null;
-            refreshToken = obj.has("refreshToken") ? Token.from(obj.getJSONObject("refreshToken")) : null;
+            accessToken = obj.has(JSON_FIELD_ACCESS_TOKEN) ?
+                    Token.from(obj.getJSONObject(JSON_FIELD_ACCESS_TOKEN)) : null;
+            refreshToken = obj.has(JSON_FIELD_REFRESH_TOKEN) ?
+                    Token.from(obj.getJSONObject(JSON_FIELD_REFRESH_TOKEN)) : null;
             error = null;
         } catch (JSONException ex) {
             accessToken = null;
             refreshToken = null;
+            //noinspection ThrowableInstanceNeverThrown
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
         }
 

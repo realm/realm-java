@@ -147,6 +147,8 @@ public class User {
                     }
                 } catch (IOException e) {
                     postError(new ObjectServerError(ErrorCode.IO_EXCEPTION, e));
+                } catch (Throwable e) {
+                    postError(new ObjectServerError(ErrorCode.UNKNOWN, e));
                 }
             }
 
