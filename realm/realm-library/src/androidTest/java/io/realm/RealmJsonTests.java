@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import com.google.gson.internal.bind.util.ISO8601Utils;
@@ -384,7 +385,7 @@ public class RealmJsonTests {
         assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE,
                 managedObj.getFieldIgnored());
         assertEquals(DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE, managedObj.getFieldString());
-        assertEquals(DefaultValueOfField.lastRandomStringValue, managedObj.getFieldRandomString());
+        assertFalse(TextUtils.isEmpty(managedObj.getFieldRandomString()));
         assertEquals(DefaultValueOfField.FIELD_SHORT_DEFAULT_VALUE, managedObj.getFieldShort());
         assertEquals(DefaultValueOfField.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldInt());
         assertEquals(fieldLongPrimaryKeyValue, managedObj.getFieldLongPrimaryKey());
@@ -614,6 +615,7 @@ public class RealmJsonTests {
         realm.beginTransaction();
         try {
             realm.createObjectFromJson(AllTypes.class, json);
+            fail();
         } catch (RealmException ignored) {
         } finally {
             realm.commitTransaction();
@@ -1359,7 +1361,7 @@ public class RealmJsonTests {
 
         RealmResults<NullTypes> nullTypesRealmResults = realm.where(NullTypes.class).findAll();
         assertEquals(2, nullTypesRealmResults.size());
-        checkNullableValuesAreNotNull(nullTypesRealmResults.first());
+        checkNullableValuesAreNotNull(nullTypesRealmResults.where().equalTo("id", 1).findFirst());
 
         // Update object with id 1, nullable fields should have null values
         JSONArray array = new JSONArray(json);
