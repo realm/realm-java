@@ -269,6 +269,7 @@ public class DynamicRealmObjectTests {
             } else {
                 object = dynamicRealm.createObject(pkClass, 0);
             }
+
             try {
                 callSetterOnPrimaryKey(pkClass, object);
                 fail();
@@ -525,14 +526,15 @@ public class DynamicRealmObjectTests {
         for (String pkClass : primaryKeyClasses) {
             dynamicRealm.beginTransaction();
             DynamicRealmObject object;
+            boolean isStringPK = pkClass.equals(PrimaryKeyAsString.CLASS_NAME);
+            if (isStringPK) {
+                object = dynamicRealm.createObject(pkClass, "");
+            } else {
+                object = dynamicRealm.createObject(pkClass, 0);
+            }
+
             try {
-                if (pkClass.equals(PrimaryKeyAsString.CLASS_NAME)) {
-                    object = dynamicRealm.createObject(pkClass, "");
-                    object.setNull(PrimaryKeyAsString.FIELD_PRIMARY_KEY);
-                } else {
-                    object = dynamicRealm.createObject(pkClass, 0);
-                    object.setNull("id");
-                }
+                object.setNull(isStringPK ? PrimaryKeyAsString.FIELD_PRIMARY_KEY : "id");
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -903,14 +905,15 @@ public class DynamicRealmObjectTests {
         for (String pkClass : primaryKeyClasses) {
             dynamicRealm.beginTransaction();
             DynamicRealmObject object;
+            boolean isStringPK = pkClass.equals(PrimaryKeyAsString.CLASS_NAME);
+            if (isStringPK) {
+                object = dynamicRealm.createObject(pkClass, "");
+            } else {
+                object = dynamicRealm.createObject(pkClass, 0);
+            }
+
             try {
-                if (pkClass.equals(PrimaryKeyAsString.CLASS_NAME)) {
-                    object = dynamicRealm.createObject(pkClass, "");
-                    object.set(PrimaryKeyAsString.FIELD_PRIMARY_KEY, value);
-                } else {
-                    object = dynamicRealm.createObject(pkClass, 0);
-                    object.set("id", value);
-                }
+                object.set(isStringPK ? PrimaryKeyAsString.FIELD_PRIMARY_KEY : "id", value);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
