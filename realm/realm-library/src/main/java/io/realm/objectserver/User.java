@@ -60,14 +60,6 @@ public class User {
     private Map<URI, Token> accessTokens = new HashMap<URI, Token>();
 
     /**
-     * Creates a User only known to this device.
-     * @return
-     */
-    public static User createLocal() {
-        Token token = new Token(UUID.randomUUID().toString(), null, null, Long.MAX_VALUE, Token.Permission.values());
-        return new User(UUID.randomUUID().toString(), token, null);
-    }
-    /**
      * Load a user that has previously been serialized using {@link #toJson()}.
      *
      * @param user JSON string representing the user.

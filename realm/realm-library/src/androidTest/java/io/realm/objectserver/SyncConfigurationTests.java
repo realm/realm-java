@@ -31,17 +31,13 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Locale;
 import java.util.UUID;
 
 import io.realm.DynamicRealm;
-import io.realm.Realm;
 import io.realm.RealmMigration;
-import io.realm.objectserver.android.SharedPrefsUserStore;
 import io.realm.objectserver.internal.Token;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -94,7 +90,7 @@ public class SyncConfigurationTests {
 
     @Test
     public void serverUrl_setsFolderAndFileName() {
-        User user = User.createLocal();
+        User user = createTestUser();
         String[][] validUrls = {
                 // <URL>, <Folder>, <FileName>
                 { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentifier(), "default" },
@@ -167,7 +163,7 @@ public class SyncConfigurationTests {
     public void errorHandler() {
         SyncConfiguration.Builder builder;
         builder = new SyncConfiguration.Builder(context)
-                .user(User.createLocal())
+                .user(createTestUser())
                 .serverUrl("realm://objectserver.realm.io/default");
 
         Session.ErrorHandler errorHandler = new Session.ErrorHandler() {
@@ -194,7 +190,7 @@ public class SyncConfigurationTests {
 
         // Create configuration using the default handler
         SyncConfiguration config = new SyncConfiguration.Builder(context)
-                .user(User.createLocal())
+                .user(createTestUser())
                 .serverUrl("realm://objectserver.realm.io/default")
                 .build();
         assertEquals(errorHandler, config.getErrorHandler());
@@ -206,7 +202,7 @@ public class SyncConfigurationTests {
     public void errorHandler_nullThrows() {
         SyncConfiguration.Builder builder;
         builder = new SyncConfiguration.Builder(context)
-                .user(User.createLocal())
+                .user(createTestUser())
                 .serverUrl("realm://objectserver.realm.io/default");
 
         try {
@@ -219,7 +215,7 @@ public class SyncConfigurationTests {
     public void migration_alwaysThrows() {
         SyncConfiguration.Builder builder;
         builder = new SyncConfiguration.Builder(context)
-                .user(User.createLocal())
+                .user(createTestUser())
                 .serverUrl("realm://objectserver.realm.io/default");
 
         try {
@@ -236,6 +232,9 @@ public class SyncConfigurationTests {
             });
         } catch (IllegalArgumentException ignore) {
         }
+    }
+    private User createTestUser() {
+        return createTestUser(Long.MAX_VALUE);
     }
     
     private User createTestUser(long expires) {
