@@ -2523,6 +2523,59 @@ public class RealmTests {
         assertEquals(2, realm.where(RandomPrimaryKey.class).count());
     }
 
+    @Test
+    public void copyFromRealm_defaultValuesAreIgnored() {
+        final DefaultValueOfField managedObj;
+        realm.beginTransaction(); {
+            final DefaultValueOfField obj = new DefaultValueOfField();
+            obj.setFieldIgnored(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE + ".modified");
+            obj.setFieldString(DefaultValueOfField.FIELD_STRING_DEFAULT_VALUE + ".modified");
+            obj.setFieldRandomString("non-random");
+            obj.setFieldShort((short) (DefaultValueOfField.FIELD_SHORT_DEFAULT_VALUE + 1));
+            obj.setFieldInt(DefaultValueOfField.FIELD_INT_DEFAULT_VALUE + 1);
+            obj.setFieldLongPrimaryKey(DefaultValueOfField.FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE + 1);
+            obj.setFieldLong(DefaultValueOfField.FIELD_LONG_DEFAULT_VALUE + 1);
+            obj.setFieldByte((byte) (DefaultValueOfField.FIELD_BYTE_DEFAULT_VALUE + 1));
+            obj.setFieldFloat(DefaultValueOfField.FIELD_FLOAT_DEFAULT_VALUE + 1);
+            obj.setFieldDouble(DefaultValueOfField.FIELD_DOUBLE_DEFAULT_VALUE + 1);
+            obj.setFieldBoolean(!DefaultValueOfField.FIELD_BOOLEAN_DEFAULT_VALUE);
+            obj.setFieldDate(new Date(DefaultValueOfField.FIELD_DATE_DEFAULT_VALUE.getTime() + 1));
+            obj.setFieldBinary(new byte[] {(byte) (DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE[0] - 1)});
+
+            final RandomPrimaryKey fieldObjectValue = new RandomPrimaryKey();
+            fieldObjectValue.setFieldInt(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1);
+            obj.setFieldObject(fieldObjectValue);
+
+            final RealmList<RandomPrimaryKey> list = new RealmList<>();
+            final RandomPrimaryKey listItem = new RandomPrimaryKey();
+            listItem.setFieldInt(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 2);
+            list.add(listItem);
+            obj.setFieldList(list);
+
+            managedObj = realm.copyToRealm(obj);
+        }
+        realm.commitTransaction();
+
+        final DefaultValueOfField copy = realm.copyFromRealm(managedObj);
+
+        assertEquals(DefaultValueOfField.FIELD_IGNORED_DEFAULT_VALUE, copy.getFieldIgnored());
+        assertEquals(managedObj.getFieldString(), copy.getFieldString());
+        assertEquals(managedObj.getFieldRandomString(), copy.getFieldRandomString());
+        assertEquals(managedObj.getFieldShort(), copy.getFieldShort());
+        assertEquals(managedObj.getFieldInt(), copy.getFieldInt());
+        assertEquals(managedObj.getFieldLongPrimaryKey(), copy.getFieldLongPrimaryKey());
+        assertEquals(managedObj.getFieldLong(), copy.getFieldLong());
+        assertEquals(managedObj.getFieldByte(), copy.getFieldByte());
+        assertEquals(managedObj.getFieldFloat(), copy.getFieldFloat(), 0f);
+        assertEquals(managedObj.getFieldDouble(), copy.getFieldDouble(), 0d);
+        assertEquals(managedObj.isFieldBoolean(), copy.isFieldBoolean());
+        assertEquals(managedObj.getFieldDate(), copy.getFieldDate());
+        assertTrue(Arrays.equals(managedObj.getFieldBinary(), copy.getFieldBinary()));
+        assertEquals(managedObj.getFieldObject().getFieldInt(), copy.getFieldObject().getFieldInt());
+        assertEquals(1, copy.getFieldList().size());
+        assertEquals(managedObj.getFieldList().first().getFieldInt(), copy.getFieldList().first().getFieldInt());
+    }
+
     // Test close Realm in another thread different from where it is created.
     @Test
     public void close_differentThread() throws InterruptedException {
