@@ -2512,7 +2512,11 @@ public class RealmTests {
         assertEquals(fieldDateValue, managedObj.getFieldDate());
         assertTrue(Arrays.equals(fieldBinaryValue, managedObj.getFieldBinary()));
         assertEquals(fieldObjectIntValue, managedObj.getFieldObject().getFieldInt());
+        assertEquals(1, managedObj.getFieldList().size());
         assertEquals(fieldListIntValue, managedObj.getFieldList().first().getFieldInt());
+
+        // make sure that excess object by default value is not created.
+        assertEquals(2, realm.where(RandomPrimaryKey.class).count());
     }
 
     // Test close Realm in another thread different from where it is created.

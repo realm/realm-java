@@ -696,6 +696,20 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
+        return createObjectWithoutThreadCheck(clazz, true);
+    }
+
+    /**
+     * Same as {@link #createObject(Class)} but this does not check the thread.
+     *
+     * @param clazz the Class of the object to create.
+     * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
+     *                           if {@code false}, it will be ignored.
+     * @return the new object.
+     * @throws RealmException if an object cannot be created.
+     */
+    // called from proxy classes
+    <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz, boolean acceptDefaultValue) {
         Table table = schema.getTable(clazz);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
@@ -703,7 +717,7 @@ public final class Realm extends BaseRealm {
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
         }
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex, true);
+        return get(clazz, rowIndex, acceptDefaultValue);
     }
 
     /**
@@ -722,9 +736,27 @@ public final class Realm extends BaseRealm {
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        return createObjectWithoutThreadCheck(clazz, primaryKeyValue, true);
+    }
+
+    /**
+     * Same as {@link #createObject(Class, Object)} but this does not check the thread.
+     *
+     * @param clazz the Class of the object to create.
+     * @param primaryKeyValue value for the primary key field.
+     * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
+     *                           if {@code false}, it will be ignored.
+     * @return the new object.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException if the model clazz does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     */
+    // called from proxy classes
+    <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz, Object primaryKeyValue,
+                                                            boolean acceptDefaultValue) {
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex, true);
+        return get(clazz, rowIndex, acceptDefaultValue);
     }
 
     /**

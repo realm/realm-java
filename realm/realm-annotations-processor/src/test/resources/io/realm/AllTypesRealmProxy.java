@@ -822,7 +822,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
         } else {
-            some.test.AllTypes realmObject = realm.createObject(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString());
+            // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
+            some.test.AllTypes realmObject = realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString(), false);
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnLong(((AllTypesRealmProxyInterface) newObject).realmGet$columnLong());
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnFloat(((AllTypesRealmProxyInterface) newObject).realmGet$columnFloat());

@@ -1121,7 +1121,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @SuppressWarnings("cast")
     public static some.test.NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        some.test.NullTypes obj = realm.createObject(some.test.NullTypes.class);
+        some.test.NullTypes obj = realm.createObjectWithoutThreadCheck(some.test.NullTypes.class, true);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
                 ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull(null);
@@ -1479,7 +1479,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
         } else {
-            some.test.NullTypes realmObject = realm.createObject(some.test.NullTypes.class);
+            // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
+            some.test.NullTypes realmObject = realm.createObjectWithoutThreadCheck(some.test.NullTypes.class, false);
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldStringNotNull());
             ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldStringNull());

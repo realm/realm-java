@@ -1283,11 +1283,13 @@ public class RealmProxyClassGenerator {
               .emitStatement("return (%s) cachedRealmObject", qualifiedClassName)
               .nextControlFlow("else");
 
+            writer.emitSingleLineComment("rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.");
             if (metadata.hasPrimaryKey()) {
-                writer.emitStatement("%s realmObject = realm.createObject(%s.class, ((%s) newObject).%s())",
+                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, ((%s) newObject).%s(), false)",
                         qualifiedClassName, qualifiedClassName, interfaceName, metadata.getPrimaryKeyGetter());
             } else {
-                writer.emitStatement("%s realmObject = realm.createObject(%s.class)", qualifiedClassName, qualifiedClassName);
+                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, false)",
+                        qualifiedClassName, qualifiedClassName);
             }
             writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
             for (VariableElement field : metadata.getFields()) {
@@ -1600,7 +1602,8 @@ public class RealmProxyClassGenerator {
                 Collections.singletonList("JSONException"));
 
         if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("%s obj = realm.createObject(%s.class)", qualifiedClassName, qualifiedClassName);
+            writer.emitStatement("%s obj = realm.createObjectWithoutThreadCheck(%s.class, true)",
+                    qualifiedClassName, qualifiedClassName);
         } else {
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer
@@ -1687,10 +1690,8 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    // FIXME: Since we need to check the PK in stream before create an object, this is now using copyToRealm instead of
-    // createObject() to avoid parse the stream twice. This brings a problem that the default value behaviour is
-    // different from those which are using the createObject. And it needs to be addressed by
-    // https://github.com/realm/realm-java/issues/777
+    // Since we need to check the PK in stream before create an object, this is now using copyToRealm instead of
+    // createObject() to avoid parse the stream twice.
     private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
         writer.emitAnnotation("SuppressWarnings", "\"cast\"");
         writer.emitAnnotation("TargetApi", "Build.VERSION_CODES.HONEYCOMB");

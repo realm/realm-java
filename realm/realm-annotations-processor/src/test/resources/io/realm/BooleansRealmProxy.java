@@ -291,7 +291,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     @SuppressWarnings("cast")
     public static some.test.Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        some.test.Booleans obj = realm.createObject(some.test.Booleans.class);
+        some.test.Booleans obj = realm.createObjectWithoutThreadCheck(some.test.Booleans.class, true);
         if (json.has("done")) {
             if (json.isNull("done")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'done' to null.");
@@ -389,7 +389,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         if (cachedRealmObject != null) {
             return (some.test.Booleans) cachedRealmObject;
         } else {
-            some.test.Booleans realmObject = realm.createObject(some.test.Booleans.class);
+            // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
+            some.test.Booleans realmObject = realm.createObjectWithoutThreadCheck(some.test.Booleans.class, false);
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((BooleansRealmProxyInterface) realmObject).realmSet$done(((BooleansRealmProxyInterface) newObject).realmGet$done());
             ((BooleansRealmProxyInterface) realmObject).realmSet$isReady(((BooleansRealmProxyInterface) newObject).realmGet$isReady());
