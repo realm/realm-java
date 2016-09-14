@@ -585,12 +585,12 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
             }
             if (rowIndex != TableOrView.NO_MATCH) {
-                final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
+                final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
                 try {
                     objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false);
                     obj = new io.realm.AllTypesRealmProxy();
                 } finally {
-                    objectContext.clear();;
+                    objectContext.clear();
                 }
             }
         }
@@ -779,7 +779,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
@@ -802,7 +802,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         realmObject = new io.realm.AllTypesRealmProxy();
                         cache.put(object, (RealmObjectProxy) realmObject);
                     } finally {
-                        objectContext.clear();;
+                        objectContext.clear();
                     }
                 } else {
                     canUpdate = false;
@@ -1272,7 +1272,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         String path = proxyState.getRealm$realm().getPath();
         String otherPath = aAllTypes.proxyState.getRealm$realm().getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aAllTypes.proxyState.getRow$realm().getTable().getName();

@@ -267,7 +267,7 @@ public class SimpleRealmProxy extends some.test.Simple
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.Simple) cachedRealmObject;

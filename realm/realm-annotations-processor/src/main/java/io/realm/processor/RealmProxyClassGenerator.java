@@ -725,7 +725,7 @@ public class RealmProxyClassGenerator {
                 .emitStatement("return object")
             .endControlFlow();
 
-        writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();");
+        writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()");
 
         writer.emitStatement("RealmObjectProxy cachedRealmObject = cache.get(object)");
         writer.beginControlFlow("if (cachedRealmObject != null)")
@@ -777,7 +777,7 @@ public class RealmProxyClassGenerator {
                             .emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
                             .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                         .nextControlFlow("finally")
-                            .emitStatement("objectContext.clear();")
+                            .emitStatement("objectContext.clear()")
                         .endControlFlow()
 
                     .nextControlFlow("else")
@@ -1579,7 +1579,7 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
         writer.emitStatement("String path = proxyState.getRealm$realm().getPath()");
         writer.emitStatement("String otherPath = %s.proxyState.getRealm$realm().getPath()", otherObjectVarName);
-        writer.emitStatement("if (path != null ? !path.equals(otherPath) : otherPath != null) return false;");
+        writer.emitStatement("if (path != null ? !path.equals(otherPath) : otherPath != null) return false");
         writer.emitEmptyLine();
         writer.emitStatement("String tableName = proxyState.getRow$realm().getTable().getName()");
         writer.emitStatement("String otherTableName = %s.proxyState.getRow$realm().getTable().getName()", otherObjectVarName);
@@ -1629,12 +1629,12 @@ public class RealmProxyClassGenerator {
             }
             writer
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
-                        .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();")
+                        .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                         .beginControlFlow("try")
                             .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class), false)", qualifiedClassName)
                             .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
                         .nextControlFlow("finally")
-                            .emitStatement("objectContext.clear();")
+                            .emitStatement("objectContext.clear()")
                         .endControlFlow()
                     .endControlFlow()
                 .endControlFlow();

@@ -1465,7 +1465,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
@@ -2181,7 +2181,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
         String path = proxyState.getRealm$realm().getPath();
         String otherPath = aNullTypes.proxyState.getRealm$realm().getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aNullTypes.proxyState.getRow$realm().getTable().getName();

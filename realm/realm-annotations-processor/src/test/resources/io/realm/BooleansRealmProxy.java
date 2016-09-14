@@ -375,7 +375,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
-        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();;
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.Booleans) cachedRealmObject;
@@ -552,7 +552,7 @@ public class BooleansRealmProxy extends some.test.Booleans
 
         String path = proxyState.getRealm$realm().getPath();
         String otherPath = aBooleans.proxyState.getRealm$realm().getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aBooleans.proxyState.getRow$realm().getTable().getName();
