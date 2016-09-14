@@ -736,6 +736,7 @@ public final class Realm extends BaseRealm {
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        checkIfValid();
         return createObjectWithoutThreadCheck(clazz, primaryKeyValue, true);
     }
 
