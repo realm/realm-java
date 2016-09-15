@@ -391,8 +391,7 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
 
         if (isSetter) {
-            writer.beginControlFlow(
-                    "if (proxyState.isUnderConstruction())");
+            writer.beginControlFlow("if (proxyState.isUnderConstruction())");
             {
                 if (isPrimaryKey) {
                     writer.emitSingleLineComment("default value of the primary key is always ignored.");
@@ -1725,8 +1724,8 @@ public class RealmProxyClassGenerator {
         }
     }
 
-    // Since we need to check the PK in stream before create an object, this is now using copyToRealm instead of
-    // createObject() to avoid parse the stream twice.
+    // Since we need to check the PK in stream before creating the object, this is now using copyToRealm
+    // instead of createObject() to avoid parsing the stream twice.
     private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
         writer.emitAnnotation("SuppressWarnings", "\"cast\"");
         writer.emitAnnotation("TargetApi", "Build.VERSION_CODES.HONEYCOMB");

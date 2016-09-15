@@ -692,7 +692,7 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the Class of the object to create.
      * @return the new object.
-     * @throws RealmException if an object cannot be created.
+     * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
      * @see #createObject(Class, Object)
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
@@ -707,7 +707,7 @@ public final class Realm extends BaseRealm {
      * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
      *                           if {@code false}, it will be ignored.
      * @return the new object.
-     * @throws RealmException if an object cannot be created.
+     * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
      */
     // called from proxy classes
     <E extends RealmModel> E createObjectInternal(Class<E> clazz,
@@ -734,7 +734,7 @@ public final class Realm extends BaseRealm {
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
      * @throws RealmException if object could not be created due to the primary key being invalid.
-     * @throws IllegalStateException if the model clazz does not have an primary key defined.
+     * @throws IllegalStateException if the model class does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      *                                  expected value.
      */
@@ -752,7 +752,7 @@ public final class Realm extends BaseRealm {
      *                           if {@code false}, it will be ignored.
      * @return the new object.
      * @throws RealmException if object could not be created due to the primary key being invalid.
-     * @throws IllegalStateException if the model clazz does not have an primary key defined.
+     * @throws IllegalStateException if the model class does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      */
     // called from proxy classes
