@@ -611,9 +611,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
             if (json.has("columnString")) {
                 if (json.isNull("columnString")) {
-                    obj = (io.realm.AllTypesRealmProxy) realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, null, true, excludeFields);
+                    obj = (io.realm.AllTypesRealmProxy) realm.createObjectInternal(some.test.AllTypes.class, null, true, excludeFields);
                 } else {
-                    obj = (io.realm.AllTypesRealmProxy) realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, json.getString("columnString"), true, excludeFields);
+                    obj = (io.realm.AllTypesRealmProxy) realm.createObjectInternal(some.test.AllTypes.class, json.getString("columnString"), true, excludeFields);
                 }
             } else {
                 throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
@@ -837,7 +837,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return (some.test.AllTypes) cachedRealmObject;
         } else {
             // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-            some.test.AllTypes realmObject = realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString(), false, Collections.<String>emptyList());
+            some.test.AllTypes realmObject = realm.createObjectInternal(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString(), false, Collections.<String>emptyList());
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnLong(((AllTypesRealmProxyInterface) newObject).realmGet$columnLong());
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnFloat(((AllTypesRealmProxyInterface) newObject).realmGet$columnFloat());

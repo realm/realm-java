@@ -697,7 +697,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
-        return createObjectWithoutThreadCheck(clazz, true, Collections.<String> emptyList());
+        return createObjectInternal(clazz, true, Collections.<String> emptyList());
     }
 
     /**
@@ -710,7 +710,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if an object cannot be created.
      */
     // called from proxy classes
-    <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz,
+    <E extends RealmModel> E createObjectInternal(Class<E> clazz,
                                                             boolean acceptDefaultValue,
                                                             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
@@ -740,7 +740,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         checkIfValid();
-        return createObjectWithoutThreadCheck(clazz, primaryKeyValue, true, Collections.<String> emptyList());
+        return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String> emptyList());
     }
 
     /**
@@ -756,7 +756,7 @@ public final class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      */
     // called from proxy classes
-    <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz, Object primaryKeyValue,
+    <E extends RealmModel> E createObjectInternal(Class<E> clazz, Object primaryKeyValue,
                                                             boolean acceptDefaultValue,
                                                             List<String> excludeFields) {
         Table table = schema.getTable(clazz);

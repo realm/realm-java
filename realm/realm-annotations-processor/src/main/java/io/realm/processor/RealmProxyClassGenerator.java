@@ -1298,10 +1298,10 @@ public class RealmProxyClassGenerator {
 
             writer.emitSingleLineComment("rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.");
             if (metadata.hasPrimaryKey()) {
-                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, ((%s) newObject).%s(), false, Collections.<String>emptyList())",
+                writer.emitStatement("%s realmObject = realm.createObjectInternal(%s.class, ((%s) newObject).%s(), false, Collections.<String>emptyList())",
                         qualifiedClassName, qualifiedClassName, interfaceName, metadata.getPrimaryKeyGetter());
             } else {
-                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, false, Collections.<String>emptyList())",
+                writer.emitStatement("%s realmObject = realm.createObjectInternal(%s.class, false, Collections.<String>emptyList())",
                         qualifiedClassName, qualifiedClassName);
             }
             writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
@@ -1623,7 +1623,7 @@ public class RealmProxyClassGenerator {
         }
         if (!metadata.hasPrimaryKey()) {
             buildExcludeFieldsList(writer, metadata.getFields());
-            writer.emitStatement("%s obj = realm.createObjectWithoutThreadCheck(%s.class, true, excludeFields)",
+            writer.emitStatement("%s obj = realm.createObjectInternal(%s.class, true, excludeFields)",
                     qualifiedClassName, qualifiedClassName);
         } else {
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
