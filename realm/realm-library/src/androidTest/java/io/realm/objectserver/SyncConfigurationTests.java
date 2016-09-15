@@ -34,8 +34,6 @@ import java.io.File;
 import java.util.Locale;
 import java.util.UUID;
 
-import io.realm.DynamicRealm;
-import io.realm.RealmMigration;
 import io.realm.objectserver.internal.Token;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -201,9 +199,7 @@ public class SyncConfigurationTests {
     @Test
     public void errorHandler_nullThrows() {
         SyncConfiguration.Builder builder;
-        builder = new SyncConfiguration.Builder(context)
-                .user(createTestUser())
-                .serverUrl("realm://objectserver.realm.io/default");
+        builder = new SyncConfiguration.Builder(context);
 
         try {
             builder.errorHandler(null);
@@ -211,32 +207,10 @@ public class SyncConfigurationTests {
         }
     }
 
-    @Test
-    public void migration_alwaysThrows() {
-        SyncConfiguration.Builder builder;
-        builder = new SyncConfiguration.Builder(context)
-                .user(createTestUser())
-                .serverUrl("realm://objectserver.realm.io/default");
-
-        try {
-            builder.migration(null);
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        try {
-            builder.migration(new RealmMigration() {
-                @Override
-                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    // Nothing
-                }
-            });
-        } catch (IllegalArgumentException ignore) {
-        }
-    }
     private User createTestUser() {
         return createTestUser(Long.MAX_VALUE);
     }
-    
+
     private User createTestUser(long expires) {
         JSONObject obj = new JSONObject();
         try {

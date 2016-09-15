@@ -19,25 +19,33 @@ package io.realm.objectserver;
 import android.content.Context;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.RealmModel;
+import io.realm.annotations.RealmModule;
+import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedRealm;
 import io.realm.objectserver.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
+import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
- * A valid {@link User} is required to create a SyncConfiguration. See {@link Credentials} and
+ * A valid {@link User} is required to create a {@link SyncConfiguration}. See {@link Credentials} and
  * {@link User#loginAsync(Credentials, String, User.Callback)} for more information on
  * how to get a user object.
  * <p>
- * A minimal SyncConfiguration can look like this:
+ * A minimal {@link SyncConfiguration} can look like this:
  * <pre>
  * {@code
  * SyncConfiguration config = new SyncConfiguration.Builder(context)
@@ -47,54 +55,66 @@ import io.realm.rx.RxObservableFactory;
  * }
  * </pre>
  *
- * Realms created using a {@link SyncConfiguration} is accessed normally using {@link Realm#getInstance(RealmConfiguration)}
- * and can also be stored using {@link Realm#setDefaultConfiguration(RealmConfiguration)}.
+ * Synchronized Realms only support additive migrations which can be detected automatically, so the following
+ * builder options are not accessible compared to a normal Realm:
  *
- * TODO Need to expand this section I think
+ * <ul>
+ *     <li>{@code deleteRealmIfMigrationNeeded()}</li>
+ *     <li>{@code schemaVersion(long version)}</li>
+ *     <li>{@code migration(Migration)}</li>
+ * </ul>
+ *
+ * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
+ * {@link Realm#getDefaultInstance()} like normal unsynchronized Realms.
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
-    private final File realmDirectory;
-    private final String realmFileName;
-    private final String canonicalPath;
     private final URI serverUrl;
     private final User user;
     private final SyncPolicy syncPolicy;
     private final Session.ErrorHandler errorHandler;
 
-    private SyncConfiguration(Builder builder) {
-        super(builder);
-        if (builder.serverUrl == null || builder.user == null) {
-            throw new IllegalStateException("serverUrl() and user() are both required.");
-        }
+    private SyncConfiguration(File directory,
+                                String filename,
+                                String canonicalPath,
+                                String assetFilePath,
+                                byte[] key,
+                                long schemaVersion,
+                                RealmMigration migration,
+                                boolean deleteRealmIfMigrationNeeded,
+                                SharedRealm.Durability durability,
+                                RealmProxyMediator schemaMediator,
+                                RxObservableFactory rxFactory,
+                                Realm.Transaction initialDataTransaction,
+                                WeakReference<Context> context,
+                                User user,
+                                URI serverUrl,
+                                SyncPolicy syncPolicy,
+                                Session.ErrorHandler errorHandler
+    ) {
+        super(directory,
+                filename,
+                canonicalPath,
+                assetFilePath,
+                key,
+                schemaVersion,
+                migration,
+                deleteRealmIfMigrationNeeded,
+                durability,
+                schemaMediator,
+                rxFactory,
+                initialDataTransaction,
+                context
+        );
 
-        // Check if the user has an identifier, if not, it cannot use /~/.
-        if (builder.serverUrl.toString().contains("/~/") && builder.user.getIdentifier() == null) {
-            throw new IllegalStateException("The serverUrl contained a /~/, but the user does not have an identifier," +
-                    " most likely because it hasn't been authenticated yet or have been created directly from an" +
-                    " access token. Use a path without /~/.");
-        }
-
-        this.user = builder.user;
-        this.serverUrl = getFullServerUrl(builder.serverUrl, user.getIdentifier());
-        this.syncPolicy = builder.syncPolicy;
-        this.errorHandler = builder.errorHandler;
-
-        // Determine location on disk
-        // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
-        // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
-        File rootDir = builder.overrideDefaultFolder ? super.getRealmDirectory() : builder.defaultFolder;
-        String realmPath = getServerPath(serverUrl);
-        this.realmDirectory = new File(rootDir, realmPath);
-        // Create the folder on disk (if needed)
-        if (!realmDirectory.exists() && !realmDirectory.mkdirs()) {
-            throw new IllegalStateException("Could not create directory for saving the Realm: " + realmDirectory);
-        }
-        this.realmFileName = builder.overrideDefaultLocalFileName ? super.getRealmFileName() : builder.defaultLocalFileName;
-        this.canonicalPath = getCanonicalPath(new File(realmDirectory, realmFileName));
+        this.user = user;
+        this.serverUrl = serverUrl;
+        this.syncPolicy = syncPolicy;
+        this.errorHandler = errorHandler;
     }
 
-    static URI getFullServerUrl(URI serverUrl, String userIdentifier) {
+
+    static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
         try {
             return new URI(serverUrl.toString().replace("/~/", "/" + userIdentifier + "/"));
         } catch (URISyntaxException e) {
@@ -103,7 +123,7 @@ public final class SyncConfiguration extends RealmConfiguration {
     }
 
     // Extract the full server path, minus the file name
-    private String getServerPath(URI serverUrl) {
+    private static String getServerPath(URI serverUrl) {
         String path = serverUrl.getPath();
         int endIndex = path.lastIndexOf("/");
         if (endIndex == -1 ) {
@@ -123,9 +143,6 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         SyncConfiguration that = (SyncConfiguration) o;
 
-        if (realmDirectory != null ? !realmDirectory.equals(that.realmDirectory) : that.realmDirectory != null) return false;
-        if (realmFileName != null ? !realmFileName.equals(that.realmFileName) : that.realmFileName != null) return false;
-        if (canonicalPath != null ? !canonicalPath.equals(that.canonicalPath) : that.canonicalPath != null) return false;
         if (serverUrl != null ? !serverUrl.equals(that.serverUrl) : that.serverUrl != null) return false;
         if (user != null ? !user.equals(that.user) : that.user != null) return false;
         if (syncPolicy != null ? !syncPolicy.equals(that.syncPolicy) : that.syncPolicy != null) return false;
@@ -135,9 +152,6 @@ public final class SyncConfiguration extends RealmConfiguration {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (realmDirectory != null ? realmDirectory.hashCode() : 0);
-        result = 31 * result + (realmFileName != null ? realmFileName.hashCode() : 0);
-        result = 31 * result + (canonicalPath != null ? canonicalPath.hashCode() : 0);
         result = 31 * result + (serverUrl != null ? serverUrl.hashCode() : 0);
         result = 31 * result + (user != null ? user.hashCode() : 0);
         result = 31 * result + (syncPolicy != null ? syncPolicy.hashCode() : 0);
@@ -150,30 +164,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         StringBuilder stringBuilder = new StringBuilder();
         // TODO
         return stringBuilder.toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public File getRealmDirectory() {
-        return this.realmDirectory;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getRealmFileName() {
-        return this.realmFileName;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPath() {
-        return this.canonicalPath;
     }
 
     // Keeping this package protected for now. The API might still be subject to change.
@@ -202,35 +192,51 @@ public final class SyncConfiguration extends RealmConfiguration {
     /**
      * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
      */
-    public static final class Builder extends RealmConfiguration.Builder {
+    public static final class Builder  {
 
         private Context context;
+        private File directory;
+        private boolean overrideDefaultFolder = false;
+        private String fileName;
+        private boolean overrideDefaultLocalFileName = false;
+        private byte[] key;
+        private HashSet<Object> modules = new HashSet<Object>();
+        private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        private RxObservableFactory rxFactory;
+        private Realm.Transaction initialDataTransaction;
         private URI serverUrl;
         private User user = null;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
         private Session.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
-        private boolean overrideDefaultFolder = false;
-        private boolean overrideDefaultLocalFileName = false;
         private File defaultFolder;
         private String defaultLocalFileName;
+        private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
 
         /**
-         * {@inheritDoc}
+         * Creates an instance of the Builder for the SyncConfiguration.
+         * <p>
+         * This will use the app's own internal directory for storing the Realm file. This does not require any
+         * additional permissions. The default location is {@code /data/data/<packagename>/files/realm-object-server},
+         * but can change depending on vendor implementations of Android.
+         *
+         * @param context the Android application context.
          */
         public Builder(Context context) {
-            super(context);
             this.context = context;
+            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
         }
 
         /**
          * Sets the local filename for the Realm.
          * This will override the default name defined by the {@link #serverUrl(String)}
          *
-         * @param name name of the local file on disk.
+         * @param filename name of the local file on disk.
          */
-        @Override
-        public Builder name(String name) {
-            super.name(name);
+        public Builder name(String filename) {
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+            this.fileName = filename;
             this.overrideDefaultLocalFileName = true;
             return this;
         }
@@ -244,96 +250,106 @@ public final class SyncConfiguration extends RealmConfiguration {
          *
          * The default location is {@code context.getFilesDir()}.
          *
-         * @param dir directory on disk where the Realm file can be saved.
+         * @param directory directory on disk where the Realm file can be saved.
          * @throws IllegalArgumentException if the directory is not valid.
          */
-        public Builder directory(File dir) {
-            super.directory(dir);
+        public Builder directory(File directory) {
+            if (directory == null) {
+                throw new IllegalArgumentException("Non-null 'directory' required.");
+            }
+            if (directory.isFile()) {
+                throw new IllegalArgumentException("'directory' is a file, not a directory: " +
+                        directory.getAbsolutePath() + ".");
+            }
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw new IllegalArgumentException("Could not create the specified directory: " +
+                        directory.getAbsolutePath() + ".");
+            }
+            if (!directory.canWrite()) {
+                throw new IllegalArgumentException("Realm directory is not writable: " +
+                        directory.getAbsolutePath() + ".");
+            }
+            this.directory = directory;
             overrideDefaultFolder = true;
             return this;
         }
 
         /**
-         * {@inheritDoc}
+         * Sets the 64 bit key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
-        @Override
         public Builder encryptionKey(byte[] key) {
-            super.encryptionKey(key);
+            if (key == null) {
+                throw new IllegalArgumentException("A non-null key must be provided");
+            }
+            if (key.length != KEY_LENGTH) {
+                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                        KEY_LENGTH, key.length));
+            }
+            this.key = Arrays.copyOf(key, key.length);
             return this;
         }
 
         /**
-         * {@inheritDoc}
+         * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
+         * current schema for this Realm with the schema defined by the provided modules.
+         * <p>
+         * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
+         * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
+         * dependency is thus done using the following code:
+         * <p>
+         * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
+         * <p>
+         * @param baseModule the first Realm module (required).
+         * @param additionalModules the additional Realm modules
+         * @throws IllegalArgumentException if any of the modules don't have the {@link RealmModule} annotation.
+         * @see Realm#getDefaultModule()
          */
-        @Override
-        public Builder schemaVersion(long schemaVersion) {
-            super.schemaVersion(schemaVersion);
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Builder deleteRealmIfMigrationNeeded() {
-            super.deleteRealmIfMigrationNeeded();
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public SyncConfiguration.Builder inMemory() {
-            super.inMemory();
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
         public Builder modules(Object baseModule, Object... additionalModules) {
-            super.modules(baseModule, additionalModules);
+            modules.clear();
+            addModule(baseModule);
+            if (additionalModules != null) {
+                for (Object module : additionalModules) {
+                    addModule(module);
+                }
+            }
             return this;
         }
 
         /**
-         * {@inheritDoc}
-         */
-        @Override
-        public SyncConfiguration.Builder rxFactory(RxObservableFactory factory) {
-            super.rxFactory(factory);
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Builder initialData(Realm.Transaction transaction) {
-            super.initialData(transaction);
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Builder assetFile(String assetFile) {
-            super.assetFile(assetFile);
-            return this;
-        }
-
-        /**
-         * Manual migrations are not supported for Realms that can be synced using the Realm Object Server
-         * Only additive changes are allowed, and these will be detected and applied automatically.
+         * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
+         * The default factory is {@link RealmObservableFactory}.
          *
-         * @throws IllegalArgumentException always.
+         * @param factory factory to use.
          */
-        @Override
-        public Builder migration(RealmMigration migration) {
-            throw new IllegalArgumentException("Manual migrations are not supported for Realms that can be synchronized using the Realm Object Server");
+        public Builder rxFactory(RxObservableFactory factory) {
+            rxFactory = factory;
+            return this;
+        }
+
+        /**
+         * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only for the first time
+         * when database file is created or while migrating the data when
+         * {@link RealmConfiguration.Builder#deleteRealmIfMigrationNeeded()} is set.
+         *
+         * @param transaction transaction to execute.
+         */
+        public Builder initialData(Realm.Transaction transaction) {
+            initialDataTransaction = transaction;
+            return this;
+        }
+
+        /**
+         * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
+         * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
+         * Realm is closed.
+         * <p>
+         * Note that because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
+         * reference to the in-memory Realm object with the specific name as long as you want the data to last.
+         */
+        public Builder inMemory() {
+            this.durability = SharedRealm.Durability.MEM_ONLY;
+            return this;
         }
 
         /**
@@ -390,16 +406,15 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
             if (!user.isAuthenticated()) {
-                throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: " + user.getIdentifier());
+                throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: "
+                        + user.getIdentifier());
             }
-
-            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
             this.user = user;
             return this;
         }
 
         /**
-         * Sets the sync policy used to control when changes should be synchronized with the remote Realm.
+         * Sets the {@link SyncPolicy} used to control when changes should be synchronized with the remote Realm.
          * The default policy is {@link AutomaticSyncPolicy}.
          *
          * @param syncPolicy policy to use.
@@ -407,15 +422,14 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @see Session
          */
         Builder syncPolicy(SyncPolicy syncPolicy) {
-            // TODO: Decide if we should launch with this as package protected since the sync notification API might
-            // change quite a bit.
+            // Package protected until SyncPolicy API is more stable.
             this.syncPolicy = syncPolicy;
             return this;
         }
 
         /**
-         * Sets the error handler used by this configuration.
-         * This will override any handler set by calling {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
+         * Sets the error handler used by this configuration. This will override any handler set by calling
+         * {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
          *
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
@@ -436,7 +450,66 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @return the created {@link SyncConfiguration}.
          */
         public SyncConfiguration build() {
-            return new SyncConfiguration(this);
+            if (serverUrl == null || user == null) {
+                throw new IllegalStateException("serverUrl() and user() are both required.");
+            }
+
+            // Check if the user has an identifier, if not, it cannot use /~/.
+            if (serverUrl.toString().contains("/~/") && user.getIdentifier() == null) {
+                throw new IllegalStateException("The serverUrl contains a /~/, but the user does not have an identity." +
+                        " Most likely it hasn't been authenticated yet or has been created directly from an" +
+                        " access token. Use a path without /~/.");
+            }
+
+            // Determine location on disk
+            // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
+            // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
+            URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentifier());
+            File rootDir = overrideDefaultFolder ? directory : defaultFolder;
+            String realmPathFromRootDir = getServerPath(resolvedServerUrl);
+            File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
+            // Create the folder on disk (if needed)
+            if (!realmFileDirectory.exists() && !realmFileDirectory.mkdirs()) {
+                throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
+            }
+            String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
+
+            return new SyncConfiguration(
+                    // Realm Configuration options
+                    realmFileDirectory,
+                    realmFileName,
+                    getCanonicalPath(new File(realmFileDirectory, realmFileName)),
+                    null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
+                    key,
+                    -1, // Schema version not supported
+                    null, // Custom migrations not supported
+                    false, // MigrationNeededException is never thrown
+                    durability,
+                    createSchemaMediator(modules, debugSchema),
+                    rxFactory,
+                    initialDataTransaction,
+                    new WeakReference<Context>(context),
+
+                    // Sync Configuration specific
+                    user,
+                    resolvedServerUrl,
+                    syncPolicy,
+                    errorHandler
+            );
+        }
+
+        private void addModule(Object module) {
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
+        }
+
+        private void checkModule(Object module) {
+            if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                        "Add @RealmModule to the class definition.");
+            }
         }
     }
 }

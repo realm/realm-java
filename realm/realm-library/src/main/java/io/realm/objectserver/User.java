@@ -300,7 +300,7 @@ public class User {
         if (uri == null || accessToken == null) {
             throw new IllegalArgumentException("Non-null 'uri' and 'accessToken' required.");
         }
-        uri = SyncConfiguration.getFullServerUrl(uri, identifier);
+        uri = SyncConfiguration.resolveServerUrl(uri, identifier);
 
         // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
         // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used

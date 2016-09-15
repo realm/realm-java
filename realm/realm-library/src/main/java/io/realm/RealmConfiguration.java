@@ -100,20 +100,34 @@ public class RealmConfiguration {
     private final Realm.Transaction initialDataTransaction;
     private final WeakReference<Context> contextWeakRef;
 
-    protected RealmConfiguration(Builder builder) {
-        this.realmDirectory = builder.directory;
-        this.realmFileName = builder.fileName;
-        this.canonicalPath = getCanonicalPath(new File(realmDirectory, realmFileName));
-        this.assetFilePath = builder.assetFilePath;
-        this.key = builder.key;
-        this.schemaVersion = builder.schemaVersion;
-        this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.migration = builder.migration;
-        this.durability = builder.durability;
-        this.schemaMediator = createSchemaMediator(builder);
-        this.rxObservableFactory = builder.rxFactory;
-        this.initialDataTransaction = builder.initialDataTransaction;
-        this.contextWeakRef = builder.contextWeakRef;
+    // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
+    // subsets of them.
+    protected RealmConfiguration(File realmDirectory,
+                              String realmFileName,
+                              String canonicalPath,
+                              String assetFilePath,
+                              byte[] key,
+                              long schemaVersion,
+                              RealmMigration migration,
+                              boolean deleteRealmIfMigrationNeeded,
+                              SharedRealm.Durability durability,
+                              RealmProxyMediator schemaMediator,
+                              RxObservableFactory rxObservableFactory,
+                              Realm.Transaction initialDataTransaction,
+                              WeakReference<Context> contextWeakRef) {
+        this.realmDirectory = realmDirectory;
+        this.realmFileName = realmFileName;
+        this.canonicalPath = canonicalPath;
+        this.assetFilePath = assetFilePath;
+        this.key = key;
+        this.schemaVersion = schemaVersion;
+        this.migration = migration;
+        this.deleteRealmIfMigrationNeeded = deleteRealmIfMigrationNeeded;
+        this.durability = durability;
+        this.schemaMediator = schemaMediator;
+        this.rxObservableFactory = rxObservableFactory;
+        this.initialDataTransaction = initialDataTransaction;
+        this.contextWeakRef = contextWeakRef;
     }
 
     public File getRealmDirectory() {
@@ -257,10 +271,8 @@ public class RealmConfiguration {
     }
 
     // Creates the mediator that defines the current schema
-    private RealmProxyMediator createSchemaMediator(Builder builder) {
-
-        Set<Object> modules = builder.modules;
-        Set<Class<? extends RealmModel>> debugSchema = builder.debugSchema;
+    protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
+                                                             Set<Class<? extends RealmModel>> debugSchema) {
 
         // If using debug schema, use special mediator
         if (debugSchema.size() > 0) {
@@ -366,9 +378,7 @@ public class RealmConfiguration {
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
-        /**
-         * IMPORTANT: When adding any new methods to this class also add them to ObjectServerConfiguration.Builder
-         */
+         // IMPORTANT: When adding any new methods to this class also add them to SyncConfiguration.
         private File directory;
         private String fileName;
         private String assetFilePath;
@@ -651,7 +661,21 @@ public class RealmConfiguration {
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }
-            return new RealmConfiguration(this);
+
+            return new RealmConfiguration(directory,
+                    fileName,
+                    getCanonicalPath(new File(directory, fileName)),
+                    assetFilePath,
+                    key,
+                    schemaVersion,
+                    migration,
+                    deleteRealmIfMigrationNeeded,
+                    durability,
+                    createSchemaMediator(modules, debugSchema),
+                    rxFactory,
+                    initialDataTransaction,
+                    contextWeakRef
+            );
         }
 
         private void checkModule(Object module) {
