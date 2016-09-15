@@ -28,6 +28,7 @@ import java.util.HashSet;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.objectserver.internal.SyncUtil;
 import io.realm.RealmModel;
 import io.realm.annotations.RealmModule;
 import io.realm.internal.RealmProxyMediator;
@@ -36,6 +37,8 @@ import io.realm.objectserver.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+
+import static io.realm.objectserver.internal.SyncUtil.getFullServerUrl;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -405,9 +408,8 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (user == null) {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
-            if (!user.isAuthenticated()) {
-                throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: "
-                        + user.getIdentifier());
+            if (!user.getSyncUser().isAuthenticated()) {
+                throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: " + user.getIdentity());
             }
             this.user = user;
             return this;
@@ -455,7 +457,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             }
 
             // Check if the user has an identifier, if not, it cannot use /~/.
-            if (serverUrl.toString().contains("/~/") && user.getIdentifier() == null) {
+            if (serverUrl.toString().contains("/~/") && user.getIdentity() == null) {
                 throw new IllegalStateException("The serverUrl contains a /~/, but the user does not have an identity." +
                         " Most likely it hasn't been authenticated yet or has been created directly from an" +
                         " access token. Use a path without /~/.");
@@ -464,7 +466,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
             // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
-            URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentifier());
+            URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentity());
             File rootDir = overrideDefaultFolder ? directory : defaultFolder;
             String realmPathFromRootDir = getServerPath(resolvedServerUrl);
             File realmFileDirectory = new File(rootDir, realmPathFromRootDir);

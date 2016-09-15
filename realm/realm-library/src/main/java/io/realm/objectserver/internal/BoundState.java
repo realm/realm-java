@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal;
+
+import io.realm.objectserver.ObjectServerError;
+import io.realm.objectserver.SessionState;
 
 /**
  * BOUND State. At this state the local Realm is bound to the remote Realm and changes is sent in both

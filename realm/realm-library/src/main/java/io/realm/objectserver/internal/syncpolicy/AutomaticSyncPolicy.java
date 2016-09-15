@@ -17,7 +17,7 @@
 package io.realm.objectserver.internal.syncpolicy;
 
 import io.realm.objectserver.ObjectServerError;
-import io.realm.objectserver.Session;
+import io.realm.objectserver.internal.SyncSession;
 
 /**
  * This SyncPolicy will automatically start synchronizing changes to a Realm as soon as it is opened.
@@ -26,28 +26,28 @@ import io.realm.objectserver.Session;
 public class AutomaticSyncPolicy implements SyncPolicy {
 
     @Override
-    public void onRealmOpened(Session session) {
+    public void onRealmOpened(SyncSession session) {
         session.bind(); // Bind Realm first time it is opened.
     }
 
     @Override
-    public void onRealmClosed(Session session) {
+    public void onRealmClosed(SyncSession session) {
         // TODO Sync need to expose callback when there is no more local changes
         // For now just keep the session open.
     }
 
     @Override
-    public void onSessionCreated(Session session) {
+    public void onSessionCreated(SyncSession session) {
         session.start();
     }
 
     @Override
-    public void onSessionStopped(Session session) {
+    public void onSessionStopped(SyncSession session) {
         // Do nothing
     }
 
     @Override
-    public boolean onError(Session session, ObjectServerError error) {
+    public boolean onError(SyncSession session, ObjectServerError error) {
         switch(error.category()) {
             case FATAL:
                 return false;   // Report all fatal errors to the user
@@ -61,7 +61,7 @@ public class AutomaticSyncPolicy implements SyncPolicy {
         }
     }
 
-    private void rebind(Session session) {
+    private void rebind(SyncSession session) {
         // FIXME: Do not rebind uncritically. Figure out a good strategy for this.
         // See https://realmio.slack.com/archives/sync-core/p1472415880000002
         session.bind();

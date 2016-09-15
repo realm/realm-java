@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
+import io.realm.objectserver.internal.SyncSession;
 import io.realm.objectserver.internal.SessionStore;
 import io.realm.objectserver.internal.network.AuthenticationServer;
 import io.realm.objectserver.internal.network.OkHttpAuthenticationServer;
@@ -94,7 +95,24 @@ public final class SyncManager {
      * @return the {@link Session} for the specified Realm.
      */
     public static synchronized Session getSession(SyncConfiguration syncConfiguration) {
-        return SessionStore.getSession(syncConfiguration);
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
+        }
+
+        if (SessionStore.hasSession(syncConfiguration)) {
+            return SessionStore.getPublicSession(syncConfiguration);
+        } else {
+            SyncSession internalSession = new SyncSession(
+                    syncConfiguration,
+                    authServer,
+                    syncConfiguration.getUser().getSyncUser(),
+                    syncConfiguration.getSyncPolicy(),
+                    syncConfiguration.getErrorHandler()
+            );
+            Session publicSession = new Session(internalSession);
+            SessionStore.addSession(publicSession, internalSession);
+            return publicSession;
+        }
     }
 
     public static AuthenticationServer getAuthServer() {
@@ -116,7 +134,7 @@ public final class SyncManager {
     // from here. This can be removed once better error propagation is implemented in Sync Core.
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for (Session session : SessionStore.getSession()) {
+        for (SyncSession session : SessionStore.getAllSessions()) {
             session.onError(error);
         }
     }
@@ -125,6 +143,7 @@ public final class SyncManager {
      * Sets the log level for the underlying
      * @param logLevel
      */
+    // FIXME Remove from the public API. This is controlled by Logger#minimumNativeLogLevel
     public static void setLogLevel(int logLevel) {
         nativeSetSyncClientLogLevel(logLevel);
     }

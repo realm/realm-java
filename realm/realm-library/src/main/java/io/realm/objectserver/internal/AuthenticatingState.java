@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal;
 
+import io.realm.objectserver.*;
 import io.realm.objectserver.internal.network.NetworkStateReceiver;
 
 /**
@@ -78,15 +79,15 @@ class AuthenticatingState extends FsmState {
         }
     }
 
-    private synchronized void authenticate(final Session session) {
+    private synchronized void authenticate(final SyncSession session) {
         session.authenticateRealm(new Runnable() {
             @Override
             public void run() {
                 gotoNextState(SessionState.BINDING);
             }
-        }, new Session.ErrorHandler() {
+        }, new io.realm.objectserver.Session.ErrorHandler() {
             @Override
-            public void onError(Session session, ObjectServerError error) {
+            public void onError(io.realm.objectserver.Session session, ObjectServerError error) {
                 // FIXME For critical errors, got directly to STOPPED
                 gotoNextState(SessionState.UNBOUND);
             }

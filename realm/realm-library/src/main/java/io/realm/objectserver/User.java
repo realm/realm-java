@@ -18,46 +18,34 @@ package io.realm.objectserver;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.IOException;
-import io.realm.internal.Util;
+import io.realm.objectserver.internal.SyncUser;
 import io.realm.objectserver.internal.Token;
 import io.realm.objectserver.internal.network.AuthenticateResponse;
 import io.realm.objectserver.internal.network.AuthenticationServer;
-import io.realm.objectserver.internal.network.RefreshResponse;
 import io.realm.log.RealmLog;
 
 /**
  * This class represents a user on the Realm Object Server.
- *
- *
  * TODO Rewrite this section
  */
 public class User {
 
-    // Time left on current refresh token, when we want to begin refreshing it.
-    // Failing to refresh it before it expires, will result in the user getting logged out.
     private static RealmAsyncTask authenticateTask;
-    private RealmAsyncTask refreshTask;
+    private final SyncUser syncUser;
 
-    private final String identifier;
-    private Token refreshToken;
-    private URL authentificationUrl;
-    private Map<URI, Token> accessTokens = new HashMap<URI, Token>();
+    private User(SyncUser user) {
+        this.syncUser = user;
+    }
 
     /**
      * Load a user that has previously been serialized using {@link #toJson()}.
@@ -73,7 +61,7 @@ public class User {
             Token refreshToken = Token.from(obj.getJSONObject("refreshToken"));
             URL authUrl = new URL(obj.getString("authUrl"));
             // FIXME: Add support for  storing access tokens as well
-            return new User(refreshToken.identity(), refreshToken, authUrl);
+            return new User(new SyncUser(refreshToken.identity(), refreshToken, authUrl));
         } catch (JSONException e) {
             throw new IllegalArgumentException("Could not parse user json: " + user, e);
         } catch (MalformedURLException e) {
@@ -90,13 +78,18 @@ public class User {
      * {@link UserStore}.
      *
      * @param token token to represent user.
+     * @see #getAccessToken()
+     *
      */
     // FIXME Align with Cocoa on naming
     public static User fromToken(String token) {
         // Define a user with unlimited access. Object Server will reject any invalid access anyway.
-        return new User(null, new Token(token, null, null, Long.MAX_VALUE, Token.Permission.values()), null);
+        Token refreshToken = new Token(token, null, null, Long.MAX_VALUE, Token.Permission.values());
+        SyncUser internalUser = new SyncUser(null, refreshToken, null);
+        return new User(internalUser);
     }
 
+    // FIXME Javadoc
     public static User login(final Credentials credentials, final URL authentificationUrl)
             throws ObjectServerError {
         return null; // TODO
@@ -132,7 +125,7 @@ public class User {
                 try {
                     AuthenticateResponse result = server.authenticateUser(credentials, authUrl, credentials.shouldCreateUser());
                     if (result.isValid()) {
-                        User user = new User(result.getRefreshToken().identity(), result.getRefreshToken(), authUrl);
+                        User user = new User(new SyncUser(result.getRefreshToken().identity(), result.getRefreshToken(), authUrl));
                         postSuccess(user);
                     } else {
                         postError(result.getError());
@@ -172,74 +165,6 @@ public class User {
         return authenticateTask;
     }
 
-    private User(String identifier, Token refreshToken, URL authenticationUrl) {
-        this.identifier = identifier;
-        this.authentificationUrl = authenticationUrl;
-        setRefreshToken(refreshToken);
-    }
-
-    void setRefreshToken(final Token refreshToken) {
-        if (refreshTask != null) {
-            refreshTask.cancel();
-            refreshTask = null;
-        }
-        this.refreshToken = refreshToken;
-
-        if (authentificationUrl == null) {
-            return;
-        }
-        // Schedule a refresh. This method cannot fail, but will continue retrying until either the app is killed
-        // or the attempt was successful.
-        // TODO Consider combining refresh across all users?
-        final long expire = refreshToken.expiresMs();
-        final AuthenticationServer server = SyncManager.getAuthServer();
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
-            @Override
-            public void run() {
-                long timeToExpiration = System.currentTimeMillis() - expire;
-                if (timeToExpiration > 0) {
-                    SystemClock.sleep(timeToExpiration);
-                }
-
-                int attempt = 0;
-                while (!Thread.interrupted()) {
-                    attempt++;
-                    long sleep = Util.calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
-                    if (sleep > 0) {
-                        try {
-                            Thread.sleep(sleep);
-                        } catch (InterruptedException e) {
-                            return; // Abort authentication if interrupted.
-                        }
-                    }
-                    try {
-                        RefreshResponse result = server.refresh(refreshToken.value(), authentificationUrl);
-                        if (result.isValid()) {
-                            setRefreshToken(result.getRefreshToken());
-                            break;
-                        } else {
-                            // FIXME: Log to session events instead
-                            RealmLog.warn("Refreshing login failed: " + result.getErrorCode() + " : " + result.getErrorMessage());
-                        }
-                    } catch (IOException e) {
-                        // FIXME: Log to session events instead.
-                        RealmLog.info("Refreshing login failed: " + e.toString());
-                    }
-                }
-            }
-        });
-        refreshTask = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
-    }
-
-    /**
-     * Returns true if the User is authenticated by the Realm Object Server. Being authenticated means that the
-     * user is know by the Realm Object Server, but nothing about which Realms that user might have access to and with
-     * what kind of permissions.
-     */
-    public boolean isAuthenticated() {
-        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis();
-    }
-
     public void logout() {
         // TODO Stop any session
         // TODO Clear all tokens
@@ -257,71 +182,38 @@ public class User {
      * @see #fromJson(String)
      */
     public String toJson() {
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("identifier", identifier);
-            obj.put("refreshToken", refreshToken.toJson());
-            obj.put("authUrl", authentificationUrl);
-            // FIXME: Add support for  storing access tokens as well
-           return obj.toString();
-        } catch (JSONException e) {
-            throw new RuntimeException("Could not convert User to JSON", e);
-        }
-    }
-
-    public String getIdentifier() {
-        return identifier;
+        return syncUser.toJson();
     }
 
     /**
-     * Return the access token for the given Realm or {@code null} if no token exists.
-     */
-    Token getAccessToken(URI serverUrl) {
-        return accessTokens.get(serverUrl);
-    }
-
-    void addAccessToken(URI uri, Token accessToken) {
-        accessTokens.put(uri, accessToken);
-    }
-
-    /**
-     * Adds an access token to this user.
-     * <p>
-     * An access token is a token granting access to one remote Realm. They are normally fetched transparently when
-     * opening a Realm, but using this method it is possible to add tokens upfront if they have been fetched or
-     * created manually.
+     * Returns the identity or key of this user on the Realm Object Server.
      *
-     * @param uri {@link java.net.URI} pointing to a remote Realm.
-     * @param accessToken
+     * @return Identity of the user on the Realm Object Server. If the user has logged out or the login has expired
+     *         {@code null} is returned.
      */
-    void addAccessToken(URI uri, String accessToken) {
-        // TODO Currently package protected as we will be unifying the tokens shortly, so each user only has one
-        // access token that can be used everywhere. Permissions/access are then fully handled by the Object Server.
-        if (uri == null || accessToken == null) {
-            throw new IllegalArgumentException("Non-null 'uri' and 'accessToken' required.");
-        }
-        uri = SyncConfiguration.resolveServerUrl(uri, identifier);
-
-        // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
-        // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used
-        // correctly.
-        addAccessToken(uri, new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values()));
+    public String getIdentity() {
+        return syncUser.getIdentity();
     }
 
-
-    URL getAuthenticationUrl() {
-        return authentificationUrl;
-    }
-
-    // TODO Figure out how to make this non-public
-    public Token getRefreshToken() {
-        return refreshToken;
+    /**
+     * Returns this user's access token. This is the users credential for accessing the Realm Object Server and should
+     * be treated as sensitive data.
+     *
+     * @return The user's access token. If this user has logged out or the login has expired {@code null} is returned.
+     */
+    public String getAccessToken() {
+        return syncUser.getRefreshToken().value();
     }
 
     @Override
     public String toString() {
         return super.toString();
         // FIXME Print representation of user, but be careful about printing anything sensitive
+    }
+
+    // Expose internal representation for other package protected classes
+    SyncUser getSyncUser() {
+        return syncUser;
     }
 
     public interface Callback {

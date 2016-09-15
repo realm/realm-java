@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal;
+
+import io.realm.objectserver.*;
 
 /**
- * STOPPED State. This is the final state for a {@link Session}. After this, all actions will throw an
+ * STOPPED State. This is the final state for a {@link io.realm.objectserver.Session}. After this, all actions will throw an
  * {@link IllegalStateException}.
  */
 class StoppedState extends FsmState {
@@ -25,7 +27,7 @@ class StoppedState extends FsmState {
     @Override
     public void onEnterState() {
         session.stopNativeSession();
-        session.configuration.getSyncPolicy().onSessionStopped(session);
+        session.getSyncPolicy().onSessionStopped(session);
     }
 
     @Override

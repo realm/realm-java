@@ -19,7 +19,7 @@ package io.realm.objectserver;
 /**
  * Enum describing the various states the Session Finite-State-Machine can be in.
  */
-enum SessionState {
+public enum SessionState {
     INITIAL,          // Initial starting state
     UNBOUND,          // Start done, Realm is unbound.
     BINDING,          // bind() has been called. Can take a while.

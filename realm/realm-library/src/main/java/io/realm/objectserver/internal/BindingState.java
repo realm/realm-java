@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal;
+
+import io.realm.objectserver.ObjectServerError;
+import io.realm.objectserver.SessionState;
 
 /**
  * BINDING State. After bind() is called, this state will attempt to bind the local Realm to the remote. This is an

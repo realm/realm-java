@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal;
+
+import io.realm.objectserver.*;
 
 /**
- * As {@link Session} is modeled as a state machine, this interface describe all
+ * As {@link io.realm.objectserver.Session} is modeled as a state machine, this interface describe all
  * possible actions in that machine.
  *
  * All states should implement this so all possible permutations of state/actions are covered.

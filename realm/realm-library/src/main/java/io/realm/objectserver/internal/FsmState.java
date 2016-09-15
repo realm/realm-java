@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.internal;
+
+import io.realm.objectserver.*;
 
 /**
- * Abstract class containing shared logic for all {@link Session} states. All states must extend this class as it
+ * Abstract class containing shared logic for all {@link io.realm.objectserver.Session} states. All states must extend this class as it
  * contains the logic for entering and leaving states.
  *
  * TODO Move this to the Object Store
  */
 abstract class FsmState implements FsmAction {
 
-    volatile Session session; // This is non-null when this state is active.
+    volatile SyncSession session; // This is non-null when this state is active.
     private boolean exiting; // TODO: Remind me again what race condition necessitated this.
 
     /**
      * Entry into the state. This method is also responsible for executing any asynchronous work
      * this state might run.
      *
-     * This should only be called from {@link Session}.
+     * This should only be called from {@link io.realm.objectserver.Session}.
      */
-    public void entry(Session session) {
+    public void entry(SyncSession session) {
         this.session = session;
         this.exiting = false;
         onEnterState();
@@ -41,9 +43,9 @@ abstract class FsmState implements FsmAction {
 
     /**
      * Called just before leaving the state. Once this method is called no more state changes can be triggered from
-     * this state until {@link #entry(Session)} has been called again.
-     *
-     * This should only be called from {@link Session}.
+     * this state until {@link #entry(io.realm.objectserver.Session)} has been called again.
+     * <p>
+     * This should only be called from {@link io.realm.objectserver.Session}.
      */
     public void exit() {
         exiting = true;

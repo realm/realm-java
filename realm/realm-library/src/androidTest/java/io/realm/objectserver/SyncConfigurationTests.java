@@ -38,6 +38,7 @@ import io.realm.objectserver.internal.Token;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static io.realm.objectserver.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -91,8 +92,8 @@ public class SyncConfigurationTests {
         User user = createTestUser();
         String[][] validUrls = {
                 // <URL>, <Folder>, <FileName>
-                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentifier(), "default" },
-                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + user.getIdentifier() + "/sub", "default" }
+                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentity(), "default" },
+                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + user.getIdentity() + "/sub", "default" }
         };
 
         for (String[] validUrl : validUrls) {
@@ -207,30 +208,4 @@ public class SyncConfigurationTests {
         }
     }
 
-    private User createTestUser() {
-        return createTestUser(Long.MAX_VALUE);
-    }
-
-    private User createTestUser(long expires) {
-        JSONObject obj = new JSONObject();
-        try {
-            JSONObject token = new JSONObject();
-            token.put("token", UUID.randomUUID().toString());
-            JSONObject tokenData = new JSONObject();
-            JSONArray perms = new JSONArray(); // Grant all permissions
-            for (int i = 0; i < Token.Permission.values().length; i++) {
-                perms.put(Token.Permission.values()[i].toString().toLowerCase(Locale.US));
-            }
-            tokenData.put("identity", UUID.randomUUID().toString());
-            tokenData.put("path", null);
-            tokenData.put("expires", expires);
-            tokenData.put("access", perms);
-            token.put("token_data", tokenData);
-            obj.put("refreshToken", token);
-            obj.put("authUrl", "http://dummy.org/auth");
-            return User.fromJson(obj.toString());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

@@ -3,6 +3,7 @@ package io.realm.objectserver.internal;
 import io.realm.RealmConfiguration;
 import io.realm.objectserver.Session;
 import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.SyncManager;
 
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
@@ -29,33 +30,33 @@ public class ObjectServerFacade {
      */
     public static void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
         if (SYNC_AVAILABLE && configuration instanceof SyncConfiguration) {
-            Session session = SessionStore.getSession((SyncConfiguration) configuration);
+            Session publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+            SyncSession session = SessionStore.getPrivateSession(publicSession);
             session.notifyCommit(lastSnapshotVersion);
         }
     }
 
     public static void realmClosed(RealmConfiguration configuration) {
         if (SYNC_AVAILABLE && configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            Session session = SessionStore.getSession(syncConfig);
+            Session publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+            SyncSession session = SessionStore.getPrivateSession(publicSession);
             session.getSyncPolicy().onRealmClosed(session);
         }
     }
 
     public static void realmOpened(RealmConfiguration configuration) {
         if (SYNC_AVAILABLE && configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            Session session = SessionStore.getSession(syncConfig);
+            Session publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+            SyncSession session = SessionStore.getPrivateSession(publicSession);
             session.getSyncPolicy().onRealmOpened(session);
         }
-
     }
 
     public static String[] getUserAndServerUrl(RealmConfiguration config) {
         if (SYNC_AVAILABLE && config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserToken = syncConfig.getUser().getRefreshToken().value();
+            String rosUserToken = syncConfig.getUser().getAccessToken();
             return new String[] {rosServerUrl, rosUserToken};
         } else {
             return new String[2];
