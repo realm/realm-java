@@ -13,8 +13,8 @@
 * Importing from JSON without the primary key field defined in the JSON object now throws `IllegalArgumentException`.
 * Now `Realm.beginTransaction()`, `Realm.executeTransaction()` and `Realm.waitForChange()` throw `RealmMigrationNeededException` if a remote process introduces incompatible schema changes (#3409).
 * The primary key value of an object can no longer be changed after the object was created. Instead a new object must be created and all fields copied over.
-* Now `Realm.createObject(Class)` and `Realm.createObject(Class,Object)` take the values from the model's constructor (#777).
-* When `Realm.create*FromJson()`s create a new `RealmObject`, now they take the default values defined by its default constructor for those fields that are not defined in the JSON object.
+* Now `Realm.createObject(Class)` and `Realm.createObject(Class,Object)` take the values from the model's fields and default constructor (#777).
+* When `Realm.create*FromJson()`s create a new `RealmObject`, now they take the default values defined by the field itself and its default constructor for those fields that are not defined in the JSON object.
 
 ### Enhancements
 
