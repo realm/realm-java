@@ -209,11 +209,12 @@ public class RealmProxyMediatorGenerator {
                 "Object", "baseRealm",
                 "Row", "row",
                 "ColumnInfo", "columnInfo",
-                "boolean", "acceptDefaultValue"
+                "boolean", "acceptDefaultValue",
+                "List<String>", "excludeFields"
         );
         writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()");
         writer.beginControlFlow("try")
-                .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue)");
+                .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue, excludeFields)");
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {

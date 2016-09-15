@@ -19,6 +19,7 @@ package io.realm;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -2103,7 +2104,9 @@ public final class RealmQuery<E extends RealmModel> {
             //noinspection unchecked
             result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW, false);
         } else {
-            result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz), false);
+            result = realm.getConfiguration().getSchemaMediator().newInstance(
+                    clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz),
+                    false, Collections.<String>emptyList());
         }
 
         final RealmObjectProxy proxy = (RealmObjectProxy) result;

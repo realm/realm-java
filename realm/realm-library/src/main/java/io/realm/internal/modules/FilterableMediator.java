@@ -103,9 +103,10 @@ public class FilterableMediator extends RealmProxyMediator {
                                                 Object baseRealm,
                                                 Row row,
                                                 ColumnInfo columnInfo,
-                                                boolean acceptDefaultValue) {
+                                                boolean acceptDefaultValue,
+                                                List<String> excludeFields) {
         checkSchemaHasClass(clazz);
-        return originalMediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue);
+        return originalMediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
     }
 
     @Override

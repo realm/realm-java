@@ -24,6 +24,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -490,10 +491,11 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue) {
+    <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz), acceptDefaultValue);
+        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+                acceptDefaultValue, excludeFields);
         RealmObjectProxy proxy = (RealmObjectProxy) result;
         proxy.realmGet$proxyState().setTableVersion$realm();
         return result;
@@ -514,7 +516,7 @@ abstract class BaseRealm implements Closeable {
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this,
                     (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                    schema.getColumnInfo(clazz), false);
+                    schema.getColumnInfo(clazz), false, Collections.<String> emptyList());
         }
 
         RealmObjectProxy proxy = (RealmObjectProxy) result;
@@ -704,12 +706,15 @@ abstract class BaseRealm implements Closeable {
         private Row row;
         private ColumnInfo columnInfo;
         private boolean acceptDefaultValue;
+        private List<String> excludeFields;
 
-        public void set(BaseRealm realm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue) {
+        public void set(BaseRealm realm, Row row, ColumnInfo columnInfo,
+                        boolean acceptDefaultValue, List<String> excludeFields) {
             this.realm = realm;
             this.row = row;
             this.columnInfo = columnInfo;
             this.acceptDefaultValue = acceptDefaultValue;
+            this.excludeFields = excludeFields;
         }
 
         public BaseRealm getRealm() {
@@ -728,8 +733,8 @@ abstract class BaseRealm implements Closeable {
             return acceptDefaultValue;
         }
 
-        public void setAcceptDefaultValue(boolean acceptDefaultValue) {
-            this.acceptDefaultValue = acceptDefaultValue;
+        public List<String> getExcludeFields() {
+            return excludeFields;
         }
 
         public void clear() {
@@ -737,6 +742,7 @@ abstract class BaseRealm implements Closeable {
             row = null;
             columnInfo = null;
             acceptDefaultValue = false;
+            excludeFields = null;
         }
     }
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {

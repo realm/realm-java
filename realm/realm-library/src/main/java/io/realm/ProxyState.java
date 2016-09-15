@@ -40,6 +40,7 @@ public final class ProxyState<E extends RealmModel> {
     private Row row;
     private BaseRealm realm;
     private boolean acceptDefaultValue;
+    private List<String> excludeFields;
 
     private final List<RealmChangeListener<E>> listeners = new CopyOnWriteArrayList<RealmChangeListener<E>>();
     private Future<Long> pendingQuery;
@@ -96,6 +97,14 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setAcceptDefaultValue$realm(boolean acceptDefaultValue) {
         this.acceptDefaultValue = acceptDefaultValue;
+    }
+
+    public List<String> getExcludeFields$realm() {
+        return excludeFields;
+    }
+
+    public void setExcludeFields$realm(List<String> excludeFields) {
+        this.excludeFields = excludeFields;
     }
 
     public Object getPendingQuery$realm() {
@@ -195,6 +204,8 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setConstructionFinished() {
         underConstruction = false;
+        // only used while construction.
+        excludeFields = null;
     }
 
     private Table getTable () {

@@ -86,13 +86,18 @@ public abstract class RealmProxyMediator {
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
      * @param acceptDefaultValue {@code true} to accept the values set in the constructor, {@code false} otherwise.
+     * @param excludeFields the column names whose default value will be ignored if the {@code acceptDefaultValue}
+     *                       is {@code true}. Only {@link io.realm.RealmModel} and {@link io.realm.RealmList}
+     *                       column will respect this.
+     *                       No effects if the {@code acceptDefaultValue} is {@code false}.
      * @return created {@link RealmObjectProxy} object.
      */
     public abstract <E extends RealmModel> E newInstance(Class<E> clazz,
                                                          Object baseRealm,
                                                          Row row,
                                                          ColumnInfo columnInfo,
-                                                         boolean acceptDefaultValue);
+                                                         boolean acceptDefaultValue,
+                                                         List<String> excludeFields);
 
     /**
      * Returns the list of RealmObject classes that can be saved in this Realm.

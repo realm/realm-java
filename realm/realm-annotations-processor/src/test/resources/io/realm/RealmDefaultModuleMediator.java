@@ -75,10 +75,10 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, Object baseRealm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz, Object baseRealm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue, List<String> excludeFields) {
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         try {
-            objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue);
+            objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
             checkClass(clazz);
 
             if (clazz.equals(some.test.AllTypes.class)) {

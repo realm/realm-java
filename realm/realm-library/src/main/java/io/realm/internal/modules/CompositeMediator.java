@@ -88,9 +88,10 @@ public class CompositeMediator extends RealmProxyMediator {
                                                 Object baseRealm,
                                                 Row row,
                                                 ColumnInfo columnInfo,
-                                                boolean acceptDefaultValue) {
+                                                boolean acceptDefaultValue,
+                                                List<String> excludeFields) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue);
+        return mediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
     }
 
     @Override

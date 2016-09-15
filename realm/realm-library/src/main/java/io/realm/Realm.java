@@ -34,6 +34,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -696,7 +697,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
-        return createObjectWithoutThreadCheck(clazz, true);
+        return createObjectWithoutThreadCheck(clazz, true, Collections.<String> emptyList());
     }
 
     /**
@@ -709,7 +710,9 @@ public final class Realm extends BaseRealm {
      * @throws RealmException if an object cannot be created.
      */
     // called from proxy classes
-    <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz, boolean acceptDefaultValue) {
+    <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz,
+                                                            boolean acceptDefaultValue,
+                                                            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
@@ -717,7 +720,7 @@ public final class Realm extends BaseRealm {
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
         }
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex, acceptDefaultValue);
+        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
     }
 
     /**
@@ -737,7 +740,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         checkIfValid();
-        return createObjectWithoutThreadCheck(clazz, primaryKeyValue, true);
+        return createObjectWithoutThreadCheck(clazz, primaryKeyValue, true, Collections.<String> emptyList());
     }
 
     /**
@@ -754,10 +757,11 @@ public final class Realm extends BaseRealm {
      */
     // called from proxy classes
     <E extends RealmModel> E createObjectWithoutThreadCheck(Class<E> clazz, Object primaryKeyValue,
-                                                            boolean acceptDefaultValue) {
+                                                            boolean acceptDefaultValue,
+                                                            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex, acceptDefaultValue);
+        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
     }
 
     /**

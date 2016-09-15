@@ -84,6 +84,7 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
+        proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
     @SuppressWarnings("cast")
@@ -211,7 +212,8 @@ public class SimpleRealmProxy extends some.test.Simple
     @SuppressWarnings("cast")
     public static some.test.Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        some.test.Simple obj = realm.createObjectWithoutThreadCheck(some.test.Simple.class, true);
+        final List<String> excludeFields = Collections.<String> emptyList();
+        some.test.Simple obj = realm.createObjectWithoutThreadCheck(some.test.Simple.class, true, excludeFields);
         if (json.has("name")) {
             if (json.isNull("name")) {
                 ((SimpleRealmProxyInterface) obj).realmSet$name(null);
@@ -282,7 +284,7 @@ public class SimpleRealmProxy extends some.test.Simple
             return (some.test.Simple) cachedRealmObject;
         } else {
             // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-            some.test.Simple realmObject = realm.createObjectWithoutThreadCheck(some.test.Simple.class, false);
+            some.test.Simple realmObject = realm.createObjectWithoutThreadCheck(some.test.Simple.class, false, Collections.<String>emptyList());
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
             ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface) newObject).realmGet$age());

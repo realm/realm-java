@@ -309,7 +309,7 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (proxyState.getRow$realm().isNullLink(%s))", fieldIndexVariableReference(field));
                         writer.emitStatement("return null");
                         writer.endControlFlow();
-                writer.emitStatement("return proxyState.getRealm$realm().get(%s.class, proxyState.getRow$realm().getLink(%s), false)",
+                writer.emitStatement("return proxyState.getRealm$realm().get(%s.class, proxyState.getRow$realm().getLink(%s), false, Collections.<String>emptyList())",
                         fieldTypeCanonicalName, fieldIndexVariableReference(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -402,10 +402,20 @@ public class RealmProxyClassGenerator {
                             .emitStatement("return")
                             .endControlFlow();
                     if (Utils.isRealmModel(field)) {
+                        // check excludeFields
+                        writer.beginControlFlow("if (proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
+                                field.getSimpleName().toString())
+                                .emitStatement("return")
+                                .endControlFlow();
                         writer.beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
                                 .emitStatement("value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value)")
                                 .endControlFlow();
                     } else if (Utils.isRealmList(field)) {
+                        // check excludeFields
+                        writer.beginControlFlow("if (proxyState.getExcludeFields$realm().contains(\"%1$s\"))",
+                                field.getSimpleName().toString())
+                                .emitStatement("return")
+                                .endControlFlow();
                         final String modelFqcn = Utils.getGenericTypeQualifiedName(field);
                         writer.beginControlFlow("if (value != null && !value.isManaged())")
                                 .emitStatement("final Realm realm = (Realm) proxyState.getRealm$realm()")
@@ -440,6 +450,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("proxyState.setRealm$realm(context.getRealm())");
         writer.emitStatement("proxyState.setRow$realm(context.getRow())");
         writer.emitStatement("proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue())");
+        writer.emitStatement("proxyState.setExcludeFields$realm(context.getExcludeFields())");
 
         writer.endMethod();
         writer.emitEmptyLine();
@@ -773,7 +784,9 @@ public class RealmProxyClassGenerator {
                 writer
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                         .beginControlFlow("try")
-                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class), false)", qualifiedClassName)
+                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +
+                                    " realm.schema.getColumnInfo(%s.class)," +
+                                    " false, Collections.<String> emptyList())", qualifiedClassName)
                             .emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
                             .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                         .nextControlFlow("finally")
@@ -1285,10 +1298,10 @@ public class RealmProxyClassGenerator {
 
             writer.emitSingleLineComment("rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.");
             if (metadata.hasPrimaryKey()) {
-                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, ((%s) newObject).%s(), false)",
+                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, ((%s) newObject).%s(), false, Collections.<String>emptyList())",
                         qualifiedClassName, qualifiedClassName, interfaceName, metadata.getPrimaryKeyGetter());
             } else {
-                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, false)",
+                writer.emitStatement("%s realmObject = realm.createObjectWithoutThreadCheck(%s.class, false, Collections.<String>emptyList())",
                         qualifiedClassName, qualifiedClassName);
             }
             writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
@@ -1601,8 +1614,16 @@ public class RealmProxyClassGenerator {
                 Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"),
                 Collections.singletonList("JSONException"));
 
+        final int modelOrListCount = countModelOrListFields(metadata.getFields());
+        if (modelOrListCount == 0) {
+            writer.emitStatement("final List<String> excludeFields = Collections.<String> emptyList()");
+        } else {
+            writer.emitStatement("final List<String> excludeFields = new ArrayList<String>(%1$d)",
+                    modelOrListCount);
+        }
         if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("%s obj = realm.createObjectWithoutThreadCheck(%s.class, true)",
+            buildExcludeFieldsList(writer, metadata.getFields());
+            writer.emitStatement("%s obj = realm.createObjectWithoutThreadCheck(%s.class, true, excludeFields)",
                     qualifiedClassName, qualifiedClassName);
         } else {
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
@@ -1631,7 +1652,9 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                         .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                         .beginControlFlow("try")
-                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(%s.class), false)", qualifiedClassName)
+                            .emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex)," +
+                                    " realm.schema.getColumnInfo(%s.class)," +
+                                    " false, Collections.<String> emptyList())", qualifiedClassName)
                             .emitStatement("obj = new %s()", qualifiedGeneratedClassName)
                         .nextControlFlow("finally")
                             .emitStatement("objectContext.clear()")
@@ -1640,6 +1663,7 @@ public class RealmProxyClassGenerator {
                 .endControlFlow();
 
             writer.beginControlFlow("if (obj == null)");
+            buildExcludeFieldsList(writer, metadata.getFields());
             String primaryKeyFieldType = metadata.getPrimaryKey().asType().toString();
             String primaryKeyFieldName = metadata.getPrimaryKey().getSimpleName().toString();
             RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedClassName, qualifiedGeneratedClassName,
@@ -1688,6 +1712,17 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
+    }
+
+    private void buildExcludeFieldsList(JavaWriter writer, List<VariableElement> fields) throws IOException {
+        for (VariableElement field : fields) {
+            if (Utils.isRealmModel(field) || Utils.isRealmList(field)) {
+                final String fieldName = field.getSimpleName().toString();
+                writer.beginControlFlow("if (json.has(\"%1$s\"))", fieldName)
+                        .emitStatement("excludeFields.add(\"%1$s\")", fieldName)
+                        .endControlFlow();
+            }
+        }
     }
 
     // Since we need to check the PK in stream before create an object, this is now using copyToRealm instead of
@@ -1780,5 +1815,15 @@ public class RealmProxyClassGenerator {
 
     private String fieldIndexVariableReference(VariableElement variableElement) {
         return "columnInfo." + columnIndexVarName(variableElement);
+    }
+
+    private static int countModelOrListFields(List<VariableElement> fields) {
+        int count = 0;
+        for (VariableElement f : fields) {
+            if (Utils.isRealmModel(f) || Utils.isRealmList(f)) {
+                count++;
+            }
+        }
+        return count;
     }
 }

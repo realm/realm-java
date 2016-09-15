@@ -120,6 +120,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
+        proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
     @SuppressWarnings("cast")
@@ -326,7 +327,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         if (proxyState.getRow$realm().isNullLink(columnInfo.columnObjectIndex)) {
             return null;
         }
-        return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectIndex), false);
+        return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectIndex), false, Collections.<String>emptyList());
     }
 
     public void realmSet$columnObject(some.test.AllTypes value) {
@@ -337,6 +338,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("columnObject")) {
                 return;
             }
             if (value != null && !RealmObject.isManaged(value)) {
@@ -384,6 +388,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("columnRealmList")) {
                 return;
             }
             if (value != null && !value.isManaged()) {
@@ -574,6 +581,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
+        final List<String> excludeFields = new ArrayList<String>(2);
         some.test.AllTypes obj = null;
         if (update) {
             Table table = realm.getTable(some.test.AllTypes.class);
@@ -587,7 +595,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (rowIndex != TableOrView.NO_MATCH) {
                 final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
                 try {
-                    objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false);
+                    objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false, Collections.<String> emptyList());
                     obj = new io.realm.AllTypesRealmProxy();
                 } finally {
                     objectContext.clear();
@@ -595,11 +603,17 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
         }
         if (obj == null) {
+            if (json.has("columnObject")) {
+                excludeFields.add("columnObject");
+            }
+            if (json.has("columnRealmList")) {
+                excludeFields.add("columnRealmList");
+            }
             if (json.has("columnString")) {
                 if (json.isNull("columnString")) {
-                    obj = (io.realm.AllTypesRealmProxy) realm.createObject(some.test.AllTypes.class, null);
+                    obj = (io.realm.AllTypesRealmProxy) realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, null, true, excludeFields);
                 } else {
-                    obj = (io.realm.AllTypesRealmProxy) realm.createObject(some.test.AllTypes.class, json.getString("columnString"));
+                    obj = (io.realm.AllTypesRealmProxy) realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, json.getString("columnString"), true, excludeFields);
                 }
             } else {
                 throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
@@ -798,7 +812,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
                 if (rowIndex != TableOrView.NO_MATCH) {
                     try {
-                        objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false);
+                        objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.schema.getColumnInfo(some.test.AllTypes.class), false, Collections.<String> emptyList());
                         realmObject = new io.realm.AllTypesRealmProxy();
                         cache.put(object, (RealmObjectProxy) realmObject);
                     } finally {
@@ -823,7 +837,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             return (some.test.AllTypes) cachedRealmObject;
         } else {
             // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-            some.test.AllTypes realmObject = realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString(), false);
+            some.test.AllTypes realmObject = realm.createObjectWithoutThreadCheck(some.test.AllTypes.class, ((AllTypesRealmProxyInterface) newObject).realmGet$columnString(), false, Collections.<String>emptyList());
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnLong(((AllTypesRealmProxyInterface) newObject).realmGet$columnLong());
             ((AllTypesRealmProxyInterface) realmObject).realmSet$columnFloat(((AllTypesRealmProxyInterface) newObject).realmGet$columnFloat());
