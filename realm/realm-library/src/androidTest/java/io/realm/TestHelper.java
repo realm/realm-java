@@ -64,7 +64,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
-import static org.junit.Assert.assertEquals;
 
 public class TestHelper {
 
@@ -848,7 +847,7 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 7);
+        awaitOrFail(latch, 1000);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {

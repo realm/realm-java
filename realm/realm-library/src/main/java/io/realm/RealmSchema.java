@@ -144,7 +144,7 @@ public final class RealmSchema {
             Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
             for (int i = 0; i < tableCount; i++) {
                 String tableName = realm.sharedRealm.getTableName(i);
-                if (Table.isModelTable(tableName)) {
+                if (!Table.isModelTable(tableName)) {
                     continue;
                 }
                 Table table = realm.sharedRealm.getTable(tableName);
