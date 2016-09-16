@@ -21,7 +21,6 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.objectserver.internal.Token;
@@ -34,7 +33,7 @@ import io.realm.objectserver.SyncManager;
  */
 public class AuthenticateRequest {
 
-    private final Provider provider;
+    private final String provider;
     private final String data;
     private final String appId;
     private final Map<String, Object> userInfo;
@@ -43,30 +42,14 @@ public class AuthenticateRequest {
     /**
      * Generates a proper login request for a new user.
      */
-    public static AuthenticateRequest fromCredentials(Credentials credentials, boolean createUser) {
+    public static AuthenticateRequest fromCredentials(Credentials credentials) {
         if (credentials == null) {
            throw new IllegalArgumentException("Non-null credentials required.");
         }
-        Provider provider;
-        String data;
+        String provider = credentials.getIdentityProvider();
+        String data = credentials.getUserIdentifier();
+        Map<String, Object> userInfo = credentials.getUserInfo();
         String appId = SyncManager.APP_ID;
-        Map<String, Object> userInfo = new HashMap<String, Object>();
-        userInfo.put("register", createUser);
-
-        switch (credentials.getLoginType()) {
-            case FACEBOOK:
-                provider = Provider.FACEBOOK;
-                data = credentials.getField1();
-                break;
-            case USERNAME_PASSWORD:
-                provider = Provider.PASSWORD;
-                data = credentials.getField1();
-                userInfo.put("password", credentials.getField2());
-                break;
-            default:
-                throw new IllegalArgumentException("Login type not supported: " + credentials.getLoginType());
-        }
-
         return new AuthenticateRequest(provider, data, appId, null, userInfo);
     }
 
@@ -78,7 +61,7 @@ public class AuthenticateRequest {
      */
     public static AuthenticateRequest fromRefreshToken(Token refreshToken, URI path) {
         // Authenticate a given Realm path using an already logged in user.
-        return new AuthenticateRequest(Provider.REALM,
+        return new AuthenticateRequest("realm",
                 refreshToken.value(),
                 SyncManager.APP_ID,
                 path.getPath(),
@@ -86,29 +69,7 @@ public class AuthenticateRequest {
         );
     }
 
-    /**
-     * Create an admin user request. Admin access gives access to all Realms. Admin access is disabled if the
-     * Authentication Server is in production mode.
-     */
-    public static AuthenticateRequest adminAccess() {
-        return debug("admin", null);
-    }
-
-    /**
-     * Creates an debug user request. Debug users are automatically logged into the Realm Authentication Server, and
-     * will always be granted access. Debug users are disabled if the Authentication Server is in production mode.
-     */
-    public static AuthenticateRequest debug(String username, String path) {
-        return new AuthenticateRequest(
-                Provider.DEBUG,
-                username,
-                SyncManager.APP_ID,
-                path,
-                Collections.<String, Object>emptyMap()
-        );
-    }
-
-    private AuthenticateRequest(Provider provider, String data, String appId, String path, Map<String, Object> userInfo) {
+    private AuthenticateRequest(String provider, String data, String appId, String path, Map<String, Object> userInfo) {
         this.provider = provider;
         this.data = data;
         this.appId = appId;
@@ -122,7 +83,7 @@ public class AuthenticateRequest {
     public String toJson() {
         JSONObject request = new JSONObject();
         try {
-            request.put("provider", provider.getProvider());
+            request.put("provider", provider);
             request.put("data", data);
             request.put("app_id", appId);
             if (path != null) {
@@ -135,22 +96,4 @@ public class AuthenticateRequest {
 
         return request.toString();
     }
-
-    private enum Provider {
-        REALM("realm"), // Used if you already have a valid refresh token
-        DEBUG("debug"), // Will always succeed
-        PASSWORD("password"), // password/username login
-        FACEBOOK("facebook"); // facebook login
-
-        private final String provider;
-
-        Provider(String provider) {
-            this.provider = provider;
-        }
-
-        public String getProvider() {
-            return provider;
-        }
-    }
-
 }

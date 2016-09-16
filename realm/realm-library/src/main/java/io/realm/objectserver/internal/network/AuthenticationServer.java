@@ -29,7 +29,7 @@ import io.realm.objectserver.Credentials;
  * only responsible for executing a given network request.
  */
 public interface AuthenticationServer {
-    AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl, boolean createUser);
+    AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl);
     AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authenticationUrl);
     RefreshResponse refresh(String token, URL authenticationUrl);
 }

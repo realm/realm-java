@@ -16,22 +16,25 @@
 
 package io.realm.objectserver;
 
-import java.util.UUID;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
  * Object Server to verify the user and grant access.
  * <p>
- * Logging into the Realm Object Server consists of the following steps:
+ * Logging into the Object Server consists of the following steps:
  * <ol>
  * <li>
  *     Login to 3rd party like Facebook, Google or Twitter. The result is usually an Authorization Grant that must be
- *     saved in a {@link Credentials} object of the proper type, e.g {@link Credentials#fromFacebook(String)} for a
+ *     saved in a {@link Credentials} object of the proper type, e.g {@link Credentials#facebook(String)} for a
  *     Facebook login.
  * </li>
  * <li>
- *     Authenticate a {@link User} through the Realm Object Server using these credentials. Once authenticated
- *     a Realm Object Server user is returned. This user can then be attached to a {@link SyncConfiguration}, which
+ *     Authenticate a {@link User} through the Object Server using these credentials. Once authenticated
+ *     an Object Server user is returned. This user can then be attached to a {@link SyncConfiguration}, which
  *     will make it possible to synchronize data between the local and remote Realm.
  *     <p>
  *     It is possible to persist the user object using e.g. the {@link UserStore} so logging
@@ -43,12 +46,10 @@ import java.util.UUID;
  * {@code
  * // Example
  *
- * Credentials credentials = Credentials.fromFacebook(getFacebookToken());
- * boolean createUser = true;
- * User.authenticateUser(credentials, new URL("http://objectserver.realm.io/auth", new User.Callback() {
+ * Credentials credentials = Credentials.facebook(getFacebookToken());
+ * User.login(credentials, "http://objectserver.realm.io/auth", new User.Callback() {
  *     \@Override
  *     public void onSuccess(User user) {
- *          userStore.saveUser("key", user)
  *          // User is now authenticated and be be used to open Realms.
  *     }
  *
@@ -62,102 +63,139 @@ import java.util.UUID;
  */
 public class Credentials {
 
-    private LoginType loginType;
-    private String field1;
-    private String field2;
-    private final boolean createUser;
+    private String identityProvider;
+    private String userIdentifier;
+    private Map<String, Object> userInfo;
 
     // Factory constructors
 
     /**
-     * Creates credentials for a local user that is only known by this device.
-     * Loosing these credentials or the User once it has been authenticated means that the data stored in
-     * the Realm cannot be recovered.
+     * Creates credentials based on a login with username and password. These credentials will only be verified
+     * by the Object Server.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using local credentials</a>
+     * @param username username of the user
+     * @param password the users password
+     * @param createUser {@code true} if the user should be created, {@code false} otherwise. It is not possible to
+     *                   create a user twice when logging in, so this flag should only be set to {@code true} the first
+     *                   time a users log in.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}.
      */
-    public static Credentials createLocal() {
-        return new Credentials(LoginType.LOCAL, UUID.randomUUID().toString());
+    public static Credentials usernamePassword(String username, String password, boolean createUser) {
+        if (username == null || username.equals("")) {
+            throw new IllegalArgumentException("Non-null 'username' required.");
+        }
+        Map<String, Object> userInfo = new HashMap<String, Object>();
+        userInfo.put("register", createUser);
+        userInfo.put("password", password);
+        return new Credentials(IdentityProvider.USERNAME_PASSWORD, username, userInfo);
     }
 
     /**
-     * Creates a credentials token based on a login with username and password.
+     * Creates credentials based on a Facebook login.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using username and password</a>
+     * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}.
      */
-    public static Credentials fromUsernamePassword(String username, String password, boolean createUser) {
-        return new Credentials(LoginType.USERNAME_PASSWORD, username, password, createUser);
+    public static Credentials facebook(String facebookToken) {
+        if (facebookToken == null || facebookToken.equals("")) {
+            throw new IllegalArgumentException("Non-null 'facebookToken' required.");
+        }
+        return new Credentials(IdentityProvider.FACEBOOK, facebookToken, null);
     }
 
     /**
-     * Creates a credentials token based on a Facebook login.
+     * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
+     * {@code userInfo} used.
      *
-     * @see <a href="LINK_HERE">Tutorial showing how to authenticateUser using the Facebook SDK</a>
+     * @param identityProvider provider used to verify the credentials.
+     * @param userIdentifier String identifying the user. Usually a username of userIdentifier.
+     * @param userInfo data describing the user further or {@code null} if the user does not have any extra data. The
+     *              data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom
+     *              classes will be converted using {@code toString()}.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}.
      */
-    public static Credentials fromFacebook(String facebookToken) {
-        return new Credentials(LoginType.FACEBOOK, facebookToken);
+    public static Credentials custom(String identityProvider, String userIdentifier, Map<String, Object> userInfo) {
+        if (identityProvider == null || identityProvider.equals("")) {
+            throw new IllegalArgumentException("Non-null 'identityProvider' required.");
+        }
+        if (userIdentifier == null || userIdentifier.equals("")) {
+            throw new IllegalArgumentException("Non-null 'userIdentifier' required.");
+        }
+        if (userInfo == null) {
+            userInfo = new HashMap<String, Object>();
+        }
+        return new Credentials(identityProvider, userIdentifier, userInfo);
     }
 
-    private Credentials(LoginType type, String token) {
-        this.loginType = type;
-        this.field1 = token;
-        this.createUser = false;
-    }
-
-    private Credentials(LoginType usernamePassword, String username, String password, boolean createUser) {
-        this.loginType = LoginType.USERNAME_PASSWORD;
-        this.field1 = username;
-        this.field2 = password;
-        this.createUser = createUser;
+    private Credentials(String identityProvider, String token, Map<String, Object> userInfo) {
+        this.identityProvider = identityProvider;
+        this.userIdentifier = token;
+        this.userInfo = (userInfo == null) ? new HashMap<String, Object>() : userInfo;
     }
 
     /**
-     * Returns the type of login used to createFrom these credentials.
-     * It is used by the authentication server to determine how these credentials should be validated.
+     * Returns the provider used by the Object Server to validate these credentials.
      *
      * @return the login type.
      */
-    public LoginType getLoginType() {
-        return loginType;
+    public String getIdentityProvider() {
+        return identityProvider;
     }
 
     /**
-     * Returns the data in field 1. The type of information in this field will depend on the login type.
+     * Returns a String that identifies the user. The value will depend on the type of {@link IdentityProvider} used.
      *
-     * @return the value of field1 of for these credentials.
+     * @return a String identifying the user.
      */
-    public String getField1() {
-        return field1;
+    public String getUserIdentifier() {
+        return userIdentifier;
     }
 
     /**
-     * Returns the data in field 2. The type of information in this field will depend on the login type.
+     * Returns any custom user information associated with this credential.
+     * The type of information will depend on the type of {@link io.realm.objectserver.Credentials.IdentityProvider}
+     * used.
      *
-     * @return the value of field2 of for these credentials.
+     * @return a map of additional information about the user.
      */
-    public String getField2() {
-        return field2;
-    }
-
-
-    /**
-     * Returns {@code true} if a User should be created based on these credentials.
-     * If the user already exists, this will fail.
-     *
-     * @return {@code true} if the user should be created on the Realm Object Server, {@code false} if it already exists.
-     */
-    public boolean shouldCreateUser() {
-        return createUser;
+    public Map<String, Object> getUserInfo() {
+        return Collections.unmodifiableMap(userInfo);
     }
 
     /**
-     * Enumeration of the different types of supported authentication method.
+     * Enumeration of the different types of identity providers. An identity provider is the entity responsible for
+     * verifying that a given credential is valid.
      */
-    public enum LoginType {
-        FACEBOOK,
-        TWITTER,
-        GOOGLE,
-        USERNAME_PASSWORD,
-        LOCAL
+    public static final class IdentityProvider {
+        /**
+         * Any credentials verified by the debug identity provider will always be considered valid.
+         * It is only available if configured on the Object Server, and it is disabled by default.
+         */
+        public static final String DEBUG = "debug";
+
+        /**
+         * Credentials will be verified by Facebook.
+         */
+        public static final String FACEBOOK = "facebook";
+
+        /**
+         * Credentials will be verified by Google.
+         */
+        public static final String GOOGLE = "google";
+
+        /**
+         * Credentials will be verified by Twitter.
+         */
+        public static final String TWITTER = "twitter";
+
+        /**
+         * Credentials will be verified by the Object Server.
+         *
+         * @see #usernamePassword(String, String, boolean)
+         */
+        public static final String USERNAME_PASSWORD = "password";
     }
 }

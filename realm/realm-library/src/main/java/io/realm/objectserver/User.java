@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.IOException;
@@ -40,7 +41,6 @@ import io.realm.log.RealmLog;
  */
 public class User {
 
-    private static RealmAsyncTask authenticateTask;
     private final SyncUser syncUser;
 
     private User(SyncUser user) {
@@ -70,75 +70,70 @@ public class User {
     }
 
     /**
-     * Creates a user from an existing token. This user is automatically consider validated by the device, but the
-     * Realm Object Server might determine that the token has expired or no longer is valid.
+     * Login the user on the Realm Object Server. This is done synchronously, so calling this method on the Android
+     * UI thread will always crash. A logged in user is required to be able to create a {@link SyncConfiguration}.
      *
-     * This should only be used when debugging or testing. In most other cases the user object obtained from a
-     * {@link #loginAsync(Credentials, String, Callback)} should be saved and reused. This can e.g. be done using a
-     * {@link UserStore}.
+     * @param credentials credentials to use.
+     * @param authenticationUrl Server that can authenticate against.
+     * @throws ObjectServerError if the login failed.
      *
-     * @param token token to represent user.
-     * @see #getAccessToken()
-     *
+     * @see io.realm.objectserver.SyncConfiguration.Builder#user(User)
      */
-    // FIXME Align with Cocoa on naming
-    public static User fromToken(String token) {
-        // Define a user with unlimited access. Object Server will reject any invalid access anyway.
-        Token refreshToken = new Token(token, null, null, Long.MAX_VALUE, Token.Permission.values());
-        SyncUser internalUser = new SyncUser(null, refreshToken, null);
-        return new User(internalUser);
-    }
-
-    // FIXME Javadoc
-    public static User login(final Credentials credentials, final URL authentificationUrl)
-            throws ObjectServerError {
-        return null; // TODO
-    }
-
-    /**
-     * Login the user on the Realm Object Server
-     *
-     * @param credentials credentials to use
-     * @param authenticationUrl URL to authenticateUser against
-     * @param callback callback when login has completed or failed. This callback will always happen on the UI thread.
-     * @throws IllegalArgumentException
-     */
-    // FIXME Return task that can be canceled
-    public static RealmAsyncTask loginAsync(final Credentials credentials, final String authenticationUrl, final Callback callback) {
+    public static User login(final Credentials credentials, final String authenticationUrl) throws ObjectServerError {
         final URL authUrl;
         try {
             authUrl = new URL(authenticationUrl);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
         }
+
+        final AuthenticationServer server = SyncManager.getAuthServer();
+        try {
+            AuthenticateResponse result = server.authenticateUser(credentials, authUrl);
+            if (result.isValid()) {
+                SyncUser syncUser = new SyncUser(result.getRefreshToken().identity(), result.getRefreshToken(), authUrl);
+                User user = new User(syncUser);
+                RealmLog.info("Succeeded authenticating user.\n%s", user);
+                return user;
+            } else {
+                RealmLog.info("Failed authenticating user.\n%s", result.getError());
+                throw result.getError();
+            }
+        } catch (IOException e) {
+            throw new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
+        } catch (Throwable e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+        }
+    }
+
+    /**
+     * Login the user on the Realm Object Server. A logged in user is required to be able to create a
+     * {@link SyncConfiguration}.
+     *
+     * @param credentials credentials to use.
+     * @param authenticationUrl Server that can authenticate against.
+     * @param callback callback when login has completed or failed. This callback will always happen on the UI thread.
+     *
+     * @see io.realm.objectserver.SyncConfiguration.Builder#user(User)
+     */
+    public static RealmAsyncTask loginAsync(final Credentials credentials, final String authenticationUrl, final Callback callback) {
         if (Looper.myLooper() == null) {
             throw new IllegalStateException("Asynchronous login is only possible from looper threads.");
         }
-
         final Handler handler = new Handler(Looper.myLooper());
-
-        final AuthenticationServer server = SyncManager.getAuthServer();
-        Future<?> authenticateRequest = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
+        ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
+        Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                // Don't retry authenticateUser requests. The app might want to respond to errors.
                 try {
-                    AuthenticateResponse result = server.authenticateUser(credentials, authUrl, credentials.shouldCreateUser());
-                    if (result.isValid()) {
-                        User user = new User(new SyncUser(result.getRefreshToken().identity(), result.getRefreshToken(), authUrl));
-                        postSuccess(user);
-                    } else {
-                        postError(result.getError());
-                    }
-                } catch (IOException e) {
-                    postError(new ObjectServerError(ErrorCode.IO_EXCEPTION, e));
-                } catch (Throwable e) {
-                    postError(new ObjectServerError(ErrorCode.UNKNOWN, e));
+                    User user = login(credentials, authenticationUrl);
+                    postSuccess(user);
+                } catch (ObjectServerError e) {
+                    postError(e);
                 }
             }
 
             private void postError(final ObjectServerError error) {
-                RealmLog.info("Failed authenticating user.\n%s", error);
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
@@ -150,7 +145,6 @@ public class User {
             }
 
             private void postSuccess(final User user) {
-                RealmLog.info("Succeeded authenticating user.\n%s", user);
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
@@ -161,8 +155,8 @@ public class User {
                 }
             }
         });
-        authenticateTask = new RealmAsyncTask(authenticateRequest, SyncManager.NETWORK_POOL_EXECUTOR);
-        return authenticateTask;
+
+        return new RealmAsyncTask(authenticateRequest, networkPoolExecutor);
     }
 
     public void logout() {
@@ -186,7 +180,8 @@ public class User {
     }
 
     /**
-     * Returns the identity or key of this user on the Realm Object Server.
+     * Returns the identity of this user on the Realm Object Server. The identity is a guaranteed to be unique
+     * among all users on the Realm Object Server.
      *
      * @return Identity of the user on the Realm Object Server. If the user has logged out or the login has expired
      *         {@code null} is returned.
@@ -203,12 +198,6 @@ public class User {
      */
     public String getAccessToken() {
         return syncUser.getRefreshToken().value();
-    }
-
-    @Override
-    public String toString() {
-        return super.toString();
-        // FIXME Print representation of user, but be careful about printing anything sensitive
     }
 
     // Expose internal representation for other package protected classes

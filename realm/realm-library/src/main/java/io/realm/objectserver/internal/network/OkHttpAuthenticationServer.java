@@ -46,9 +46,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
      * Authenticate the given credentials on the specified Realm Authentication Server.
      */
     @Override
-    public AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl, boolean createUser) {
+    public AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.fromCredentials(credentials, createUser).toJson();
+            String requestBody = AuthenticateRequest.fromCredentials(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return new AuthenticateResponse(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
