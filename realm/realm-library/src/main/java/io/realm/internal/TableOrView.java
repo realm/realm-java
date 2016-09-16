@@ -151,7 +151,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param value
      */
-    void setLong(long columnIndex, long rowIndex, long value);
+    void setLong(long columnIndex, long rowIndex, long value, boolean isDefault);
 
     /**
      * Sets the boolean value of a cell identified by the columnIndex and the rowIndex of that cell.
@@ -160,7 +160,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param value
      */
-    void setBoolean(long columnIndex, long rowIndex, boolean value);
+    void setBoolean(long columnIndex, long rowIndex, boolean value, boolean isDefault);
 
     /**
      * Sets the float value of a cell identified by the columnIndex and the rowIndex of that cell.
@@ -169,7 +169,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param value
      */
-    void setFloat(long columnIndex, long rowIndex, float value);
+    void setFloat(long columnIndex, long rowIndex, float value, boolean isDefault);
 
     /**
      * Sets the double value of a cell identified by the columnIndex and the rowIndex of that cell.
@@ -178,7 +178,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param value
      */
-    void setDouble(long columnIndex, long rowIndex, double value);
+    void setDouble(long columnIndex, long rowIndex, double value, boolean isDefault);
 
     /**
      * Sets the string value of a particular cell of the table/view identified by the columnIndex and the rowIndex of
@@ -188,7 +188,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param value
      */
-    void setString(long columnIndex, long rowIndex, String value);
+    void setString(long columnIndex, long rowIndex, String value, boolean isDefault);
 
     /**
      * Sets the binary value for a particular cell identified by the rowIndex and columnIndex of the cell.
@@ -199,9 +199,9 @@ public interface TableOrView {
      */
     //void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
 
-    void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
+    void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data, boolean isDefault);
 
-    void setDate(long columnIndex, long rowIndex, Date date);
+    void setDate(long columnIndex, long rowIndex, Date date, boolean isDefault);
 
     boolean isNullLink(long columnIndex, long rowIndex);
 
@@ -214,7 +214,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param value
      */
-    void setLink(long columnIndex, long rowIndex, long value);
+    void setLink(long columnIndex, long rowIndex, long value, boolean isDefault);
 
     long sumLong(long columnIndex);
 

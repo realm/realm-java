@@ -817,7 +817,7 @@ public class RealmProxyClassGenerator {
                 || "int".equals(fieldType)
                 || "short".equals(fieldType)
                 || "byte".equals(fieldType)) {
-            writer.emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s())", fieldName, interfaceName, getter);
+            writer.emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s(), false)", fieldName, interfaceName, getter);
 
         } else if ("java.lang.Long".equals(fieldType)
                 || "java.lang.Integer".equals(fieldType)
@@ -826,52 +826,52 @@ public class RealmProxyClassGenerator {
             writer
                     .emitStatement("Number %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.longValue())", fieldName, getter);
+                        .emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.longValue(), false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
 
         } else if ("double".equals(fieldType)) {
-            writer.emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s())", fieldName, interfaceName, getter);
+            writer.emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s(), false)", fieldName, interfaceName, getter);
 
         } else if("java.lang.Double".equals(fieldType)) {
             writer
                     .emitStatement("Double %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
+                        .emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sIndex, rowIndex, %s, false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
 
         } else if ("float".equals(fieldType)) {
-            writer.emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s())", fieldName, interfaceName, getter);
+            writer.emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s(), false)", fieldName, interfaceName, getter);
 
         } else if ("java.lang.Float".equals(fieldType)) {
             writer
                     .emitStatement("Float %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
+                        .emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sIndex, rowIndex, %s, false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
 
         } else if ("boolean".equals(fieldType)) {
-            writer.emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s())", fieldName, interfaceName, getter);
+            writer.emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sIndex, rowIndex, ((%s)object).%s(), false)", fieldName, interfaceName, getter);
 
         } else if ("java.lang.Boolean".equals(fieldType)) {
             writer
                     .emitStatement("Boolean %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
+                        .emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sIndex, rowIndex, %s, false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
 
@@ -879,10 +879,10 @@ public class RealmProxyClassGenerator {
             writer
                     .emitStatement("byte[] %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
+                        .emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sIndex, rowIndex, %s, false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
 
@@ -891,10 +891,10 @@ public class RealmProxyClassGenerator {
             writer
                     .emitStatement("java.util.Date %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.getTime())", fieldName, getter);
+                        .emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sIndex, rowIndex, %s.getTime(), false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
 
@@ -902,10 +902,10 @@ public class RealmProxyClassGenerator {
             writer
                     .emitStatement("String %s = ((%s)object).%s()", getter, interfaceName, getter)
                     .beginControlFlow("if (%s != null)", getter)
-                        .emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sIndex, rowIndex, %s)", fieldName, getter);
+                        .emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sIndex, rowIndex, %s, false)", fieldName, getter);
                     if (isUpdate) {
                         writer.nextControlFlow("else")
-                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName);
+                                .emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sIndex, rowIndex, false)", fieldName);
                     }
                     writer.endControlFlow();
         } else {
@@ -954,7 +954,7 @@ public class RealmProxyClassGenerator {
                                         Utils.getProxyClassSimpleName(field),
                                         fieldName)
                             .endControlFlow()
-                           .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
+                           .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s, false)", fieldName)
                         .endControlFlow();
             } else if (Utils.isRealmList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
@@ -1032,7 +1032,7 @@ public class RealmProxyClassGenerator {
                                         Utils.getProxyClassSimpleName(field),
                                         fieldName)
                                 .endControlFlow()
-                        .emitStatement("table.setLink(columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
+                        .emitStatement("table.setLink(columnInfo.%1$sIndex, rowIndex, cache%1$s, false)", fieldName)
                         .endControlFlow();
             } else if (Utils.isRealmList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
@@ -1106,7 +1106,7 @@ public class RealmProxyClassGenerator {
                                         fieldName,
                                         Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
-                            .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
+                            .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s, false)", fieldName)
                         .nextControlFlow("else")
                                 // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                             .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)
@@ -1187,7 +1187,7 @@ public class RealmProxyClassGenerator {
                                         fieldName,
                                         Utils.getProxyClassSimpleName(field))
                                     .endControlFlow()
-                            .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s)", fieldName)
+                            .emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1$sIndex, rowIndex, cache%1$s, false)", fieldName)
                         .nextControlFlow("else")
                                 // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                             .emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sIndex, rowIndex)", fieldName)

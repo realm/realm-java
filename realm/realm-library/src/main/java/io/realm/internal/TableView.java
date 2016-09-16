@@ -263,7 +263,7 @@ public class TableView implements TableOrView {
      * @param value the value.
      */
     @Override
-    public void setLong(long columnIndex, long rowIndex, long value){
+    public void setLong(long columnIndex, long rowIndex, long value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
@@ -276,7 +276,7 @@ public class TableView implements TableOrView {
      * @param value the value.
      */
     @Override
-    public void setBoolean(long columnIndex, long rowIndex, boolean value){
+    public void setBoolean(long columnIndex, long rowIndex, boolean value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
     }
@@ -289,7 +289,7 @@ public class TableView implements TableOrView {
      * @param value the value.
      */
     @Override
-    public void setFloat(long columnIndex, long rowIndex, float value){
+    public void setFloat(long columnIndex, long rowIndex, float value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetFloat(nativePtr, columnIndex, rowIndex, value);
     }
@@ -302,7 +302,7 @@ public class TableView implements TableOrView {
      * @param value the value.
      */
     @Override
-    public void setDouble(long columnIndex, long rowIndex, double value){
+    public void setDouble(long columnIndex, long rowIndex, double value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetDouble(nativePtr, columnIndex, rowIndex, value);
     }
@@ -315,7 +315,7 @@ public class TableView implements TableOrView {
      * @param value the value.
      */
     @Override
-    public void setDate(long columnIndex, long rowIndex, Date value){
+    public void setDate(long columnIndex, long rowIndex, Date value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetTimestampValue(nativePtr, columnIndex, rowIndex, value.getTime());
     }
@@ -328,7 +328,7 @@ public class TableView implements TableOrView {
      * @param value the value.
      */
     @Override
-    public void setString(long columnIndex, long rowIndex, String value){
+    public void setString(long columnIndex, long rowIndex, String value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
@@ -351,20 +351,23 @@ public class TableView implements TableOrView {
     */
 
     @Override
-    public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
+    public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 
-    public void setLink(long columnIndex, long rowIndex, long value){
+    @Override
+    public void setLink(long columnIndex, long rowIndex, long value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetLink(nativePtr, columnIndex, rowIndex, value);
     }
 
+    @Override
     public boolean isNullLink(long columnIndex, long rowIndex) {
         return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
     }
 
+    @Override
     public void nullifyLink(long columnIndex, long rowIndex) {
         nativeNullifyLink(nativePtr, columnIndex, rowIndex);
     }
