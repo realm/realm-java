@@ -45,6 +45,8 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
             config->sync_config = std::make_shared<SyncConfig>();
             config->sync_config->user_tag = token;
             config->sync_config->realm_url = url;
+            // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
+            config->sync_config->create_session = false;
         }
         return reinterpret_cast<jlong>(config);
     } CATCH_STD()

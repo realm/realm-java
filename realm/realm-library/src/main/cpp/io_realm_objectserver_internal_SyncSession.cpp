@@ -31,7 +31,6 @@
 #include <chrono>
 #include <functional>
 #include <android/log.h>
-#include <object-store/src/sync_manager.hpp>
 
 using namespace std;
 using namespace realm;
@@ -43,13 +42,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_objectserver_internal_SyncSession_nativeCr
 {
     TR_ENTER(env)
     try {
-        Client* sync_client = &SyncManager::shared().get_sync_client()->client;
-        if (sync_client == NULL) {
-            return 0;
-        }
-
         JStringAccessor local_path(env, localRealmPath);
-        JniSession* jni_session = new JniSession(env, sync_client, local_path, obj);
+        JniSession* jni_session = new JniSession(env, local_path, obj);
         return reinterpret_cast<jlong>(jni_session);
     } CATCH_STD()
     return 0;

@@ -68,10 +68,21 @@ public final class SyncManager {
     // Right now it just lives and dies together with the process.
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
+    @SuppressWarnings("FieldCanBeLocal")
+    private static Thread clientThread;
 
     static {
         RealmCore.loadLibrary();
         nativeInitializeSyncClient();
+        // Create the client thread in java to avoid strange problem when error happens. And anyway we need to attach
+        // to the jvm for logger.
+        clientThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                nativeRunClient();
+            }
+        }, "RealmSyncClient");
+        clientThread.start();
     }
 
     /**
@@ -150,4 +161,5 @@ public final class SyncManager {
 
     private static native void nativeInitializeSyncClient();
     private static native void nativeSetSyncClientLogLevel(int logLevel);
+    private static native void nativeRunClient();
 }
