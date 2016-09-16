@@ -16,11 +16,12 @@
 
 package io.realm.objectserver.internal;
 
-import io.realm.objectserver.*;
+import io.realm.objectserver.ObjectServerError;
+import io.realm.objectserver.SessionState;
 
 /**
- * Abstract class containing shared logic for all {@link io.realm.objectserver.Session} states. All states must extend this class as it
- * contains the logic for entering and leaving states.
+ * Abstract class containing shared logic for all {@link io.realm.objectserver.Session} states. All states must extend
+ * this class as it contains the logic for entering and leaving states.
  *
  * TODO Move this to the Object Store
  */
@@ -43,7 +44,7 @@ abstract class FsmState implements FsmAction {
 
     /**
      * Called just before leaving the state. Once this method is called no more state changes can be triggered from
-     * this state until {@link #entry(io.realm.objectserver.Session)} has been called again.
+     * this state until {@link #entry(SyncSession)} has been called again.
      * <p>
      * This should only be called from {@link io.realm.objectserver.Session}.
      */
@@ -83,6 +84,13 @@ abstract class FsmState implements FsmAction {
 
     @Override
     public void onError(ObjectServerError error) {
-        gotoNextState(SessionState.STOPPED);
+        switch(error.getCategory()) {
+            case FATAL:
+                gotoNextState(SessionState.STOPPED);
+                break;
+            case RECOVERABLE:
+                gotoNextState(SessionState.UNBOUND);
+                break;
+        }
     }
 }

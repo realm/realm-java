@@ -50,15 +50,12 @@ public final class SyncManager {
             String errorMsg = String.format("Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
-            switch (error.errorCode().getCategory()) {
+            switch (error.getErrorCode().getCategory()) {
                 case FATAL:
                     RealmLog.error(errorMsg);
                     break;
                 case RECOVERABLE:
                     RealmLog.info(errorMsg);
-                    break;
-                case INFO:
-                    RealmLog.debug(errorMsg);
                     break;
             }
         }

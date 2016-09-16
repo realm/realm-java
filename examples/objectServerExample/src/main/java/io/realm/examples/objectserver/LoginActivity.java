@@ -31,6 +31,8 @@ import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.User;
 import io.realm.objectserver.UserStore;
 
+import static io.realm.objectserver.ErrorCode.UNKNOWN_ACCOUNT;
+
 public class LoginActivity extends AppCompatActivity {
 
     private UserStore userStore = MyApplication.USER_STORE;
@@ -91,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onError(ObjectServerError error) {
                 progressDialog.dismiss();
                 String errorMsg;
-                switch (error.errorCode()) {
+                switch (error.getErrorCode()) {
                     case UNKNOWN_ACCOUNT:
                         errorMsg = "Account does not exists.";
                         break;

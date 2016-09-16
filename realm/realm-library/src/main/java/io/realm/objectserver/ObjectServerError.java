@@ -22,9 +22,9 @@ import io.realm.internal.Util;
  * This class is a wrapper for all errors happening when communicating with the Realm Object Server.
  * This include both exceptions and protocol errors.
  *
- * Only {@link #errorCode()} is guaranteed to be set. If the error was caused by an underlying exception
- * {@link #errorMessage()} is {@code null} and {@link #exception()} is set, while if the error was a protocol error
- * {@link #errorMessage()} is set and {@link #exception()} is null.
+ * Only {@link #getErrorCode()} is guaranteed to contain a value. If the error was caused by an underlying exception
+ * {@link #getErrorMessage()} is {@code null} and {@link #getException()} is set, while if the error was a protocol error
+ * {@link #getErrorMessage()} is set and {@link #getException()} is null.
  *
  * @see io.realm.objectserver.ErrorCode for a list of possible errors.
  */
@@ -34,10 +34,22 @@ public class ObjectServerError extends RuntimeException {
     private final String errorMessage;
     private final Throwable exception;
 
+    /**
+     * Create an error caused by an error in the protocol when communicating with the Object Server.
+     *
+     * @param errorCode error code for this type of error.
+     * @param errorMessage detailed error message.
+     */
     public ObjectServerError(ErrorCode errorCode, String errorMessage) {
-        this(errorCode, errorMessage, null);
+        this(errorCode, errorMessage, (Throwable) null);
     }
 
+    /**
+     * Create an error caused by an an exception when communicating with the Object Server.
+     *
+     * @param errorCode error code for this type of error.
+     * @param exception underlying exception causing this error.
+     */
     public ObjectServerError(ErrorCode errorCode, Throwable exception) {
         this(errorCode, null, exception);
     }
@@ -45,9 +57,9 @@ public class ObjectServerError extends RuntimeException {
     /**
      * Generic error happening that could happen anywhere.
      *
-     * @param errorCode
-     * @param errorMessage
-     * @param exception
+     * @param errorCode error code for this type of error.
+     * @param errorMessage detailed error message.
+     * @param exception underlying exception if the error was caused by this.
      */
     public ObjectServerError(ErrorCode errorCode, String errorMessage, Throwable exception) {
         this.error = errorCode;
@@ -58,34 +70,57 @@ public class ObjectServerError extends RuntimeException {
     /**
      * Errors happening while trying to authenticate a user.
      *
-     * @param errorCode
-     * @param title
-     * @param hint
-     * @param type
+     * @param errorCode error code for this type of error.
+     * @param title Title for this type of error.
+     * @param hint a hint for resolving the error.
      */
-    public ObjectServerError(ErrorCode errorCode, String title, String hint, String type) {
-        this(errorCode, String.format("%s : %s (%s)", title, hint, type), null);
+    public ObjectServerError(ErrorCode errorCode, String title, String hint) {
+        this(errorCode, (hint != null) ? title + " : " + hint : title, (Throwable) null);
     }
 
-    public ErrorCode errorCode() {
+    /**
+     * Returns the error code uniquely identifying this type of error.
+     *
+     * @return the error code identifying the type of error.
+     * @see ErrorCode
+     */
+    public ErrorCode getErrorCode() {
         return error;
     }
 
-    public String errorMessage() {
+    /**
+     * Returns a more detailed error message about the cause of this error.
+     *
+     * @return a detailed error message or {@code null} if one was not available.
+     */
+    public String getErrorMessage() {
         return errorMessage;
     }
 
-    public Throwable exception() {
+    /**
+     * Returns the underlying exception causing this error, if any.
+     *
+     * @return the underlying exception causing this error, or {@code null} if not caused by an exception.
+     */
+    public Throwable getException() {
         return exception;
     }
 
-    public ErrorCode.Category category() {
+    /**
+     * Returns the {@link io.realm.objectserver.ErrorCode.Category} category for this error.
+     * Errors that are {@link io.realm.objectserver.ErrorCode.Category#RECOVERABLE} mean that it is still possible for a
+     * given {@link Session} to resume synchronization. {@link io.realm.objectserver.ErrorCode.Category#FATAL} errors
+     * means that session has stopped and cannot be recovered.
+     *
+     * @return the error category.
+     */
+    public ErrorCode.Category getCategory() {
         return error.getCategory();
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(errorCode().toString());
+        StringBuilder sb = new StringBuilder(getErrorCode().toString());
         if (errorMessage != null) {
             sb.append('\n');
             sb.append(errorMessage);

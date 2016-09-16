@@ -55,11 +55,10 @@ public class AuthenticateResponse {
         if (response.code() != 200) {
             try {
                 JSONObject obj = new JSONObject(serverResponse);
-                String type = obj.getString("type");
                 String hint = obj.optString("hint", null);
                 String title = obj.optString("title", null);
                 ErrorCode errorCode = ErrorCode.fromInt(obj.optInt("code", -1));
-                ObjectServerError error = new ObjectServerError(errorCode, title, hint, type);
+                ObjectServerError error = new ObjectServerError(errorCode, title, hint);
                 return new AuthenticateResponse(error);
             } catch (JSONException e) {
                 ObjectServerError error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, "Server failed with " +

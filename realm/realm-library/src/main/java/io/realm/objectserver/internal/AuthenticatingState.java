@@ -79,21 +79,6 @@ class AuthenticatingState extends FsmState {
         }
     }
 
-    private synchronized void authenticate(final SyncSession session) {
-        session.authenticateRealm(new Runnable() {
-            @Override
-            public void run() {
-                gotoNextState(SessionState.BINDING);
-            }
-        }, new io.realm.objectserver.Session.ErrorHandler() {
-            @Override
-            public void onError(io.realm.objectserver.Session session, ObjectServerError error) {
-                // FIXME For critical errors, got directly to STOPPED
-                gotoNextState(SessionState.UNBOUND);
-            }
-        });
-    }
-
     @Override
     public void onBind() {
         gotoNextState(SessionState.BINDING); // Equivalent to forcing a retry
@@ -107,5 +92,19 @@ class AuthenticatingState extends FsmState {
     @Override
     public void onStop() {
         gotoNextState(SessionState.STOPPED);
+    }
+
+    private synchronized void authenticate(final SyncSession session) {
+        session.authenticateRealm(new Runnable() {
+            @Override
+            public void run() {
+                gotoNextState(SessionState.BINDING);
+            }
+        }, new Session.ErrorHandler() {
+            @Override
+            public void onError(Session s, ObjectServerError error) {
+                session.onError(error);
+            }
+        });
     }
 }

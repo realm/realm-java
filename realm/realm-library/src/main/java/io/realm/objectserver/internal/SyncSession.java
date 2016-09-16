@@ -90,6 +90,8 @@ import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
 @Keep
 public final class SyncSession {
 
+    private static final long MAX_DELAY_MS = TimeUnit.MINUTES.toMillis(5);
+
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
 
     // Variables used by the FSM
@@ -262,7 +264,7 @@ public final class SyncSession {
                 ObjectServerError error = null;
                 while (true) {
                     attempt++;
-                    long sleep = Util.calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
+                    long sleep = Util.calculateExponentialDelay(attempt - 1, MAX_DELAY_MS);
                     if (sleep > 0) {
                         try {
                             Thread.sleep(sleep);
@@ -285,7 +287,7 @@ public final class SyncSession {
                         // All other errors indicate a bigger problem, so stop trying to authenticate and
                         // unbind
                         ObjectServerError responseError = response.getError();
-                        if (responseError.errorCode() != ErrorCode.IO_EXCEPTION) {
+                        if (responseError.getErrorCode() != ErrorCode.IO_EXCEPTION) {
                             success = false;
                             error = responseError;
                             break;
@@ -345,9 +347,6 @@ public final class SyncSession {
     }
 
     /**
-     * FIXME: Find a way to keep this out of the public API. Could probably happen as part of moving everything to the
-     * Object Store.
-     *
      * Notify session that a commit on the device has happened.
      */
     void notifyCommit(long version) {

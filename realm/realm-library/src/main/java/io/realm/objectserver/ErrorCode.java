@@ -16,31 +16,30 @@
 
 package io.realm.objectserver;
 
+/**
+ * This class enumerate all potential errors related to using the Object Server or synchronizing data.
+ */
 public enum ErrorCode {
 
-    // See https://github.com/realm/realm-sync/issues/585
     // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
 
     // Realm Java errors (0-49)
-
     UNKNOWN(-1),                                // Catch-all
     IO_EXCEPTION(0, Category.RECOVERABLE),      // Some IO error while either contacting the server or reading the response
     JSON_EXCEPTION(1),                          // JSON input could not be parsed correctly
 
     // Realm Object Server errors (100 - 199)
-
-    // Connection level and protocol errors
-
-    CONNECTION_CLOSED(100, Category.INFO),          // Connection closed (no error)
-    OTHER_ERROR(101, Category.INFO),                // Other connection level error
-    UNKNOWN_MESSAGE(102, Category.INFO),            // Unknown type of input message
-    BAD_SYNTAX(103, Category.INFO),                 // Bad syntax in input message head
-    LIMITS_EXCEEDED(104, Category.INFO),            // Limits exceeded in input message
-    WRONG_PROTOCOL_VERSION(105, Category.INFO),     // Wrong protocol version (CLIENT)
-    BAD_SESSION_IDENT(106, Category.INFO),          // Bad session identifier in input message
-    REUSE_OF_SESSION_IDENT(107, Category.INFO),     // Overlapping reuse of session identifier (BIND)
-    BOUND_IN_OTHER_SESSION(108, Category.INFO),     // Client file bound in other session (IDENT)
-    BAD_MESSAGE_ORDER(109, Category.INFO),          // Bad input message order
+    // Connection level and protocol errors.
+    CONNECTION_CLOSED(100),          // Connection closed (no error)
+    OTHER_ERROR(101),                // Other connection level error
+    UNKNOWN_MESSAGE(102),            // Unknown type of input message
+    BAD_SYNTAX(103),                 // Bad syntax in input message head
+    LIMITS_EXCEEDED(104),            // Limits exceeded in input message
+    WRONG_PROTOCOL_VERSION(105),     // Wrong protocol version (CLIENT)
+    BAD_SESSION_IDENT(106),          // Bad session identifier in input message
+    REUSE_OF_SESSION_IDENT(107),     // Overlapping reuse of session identifier (BIND)
+    BOUND_IN_OTHER_SESSION(108),     // Client file bound in other session (IDENT)
+    BAD_MESSAGE_ORDER(109),          // Bad input message order
 
     // Session level errors (200 - 299)
     SESSION_CLOSED(200, Category.RECOVERABLE),      // Session closed (no error)
@@ -53,7 +52,7 @@ public enum ErrorCode {
     NO_SUCH_PATH(205),                              // No such Realm (BIND)
     PERMISSION_DENIED(206),                         // Permission denied (BIND, REFRESH)
 
-    // Fatal: Wrong server/client versions. Trying to sync incompatible files or corrupted.
+    // Fatal: Wrong server/client versions. Trying to sync incompatible files or the file was corrupted.
     BAD_SERVER_FILE_IDENT(207),                     // Bad server file identifier (IDENT)
     BAD_CLIENT_FILE_IDENT(208),                     // Bad client file identifier (IDENT)
     BAD_SERVER_VERSION(209),                        // Bad server version (IDENT, UPLOAD)
@@ -61,10 +60,9 @@ public enum ErrorCode {
     DIVERGING_HISTORIES(211),                       // Diverging histories (IDENT)
     BAD_CHANGESET(212),                             // Bad changeset (UPLOAD)
 
-    // 300 - 599 Standard HTTP error codes
+    // 300 - 599 Reserved for Standard HTTP error codes
 
     // Realm Authentication Server response errors (600 - 699)
-
     INVALID_PARAMETERS(601),
     MISSING_PARAMETERS(602),
     INVALID_CREDENTIALS(611),
@@ -90,23 +88,27 @@ public enum ErrorCode {
         return super.toString() + "(" + code + ")";
     }
 
-    public int errorCode() {
+    /**
+     * Returns the numerical value for this error code.
+     *
+     * @return the error code as an unique {@code int} value.
+     */
+    public int intValue() {
         return code;
     }
 
-
     /**
-     * Returns the category of the error.
+     * Returns the getCategory of the error.
      * <p>
-     * Errors come in 3 categories: FATAL, RECOVERABLE, and INFO.
+     * Errors come in 2 categories: FATAL, RECOVERABLE
      * <p>
      * FATAL: The session cannot be recovered and needs to be re-created. A likely cause is that the User does not
-     * have access to this Realm. Check that the {@link SyncConfiguration} is correct.
+     * have access to this Realm. Check that the {@link SyncConfiguration} is correct. Any fatal error will cause
+     * the session to be become {@link SessionState#STOPPED}.
      * <p>
-     * RECOVERABLE: The session is paused until given additional information. Most likely cause is an expired access
-     * token or similar.
+     * RECOVERABLE: Temporary error. The session becomes {@link SessionState#UNBOUND}, but will automatically try to
+     * recover as soon as possible.
      * <p>
-     * INFO: The underlying sync client will automatically try to recover from this.
      *
      * @return the severity of the error.
      */
@@ -118,7 +120,7 @@ public enum ErrorCode {
         ErrorCode[] errorCodes = values();
         for (int i = 0; i < errorCodes.length; i++) {
             ErrorCode error = errorCodes[i];
-            if (error.errorCode() == errorCode) {
+            if (error.intValue() == errorCode) {
                 return error;
             }
         }
@@ -127,7 +129,6 @@ public enum ErrorCode {
 
 public enum Category {
         FATAL,          // Abort session as soon as possible
-        RECOVERABLE,    // Still possible to recover the session by either rebinding or providing the required information.
-        INFO            // Just FYI. The underlying network client will automatically try to recover.
+        RECOVERABLE    // Still possible to recover the session by either rebinding or providing the required information.
     }
 }

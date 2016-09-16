@@ -19,11 +19,15 @@ package io.realm.objectserver.internal.syncpolicy;
 import io.realm.objectserver.ObjectServerError;
 import io.realm.objectserver.internal.SyncSession;
 
+import static java.lang.System.currentTimeMillis;
+
 /**
  * This SyncPolicy will automatically start synchronizing changes to a Realm as soon as it is opened.
- * // TODO Figure out how to close connection once all changes have been uploaded.
  */
 public class AutomaticSyncPolicy implements SyncPolicy {
+
+    private Long lastError = null;
+    private int recurringErrors = 0;
 
     @Override
     public void onRealmOpened(SyncSession session) {
@@ -32,8 +36,8 @@ public class AutomaticSyncPolicy implements SyncPolicy {
 
     @Override
     public void onRealmClosed(SyncSession session) {
-        // TODO Sync need to expose callback when there is no more local changes
-        // For now just keep the session open.
+        // TODO In order to preserve resources we should ideally close the session as well, but first
+        // we want to make sure that all local changes have been synchronized to the remote Realm.
     }
 
     @Override
@@ -48,22 +52,40 @@ public class AutomaticSyncPolicy implements SyncPolicy {
 
     @Override
     public boolean onError(SyncSession session, ObjectServerError error) {
-        switch(error.category()) {
+        switch(error.getCategory()) {
             case FATAL:
                 return false;   // Report all fatal errors to the user
-            case INFO:
-                return true;     // Ignore all INFO errors
             case RECOVERABLE:
-                rebind(session);
-                return true;
+                return rebind(session);
             default:
                 return false;
         }
     }
 
-    private void rebind(SyncSession session) {
-        // FIXME: Do not rebind uncritically. Figure out a good strategy for this.
-        // See https://realmio.slack.com/archives/sync-core/p1472415880000002
-        session.bind();
+    /**
+     * Returns {@code true} if we decide to rebind, {@code false} if the error was determined to no longer be solvable.
+     */
+    private boolean rebind(SyncSession session) {
+        // Track all calls to rebind(). If some error reported as RECOVERABLE keeps happening, we need to abort to
+        // prevent run-away sessions. Right now we treat an error as recurring if it happens within 3 seconds of each
+        // other. After 5 of such errors we terminate the session.
+        //
+        // Standard IO errors are already handled using incremental backoff by e.g the AUTHENTICATING state, so
+        // re-occurring errors at this level are more serious.
+        long now = System.currentTimeMillis();
+        if (lastError - now < 3000) {
+            recurringErrors++;
+        } else {
+            recurringErrors = 1;
+        }
+        lastError = now;
+
+        if (recurringErrors == 5) {
+            session.stop(); // Abort session, some error that should be temporary keeps happening.
+            return false;
+        } else {
+            session.bind();
+            return true;
+        }
     }
 }
