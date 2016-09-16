@@ -397,4 +397,16 @@ Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass,
     return 0;
 }
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong nativePtr,
+                                                      jlong nativeSchemaPtr, jlong version) {
+    TR_ENTER(env)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
+        auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version));
+    }
+    CATCH_STD()
+}
+
 

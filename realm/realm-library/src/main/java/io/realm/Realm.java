@@ -50,6 +50,8 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.internal.ObjectServerFacade;
 import rx.Observable;
 
 /**
@@ -257,37 +259,58 @@ public final class Realm extends BaseRealm {
     private static void initializeRealm(Realm realm) {
         long version = realm.getVersion();
         boolean commitNeeded = false;
+        boolean syncAvailable = ObjectServerFacade.SYNC_AVAILABLE && realm.configuration instanceof SyncConfiguration;
+
         try {
-            realm.beginTransaction();
-            if (version == UNVERSIONED) {
-                commitNeeded = true;
-                realm.setVersion(realm.configuration.getSchemaVersion());
+            if (!syncAvailable) {
+                realm.beginTransaction();
+                if (version == UNVERSIONED) {
+                    commitNeeded = true;
+                    realm.setVersion(realm.configuration.getSchemaVersion());
+                }
             }
 
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
             columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+            ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
+            RealmSchema realmSchemaCache = new RealmSchema();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
-                if (version == UNVERSIONED) {
+                if (version == UNVERSIONED && !syncAvailable) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+                if (syncAvailable) {
+                    RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
+                    realmObjectSchemas.add(realmObjectSchema);
+                } else {
+                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+                }
+            }
+            if (syncAvailable) {
+                RealmSchema schema = new RealmSchema(realmObjectSchemas);
+                // Assumption: when SyncConfiguration then additive schema update mode
+                realm.sharedRealm.updateSchema(schema, version);
+                for (Class<? extends RealmModel> modelClass : modelClasses) {
+                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+                }
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
 
-            if (version == UNVERSIONED) {
+            if (version == UNVERSIONED && !syncAvailable) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
                 if (transaction != null) {
                     transaction.execute(realm);
                 }
             }
         } finally {
-            if (commitNeeded) {
-                realm.commitTransaction(false);
-            } else {
-                realm.cancelTransaction();
+            if (!syncAvailable) {
+                if (commitNeeded) {
+                    realm.commitTransaction(false);
+                } else {
+                    realm.cancelTransaction();
+                }
             }
         }
     }
@@ -1010,7 +1033,7 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
      * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects, and can potentially override changes made by other threads.
      *
@@ -1031,9 +1054,9 @@ public final class Realm extends BaseRealm {
      * The copied object(s) are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using 
-     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed. 
-     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being 
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
      * reached. This can also potentially override changes made by other threads.
      *
      * @param realmObject {@link RealmObject} to copy.

@@ -16,10 +16,6 @@
 
 package io.realm;
 
-import io.realm.annotations.Required;
-import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -27,6 +23,12 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.realm.annotations.Required;
+import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
+import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.internal.ObjectServerFacade;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -68,6 +70,7 @@ public final class RealmObjectSchema {
     private final BaseRealm realm;
     final Table table;
     private final Map<String, Long> columnIndices;
+    private final long nativePtr;
 
     /**
      * Creates a schema object for a given Realm class.
@@ -80,6 +83,47 @@ public final class RealmObjectSchema {
         this.realm = realm;
         this.table = table;
         this.columnIndices = columnIndices;
+        this.nativePtr = 0;
+    }
+
+    /**
+     * Creates a schema object using object store. This constructor is intended to be used by
+     * the validation of schema, object schemas and prorperties through the object store. Even though the constructor
+     * is public, there is never a purpose which justifies calling it!
+     *
+     * @param className name of the class
+     */
+    RealmObjectSchema(String className) {
+        this.realm = null;
+        this.table = null;
+        this.columnIndices = null;
+        this.nativePtr = nativeCreateRealmObjectSchema(className);
+    }
+
+    protected RealmObjectSchema(long nativePtr) {
+        this.realm = null;
+        this.table = null;
+        this.columnIndices = null;
+        this.nativePtr = nativePtr;
+    }
+
+    /**
+     * Closes/frees native resource. Even though the method is public, there is never a purpose which justifies calling
+     * it!
+     */
+    public void close() {
+        if (nativePtr != 0) {
+            Set<Property> properties = getProperties();
+            for (Property property : properties) {
+                property.close();
+            }
+            nativeClose(nativePtr);
+        }
+    }
+
+
+    protected long getNativePtr() {
+        return nativePtr;
     }
 
     /**
@@ -93,7 +137,11 @@ public final class RealmObjectSchema {
      * @return the name of the RealmObject class represented by this schema.
      */
     public String getClassName() {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
+        if (realm == null) {
+            return nativeGetClassName(nativePtr);
+        } else {
+            return table.getName().substring(Table.TABLE_PREFIX.length());
+        }
     }
 
     /**
@@ -105,6 +153,7 @@ public final class RealmObjectSchema {
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
+        checkNotInSync(); // renaming a table is not permitted
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
         //FIXME : when core implements class name length check, please remove.
@@ -209,6 +258,34 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Adds a property to an object schema. This method should only be used by proxy classes to set up a schema.
+     *
+     * @param property the property to add.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the method is called after opening a Realm.
+     */
+    protected RealmObjectSchema add(Property property) {
+        if (realm != null && nativePtr == 0) {
+            throw new IllegalArgumentException("Don't use this method.");
+        }
+        nativeAddProperty(nativePtr, property.getNativePtr());
+        return this;
+    }
+
+    private Set<Property> getProperties() {
+        if (realm == null) {
+            long[] ptrs = nativeGetProperties(nativePtr);
+            Set<Property> properties = new LinkedHashSet<>(ptrs.length);
+            for (int i = 0; i < ptrs.length; i++) {
+                properties.add(new Property(ptrs[i]));
+            }
+            return properties;
+        } else {
+            throw new IllegalArgumentException("Not possible");
+        }
+    }
+
+    /**
      * Removes a field from the class.
      *
      * @param fieldName field name to remove.
@@ -216,6 +293,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist.
      */
     public RealmObjectSchema removeField(String fieldName) {
+        checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(fieldName);
         if (!hasField(fieldName)) {
             throw new IllegalStateException(fieldName + " does not exist.");
@@ -237,6 +315,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
      */
     public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
+        checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(currentFieldName);
         checkFieldExists(currentFieldName);
         checkLegalName(newFieldName);
@@ -302,6 +381,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
+        checkNotInSync(); // destructive modifications are not permitted
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -344,6 +424,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
     public RealmObjectSchema removePrimaryKey() {
+        checkNotInSync(); // destructive modifications are not permitted
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
@@ -582,6 +663,13 @@ public final class RealmObjectSchema {
         }
     }
 
+    private void checkNotInSync() {
+        // FIXME: similar method found in RealmSchema.
+        if (ObjectServerFacade.SYNC_AVAILABLE && realm.configuration instanceof SyncConfiguration) {
+            throw new IllegalArgumentException("You cannot perform changes to a schema. Please update app and restart.");
+        }
+    }
+
     /**
      * Returns the column indices for the given field name. If a linked field is defined, the column index for
      * each field is returned.
@@ -775,4 +863,10 @@ public final class RealmObjectSchema {
             throw new UnsupportedOperationException();
         }
     }
+
+    static native long nativeCreateRealmObjectSchema(String className);
+    static native void nativeAddProperty(long nativePtr, long nativePropertyPtr);
+    static native long[] nativeGetProperties(long nativePtr);
+    static native void nativeClose(long nativePtr);
+    static native String nativeGetClassName(long nativePtr);
 }

@@ -227,6 +227,9 @@ public final class SyncConfiguration extends RealmConfiguration {
         public Builder(Context context) {
             this.context = context;
             this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
+            if (Realm.getDefaultModule() != null) {
+                this.modules.add(Realm.getDefaultModule());
+            }
         }
 
         /**

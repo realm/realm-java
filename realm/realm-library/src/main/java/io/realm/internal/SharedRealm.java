@@ -20,8 +20,8 @@ import java.io.Closeable;
 import java.io.File;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmSchema;
 import io.realm.internal.async.BadVersionException;
-import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.internal.ObjectServerFacade;
 
 public final class SharedRealm implements Closeable {
@@ -274,6 +274,10 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
+    public void updateSchema(RealmSchema schema, long version) {
+        nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
+    }
+
     @Override
     public void close() {
         if (realmNotifier != null) {
@@ -330,4 +334,5 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
+    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
 }

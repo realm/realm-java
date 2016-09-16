@@ -440,6 +440,9 @@ public abstract class BaseRealm implements Closeable {
             sharedRealm.close();
             sharedRealm = null;
         }
+        if (schema != null) {
+            schema.close();
+        }
     }
 
     /**

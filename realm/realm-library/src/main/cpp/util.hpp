@@ -751,4 +751,8 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 
 extern const std::string TABLE_PREFIX;
 
+static inline bool to_bool(jboolean b) {
+    return b == JNI_TRUE;
+}
+
 #endif // REALM_JAVA_UTIL_HPP

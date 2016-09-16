@@ -67,6 +67,8 @@ public class RealmProxyClassGenerator {
         imports.add("android.util.JsonReader");
         imports.add("android.util.JsonToken");
         imports.add("io.realm.RealmFieldType");
+        imports.add("io.realm.RealmObjectSchema");
+        imports.add("io.realm.RealmSchema");
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
         imports.add("io.realm.internal.ColumnInfo");
         imports.add("io.realm.internal.RealmObjectProxy");
@@ -106,6 +108,7 @@ public class RealmProxyClassGenerator {
         emitClassFields(writer);
         emitConstructor(writer);
         emitAccessors(writer);
+        emitCreateRealmObjectSchemaMethod(writer);
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetTableNameMethod(writer);
@@ -338,6 +341,54 @@ public class RealmProxyClassGenerator {
         writer.emitAnnotation("Override");
         writer.beginMethod("ProxyState", "realmGet$proxyState", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("return proxyState");
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitCreateRealmObjectSchemaMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod(
+                "RealmObjectSchema", // Return type
+                "createRealmObjectSchema", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+                "RealmSchema", "realmSchema"); // Argument type & argument name
+
+        writer.beginControlFlow("if (!realmSchema.contains(\"" + this.simpleClassName + "\"))");
+        writer.emitStatement("RealmObjectSchema realmObjectSchema = realmSchema.create(\"%s\")", this.simpleClassName);
+
+        // For each field generate corresponding table index constant
+        for (VariableElement field : metadata.getFields()) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
+
+            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+                String nullableFlag = (metadata.isNullable(field) ? "!" : "") + "Property.REQUIRED";
+                String indexedFlag = (metadata.isIndexed(field) ? "" : "!") + "Property.INDEXED";
+                String primaryKeyFlag = (metadata.isPrimaryKey(field) ? "" : "!") + "Property.PRIMARY_KEY";
+                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", %s, %s, %s, %s))",
+                        fieldName,
+                        Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
+                        primaryKeyFlag,
+                        indexedFlag,
+                        nullableFlag);
+            } else if (Utils.isRealmModel(field)) {
+                writer.beginControlFlow("if (!realmSchema.contains(\"" + fieldTypeSimpleName + "\"))");
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.endControlFlow();
+                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.OBJECT, realmSchema.get(\"%s\")))",
+                        fieldName, fieldTypeSimpleName);
+            } else if (Utils.isRealmList(field)) {
+                String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
+                writer.beginControlFlow("if (!realmSchema.contains(\"" + genericTypeSimpleName +"\"))");
+                writer.emitStatement("%s%s.createRealmObjectSchema(realmSchema)", genericTypeSimpleName, Constants.PROXY_SUFFIX);
+                writer.endControlFlow();
+                writer.emitStatement("realmObjectSchema.add(new Property(\"%s\", RealmFieldType.LIST, realmSchema.get(\"%s\")))",
+                        fieldName, genericTypeSimpleName);
+            }
+        }
+        writer.emitStatement("return realmObjectSchema");
+        writer.endControlFlow();
+        writer.emitStatement("return realmSchema.get(\"" + this.simpleClassName + "\")");
         writer.endMethod();
         writer.emitEmptyLine();
     }
