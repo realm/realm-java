@@ -301,10 +301,10 @@ public class RealmJsonTypeHelper {
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                     .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                        .emitStatement("obj = (%1$s) realm.createObject(%2$s.class, null)",
+                        .emitStatement("obj = (%1$s) realm.createObjectInternal(%2$s.class, null, true, excludeFields)",
                                 qualifiedRealmObjectProxyClass, qualifiedRealmObjectClass)
                     .nextControlFlow("else")
-                        .emitStatement("obj = (%1$s) realm.createObject(%2$s.class, json.get%3$s(\"%4$s\"))",
+                        .emitStatement("obj = (%1$s) realm.createObjectInternal(%2$s.class, json.get%3$s(\"%4$s\"), true, excludeFields)",
                                 qualifiedRealmObjectProxyClass, qualifiedRealmObjectClass, jsonType, fieldName)
                     .endControlFlow()
                 .nextControlFlow("else")

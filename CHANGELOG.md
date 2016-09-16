@@ -1,9 +1,5 @@
 ## 2.0.0
 
-### Known issues
-
-* When creating a `RealmObject` from a JSON stream, it will take the default values defined by its default constructor for those fields that are not defined in the JSON object. This behaviour is different from other APIs when creating `RealmObject`s.
-
 ### Breaking Changes
 
 * `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
@@ -15,18 +11,24 @@
 * `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
 * Object with primary key is now required to define it when the object is created. This means that `Realm.createObject(Class<E>)` and `DynamicRealm.createObject(String)` now throws `RealmException` if they are used to create an object with a primary key field. Use `Realm.createObject(Class<E>, Object)` or `DynamicRealm.createObject(String, Object)` instead.
 * Importing from JSON without the primary key field defined in the JSON object now throws `IllegalArgumentException`.
+* Now `Realm.beginTransaction()`, `Realm.executeTransaction()` and `Realm.waitForChange()` throw `RealmMigrationNeededException` if a remote process introduces incompatible schema changes (#3409).
+* The primary key value of an object can no longer be changed after the object was created. Instead a new object must be created and all fields copied over.
+* Now `Realm.createObject(Class)` and `Realm.createObject(Class,Object)` take the values from the model's fields and default constructor. Creating objects through the `DynamicRealm` does not use these values (#777).
+* When `Realm.create*FromJson()`s create a new `RealmObject`, now they take the default values defined by the field itself and its default constructor for those fields that are not defined in the JSON object.
 
 ### Enhancements
 
 * Added `realmObject.isManaged()`, `RealmObject.isManaged(obj)` and `RealmCollection.isManaged()` (#3101).
 * Added `RealmConfiguration.Builder.directory(File)`.
 * `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
+* Typed `RealmObject`s can now continue to access their fields properly even though the schema was changed while the Realm was open (#3409).
 
 ### Bug fixes
 
 * Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
 * Fixed a potential crash when there were lots of async queries waiting in the queue.
 * Fixed a bug causing the Realm Transformer to not transform field access in the model's constructors (#3361).
+* Fixed a bug causing the `NullPointerException` when calling getters/setters in the model's constructors (#2536).
 
 ### Internal
 

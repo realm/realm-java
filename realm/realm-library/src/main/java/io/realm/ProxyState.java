@@ -34,8 +34,13 @@ public final class ProxyState<E extends RealmModel> {
     private String className;
     private Class<? extends RealmModel> clazzName;
 
+    // true only while executing the constructor of the enclosing proxy object
+    private boolean underConstruction = true;
+
     private Row row;
     private BaseRealm realm;
+    private boolean acceptDefaultValue;
+    private List<String> excludeFields;
 
     private final List<RealmChangeListener<E>> listeners = new CopyOnWriteArrayList<RealmChangeListener<E>>();
     private Future<Long> pendingQuery;
@@ -84,6 +89,22 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setRow$realm(Row row) {
         this.row = row;
+    }
+
+    public boolean getAcceptDefaultValue$realm() {
+        return acceptDefaultValue;
+    }
+
+    public void setAcceptDefaultValue$realm(boolean acceptDefaultValue) {
+        this.acceptDefaultValue = acceptDefaultValue;
+    }
+
+    public List<String> getExcludeFields$realm() {
+        return excludeFields;
+    }
+
+    public void setExcludeFields$realm(List<String> excludeFields) {
+        this.excludeFields = excludeFields;
     }
 
     public Object getPendingQuery$realm() {
@@ -175,6 +196,16 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public boolean isUnderConstruction() {
+        return underConstruction;
+    }
+
+    public void setConstructionFinished() {
+        underConstruction = false;
+        // only used while construction.
+        excludeFields = null;
     }
 
     private Table getTable () {

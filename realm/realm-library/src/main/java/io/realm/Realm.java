@@ -33,6 +33,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -202,14 +203,15 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param columnIndices if this is not  {@code null}, the {@link BaseRealm#schema#columnIndices} will be
-     *                      initialized to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from
-     *                      the Realm file.
+     * @param globalCacheArray if this is not {@code null} and contains an entry for current schema version,
+     *                         the {@link BaseRealm#schema#columnIndices} will be initialized with the copy of
+     *                         the entry. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated
+     *                         from the Realm file.
      * @return a {@link Realm} instance.
      */
-    static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
+    static Realm createInstance(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         try {
-            return createAndValidate(configuration, columnIndices);
+            return createAndValidate(configuration, globalCacheArray);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -223,14 +225,15 @@ public final class Realm extends BaseRealm {
                 }
             }
 
-            return createAndValidate(configuration, columnIndices);
+            return createAndValidate(configuration, globalCacheArray);
         }
     }
 
-    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
+    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
+        final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
             realm.doClose();
             throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
@@ -249,7 +252,8 @@ public final class Realm extends BaseRealm {
                 throw e;
             }
         } else {
-            realm.schema.columnIndices = columnIndices;
+            // copy global cache as a Realm local indices cache
+            realm.schema.columnIndices = columnIndices.clone();
         }
 
         return realm;
@@ -285,7 +289,7 @@ public final class Realm extends BaseRealm {
                     RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
                     realmObjectSchemas.add(realmObjectSchema);
                 } else {
-                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm), false);
                 }
             }
             if (syncAvailable) {
@@ -293,10 +297,12 @@ public final class Realm extends BaseRealm {
                 // Assumption: when SyncConfiguration then additive schema update mode
                 realm.sharedRealm.updateSchema(schema, version);
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
-                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm));
+                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm),false);
                 }
             }
-            realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+            realm.schema.columnIndices = new ColumnIndices(
+                    (version == UNVERSIONED) ? realm.configuration.getSchemaVersion() : version,
+                    columnInfoMap);
 
             if (version == UNVERSIONED && !syncAvailable) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
@@ -701,13 +707,34 @@ public final class Realm extends BaseRealm {
 
     /**
      * Instantiates and adds a new object to the Realm.
+     * <p>
+     * This method is only available for model classes with no @PrimaryKey annotation.
+     * If you like to create an object that has a primary key, use {@link #createObject(Class, Object)}
+     * or {@link #copyToRealm(RealmModel)} instead.
      *
      * @param clazz the Class of the object to create.
      * @return the new object.
-     * @throws RealmException if an object cannot be created.
+     * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
+     * @see #createObject(Class, Object)
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
+        return createObjectInternal(clazz, true, Collections.<String> emptyList());
+    }
+
+    /**
+     * Same as {@link #createObject(Class)} but this does not check the thread.
+     *
+     * @param clazz the Class of the object to create.
+     * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
+     *                           if {@code false}, it will be ignored.
+     * @return the new object.
+     * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
+     */
+    // called from proxy classes
+    <E extends RealmModel> E createObjectInternal(Class<E> clazz,
+                                                            boolean acceptDefaultValue,
+                                                            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
@@ -715,7 +742,7 @@ public final class Realm extends BaseRealm {
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
         }
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
     }
 
     /**
@@ -723,19 +750,40 @@ public final class Realm extends BaseRealm {
      * <p>
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
+     * The default value for primary key provided by the model class will be ignored.
      *
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
      * @throws RealmException if object could not be created due to the primary key being invalid.
-     * @throws IllegalStateException if the model clazz does not have an primary key defined.
+     * @throws IllegalStateException if the model class does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        checkIfValid();
+        return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String> emptyList());
+    }
+
+    /**
+     * Same as {@link #createObject(Class, Object)} but this does not check the thread.
+     *
+     * @param clazz the Class of the object to create.
+     * @param primaryKeyValue value for the primary key field.
+     * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
+     *                           if {@code false}, it will be ignored.
+     * @return the new object.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException if the model class does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     */
+    // called from proxy classes
+    <E extends RealmModel> E createObjectInternal(Class<E> clazz, Object primaryKeyValue,
+                                                            boolean acceptDefaultValue,
+                                                            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex);
+        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
     }
 
     /**
@@ -1114,6 +1162,7 @@ public final class Realm extends BaseRealm {
      *
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
+     * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null) {
@@ -1420,6 +1469,45 @@ public final class Realm extends BaseRealm {
 
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
+    }
+
+    /**
+     * Updates own schema cache.
+     *
+     * @param globalCacheArray global cache of column indices. If it contains an entry for current
+     *                         schema version, this method only copies the indices information in the entry.
+     * @return newly created indices information for current schema version. Or {@code null} if
+     *          {@code globalCacheArray} already contains the entry for current schema version.
+     */
+    ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
+        final long currentSchemaVersion = sharedRealm.getSchemaVersion();
+        final long cacheSchemaVersion = schema.columnIndices.getSchemaVersion();
+        if (currentSchemaVersion == cacheSchemaVersion) {
+            return null;
+        }
+
+        ColumnIndices createdGlobalCache = null;
+        final RealmProxyMediator mediator = getConfiguration().getSchemaMediator();
+        ColumnIndices cacheForCurrentVersion = RealmCache.findColumnIndices(globalCacheArray,
+                currentSchemaVersion);
+        if (cacheForCurrentVersion == null) {
+            // not found in global cache. create it.
+            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+            final Map<Class<? extends RealmModel>, ColumnInfo> map;
+            map = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
+            try {
+                for (Class<? extends RealmModel> clazz : modelClasses) {
+                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
+                    map.put(clazz, columnInfo);
+                }
+            } catch (RealmMigrationNeededException e) {
+                throw e;
+            }
+
+            cacheForCurrentVersion = createdGlobalCache = new ColumnIndices(currentSchemaVersion, map);
+        }
+        schema.columnIndices.copyFrom(cacheForCurrentVersion, mediator);
+        return createdGlobalCache;
     }
 
     /**

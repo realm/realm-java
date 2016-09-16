@@ -20,12 +20,19 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyWithNoPrimaryKeyObjectRelation extends RealmObject {
+    public static final String CLASS_NAME = "PrimaryKeyWithNoPrimaryKeyObjectRelation";
+    public static final String FIELD_COLUMN_STRING = "columnString";
+    public static final String FIELD_COLUMN_REALM_OBJECT_NO_PK = "columnRealmObjectNoPK";
+    public static final String FIELD_COLUMN_INT = "columnInt";
+
+    public static final int FIELD_COLUMN_INT_DEFAULT_VALUE = 8;
+
     @PrimaryKey
     private String columnString;
 
     private AllTypes columnRealmObjectNoPK;
 
-    private int columnInt = 8;
+    private int columnInt = FIELD_COLUMN_INT_DEFAULT_VALUE;
 
     public String getColumnString() {
         return columnString;
