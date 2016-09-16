@@ -289,7 +289,7 @@ public final class Realm extends BaseRealm {
                     RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
                     realmObjectSchemas.add(realmObjectSchema);
                 } else {
-                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm), false);
+                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
                 }
             }
             if (syncAvailable) {
@@ -297,7 +297,7 @@ public final class Realm extends BaseRealm {
                 // Assumption: when SyncConfiguration then additive schema update mode
                 realm.sharedRealm.updateSchema(schema, version);
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
-                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm),false);
+                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
                 }
             }
             realm.schema.columnIndices = new ColumnIndices(
