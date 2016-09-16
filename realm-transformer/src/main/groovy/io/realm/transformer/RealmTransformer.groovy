@@ -137,7 +137,7 @@ class RealmTransformer extends Transform {
         inputClassNames.each {
             logger.info "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
-            BytecodeModifier.useRealmAccessors(ctClass, allManagedFields, allModelClasses)
+            BytecodeModifier.useRealmAccessors(ctClass, allManagedFields)
             ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
         }
 

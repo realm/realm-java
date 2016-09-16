@@ -19,6 +19,7 @@ package io.realm;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -2101,15 +2102,15 @@ public final class RealmQuery<E extends RealmModel> {
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
-            result = (E) new DynamicRealmObject(className);
+            result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW, false);
         } else {
-            result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getSchema().getColumnInfo(clazz));
+            result = realm.getConfiguration().getSchemaMediator().newInstance(
+                    clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz),
+                    false, Collections.<String>emptyList());
         }
 
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        final RealmObjectProxy proxy = (RealmObjectProxy) result;
         final WeakReference<RealmObjectProxy> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
-        proxy.realmGet$proxyState().setRealm$realm(realm);
-        proxy.realmGet$proxyState().setRow$realm(Row.EMPTY_ROW);
 
         final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override

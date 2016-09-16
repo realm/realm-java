@@ -34,6 +34,7 @@ import io.realm.RealmModel;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -83,9 +84,14 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz,
+                                                Object baseRealm,
+                                                Row row,
+                                                ColumnInfo columnInfo,
+                                                boolean acceptDefaultValue,
+                                                List<String> excludeFields) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.newInstance(clazz, columnInfo);
+        return mediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
     }
 
     @Override

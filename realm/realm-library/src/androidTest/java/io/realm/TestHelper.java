@@ -937,6 +937,64 @@ public class TestHelper {
         }
     }
 
+    public static void testNoObjectFound(
+            Realm realm,
+            Class<? extends RealmModel> clazz,
+            String fieldName, Object value) {
+        testObjectCount(realm, 0L, clazz, fieldName, value);
+    }
+
+    public static void testOneObjectFound(
+            Realm realm,
+            Class<? extends RealmModel> clazz,
+            String fieldName, Object value) {
+        testObjectCount(realm, 1L, clazz, fieldName, value);
+    }
+
+    public static void testObjectCount(
+            Realm realm,
+            long expectedCount,
+            Class<? extends RealmModel> clazz,
+            String fieldName, Object value) {
+        final RealmQuery<? extends RealmModel> query;
+        switch (value.getClass().getSimpleName()) {
+            case "String":
+                query = realm.where(clazz).equalTo(fieldName, (String) value);
+                break;
+            case "Byte":
+                query = realm.where(clazz).equalTo(fieldName, (Byte) value);
+                break;
+            case "Short":
+                query = realm.where(clazz).equalTo(fieldName, (Short) value);
+                break;
+            case "Integer":
+                query = realm.where(clazz).equalTo(fieldName, (Integer) value);
+                break;
+            case "Long":
+                query = realm.where(clazz).equalTo(fieldName, (Long) value);
+                break;
+            case "Float":
+                query = realm.where(clazz).equalTo(fieldName, (Float) value);
+                break;
+            case "Double":
+                query = realm.where(clazz).equalTo(fieldName, (Double) value);
+                break;
+            case "Boolean":
+                query = realm.where(clazz).equalTo(fieldName, (Boolean) value);
+                break;
+            case "Date":
+                query = realm.where(clazz).equalTo(fieldName, (Date) value);
+                break;
+            case "byte[]":
+                query = realm.where(clazz).equalTo(fieldName, (byte[]) value);
+                break;
+            default:
+                throw new AssertionError("unknown type: " + value.getClass().getSimpleName());
+        }
+
+        assertEquals(expectedCount, query.count());
+    }
+
     /**
      * Replaces the current thread executor with a another one for testing.
      * WARNING: This method should only be called before any async tasks have been started.

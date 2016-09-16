@@ -1,9 +1,5 @@
 ## 2.0.0
 
-### Known issues
-
-* When creating a `RealmObject` from a JSON stream, it will take the default values defined by its default constructor for those fields that are not defined in the JSON object. This behaviour is different from other APIs when creating `RealmObject`s.
-
 ### Breaking Changes
 
 * `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
@@ -17,6 +13,8 @@
 * Importing from JSON without the primary key field defined in the JSON object now throws `IllegalArgumentException`.
 * Now `Realm.beginTransaction()`, `Realm.executeTransaction()` and `Realm.waitForChange()` throw `RealmMigrationNeededException` if a remote process introduces incompatible schema changes (#3409).
 * The primary key value of an object can no longer be changed after the object was created. Instead a new object must be created and all fields copied over.
+* Now `Realm.createObject(Class)` and `Realm.createObject(Class,Object)` take the values from the model's fields and default constructor. `DynamicRealm` does not take these default values (#777).
+* When `Realm.create*FromJson()`s create a new `RealmObject`, now they take the default values defined by the field itself and its default constructor for those fields that are not defined in the JSON object.
 
 ### Enhancements
 
@@ -30,6 +28,7 @@
 * Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
 * Fixed a potential crash when there were lots of async queries waiting in the queue.
 * Fixed a bug causing the Realm Transformer to not transform field access in the model's constructors (#3361).
+* Fixed a bug causing the `NullPointerException` when calling getters/setters in the model's constructors (#2536).
 
 ### Internal
 
