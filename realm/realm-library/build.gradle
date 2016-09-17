@@ -424,6 +424,11 @@ if (project.hasProperty('dontCleanJniFiles')) {
         }
     }
 } else {
+    task cleanJniHeaders(type: Delete) {
+        delete project.file('src/main/cpp/jni_include')
+    }
+    clean.dependsOn cleanJniHeaders
+
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
     }
