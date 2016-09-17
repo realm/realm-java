@@ -317,6 +317,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetLink
     return TV(nativeViewPtr)->get_link( S(columnIndex), S(rowIndex));  // noexcept
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_TableView_nativeIsNull
+        (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
+{
+    try {
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+            return 0;
+    } CATCH_STD()
+    return TV(nativeViewPtr)->get_parent().is_null( S(columnIndex), TV(nativeViewPtr)->get_source_ndx(S(rowIndex))) ? JNI_TRUE : JNI_FALSE;  // noexcept
+}
+
 // Setters
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetLong(

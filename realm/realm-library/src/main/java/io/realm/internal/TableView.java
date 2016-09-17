@@ -253,6 +253,11 @@ public class TableView implements TableOrView {
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
     }
 
+    @Override
+    public boolean isNull(long columnIndex, long rowIndex) {
+        return nativeIsNull(nativePtr, columnIndex, rowIndex);
+    }
+
     // Methods for setting values.
 
     /**
@@ -360,6 +365,12 @@ public class TableView implements TableOrView {
     public void setLink(long columnIndex, long rowIndex, long value, boolean isDefault){
         if (parent.isImmutable()) throwImmutable();
         nativeSetLink(nativePtr, columnIndex, rowIndex, value);
+    }
+
+    @Override
+    public void setNull(long columnIndex, long rowIndex, boolean isDefault) {
+        if (parent.isImmutable()) throwImmutable();
+        getTable().setNull(columnIndex, getSourceRowIndex(rowIndex), isDefault);
     }
 
     @Override
@@ -791,6 +802,7 @@ public class TableView implements TableOrView {
     private native String nativeGetString(long nativeViewPtr, long columnIndex, long rowIndex);
     private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
     private native long nativeGetLink(long nativeViewPtr, long columnIndex, long rowIndex);
+    private native boolean nativeIsNull(long nativePtr, long columnIndex, long rowIndex);
     private native void nativeSetLong(long nativeViewPtr, long columnIndex, long rowIndex, long value);
     private native void nativeSetBoolean(long nativeViewPtr, long columnIndex, long rowIndex, boolean value);
     private native void nativeSetFloat(long nativeViewPtr, long columnIndex, long rowIndex, float value);

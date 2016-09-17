@@ -615,6 +615,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget
     return 0;
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNull
+        (JNIEnv*, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    return TBL(nativeTablePtr)->is_null( S(columnIndex), S(rowIndex)) ? JNI_TRUE : JNI_FALSE;  // noexcept
+}
 
 // ----------------- Set cell
 

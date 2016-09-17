@@ -216,6 +216,10 @@ public interface TableOrView {
      */
     void setLink(long columnIndex, long rowIndex, long value, boolean isDefault);
 
+    void setNull(long columnIndex, long rowIndex, boolean isDefault);
+
+    boolean isNull(long columnIndex, long rowIndex);
+
     long sumLong(long columnIndex);
 
     Long maximumLong(long columnIndex);

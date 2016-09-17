@@ -732,6 +732,11 @@ public class Table implements TableOrView, TableSchema {
         }
     }
 
+    @Override
+    public boolean isNull(long columnIndex, long rowIndex) {
+        return nativeIsNull(nativePtr, columnIndex, rowIndex);
+    }
+
     /**
      * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
      * If error checking is required, use {@link #getCheckedRow(long)} instead.
@@ -833,6 +838,12 @@ public class Table implements TableOrView, TableSchema {
     public void setLink(long columnIndex, long rowIndex, long value, boolean isDefault) {
         checkImmutable();
         nativeSetLink(nativePtr, columnIndex, rowIndex, value, isDefault);
+    }
+
+    public void setNull(long columnIndex, long rowIndex, boolean isDefault) {
+        checkImmutable();
+        checkDuplicatedNullForPrimaryKeyValue(columnIndex, rowIndex);
+        nativeSetNull(nativePtr, columnIndex, rowIndex, isDefault);
     }
 
     public void addSearchIndex(long columnIndex) {
@@ -1332,6 +1343,7 @@ public class Table implements TableOrView, TableSchema {
     private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
     public static native long nativeGetLinkView(long nativePtr, long columnIndex, long rowIndex);
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
+    private native boolean nativeIsNull(long nativePtr, long columnIndex, long rowIndex);
     native long nativeGetRowPtr(long nativePtr, long index);
     public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
     public static native void nativeSetLongUnique(long nativeTablePtr, long columnIndex, long rowIndex, long value);
