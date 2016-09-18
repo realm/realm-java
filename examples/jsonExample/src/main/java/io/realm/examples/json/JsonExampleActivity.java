@@ -44,9 +44,10 @@ public class JsonExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Realm.init(getApplicationContext());
         setContentView(R.layout.activity_realm_example);
 
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(realmConfiguration);
         realm = Realm.getInstance(realmConfiguration);
     }

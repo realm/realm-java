@@ -44,7 +44,8 @@ public abstract class NewsReaderApplication extends Application {
         });
 
         // Configure default configuration for Realm
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+        Realm.init(this);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder().build();
         Realm.setDefaultConfiguration(realmConfig);
     }
 

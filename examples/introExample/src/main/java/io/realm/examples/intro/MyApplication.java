@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2014 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.examples.threads;
+package io.realm.examples.intro;
 
 import android.app.Application;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 
 public class MyApplication extends Application {
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // Configure Realm for the application
+        // Initialize Realm. Should only be done once when the application starts.
         Realm.init(this);
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
-        Realm.deleteRealm(realmConfiguration); // Clean slate
-        Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
     }
 }

@@ -47,6 +47,7 @@ public class MigrationExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Realm.init(getApplicationContext());
         setContentView(R.layout.activity_realm_migration_example);
 
         rootLayout = ((LinearLayout) findViewById(R.id.container));
@@ -59,7 +60,7 @@ public class MigrationExampleActivity extends Activity {
 
         // When you create a RealmConfiguration you can specify the version of the schema.
         // If the schema does not have that version a RealmMigrationNeededException will be thrown.
-        RealmConfiguration config0 = new RealmConfiguration.Builder(this)
+        RealmConfiguration config0 = new RealmConfiguration.Builder()
                 .name("default0")
                 .schemaVersion(3)
                 .build();
@@ -77,7 +78,7 @@ public class MigrationExampleActivity extends Activity {
 
         // Or you can add the migration code to the configuration. This will run the migration code without throwing
         // a RealmMigrationNeededException.
-        RealmConfiguration config1 = new RealmConfiguration.Builder(this)
+        RealmConfiguration config1 = new RealmConfiguration.Builder()
                 .name("default1")
                 .schemaVersion(3)
                 .migration(new Migration())
@@ -90,7 +91,7 @@ public class MigrationExampleActivity extends Activity {
 
         // or you can set .deleteRealmIfMigrationNeeded() if you don't want to bother with migrations.
         // WARNING: This will delete all data in the Realm though.
-        RealmConfiguration config2 = new RealmConfiguration.Builder(this)
+        RealmConfiguration config2 = new RealmConfiguration.Builder()
                 .name("default2")
                 .schemaVersion(3)
                 .deleteRealmIfMigrationNeeded()
