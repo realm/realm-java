@@ -18,8 +18,10 @@ package io.realm;
 
 import android.annotation.TargetApi;
 import android.app.IntentService;
+import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,9 +50,11 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
@@ -122,6 +126,7 @@ public final class Realm extends BaseRealm {
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
     private static RealmConfiguration defaultConfiguration;
+    private static boolean realmInitialized = false;
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -142,6 +147,52 @@ public final class Realm extends BaseRealm {
     }
 
     /**
+     * Initializes the Realm library. It is required to call this method before interacting with any other of the Realm
+     * API's.
+     *
+     * A good place is in an {@link android.app.Application} subclass:
+     * <pre>
+     * {@code
+     * public class MyApplication extends Application {
+     *   \@Override
+     *   public void onCreate() {
+     *     super.onCreate();
+     *     Realm.init(this);
+     *   }
+     * }
+     * }
+     * </pre>
+     *
+     * Remember to register it in the {@code AndroidManifest.xml} file:
+     * <pre>
+     * {@code
+     * <?xml version="1.0" encoding="utf-8"?>
+     * <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.realm.example">
+     * <application android:name=".MyApplication">
+     *   // ...
+     * </application>
+     * </manifest>
+     * }
+     * </pre>
+     *
+     * @param context the Application Context.
+     * @throws IllegalArgumentException if null context is provided.
+     */
+    public static synchronized void init(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Non-null context required.");
+        }
+        RealmCore.loadLibrary(context);
+        BaseRealm.applicationContext = context;
+        defaultConfiguration = new RealmConfiguration.Builder().build();
+
+        if (!realmInitialized) {
+            RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
+        }
+        realmInitialized = true;
+    }
+
+    /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
      *
@@ -153,7 +204,7 @@ public final class Realm extends BaseRealm {
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
-            throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() first");
+            throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
         }
         return RealmCache.createRealmOrGetFromCache(defaultConfiguration, Realm.class);
     }

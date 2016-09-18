@@ -367,12 +367,14 @@ public final class RealmConfiguration {
          * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
-         *
-         * @param context the Android application context.
          */
-        public Builder(Context context) {
+        public Builder() {
+            this(BaseRealm.applicationContext);
+        }
+
+        Builder(Context context) {
             if (context == null) {
-                throw new IllegalArgumentException("A non-null Context must be provided");
+                throw new IllegalStateException("Call `Realm.init(Context)` before creating a RealmConfiguration");
             }
             RealmCore.loadLibrary(context);
             initializeBuilder(context);

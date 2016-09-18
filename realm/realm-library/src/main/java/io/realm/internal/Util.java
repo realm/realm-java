@@ -21,12 +21,6 @@ import io.realm.RealmObject;
 
 public class Util {
 
-    static {
-        // Any internal class with static native methods that uses Realm Core must load the Realm Core library
-        // themselves as it otherwise might not have been loaded.
-        RealmCore.loadLibrary();
-    }
-
     public static long getNativeMemUsage() {
         return nativeGetMemUsage();
     }
