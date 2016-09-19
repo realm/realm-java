@@ -148,8 +148,8 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Initializes the Realm library. It is required to call this method before interacting with any other of the Realm
-     * API's.
+     * Initializes the Realm library and creates a default configuration that is ready to use. It is required to call
+     * this method before interacting with any other of the Realm API's.
      *
      * A good place is in an {@link android.app.Application} subclass:
      * <pre>
@@ -177,7 +177,8 @@ public final class Realm extends BaseRealm {
      * </pre>
      *
      * @param context the Application Context.
-     * @throws IllegalArgumentException if null context is provided.
+     * @throws IllegalArgumentException if a {@code null} context is provided.
+     * @see #getDefaultInstance()
      */
     public static synchronized void init(Context context) {
         if (BaseRealm.applicationContext == null) {
