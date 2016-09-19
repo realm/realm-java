@@ -31,9 +31,11 @@ import java.io.File;
 
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
-import io.realm.util.SyncTestUtils;
 
+import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -74,7 +76,7 @@ public class SyncConfigurationTests {
         } catch (IllegalArgumentException ignore) {
         }
 
-        User user = SyncTestUtils.createTestUser(0); // Create user that has expired credentials
+        User user = createTestUser(0); // Create user that has expired credentials
         try {
             builder.user(user);
         } catch (IllegalArgumentException ignore) {
@@ -83,7 +85,7 @@ public class SyncConfigurationTests {
 
     @Test
     public void serverUrl_setsFolderAndFileName() {
-        User user = SyncTestUtils.createTestUser();
+        User user = createTestUser();
         String[][] validUrls = {
                 // <URL>, <Folder>, <FileName>
                 { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentity(), "default" },
@@ -127,6 +129,39 @@ public class SyncConfigurationTests {
         }
     }
 
+    private String makeServerUrl(int len) {
+        StringBuilder builder = new StringBuilder("realm://objectserver.realm.io/~/");
+        for (int i = 0; i < len; i++) {
+            builder.append('A');
+        }
+        return builder.toString();
+    }
+
+    @Test
+    public void serverUrl_length() {
+        int[] lengths = {1, SyncConfiguration.MAX_FILE_NAME_LENGTH - 1,
+                SyncConfiguration.MAX_FILE_NAME_LENGTH, SyncConfiguration.MAX_FILE_NAME_LENGTH + 1, 1000};
+
+        for (int len : lengths) {
+            SyncConfiguration.Builder builder = new SyncConfiguration.Builder(context)
+                .serverUrl(makeServerUrl(len))
+                .user(createTestUser());
+
+            SyncConfiguration config = builder.build();
+            assertTrue("Length: " + len, config.getRealmFileName().length() <= SyncConfiguration.MAX_FILE_NAME_LENGTH);
+            assertTrue("Length: " + len, config.getPath().length() <= SyncConfiguration.MAX_FULL_PATH_LENGTH);
+        }
+    }
+
+    @Test
+    public void serverUrl_invalidChars() {
+        SyncConfiguration.Builder builder = new SyncConfiguration.Builder(context)
+                .serverUrl("realm://objectserver.realm.io/~/?")
+                .user(createTestUser());
+        SyncConfiguration config = builder.build();
+        assertFalse(config.getRealmFileName().contains("?"));
+    }
+
     @Test
     public void userAndServerUrlRequired() {
         SyncConfiguration.Builder builder;
@@ -140,7 +175,7 @@ public class SyncConfigurationTests {
 
         builder = new SyncConfiguration.Builder(context);
         try {
-            builder.user(SyncTestUtils.createTestUser(Long.MAX_VALUE)).build();
+            builder.user(createTestUser(Long.MAX_VALUE)).build();
         } catch (IllegalStateException ignore) {
         }
 
@@ -156,7 +191,7 @@ public class SyncConfigurationTests {
     public void errorHandler() {
         SyncConfiguration.Builder builder;
         builder = new SyncConfiguration.Builder(context)
-                .user(SyncTestUtils.createTestUser())
+                .user(createTestUser())
                 .serverUrl("realm://objectserver.realm.io/default");
 
         Session.ErrorHandler errorHandler = new Session.ErrorHandler() {
@@ -183,7 +218,7 @@ public class SyncConfigurationTests {
 
         // Create configuration using the default handler
         SyncConfiguration config = new SyncConfiguration.Builder(context)
-                .user(SyncTestUtils.createTestUser())
+                .user(createTestUser())
                 .serverUrl("realm://objectserver.realm.io/default")
                 .build();
         assertEquals(errorHandler, config.getErrorHandler());

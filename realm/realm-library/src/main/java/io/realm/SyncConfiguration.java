@@ -19,12 +19,16 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
 
 import io.realm.annotations.RealmModule;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.syncpolicy.AutomaticSyncPolicy;
@@ -63,6 +67,12 @@ import io.realm.rx.RxObservableFactory;
  * {@link Realm#getDefaultInstance()} like normal unsynchronized Realms.
  */
 public final class SyncConfiguration extends RealmConfiguration {
+
+    // The FAT file system has limitations of length. Also, not all characters are permitted.
+    // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
+    public static final int MAX_FULL_PATH_LENGTH = 256;
+    public static final int MAX_FILE_NAME_LENGTH = 255;
+    private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
 
     private final URI serverUrl;
     private final User user;
@@ -380,6 +390,11 @@ public final class SyncConfiguration extends RealmConfiguration {
          *
          * This behaviour can be overwritten using {@link #name(String)} and {@link #directory(File)}.
          *
+         * Many Android devices are using FAT32 file systems. FAT32 file systems have a limitation that
+         * file name cannot be longer than 255 characters. Moreover, the entire URL should not exceed 256 characters.
+         * If file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
+         * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
+         *
          * @param url URL identifying the Realm.
          * @throws IllegalArgumentException if the URL is not valid.
          */
@@ -459,6 +474,22 @@ public final class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        private String MD5(String in) {
+            try {
+                MessageDigest digest = MessageDigest.getInstance("MD5");
+                byte[] buf = digest.digest(in.getBytes("UTF-8"));
+                StringBuilder builder = new StringBuilder();
+                for (byte b : buf) {
+                    builder.append(String.format("%02X", b));
+                }
+                return builder.toString();
+            } catch (NoSuchAlgorithmException e) {
+                throw new RealmException(e.getMessage());
+            } catch (UnsupportedEncodingException e) {
+                throw new RealmException(e.getMessage());
+            }
+        }
+
         /**
          * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link User}
          * defined by {@link #user(User)} logs out from the device using {@link User#logout()}.
@@ -495,11 +526,39 @@ public final class SyncConfiguration extends RealmConfiguration {
             File rootDir = overrideDefaultFolder ? directory : defaultFolder;
             String realmPathFromRootDir = getServerPath(resolvedServerUrl);
             File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
+
+            String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
+            String fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
+            // full path must not exceed 256 characters (on FAT)
+            if (fullPathName.length() > MAX_FULL_PATH_LENGTH) {
+                // path is too long, so we make the file name shorter
+                realmFileName = MD5(realmFileName);
+                fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
+                if (fullPathName.length() > MAX_FULL_PATH_LENGTH) {
+                    // use rootDir/userIdentify as directory instead as it is shorter
+                    realmFileDirectory = new File(rootDir, user.getIdentity());
+                    fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
+                    if (fullPathName.length() > MAX_FULL_PATH_LENGTH) { // we are out of ideas
+                        throw new IllegalStateException(String.format("Full path name must not exceed %d characters: %s",
+                                MAX_FULL_PATH_LENGTH, fullPathName));
+                    }
+                }
+            }
+
+            if (realmFileName.length() > MAX_FILE_NAME_LENGTH) {
+                throw new IllegalStateException(String.format("File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
+                        realmFileName.length()));
+            }
+
+            // substitute invalid characters
+            for (char c : INVALID_CHARS) {
+                realmFileName = realmFileName.replace(c, '_');
+            }
+
             // Create the folder on disk (if needed)
             if (!realmFileDirectory.exists() && !realmFileDirectory.mkdirs()) {
                 throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
             }
-            String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
 
             return new SyncConfiguration(
                     // Realm Configuration options
