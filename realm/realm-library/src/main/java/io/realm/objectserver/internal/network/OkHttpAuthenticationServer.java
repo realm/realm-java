@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Util;
 import io.realm.objectserver.ErrorCode;
+import io.realm.objectserver.User;
 import io.realm.objectserver.internal.Token;
 import io.realm.objectserver.Credentials;
 import io.realm.objectserver.ObjectServerError;
@@ -67,6 +68,11 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     @Override
     public RefreshResponse refresh(String token, URL authenticationUrl) {
+        throw new UnsupportedOperationException("FIXME");
+    }
+
+    @Override
+    public LogoutResponse logout(User user, URL authenticationUrl) {
         throw new UnsupportedOperationException("FIXME");
     }
 

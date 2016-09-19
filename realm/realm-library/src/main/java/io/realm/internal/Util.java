@@ -18,11 +18,16 @@ package io.realm.internal;
 
 import android.os.Build;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.log.RealmLog;
 
 public class Util {
 
@@ -70,32 +75,6 @@ public class Util {
         return clazz;
     }
 
-    public static long calculateExponentialDelay(int failedAttempts, long maxDelayInMs) {
-        // https://en.wikipedia.org/wiki/Exponential_backoff
-        //Attempt = FailedAttempts + 1
-        //Attempt 1     0s     0s
-        //Attempt 2     2s     2s
-        //Attempt 3     4s     4s
-        //Attempt 4     8s     8s
-        //Attempt 5     16s    16s
-        //Attempt 6     32s    32s
-        //Attempt 7     64s    1m 4s
-        //Attempt 8     128s   2m 8s
-        //Attempt 9     256s   4m 16s
-        //Attempt 10    512    8m 32s
-        //Attempt 11    1024   17m 4s
-        //Attempt 12    2048   34m 8s
-        //Attempt 13    4096   1h 8m 16s
-        //Attempt 14    8192   2h 16m 32s
-        //Attempt 15    16384  4h 33m 4s
-        double SCALE = 1.0D; // Scale the exponential backoff
-        double delayInMs = ((Math.pow(2.0D, failedAttempts) - 1d) / 2.0D) * 1000 * SCALE;
-
-        // Just use maximum back-off value. We are not afraid of many threads using this value
-        // to trigger at once.
-        return maxDelayInMs < delayInMs ? maxDelayInMs : (long) delayInMs;
-    }
-
     //-----------------------------------------------------------------------
     /**
      * <p>Gets the stack trace from a Throwable as a String.</p>
@@ -128,6 +107,48 @@ public class Util {
                 || Build.MANUFACTURER.contains("Genymotion")
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || "google_sdk".equals(Build.PRODUCT);
+    }
+
+    public static boolean deleteRealm(String canonicalPath, File realmFolder, String realmFileName) {
+        boolean realmDeleted = true;
+        final String management = ".management";
+        File managementFolder = new File(realmFolder, realmFileName + management);
+
+        // delete files in management directory and the directory
+        // there is no subfolders in the management directory
+        File[] files = managementFolder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                realmDeleted = realmDeleted && file.delete();
+            }
+        }
+        realmDeleted = realmDeleted && managementFolder.delete();
+
+        // delete specific files in root directory
+        return realmDeleted && deletes(canonicalPath, realmFolder, realmFileName);
+    }
+
+    private static boolean deletes(String canonicalPath, File rootFolder, String realmFileName) {
+        final AtomicBoolean realmDeleted = new AtomicBoolean(true);
+
+        List<File> filesToDelete = Arrays.asList(
+                new File(rootFolder, realmFileName),
+                new File(rootFolder, realmFileName + ".lock"),
+                // Old core log file naming styles
+                new File(rootFolder, realmFileName + ".log_a"),
+                new File(rootFolder, realmFileName + ".log_b"),
+                new File(rootFolder, realmFileName + ".log"),
+                new File(canonicalPath));
+        for (File fileToDelete : filesToDelete) {
+            if (fileToDelete.exists()) {
+                boolean deleteResult = fileToDelete.delete();
+                if (!deleteResult) {
+                    realmDeleted.set(false);
+                    RealmLog.warn("Could not delete the file %s", fileToDelete);
+                }
+            }
+        }
+        return realmDeleted.get();
     }
 
 }

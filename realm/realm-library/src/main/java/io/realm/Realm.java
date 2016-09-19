@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -1536,6 +1537,35 @@ public final class Realm extends BaseRealm {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not create an instance of " + moduleName, e);
         }
+    }
+
+    /**
+     * Returns the current number of open Realm instances across all threads that are using this configuration.
+     * This includes both dynamic and normal Realms.
+     *
+     * @param configuration the {@link io.realm.RealmConfiguration} for the Realm.
+     * @return number of open Realm instances across all threads.
+     */
+    public static int getGlobalInstanceCount(RealmConfiguration configuration) {
+        final AtomicInteger globalCount = new AtomicInteger(0);
+        RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
+            @Override
+            public void onResult(int count) {
+                globalCount.set(count);
+            }
+        });
+        return globalCount.get();
+    }
+
+    /**
+     * Returns the current number of open Realm instances on the thread calling this method. This include both
+     * dynamic and normal Realms.
+     *
+     * @param configuration the {@link io.realm.RealmConfiguration} for the Realm.
+     * @return number of open Realm instances across all threads.
+     */
+    public static int getLocalInstanceCount(RealmConfiguration configuration) {
+        return RealmCache.getLocalThreadCount(configuration);
     }
 
     /**

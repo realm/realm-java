@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.internal.network;
+package io.realm.objectserver;
 
-import io.realm.objectserver.internal.Token;
-import okhttp3.Response;
+import android.support.test.runner.AndroidJUnit4;
 
-public class RefreshResponse extends AuthServerResponse {
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    public RefreshResponse(Response response) {
-        // FIXME Parse refresh result
-    }
+import static io.realm.objectserver.SyncTestUtils.createTestUser;
+import static org.junit.Assert.assertEquals;
 
-    public Token getRefreshToken() {
-        return null;
+@RunWith(AndroidJUnit4.class)
+public class UserTests {
+
+    @Test
+    public void toAndFromJson() {
+        User user1 = createTestUser();
+        User user2 = User.fromJson(user1.toJson());
+        assertEquals(user1, user2);
     }
 }

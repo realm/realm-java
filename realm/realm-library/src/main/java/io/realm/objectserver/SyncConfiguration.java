@@ -28,7 +28,6 @@ import java.util.HashSet;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
-import io.realm.objectserver.internal.SyncUtil;
 import io.realm.RealmModel;
 import io.realm.annotations.RealmModule;
 import io.realm.internal.RealmProxyMediator;
@@ -37,8 +36,6 @@ import io.realm.objectserver.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-
-import static io.realm.objectserver.internal.SyncUtil.getFullServerUrl;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -76,6 +73,7 @@ public final class SyncConfiguration extends RealmConfiguration {
     private final User user;
     private final SyncPolicy syncPolicy;
     private final Session.ErrorHandler errorHandler;
+    private final boolean deleteRealmOnLogout;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -93,7 +91,8 @@ public final class SyncConfiguration extends RealmConfiguration {
                                 User user,
                                 URI serverUrl,
                                 SyncPolicy syncPolicy,
-                                Session.ErrorHandler errorHandler
+                                Session.ErrorHandler errorHandler,
+                                boolean deleteRealmOnLogout
     ) {
         super(directory,
                 filename,
@@ -114,6 +113,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         this.serverUrl = serverUrl;
         this.syncPolicy = syncPolicy;
         this.errorHandler = errorHandler;
+        this.deleteRealmOnLogout = deleteRealmOnLogout;
     }
 
 
@@ -146,19 +146,22 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         SyncConfiguration that = (SyncConfiguration) o;
 
-        if (serverUrl != null ? !serverUrl.equals(that.serverUrl) : that.serverUrl != null) return false;
-        if (user != null ? !user.equals(that.user) : that.user != null) return false;
-        if (syncPolicy != null ? !syncPolicy.equals(that.syncPolicy) : that.syncPolicy != null) return false;
-        return errorHandler != null ? errorHandler.equals(that.errorHandler) : that.errorHandler == null;
+        if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
+        if (!serverUrl.equals(that.serverUrl)) return false;
+        if (!user.equals(that.user)) return false;
+        if (!syncPolicy.equals(that.syncPolicy)) return false;
+        return errorHandler.equals(that.errorHandler);
+
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (serverUrl != null ? serverUrl.hashCode() : 0);
-        result = 31 * result + (user != null ? user.hashCode() : 0);
-        result = 31 * result + (syncPolicy != null ? syncPolicy.hashCode() : 0);
-        result = 31 * result + (errorHandler != null ? errorHandler.hashCode() : 0);
+        result = 31 * result + serverUrl.hashCode();
+        result = 31 * result + user.hashCode();
+        result = 31 * result + syncPolicy.hashCode();
+        result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         return result;
     }
 
@@ -193,7 +196,17 @@ public final class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * ReplicationConfiguration.Builder used to construct instances of a ReplicationConfiguration in a fluent manner.
+     * Returns {@code true} if the Realm file must be deleted once the {@link User} owning it logs out.
+     *
+     * @return {@code true} if the Realm file must be deleted if the {@link User} logs out. {@code false} if the file
+     *         is allowed to remain behind.
+     */
+    public boolean shouldDeleteRealmOnLogout() {
+        return deleteRealmOnLogout;
+    }
+
+    /**
+     * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
 
@@ -214,6 +227,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         private File defaultFolder;
         private String defaultLocalFileName;
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
+        private boolean deleteRealmOnLogout = false;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -411,8 +425,8 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (user == null) {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
-            if (!user.getSyncUser().isAuthenticated()) {
-                throw new IllegalArgumentException("User not authenticated or authentication expired. User ID: " + user.getIdentity());
+            if (!user.isValid()) {
+                throw new IllegalArgumentException("User not authenticated or authentication expired.");
             }
             this.user = user;
             return this;
@@ -446,6 +460,18 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Non-null 'errorHandler' required.");
             }
             this.errorHandler = errorHandler;
+            return this;
+        }
+
+        /**
+         * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link User}
+         * defined by {@link #user(User)} logs out from the device using {@link User#logout()}.
+         *
+         * The default behaviour is that the Realm file is allowed to stay behind, making it faster for users to log in
+         * again and have access to their data faster.
+         */
+        public Builder deleteRealmOnLogout() {
+            this.deleteRealmOnLogout = true;
             return this;
         }
 
@@ -499,7 +525,8 @@ public final class SyncConfiguration extends RealmConfiguration {
                     user,
                     resolvedServerUrl,
                     syncPolicy,
-                    errorHandler
+                    errorHandler,
+                    deleteRealmOnLogout
             );
         }
 

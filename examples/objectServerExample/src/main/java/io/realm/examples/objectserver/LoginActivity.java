@@ -35,8 +35,6 @@ import static io.realm.objectserver.ErrorCode.UNKNOWN_ACCOUNT;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private UserStore userStore = MyApplication.USER_STORE;
-
     @BindView(R.id.input_username) EditText username;
     @BindView(R.id.input_password) EditText password;
     @BindView(R.id.button_login) Button loginButton;
@@ -84,8 +82,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onSuccess(User user) {
                 progressDialog.dismiss();
-                userStore.saveAsync(MyApplication.APP_USER_KEY, user); // TODO Use Async
-                MyApplication.CURRENT_USER = user;
                 onLoginSuccess();
             }
 

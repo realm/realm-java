@@ -36,17 +36,14 @@ import static io.realm.objectserver.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertFalse;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SchemaTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-
     private Context context;
-    private User user;
     private SyncConfiguration config;
 
     @Before
@@ -61,6 +58,7 @@ public class SchemaTests {
 
     @After
     public void tearDown() throws Exception {
+        Realm.deleteRealm(config);
     }
 
     @Test
@@ -89,10 +87,14 @@ public class SchemaTests {
         String className = "StringOnly";
         realm.beginTransaction();
         assertTrue(realm.getSchema().contains(className));
-        thrown.expect(IllegalArgumentException.class);
-        realm.getSchema().remove(className);
-        realm.cancelTransaction();
-        realm.close();
+        try {
+            realm.getSchema().remove(className);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+            realm.close();
+        }
     }
 
     @Test
@@ -111,11 +113,15 @@ public class SchemaTests {
         Realm realm = Realm.getInstance(config);
         String className = "StringOnly";
         realm.beginTransaction();
-        thrown.expect(IllegalArgumentException.class);
-        realm.getSchema().rename(className, "Dogplace");
-        realm.cancelTransaction();
-        assertTrue(realm.getSchema().contains(className));
-        realm.close();
+        try {
+            realm.getSchema().rename(className, "Dogplace");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+            assertTrue(realm.getSchema().contains(className));
+            realm.close();
+        }
     }
 
     @Test
@@ -125,10 +131,14 @@ public class SchemaTests {
         String fieldName = "chars";
         realm.beginTransaction();
         assertTrue(realm.getSchema().get(className).hasField(fieldName));
-        thrown.expect(IllegalArgumentException.class);
-        realm.getSchema().get(className).removeField(fieldName);
-        realm.cancelTransaction();
-        realm.close();
+        try {
+            realm.getSchema().get(className).removeField(fieldName);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+            realm.close();
+        }
     }
 
     @Test

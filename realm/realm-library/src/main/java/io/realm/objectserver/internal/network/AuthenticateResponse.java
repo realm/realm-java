@@ -30,12 +30,11 @@ import okhttp3.Response;
 /**
  * This class represents the response for a authenticate request.
  */
-public class AuthenticateResponse {
+public class AuthenticateResponse extends AuthServerResponse {
 
     private static final String JSON_FIELD_ACCESS_TOKEN = "access_token";
     private static final String JSON_FIELD_REFRESH_TOKEN = "refresh_token";
 
-    private final ObjectServerError error;
     private final Token accessToken;
     private final Token refreshToken;
 
@@ -53,18 +52,7 @@ public class AuthenticateResponse {
         }
         RealmLog.debug("Authenticate response: " + serverResponse);
         if (response.code() != 200) {
-            try {
-                JSONObject obj = new JSONObject(serverResponse);
-                String hint = obj.optString("hint", null);
-                String title = obj.optString("title", null);
-                ErrorCode errorCode = ErrorCode.fromInt(obj.optInt("code", -1));
-                ObjectServerError error = new ObjectServerError(errorCode, title, hint);
-                return new AuthenticateResponse(error);
-            } catch (JSONException e) {
-                ObjectServerError error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, "Server failed with " +
-                        response.code() + ", but could not parse error.", e);
-                return new AuthenticateResponse(error);
-            }
+            return new AuthenticateResponse(AuthServerResponse.createError(serverResponse, response.code()));
         } else {
             return new AuthenticateResponse(serverResponse);
         }
@@ -74,7 +62,7 @@ public class AuthenticateResponse {
      * Creates a unsuccessful authentication response. This should only happen in case of network / IO problems.
      */
     AuthenticateResponse(ObjectServerError error) {
-        this.error = error;
+        setError(error);
         this.accessToken = null;
         this.refreshToken = null;
     }
@@ -101,17 +89,9 @@ public class AuthenticateResponse {
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
         }
 
+        setError(error);
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.error = error;
-    }
-
-    public boolean isValid() {
-        return (error == null);
-    }
-
-    public ObjectServerError getError() {
-        return error;
     }
 
     public Token getAccessToken() {

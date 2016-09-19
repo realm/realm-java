@@ -39,6 +39,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
@@ -546,36 +547,11 @@ public abstract class BaseRealm implements Closeable {
         }
     }
 
-    static private boolean deletes(String canonicalPath, File rootFolder, String realmFileName) {
-        final AtomicBoolean realmDeleted = new AtomicBoolean(true);
-
-        List<File> filesToDelete = Arrays.asList(
-                new File(rootFolder, realmFileName),
-                new File(rootFolder, realmFileName + ".lock"),
-                // Old core log file naming styles
-                new File(rootFolder, realmFileName + ".log_a"),
-                new File(rootFolder, realmFileName + ".log_b"),
-                new File(rootFolder, realmFileName + ".log"),
-                new File(canonicalPath));
-        for (File fileToDelete : filesToDelete) {
-            if (fileToDelete.exists()) {
-                boolean deleteResult = fileToDelete.delete();
-                if (!deleteResult) {
-                    realmDeleted.set(false);
-                    RealmLog.warn("Could not delete the file %s", fileToDelete);
-                }
-            }
-        }
-        return realmDeleted.get();
-    }
-
     /**
      * Deletes the Realm file defined by the given configuration.
      */
     static boolean deleteRealm(final RealmConfiguration configuration) {
-        final String management = ".management";
         final AtomicBoolean realmDeleted = new AtomicBoolean(true);
-
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -587,23 +563,9 @@ public abstract class BaseRealm implements Closeable {
                 String canonicalPath = configuration.getPath();
                 File realmFolder = configuration.getRealmDirectory();
                 String realmFileName = configuration.getRealmFileName();
-                File managementFolder = new File(realmFolder, realmFileName + management);
-
-                // delete files in management directory and the directory
-                // there is no subfolders in the management directory
-                File[] files = managementFolder.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        realmDeleted.set(realmDeleted.get() && file.delete());
-                    }
-                }
-                realmDeleted.set(realmDeleted.get() && managementFolder.delete());
-
-                // delete specific files in root directory
-                realmDeleted.set(realmDeleted.get() && deletes(canonicalPath, realmFolder, realmFileName));
+                realmDeleted.set(Util.deleteRealm(canonicalPath, realmFolder, realmFileName));
             }
         });
-
         return realmDeleted.get();
     }
 
