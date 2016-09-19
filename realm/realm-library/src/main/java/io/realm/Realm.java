@@ -415,6 +415,8 @@ public final class Realm extends BaseRealm {
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of Realm objects created.
      * @param inputStream the JSON array as a InputStream. All objects in the array must be of the specified class.
@@ -447,6 +449,8 @@ public final class Realm extends BaseRealm {
      * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated.
      * If a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned
      * the default value for the field type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
@@ -597,6 +601,8 @@ public final class Realm extends BaseRealm {
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the JSON
      * object the {@link RealmObject} field will be set to the default value for that type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of Realm object to create.
      * @param inputStream the JSON object data as a InputStream.
@@ -646,6 +652,8 @@ public final class Realm extends BaseRealm {
      * {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a new
      * {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
      * default value for the field type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the {@link InputStream} with object data in JSON format.
