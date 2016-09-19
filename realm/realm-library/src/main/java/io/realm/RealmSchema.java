@@ -26,8 +26,7 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.internal.objectserver.ObjectServerFacade;
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible

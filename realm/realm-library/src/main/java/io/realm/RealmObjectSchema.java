@@ -27,8 +27,7 @@ import java.util.Set;
 import io.realm.annotations.Required;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.internal.objectserver.ObjectServerFacade;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to

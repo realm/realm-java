@@ -21,8 +21,8 @@ import java.util.List;
 
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
-import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.SyncManager;
+import io.realm.internal.objectserver.ObjectServerFacade;
 
 /**
  * Global logger used by all Realm components.

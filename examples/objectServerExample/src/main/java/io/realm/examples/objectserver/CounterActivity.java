@@ -31,9 +31,9 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.objectserver.model.CRDTCounter;
 import io.realm.examples.objectserver.model.CounterOperation;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.User;
+import io.realm.SyncConfiguration;
+import io.realm.SyncManager;
+import io.realm.User;
 
 public class CounterActivity extends AppCompatActivity {
 

@@ -27,7 +27,7 @@ create_javah(TARGET jni_headers
   CLASSES io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
   io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
   io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
-  io.realm.objectserver.SyncManager io.realm.objectserver.internal.SyncSession
+  io.realm.SyncManager io.realm.internal.objectserver.SyncSession
   io.realm.log.LogLevel
   io.realm.Property io.realm.RealmSchema io.realm.RealmObjectSchema
 

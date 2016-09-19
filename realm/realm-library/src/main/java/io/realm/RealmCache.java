@@ -27,7 +27,7 @@ import java.util.Map;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.internal.objectserver.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.

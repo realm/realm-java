@@ -58,8 +58,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.SyncConfiguration;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.internal.objectserver.ObjectServerFacade;
 import rx.Observable;
 
 /**

@@ -26,12 +26,12 @@ import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.objectserver.Credentials;
-import io.realm.objectserver.ObjectServerError;
-import io.realm.objectserver.User;
-import io.realm.objectserver.UserStore;
+import io.realm.Credentials;
+import io.realm.ObjectServerError;
+import io.realm.User;
+import io.realm.UserStore;
 
-import static io.realm.objectserver.ErrorCode.UNKNOWN_ACCOUNT;
+import static io.realm.ErrorCode.UNKNOWN_ACCOUNT;
 
 public class LoginActivity extends AppCompatActivity {
 

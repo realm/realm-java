@@ -26,7 +26,6 @@ import com.getkeepsafe.relinker.BuildConfig;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,7 +43,7 @@ import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.internal.objectserver.ObjectServerFacade;
 import rx.Observable;
 
 /**

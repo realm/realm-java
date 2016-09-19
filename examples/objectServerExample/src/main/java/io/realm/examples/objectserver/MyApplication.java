@@ -21,10 +21,10 @@ import android.util.Log;
 
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.SyncManager;
-import io.realm.objectserver.User;
-import io.realm.objectserver.UserStore;
-import io.realm.objectserver.android.SharedPrefsUserStore;
+import io.realm.SyncManager;
+import io.realm.User;
+import io.realm.UserStore;
+import io.realm.android.SharedPrefsUserStore;
 
 public class MyApplication extends Application {
 

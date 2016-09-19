@@ -21,9 +21,8 @@ import java.io.File;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmSchema;
-import io.realm.RealmFieldType;
 import io.realm.internal.async.BadVersionException;
-import io.realm.objectserver.internal.ObjectServerFacade;
+import io.realm.internal.objectserver.ObjectServerFacade;
 
 public final class SharedRealm implements Closeable {
 
