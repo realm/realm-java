@@ -32,12 +32,14 @@ import io.realm.RealmResults;
 import io.realm.examples.objectserver.model.CRDTCounter;
 import io.realm.examples.objectserver.model.CounterOperation;
 import io.realm.objectserver.SyncConfiguration;
+import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 
 public class CounterActivity extends AppCompatActivity {
 
     private Realm realm;
     private RealmResults<CounterOperation> counter;
+    private User user;
 
     @BindView(R.id.text_counter) TextView counterView;
 
@@ -48,8 +50,7 @@ public class CounterActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         // Check if we have a valid user, otherwise redirect to login
-        User user = MyApplication.CURRENT_USER;
-        if (user == null) {
+        if (User.currentUser() == null) {
             gotoLoginActivity();
         }
     }
@@ -57,7 +58,8 @@ public class CounterActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (MyApplication.CURRENT_USER != null) {
+        if (User.currentUser() != null) {
+            user = User.currentUser();
             // Create a RealmConfiguration for our user
             SyncConfiguration config = new SyncConfiguration.Builder()
                     .initialData(new Realm.Transaction() {
@@ -66,7 +68,7 @@ public class CounterActivity extends AppCompatActivity {
                             realm.createObject(CRDTCounter.class, 1);
                         }
                     })
-                    .user(MyApplication.CURRENT_USER)
+                    .user(user)
                     .serverUrl("realm://" + MyApplication.OBJECT_SERVER_IP + "/~/default")
                     .build();
 
@@ -74,6 +76,7 @@ public class CounterActivity extends AppCompatActivity {
             realm = Realm.getInstance(config);
 
             // FIXME Looks like PrimaryKey and lists are not working correctly yet
+            // FIXME Also need support for the `setDefault` instruction for this to make sense.
 //            counter = realm.where(CRDTCounter.class).findFirstAsync();
 //            counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
 //                @Override
@@ -107,6 +110,7 @@ public class CounterActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         closeRealm();
+        user = null;
     }
 
     private void closeRealm() {
@@ -125,8 +129,8 @@ public class CounterActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_logout:
-                MyApplication.CURRENT_USER.logout();
                 closeRealm();
+                user.logout();
                 gotoLoginActivity();
                 return true;
 

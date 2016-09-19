@@ -19,11 +19,12 @@ package io.realm.objectserver.internal.network;
 import java.net.URI;
 import java.net.URL;
 
+import io.realm.objectserver.User;
 import io.realm.objectserver.internal.Token;
 import io.realm.objectserver.Credentials;
 
 /**
- * Interface for handling communication with the Realm Object Server.
+ * Interface for handling communication with Realm Object Servers.
  *
  * Note, any implementation of this class is not responsible for handling retries or error handling, it is
  * only responsible for executing a given network request.
@@ -32,4 +33,5 @@ public interface AuthenticationServer {
     AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl);
     AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authenticationUrl);
     RefreshResponse refresh(String token, URL authenticationUrl);
+    LogoutResponse logout(User user, URL authenticationUrl);
 }

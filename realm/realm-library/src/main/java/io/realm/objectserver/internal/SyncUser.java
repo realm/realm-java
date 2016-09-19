@@ -16,25 +16,27 @@ package io.realm.objectserver.internal;/*
 
 import android.os.SystemClock;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
-import io.realm.internal.IOException;
-import io.realm.internal.Util;
-import io.realm.log.RealmLog;
-import io.realm.objectserver.ObjectServerError;
+import io.realm.objectserver.Session;
 import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 import io.realm.objectserver.internal.network.AuthenticationServer;
+import io.realm.objectserver.internal.network.ExponentialBackoffTask;
 import io.realm.objectserver.internal.network.RefreshResponse;
 
 /**
@@ -43,90 +45,57 @@ import io.realm.objectserver.internal.network.RefreshResponse;
  */
 public class SyncUser {
 
-    // Time left on current refresh token, when we want to begin refreshing it.
-    // Failing to refresh it before it expires, will result in the user getting logged out.
-    private RealmAsyncTask refreshTask;
+    // Time left on current refresh token, before we want to begin refreshing it.
+    // Failing to refresh it before it expires, will result in the user no longer being valid, and not being able
+    // to synchronize changes. It will still be possible to open Realms and read their data.
+    private final long REFRESH_WINDOW_MS = TimeUnit.SECONDS.toMillis(5);
 
-    private final String identifier;
+    private final String identity;
     private Token refreshToken;
-    private URL authentificationUrl;
-    private Map<URI, Token> accessTokens = new HashMap<URI, Token>();
+    private URL authenticationUrl;
+    private Map<URI, AccessDescription> realms = new HashMap<URI, AccessDescription>();
+    private List<Session> sessions = new ArrayList<Session>();
+    private RealmAsyncTask refreshTask;
+    private boolean loggedIn;
 
     /**
      * Create a new Realm Object Server User
      */
-    public SyncUser(String identifier, Token refreshToken, URL authenticationUrl) {
-        this.identifier = identifier;
-        this.authentificationUrl = authenticationUrl;
+    public SyncUser(Token refreshToken, URL authenticationUrl) {
+        this.identity = refreshToken.identity();
+        this.authenticationUrl = authenticationUrl;
         setRefreshToken(refreshToken);
+        this.loggedIn = true;
     }
 
     public void setRefreshToken(final Token refreshToken) {
-        if (refreshTask != null) {
-            refreshTask.cancel();
-            refreshTask = null;
-        }
-        this.refreshToken = refreshToken;
+        this.refreshToken = refreshToken; // Replace any existing token. TODO re-save the user with latest token.
 
-        if (authentificationUrl == null) {
-            return;
-        }
         // Schedule a refresh. This method cannot fail, but will continue retrying until either the app is killed
         // or the attempt was successful.
-        // TODO Consider combining refresh across all users?
         final long expire = refreshToken.expiresMs();
         final AuthenticationServer server = SyncManager.getAuthServer();
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
+        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<RefreshResponse>() {
             @Override
-            public void run() {
+            protected RefreshResponse execute() {
                 long timeToExpiration = System.currentTimeMillis() - expire;
-                if (timeToExpiration > 0) {
+                if (timeToExpiration - REFRESH_WINDOW_MS > 0) {
                     SystemClock.sleep(timeToExpiration);
                 }
+                return server.refresh(refreshToken.value(), authenticationUrl);
+            }
 
-                int attempt = 0;
-                while (!Thread.interrupted()) {
-                    attempt++;
-                    long sleep = Util.calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
-                    if (sleep > 0) {
-                        try {
-                            Thread.sleep(sleep);
-                        } catch (InterruptedException e) {
-                            return; // Abort authentication if interrupted.
-                        }
-                    }
-                    try {
-                        RefreshResponse result = server.refresh(refreshToken.value(), authentificationUrl);
-                        if (result.isValid()) {
-                            setRefreshToken(result.getRefreshToken());
-                            break;
-                        } else {
-                            // FIXME: Log to session events instead
-                            RealmLog.warn("Refreshing login failed: " + result.getErrorCode() + " : " + result.getErrorMessage());
-                        }
-                    } catch (IOException e) {
-                        // FIXME: Log to session events instead.
-                        RealmLog.info("Refreshing login failed: " + e.toString());
-                    }
-                }
+            @Override
+            protected void onSuccess(RefreshResponse response) {
+                setRefreshToken(response.getRefreshToken());
+            }
+
+            @Override
+            protected void onError(RefreshResponse response) {
+
             }
         });
         refreshTask = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
-    }
-
-    /**
-     * Returns {@code true} if the user is logged into the Realm Object Server. If this method returns {@code true it
-     * means that the user has valid credentials that have not expired.
-     * <p>
-     * The user might still be logged out by the Realm Object Server which will not be detected before the user
-     * tries to actively synchronize a Realm. If a logged out user tries to synchronize a Realm, errors will be reported
-     * to the {@link io.realm.objectserver.Session.ErrorHandler} defined by
-     * {@link io.realm.objectserver.SyncConfiguration.Builder#errorHandler}.
-     *
-     * @return {@code true} if the User is considered logged into the Realm Object Server, {@code false} otherwise.
-     */
-    public boolean isAuthenticated() {
-        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis();
     }
 
     /**
@@ -140,18 +109,19 @@ public class SyncUser {
         return token != null && token.expiresMs() > System.currentTimeMillis();
     }
 
-    public void logout() {
-        // TODO Stop any session
-        // TODO Clear all tokens
-    }
-
     public String toJson() {
         JSONObject obj = new JSONObject();
         try {
-            obj.put("identifier", identifier);
-            obj.put("refreshToken", refreshToken.toJson());
-            obj.put("authUrl", authentificationUrl);
-            // FIXME: Add support for  storing access tokens as well
+            obj.put("authUrl", authenticationUrl);
+            obj.put("userToken", refreshToken.toJson());
+            JSONArray realmList = new JSONArray();
+            for (Map.Entry<URI, AccessDescription> entry : realms.entrySet()) {
+                JSONObject token = new JSONObject();
+                token.put("uri", entry.getKey().toString());
+                token.put("description", entry.getValue().toJson());
+                realmList.put(token);
+            }
+            obj.put("realms", realmList);
             return obj.toString();
         } catch (JSONException e) {
             throw new RuntimeException("Could not convert User to JSON", e);
@@ -159,15 +129,21 @@ public class SyncUser {
     }
 
     public String getIdentity() {
-        return identifier;
+        return identity;
     }
 
     public Token getAccessToken(URI serverUrl) {
-        return accessTokens.get(serverUrl);
+        AccessDescription accessDescription = realms.get(serverUrl);
+        return (accessDescription != null) ? accessDescription.accessToken : null;
     }
 
-    public void addAccessToken(URI uri, Token accessToken) {
-        accessTokens.put(uri, accessToken);
+    public void addRealm(URI uri, AccessDescription description) {
+        realms.put(uri, description);
+    }
+
+    // When a session is started, add it to the user so it can be tracked
+    public void addSession(Session session) {
+        sessions.add(session);
     }
 
     /**
@@ -180,30 +156,131 @@ public class SyncUser {
      * @param uri {@link java.net.URI} pointing to a remote Realm.
      * @param accessToken
      */
-    public void addAccessToken(URI uri, String accessToken) {
-        // TODO Currently package protected as we will be unifying the tokens shortly, so each user only has one
-        // access token that can be used everywhere. Permissions/access are then fully handled by the Object Server.
+    public void addRealm(URI uri, String accessToken, String localPath, boolean deleteOnLogout) {
         if (uri == null || accessToken == null) {
             throw new IllegalArgumentException("Non-null 'uri' and 'accessToken' required.");
         }
-        uri = SyncUtil.getFullServerUrl(uri, identifier);
+        uri = SyncUtil.getFullServerUrl(uri, identity);
 
         // Optimistically create a long-lived token with all permissions. If this is incorrect the Object Server
         // will reject it anyway. If tokens are added manually it is up to the user to ensure they are also used
         // correctly.
-        addAccessToken(uri, new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values()));
+        Token token = new Token(accessToken, null, uri.toString(), Long.MAX_VALUE, Token.Permission.values());
+        addRealm(uri, new AccessDescription(token, localPath, deleteOnLogout));
     }
 
-    URL getAuthenticationUrl() {
-        return authentificationUrl;
+    public URL getAuthenticationUrl() {
+        return authenticationUrl;
     }
 
-    public Token getRefreshToken() {
+    public Token getUserToken() {
         return refreshToken;
     }
 
-    public interface Callback {
-        void onSuccess(User user);
-        void onError(ObjectServerError error);
+    public List<Session> getSessions() {
+        return sessions;
+    }
+
+    public void clearTokens() {
+        realms.clear();
+        refreshToken = null;
+        if (refreshTask != null) {
+            refreshTask.cancel();
+            refreshTask = null;
+        }
+    }
+
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    // Local Logout means that the user is no longer able to create new sync configurations,
+    // nor synchronize changes
+    public void localLogout() {
+        loggedIn = false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SyncUser syncUser = (SyncUser) o;
+
+        if (!identity.equals(syncUser.identity)) return false;
+        if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        if (!authenticationUrl.toString().equals(syncUser.authenticationUrl.toString())) return false;
+        return realms.equals(syncUser.realms);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = identity.hashCode();
+        result = 31 * result + refreshToken.hashCode();
+        result = 31 * result + authenticationUrl.toString().hashCode();
+        result = 31 * result + realms.hashCode();
+        return result;
+    }
+
+    public Collection<AccessDescription> getRealms() {
+        return realms.values();
+    }
+
+    // Wrapper for all Realm data needed by a User that might get serialized.
+    public static class AccessDescription {
+        public Token accessToken;
+        public String localPath;
+        public boolean deleteOnLogout;
+
+        public AccessDescription(Token accessToken, String localPath, boolean deleteOnLogout) {
+            this.accessToken = accessToken;
+            this.localPath = localPath;
+            this.deleteOnLogout = deleteOnLogout;
+        }
+
+        public static AccessDescription fromJson(JSONObject json) {
+            try {
+                Token token = Token.from(json.getJSONObject("accessToken"));
+                String localPath = json.getString("localPath");
+                boolean deleteOnLogout = json.getBoolean("deleteOnLogout");
+                return new AccessDescription(token, localPath, deleteOnLogout);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public JSONObject toJson() {
+            try {
+                JSONObject obj = new JSONObject();
+                obj.put("accessToken", accessToken.toJson());
+                obj.put("localPath", localPath);
+                obj.put("deleteOnLogout", deleteOnLogout);
+                return obj;
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            AccessDescription that = (AccessDescription) o;
+
+            if (deleteOnLogout != that.deleteOnLogout) return false;
+            if (!accessToken.equals(that.accessToken)) return false;
+            return localPath.equals(that.localPath);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = accessToken.hashCode();
+            result = 31 * result + localPath.hashCode();
+            result = 31 * result + (deleteOnLogout ? 1 : 0);
+            return result;
+        }
     }
 }

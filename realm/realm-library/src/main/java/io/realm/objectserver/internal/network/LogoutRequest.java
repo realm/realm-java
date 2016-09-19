@@ -16,16 +16,17 @@
 
 package io.realm.objectserver.internal.network;
 
-import io.realm.objectserver.internal.Token;
-import okhttp3.Response;
+import io.realm.objectserver.User;
 
-public class RefreshResponse extends AuthServerResponse {
+/**
+ * This class encapsulates a request to logout a user on the Realm Authentication Server. It is responsible for
+ * constructing the JSON understood by the Realm Authentication Server.
+ */
+public class LogoutRequest {
+    // TODO Endpoint not finished yet
 
-    public RefreshResponse(Response response) {
-        // FIXME Parse refresh result
+    LogoutRequest fromUser(User user) {
+        return new LogoutRequest();
     }
 
-    public Token getRefreshToken() {
-        return null;
-    }
 }

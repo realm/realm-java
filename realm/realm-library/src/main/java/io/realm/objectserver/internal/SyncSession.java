@@ -19,11 +19,9 @@ package io.realm.objectserver.internal;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
-import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.ErrorCode;
 import io.realm.objectserver.ObjectServerError;
@@ -34,6 +32,7 @@ import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 import io.realm.objectserver.internal.network.AuthenticateResponse;
 import io.realm.objectserver.internal.network.AuthenticationServer;
+import io.realm.objectserver.internal.network.ExponentialBackoffTask;
 import io.realm.objectserver.internal.network.NetworkStateReceiver;
 import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
 
@@ -89,8 +88,6 @@ import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
  */
 @Keep
 public final class SyncSession {
-
-    private static final long MAX_DELAY_MS = TimeUnit.MINUTES.toMillis(5);
 
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
 
@@ -256,55 +253,38 @@ public final class SyncSession {
             networkRequest.cancel();
         }
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new Runnable() {
+        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
-            public void run() {
-                int attempt = 0;
-                boolean success;
-                ObjectServerError error = null;
-                while (true) {
-                    attempt++;
-                    long sleep = Util.calculateExponentialDelay(attempt - 1, MAX_DELAY_MS);
-                    if (sleep > 0) {
-                        try {
-                            Thread.sleep(sleep);
-                        } catch (InterruptedException e) {
-                            return; // Abort authentication if interrupted.
-                        }
-                    }
+            protected AuthenticateResponse execute() {
+                return authServer.authenticateRealm(
+                        user.getUserToken(),
+                        configuration.getServerUrl(),
+                        user.getAuthenticationUrl()
+                );
+            }
 
-                    AuthenticateResponse response = authServer.authenticateRealm(
-                            user.getRefreshToken(),
-                            configuration.getServerUrl(),
-                            user.getAuthenticationUrl()
-                    );
-                    if (response.isValid()) {
-                        user.addAccessToken(configuration.getServerUrl(), response.getAccessToken());
-                        success = true;
-                        break;
-                    } else {
-                        // Only retry in case of IO exceptions, since that might be network timeouts etc.
-                        // All other errors indicate a bigger problem, so stop trying to authenticate and
-                        // unbind
-                        ObjectServerError responseError = response.getError();
-                        if (responseError.getErrorCode() != ErrorCode.IO_EXCEPTION) {
-                            success = false;
-                            error = responseError;
-                            break;
-                        }
-                    }
-                }
+            @Override
+            protected void onSuccess(AuthenticateResponse response) {
+                SyncUser.AccessDescription desc = new SyncUser.AccessDescription(
+                        response.getAccessToken(),
+                        configuration.getPath(),
+                        configuration.shouldDeleteRealmOnLogout()
+                );
+                user.addRealm(configuration.getServerUrl(), desc);
+                onSuccess.run();
+            }
 
-                if (success) {
-                    onSuccess.run();
-                } else {
-                    errorHandler.onError(getUserSession(), error);
-                }
+            @Override
+            protected void onError(AuthenticateResponse response) {
+                errorHandler.onError(getUserSession(), response.getError());
             }
         });
         networkRequest = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
+    /**
+     * Checks if a user has valid credentials for accessing this Realm.
+     */
     boolean isAuthenticated(SyncConfiguration configuration) {
         return user.isAuthenticated(configuration);
     }

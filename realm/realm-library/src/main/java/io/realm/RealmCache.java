@@ -379,6 +379,19 @@ final class RealmCache {
         }
     }
 
+    static int getLocalThreadCount(RealmConfiguration configuration) {
+        RealmCache cache = cachesMap.get(configuration.getPath());
+        if (cache == null) {
+            return 0;
+        } else {
+            int totalRefCount = 0;
+            for (RealmCacheType type : RealmCacheType.values()) {
+                totalRefCount += cache.refAndCountMap.get(type).localCount.get();
+            }
+            return totalRefCount;
+        }
+    }
+
     /**
      * Finds an entry for specified schema version in the array.
      *

@@ -63,7 +63,11 @@ public class Token {
         this.identity = identity;
         this.path = path;
         this.expiresSec = expiresSec;
-        this.permissions = Arrays.copyOf(permissions, permissions.length);
+        if (permissions != null) {
+            this.permissions = Arrays.copyOf(permissions, permissions.length);
+        } else {
+            this.permissions = new Permission[0];
+        }
     }
 
     public String value() {
@@ -97,20 +101,48 @@ public class Token {
         return Arrays.copyOf(permissions, permissions.length);
     }
 
-    public String toJson() {
+    public JSONObject toJson() {
         JSONObject obj = new JSONObject();
         try {
             obj.put("token", value);
-            obj.put("expires", expiresSec);
+            JSONObject tokenData = new JSONObject();
+            tokenData.put("identity", identity);
+            tokenData.put("path", path);
+            tokenData.put("expires", expiresSec);
             JSONArray perms = new JSONArray();
             for (int i = 0; i < permissions.length; i++) {
                 perms.put(permissions[i].toString().toLowerCase(Locale.US));
             }
-            obj.put("access", perms);
-            return obj.toString();
+            tokenData.put("access", perms);
+            obj.put("token_data", tokenData);
+            return obj;
         } catch (JSONException e) {
             throw new RuntimeException("Could not convert Token to JSON.", e);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Token token = (Token) o;
+
+        if (expiresSec != token.expiresSec) return false;
+        if (!value.equals(token.value)) return false;
+        if (!Arrays.equals(permissions, token.permissions)) return false;
+        if (!identity.equals(token.identity)) return false;
+        return path != null ? path.equals(token.path) : token.path == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = value.hashCode();
+        result = 31 * result + (int) (expiresSec ^ (expiresSec >>> 32));
+        result = 31 * result + Arrays.hashCode(permissions);
+        result = 31 * result + identity.hashCode();
+        result = 31 * result + (path != null ? path.hashCode() : 0);
+        return result;
     }
 
     public enum Permission {

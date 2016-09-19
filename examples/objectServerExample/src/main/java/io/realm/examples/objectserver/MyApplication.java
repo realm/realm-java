@@ -17,21 +17,22 @@
 package io.realm.examples.objectserver;
 
 import android.app.Application;
+import android.util.Log;
 
+import io.realm.log.AndroidLogger;
+import io.realm.log.RealmLog;
+import io.realm.objectserver.SyncManager;
 import io.realm.objectserver.User;
 import io.realm.objectserver.UserStore;
 import io.realm.objectserver.android.SharedPrefsUserStore;
 
 public class MyApplication extends Application {
 
-    public static final String OBJECT_SERVER_IP = "192.168.104.22";
-    public static final String APP_USER_KEY = "defaultAppUser";
-    public static UserStore USER_STORE;
-    public static User CURRENT_USER = null;
-
+    public static final String OBJECT_SERVER_IP = "192.168.1.3";
     @Override
     public void onCreate() {
         super.onCreate();
-        USER_STORE = new SharedPrefsUserStore(this);
+        RealmLog.add(new AndroidLogger(Log.VERBOSE));
+        SyncManager.setUserStore(new SharedPrefsUserStore(this)); // Temporary until we can find a way to inject Context.
     }
 }

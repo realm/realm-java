@@ -17,11 +17,13 @@
 package io.realm.objectserver;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Keep;
 import io.realm.internal.RealmCore;
+import io.realm.objectserver.android.SharedPrefsUserStore;
 import io.realm.objectserver.internal.SyncSession;
 import io.realm.objectserver.internal.SessionStore;
 import io.realm.objectserver.internal.network.AuthenticationServer;
@@ -61,9 +63,14 @@ public final class SyncManager {
         }
     };
 
+    private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
+
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
+    private static volatile UserStore userStore; // FIXME: Set to a default once we merge global init
+
+
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
     @SuppressWarnings("FieldCanBeLocal")
     private static Thread clientThread;
@@ -80,6 +87,45 @@ public final class SyncManager {
             }
         }, "RealmSyncClient");
         clientThread.start();
+    }
+
+    /**
+     * Set the {@link UserStore} used by the Realm Object Server to save user information.
+     * If no Userstore is specified {@link User#currentUser()} will always return {@code null}.
+     *
+     * @param userStore {@link UserStore} to use.
+     */
+    public static void setUserStore(UserStore userStore) {
+        if (userStore == null) {
+            throw new IllegalArgumentException("Non-null 'userStore' required.");
+        }
+        SyncManager.userStore = userStore;
+    }
+
+    /**
+     * Sets a global authentication listener that will be notified about User events like
+     * login and logout.
+     *
+     * @param listener listener to register.
+     * @throws IllegalArgumentException if {@code listener} is {@code null}.
+     */
+    public static void addAuthenticationListener(AuthenticationListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Non-null 'listener' required.");
+        }
+        authListeners.add(listener);
+    }
+
+    /**
+     * Removes the provided global authentication listener.
+     *
+     * @param listener listener to remove.
+     */
+    public static void removeAuthenticationListener(AuthenticationListener listener) {
+        if (listener == null) {
+            return;
+        }
+        authListeners.remove(listener);
     }
 
     /**
@@ -119,6 +165,8 @@ public final class SyncManager {
             );
             Session publicSession = new Session(internalSession);
             SessionStore.addSession(publicSession, internalSession);
+            syncConfiguration.getUser().getSyncUser().addSession(publicSession);
+            syncConfiguration.getSyncPolicy().onSessionCreated(internalSession);
             return publicSession;
         }
     }
@@ -137,6 +185,12 @@ public final class SyncManager {
         authServer = authServerImpl;
     }
 
+
+    // Return the currently configured User store.
+    static UserStore getUserStore() {
+        return userStore;
+    }
+
     // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
     // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
     // from here. This can be removed once better error propagation is implemented in Sync Core.
@@ -144,6 +198,20 @@ public final class SyncManager {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
         for (SyncSession session : SessionStore.getAllSessions()) {
             session.onError(error);
+        }
+    }
+
+    // Notify listeners that a user logged in
+    static void notifyUserLoggedIn(User user) {
+        for (AuthenticationListener authListener : authListeners) {
+            authListener.loggedIn(user);
+        }
+    }
+
+    // Notify listeners that a user logged out successfully
+    static void notifyUserLoggedOut(User user) {
+        for (AuthenticationListener authListener : authListeners) {
+            authListener.loggedOut(user);
         }
     }
 
@@ -159,4 +227,5 @@ public final class SyncManager {
     private static native void nativeInitializeSyncClient();
     private static native void nativeSetSyncClientLogLevel(int logLevel);
     private static native void nativeRunClient();
+
 }

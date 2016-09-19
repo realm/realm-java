@@ -16,63 +16,52 @@
 
 package io.realm.objectserver;
 
+import java.util.Collection;
+
 import io.realm.objectserver.android.SharedPrefsUserStore;
 
 /**
- * Interface for describing how a given user object can be persisted and retrieved again.
+ * Interface for classes responsible for saving and retrieving Object Server users again.
+ * <p>
+ * Any implementation of a User Store is expected to not perform lengthy blocking operations as it might
+ * be called on the Main Thread. All implementations of this interface should be thread safe.
  *
+ * @see SyncManager#setUserStore(UserStore)
  * @see SharedPrefsUserStore
  */
 public interface UserStore {
 
+    String CURRENT_USER_KEY = "realm$currentUser";
+
     /**
-     * Saves a User object under the given key. If another user already exists, it will be replaced.
+     * Saves a {@link User} object under the given key. If another user already exists, it will be replaced.
      *
-     * @param key Key used to store the User. The same key is used to retrieve it again
-     * @param user User object to store.
-     */
-    boolean save(String key, User user);
-
-    /**
-     * Saves a User object under the given key. If another user already exists, it will be replaced.
+     * @param key key used to store the User.
+     * @param user {@link User} object to store.
+     * @return The previous user saved with this key or {@code null} if no user was replaced.
      *
-     * @param key
-     * @param user
      */
-    void saveAsync(String key, User user);
+    User put(String key, User user);
 
     /**
-     * TODO
-     * @param key
-     * @param user
+     * Retrieves the {@link User} with the given key.
+     *
+     * @param key {@link User} saved under the given key or {@code null} if no user exists for that key.
      */
-    void saveASync(String key, User user, Callback callback);
+    User get(String key);
 
     /**
-     * TODO
-     * @param key
+     * Removes the user with the given key from the store.
+     *
+     * @param key key for the user to remove.
+     * @return {@link User} that was removed or {@code null} if no user matched the key.
      */
-    User load(String key);
+    User remove(String key);
 
     /**
-     * TODO
-     * @param key
+     * Returns a collection of all users saved in the User store.
+     *
+     * @return Collection of all users. If no users exist, an empty collection is returned.
      */
-    void loadAsync(String key, Callback callback);
-
-
-    /**
-     * Interface responsible for handling the result of asynchronously saving or loading the user.
-     */
-    interface Callback {
-        /**
-         * User was successfully saved or loaded.
-         */
-         void onSuccess(User user);
-
-        /**
-         * The user could not be saved or loaded.
-         */
-        void onError(Throwable t);
-    }
+    Collection<User> allUsers();
 }

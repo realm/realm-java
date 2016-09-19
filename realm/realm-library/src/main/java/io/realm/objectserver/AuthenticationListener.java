@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.internal.network;
+package io.realm.objectserver;
 
-import io.realm.objectserver.internal.Token;
-import okhttp3.Response;
+/**
+ * Interface describing events related to Users and their authentication
+ */
+public interface AuthenticationListener {
+    /**
+     * A user was logged into the Object Server
+     *
+     * @param user {@link User} that is now logged in.
+     */
+    void loggedIn(User user);
 
-public class RefreshResponse extends AuthServerResponse {
-
-    public RefreshResponse(Response response) {
-        // FIXME Parse refresh result
-    }
-
-    public Token getRefreshToken() {
-        return null;
-    }
+    /**
+     * A user was successfully logged out from the Object Server.
+     *
+     * @param user {@link User} that was successfully logged out.
+     */
+    void loggedOut(User user);
 }
