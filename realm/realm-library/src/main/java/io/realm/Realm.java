@@ -185,8 +185,8 @@ public final class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             RealmCore.loadLibrary(context);
-            defaultConfiguration = new RealmConfiguration.Builder().build();
             RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
+            defaultConfiguration = new RealmConfiguration.Builder(context).build();
             BaseRealm.applicationContext = context.getApplicationContext();
         }
     }
