@@ -16,13 +16,11 @@
 
 package io.realm.internal;
 
-import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
-import io.realm.internal.log.RealmLog;
 
 /**
  * This class represents a view of a particular table. We can think of a tableview as a subset of a table. It contains
@@ -31,8 +29,7 @@ import io.realm.internal.log.RealmLog;
  * The view doesn't copy data from the table, but contains merely a list of row-references into the original table
  * with the real data.
  */
-public class TableView implements TableOrView, Closeable {
-    private static final boolean DEBUG = false; //true;
+public class TableView implements TableOrView {
     // Don't convert this into local variable and don't remove this.
     // Core requests TableView to hold the Query reference.
     @SuppressWarnings({"unused"})
@@ -72,20 +69,6 @@ public class TableView implements TableOrView, Closeable {
     @Override
     public Table getTable() {
         return parent;
-    }
-
-    @Override
-    public void close() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-
-                if (DEBUG) {
-                    RealmLog.d("==== TableView CLOSE, ptr= " + nativePtr);
-                }
-                nativePtr = 0;
-            }
-        }
     }
 
     @Override

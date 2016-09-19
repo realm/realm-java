@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.5.1'
+ext.coreVersion = '2.0.0-rc4'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'a034d3250c820a15126721142d168a2ac4a12223b75bb324958ca2a70442720d'
+ext.coreSha256Hash = '760d8e889b8d678da36f63be2a49924969bfc8370176696ee977659d59677717'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -48,7 +48,8 @@ android {
                           // JNI build currently (lack of lto linking support).
                           // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
-                abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                // armeabi is not supported anymore.
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
             }
         }
     }

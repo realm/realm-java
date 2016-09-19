@@ -114,17 +114,24 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     }
 
     /**
-     * Checks if the {@link RealmList} is managed by Realm and contains valid data i.e., the {@link io.realm.Realm}
-     * instance hasn't been closed.
-     *
-     * @return {@code true} if still valid to use, {@code false} otherwise or if it's an unmanaged list.
+     * {@inheritDoc}
      */
     public boolean isValid() {
+        if (realm == null) {
+            return true;
+        }
         //noinspection SimplifiableIfStatement
-        if (realm == null || realm.isClosed()) {
+        if (realm.isClosed()) {
             return false;
         }
         return isAttached();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isManaged() {
+        return realm != null;
     }
 
     private boolean isAttached() {

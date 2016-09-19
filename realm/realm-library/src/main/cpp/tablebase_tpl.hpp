@@ -41,26 +41,4 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     }
 }
 
-template <class M, class T>
-void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
-{
-    jbyte* bytePtr = env->GetByteArrayElements(dataArray, NULL);
-    if (!bytePtr) {
-        ThrowException(env, IllegalArgument, "doByteArray");
-        return;
-    }
-    size_t dataLen = S(env->GetArrayLength(dataArray));
-    (pTable->*doBinary)( S(columnIndex), S(rowIndex), realm::BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
-    env->ReleaseByteArrayElements(dataArray, bytePtr, 0);
-}
-
-
-template <class M, class T>
-void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
-{
-    realm::BinaryData bin;
-    if (GetBinaryData(env, byteBuffer, bin))
-        (pTable->*doBinary)( S(columnIndex), S(rowIndex), bin);
-}
-
 #endif // REALM_JNI_TABLEBASE_TPL_HPP

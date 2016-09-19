@@ -28,6 +28,11 @@ public class Constants {
     public static final String DEFAULT_MODULE_CLASS_NAME = "DefaultRealmModule";
     static final String STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE =
             "throw new IllegalArgumentException(\"Trying to set non-nullable field '%s' to null.\")";
+    static final String STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON =
+            "throw new IllegalArgumentException(\"JSON object doesn't have the primary key field '%s'.\")";
+    static final String STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED =
+            "throw new io.realm.exceptions.RealmException(\"Primary key field '%s' cannot be changed after object" +
+                    " was created.\")";
 
     static final Map<String, String> JAVA_TO_REALM_TYPES;
     static {

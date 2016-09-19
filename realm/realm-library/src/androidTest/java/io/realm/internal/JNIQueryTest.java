@@ -44,18 +44,6 @@ public class JNIQueryTest extends TestCase {
         assertEquals(6, table.size());
     }
 
-    public void shouldQueryOnSortedView() {
-
-        init();
-
-        TableView sortedView = table.getSortedView(0, Sort.DESCENDING);
-
-        TableView result = sortedView.where().findAll();
-
-        assertEquals(result.size(), table.size());
-
-    }
-
     public void testShouldQuery() {
         init();
         TableQuery query = table.where();

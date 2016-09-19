@@ -179,23 +179,6 @@ public class RealmAnnotationTests {
         }
     }
 
-    // It should be allowed to override the primary key value with the same value
-    @Test
-    public void primaryKey_defaultStringValue() {
-        realm.beginTransaction();
-        realm.createObject(PrimaryKeyAsString.class, "");
-        realm.commitTransaction();
-    }
-
-    // It should be allowed to override the primary key value with the same value
-    @Test
-    public void primaryKey_defaultLongValue() {
-        realm.beginTransaction();
-        PrimaryKeyAsLong str = realm.createObject(PrimaryKeyAsLong.class, 0);
-        str.setId(0);
-        realm.commitTransaction();
-    }
-
     @Test
     public void primaryKey_errorOnInsertingSameObject() {
         try {
