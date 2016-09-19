@@ -97,7 +97,6 @@ public final class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
-    private final WeakReference<Context> contextWeakRef;
 
     private RealmConfiguration(Builder builder) {
         this.realmDirectory = builder.directory;
@@ -112,7 +111,6 @@ public final class RealmConfiguration {
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
         this.initialDataTransaction = builder.initialDataTransaction;
-        this.contextWeakRef = builder.contextWeakRef;
     }
 
     public File getRealmDirectory() {
@@ -177,12 +175,7 @@ public final class RealmConfiguration {
      * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
-        Context context = contextWeakRef.get();
-        if (context != null) {
-            return context.getAssets().open(assetFilePath);
-        } else {
-            throw new IllegalArgumentException("Context should not be null. Use Application Context instead of Activity Context.");
-        }
+        return BaseRealm.applicationContext.getAssets().open(assetFilePath);
     }
 
     /**
@@ -357,7 +350,6 @@ public final class RealmConfiguration {
         private SharedRealm.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
-        private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -382,7 +374,6 @@ public final class RealmConfiguration {
 
         // Setup builder in its initial state
         private void initializeBuilder(Context context) {
-            this.contextWeakRef = new WeakReference<Context>(context);
             this.directory = context.getFilesDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;

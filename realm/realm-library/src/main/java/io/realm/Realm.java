@@ -23,6 +23,7 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.util.Log;
 
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,7 +127,6 @@ public final class Realm extends BaseRealm {
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
     private static RealmConfiguration defaultConfiguration;
-    private static boolean realmInitialized = false;
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -179,17 +179,15 @@ public final class Realm extends BaseRealm {
      * @throws IllegalArgumentException if null context is provided.
      */
     public static synchronized void init(Context context) {
-        if (context == null) {
-            throw new IllegalArgumentException("Non-null context required.");
-        }
-        RealmCore.loadLibrary(context);
-        BaseRealm.applicationContext = context;
-        defaultConfiguration = new RealmConfiguration.Builder().build();
-
-        if (!realmInitialized) {
+        if (BaseRealm.applicationContext == null) {
+            if (context == null) {
+                throw new IllegalArgumentException("Non-null context required.");
+            }
+            BaseRealm.applicationContext = context.getApplicationContext();
+            RealmCore.loadLibrary(BaseRealm.applicationContext);
+            defaultConfiguration = new RealmConfiguration.Builder().build();
             RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
         }
-        realmInitialized = true;
     }
 
     /**

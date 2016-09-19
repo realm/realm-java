@@ -52,7 +52,6 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Realm.init(getApplicationContext());
         setContentView(R.layout.activity_realm_example);
 
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();

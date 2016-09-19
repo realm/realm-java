@@ -34,7 +34,6 @@ public class EncryptionExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Realm.init(getApplicationContext());
 
         // Generate a key
         // IMPORTANT! This is a silly way to generate a key. It is also never stored.

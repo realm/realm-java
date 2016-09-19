@@ -47,21 +47,20 @@ public class MigrationExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Realm.init(getApplicationContext());
         setContentView(R.layout.activity_realm_migration_example);
 
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
         // 3 versions of the databases for testing. Normally you would only have one.
-        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
-        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1");
-        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2");
+        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0.realm");
+        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1.realm");
+        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2.realm");
 
         // When you create a RealmConfiguration you can specify the version of the schema.
         // If the schema does not have that version a RealmMigrationNeededException will be thrown.
         RealmConfiguration config0 = new RealmConfiguration.Builder()
-                .name("default0")
+                .name("default0.realm")
                 .schemaVersion(3)
                 .build();
 
@@ -79,7 +78,7 @@ public class MigrationExampleActivity extends Activity {
         // Or you can add the migration code to the configuration. This will run the migration code without throwing
         // a RealmMigrationNeededException.
         RealmConfiguration config1 = new RealmConfiguration.Builder()
-                .name("default1")
+                .name("default1.realm")
                 .schemaVersion(3)
                 .migration(new Migration())
                 .build();
@@ -92,7 +91,7 @@ public class MigrationExampleActivity extends Activity {
         // or you can set .deleteRealmIfMigrationNeeded() if you don't want to bother with migrations.
         // WARNING: This will delete all data in the Realm though.
         RealmConfiguration config2 = new RealmConfiguration.Builder()
-                .name("default2")
+                .name("default2.realm")
                 .schemaVersion(3)
                 .deleteRealmIfMigrationNeeded()
                 .build();
