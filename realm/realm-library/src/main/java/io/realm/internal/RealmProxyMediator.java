@@ -46,18 +46,22 @@ public abstract class RealmProxyMediator {
      * Creates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to create backing table for.
-     * @param transaction the read transaction for the Realm to create table in.
+     * @param sharedRealm the wrapper object of underlying native database.
      */
-    public abstract Table createTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction);
+    public abstract Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
 
     /**
      * Validates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to validate.
-     * @param transaction the read transaction for the Realm to validate against.
+     * @param sharedRealm the wrapper object of underlying native database to validate against.
+     * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
+     *                          is thrown when the column count it more than expected.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz, ImplicitTransaction transaction);
+    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
+                                             SharedRealm sharedRealm,
+                                             boolean allowExtraColumns);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.
@@ -81,10 +85,19 @@ public abstract class RealmProxyMediator {
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
-     * @param columnInfo the {@link ColumnInfo} object for the RealmObject class of {@code E}.
+     * @param acceptDefaultValue {@code true} to accept the values set in the constructor, {@code false} otherwise.
+     * @param excludeFields the column names whose default value will be ignored if the {@code acceptDefaultValue}
+     *                       is {@code true}. Only {@link io.realm.RealmModel} and {@link io.realm.RealmList}
+     *                       column will respect this.
+     *                       No effects if the {@code acceptDefaultValue} is {@code false}.
      * @return created {@link RealmObjectProxy} object.
      */
-    public abstract <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
+    public abstract <E extends RealmModel> E newInstance(Class<E> clazz,
+                                                         Object baseRealm,
+                                                         Row row,
+                                                         ColumnInfo columnInfo,
+                                                         boolean acceptDefaultValue,
+                                                         List<String> excludeFields);
 
     /**
      * Returns the list of RealmObject classes that can be saved in this Realm.

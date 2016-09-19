@@ -139,12 +139,27 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
     boolean load();
 
     /**
-     * Checks if the collection is still valid to use e.g. the {@link io.realm.Realm} instance hasn't
-     * been closed.
+     * Checks if the collection is still valid to use, i.e., the {@link io.realm.Realm} instance hasn't been closed. It
+     * will always return {@code true} for an unmanaged collection.
      *
-     * @return {@code true} if still valid to use, {@code false} otherwise.
+     * @return {@code true} if it is still valid to use or an unmanaged collection, {@code false} otherwise.
      */
     boolean isValid();
+
+    /**
+     * Checks if the collection is managed by Realm. A managed collection is just a wrapper around the data in the
+     * underlying Realm file. On Looper threads, a managed collection will be live-updated so it always points to the
+     * latest data. Managed collections are thread confined so that they cannot be accessed from other threads than the
+     * one that created them.
+     * <p>
+     *
+     * If this method returns {@code false}, the collection is unmanaged. An unmanaged collection is just a normal java
+     * collection, so it will not be live updated.
+     * <p>
+     *
+     * @return {@code true} if this is a managed {@link RealmCollection}, {@code false} otherwise.
+     */
+    boolean isManaged();
 
     /**
      * Tests whether this {@code Collection} contains the specified object. Returns

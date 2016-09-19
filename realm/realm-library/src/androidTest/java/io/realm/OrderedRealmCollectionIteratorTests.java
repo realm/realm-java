@@ -126,7 +126,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     private void createNewObject() {
-        Number currentMax = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG);
+        Number currentMax = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_ID);
         long nextId = 0;
         if (currentMax != null) {
             nextId = currentMax.longValue() + 1;
@@ -724,6 +724,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case MIN_DATE:
                 case MAX_DATE:
                 case IS_VALID:
+                case IS_MANAGED:
                     realm.cancelTransaction();
                     continue;
                 default:

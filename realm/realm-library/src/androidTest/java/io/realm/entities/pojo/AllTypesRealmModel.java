@@ -29,6 +29,7 @@ import io.realm.entities.Dog;
 public class AllTypesRealmModel implements RealmModel {
     public static final String CLASS_NAME = "AllTypesRealmModel";
     public static final String FIELD_LONG = "columnLong";
+    public static final String FIELD_BYTE = "columnByte";
     public static final String FIELD_DOUBLE = "columnDouble";
     public static final String FIELD_STRING = "columnString";
     public static final String FIELD_BINARY = "columnBinary";

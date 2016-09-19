@@ -23,6 +23,14 @@ import io.realm.RealmObject;
 public class Cat extends RealmObject {
 
     public static final String CLASS_NAME = "Cat";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_AGE = "age";
+    public static final String FIELD_HEIGHT = "height";
+    public static final String FIELD_WEIGHT = "weight";
+    public static final String FIELD_HAS_TAIL = "hasTail";
+    public static final String FIELD_BIRTHDAY = "birthday";
+    public static final String FIELD_OWNER = "owner";
+    public static final String FIELD_SCARED_OF_DOG = "scaredOfDog";
 
     private String name;
     private long age;

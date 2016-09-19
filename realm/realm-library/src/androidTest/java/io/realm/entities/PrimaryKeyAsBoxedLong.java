@@ -24,6 +24,7 @@ public class PrimaryKeyAsBoxedLong extends RealmObject implements NullPrimaryKey
 
     public static final String CLASS_NAME = "PrimaryKeyAsBoxedLong";
     public static final String FIELD_PRIMARY_KEY = "id";
+    public static final String FIELD_NAME = "name";
 
     @PrimaryKey
     private Long id;

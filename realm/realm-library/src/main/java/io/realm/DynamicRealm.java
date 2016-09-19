@@ -19,9 +19,9 @@ package io.realm;
 import android.app.IntentService;
 
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Table;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
@@ -57,7 +57,7 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @return the DynamicRealm defined by the configuration.
      * @see RealmConfiguration for details on how to configure a Realm.
-     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if {@code configuration} argument is {@code null}.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
@@ -77,6 +77,11 @@ public final class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className) {
         checkIfValid();
         Table table = schema.getTable(className);
+        // Check and throw the exception earlier for a better exception message.
+        if (table.hasPrimaryKey()) {
+            throw new RealmException(String.format("'%s' has a primary key, use" +
+                    " 'createObject(String, Object)' instead.", className));
+        }
         long rowIndex = table.addEmptyRow();
         return get(DynamicRealmObject.class, className, rowIndex);
     }
@@ -95,8 +100,7 @@ public final class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
-        return dynamicRealmObject;
+        return new DynamicRealmObject(this, table.getCheckedRow(index), false);
     }
 
     /**
@@ -109,7 +113,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
-        if (!sharedGroupManager.hasTable(Table.TABLE_PREFIX + className)) {
+        if (!sharedRealm.hasTable(Table.TABLE_PREFIX + className)) {
             throw new IllegalArgumentException("Class does not exist in the Realm and cannot be queried: " + className);
         }
         return RealmQuery.createDynamicQuery(this, className);
@@ -144,6 +148,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public void delete(String className) {
         checkIfValid();
+        checkIfInTransaction();
         schema.getTable(className).clear();
     }
 
@@ -168,7 +173,7 @@ public final class DynamicRealm extends BaseRealm {
             if (isInTransaction()) {
                 cancelTransaction();
             } else {
-                RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+                RealmLog.warn("Could not cancel transaction, not currently in a transaction.");
             }
             throw e;
         }
