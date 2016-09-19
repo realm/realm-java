@@ -22,7 +22,6 @@ import android.text.TextUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -30,7 +29,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -98,7 +96,6 @@ public class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
-    private final WeakReference<Context> contextWeakRef;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
@@ -113,8 +110,7 @@ public class RealmConfiguration {
                               SharedRealm.Durability durability,
                               RealmProxyMediator schemaMediator,
                               RxObservableFactory rxObservableFactory,
-                              Realm.Transaction initialDataTransaction,
-                              WeakReference<Context> contextWeakRef) {
+                              Realm.Transaction initialDataTransaction) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -127,7 +123,6 @@ public class RealmConfiguration {
         this.schemaMediator = schemaMediator;
         this.rxObservableFactory = rxObservableFactory;
         this.initialDataTransaction = initialDataTransaction;
-        this.contextWeakRef = contextWeakRef;
     }
 
     public File getRealmDirectory() {
@@ -192,12 +187,7 @@ public class RealmConfiguration {
      * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
-        Context context = contextWeakRef.get();
-        if (context != null) {
-            return context.getAssets().open(assetFilePath);
-        } else {
-            throw new IllegalArgumentException("Context should not be null. Use Application Context instead of Activity Context.");
-        }
+        return BaseRealm.applicationContext.getAssets().open(assetFilePath);
     }
 
     /**
@@ -359,10 +349,6 @@ public class RealmConfiguration {
         return rxJavaAvailable;
     }
 
-    public Context getContext() {
-        return contextWeakRef.get();
-    }
-
     // Get the canonical path for a given file
     protected static String getCanonicalPath(File realmFile) {
         try {
@@ -389,7 +375,6 @@ public class RealmConfiguration {
         private SharedRealm.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
-        private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -399,12 +384,14 @@ public class RealmConfiguration {
          * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
-         *
-         * @param context the Android application context.
          */
-        public Builder(Context context) {
+        public Builder() {
+            this(BaseRealm.applicationContext);
+        }
+
+        Builder(Context context) {
             if (context == null) {
-                throw new IllegalArgumentException("A non-null Context must be provided");
+                throw new IllegalStateException("Call `Realm.init(Context)` before creating a RealmConfiguration");
             }
             RealmCore.loadLibrary(context);
             initializeBuilder(context);
@@ -412,7 +399,6 @@ public class RealmConfiguration {
 
         // Setup builder in its initial state
         private void initializeBuilder(Context context) {
-            this.contextWeakRef = new WeakReference<Context>(context);
             this.directory = context.getFilesDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
@@ -673,8 +659,7 @@ public class RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
-                    initialDataTransaction,
-                    contextWeakRef
+                    initialDataTransaction
             );
         }
 

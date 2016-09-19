@@ -61,7 +61,7 @@ public class CounterActivity extends AppCompatActivity {
         if (User.currentUser() != null) {
             user = User.currentUser();
             // Create a RealmConfiguration for our user
-            SyncConfiguration config = new SyncConfiguration.Builder(this)
+            SyncConfiguration config = new SyncConfiguration.Builder()
                     .initialData(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {

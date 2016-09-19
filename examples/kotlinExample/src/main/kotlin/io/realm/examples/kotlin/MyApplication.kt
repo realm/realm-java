@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.internal;
+package io.realm.examples.kotlin
 
-class TestUtil {
+import android.app.Application
 
-    public native static long getMaxExceptionNumber();
-    public native static String getExpectedMessage(long exceptionKind);
-    public native static void testThrowExceptions(long exceptionKind);
+import io.realm.Realm
+
+class MyApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        // Initialize Realm. Should only be done once when the application starts.
+        Realm.init(this)
+    }
 }

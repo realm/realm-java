@@ -45,7 +45,7 @@ public class RealmQueryBenchmarks {
 
     @BeforeExperiment
     public void before() {
-        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();

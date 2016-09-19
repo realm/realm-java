@@ -42,7 +42,8 @@ public class RealmObjectReadBenchmarks {
 
     @BeforeExperiment
     public void before() {
-        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
+        Realm.init(InstrumentationRegistry.getTargetContext());
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.executeTransaction(new Realm.Transaction() {
