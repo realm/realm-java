@@ -84,16 +84,16 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (['master', 'releases'].contains(env.BRANCH_NAME)) {
+  if (['master', 'releases'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
           username: 'Mr. Jenkins',
           icon_emoji: ':jenkins:',
           attachments: [[
-            'title': "The ${env.BRANCH_NAME} branch is ${buildSuccess?'healthy.':'broken!'}",
+            'title': "The ${env.BRANCH_NAME} branch is broken!",
             'text': "<${env.BUILD_URL}|Click here> to check the build.",
-            'color': "${buildSuccess?'good':'danger'}"
+            'color': "danger"
           ]]
         ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"

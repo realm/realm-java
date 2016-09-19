@@ -2,12 +2,13 @@
 
 ### Breaking Changes
 
+* It is now required to call `Realm.init(Context)` before calling any other Realm API.
+* Removed `RealmConfiguration.Builder(Context)`, `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
 * `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
 * armeabi is not supported anymore.
 * Added new `RealmFileException`.
   - `IncompatibleLockFileException` has been removed and replaced by `RealmFileException` with kind `INCOMPATIBLE_LOCK_FILE`.
   - `RealmIOExcpetion` has been removed and replaced by `RealmFileException`.
-* Removed `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
 * `RealmConfiguration.Builder.assetFile(Context, String)` has been renamed to `RealmConfiguration.Builder.assetFile(String)`.
 * Object with primary key is now required to define it when the object is created. This means that `Realm.createObject(Class<E>)` and `DynamicRealm.createObject(String)` now throws `RealmException` if they are used to create an object with a primary key field. Use `Realm.createObject(Class<E>, Object)` or `DynamicRealm.createObject(String, Object)` instead.
 * Importing from JSON without the primary key field defined in the JSON object now throws `IllegalArgumentException`.

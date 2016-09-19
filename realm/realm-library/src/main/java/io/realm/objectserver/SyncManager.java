@@ -68,8 +68,8 @@ public final class SyncManager {
     @SuppressWarnings("FieldCanBeLocal")
     private static Thread clientThread;
 
+    // FIXME This should be called by a method in Realm.init() otherwise the ClassLoader might call this first.
     static {
-        RealmCore.loadLibrary();
         nativeInitializeSyncClient();
         // Create the client thread in java to avoid strange problem when error happens. And anyway we need to attach
         // to the jvm for logger.

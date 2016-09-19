@@ -19,16 +19,15 @@ package io.realm.objectserver;
 import android.content.Context;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import io.realm.BaseRealm;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
-import io.realm.objectserver.internal.SyncUtil;
 import io.realm.RealmModel;
 import io.realm.annotations.RealmModule;
 import io.realm.internal.RealmProxyMediator;
@@ -37,8 +36,6 @@ import io.realm.objectserver.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.objectserver.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-
-import static io.realm.objectserver.internal.SyncUtil.getFullServerUrl;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -89,7 +86,6 @@ public final class SyncConfiguration extends RealmConfiguration {
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
-                                WeakReference<Context> context,
                                 User user,
                                 URI serverUrl,
                                 SyncPolicy syncPolicy,
@@ -106,8 +102,7 @@ public final class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
-                initialDataTransaction,
-                context
+                initialDataTransaction
         );
 
         this.user = user;
@@ -197,7 +192,6 @@ public final class SyncConfiguration extends RealmConfiguration {
      */
     public static final class Builder  {
 
-        private Context context;
         private File directory;
         private boolean overrideDefaultFolder = false;
         private String fileName;
@@ -221,11 +215,15 @@ public final class SyncConfiguration extends RealmConfiguration {
          * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files/realm-object-server},
          * but can change depending on vendor implementations of Android.
-         *
-         * @param context the Android application context.
          */
-        public Builder(Context context) {
-            this.context = context;
+        public Builder() {
+            this(BaseRealm.applicationContext);
+        }
+
+        Builder(Context context) {
+            if (context == null) {
+                throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
+            }
             this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
@@ -493,7 +491,6 @@ public final class SyncConfiguration extends RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
-                    new WeakReference<Context>(context),
 
                     // Sync Configuration specific
                     user,

@@ -52,10 +52,6 @@ public class Table implements TableOrView, TableSchema {
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
-    static {
-        RealmCore.loadLibrary();
-    }
-
     /**
      * Constructs a Table base object. It can be used to register columns in this table. Registering into table is
      * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
