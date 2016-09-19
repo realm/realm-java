@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -60,6 +61,8 @@ abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
+    volatile static Context applicationContext;
+
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
@@ -69,11 +72,6 @@ abstract class BaseRealm implements Closeable {
 
     RealmSchema schema;
     HandlerController handlerController;
-
-    static {
-        //noinspection ConstantConditions
-        RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
-    }
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();

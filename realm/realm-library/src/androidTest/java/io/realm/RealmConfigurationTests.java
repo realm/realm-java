@@ -108,16 +108,6 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void getDefaultInstance_nullThrows() throws NoSuchFieldException, IllegalAccessException {
-        clearDefaultConfiguration();
-        try {
-            Realm.getDefaultInstance();
-            fail();
-        } catch (NullPointerException ignored) {
-        }
-    }
-
-    @Test
     public void getInstance_nullConfigThrows() {
         try {
             Realm.getInstance((RealmConfiguration) null);

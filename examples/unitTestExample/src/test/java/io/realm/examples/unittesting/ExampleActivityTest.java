@@ -31,6 +31,7 @@ import org.powermock.modules.junit4.internal.impl.PowerMockJUnit44RunnerDelegate
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ActivityController;
 
@@ -86,6 +87,7 @@ public class ExampleActivityTest {
         mockStatic(RealmLog.class);
         mockStatic(Realm.class);
         mockStatic(RealmConfiguration.class);
+        Realm.init(RuntimeEnvironment.application);
 
         // Create the mock
         final Realm mockRealm = mock(Realm.class);
@@ -103,7 +105,7 @@ public class ExampleActivityTest {
         whenNew(RealmConfiguration.class).withAnyArguments().thenReturn(mockRealmConfig);
 
         // Anytime getInstance is called with any configuration, then return the mockRealm
-        when(Realm.getInstance(any(RealmConfiguration.class))).thenReturn(mockRealm);
+        when(Realm.getDefaultInstance()).thenReturn(mockRealm);
 
         // Anytime we ask Realm to create a Person, return a new instance.
         when(mockRealm.createObject(Person.class)).thenReturn(new Person());
@@ -179,15 +181,14 @@ public class ExampleActivityTest {
         doCallRealMethod().when(mockRealm).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Create activity
-        ActivityController<ExampleActivity> controller =
-                Robolectric.buildActivity(ExampleActivity.class).setup();
+        ActivityController<ExampleActivity> controller = Robolectric.buildActivity(ExampleActivity.class).setup();
         ExampleActivity activity = controller.get();
 
         assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
         verifyStatic(times(2));
-        Realm.getInstance(any(RealmConfiguration.class));
+        Realm.getDefaultInstance();
 
         // verify that we have four begin and commit transaction calls
         // Do not verify partial mock invocation count: https://github.com/jayway/powermock/issues/649
@@ -224,15 +225,14 @@ public class ExampleActivityTest {
     public void shouldBeAbleToVerifyTransactionCalls() {
 
         // Create activity
-        ActivityController<ExampleActivity> controller =
-                Robolectric.buildActivity(ExampleActivity.class).setup();
+        ActivityController<ExampleActivity> controller = Robolectric.buildActivity(ExampleActivity.class).setup();
         ExampleActivity activity = controller.get();
 
         assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
         verifyStatic(times(2));
-        Realm.getInstance(any(RealmConfiguration.class));
+        Realm.getDefaultInstance();
 
         // verify that we have four begin and commit transaction calls
         // Do not verify partial mock invocation count: https://github.com/jayway/powermock/issues/649

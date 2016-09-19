@@ -24,6 +24,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -80,6 +81,12 @@ public class RemoteProcessService extends Service {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
         return messenger.getBinder();
     }
@@ -121,7 +128,7 @@ public class RemoteProcessService extends Service {
 
         @Override
         void run() {
-            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder(thiz).build());
+            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder().build());
             int expected = 1;
             long got = thiz.testRealm.where(AllTypes.class).count();
             if (expected == got) {
@@ -137,7 +144,7 @@ public class RemoteProcessService extends Service {
 
         @Override
         void run() {
-            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder(thiz).build());
+            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder().build());
             thiz.testRealm.close();
             response(null);
             Runtime.getRuntime().exit(0);

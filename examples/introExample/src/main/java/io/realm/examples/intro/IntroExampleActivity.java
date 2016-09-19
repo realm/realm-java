@@ -49,10 +49,8 @@ public class IntroExampleActivity extends Activity {
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
-        // Create the Realm configuration
-        realmConfig = new RealmConfiguration.Builder(this).build();
-        // Open the Realm for the UI thread.
-        realm = Realm.getInstance(realmConfig);
+        // Create the Realm instance
+        realm = Realm.getDefaultInstance();
 
         basicCRUD(realm);
         basicQuery(realm);

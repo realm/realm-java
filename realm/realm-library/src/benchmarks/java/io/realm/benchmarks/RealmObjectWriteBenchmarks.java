@@ -16,8 +16,6 @@
 
 package io.realm.benchmarks;
 
-import android.support.test.InstrumentationRegistry;
-
 import org.junit.runner.RunWith;
 
 import dk.ilios.spanner.AfterExperiment;
@@ -42,7 +40,7 @@ public class RealmObjectWriteBenchmarks {
 
     @BeforeExperiment
     public void before() {
-        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
