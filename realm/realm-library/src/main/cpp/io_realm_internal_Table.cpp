@@ -629,7 +629,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
         return;
     try {
-        TBL(nativeTablePtr)->set_link( S(columnIndex), S(rowIndex), S(targetRowIndex), isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_link( S(columnIndex), S(rowIndex), S(targetRowIndex), B(isDefault));
     } CATCH_STD()
 }
 
@@ -639,7 +639,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int))
         return;
     try {
-        TBL(nativeTablePtr)->set_int( S(columnIndex), S(rowIndex), value, isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_int( S(columnIndex), S(rowIndex), value, B(isDefault));
     } CATCH_STD()
 }
 
@@ -660,8 +660,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Bool))
         return;
     try {
-        TBL(nativeTablePtr)->set_bool( S(columnIndex), S(rowIndex), value == JNI_TRUE ? true : false,
-                                       isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_bool( S(columnIndex), S(rowIndex), B(value), B(isDefault));
     } CATCH_STD()
 }
 
@@ -671,7 +670,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetFloat(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Float))
         return;
     try {
-        TBL(nativeTablePtr)->set_float( S(columnIndex), S(rowIndex), value, isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_float( S(columnIndex), S(rowIndex), value, B(isDefault));
     } CATCH_STD()
 }
 
@@ -681,7 +680,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Double))
         return;
     try {
-        TBL(nativeTablePtr)->set_double( S(columnIndex), S(rowIndex), value, isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_double( S(columnIndex), S(rowIndex), value, B(isDefault));
     } CATCH_STD()
 }
 
@@ -697,7 +696,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(
             }
         }
         JStringAccessor value2(env, value); // throws
-        TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2, isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2, B(isDefault));
     } CATCH_STD()
 }
 
@@ -726,7 +725,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp(
         return;
     try {
         TBL(nativeTablePtr)->set_timestamp( S(columnIndex), S(rowIndex), from_milliseconds(timestampValue),
-                                            isDefault == JNI_TRUE ? true : false);
+                                            B(isDefault));
     } CATCH_STD()
 }
 
@@ -753,7 +752,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
         }
 
         JniByteArray byteAccessor(env, dataArray);
-        TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), byteAccessor, isDefault == JNI_TRUE ? true : false);
+        TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), byteAccessor, B(isDefault));
     } CATCH_STD()
 }
 
@@ -768,7 +767,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
     if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
         return;
     try {
-        pTable->set_null(S(columnIndex), S(rowIndex), isDefault == JNI_TRUE ? true : false);
+        pTable->set_null(S(columnIndex), S(rowIndex), B(isDefault));
     } CATCH_STD()
 }
 

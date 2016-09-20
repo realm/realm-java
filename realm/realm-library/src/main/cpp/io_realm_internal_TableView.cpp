@@ -323,8 +323,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_TableView_nativeIsNull
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
+        return TV(nativeViewPtr)->get_parent().is_null( S(columnIndex), TV(nativeViewPtr)->get_source_ndx(S(rowIndex))) ? JNI_TRUE : JNI_FALSE;  // noexcept
     } CATCH_STD()
-    return TV(nativeViewPtr)->get_parent().is_null( S(columnIndex), TV(nativeViewPtr)->get_source_ndx(S(rowIndex))) ? JNI_TRUE : JNI_FALSE;  // noexcept
+    return 0;
 }
 
 // Setters
