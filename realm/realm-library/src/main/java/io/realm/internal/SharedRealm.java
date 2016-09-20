@@ -22,7 +22,6 @@ import java.io.File;
 import io.realm.RealmConfiguration;
 import io.realm.RealmSchema;
 import io.realm.internal.async.BadVersionException;
-import io.realm.internal.objectserver.ObjectServerFacade;
 
 public final class SharedRealm implements Closeable {
 
@@ -76,6 +75,7 @@ public final class SharedRealm implements Closeable {
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
+    public final ObjectServerFacade objectServerFacade;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -148,6 +148,7 @@ public final class SharedRealm implements Closeable {
         this.schemaChangeListener = schemaVersionListener;
         context = new Context();
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
+        objectServerFacade = null;
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
@@ -156,7 +157,7 @@ public final class SharedRealm implements Closeable {
 
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
                                           SchemaVersionListener schemaVersionListener) {
-        String[] userAndServer = ObjectServerFacade.getUserAndServerUrl(config);
+        String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
         String rosServerUrl = userAndServer[0];
         String rosUserToken = userAndServer[1];
         boolean enable_caching = false; // Handled in Java currently

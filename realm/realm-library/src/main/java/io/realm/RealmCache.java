@@ -27,7 +27,7 @@ import java.util.Map;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
 import io.realm.log.RealmLog;
-import io.realm.internal.objectserver.ObjectServerFacade;
+import io.realm.internal.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -159,7 +159,7 @@ final class RealmCache {
 
         // Notify SyncPolicy that the Realm has been opened for the first time
         if (refAndCount.globalCount == 1) {
-            ObjectServerFacade.realmOpened(configuration);
+            ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
         }
         return realm;
     }
@@ -223,7 +223,8 @@ final class RealmCache {
             // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
             if (totalRefCount == 0) {
                 cachesMap.remove(canonicalPath);
-                ObjectServerFacade.realmClosed(realm.getConfiguration());
+                ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())
+                        .realmClosed(realm.getConfiguration());
             }
 
         } else {

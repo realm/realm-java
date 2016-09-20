@@ -58,7 +58,6 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
-import io.realm.internal.objectserver.ObjectServerFacade;
 import rx.Observable;
 
 /**
@@ -314,7 +313,7 @@ public final class Realm extends BaseRealm {
     private static void initializeRealm(Realm realm) {
         long version = realm.getVersion();
         boolean commitNeeded = false;
-        boolean syncAvailable = ObjectServerFacade.SYNC_AVAILABLE && realm.configuration instanceof SyncConfiguration;
+        boolean syncAvailable = realm.configuration.isSyncConfiguration();
 
         try {
             if (!syncAvailable) {

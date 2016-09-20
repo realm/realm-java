@@ -26,7 +26,6 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.objectserver.ObjectServerFacade;
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -188,7 +187,7 @@ public final class RealmSchema {
      * @param className name of the class to remove.
      */
     public void remove(String className) {
-        checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // destructive modifications are not permitted
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
@@ -207,7 +206,7 @@ public final class RealmSchema {
      * @return a schema object for renamed class.
      */
     public RealmObjectSchema rename(String oldClassName, String newClassName) {
-        checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // destructive modifications are not permitted
         checkEmpty(oldClassName, "Class names cannot be empty or null");
         checkEmpty(newClassName, "Class names cannot be empty or null");
         String oldInternalName = TABLE_PREFIX + oldClassName;
@@ -251,11 +250,6 @@ public final class RealmSchema {
         }
     }
 
-    private void checkNotInSync() {
-        if (ObjectServerFacade.SYNC_AVAILABLE && realm.configuration instanceof SyncConfiguration) {
-            throw new IllegalArgumentException("You cannot perform changes to a schema. Please update app and restart.");
-        }
-    }
     private void checkEmpty(String str, String error) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);

@@ -27,7 +27,6 @@ import java.util.Set;
 import io.realm.annotations.Required;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
-import io.realm.internal.objectserver.ObjectServerFacade;
 
 /**
  * Class for interacting with the schema for a given RealmObject class. This makes it possible to
@@ -152,7 +151,7 @@ public final class RealmObjectSchema {
      * @see RealmSchema#rename(String, String)
      */
     public RealmObjectSchema setClassName(String className) {
-        checkNotInSync(); // renaming a table is not permitted
+        realm.checkNotInSync(); // renaming a table is not permitted
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
         //FIXME : when core implements class name length check, please remove.
@@ -292,7 +291,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist.
      */
     public RealmObjectSchema removeField(String fieldName) {
-        checkNotInSync(); // destructive modification of a schema is not permitted
+        realm.checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(fieldName);
         if (!hasField(fieldName)) {
             throw new IllegalStateException(fieldName + " does not exist.");
@@ -314,7 +313,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
      */
     public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
-        checkNotInSync(); // destructive modification of a schema is not permitted
+        realm.checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(currentFieldName);
         checkFieldExists(currentFieldName);
         checkLegalName(newFieldName);
@@ -380,7 +379,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
-        checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // destructive modifications are not permitted
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -423,7 +422,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
     public RealmObjectSchema removePrimaryKey() {
-        checkNotInSync(); // destructive modifications are not permitted
+        realm.checkNotInSync(); // destructive modifications are not permitted
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
@@ -659,13 +658,6 @@ public final class RealmObjectSchema {
     private void checkEmpty(String str) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException("Null or empty class names are not allowed");
-        }
-    }
-
-    private void checkNotInSync() {
-        // FIXME: similar method found in RealmSchema.
-        if (ObjectServerFacade.SYNC_AVAILABLE && realm.configuration instanceof SyncConfiguration) {
-            throw new IllegalArgumentException("You cannot perform changes to a schema. Please update app and restart.");
         }
     }
 

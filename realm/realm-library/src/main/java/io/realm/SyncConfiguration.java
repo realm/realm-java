@@ -208,6 +208,11 @@ public final class SyncConfiguration extends RealmConfiguration {
         return deleteRealmOnLogout;
     }
 
+    @Override
+    boolean isSyncConfiguration() {
+        return true;
+    }
+
     /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */

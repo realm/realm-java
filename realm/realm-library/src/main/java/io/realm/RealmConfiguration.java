@@ -360,6 +360,11 @@ public class RealmConfiguration {
         }
     }
 
+    // Check if this configuration is a SyncConfiguration instance.
+    boolean isSyncConfiguration() {
+        return false;
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */

@@ -19,9 +19,6 @@ package io.realm;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
-
-import com.getkeepsafe.relinker.BuildConfig;
 
 import java.io.Closeable;
 import java.io.File;
@@ -41,9 +38,8 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
-import io.realm.internal.objectserver.ObjectServerFacade;
+import io.realm.internal.ObjectServerFacade;
 import rx.Observable;
 
 /**
@@ -76,6 +72,7 @@ public abstract class BaseRealm implements Closeable {
 
     RealmSchema schema;
     HandlerController handlerController;
+
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
@@ -350,7 +347,8 @@ public abstract class BaseRealm implements Closeable {
     void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
-        ObjectServerFacade.notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
+        ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
+                .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
 
         // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
         // file will make a commit in order to create the schema. Users should not be notified about that.
@@ -398,6 +396,16 @@ public abstract class BaseRealm implements Closeable {
     protected void checkIfValidAndInTransaction() {
         if (!isInTransaction()) {
             throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
+        }
+    }
+
+    /**
+     * Check if the Realm is not built with a SyncRealmConfiguration
+     */
+    void checkNotInSync() {
+        if (configuration.isSyncConfiguration()) {
+            throw new IllegalArgumentException("You cannot perform changes to a schema. " +
+                    "Please update app and restart.");
         }
     }
 
