@@ -37,9 +37,12 @@ import io.realm.User;
 
 public class CounterActivity extends AppCompatActivity {
 
+    private static final String REALM_URL = "realm://" + MyApplication.OBJECT_SERVER_IP + "/~/default";
+
     private Realm realm;
     private RealmResults<CounterOperation> counter;
     private User user;
+
 
     @BindView(R.id.text_counter) TextView counterView;
 
@@ -61,15 +64,13 @@ public class CounterActivity extends AppCompatActivity {
         if (User.currentUser() != null) {
             user = User.currentUser();
             // Create a RealmConfiguration for our user
-            SyncConfiguration config = new SyncConfiguration.Builder()
+            SyncConfiguration config = new SyncConfiguration.Builder(user, REALM_URL)
                     .initialData(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
                             realm.createObject(CRDTCounter.class, 1);
                         }
                     })
-                    .user(user)
-                    .serverUrl("realm://" + MyApplication.OBJECT_SERVER_IP + "/~/default")
                     .build();
 
             // This will automatically sync all changes in the background for as long as the Realm is open

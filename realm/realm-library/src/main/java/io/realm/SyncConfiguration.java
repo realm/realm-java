@@ -245,15 +245,34 @@ public final class SyncConfiguration extends RealmConfiguration {
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
-         * This will use the app's own internal directory for storing the Realm file. This does not require any
-         * additional permissions. The default location is {@code /data/data/<packagename>/files/realm-object-server},
-         * but can change depending on vendor implementations of Android.
+         * Opening a synchronized Realm requires a valid user and an unique URL that identifies that Realm. In URL's,
+         * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
+         * user, e.g. {@code "realm://objectserver.realm.io/~/default"}
+         * <p>
+         * The URL cannot end with {@code .realm}.
+         * <p>
+         * The `/~/` will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
+         * <p>
+         * The URL also defines the local location on disk. The default location of a synchronized Realm file is
+         * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}, but this behaviour
+         * can be overwritten using {@link #name(String)} and {@link #directory(File)}.
+         * <p>
+         * Many Android devices are using FAT32 file systems. FAT32 file systems have a limitation that
+         * file name cannot be longer than 255 characters. Moreover, the entire URL should not exceed 256 characters.
+         * If file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
+         * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
+         *
+         * @param user Set the user for this Realm. An authenticated {@link User} is required to open any Realm managed
+         *             by a Realm Object Server.
+         * @param url URL identifying the Realm.
+         *
+         * @see User#isValid()
          */
-        public Builder() {
-            this(BaseRealm.applicationContext);
+        public Builder(User user, String url) {
+            this(BaseRealm.applicationContext, user, url);
         }
 
-        Builder(Context context) {
+        Builder(Context context, User user, String url) {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
@@ -261,11 +280,89 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
+
+            validateAndSet(user);
+            validateAndSet(url);
+        }
+
+        private void validateAndSet(User user) {
+            if (user == null) {
+                throw new IllegalArgumentException("Non-null `user` required.");
+            }
+            if (!user.isValid()) {
+                throw new IllegalArgumentException("User not authenticated or authentication expired.");
+            }
+            this.user = user;
+        }
+
+        private void validateAndSet(String url) {
+            if (url == null) {
+                throw new IllegalArgumentException("Non-null 'url' required.");
+            }
+
+            try {
+                serverUrl = new URI(url);
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Invalid url: " + url, e);
+            }
+
+            // scheme must be realm or realms
+            String scheme = serverUrl.getScheme();
+            if (!scheme.equals("realm") && !scheme.equals("realms")) {
+                throw new IllegalArgumentException("Invalid scheme: " + scheme);
+            }
+
+            // set port if not set by user
+            int port;
+            int currentPort = serverUrl.getPort();
+            if (currentPort == -1) {
+                port = scheme.equals("realm") ? PORT_REALM : PORT_REALMS;
+            } else {
+                port = currentPort;
+            }
+
+            // Detect last path segment as it is the default file name
+            String path = serverUrl.getPath();
+            if (path == null) {
+                throw new IllegalArgumentException("Invalid url: " + url);
+            }
+
+            String[] pathSegments = path.split("/");
+            for (int i = 1; i < pathSegments.length; i++) {
+                String segment = pathSegments[i];
+                if (segment.equals("~")) {
+                    continue;
+                }
+                if (segment.equals("..") || segment.equals(".")) {
+                    throw new IllegalArgumentException("The URL has an invalid segment: " + segment);
+                }
+                Matcher m = pattern.matcher(segment);
+                if (!m.matches()) {
+                    throw new IllegalArgumentException("The URL must only contain characters 0-9, a-z, A-Z, ., _, and -: " + segment);
+                }
+            }
+
+            this.defaultLocalFileName = pathSegments[pathSegments.length - 1];
+
+            // Validate filename
+            // TODO Lift this restriction on the Object Server
+            if (defaultLocalFileName.endsWith(".realm")
+                    || defaultLocalFileName.endsWith(".realm.lock")
+                    || defaultLocalFileName.endsWith(".realm.management")) {
+                throw new IllegalArgumentException("The URL must not end with '.realm', '.realm.lock' or '.realm.management: " + url);
+            }
+
+            try {
+                this.serverUrl = new URI(scheme, serverUrl.getUserInfo(), serverUrl.getHost(),
+                        port, serverUrl.getPath(), serverUrl.getQuery(), serverUrl.getFragment());
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Cannot reconstruct url: " + url, e);
+            }
         }
 
         /**
          * Sets the local filename for the Realm.
-         * This will override the default name defined by the {@link #serverUrl(String)}
+         * This will override the default name defined by the the Realm URL.
          *
          * @param filename name of the local file on disk.
          */
@@ -282,7 +379,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * Sets the local root directory where synchronized Realm files can be saved.
          *
          * Synchronized Realms will not be saved directly in the provided directory, but instead in a
-         * subfolder that matches the path defined by {@link #serverUrl(String)}. As Realm server URLs are unique
+         * subfolder that matches the path defined by Realm URL. As Realm server URLs are unique
          * this means that multiple users can save their Realms on disk without the risk of them overriding each other.
          *
          * The default location is {@code context.getFilesDir()}.
@@ -390,110 +487,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Enable server side synchronization for this Realm. The name should be a unique URL that identifies the Realm.
-         * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
-         * user, e.g. {@code "realm://objectserver.realm.io/~/default"}
-         *
-         * The `/~/` will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
-         *
-         * The URL also defines the local location on the device. The default location of a synchronized Realm file is
-         * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}.
-         *
-         * This behaviour can be overwritten using {@link #name(String)} and {@link #directory(File)}.
-         *
-         * Many Android devices are using FAT32 file systems. FAT32 file systems have a limitation that
-         * file name cannot be longer than 255 characters. Moreover, the entire URL should not exceed 256 characters.
-         * If file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
-         * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
-         *
-         * @param url URL identifying the Realm.
-         * @throws IllegalArgumentException if the URL is not valid.
-         */
-        public Builder serverUrl(String url) {
-            if (url == null) {
-                throw new IllegalArgumentException("Non-null 'url' required.");
-            }
-
-            URI serverUrl;
-            try {
-                serverUrl = new URI(url);
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid url: " + url, e);
-            }
-
-            // scheme must be realm or realms
-            String scheme = serverUrl.getScheme();
-            if (!scheme.equals("realm") && !scheme.equals("realms")) {
-                throw new IllegalArgumentException("Invalid scheme: " + scheme);
-            }
-
-            // set port if not set by user
-            int port;
-            int currentPort = serverUrl.getPort();
-            if (currentPort == -1) {
-                port = scheme.equals("realm") ? PORT_REALM : PORT_REALMS;
-            } else {
-                port = currentPort;
-            }
-
-            // Detect last path segment as it is the default file name
-            String path = serverUrl.getPath();
-            if (path == null) {
-                throw new IllegalArgumentException("Invalid url: " + url);
-            }
-
-            String[] pathSegments = path.split("/");
-            for (int i = 1; i < pathSegments.length; i++) {
-                String segment = pathSegments[i];
-                if (segment.equals("~")) {
-                    continue;
-                }
-                if (segment.equals("..") || segment.equals(".")) {
-                    throw new IllegalArgumentException("The URL has an invalid segment: " + segment);
-                }
-                Matcher m = pattern.matcher(segment);
-                if (!m.matches()) {
-                    throw new IllegalArgumentException("The URL must only contain characters 0-9, a-z, A-Z, ., _, and -: " + segment);
-                }
-            }
-
-            this.defaultLocalFileName = pathSegments[pathSegments.length - 1];
-
-            // Validate filename
-            // TODO Lift this restriction on the Object Server
-            if (defaultLocalFileName.endsWith(".realm")
-                    || defaultLocalFileName.endsWith(".realm.lock")
-                    || defaultLocalFileName.endsWith(".realm.management")) {
-                throw new IllegalArgumentException("The URL must not end with '.realm', '.realm.lock' or '.realm.management: " + url);
-            }
-
-            try {
-                this.serverUrl = new URI(scheme, serverUrl.getUserInfo(), serverUrl.getHost(),
-                        port, serverUrl.getPath(), serverUrl.getQuery(), serverUrl.getFragment());
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Cannot reconstruct url: " + url, e);
-            }
-            return this;
-        }
-
-        /**
-         * Set the user for this Realm. An authenticated {@link User} is required to open any Realm managed by a
-         * Realm Object Server.
-         *
-         * @param user {@link User} who wants to access this Realm.
-         */
-        public Builder user(User user) {
-            if (user == null) {
-                throw new IllegalArgumentException("Non-null `user` required.");
-            }
-            if (!user.isValid()) {
-                throw new IllegalArgumentException("User not authenticated or authentication expired.");
-            }
-            this.user = user;
-            return this;
-        }
-
-        /**
          * Sets the {@link SyncPolicy} used to control when changes should be synchronized with the remote Realm.
          * The default policy is {@link AutomaticSyncPolicy}.
          *
@@ -542,10 +535,10 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link User}
-         * defined by {@link #user(User)} logs out from the device using {@link User#logout()}.
+         * owning this Realm logs out from the device using {@link User#logout()}.
          *
-         * The default behaviour is that the Realm file is allowed to stay behind, making it faster for users to log in
-         * again and have access to their data faster.
+         * The default behaviour is that the Realm file is allowed to stay behind, making it possible for users to log
+         * in again and have access to their data faster.
          */
         public Builder deleteRealmOnLogout() {
             this.deleteRealmOnLogout = true;

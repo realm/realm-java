@@ -52,6 +52,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -188,6 +189,7 @@ public final class Realm extends BaseRealm {
             RealmCore.loadLibrary(context);
             RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
+            ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
         }
     }

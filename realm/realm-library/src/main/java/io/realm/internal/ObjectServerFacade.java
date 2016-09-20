@@ -1,5 +1,7 @@
 package io.realm.internal;
 
+import android.content.Context;
+
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
@@ -15,7 +17,7 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
-            Class syncFacadeClass = Class.forName("io.realm.internal.objectserver.SyncObjectServerFacade");
+            Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
             syncFacade = (ObjectServerFacade) syncFacadeClass.newInstance();
         } catch (ClassNotFoundException ignored) {
         } catch (InstantiationException e) {
@@ -26,14 +28,27 @@ public class ObjectServerFacade {
     }
 
     /**
+     * Initialize the Object Server library
+     * @param context
+     */
+    public void init(Context context) {
+    }
+
+    /**
      * Notify the session for this configuration that a local commit was made.
      */
     public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
     }
 
+    /**
+     * The first instance of this Realm was opened.
+     */
     public void realmClosed(RealmConfiguration configuration) {
     }
 
+    /**
+     * The last instance of this Realm was closed.
+     */
     public void realmOpened(RealmConfiguration configuration) {
     }
 
@@ -49,7 +64,7 @@ public class ObjectServerFacade {
     }
 
     // Returns a SyncObjectServerFacade instance if the class exists. Otherwise returns a non-sync one.
-    static ObjectServerFacade getSyncFacadeIfPossible() {
+    public static ObjectServerFacade getSyncFacadeIfPossible() {
         if (syncFacade != null) {
             return syncFacade;
         }

@@ -17,7 +17,6 @@
 package io.realm;
 
 
-import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -41,17 +40,12 @@ public class SchemaTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private Context context;
     private SyncConfiguration config;
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getContext();
         User user = SyncTestUtils.createTestUser();
-        config = new SyncConfiguration.Builder(context)
-                .user(user)
-                .serverUrl("realm://objectserver.realm.io/~/default")
-                .build();
+        config = new SyncConfiguration.Builder(user, "realm://objectserver.realm.io/~/default").build();
     }
 
     @After

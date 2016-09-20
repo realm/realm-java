@@ -329,17 +329,17 @@ public final class SyncSession {
     /**
      * Notify session that a commit on the device has happened.
      */
-    void notifyCommit(long version) {
+    public void notifyCommit(long version) {
         if (isBound()) {
             nativeNotifyCommitHappened(nativeSessionPointer, version);
         }
     }
 
-    SyncPolicy getSyncPolicy() {
+    public SyncPolicy getSyncPolicy() {
         return syncPolicy;
     }
 
-    Session getUserSession() {
+    public Session getUserSession() {
         return userSession;
     }
 

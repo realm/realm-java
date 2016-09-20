@@ -101,8 +101,6 @@ public class User {
      * @param credentials credentials to use.
      * @param authenticationUrl Server that can authenticate against.
      * @throws ObjectServerError if the login failed.
-     *
-     * @see SyncConfiguration.Builder#user(User)
      */
     public static User login(final Credentials credentials, final String authenticationUrl) throws ObjectServerError {
         final URL authUrl;
@@ -140,8 +138,6 @@ public class User {
      * @param credentials credentials to use.
      * @param authenticationUrl Server that can authenticate against.
      * @param callback callback when login has completed or failed. This callback will always happen on the UI thread.
-     *
-     * @see SyncConfiguration.Builder#user(User)
      */
     public static RealmAsyncTask loginAsync(final Credentials credentials, final String authenticationUrl, final Callback callback) {
         if (Looper.myLooper() == null) {

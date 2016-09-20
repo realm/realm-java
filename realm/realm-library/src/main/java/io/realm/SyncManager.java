@@ -22,11 +22,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.Keep;
-import io.realm.internal.RealmCore;
-import io.realm.internal.objectserver.SyncSession;
-import io.realm.internal.objectserver.SessionStore;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.OkHttpAuthenticationServer;
+import io.realm.internal.objectserver.SessionStore;
+import io.realm.internal.objectserver.SyncSession;
 import io.realm.log.RealmLog;
 
 /**
@@ -39,7 +38,11 @@ import io.realm.log.RealmLog;
 @Keep
 public final class SyncManager {
 
-    public static final String APP_ID = "foo"; // FIXME Find a way to get an application ID
+    /**
+     * APP ID sent to the Realm Object Server. Is automatically initialized to the package name for the app.
+     */
+    public static String APP_ID = null;
+
     // Thread pool used when doing network requests against the Realm Authentication Server.
     // FIXME Set proper parameters
     public static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
@@ -74,11 +77,15 @@ public final class SyncManager {
     @SuppressWarnings("FieldCanBeLocal")
     private static Thread clientThread;
 
-    // FIXME This should be called by a method in Realm.init() otherwise the ClassLoader might call this first.
-    static {
+    // Called from SyncObjectServerFacade using reflection
+    @SuppressWarnings("unused")
+    static void init(String appId, UserStore userStore) {
+
+        // Initialize underlying Sync Network Client
         nativeInitializeSyncClient();
-        // Create the client thread in java to avoid strange problem when error happens. And anyway we need to attach
-        // to the jvm for logger.
+
+        // Create the client thread in java to avoid problems when exceptions are being thrown. We need to attach
+        // any thread to the JVM anyway in order to send back log events.
         clientThread = new Thread(new Runnable() {
             @Override
             public void run() {
