@@ -28,6 +28,8 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -166,6 +168,23 @@ public class SyncConfigurationTests {
                 .user(createTestUser());
         SyncConfiguration config = builder.build();
         assertFalse(config.getRealmFileName().contains("?"));
+    }
+
+    @Test
+    public void serverUrl_port() {
+        Map<String, Integer> urlPort = new HashMap<String, Integer>();
+        urlPort.put("realm://objectserver.realm.io/~/default", 80);
+        urlPort.put("realms://objectserver.realm.io/~/default", 443);
+        urlPort.put("realm://objectserver.realm.io:8080/~/default", 8080);
+        urlPort.put("realms://objectserver.realm.io:2443/~/default", 2443);
+
+        for (String url : urlPort.keySet()) {
+            SyncConfiguration config = new SyncConfiguration.Builder(context)
+                    .serverUrl(url)
+                    .user(createTestUser())
+                    .build();
+            assertEquals(urlPort.get(url).intValue(), config.getServerUrl().getPort());
+        }
     }
 
     @Test

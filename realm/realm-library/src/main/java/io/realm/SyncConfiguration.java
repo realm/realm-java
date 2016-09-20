@@ -410,8 +410,10 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (url == null) {
                 throw new IllegalArgumentException("Non-null 'url' required.");
             }
+
+            URI serverUrl;
             try {
-                this.serverUrl = new URI(url);
+                serverUrl = new URI(url);
             } catch (URISyntaxException e) {
                 throw new IllegalArgumentException("Invalid url: " + url, e);
             }
@@ -420,6 +422,15 @@ public final class SyncConfiguration extends RealmConfiguration {
             String scheme = serverUrl.getScheme();
             if (!scheme.equals("realm") && !scheme.equals("realms")) {
                 throw new IllegalArgumentException("Invalid scheme: " + scheme);
+            }
+
+            // set port if not set by user
+            int port;
+            int currentPort = serverUrl.getPort();
+            if (currentPort == -1) {
+                port = scheme.equals("realm") ? 80 : 443;
+            } else {
+                port = currentPort;
             }
 
             // Detect last path segment as it is the default file name
@@ -453,6 +464,12 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("The URL must not end with '.realm', '.realm.lock' or '.realm.management: " + url);
             }
 
+            try {
+                this.serverUrl = new URI(scheme, serverUrl.getUserInfo(), serverUrl.getHost(),
+                        port, serverUrl.getPath(), serverUrl.getQuery(), serverUrl.getFragment());
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Cannot reconstruct url: " + url, e);
+            }
             return this;
         }
 
