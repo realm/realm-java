@@ -173,8 +173,8 @@ public class SyncConfigurationTests {
     @Test
     public void serverUrl_port() {
         Map<String, Integer> urlPort = new HashMap<String, Integer>();
-        urlPort.put("realm://objectserver.realm.io/~/default", 80);
-        urlPort.put("realms://objectserver.realm.io/~/default", 443);
+        urlPort.put("realm://objectserver.realm.io/~/default", SyncConfiguration.PORT_REALM);
+        urlPort.put("realms://objectserver.realm.io/~/default", SyncConfiguration.PORT_REALMS);
         urlPort.put("realm://objectserver.realm.io:8080/~/default", 8080);
         urlPort.put("realms://objectserver.realm.io:2443/~/default", 2443);
 

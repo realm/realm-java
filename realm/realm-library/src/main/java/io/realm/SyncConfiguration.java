@@ -69,6 +69,9 @@ import io.realm.rx.RxObservableFactory;
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
+    public static final int PORT_REALM = 80;
+    public static final int PORT_REALMS = 443;
+
     // The FAT file system has limitations of length. Also, not all characters are permitted.
     // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
     public static final int MAX_FULL_PATH_LENGTH = 256;
@@ -428,7 +431,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             int port;
             int currentPort = serverUrl.getPort();
             if (currentPort == -1) {
-                port = scheme.equals("realm") ? 80 : 443;
+                port = scheme.equals("realm") ? PORT_REALM : PORT_REALMS;
             } else {
                 port = currentPort;
             }
