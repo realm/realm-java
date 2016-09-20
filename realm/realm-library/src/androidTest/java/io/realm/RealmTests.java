@@ -2335,11 +2335,10 @@ public class RealmTests {
     public void createObject_overwriteNullifiedLinkWithDefaultValue() {
         final DefaultValueOverwriteNullLink created;
         realm.beginTransaction();
-            created = realm.createObject(DefaultValueOverwriteNullLink.class);
+        created = realm.createObject(DefaultValueOverwriteNullLink.class);
         realm.commitTransaction();
 
-        assertEquals(created.getExpectedKeyOfFieldObject(),
-                created.getFieldObject().getFieldRandomPrimaryKey());
+        assertEquals(created.getExpectedKeyOfFieldObject(), created.getFieldObject().getFieldRandomPrimaryKey());
     }
 
     @Test
