@@ -115,8 +115,14 @@ public class SyncConfigurationTests {
 //            "objectserver.realm.io/~/default", // Missing protocol. TODO Should we just default to one?
 //            "/~/default", // Missing server
             "realm://objectserver.realm.io/~/default.realm", // Ending with .realm
+            "realm://objectserver.realm.io/~/default.realm.lock", // Ending with .realm.lock
+            "realm://objectserver.realm.io/~/default.realm.management", // Ending with .realm.management
             "realm://objectserver.realm.io/<~>/default.realm", // Invalid chars <>
             "realm://objectserver.realm.io/~/default.realm/", // Ending with /
+            "realm://objectserver.realm.io/~/Αθήνα", // Non-ascii
+            "realm://objectserver.realm.io/~/foo/../bar", // .. is not allowed
+            "realm://objectserver.realm.io/~/foo/./bar", // . is not allowed
+            "http://objectserver.realm.io/~/default", // wrong scheme
         };
 
         SyncConfiguration.Builder builder = new SyncConfiguration.Builder(context);

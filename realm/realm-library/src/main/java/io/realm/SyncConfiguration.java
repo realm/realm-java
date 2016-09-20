@@ -26,7 +26,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
@@ -235,6 +236,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         private String defaultLocalFileName;
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
         private boolean deleteRealmOnLogout = false;
+        private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
+
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
@@ -413,6 +416,12 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Invalid url: " + url, e);
             }
 
+            // scheme must be realm or realms
+            String scheme = serverUrl.getScheme();
+            if (!scheme.equals("realm") && !scheme.equals("realms")) {
+                throw new IllegalArgumentException("Invalid scheme: " + scheme);
+            }
+
             // Detect last path segment as it is the default file name
             String path = serverUrl.getPath();
             if (path == null) {
@@ -420,12 +429,28 @@ public final class SyncConfiguration extends RealmConfiguration {
             }
 
             String[] pathSegments = path.split("/");
+            for (int i = 1; i < pathSegments.length; i++) {
+                String segment = pathSegments[i];
+                if (segment.equals("~")) {
+                    continue;
+                }
+                if (segment.equals("..") || segment.equals(".")) {
+                    throw new IllegalArgumentException("The URL has an invalid segment: " + segment);
+                }
+                Matcher m = pattern.matcher(segment);
+                if (!m.matches()) {
+                    throw new IllegalArgumentException("The URL must only contain characters 0-9, a-z, A-Z, ., _, and -: " + segment);
+                }
+            }
+
             this.defaultLocalFileName = pathSegments[pathSegments.length - 1];
 
             // Validate filename
             // TODO Lift this restriction on the Object Server
-            if (defaultLocalFileName.endsWith(".realm")) {
-                throw new IllegalArgumentException("The URL must not end with '.realm': " + url);
+            if (defaultLocalFileName.endsWith(".realm")
+                    || defaultLocalFileName.endsWith(".realm.lock")
+                    || defaultLocalFileName.endsWith(".realm.management")) {
+                throw new IllegalArgumentException("The URL must not end with '.realm', '.realm.lock' or '.realm.management: " + url);
             }
 
             return this;
