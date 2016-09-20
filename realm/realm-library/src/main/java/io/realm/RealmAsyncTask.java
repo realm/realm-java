@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -32,7 +31,6 @@ public final class RealmAsyncTask {
     private final ThreadPoolExecutor service;
     private volatile boolean isCancelled = false;
 
-    // FIXME This shouldn't be public
     public RealmAsyncTask(Future<?> pendingTask, ThreadPoolExecutor service) {
         this.pendingTask = pendingTask;
         this.service = service;

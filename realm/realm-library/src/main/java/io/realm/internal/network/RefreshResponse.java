@@ -22,7 +22,6 @@ import okhttp3.Response;
 public class RefreshResponse extends AuthServerResponse {
 
     public RefreshResponse(Response response) {
-        // FIXME Parse refresh result
     }
 
     public Token getRefreshToken() {

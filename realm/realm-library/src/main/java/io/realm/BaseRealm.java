@@ -61,7 +61,7 @@ public abstract class BaseRealm implements Closeable {
             "Changing Realm data can only be done from inside a transaction.";
 
     // Thread pool for all async operations (Query & transaction)
-    public volatile static Context applicationContext; // FIXME Make package protected once all sync code moves to io.realm
+    public volatile static Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
@@ -583,7 +583,7 @@ public abstract class BaseRealm implements Closeable {
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
-        // FIXME: Move this check to OS?
+        // https://github.com/realm/realm-java/issues/1033
         if (configuration.getEncryptionKey() != null) {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }

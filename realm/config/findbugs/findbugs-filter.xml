@@ -32,6 +32,11 @@
         <Field name="APP_ID" />
         <Bug pattern="MS_SHOULD_BE_FINAL" />
     </Match>
+    <Match>
+        <Class name="io.realm.SyncManager" />
+        <Field name="APP_ID" />
+        <Bug pattern="MS_CANNOT_BE_FINAL" />
+    </Match>
 
     <!-- Unit tests -->
     <Match>

@@ -21,8 +21,6 @@ import java.util.List;
 
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
-import io.realm.SyncManager;
-import io.realm.internal.ObjectServerFacade;
 
 /**
  * Global logger used by all Realm components.
@@ -59,7 +57,6 @@ public final class RealmLog {
 
     private static void setMinimumNativeDebugLevel(int nativeDebugLevel) {
         minimumNativeLogLevel = nativeDebugLevel;
-        // FIXME: Use same log level setting for normal Realm and Sync Realm.
         Util.setDebugLevel(nativeDebugLevel); // Log level for Realm Core
     }
 

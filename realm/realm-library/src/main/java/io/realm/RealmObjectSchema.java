@@ -154,7 +154,6 @@ public final class RealmObjectSchema {
         realm.checkNotInSync(); // renaming a table is not permitted
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
-        //FIXME : when core implements class name length check, please remove.
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
             throw new IllegalArgumentException("Class name is to long. Limit is 56 characters: \'" + className + "\' (" + Integer.toString(className.length()) + ")");
         }

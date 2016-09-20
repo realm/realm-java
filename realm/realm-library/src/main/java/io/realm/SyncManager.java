@@ -226,7 +226,6 @@ public final class SyncManager {
      * Sets the log level for the underlying
      * @param logLevel
      */
-    // FIXME Remove from the public API. This is controlled by Logger#minimumNativeLogLevel
     public static void setLogLevel(int logLevel) {
         nativeSetSyncClientLogLevel(logLevel);
     }

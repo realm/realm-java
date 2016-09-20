@@ -30,14 +30,13 @@
 
 
 // Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
-// TODO Use OS SyncSession instead
+// TODO Use OS SyncSession instead - https://github.com/realm/realm-java-private/issues/123
 class JniSession {
 
 public:
     JniSession() = delete;
     JniSession(JNIEnv* env, std::string local_realm_path, jobject java_session_obj)
     {
-        // FIXME: This doesn't look good. Temp solution before moving to OS sync.
         extern std::unique_ptr<realm::sync::Client> sync_client;
         // Get the coordinator for the given path, or null if there is none
         m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);

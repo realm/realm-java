@@ -68,12 +68,12 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     @Override
     public RefreshResponse refresh(String token, URL authenticationUrl) {
-        throw new UnsupportedOperationException("FIXME");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public LogoutResponse logout(User user, URL authenticationUrl) {
-        throw new UnsupportedOperationException("FIXME");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     private AuthenticateResponse authenticate(URL authenticationUrl, String requestBody) throws Exception {
