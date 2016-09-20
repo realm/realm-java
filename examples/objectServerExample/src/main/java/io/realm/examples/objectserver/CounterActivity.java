@@ -37,7 +37,7 @@ import io.realm.User;
 
 public class CounterActivity extends AppCompatActivity {
 
-    private static final String REALM_URL = "realm://" + MyApplication.OBJECT_SERVER_IP + "/~/default";
+    private static final String REALM_URL = "realm://" + MyApplication.OBJECT_SERVER_IP + ":7800/~/default";
 
     private Realm realm;
     private RealmResults<CounterOperation> counter;
@@ -61,8 +61,8 @@ public class CounterActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (User.currentUser() != null) {
-            user = User.currentUser();
+        user = User.currentUser();
+        if (user != null) {
             // Create a RealmConfiguration for our user
             SyncConfiguration config = new SyncConfiguration.Builder(user, REALM_URL)
                     .initialData(new Realm.Transaction() {

@@ -19,20 +19,22 @@ package io.realm.examples.objectserver;
 import android.app.Application;
 import android.util.Log;
 
+import io.realm.Realm;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
-import io.realm.SyncManager;
-import io.realm.User;
-import io.realm.UserStore;
-import io.realm.android.SharedPrefsUserStore;
 
 public class MyApplication extends Application {
 
-    public static final String OBJECT_SERVER_IP = "192.168.1.3";
+    public static final String OBJECT_SERVER_IP = "192.168.104.22";
     @Override
     public void onCreate() {
         super.onCreate();
-        RealmLog.add(new AndroidLogger(Log.VERBOSE));
-        SyncManager.setUserStore(new SharedPrefsUserStore(this)); // Temporary until we can find a way to inject Context.
+        Realm.init(this);
+
+        // Enable full log output when debugging
+        if (BuildConfig.DEBUG) {
+            RealmLog.clear();
+            RealmLog.add(new AndroidLogger(Log.VERBOSE));
+        }
     }
 }

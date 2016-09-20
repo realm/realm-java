@@ -55,12 +55,14 @@ public class User {
     }
 
     /**
-     * Returns the last user that has logged in that hasn't logged out yet.
+     * Returns the last user that has logged in that are still valid.
+     * A user is invalidated when it logs out or its access tokens expire.
      *
      * @return last {@link User} that have logged in that is still valid.
      */
     public static User currentUser() {
-        return SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
+        User user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
+        return (user != null && user.isValid()) ? user : null;
     }
 
     /**

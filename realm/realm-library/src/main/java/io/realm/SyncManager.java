@@ -70,29 +70,30 @@ public final class SyncManager {
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
-    private static volatile UserStore userStore; // FIXME: Set to a default once we merge global init
-
+    private static volatile UserStore userStore;
 
     static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
     @SuppressWarnings("FieldCanBeLocal")
     private static Thread clientThread;
 
-    // Called from SyncObjectServerFacade using reflection
-    @SuppressWarnings("unused")
+    // Initialize the SyncManager
     static void init(String appId, UserStore userStore) {
+
+        SyncManager.APP_ID = appId;
+        SyncManager.userStore = userStore;
 
         // Initialize underlying Sync Network Client
         nativeInitializeSyncClient();
 
         // Create the client thread in java to avoid problems when exceptions are being thrown. We need to attach
         // any thread to the JVM anyway in order to send back log events.
-        clientThread = new Thread(new Runnable() {
+        SyncManager.clientThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 nativeRunClient();
             }
         }, "RealmSyncClient");
-        clientThread.start();
+        SyncManager.clientThread.start();
     }
 
     /**
