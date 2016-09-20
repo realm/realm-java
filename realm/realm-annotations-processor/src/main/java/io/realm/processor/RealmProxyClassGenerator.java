@@ -278,7 +278,6 @@ public class RealmProxyClassGenerator {
                     @Override
                     public void emit(JavaWriter writer) throws IOException {
                         // set value as default value
-                        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                         writer.emitStatement("final Row row = proxyState.getRow$realm()");
 
                         if (metadata.isNullable(field)) {
@@ -352,8 +351,6 @@ public class RealmProxyClassGenerator {
                             .endControlFlow();
                         writer.beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
                                 .emitStatement("value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value)")
-                            .nextControlFlow("else")
-                                .emitStatement("proxyState.getRealm$realm().checkIfValid()")
                             .endControlFlow();
 
                         // set value as default value
@@ -369,7 +366,6 @@ public class RealmProxyClassGenerator {
                         writer.beginControlFlow("if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())")
                                 .emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")")
                             .endControlFlow();
-                        // TODO check if default value by setLink can overwrite null by Row#nullifyLink()
                         writer.emitStatement("row.getTable().setLink(%s, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true)",
                                 fieldIndexVariableReference(field));
                         writer.emitStatement("return");
@@ -413,14 +409,14 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 emitCodeForInjectingObjectContext(writer);
                 emitCodeForUnderConstruction(writer, field, metadata.isPrimaryKey(field), new CodeEmitter() {
                     @Override
                     public void emit(JavaWriter writer) throws IOException {
-                        // LinkView does not support default value feature for now. Just fallback normal code.
+                        // LinkView currently does not support default value feature. Just fallback to normal code.
                     }
                 });
+                writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
                 writer.emitStatement("LinkView links = proxyState.getRow$realm().getLinkList(%s)", fieldIndexVariableReference(field));
                 writer.emitStatement("links.clear()");
                 writer.beginControlFlow("if (value == null)");

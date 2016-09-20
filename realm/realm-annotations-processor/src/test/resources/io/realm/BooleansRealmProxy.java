@@ -119,7 +119,6 @@ public class BooleansRealmProxy extends some.test.Booleans
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setBoolean(columnInfo.doneIndex, row.getIndex(), value, true);
             return;
@@ -150,7 +149,6 @@ public class BooleansRealmProxy extends some.test.Booleans
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setBoolean(columnInfo.isReadyIndex, row.getIndex(), value, true);
             return;
@@ -181,7 +179,6 @@ public class BooleansRealmProxy extends some.test.Booleans
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setBoolean(columnInfo.mCompletedIndex, row.getIndex(), value, true);
             return;
@@ -212,7 +209,6 @@ public class BooleansRealmProxy extends some.test.Booleans
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setBoolean(columnInfo.anotherBooleanIndex, row.getIndex(), value, true);
             return;

@@ -204,7 +204,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldStringNotNull' to null.");
@@ -241,7 +240,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldStringNullIndex, row.getIndex(), true);
@@ -280,7 +278,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldBooleanNotNull' to null.");
@@ -320,7 +317,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldBooleanNullIndex, row.getIndex(), true);
@@ -359,7 +355,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldBytesNotNull' to null.");
@@ -396,7 +391,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldBytesNullIndex, row.getIndex(), true);
@@ -435,7 +429,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldByteNotNull' to null.");
@@ -475,7 +468,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldByteNullIndex, row.getIndex(), true);
@@ -514,7 +506,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldShortNotNull' to null.");
@@ -554,7 +545,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldShortNullIndex, row.getIndex(), true);
@@ -593,7 +583,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldIntegerNotNull' to null.");
@@ -633,7 +622,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldIntegerNullIndex, row.getIndex(), true);
@@ -672,7 +660,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldLongNotNull' to null.");
@@ -712,7 +699,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldLongNullIndex, row.getIndex(), true);
@@ -751,7 +737,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldFloatNotNull' to null.");
@@ -791,7 +776,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldFloatNullIndex, row.getIndex(), true);
@@ -830,7 +814,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldDoubleNotNull' to null.");
@@ -870,7 +853,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldDoubleNullIndex, row.getIndex(), true);
@@ -909,7 +891,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldDateNotNull' to null.");
@@ -949,7 +930,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.fieldDateNullIndex, row.getIndex(), true);
@@ -995,8 +975,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
             if (value != null && !RealmObject.isManaged(value)) {
                 value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
-            } else {
-                proxyState.getRealm$realm().checkIfValid();
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {

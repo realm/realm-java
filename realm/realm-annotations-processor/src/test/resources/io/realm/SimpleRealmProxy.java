@@ -109,7 +109,6 @@ public class SimpleRealmProxy extends some.test.Simple
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 row.getTable().setNull(columnInfo.nameIndex, row.getIndex(), true);
@@ -148,7 +147,6 @@ public class SimpleRealmProxy extends some.test.Simple
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setLong(columnInfo.ageIndex, row.getIndex(), value, true);
             return;

@@ -171,7 +171,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setLong(columnInfo.columnLongIndex, row.getIndex(), value, true);
             return;
@@ -202,7 +201,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setFloat(columnInfo.columnFloatIndex, row.getIndex(), value, true);
             return;
@@ -233,7 +231,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setDouble(columnInfo.columnDoubleIndex, row.getIndex(), value, true);
             return;
@@ -264,7 +261,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             row.getTable().setBoolean(columnInfo.columnBooleanIndex, row.getIndex(), value, true);
             return;
@@ -295,7 +291,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnDate' to null.");
@@ -332,7 +327,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
-            proxyState.getRealm$realm().checkIfValid();
             final Row row = proxyState.getRow$realm();
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'columnBinary' to null.");
@@ -376,8 +370,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
             if (value != null && !RealmObject.isManaged(value)) {
                 value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
-            } else {
-                proxyState.getRealm$realm().checkIfValid();
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
@@ -427,7 +419,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     public void realmSet$columnRealmList(RealmList<some.test.AllTypes> value) {
-        proxyState.getRealm$realm().checkIfValid();
         if (proxyState == null) {
             // Called from model's constructor. Inject context.
             injectObjectContext();
@@ -454,6 +445,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
         }
 
+        proxyState.getRealm$realm().checkIfValid();
         LinkView links = proxyState.getRow$realm().getLinkList(columnInfo.columnRealmListIndex);
         links.clear();
         if (value == null) {
