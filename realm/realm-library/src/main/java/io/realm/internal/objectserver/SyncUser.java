@@ -35,6 +35,7 @@ import io.realm.Session;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.User;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.RefreshResponse;
@@ -95,7 +96,7 @@ public class SyncUser {
 
             }
         });
-        refreshTask = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
+        refreshTask = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
     /**

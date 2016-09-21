@@ -34,6 +34,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.IOException;
 import io.realm.internal.Util;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectserver.SyncUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.internal.network.AuthenticateResponse;
@@ -181,7 +182,7 @@ public class User {
             }
         });
 
-        return new RealmAsyncTask(authenticateRequest, networkPoolExecutor);
+        return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
     }
 
     /**

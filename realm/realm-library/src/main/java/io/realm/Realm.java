@@ -57,6 +57,7 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -1414,7 +1415,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new RealmAsyncTask(pendingTransaction, asyncTaskExecutor);
+        return new RealmAsyncTaskImpl(pendingTransaction, asyncTaskExecutor);
     }
 
     /**

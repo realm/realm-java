@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 
 import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -279,7 +280,7 @@ public final class SyncSession {
                 errorHandler.onError(getUserSession(), response.getError());
             }
         });
-        networkRequest = new RealmAsyncTask(task, SyncManager.NETWORK_POOL_EXECUTOR);
+        networkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
     /**
