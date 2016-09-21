@@ -706,7 +706,7 @@ Java_io_realm_internal_Table_nativeSetStringUnique(JNIEnv *env, jclass, jlong na
             if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
                 return;
             }
-            TBL(nativeTablePtr)->set_null_unique(S(columnIndex), S(rowIndex));
+            TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), null{});
         } else {
             JStringAccessor value2(env, value); // throws
             TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), value2);

@@ -414,7 +414,11 @@ public class Table implements TableOrView, TableSchema {
                         throwDuplicatePrimaryKeyException("null");
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    nativeSetNullUnique(nativePtr, primaryKeyColumnIndex, rowIndex);
+                    if (type == RealmFieldType.STRING) {
+                        nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, null);
+                    } else {
+                        nativeSetNullUnique(nativePtr, primaryKeyColumnIndex, rowIndex);
+                    }
                     break;
 
                 default:
@@ -1331,6 +1335,7 @@ public class Table implements TableOrView, TableSchema {
     public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetStringUnique(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
+    // Use nativeSetStringUnique(null) for String column!
     public static native void nativeSetNullUnique(long nativeTablePtr, long columnIndex, long rowIndex);
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
