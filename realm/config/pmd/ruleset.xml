@@ -8,10 +8,6 @@
         Realm PMD ruleset
     </description>
 
-    <rule ref="rulesets/java/basic.xml">
-        <exclude name="UselessParentheses"/>
-    </rule>
-
     <rule ref="rulesets/java/android.xml"/>
 
 </ruleset>
