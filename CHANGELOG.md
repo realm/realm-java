@@ -34,7 +34,7 @@
 ### Internal
 
 * Moved JNI build to CMake.
-* Updated Realm Core to 2.0.0-rc4.
+* Updated Realm Core to 2.0.0-rc7.
 
 ## 1.2.0
 
