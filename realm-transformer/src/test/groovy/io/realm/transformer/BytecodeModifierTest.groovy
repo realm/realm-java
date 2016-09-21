@@ -52,6 +52,68 @@ class BytecodeModifierTest extends Specification {
         }
     }
 
+    // https://github.com/realm/realm-java/issues/3469
+    def "AddRealmAccessors_duplicateSetter"() {
+        setup: 'generate an empty class'
+        def classPool = ClassPool.getDefault()
+        def ctClass = classPool.makeClass('testClass')
+
+        and: 'add a field'
+        def ctField = new CtField(CtClass.intType, 'age', ctClass)
+        ctClass.addField(ctField)
+
+        and: 'add a setter'
+        def setter = CtNewMethod.setter('realmSet$age', ctField)
+        ctClass.addMethod(setter)
+
+        when: 'addRealmAccessors is called'
+        BytecodeModifier.addRealmAccessors(ctClass)
+
+        then: 'a getter for the field is generated'
+        def ctMethods = ctClass.getDeclaredMethods()
+        def methodNames = ctMethods.name
+        methodNames.contains('realmGet$age')
+
+        and: 'the setter is not changed'
+        ctMethods.find {it.name.equals('realmSet$age')} == setter
+
+        and: 'the accessors are public'
+        ctMethods.each {
+            it.getModifiers() == Modifier.PUBLIC
+        }
+    }
+
+    // https://github.com/realm/realm-java/issues/3469
+    def "AddRealmAccessors_duplicateGetter"() {
+        setup: 'generate an empty class'
+        def classPool = ClassPool.getDefault()
+        def ctClass = classPool.makeClass('testClass')
+
+        and: 'add a field'
+        def ctField = new CtField(CtClass.intType, 'age', ctClass)
+        ctClass.addField(ctField)
+
+        and: 'add a getter'
+        def getter = CtNewMethod.getter('realmGet$age', ctField)
+        ctClass.addMethod(getter)
+
+        when: 'addRealmAccessors is called'
+        BytecodeModifier.addRealmAccessors(ctClass)
+
+        then: 'a setter for the field is generated'
+        def ctMethods = ctClass.getDeclaredMethods()
+        def methodNames = ctMethods.name
+        methodNames.contains('realmSet$age')
+
+        and: 'the getter is not changed'
+        ctMethods.find {it.name.equals('realmGet$age')} == getter
+
+        and: 'the accessors are public'
+        ctMethods.each {
+            it.getModifiers() == Modifier.PUBLIC
+        }
+    }
+
     def "AddRealmAccessors_IgnoreAnnotation"() {
         setup: 'generate an empty class'
         def classPool = ClassPool.getDefault()

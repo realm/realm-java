@@ -41,10 +41,10 @@ class BytecodeModifier {
         def methods = clazz.getDeclaredMethods()*.name
         clazz.declaredFields.each { CtField field ->
             if (!Modifier.isStatic(field.getModifiers()) && !field.hasAnnotation(Ignore.class)) {
-                if (!methods.contains("realmGet\$${field.name}")) {
+                if (!methods.contains("realmGet\$${field.name}".toString())) {
                     clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                 }
-                if (!methods.contains("realmSet\$${field.name}")) {
+                if (!methods.contains("realmSet\$${field.name}".toString())) {
                     clazz.addMethod(CtNewMethod.setter("realmSet\$${field.name}", field))
                 }
             }
