@@ -33,10 +33,6 @@ public class Table implements TableOrView, TableSchema {
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final String TABLE_PREFIX = Util.getTablePrefix();
     public static final long INFINITE = -1;
-    @SuppressWarnings("WeakerAccess")
-    public static final String STRING_DEFAULT_VALUE = "";
-    @SuppressWarnings("WeakerAccess")
-    public static final long INTEGER_DEFAULT_VALUE = 0;
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
 
@@ -408,7 +404,6 @@ public class Table implements TableOrView, TableSchema {
         long primaryKeyColumnIndex = getPrimaryKey();
         RealmFieldType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
-        UncheckedRow row;
 
         // Add with primary key initially set
         if (primaryKeyValue == null) {
@@ -419,9 +414,7 @@ public class Table implements TableOrView, TableSchema {
                         throwDuplicatePrimaryKeyException("null");
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    row = getUncheckedRow(rowIndex);
-                    // FIXME: Use core's set_null_unique when core supports it.
-                    row.setNull(primaryKeyColumnIndex);
+                    nativeSetNullUnique(nativePtr, primaryKeyColumnIndex, rowIndex);
                     break;
 
                 default:
@@ -1338,6 +1331,7 @@ public class Table implements TableOrView, TableSchema {
     public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetStringUnique(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
+    public static native void nativeSetNullUnique(long nativeTablePtr, long columnIndex, long rowIndex);
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
