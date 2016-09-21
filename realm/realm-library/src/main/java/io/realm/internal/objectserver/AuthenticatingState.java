@@ -16,7 +16,6 @@
 
 package io.realm.internal.objectserver;
 
-import io.realm.BaseRealm;
 import io.realm.ObjectServerError;
 import io.realm.Session;
 import io.realm.SessionState;
@@ -48,7 +47,7 @@ class AuthenticatingState extends FsmState {
 
     @Override
     public void onEnterState() {
-        if (NetworkStateReceiver.isOnline(BaseRealm.applicationContext)) {
+        if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
             authenticate(session);
         } else {
             // Wait for connection to become available, before trying again.

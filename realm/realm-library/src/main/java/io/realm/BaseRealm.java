@@ -49,7 +49,7 @@ import rx.Observable;
  * @see io.realm.DynamicRealm
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class BaseRealm implements Closeable {
+abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
             "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
@@ -61,7 +61,7 @@ public abstract class BaseRealm implements Closeable {
             "Changing Realm data can only be done from inside a transaction.";
 
     // Thread pool for all async operations (Query & transaction)
-    public volatile static Context applicationContext;
+    volatile static Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
