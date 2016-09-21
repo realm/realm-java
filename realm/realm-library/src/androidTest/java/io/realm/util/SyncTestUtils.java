@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import java.util.UUID;
 
 import io.realm.User;
+import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.SyncUser;
 import io.realm.internal.objectserver.Token;
 
@@ -52,6 +53,28 @@ public class SyncTestUtils {
             obj.put("userToken", userToken.toJson());
             obj.put("realms", realmList);
             return User.fromJson(obj.toString());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static AuthenticateResponse createLoginResponse(long expires) {
+        try {
+            Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
+            JSONObject response = new JSONObject();
+            response.put("refresh_token", userToken.toJson());
+            return AuthenticateResponse.from(response.toString());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static AuthenticateResponse createRefreshResponse() {
+        try {
+            Token userToken = new Token(USER_TOKEN, "JohnDoe", null, Long.MAX_VALUE, null);
+            JSONObject response = new JSONObject();
+            response.put("refresh_token", userToken.toJson());
+            return AuthenticateResponse.from(response.toString());
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }

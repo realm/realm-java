@@ -183,15 +183,11 @@ public final class SyncManager {
     }
 
     /**
-     * TODO Internal only? Developers can also use this to inject stubs.
-     * TODO Find a better method name.
-     * <p>
      * Sets the auth server implementation used when validating credentials.
      */
     static void setAuthServerImpl(AuthenticationServer authServerImpl) {
         authServer = authServerImpl;
     }
-
 
     // Return the currently configured User store.
     static UserStore getUserStore() {

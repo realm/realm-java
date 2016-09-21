@@ -57,14 +57,13 @@ public class AuthenticateRequest {
      * Authenticate access to a given Realm using an already logged in user.
      *
      * @param refreshToken Users refresh token
-     * @param path Path of the Realm to gain access to.
      */
-    public static AuthenticateRequest fromRefreshToken(Token refreshToken, URI path) {
+    public static AuthenticateRequest fromRefreshToken(Token refreshToken) {
         // Authenticate a given Realm path using an already logged in user.
         return new AuthenticateRequest("realm",
                 refreshToken.value(),
                 SyncManager.APP_ID,
-                path.getPath(),
+                refreshToken.path(),
                 Collections.<String, Object>emptyMap()
         );
     }

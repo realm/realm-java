@@ -20,12 +20,12 @@ import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.internal.Util;
-import io.realm.ErrorCode;
-import io.realm.User;
-import io.realm.internal.objectserver.Token;
 import io.realm.Credentials;
+import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.User;
+import io.realm.internal.Util;
+import io.realm.internal.objectserver.Token;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -47,28 +47,33 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
      * Authenticate the given credentials on the specified Realm Authentication Server.
      */
     @Override
-    public AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl) {
+    public AuthenticateResponse loginUser(Credentials credentials, URL authenticationUrl) {
         try {
             String requestBody = AuthenticateRequest.fromCredentials(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return new AuthenticateResponse(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
+            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
         }
     }
 
     @Override
-    public AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authenticationUrl) {
+    public AuthenticateResponse loginToRealm(Token refreshToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken, path).toJson();
+            String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return new AuthenticateResponse(new ObjectServerError(ErrorCode.UNKNOWN, e));
+            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
 
     @Override
-    public RefreshResponse refresh(String token, URL authenticationUrl) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    public AuthenticateResponse refreshUser(Token userToken, URL authenticationUrl) {
+        try {
+            String requestBody = AuthenticateRequest.fromRefreshToken(userToken).toJson();
+            return authenticate(authenticationUrl, requestBody);
+        } catch (Exception e) {
+            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
+        }
     }
 
     @Override
@@ -86,6 +91,6 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .build();
         Call call = client.newCall(request);
         Response response = call.execute();
-        return AuthenticateResponse.createFrom(response);
+        return AuthenticateResponse.from(response);
     }
 }

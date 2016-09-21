@@ -35,10 +35,11 @@ import io.realm.Session;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.User;
+import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
-import io.realm.internal.network.RefreshResponse;
+import io.realm.log.RealmLog;
 
 /**
  * Internal representation of a user on the Realm Object Server.
@@ -71,29 +72,33 @@ public class SyncUser {
 
     public void setRefreshToken(final Token refreshToken) {
         this.refreshToken = refreshToken; // Replace any existing token. TODO re-save the user with latest token.
+        scheduleRefresh();
+    }
 
-        // Schedule a refresh. This method cannot fail, but will continue retrying until either the app is killed
-        // or the attempt was successful.
+    // Schedule a refresh. This method cannot fail, but will continue retrying until either the app is killed
+    // or the attempt was successful.
+    // We should probably optimize this. See https://github.com/realm/realm-java-private/issues/140
+    public void scheduleRefresh() {
         final long expire = refreshToken.expiresMs();
         final AuthenticationServer server = SyncManager.getAuthServer();
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<RefreshResponse>() {
+        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
-            protected RefreshResponse execute() {
+            protected AuthenticateResponse execute() {
                 long timeToExpiration = System.currentTimeMillis() - expire;
                 if (timeToExpiration - REFRESH_WINDOW_MS > 0) {
                     SystemClock.sleep(timeToExpiration);
                 }
-                return server.refresh(refreshToken.value(), authenticationUrl);
+                return server.refreshUser(refreshToken, authenticationUrl);
             }
 
             @Override
-            protected void onSuccess(RefreshResponse response) {
+            protected void onSuccess(AuthenticateResponse response) {
                 setRefreshToken(response.getRefreshToken());
             }
 
             @Override
-            protected void onError(RefreshResponse response) {
-
+            protected void onError(AuthenticateResponse response) {
+                RealmLog.warn("Failed refreshing a user.\n" + response.getError().toString());
             }
         });
         refreshTask = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);

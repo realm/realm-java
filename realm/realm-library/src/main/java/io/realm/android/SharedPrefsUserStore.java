@@ -65,7 +65,7 @@ public class SharedPrefsUserStore implements UserStore {
      */
     @Override
     public User get(String key) {
-        if (key == UserStore.CURRENT_USER_KEY && cachedCurrentUser != null) {
+        if (UserStore.CURRENT_USER_KEY.equals(key) && cachedCurrentUser != null) {
             return cachedCurrentUser;
         }
 

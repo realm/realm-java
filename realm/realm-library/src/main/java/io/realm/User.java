@@ -63,7 +63,11 @@ public class User {
      */
     public static User currentUser() {
         User user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
-        return (user != null && user.isValid()) ? user : null;
+        if (user != null && user.isValid()) {
+            user.getSyncUser().scheduleRefresh();
+            return user;
+        }
+        return null;
     }
 
     /**
@@ -78,8 +82,8 @@ public class User {
         try {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
-            Token refreshToken = Token.from(obj.getJSONObject("userToken"));
-            SyncUser syncUser = new SyncUser(refreshToken, authUrl);
+            Token userToken = Token.from(obj.getJSONObject("userToken"));
+            SyncUser syncUser = new SyncUser(userToken, authUrl);
             JSONArray realmTokens = obj.getJSONArray("realms");
             for (int i = 0; i < realmTokens.length(); i++) {
                 JSONObject token = realmTokens.getJSONObject(i);
@@ -115,7 +119,7 @@ public class User {
 
         final AuthenticationServer server = SyncManager.getAuthServer();
         try {
-            AuthenticateResponse result = server.authenticateUser(credentials, authUrl);
+            AuthenticateResponse result = server.loginUser(credentials, authUrl);
             if (result.isValid()) {
                 SyncUser syncUser = new SyncUser(result.getRefreshToken(), authUrl);
                 User user = new User(syncUser);

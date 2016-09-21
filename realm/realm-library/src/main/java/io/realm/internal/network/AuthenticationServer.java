@@ -19,9 +19,9 @@ package io.realm.internal.network;
 import java.net.URI;
 import java.net.URL;
 
+import io.realm.Credentials;
 import io.realm.User;
 import io.realm.internal.objectserver.Token;
-import io.realm.Credentials;
 
 /**
  * Interface for handling communication with Realm Object Servers.
@@ -30,8 +30,30 @@ import io.realm.Credentials;
  * only responsible for executing a given network request.
  */
 public interface AuthenticationServer {
-    AuthenticateResponse authenticateUser(Credentials credentials, URL authenticationUrl);
-    AuthenticateResponse authenticateRealm(Token refreshToken, URI path, URL authenticationUrl);
-    RefreshResponse refresh(String token, URL authenticationUrl);
+    /**
+     * Login a User on the Object Server. This will create a "UserToken" (Currently called RefreshToken) that acts as
+     * the users credentials.
+     */
+    AuthenticateResponse loginUser(Credentials credentials, URL authenticationUrl);
+
+    /**
+     * Requests access to a specific Realm. Only users with a valid user token can ask for permission to a remote Realm.
+     * Permission to a Realm is granted through an "AccessToken". Each Realm have their own access token, and all
+     * tokens should be managed by {@link User}.
+     */
+    AuthenticateResponse loginToRealm(Token userToken, URI serverUrl,  URL authenticationUrl);
+
+    /**
+     * When the Object Server returns the user token, it also sends a timestamp for when the token expires.
+     * Before it expires, the client should try to refresh the token, effectively keeping the user logged in on the
+     * Object Server. Failing to do so will cause a "soft logout", where the User will have limited access rights.
+     */
+    AuthenticateResponse refreshUser(Token userToken, URL authenticationUrl);
+
+    /**
+     * Logs out the user on the Object Server by invalidating the refresh token. Each device should be given their
+     * own refresh token, but if the refresh token for some reason was shared or stolen all these devices will be
+     * logged out as well.
+     */
     LogoutResponse logout(User user, URL authenticationUrl);
 }

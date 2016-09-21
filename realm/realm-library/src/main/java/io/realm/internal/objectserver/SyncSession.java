@@ -257,7 +257,7 @@ public final class SyncSession {
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
             protected AuthenticateResponse execute() {
-                return authServer.authenticateRealm(
+                return authServer.loginToRealm(
                         user.getUserToken(),
                         configuration.getServerUrl(),
                         user.getAuthenticationUrl()

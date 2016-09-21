@@ -42,7 +42,7 @@ public class AuthenticateResponse extends AuthServerResponse {
      * Helper method for creating the proper Authenticate response. This method will set the appropriate error
      * depending on any HTTP response codes or IO errors.
      */
-    static AuthenticateResponse createFrom(Response response) {
+    public static AuthenticateResponse from(Response response) {
         String serverResponse;
         try {
             serverResponse = response.body().string();
@@ -59,9 +59,23 @@ public class AuthenticateResponse extends AuthServerResponse {
     }
 
     /**
+     * Helper method for creating the response from a JSON string.
+     */
+    public static AuthenticateResponse from(String json) {
+        return new AuthenticateResponse(json);
+    }
+
+    /**
+     * Helper method for creating a failed response.
+     */
+    public static AuthenticateResponse from(ObjectServerError error) {
+        return new AuthenticateResponse(error);
+    }
+
+    /**
      * Creates a unsuccessful authentication response. This should only happen in case of network / IO problems.
      */
-    AuthenticateResponse(ObjectServerError error) {
+    private AuthenticateResponse(ObjectServerError error) {
         setError(error);
         this.accessToken = null;
         this.refreshToken = null;
@@ -101,4 +115,5 @@ public class AuthenticateResponse extends AuthServerResponse {
     public Token getRefreshToken() {
         return refreshToken;
     }
+
 }
