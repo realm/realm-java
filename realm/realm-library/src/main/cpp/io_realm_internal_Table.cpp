@@ -706,10 +706,11 @@ Java_io_realm_internal_Table_nativeSetStringUnique(JNIEnv *env, jclass, jlong na
             if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
                 return;
             }
+            TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), null{});
+        } else {
+            JStringAccessor value2(env, value); // throws
+            TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), value2);
         }
-        JStringAccessor value2(env, value); // throws
-        // FIXME: Check if we need to call set_null_unique when core support it.
-        TBL(nativeTablePtr)->set_string_unique(S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
 }
 
@@ -764,6 +765,23 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
         pTable->set_null(S(columnIndex), S(rowIndex));
     } CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_Table_nativeSetNullUnique(JNIEnv *env, jclass, jlong nativeTablePtr, jlong columnIndex,
+                                                 jlong rowIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return;
+    if (!TBL_AND_ROW_INDEX_VALID(env, pTable, rowIndex))
+        return;
+    if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
+        return;
+    try {
+        pTable->set_null_unique(S(columnIndex), S(rowIndex));
+    } CATCH_STD()
+}
+
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr
   (JNIEnv* env, jobject, jlong nativeTablePtr, jlong index)
