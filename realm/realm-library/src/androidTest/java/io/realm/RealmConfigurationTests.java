@@ -34,7 +34,6 @@ import java.lang.reflect.Field;
 import java.util.Set;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
@@ -44,6 +43,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.DogOnlyModule;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
+import io.realm.entities.SelfContained;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -230,7 +230,7 @@ public class RealmConfigurationTests {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .schemaVersion(42)
-                .schema(Dog.class)
+                .schema(SelfContained.class)
                 .build();
         Realm.getInstance(config).close();
 
@@ -239,7 +239,7 @@ public class RealmConfigurationTests {
             config = new RealmConfiguration.Builder(context)
                     .directory(configFactory.getRoot())
                     .schemaVersion(42)
-                    .schema(AllTypesPrimaryKey.class)
+                    .schema(SelfContained.class, CyclicType.class)
                     .build();
             realm = Realm.getInstance(config);
             fail("A migration should be required");
@@ -253,10 +253,9 @@ public class RealmConfigurationTests {
                 .directory(configFactory.getRoot())
                 .schema(Dog.class)
                 .build();
-        realm = Realm.getInstance(config);
         try {
-            assertEquals(3, realm.getTable(Owner.class).getColumnCount());
-            fail("Owner should to be part of the schema");
+            realm = Realm.getInstance(config);
+            fail("Owner should be required");
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -348,26 +347,26 @@ public class RealmConfigurationTests {
         // Populate v0 of a Realm with an object
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(Dog.class)
+                .schema(SelfContained.class)
                 .schemaVersion(0)
                 .build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
-        realm.copyToRealm(new Dog("Foo"));
+        realm.copyToRealm(new SelfContained());
         realm.commitTransaction();
-        assertEquals(1, realm.where(Dog.class).count());
+        assertEquals(1, realm.where(SelfContained.class).count());
         realm.close();
 
         // Change schema and verify that Realm has been cleared
         config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(Owner.class, Dog.class)
+                .schema(SelfContained.class, CyclicType.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
                 .build();
         realm = Realm.getInstance(config);
-        assertEquals(0, realm.where(Dog.class).count());
+        assertEquals(0, realm.where(SelfContained.class).count());
     }
 
     @Test
@@ -528,7 +527,7 @@ public class RealmConfigurationTests {
     public void schema_differentSchemasThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .schema(AllTypes.class)
+                .schema(SelfContained.class)
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())

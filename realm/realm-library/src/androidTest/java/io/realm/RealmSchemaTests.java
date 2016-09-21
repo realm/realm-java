@@ -24,11 +24,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -52,7 +56,8 @@ public class RealmSchemaTests {
     @Before
     public void setUp() {
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schema(AllJavaTypes.class, Owner.class, PrimaryKeyAsString.class)
+                .schema(AllJavaTypes.class, PrimaryKeyAsString.class,
+                        Owner.class, Dog.class, Cat.class, DogPrimaryKey.class)
                 .build();
         Realm.getInstance(realmConfig).close(); // create Schema
         realm = DynamicRealm.getInstance(realmConfig);
@@ -71,13 +76,15 @@ public class RealmSchemaTests {
         Set<RealmObjectSchema> objectSchemas = realmSchema.getAll();
         assertEquals(6, objectSchemas.size());
 
-        List<String> expectedTables = Arrays.asList(
-                AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey", "PrimaryKeyAsString");
+        List<String> expectedTables = new ArrayList<String>(Arrays.asList(
+                AllJavaTypes.CLASS_NAME, PrimaryKeyAsString.CLASS_NAME,
+                Owner.CLASS_NAME, Dog.CLASS_NAME, Cat.CLASS_NAME, DogPrimaryKey.CLASS_NAME));
         for (RealmObjectSchema objectSchema : objectSchemas) {
-            if (!expectedTables.contains(objectSchema.getClassName())) {
+            if (!expectedTables.remove(objectSchema.getClassName())) {
                 fail(objectSchema.getClassName() + " was not found");
             }
         }
+        assertTrue(expectedTables.isEmpty());
     }
 
     @Test

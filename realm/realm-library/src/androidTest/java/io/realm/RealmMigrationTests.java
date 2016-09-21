@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
@@ -46,6 +47,7 @@ import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.entities.SelfContained;
 import io.realm.entities.StringOnly;
 import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationFieldRenamed;
@@ -60,6 +62,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -118,7 +121,7 @@ public class RealmMigrationTests {
         // V1 config
         RealmConfiguration v1Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class)
+                .schema(SelfContained.class)
                 .schemaVersion(1)
                 .build();
         Realm oldRealm = Realm.getInstance(v1Config);
@@ -137,7 +140,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration v2Config = configFactory.createConfigurationBuilder()
                 .name(MIGRATED_REALM)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(SelfContained.class, FieldOrder.class)
                 .schemaVersion(2)
                 .migration(migration)
                 .build();
@@ -148,10 +151,16 @@ public class RealmMigrationTests {
         RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
                 .name(NEW_REALM)
                 .schemaVersion(2)
-                .schema(AllTypes.class, FieldOrder.class)
+                .schema(SelfContained.class, FieldOrder.class)
                 .build();
         Realm newRealm = Realm.getInstance(newConfig);
-        newRealm.close();
+        try {
+            // check for precondition
+            assertNotEquals(oldRealm.getSchema().getTable(FieldOrder.class).getColumnIndex("field1"),
+                    newRealm.getSchema().getTable(FieldOrder.class).getColumnIndex("field1"));
+        } finally {
+            newRealm.close();
+        }
 
         // Try to query migrated realm. With local column indices this will work. With global it will fail.
         assertEquals(0, oldRealm.where(FieldOrder.class).equalTo("field1", true).findAll().size());
@@ -163,7 +172,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(SelfContained.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -181,7 +190,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(SelfContained.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
@@ -200,7 +209,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(CyclicType.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -218,7 +227,7 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(CyclicType.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
@@ -638,7 +647,7 @@ public class RealmMigrationTests {
     public void settingPrimaryKeyWithObjectSchema() {
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(SelfContained.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -658,7 +667,7 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(SelfContained.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -709,7 +718,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(SelfContained.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -726,7 +735,7 @@ public class RealmMigrationTests {
 
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(SelfContained.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
 
@@ -831,6 +840,9 @@ public class RealmMigrationTests {
                 .schemaVersion(0)
                 .schema(AllTypes.class)
                 .build();
+        // FIXME this test should fail since AllTypes contains a link to Dog table.
+        // We should add other required classes to the schema above and also we should
+        // have another test to check if the mediator contains all required classes.
         Realm realm = Realm.getInstance(realmConfig);
 
         realm.beginTransaction();
