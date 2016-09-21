@@ -18,12 +18,6 @@ package io.realm.internal;
 
 class TestUtil {
 
-    static {
-        // Any internal class with static native methods that uses Realm Core must load the Realm Core library
-        // themselves as it otherwise might not have been loaded.
-        RealmCore.loadLibrary();
-    }
-
     public native static long getMaxExceptionNumber();
     public native static String getExpectedMessage(long exceptionKind);
     public native static void testThrowExceptions(long exceptionKind);

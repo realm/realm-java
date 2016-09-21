@@ -131,7 +131,7 @@ public class JNIViewTest extends TestCase {
 
         byte[] arr2 = new byte[] {1,2,3, 4, 5};
 
-        view.setBinaryByteArray(0, 0, arr2);
+        view.setBinaryByteArray(0, 0, arr2, false);
 
         MoreAsserts.assertEquals(arr2, view.getBinaryByteArray(0, 0));
     }
@@ -372,7 +372,7 @@ public class JNIViewTest extends TestCase {
         assertEquals(1, view.size());
 
         // access view after change in value is ok
-        t.setLong(0, 0, 3);
+        t.setLong(0, 0, 3, false);
         accessingViewOk(view);
 
         // access view after additions to table must fail

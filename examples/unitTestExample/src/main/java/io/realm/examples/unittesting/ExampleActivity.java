@@ -36,19 +36,17 @@ public class ExampleActivity extends Activity {
     private LinearLayout rootLayout = null;
 
     private Realm realm;
-    private static RealmConfiguration realmConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Realm.init(getApplicationContext());
         setContentView(R.layout.activity_example);
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
-        // Create Realm configuration if it doesn't exist.
-        realmConfig = new RealmConfiguration.Builder(this).build();
         // Open the default Realm for the UI thread.
-        realm = Realm.getInstance(realmConfig);
+        realm = Realm.getDefaultInstance();
 
         // Clean up from previous run
         cleanUp();
@@ -160,7 +158,7 @@ public class ExampleActivity extends Activity {
     private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.getInstance(realmConfig);
+        Realm realm = Realm.getDefaultInstance();
         status += "\nNumber of people in the DB: " + realm.where(Person.class).count();
 
         // Find all persons where age between 1 and 99 and name begins with "J".

@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '2.0.0-rc4'
+ext.coreVersion = '2.0.0-rc7'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '760d8e889b8d678da36f63be2a49924969bfc8370176696ee977659d59677717'
+ext.coreSha256Hash = '5707af75cd3624505d687c5fa31ccb6a61fe754f72ff6c79d98a342af3b9942b'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -48,8 +48,12 @@ android {
                           // JNI build currently (lack of lto linking support).
                           // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
-                // armeabi is not supported anymore.
-                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                if (!project.hasProperty('android.injected.build.abi') && project.hasProperty('buildTargetABIs')) {
+                    abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
+                } else {
+                    // armeabi is not supported anymore.
+                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                }
             }
         }
     }
@@ -176,7 +180,6 @@ task pmd(type: Pmd) {
 
     source = fileTree('src/main/java')
     ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-    ruleSets = [] // This needs to be here to remove the default checks
 
     reports {
         xml.enabled = false
@@ -425,6 +428,11 @@ if (project.hasProperty('dontCleanJniFiles')) {
         }
     }
 } else {
+    task cleanJniHeaders(type: Delete) {
+        delete project.file('src/main/cpp/jni_include')
+    }
+    clean.dependsOn cleanJniHeaders
+
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
     }

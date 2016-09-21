@@ -28,7 +28,8 @@ public class MyApplication extends Application {
         super.onCreate();
 
         // Configure Realm for the application
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
+        Realm.init(this);
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(realmConfiguration); // Clean slate
         Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
     }

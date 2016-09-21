@@ -51,12 +51,8 @@ class KotlinExampleActivity : Activity() {
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
-        // Create configuration and reset Realm.
-        realmConfig = RealmConfiguration.Builder(this).build()
-        Realm.deleteRealm(realmConfig)
-
         // Open the realm for the UI thread.
-        realm = Realm.getInstance(realmConfig)
+        realm = Realm.getDefaultInstance();
 
         basicCRUD(realm)
         basicQuery(realm)

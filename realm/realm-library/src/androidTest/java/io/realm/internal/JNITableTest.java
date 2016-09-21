@@ -17,13 +17,18 @@
 package io.realm.internal;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Pair;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -188,8 +193,8 @@ public class JNITableTest {
         t.addColumn(RealmFieldType.BINARY, "");
         t.add("String val", new Date(), new byte[]{1, 2, 3});
 
-        try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException ignored) { }
-        try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (IllegalArgumentException ignored) { }
+        try { t.setString(0, 0, null, false);  fail("null string not allowed"); } catch (IllegalArgumentException ignored) { }
+        try { t.setDate(1, 0, null, false);    fail("null Date not allowed"); } catch (IllegalArgumentException ignored) { }
     }
 
     @Test
@@ -207,14 +212,19 @@ public class JNITableTest {
         Realm.deleteRealm(configuration);
 
         SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
 
-        // Write transaction must be run so we are sure a db exists with the correct table
-        sharedRealm.beginTransaction();
-        sharedRealm.getTable(TABLE_NAME);
-        sharedRealm.commitTransaction();
+            // Write transaction must be run so we are sure a db exists with the correct table
+            sharedRealm.beginTransaction();
+            sharedRealm.getTable(TABLE_NAME);
+            sharedRealm.commitTransaction();
 
-        Table table = sharedRealm.getTable(TABLE_NAME);
-        assertEquals(TABLE_NAME, table.getName());
+            Table table = sharedRealm.getTable(TABLE_NAME);
+            assertEquals(TABLE_NAME, table.getName());
+        } finally {
+            sharedRealm.close();
+        }
     }
 
     @Test
@@ -291,8 +301,8 @@ public class JNITableTest {
         assertEquals(4, t.findFirstFloat(2, 300.0f)); // Find rows index for first float value of 300.0 in column 2
 
         // Set double and float
-        t.setDouble(1, 2, -2.0d);
-        t.setFloat(2, 2, -3.0f);
+        t.setDouble(1, 2, -2.0d, false);
+        t.setFloat(2, 2, -3.0f, false);
 
         // Get double tests
         assertEquals(-2.0d, t.getDouble(1, 2));
@@ -350,26 +360,26 @@ public class JNITableTest {
                     table.addColumn(RealmFieldType.BOOLEAN, "bool");
                     table.addEmptyRow();
                     if (columnType == RealmFieldType.BOOLEAN) {
-                        table.setBoolean(colIndex, 0, true);
+                        table.setBoolean(colIndex, 0, true, false);
                     } else if (columnType == RealmFieldType.DATE) {
-                        table.setDate(colIndex, 0, new Date(0));
+                        table.setDate(colIndex, 0, new Date(0), false);
                     } else if (columnType == RealmFieldType.DOUBLE) {
-                        table.setDouble(colIndex, 0, 1.0);
+                        table.setDouble(colIndex, 0, 1.0, false);
                     } else if (columnType == RealmFieldType.FLOAT) {
-                        table.setFloat(colIndex, 0, 1.0f);
+                        table.setFloat(colIndex, 0, 1.0f, false);
                     } else if (columnType == RealmFieldType.INTEGER) {
-                        table.setLong(colIndex, 0, 1);
+                        table.setLong(colIndex, 0, 1, false);
                     } else if (columnType == RealmFieldType.BINARY) {
-                        table.setBinaryByteArray(colIndex, 0, new byte[]{0});
+                        table.setBinaryByteArray(colIndex, 0, new byte[]{0}, false);
                     } else if (columnType == RealmFieldType.STRING) {
-                        table.setString(colIndex, 0, "Foo");
+                        table.setString(colIndex, 0, "Foo", false);
                     }
                     try {
                         table.addEmptyRow();
                         if (columnType == RealmFieldType.BINARY) {
-                            table.setBinaryByteArray(colIndex, 1, null);
+                            table.setBinaryByteArray(colIndex, 1, null, false);
                         } else if (columnType == RealmFieldType.STRING) {
-                            table.setString(colIndex, 1, null);
+                            table.setString(colIndex, 1, null, false);
                         } else {
                             table.getCheckedRow(1).setNull(colIndex);
                         }
@@ -391,9 +401,9 @@ public class JNITableTest {
 
                     table.addEmptyRow();
                     if (columnType == RealmFieldType.BINARY) {
-                        table.setBinaryByteArray(colIndex, 0, null);
+                        table.setBinaryByteArray(colIndex, 0, null, false);
                     } else if (columnType == RealmFieldType.STRING) {
-                        table.setString(colIndex, 0, null);
+                        table.setString(colIndex, 0, null, false);
                     } else {
                         table.getCheckedRow(0).setNull(colIndex);
                     }
@@ -426,25 +436,25 @@ public class JNITableTest {
                     table.addColumn(RealmFieldType.BOOLEAN, "bool");
                     table.addEmptyRow();
                     if (columnType == RealmFieldType.BOOLEAN)
-                        table.setBoolean(colIndex, 0, true);
+                        table.setBoolean(colIndex, 0, true, false);
                     else if (columnType == RealmFieldType.DATE)
-                        table.setDate(colIndex, 0, new Date(1));
+                        table.setDate(colIndex, 0, new Date(1), false);
                     else if (columnType == RealmFieldType.DOUBLE)
-                        table.setDouble(colIndex, 0, 1.0);
+                        table.setDouble(colIndex, 0, 1.0, false);
                     else if (columnType == RealmFieldType.FLOAT)
-                        table.setFloat(colIndex, 0, 1.0f);
+                        table.setFloat(colIndex, 0, 1.0f, false);
                     else if (columnType == RealmFieldType.INTEGER)
-                        table.setLong(colIndex, 0, 1);
+                        table.setLong(colIndex, 0, 1, false);
                     else if (columnType == RealmFieldType.BINARY)
-                        table.setBinaryByteArray(colIndex, 0, new byte[]{0});
+                        table.setBinaryByteArray(colIndex, 0, new byte[]{0}, false);
                     else if (columnType == RealmFieldType.STRING)
-                        table.setString(colIndex, 0, "Foo");
+                        table.setString(colIndex, 0, "Foo", false);
                     try {
                         table.addEmptyRow();
                         if (columnType == RealmFieldType.BINARY) {
-                            table.setBinaryByteArray(colIndex, 1, null);
+                            table.setBinaryByteArray(colIndex, 1, null, false);
                         } else if (columnType == RealmFieldType.STRING) {
-                            table.setString(colIndex, 1, null);
+                            table.setString(colIndex, 1, null, false);
                         } else {
                             table.getCheckedRow(1).setNull(colIndex);
                         }
@@ -466,9 +476,9 @@ public class JNITableTest {
                     table.addEmptyRow();
                     try {
                         if (columnType == RealmFieldType.BINARY) {
-                            table.setBinaryByteArray(colIndex, 0, null);
+                            table.setBinaryByteArray(colIndex, 0, null, false);
                         } else if (columnType == RealmFieldType.STRING) {
-                            table.setString(colIndex, 0, null);
+                            table.setString(colIndex, 0, null, false);
                         } else {
                             table.getCheckedRow(0).setNull(colIndex);
                         }
@@ -513,4 +523,423 @@ public class JNITableTest {
         assertFalse(table.isColumnNullable(0));
         assertTrue(table.isColumnNullable(1));
     }
+
+    @Test
+    public void defaultValue_setAndGet() {
+        // t is not used in this test
+        t = null;
+        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            sharedRealm.beginTransaction();
+            final Table table = sharedRealm.getTable(Table.TABLE_PREFIX + "DefaultValueTest");
+            sharedRealm.commitTransaction();
+
+            List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
+                    new Pair<RealmFieldType, Object>(RealmFieldType.STRING, "string value"),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.INTEGER, 100L),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.BOOLEAN, true),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.BINARY, new byte[]{123}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.DATE, new Date(123456)),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.FLOAT, 1.234f),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.DOUBLE, Math.PI),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.OBJECT, 0L)
+                    // currently, LIST does not support default value
+                    //new Pair<RealmFieldType, Object>(RealmFieldType.LIST, )
+            );
+
+            for (Pair<RealmFieldType, Object> columnInfo : columnInfoList) {
+                final RealmFieldType type = columnInfo.first;
+                if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
+                    table.addColumnLink(type, type.name().toLowerCase(Locale.ENGLISH) + "Col", table);
+                } else {
+                    table.addColumn(type, type.name().toLowerCase(Locale.ENGLISH) + "Col");
+                }
+            }
+
+            sharedRealm.beginTransaction();
+            table.addEmptyRow();
+
+            ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value = columnInfo.second;
+
+                switch (type) {
+                    case STRING:
+                        table.setString(columnIndex, 0, (String) value, true);
+                        assertEquals(value, table.getString(columnIndex, 0));
+                        break;
+                    case INTEGER:
+                        table.setLong(columnIndex, 0, (long) value, true);
+                        assertEquals(value, table.getLong(columnIndex, 0));
+                        break;
+                    case BOOLEAN:
+                        table.setBoolean(columnIndex, 0, (boolean) value, true);
+                        assertEquals(value, table.getBoolean(columnIndex, 0));
+                        break;
+                    case BINARY:
+                        table.setBinaryByteArray(columnIndex, 0, (byte[]) value, true);
+                        assertTrue(Arrays.equals((byte[]) value, table.getBinaryByteArray(columnIndex, 0)));
+                        break;
+                    case DATE:
+                        table.setDate(columnIndex, 0, (Date) value, true);
+                        assertEquals(value, table.getDate(columnIndex, 0));
+                        break;
+                    case FLOAT:
+                        table.setFloat(columnIndex, 0, (float) value, true);
+                        assertEquals(value, table.getFloat(columnIndex, 0));
+                        break;
+                    case DOUBLE:
+                        table.setDouble(columnIndex, 0, (double) value, true);
+                        assertEquals(value, table.getDouble(columnIndex, 0));
+                        break;
+                    case OBJECT:
+                        table.setLink(columnIndex, 0, (long) value, true);
+                        assertEquals(value, table.getLink(columnIndex, 0));
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+            sharedRealm.commitTransaction();
+
+            // check if the value can be read after committing transaction
+            it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value = columnInfo.second;
+
+                switch (type) {
+                    case STRING:
+                        assertEquals(value, table.getString(columnIndex, 0));
+                        break;
+                    case INTEGER:
+                        assertEquals(value, table.getLong(columnIndex, 0));
+                        break;
+                    case BOOLEAN:
+                        assertEquals(value, table.getBoolean(columnIndex, 0));
+                        break;
+                    case BINARY:
+                        assertTrue(Arrays.equals((byte[]) value, table.getBinaryByteArray(columnIndex, 0)));
+                        break;
+                    case DATE:
+                        assertEquals(value, table.getDate(columnIndex, 0));
+                        break;
+                    case FLOAT:
+                        assertEquals(value, table.getFloat(columnIndex, 0));
+                        break;
+                    case DOUBLE:
+                        assertEquals(value, table.getDouble(columnIndex, 0));
+                        break;
+                    case OBJECT:
+                        assertEquals(value, table.getLink(columnIndex, 0));
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+
+        } finally {
+            sharedRealm.close();
+        }
+    }
+
+    @Test
+    public void defaultValue_setMultipleTimes() {
+        // t is not used in this test
+        t = null;
+        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            sharedRealm.beginTransaction();
+            final Table table = sharedRealm.getTable(Table.TABLE_PREFIX + "DefaultValueTest");
+            sharedRealm.commitTransaction();
+
+            List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
+                    new Pair<RealmFieldType, Object>(RealmFieldType.STRING, new String[] {"string value1", "string value2"}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.INTEGER, new Long[] {100L, 102L}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.BOOLEAN, new Boolean[] {false, true}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.BINARY, new byte[][] {new byte[]{123}, new byte[]{-123}}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.DATE, new Date[] {new Date(123456), new Date(13579)}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.FLOAT, new Float[] {1.234f, 100f}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.DOUBLE, new Double[] {Math.PI, Math.E}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.OBJECT, new Long[] {0L, 1L})
+                    // currently, LIST does not support default value
+                    //new Pair<RealmFieldType, Object>(RealmFieldType.LIST, )
+            );
+
+            for (Pair<RealmFieldType, Object> columnInfo : columnInfoList) {
+                final RealmFieldType type = columnInfo.first;
+                if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
+                    table.addColumnLink(type, type.name().toLowerCase(Locale.ENGLISH) + "Col", table);
+                } else {
+                    table.addColumn(type, type.name().toLowerCase(Locale.ENGLISH) + "Col");
+                }
+            }
+
+            sharedRealm.beginTransaction();
+            table.addEmptyRow();
+            table.addEmptyRow(); // for link field update
+
+            ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value1 = ((Object[]) columnInfo.second)[0];
+                final Object value2 = ((Object[]) columnInfo.second)[1];
+
+                switch (type) {
+                    case STRING:
+                        table.setString(columnIndex, 0, (String) value1, true);
+                        table.setString(columnIndex, 0, (String) value2, true);
+                        assertEquals(value2, table.getString(columnIndex, 0));
+                        break;
+                    case INTEGER:
+                        table.setLong(columnIndex, 0, (long) value1, true);
+                        table.setLong(columnIndex, 0, (long) value2, true);
+                        assertEquals(value2, table.getLong(columnIndex, 0));
+                        break;
+                    case BOOLEAN:
+                        table.setBoolean(columnIndex, 0, (boolean) value1, true);
+                        table.setBoolean(columnIndex, 0, (boolean) value2, true);
+                        assertEquals(value2, table.getBoolean(columnIndex, 0));
+                        break;
+                    case BINARY:
+                        table.setBinaryByteArray(columnIndex, 0, (byte[]) value1, true);
+                        table.setBinaryByteArray(columnIndex, 0, (byte[]) value2, true);
+                        assertTrue(Arrays.equals((byte[]) value2, table.getBinaryByteArray(columnIndex, 0)));
+                        break;
+                    case DATE:
+                        table.setDate(columnIndex, 0, (Date) value1, true);
+                        table.setDate(columnIndex, 0, (Date) value2, true);
+                        assertEquals(value2, table.getDate(columnIndex, 0));
+                        break;
+                    case FLOAT:
+                        table.setFloat(columnIndex, 0, (float) value1, true);
+                        table.setFloat(columnIndex, 0, (float) value2, true);
+                        assertEquals(value2, table.getFloat(columnIndex, 0));
+                        break;
+                    case DOUBLE:
+                        table.setDouble(columnIndex, 0, (double) value1, true);
+                        table.setDouble(columnIndex, 0, (double) value2, true);
+                        assertEquals(value2, table.getDouble(columnIndex, 0));
+                        break;
+                    case OBJECT:
+                        table.setLink(columnIndex, 0, (long) value1, true);
+                        table.setLink(columnIndex, 0, (long) value2, true);
+                        assertEquals(value2, table.getLink(columnIndex, 0));
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+            sharedRealm.commitTransaction();
+
+            // check if the value can be read after committing transaction
+            it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value2 = ((Object[]) columnInfo.second)[1];
+
+                switch (type) {
+                    case STRING:
+                        assertEquals(value2, table.getString(columnIndex, 0));
+                        break;
+                    case INTEGER:
+                        assertEquals(value2, table.getLong(columnIndex, 0));
+                        break;
+                    case BOOLEAN:
+                        assertEquals(value2, table.getBoolean(columnIndex, 0));
+                        break;
+                    case BINARY:
+                        assertTrue(Arrays.equals((byte[]) value2, table.getBinaryByteArray(columnIndex, 0)));
+                        break;
+                    case DATE:
+                        assertEquals(value2, table.getDate(columnIndex, 0));
+                        break;
+                    case FLOAT:
+                        assertEquals(value2, table.getFloat(columnIndex, 0));
+                        break;
+                    case DOUBLE:
+                        assertEquals(value2, table.getDouble(columnIndex, 0));
+                        break;
+                    case OBJECT:
+                        assertEquals(value2, table.getLink(columnIndex, 0));
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+        } finally {
+            sharedRealm.close();
+        }
+    }
+
+    @Test
+    public void defaultValue_overwrittenByNonDefault() {
+        // t is not used in this test
+        t = null;
+        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            sharedRealm.beginTransaction();
+            final Table table = sharedRealm.getTable(Table.TABLE_PREFIX + "DefaultValueTest");
+            sharedRealm.commitTransaction();
+
+            List<Pair<RealmFieldType, Object>> columnInfoList = Arrays.asList(
+                    new Pair<RealmFieldType, Object>(RealmFieldType.STRING, new String[] {"string value1", "string value2"}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.INTEGER, new Long[] {100L, 102L}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.BOOLEAN, new Boolean[] {false, true}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.BINARY, new byte[][] {new byte[]{123}, new byte[]{-123}}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.DATE, new Date[] {new Date(123456), new Date(13579)}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.FLOAT, new Float[] {1.234f, 100f}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.DOUBLE, new Double[] {Math.PI, Math.E}),
+                    new Pair<RealmFieldType, Object>(RealmFieldType.OBJECT, new Long[] {0L, 1L})
+                    // currently, LIST does not support default value
+                    //new Pair<RealmFieldType, Object>(RealmFieldType.LIST, )
+            );
+
+            for (Pair<RealmFieldType, Object> columnInfo : columnInfoList) {
+                final RealmFieldType type = columnInfo.first;
+                if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
+                    table.addColumnLink(type, type.name().toLowerCase(Locale.ENGLISH) + "Col", table);
+                } else {
+                    table.addColumn(type, type.name().toLowerCase(Locale.ENGLISH) + "Col");
+                }
+            }
+
+            sharedRealm.beginTransaction();
+            table.addEmptyRow();
+            table.addEmptyRow(); // for link field update
+
+            // set as default
+            ListIterator<Pair<RealmFieldType, Object>> it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value1 = ((Object[]) columnInfo.second)[0];
+
+                switch (type) {
+                    case STRING:
+                        table.setString(columnIndex, 0, (String) value1, true);
+                        break;
+                    case INTEGER:
+                        table.setLong(columnIndex, 0, (long) value1, true);
+                        break;
+                    case BOOLEAN:
+                        table.setBoolean(columnIndex, 0, (boolean) value1, true);
+                        break;
+                    case BINARY:
+                        table.setBinaryByteArray(columnIndex, 0, (byte[]) value1, true);
+                        break;
+                    case DATE:
+                        table.setDate(columnIndex, 0, (Date) value1, true);
+                        break;
+                    case FLOAT:
+                        table.setFloat(columnIndex, 0, (float) value1, true);
+                        break;
+                    case DOUBLE:
+                        table.setDouble(columnIndex, 0, (double) value1, true);
+                        break;
+                    case OBJECT:
+                        table.setLink(columnIndex, 0, (long) value1, true);
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+            sharedRealm.commitTransaction();
+
+            // update as non default
+            sharedRealm.beginTransaction();
+            it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value2 = ((Object[]) columnInfo.second)[1];
+
+                switch (type) {
+                    case STRING:
+                        table.setString(columnIndex, 0, (String) value2, false);
+                        assertEquals(value2, table.getString(columnIndex, 0));
+                        break;
+                    case INTEGER:
+                        table.setLong(columnIndex, 0, (long) value2, false);
+                        assertEquals(value2, table.getLong(columnIndex, 0));
+                        break;
+                    case BOOLEAN:
+                        table.setBoolean(columnIndex, 0, (boolean) value2, false);
+                        assertEquals(value2, table.getBoolean(columnIndex, 0));
+                        break;
+                    case BINARY:
+                        table.setBinaryByteArray(columnIndex, 0, (byte[]) value2, false);
+                        assertTrue(Arrays.equals((byte[]) value2, table.getBinaryByteArray(columnIndex, 0)));
+                        break;
+                    case DATE:
+                        table.setDate(columnIndex, 0, (Date) value2, false);
+                        assertEquals(value2, table.getDate(columnIndex, 0));
+                        break;
+                    case FLOAT:
+                        table.setFloat(columnIndex, 0, (float) value2, false);
+                        assertEquals(value2, table.getFloat(columnIndex, 0));
+                        break;
+                    case DOUBLE:
+                        table.setDouble(columnIndex, 0, (double) value2, false);
+                        assertEquals(value2, table.getDouble(columnIndex, 0));
+                        break;
+                    case OBJECT:
+                        table.setLink(columnIndex, 0, (long) value2, false);
+                        assertEquals(value2, table.getLink(columnIndex, 0));
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+            sharedRealm.commitTransaction();
+
+            // check if the value was overwritten
+            it = columnInfoList.listIterator();
+            for (int columnIndex = 0; columnIndex < columnInfoList.size(); columnIndex++) {
+                Pair<RealmFieldType, Object> columnInfo = it.next();
+                final RealmFieldType type = columnInfo.first;
+                final Object value2 = ((Object[]) columnInfo.second)[1];
+
+                switch (type) {
+                    case STRING:
+                        assertEquals(value2, table.getString(columnIndex, 0));
+                        break;
+                    case INTEGER:
+                        assertEquals(value2, table.getLong(columnIndex, 0));
+                        break;
+                    case BOOLEAN:
+                        assertEquals(value2, table.getBoolean(columnIndex, 0));
+                        break;
+                    case BINARY:
+                        assertTrue(Arrays.equals((byte[]) value2, table.getBinaryByteArray(columnIndex, 0)));
+                        break;
+                    case DATE:
+                        assertEquals(value2, table.getDate(columnIndex, 0));
+                        break;
+                    case FLOAT:
+                        assertEquals(value2, table.getFloat(columnIndex, 0));
+                        break;
+                    case DOUBLE:
+                        assertEquals(value2, table.getDouble(columnIndex, 0));
+                        break;
+                    case OBJECT:
+                        assertEquals(value2, table.getLink(columnIndex, 0));
+                        break;
+                    default:
+                        throw new RuntimeException("unexpected field type: " + type);
+                }
+            }
+        } finally {
+            sharedRealm.close();
+        }
+    }
 }
+

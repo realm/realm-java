@@ -18,8 +18,12 @@ package io.realm;
 
 import android.annotation.TargetApi;
 import android.app.IntentService;
+import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
+import android.util.Log;
+
+import com.getkeepsafe.relinker.BuildConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +38,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -47,9 +52,11 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
@@ -141,6 +148,51 @@ public final class Realm extends BaseRealm {
     }
 
     /**
+     * Initializes the Realm library and creates a default configuration that is ready to use. It is required to call
+     * this method before interacting with any other of the Realm API's.
+     *
+     * A good place is in an {@link android.app.Application} subclass:
+     * <pre>
+     * {@code
+     * public class MyApplication extends Application {
+     *   \@Override
+     *   public void onCreate() {
+     *     super.onCreate();
+     *     Realm.init(this);
+     *   }
+     * }
+     * }
+     * </pre>
+     *
+     * Remember to register it in the {@code AndroidManifest.xml} file:
+     * <pre>
+     * {@code
+     * <?xml version="1.0" encoding="utf-8"?>
+     * <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.realm.example">
+     * <application android:name=".MyApplication">
+     *   // ...
+     * </application>
+     * </manifest>
+     * }
+     * </pre>
+     *
+     * @param context the Application Context.
+     * @throws IllegalArgumentException if a {@code null} context is provided.
+     * @see #getDefaultInstance()
+     */
+    public static synchronized void init(Context context) {
+        if (BaseRealm.applicationContext == null) {
+            if (context == null) {
+                throw new IllegalArgumentException("Non-null context required.");
+            }
+            RealmCore.loadLibrary(context);
+            RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
+            defaultConfiguration = new RealmConfiguration.Builder(context).build();
+            BaseRealm.applicationContext = context.getApplicationContext();
+        }
+    }
+
+    /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
      *
@@ -152,7 +204,7 @@ public final class Realm extends BaseRealm {
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
-            throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() first");
+            throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
         }
         return RealmCache.createRealmOrGetFromCache(defaultConfiguration, Realm.class);
     }
@@ -314,6 +366,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return;
         }
+        checkIfValid();
 
         for (int i = 0; i < json.length(); i++) {
             try {
@@ -343,6 +396,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
         for (int i = 0; i < json.length(); i++) {
             try {
@@ -398,6 +452,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null || json.length() == 0) {
             return;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         JSONArray arr;
@@ -414,6 +469,8 @@ public final class Realm extends BaseRealm {
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of Realm objects created.
      * @param inputStream the JSON array as a InputStream. All objects in the array must be of the specified class.
@@ -427,6 +484,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return;
         }
+        checkIfValid();
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
@@ -446,6 +504,8 @@ public final class Realm extends BaseRealm {
      * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated.
      * If a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned
      * the default value for the field type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
@@ -460,6 +520,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || in == null) {
             return;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         // As we need the primary key value we have to first parse the entire input stream as in the general
@@ -497,6 +558,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return null;
         }
+        checkIfValid();
 
         try {
             return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
@@ -524,6 +586,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return null;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
         try {
             E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
@@ -580,6 +643,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null || json.length() == 0) {
             return null;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         JSONObject obj;
@@ -596,6 +660,8 @@ public final class Realm extends BaseRealm {
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the JSON
      * object the {@link RealmObject} field will be set to the default value for that type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of Realm object to create.
      * @param inputStream the JSON object data as a InputStream.
@@ -610,6 +676,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return null;
         }
+        checkIfValid();
         E realmObject;
         Table table = schema.getTable(clazz);
         if (table.hasPrimaryKey()) {
@@ -645,6 +712,8 @@ public final class Realm extends BaseRealm {
      * {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a new
      * {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
      * default value for the field type.
+     * <p>
+     * This API is only available in API level 11 or later.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the {@link InputStream} with object data in JSON format.
@@ -660,6 +729,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || in == null) {
             return null;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         // As we need the primary key value we have to first parse the entire input stream as in the general
@@ -684,13 +754,34 @@ public final class Realm extends BaseRealm {
 
     /**
      * Instantiates and adds a new object to the Realm.
+     * <p>
+     * This method is only available for model classes with no @PrimaryKey annotation.
+     * If you like to create an object that has a primary key, use {@link #createObject(Class, Object)}
+     * or {@link #copyToRealm(RealmModel)} instead.
      *
      * @param clazz the Class of the object to create.
      * @return the new object.
-     * @throws RealmException if an object cannot be created.
+     * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
+     * @see #createObject(Class, Object)
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
+        return createObjectInternal(clazz, true, Collections.<String> emptyList());
+    }
+
+    /**
+     * Same as {@link #createObject(Class)} but this does not check the thread.
+     *
+     * @param clazz the Class of the object to create.
+     * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
+     *                           if {@code false}, it will be ignored.
+     * @return the new object.
+     * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
+     */
+    // called from proxy classes
+    <E extends RealmModel> E createObjectInternal(Class<E> clazz,
+                                                            boolean acceptDefaultValue,
+                                                            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
@@ -698,7 +789,7 @@ public final class Realm extends BaseRealm {
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
         }
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
     }
 
     /**
@@ -706,19 +797,40 @@ public final class Realm extends BaseRealm {
      * <p>
      * If the value violates the primary key constraint, no object will be added and a {@link RealmException} will be
      * thrown.
+     * The default value for primary key provided by the model class will be ignored.
      *
      * @param clazz the Class of the object to create.
      * @param primaryKeyValue value for the primary key field.
      * @return the new object.
      * @throws RealmException if object could not be created due to the primary key being invalid.
-     * @throws IllegalStateException if the model clazz does not have an primary key defined.
+     * @throws IllegalStateException if the model class does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      *                                  expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        checkIfValid();
+        return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String> emptyList());
+    }
+
+    /**
+     * Same as {@link #createObject(Class, Object)} but this does not check the thread.
+     *
+     * @param clazz the Class of the object to create.
+     * @param primaryKeyValue value for the primary key field.
+     * @param acceptDefaultValue if {@code true}, default value of the object will be applied and
+     *                           if {@code false}, it will be ignored.
+     * @return the new object.
+     * @throws RealmException if object could not be created due to the primary key being invalid.
+     * @throws IllegalStateException if the model class does not have an primary key defined.
+     * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     */
+    // called from proxy classes
+    <E extends RealmModel> E createObjectInternal(Class<E> clazz, Object primaryKeyValue,
+                                                            boolean acceptDefaultValue,
+                                                            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex);
+        return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
     }
 
     /**

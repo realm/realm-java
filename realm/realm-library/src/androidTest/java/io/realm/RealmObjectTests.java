@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.ConflictingFieldName;
@@ -48,6 +49,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -1570,6 +1572,15 @@ public class RealmObjectTests {
         list.first().setFieldDateNull(null);
         realm.commitTransaction();
         assertNull(realm.where(NullTypes.class).findFirst().getFieldDateNull());
+    }
+
+    @Test
+    public void setter_changePrimaryKeyThrows() {
+        realm.beginTransaction();
+        AllJavaTypes allJavaTypes = realm.createObject(AllJavaTypes.class, 42);
+        thrown.expect(RealmException.class);
+        allJavaTypes.setFieldId(111);
+        realm.cancelTransaction();
     }
 
     @Test

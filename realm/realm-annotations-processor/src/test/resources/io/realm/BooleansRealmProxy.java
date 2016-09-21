@@ -10,6 +10,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -69,8 +70,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         }
 
     }
-    private final BooleansColumnInfo columnInfo;
-    private final ProxyState proxyState;
+    private BooleansColumnInfo columnInfo;
+    private ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -81,51 +82,139 @@ public class BooleansRealmProxy extends some.test.Booleans
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
-    BooleansRealmProxy(ColumnInfo columnInfo) {
-        this.columnInfo = (BooleansColumnInfo) columnInfo;
+    BooleansRealmProxy() {
+        if (proxyState == null) {
+            injectObjectContext();
+        }
+        proxyState.setConstructionFinished();
+    }
+
+    private void injectObjectContext() {
+        final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
+        this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState(some.test.Booleans.class, this);
+        proxyState.setRealm$realm(context.getRealm());
+        proxyState.setRow$realm(context.getRow());
+        proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
+        proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$done() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.doneIndex);
     }
 
     public void realmSet$done(boolean value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            final Row row = proxyState.getRow$realm();
+            row.getTable().setBoolean(columnInfo.doneIndex, row.getIndex(), value, true);
+            return;
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setBoolean(columnInfo.doneIndex, value);
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$isReady() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.isReadyIndex);
     }
 
     public void realmSet$isReady(boolean value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            final Row row = proxyState.getRow$realm();
+            row.getTable().setBoolean(columnInfo.isReadyIndex, row.getIndex(), value, true);
+            return;
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setBoolean(columnInfo.isReadyIndex, value);
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$mCompleted() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.mCompletedIndex);
     }
 
     public void realmSet$mCompleted(boolean value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            final Row row = proxyState.getRow$realm();
+            row.getTable().setBoolean(columnInfo.mCompletedIndex, row.getIndex(), value, true);
+            return;
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setBoolean(columnInfo.mCompletedIndex, value);
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$anotherBoolean() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.anotherBooleanIndex);
     }
 
     public void realmSet$anotherBoolean(boolean value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            final Row row = proxyState.getRow$realm();
+            row.getTable().setBoolean(columnInfo.anotherBooleanIndex, row.getIndex(), value, true);
+            return;
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setBoolean(columnInfo.anotherBooleanIndex, value);
     }
@@ -218,7 +307,8 @@ public class BooleansRealmProxy extends some.test.Booleans
     @SuppressWarnings("cast")
     public static some.test.Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        some.test.Booleans obj = realm.createObject(some.test.Booleans.class);
+        final List<String> excludeFields = Collections.<String> emptyList();
+        some.test.Booleans obj = realm.createObjectInternal(some.test.Booleans.class, true, excludeFields);
         if (json.has("done")) {
             if (json.isNull("done")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'done' to null.");
@@ -302,6 +392,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.Booleans) cachedRealmObject;
@@ -315,7 +406,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         if (cachedRealmObject != null) {
             return (some.test.Booleans) cachedRealmObject;
         } else {
-            some.test.Booleans realmObject = realm.createObject(some.test.Booleans.class);
+            // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
+            some.test.Booleans realmObject = realm.createObjectInternal(some.test.Booleans.class, false, Collections.<String>emptyList());
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((BooleansRealmProxyInterface) realmObject).realmSet$done(((BooleansRealmProxyInterface) newObject).realmGet$done());
             ((BooleansRealmProxyInterface) realmObject).realmSet$isReady(((BooleansRealmProxyInterface) newObject).realmGet$isReady());
@@ -334,10 +426,10 @@ public class BooleansRealmProxy extends some.test.Booleans
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted());
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean());
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean(), false);
         return rowIndex;
     }
 
@@ -355,10 +447,10 @@ public class BooleansRealmProxy extends some.test.Booleans
                 }
                 long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 cache.put(object, rowIndex);
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted());
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean());
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done(), false);
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady(), false);
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted(), false);
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean(), false);
             }
         }
     }
@@ -372,10 +464,10 @@ public class BooleansRealmProxy extends some.test.Booleans
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.schema.getColumnInfo(some.test.Booleans.class);
         long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
         cache.put(object, rowIndex);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted());
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean());
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean(), false);
         return rowIndex;
     }
 
@@ -393,10 +485,10 @@ public class BooleansRealmProxy extends some.test.Booleans
                 }
                 long rowIndex = Table.nativeAddEmptyRow(tableNativePtr, 1);
                 cache.put(object, rowIndex);
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done());
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady());
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted());
-                Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean());
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.doneIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$done(), false);
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$isReady(), false);
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$mCompleted(), false);
+                Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanIndex, rowIndex, ((BooleansRealmProxyInterface)object).realmGet$anotherBoolean(), false);
             }
         }
     }
@@ -477,7 +569,7 @@ public class BooleansRealmProxy extends some.test.Booleans
 
         String path = proxyState.getRealm$realm().getPath();
         String otherPath = aBooleans.proxyState.getRealm$realm().getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aBooleans.proxyState.getRow$realm().getTable().getName();

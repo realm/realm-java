@@ -43,8 +43,9 @@ public class RealmBenchmarks {
 
     @BeforeExperiment
     public void before() {
-        coldConfig = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).name("cold").build();
-        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
+        Realm.init(InstrumentationRegistry.getTargetContext());
+        coldConfig = new RealmConfiguration.Builder().name("cold").build();
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(coldConfig);
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
