@@ -26,7 +26,7 @@ import io.realm.internal.objectserver.SyncSession;
  * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
- * a Realm instance using that configuration. Once a session has been created it will continue to exist until the app
+ * a Realm instance using that configuration. Once a session has been created, it will continue to exist until the app
  * is closed or the {@link SyncConfiguration} is no longer used.
  * <p>
  * A session is fully controlled by Realm, but can provide additional information in case of errors.
@@ -46,7 +46,7 @@ public final class Session {
     }
 
     /**
-     * Returns the {@link SyncConfiguration} that is responsible for controlling this session.
+     * Returns the {@link SyncConfiguration} that is responsible for controlling the session.
      *
      * @return SyncConfiguration that defines and controls this session.
      */
@@ -76,7 +76,7 @@ public final class Session {
     /**
      * Returns the state of this session.
      *
-     * @return The current {@link SessionState} for this session.
+     * @return the current {@link SessionState} for this session.
      */
     public SessionState getState() {
         return syncSession.getState();

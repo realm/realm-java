@@ -44,8 +44,15 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 
 /**
- * This class represents a user on the Realm Object Server.
- * TODO Rewrite this section
+ * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
+ * providers (Facebook, Google, etc.).
+ * <p />
+ * A user can log in to the Realm Object Server, and if access is granted, it is possible to synchronize the local
+ * and the remote Realm. Moreover, synchronization is halted when the user is logged out.
+ * <p />
+ * It is possible to persist a user. By retrieving a user, there is no need to log in to the 3rd party provider again.
+ * Persisting a user between sessions, the user's credentials are stored locally on the device, and should be treated
+ * as sensitive data.
  */
 public class User {
 
@@ -56,10 +63,11 @@ public class User {
     }
 
     /**
-     * Returns the last user that has logged in that are still valid.
-     * A user is invalidated when it logs out or its access tokens expire.
+     * Returns the last user that has logged in and who is still valid.
+     * A user is invalidated when he/she logs out or the user's access token expire.
      *
-     * @return last {@link User} that have logged in that is still valid.
+     * @return last {@link User} that has logged in and who is still valid. {@code null} if no current user or user has
+     *         been invalidated.
      */
     public static User currentUser() {
         User user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
@@ -71,7 +79,7 @@ public class User {
     }
 
     /**
-     * Load a user that has previously been serialized using {@link #toJson()}.
+     * Loads a user that has previously been serialized using {@link #toJson()}.
      *
      * @param user JSON string representing the user.
      *
@@ -102,12 +110,13 @@ public class User {
     }
 
     /**
-     * Login the user on the Realm Object Server. This is done synchronously, so calling this method on the Android
+     * Logs in the user to the Realm Object Server. This is done synchronously, so calling this method on the Android
      * UI thread will always crash. A logged in user is required to be able to create a {@link SyncConfiguration}.
      *
      * @param credentials credentials to use.
-     * @param authenticationUrl Server that can authenticate against.
+     * @param authenticationUrl server that can authenticate against.
      * @throws ObjectServerError if the login failed.
+     * @throws IllegalArgumentException if the URL is malformed.
      */
     public static User login(final Credentials credentials, final String authenticationUrl) throws ObjectServerError {
         final URL authUrl;
@@ -139,12 +148,14 @@ public class User {
     }
 
     /**
-     * Login the user on the Realm Object Server. A logged in user is required to be able to create a
+     * Logs in the user to the Realm Object Server. A logged in user is required to be able to create a
      * {@link SyncConfiguration}.
      *
      * @param credentials credentials to use.
-     * @param authenticationUrl Server that can authenticate against.
-     * @param callback callback when login has completed or failed. This callback will always happen on the UI thread.
+     * @param authenticationUrl server that the user is authenticated against.
+     * @param callback callback when login has completed or failed. The callback will always happen on the same thread
+     *                 as this this method is called on.
+     * @throws IllegalArgumentException if not on a Looper thread.
      */
     public static RealmAsyncTask loginAsync(final Credentials credentials, final String authenticationUrl, final Callback callback) {
         if (Looper.myLooper() == null) {
@@ -190,7 +201,7 @@ public class User {
     }
 
     /**
-     * Log the user out of the Object Server. Once the Object Server has confirmed the logout any registered
+     * Logs out the user from the Realm Object Server. Once the Object Server has confirmed the logout any registered
      * {@link AuthenticationListener} will be notified and user credentials will be deleted from this device.
      * <p>
      * Any Realms owned by the user will be deleted if {@link SyncConfiguration.Builder#deleteRealmOnLogout()} is
@@ -265,7 +276,7 @@ public class User {
 
     /**
      * Returns a JSON token representing this user.
-     *
+     * <p>
      * Possession of this JSON token can potentially grant access to data stored on the Realm Object Server, so it
      * should be treated as sensitive data.
      *
@@ -280,7 +291,7 @@ public class User {
 
     /**
      * Returns {@code true} if the user is logged into the Realm Object Server. If this method returns {@code true} it
-     * means that the user has valid credentials that have not expired.
+     * implies that the user has valid credentials that have not expired.
      * <p>
      * The user might still be have been logged out by the Realm Object Server which will not be detected before the
      * user tries to actively synchronize a Realm. If a logged out user tries to synchronize a Realm, an error will be
@@ -298,7 +309,7 @@ public class User {
      * Returns the identity of this user on the Realm Object Server. The identity is a guaranteed to be unique
      * among all users on the Realm Object Server.
      *
-     * @return Identity of the user on the Realm Object Server. If the user has logged out or the login has expired
+     * @return identity of the user on the Realm Object Server. If the user has logged out or the login has expired
      *         {@code null} is returned.
      */
     public String getIdentity() {
@@ -309,7 +320,7 @@ public class User {
      * Returns this user's access token. This is the users credential for accessing the Realm Object Server and should
      * be treated as sensitive data.
      *
-     * @return The user's access token. If this user has logged out or the login has expired {@code null} is returned.
+     * @return the user's access token. If this user has logged out or the login has expired {@code null} is returned.
      */
     public String getAccessToken() {
         Token userToken = syncUser.getUserToken();

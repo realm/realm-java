@@ -28,7 +28,7 @@ import io.realm.ObjectServerError;
 import okhttp3.Response;
 
 /**
- * This class represents the response for a authenticate request.
+ * This class represents the response for an authenticate request.
  */
 public class AuthenticateResponse extends AuthServerResponse {
 
@@ -41,6 +41,9 @@ public class AuthenticateResponse extends AuthServerResponse {
     /**
      * Helper method for creating the proper Authenticate response. This method will set the appropriate error
      * depending on any HTTP response codes or IO errors.
+     *
+     * @param response the HTTP response.
+     * @return an authenticate response.
      */
     public static AuthenticateResponse from(Response response) {
         String serverResponse;
@@ -73,7 +76,10 @@ public class AuthenticateResponse extends AuthServerResponse {
     }
 
     /**
-     * Creates a unsuccessful authentication response. This should only happen in case of network / IO problems.
+     * Creates an unsuccessful authentication response. This should only happen in case of network or I/O related
+     * issues.
+     *
+     * @param error the network or I/O error.
      */
     private AuthenticateResponse(ObjectServerError error) {
         setError(error);
@@ -82,8 +88,10 @@ public class AuthenticateResponse extends AuthServerResponse {
     }
 
     /**
-     * Parses a valid (200) server response. It might still result in a unsuccessful authentication attempt, if the
+     * Parses a valid (200) server response. It might still result in an unsuccessful authentication attempt, if the
      * JSON response could not be parsed correctly.
+     *
+     * @param serverResponse the server response.
      */
     private AuthenticateResponse(String serverResponse) {
         ObjectServerError error;

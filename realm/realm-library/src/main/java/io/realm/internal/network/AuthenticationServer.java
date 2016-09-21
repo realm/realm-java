@@ -25,8 +25,8 @@ import io.realm.internal.objectserver.Token;
 
 /**
  * Interface for handling communication with Realm Object Servers.
- *
- * Note, any implementation of this class is not responsible for handling retries or error handling, it is
+ * <p>
+ * Note, no implementation of this class is responsible for handling retries or error handling. It is
  * only responsible for executing a given network request.
  */
 public interface AuthenticationServer {

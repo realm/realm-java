@@ -45,7 +45,7 @@ import io.realm.rx.RxObservableFactory;
  * {@link User#loginAsync(Credentials, String, User.Callback)} for more information on
  * how to get a user object.
  * <p>
- * A minimal {@link SyncConfiguration} can look like this:
+ * A minimal {@link SyncConfiguration} can be found below.
  * <pre>
  * {@code
  * SyncConfiguration config = new SyncConfiguration.Builder(context)
@@ -55,8 +55,8 @@ import io.realm.rx.RxObservableFactory;
  * }
  * </pre>
  *
- * Synchronized Realms only support additive migrations which can be detected automatically, so the following
- * builder options are not accessible compared to a normal Realm:
+ * Synchronized Realms only support additive migrations which can be detected and performed automatically, so
+ * the following builder options are not accessible compared to a normal Realm:
  *
  * <ul>
  *     <li>{@code deleteRealmIfMigrationNeeded()}</li>
@@ -65,7 +65,7 @@ import io.realm.rx.RxObservableFactory;
  * </ul>
  *
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
- * {@link Realm#getDefaultInstance()} like normal unsynchronized Realms.
+ * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  */
 public final class SyncConfiguration extends RealmConfiguration {
 
@@ -184,12 +184,17 @@ public final class SyncConfiguration extends RealmConfiguration {
         return syncPolicy;
     }
 
+    /**
+     * Returns the user.
+     *
+     * @return the user.
+     */
     public User getUser() {
         return user;
     }
 
     /**
-     * Returns the fully disambiguated URI for the remote Realm, i.e. any {@code /~/} placeholder has been replaced
+     * Returns the fully disambiguated URI for the remote Realm i.e., the {@code /~/} placeholder has been replaced
      * by the proper user ID.
      *
      * @return {@link URI} identifying the remote Realm this local Realm is synchronized with.
@@ -245,31 +250,31 @@ public final class SyncConfiguration extends RealmConfiguration {
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
-         * Opening a synchronized Realm requires a valid user and an unique URL that identifies that Realm. In URL's,
+         * Opening a synchronized Realm requires a valid user and an unique URI that identifies that Realm. In URIs,
          * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
-         * user, e.g. {@code "realm://objectserver.realm.io/~/default"}
+         * user e.g., {@code "realm://objectserver.realm.io/~/default"}.
          * <p>
-         * The URL cannot end with {@code .realm}.
+         * The URL cannot end with {@code .realm}, {@code .realm.lock} or {@code .realm.management}.
          * <p>
-         * The `/~/` will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
+         * The {@code /~/} will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
          * <p>
-         * The URL also defines the local location on disk. The default location of a synchronized Realm file is
-         * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}, but this behaviour
+         * Moreover, the URI defines the local location on disk. The default location of a synchronized Realm file is
+         * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}, but this behavior
          * can be overwritten using {@link #name(String)} and {@link #directory(File)}.
          * <p>
          * Many Android devices are using FAT32 file systems. FAT32 file systems have a limitation that
-         * file name cannot be longer than 255 characters. Moreover, the entire URL should not exceed 256 characters.
+         * file names cannot be longer than 255 characters. Moreover, the entire URI should not exceed 256 characters.
          * If file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
          * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
          *
-         * @param user Set the user for this Realm. An authenticated {@link User} is required to open any Realm managed
+         * @param user the user for this Realm. An authenticated {@link User} is required to open any Realm managed
          *             by a Realm Object Server.
-         * @param url URL identifying the Realm.
+         * @param uri URI identifying the Realm.
          *
          * @see User#isValid()
          */
-        public Builder(User user, String url) {
-            this(BaseRealm.applicationContext, user, url);
+        public Builder(User user, String uri) {
+            this(BaseRealm.applicationContext, user, uri);
         }
 
         Builder(Context context, User user, String url) {
@@ -295,15 +300,15 @@ public final class SyncConfiguration extends RealmConfiguration {
             this.user = user;
         }
 
-        private void validateAndSet(String url) {
-            if (url == null) {
-                throw new IllegalArgumentException("Non-null 'url' required.");
+        private void validateAndSet(String uri) {
+            if (uri == null) {
+                throw new IllegalArgumentException("Non-null 'uri' required.");
             }
 
             try {
-                serverUrl = new URI(url);
+                serverUrl = new URI(uri);
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid url: " + url, e);
+                throw new IllegalArgumentException("Invalid URI: " + uri, e);
             }
 
             // scheme must be realm or realms
@@ -324,7 +329,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             // Detect last path segment as it is the default file name
             String path = serverUrl.getPath();
             if (path == null) {
-                throw new IllegalArgumentException("Invalid url: " + url);
+                throw new IllegalArgumentException("Invalid URI: " + uri);
             }
 
             String[] pathSegments = path.split("/");
@@ -334,11 +339,11 @@ public final class SyncConfiguration extends RealmConfiguration {
                     continue;
                 }
                 if (segment.equals("..") || segment.equals(".")) {
-                    throw new IllegalArgumentException("The URL has an invalid segment: " + segment);
+                    throw new IllegalArgumentException("The URI has an invalid segment: " + segment);
                 }
                 Matcher m = pattern.matcher(segment);
                 if (!m.matches()) {
-                    throw new IllegalArgumentException("The URL must only contain characters 0-9, a-z, A-Z, ., _, and -: " + segment);
+                    throw new IllegalArgumentException("The URI must only contain characters 0-9, a-z, A-Z, ., _, and -: " + segment);
                 }
             }
 
@@ -349,22 +354,23 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (defaultLocalFileName.endsWith(".realm")
                     || defaultLocalFileName.endsWith(".realm.lock")
                     || defaultLocalFileName.endsWith(".realm.management")) {
-                throw new IllegalArgumentException("The URL must not end with '.realm', '.realm.lock' or '.realm.management: " + url);
+                throw new IllegalArgumentException("The URI must not end with '.realm', '.realm.lock' or '.realm.management: " + uri);
             }
 
             try {
                 this.serverUrl = new URI(scheme, serverUrl.getUserInfo(), serverUrl.getHost(),
                         port, serverUrl.getPath(), serverUrl.getQuery(), serverUrl.getFragment());
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Cannot reconstruct url: " + url, e);
+                throw new IllegalArgumentException("Cannot reconstruct URI: " + uri, e);
             }
         }
 
         /**
-         * Sets the local filename for the Realm.
-         * This will override the default name defined by the the Realm URL.
+         * Sets the local file name for the Realm.
+         * This will override the default name defined by the Realm URL.
          *
          * @param filename name of the local file on disk.
+         * @throws IllegalArgumentException if file name is {@code null} or empty.
          */
         public Builder name(String filename) {
             if (filename == null || filename.isEmpty()) {
@@ -377,11 +383,12 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the local root directory where synchronized Realm files can be saved.
-         *
+         * <p>
          * Synchronized Realms will not be saved directly in the provided directory, but instead in a
-         * subfolder that matches the path defined by Realm URL. As Realm server URLs are unique
-         * this means that multiple users can save their Realms on disk without the risk of them overriding each other.
-         *
+         * subfolder that matches the path defined by Realm URI. As Realm server URIs are unique
+         * this means that multiple users can save their Realms on disk without the risk of them overwriting
+         * each other files.
+         * <p>
          * The default location is {@code context.getFilesDir()}.
          *
          * @param directory directory on disk where the Realm file can be saved.
@@ -409,8 +416,10 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the 64 bit key used to encrypt and decrypt the Realm file.
          * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
+         *
+         * @param key the encryption key.
+         * @throws IllegalArgumentException if key is invalid.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {
@@ -462,8 +471,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only for the first time
-         * when database file is created or while migrating the data when
+         * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only the first time
+         * the Realm file is opened (created) or while migrating the data if
          * {@link RealmConfiguration.Builder#deleteRealmIfMigrationNeeded()} is set.
          *
          * @param transaction transaction to execute.
@@ -503,7 +512,7 @@ public final class SyncConfiguration extends RealmConfiguration {
         /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
          * {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
-         *
+         * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
          * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
@@ -536,8 +545,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         /**
          * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link User}
          * owning this Realm logs out from the device using {@link User#logout()}.
-         *
-         * The default behaviour is that the Realm file is allowed to stay behind, making it possible for users to log
+         * <p>
+         * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.
          */
         public Builder deleteRealmOnLogout() {
@@ -549,6 +558,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
+         * @throws IllegalStateException if the configuration parameters are invalid or inconsistent.
          */
         public SyncConfiguration build() {
             if (serverUrl == null || user == null) {

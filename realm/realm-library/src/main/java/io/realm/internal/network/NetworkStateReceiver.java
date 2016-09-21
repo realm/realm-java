@@ -40,6 +40,8 @@ public class NetworkStateReceiver extends BroadcastReceiver {
      * This method is thread safe.
      * <p>
      * IMPORTANT: Not removing it again will result in major leaks.
+     *
+     * @param listener the listener.
      */
     public static void addListener(ConnectionListener listener) {
         listeners.add(listener);
@@ -48,6 +50,8 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     /**
      * Removes a network listener.
      * This method is thread safe.
+     *
+     * @param listener the listener.
      */
     public static synchronized void removeListener(ConnectionListener listener) {
         listeners.remove(listener);
@@ -57,7 +61,10 @@ public class NetworkStateReceiver extends BroadcastReceiver {
      * Attempt to detect if a device is online and can transmit or receive data.
      * This method is thread safe.
      * <p>
-     * The Emulator is always considered online, as `getActiveNetworkInfo()` does not report the correct value.
+     * An emulator is always considered online, as `getActiveNetworkInfo()` does not report the correct value.
+     *
+     * @param context an Android context.
+     * @return {@code true} if device is online, otherwise {@code false}.
      */
     public static boolean isOnline(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);

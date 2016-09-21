@@ -22,10 +22,9 @@ import io.realm.Session;
 /**
  * As {@link Session} is modeled as a state machine, this interface describe all
  * possible actions in that machine.
+ * <p>
+ * All states should implement this interface so all possible permutations of state/actions are covered.
  *
- * All states should implement this so all possible permutations of state/actions are covered.
- *
- * TODO Move this to the Object Store
  */
 interface FsmAction {
     void onStart();
