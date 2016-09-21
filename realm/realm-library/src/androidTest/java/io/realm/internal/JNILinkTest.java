@@ -65,7 +65,7 @@ public class JNILinkTest {
         table1.addColumnLink(RealmFieldType.OBJECT, "Link", table2);
 
         table1.addEmptyRow();
-        table1.setLink(0, 0, 1);
+        table1.setLink(0, 0, 1, false);
 
         Table target = table1.getLinkTarget(0);
 

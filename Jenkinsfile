@@ -31,7 +31,7 @@ try {
             sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG}"
           }
         } finally {
-          storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
+          storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
           storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
           step([$class: 'LintPublisher'])
         }

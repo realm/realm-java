@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import android.test.AndroidTestCase;
 
-import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
 public class JNICloseTest extends AndroidTestCase {
@@ -30,14 +29,14 @@ public class JNICloseTest extends AndroidTestCase {
         Table table = TestHelper.getTableWithAllColumnTypes();
         table.addEmptyRows(10);
         for (long i=0; i<table.size(); i++)
-            table.setLong(5, i, i);
+            table.setLong(5, i, i, false);
         TableQuery query = table.where();
         // Closes the table, it _should_ be allowed to access the query thereafter
         Table.nativeClose(table.nativePtr);
         Table table2 = TestHelper.getTableWithAllColumnTypes();
         table2.addEmptyRows(10);
         for (int i=0; i<table2.size(); i++)
-            table2.setLong(5, i, 117+i);
+            table2.setLong(5, i, 117 + i, false);
 
         TableView tv = query.findAll();
         assertEquals(10, tv.size());

@@ -13,7 +13,7 @@
     <string name="title_section4">Object Passing</string>
     <string name="start_intent_service">Passing to Intent Service</string>
     <string name="start_receiver">Passing To Receiver</string>
-    <string name="coordinate">[X= %1$s Y= %2$s]</string>
+    <string name="coordinate">[X= %1$d Y= %2$d]</string>
     <string name="start">Start</string>
 
 </resources>
