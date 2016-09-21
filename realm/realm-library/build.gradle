@@ -179,7 +179,6 @@ task pmd(type: Pmd) {
 
     source = fileTree('src/main/java')
     ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-    ruleSets = [] // This needs to be here to remove the default checks
 
     reports {
         xml.enabled = false
