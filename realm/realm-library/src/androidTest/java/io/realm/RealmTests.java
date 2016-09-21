@@ -65,6 +65,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.DefaultValueConstructor;
 import io.realm.entities.DefaultValueOfField;
+import io.realm.entities.DefaultValueOverwriteNullLink;
 import io.realm.entities.DefaultValueSetter;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
@@ -2328,6 +2329,16 @@ public class RealmTests {
         testOneObjectFound(realm, DefaultValueOfField.class,
                 DefaultValueOfField.FIELD_LIST + "." + RandomPrimaryKey.FIELD_INT,
                 RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE);
+    }
+
+    @Test
+    public void createObject_overwriteNullifiedLinkWithDefaultValue() {
+        final DefaultValueOverwriteNullLink created;
+        realm.beginTransaction();
+        created = realm.createObject(DefaultValueOverwriteNullLink.class);
+        realm.commitTransaction();
+
+        assertEquals(created.getExpectedKeyOfFieldObject(), created.getFieldObject().getFieldRandomPrimaryKey());
     }
 
     @Test
