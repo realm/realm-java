@@ -370,7 +370,9 @@ public class RealmConfigurationTests {
             realm = Realm.getInstance(new RealmConfiguration.Builder(configFactory.getRoot())
                     .schemaVersion(42).build());
             fail();
-        } catch (RealmMigrationNeededException ignored) {
+        } catch (RealmMigrationNeededException expected) {
+            // And it should come with a cause.
+            assertNotNull(expected.getCause());
         }
     }
 

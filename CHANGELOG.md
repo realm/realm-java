@@ -11,6 +11,10 @@
 * Fixed a bug causing the Realm Transformer to not transform field access in the model's constructors (#3361).
 * Fixed a bug causing a build failure when the Realm Transformer adds accessors to a model class that was already transformed in other project (#3469).
 
+### Enhancements
+
+* A `RealmMigrationNeededException` will be thrown with a cause to show the detailed message when migration is needed and the migration block is not in the `RealmConfiguration`.
+
 ## 1.2.0
 
 ### Bug fixes
