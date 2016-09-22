@@ -1344,7 +1344,7 @@ public final class Realm extends BaseRealm {
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     public static void migrateRealm(RealmConfiguration configuration) throws FileNotFoundException {
-        migrateRealm(configuration, (RealmMigration)null);
+        migrateRealm(configuration, (RealmMigration) null);
     }
 
     /**
@@ -1354,7 +1354,7 @@ public final class Realm extends BaseRealm {
      * @param cause which triggers this migration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    public static void migrateRealm(final RealmConfiguration configuration, final RealmMigrationNeededException cause)
+    private static void migrateRealm(final RealmConfiguration configuration, final RealmMigrationNeededException cause)
             throws FileNotFoundException {
         BaseRealm.migrateRealm(configuration, null, new MigrationCallback() {
             @Override
