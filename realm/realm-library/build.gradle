@@ -84,6 +84,23 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    productFlavors {
+        base {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=base"
+                }
+            }
+        }
+        objectServer {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=objectServer"
+                }
+            }
+        }
+    }
 }
 
 
@@ -99,9 +116,11 @@ repositories {
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
+
     compile "io.realm:realm-annotations:${version}"
-    compile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
     compile 'com.getkeepsafe.relinker:relinker:1.2.1'
+
+    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
@@ -116,11 +135,13 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
 task javadoc(type: Javadoc) {
+    source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -260,11 +281,19 @@ install {
 
 publishing {
     publications {
-        realmPublication(MavenPublication) {
+        basePublication(MavenPublication) {
             groupId 'io.realm'
             artifactId 'realm-android-library'
             version project.version
-            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-release.aar")
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+        }
+        objectServerPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library-object-server'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
             artifact sourcesJar
             artifact javadocJar
 
@@ -304,7 +333,7 @@ bintray {
     dryRun = false
     publish = false
 
-    configurations = ['realmPublication']
+    configurations = ['basePublication', 'objectServerPublication']
 
     pkg {
         repo = 'maven'
@@ -329,7 +358,7 @@ artifactory {
             maven = true
         }
         defaults {
-            publishConfigs('realmPublication')
+            publishConfigs('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }
@@ -462,6 +491,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
+publishToMavenLocal.dependsOn assemble
 preBuild.dependsOn deployCore
 
 if (project.hasProperty('dontCleanJniFiles')) {
@@ -473,11 +503,6 @@ if (project.hasProperty('dontCleanJniFiles')) {
         }
     }
 } else {
-    task cleanJniHeaders(type: Delete) {
-        delete project.file('src/main/cpp/jni_include')
-    }
-    clean.dependsOn cleanJniHeaders
-
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
     }
