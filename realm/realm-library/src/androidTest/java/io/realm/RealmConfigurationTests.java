@@ -389,7 +389,9 @@ public class RealmConfigurationTests {
                     .schemaVersion(42)
                     .build());
             fail();
-        } catch (RealmMigrationNeededException ignored) {
+        } catch (RealmMigrationNeededException expected) {
+            // And it should come with a cause.
+            assertNotNull(expected.getCause());
         }
     }
 

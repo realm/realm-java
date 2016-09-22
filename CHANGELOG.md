@@ -37,6 +37,10 @@
 * Moved JNI build to CMake.
 * Updated Realm Core to 2.0.0-rc7.
 
+### Enhancements
+
+* A `RealmMigrationNeededException` will be thrown with a cause to show the detailed message when a migration is needed and the migration block is not in the `RealmConfiguration`.
+
 ## 1.2.0
 
 ### Bug fixes

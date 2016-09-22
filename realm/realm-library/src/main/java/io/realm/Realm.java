@@ -268,7 +268,7 @@ public final class Realm extends BaseRealm {
                 deleteRealm(configuration);
             } else {
                 try {
-                    migrateRealm(configuration);
+                    migrateRealm(configuration, e);
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen
                     throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
@@ -1465,7 +1465,23 @@ public final class Realm extends BaseRealm {
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     public static void migrateRealm(RealmConfiguration configuration) throws FileNotFoundException {
-        migrateRealm(configuration, null);
+        migrateRealm(configuration, (RealmMigration) null);
+    }
+
+    /**
+     * Called when migration needed in the Realm initialization.
+     *
+     * @param configuration {@link RealmConfiguration}
+     * @param cause which triggers this migration.
+     * @throws FileNotFoundException if the Realm file doesn't exist.
+     */
+    private static void migrateRealm(final RealmConfiguration configuration, final RealmMigrationNeededException cause)
+            throws FileNotFoundException {
+        BaseRealm.migrateRealm(configuration, null, new MigrationCallback() {
+            @Override
+            public void migrationComplete() {
+            }
+        }, cause);
     }
 
     /**
@@ -1482,7 +1498,7 @@ public final class Realm extends BaseRealm {
             @Override
             public void migrationComplete() {
             }
-        });
+        }, null);
     }
 
     /**
