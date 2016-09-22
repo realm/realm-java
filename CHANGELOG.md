@@ -29,6 +29,7 @@
 * Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
 * Fixed a potential crash when there were lots of async queries waiting in the queue.
 * Fixed a bug causing the Realm Transformer to not transform field access in the model's constructors (#3361).
+* Fixed a bug causing a build failure when the Realm Transformer adds accessors to a model class that was already transformed in other project (#3469).
 * Fixed a bug causing the `NullPointerException` when calling getters/setters in the model's constructors (#2536).
 
 ### Internal
