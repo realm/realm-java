@@ -31,22 +31,22 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+    public Table createTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.initTable(sharedRealm);
+            return io.realm.AllTypesRealmProxy.initTable(rootMediator, sharedRealm);
         } else {
             throw getMissingProxyClassException(clazz);
         }
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public ColumnInfo validateTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.validateTable(sharedRealm, allowExtraColumns);
+            return io.realm.AllTypesRealmProxy.validateTable(rootMediator, sharedRealm, allowExtraColumns);
         } else {
             throw getMissingProxyClassException(clazz);
         }

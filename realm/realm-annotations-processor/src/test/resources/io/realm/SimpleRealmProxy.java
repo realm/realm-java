@@ -9,6 +9,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -156,7 +157,8 @@ public class SimpleRealmProxy extends some.test.Simple
         proxyState.getRow$realm().setLong(columnInfo.ageIndex, value);
     }
 
-    public static Table initTable(SharedRealm sharedRealm) {
+    @SuppressWarnings("UnusedParameters")
+    public static Table initTable(RealmProxyMediator mediator, SharedRealm sharedRealm) {
         if (!sharedRealm.hasTable("class_Simple")) {
             Table table = sharedRealm.getTable("class_Simple");
             table.addColumn(RealmFieldType.STRING, "name", Table.NULLABLE);
@@ -167,7 +169,8 @@ public class SimpleRealmProxy extends some.test.Simple
         return sharedRealm.getTable("class_Simple");
     }
 
-    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    @SuppressWarnings("UnusedParameters")
+    public static SimpleColumnInfo validateTable(RealmProxyMediator mediator, SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Simple")) {
             Table table = sharedRealm.getTable("class_Simple");
             final long columnCount = table.getColumnCount();

@@ -130,12 +130,14 @@ public class RealmProxyMediatorGenerator {
                 "Table",
                 "createTable",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "SharedRealm", "sharedRealm"
+                "RealmProxyMediator", "rootMediator",
+                "Class<? extends RealmModel>", "clazz",
+                "SharedRealm", "sharedRealm"
         );
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.initTable(sharedRealm)", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return %s.initTable(rootMediator, sharedRealm)", qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();
@@ -148,6 +150,7 @@ public class RealmProxyMediatorGenerator {
                 "ColumnInfo",
                 "validateTable",
                 EnumSet.of(Modifier.PUBLIC),
+                "RealmProxyMediator", "rootMediator",
                 "Class<? extends RealmModel>", "clazz", // Argument type & argument name
                 "SharedRealm", "sharedRealm",
                 "boolean", "allowExtraColumns"
@@ -155,7 +158,7 @@ public class RealmProxyMediatorGenerator {
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.validateTable(sharedRealm, allowExtraColumns)",
+                writer.emitStatement("return %s.validateTable(rootMediator, sharedRealm, allowExtraColumns)",
                         qualifiedProxyClasses.get(i));
             }
         }, writer);

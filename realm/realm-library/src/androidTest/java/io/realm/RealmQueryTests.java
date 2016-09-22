@@ -1000,6 +1000,7 @@ public class RealmQueryTests {
         owner2.getDogs().add(dog4);
         realm.commitTransaction();
 
+        RealmResults<Dog> allDogs = realm.where(Dog.class).findAll();
         RealmList<Dog> dogs = realm.where(Owner.class).equalTo("name", "Owner 2").findFirst().getDogs();
         Dog dog = dogs.where().equalTo("name", "Dog 4").findFirst();
         assertEquals(dog4, dog);
