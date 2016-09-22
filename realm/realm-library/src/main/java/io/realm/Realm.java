@@ -329,7 +329,7 @@ public final class Realm extends BaseRealm {
                 if (version == UNVERSIONED) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
+                columnInfoMap.put(modelClass, mediator.validateTable(mediator, modelClass, realm.sharedRealm, false));
             }
             realm.schema.columnIndices = new ColumnIndices(
                     (version == UNVERSIONED) ? realm.configuration.getSchemaVersion() : version,

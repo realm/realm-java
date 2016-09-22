@@ -66,13 +66,16 @@ public abstract class RealmProxyMediator {
     /**
      * Validates the backing table in Realm for the given RealmObject class.
      *
+     * @param rootMediator the {@link RealmProxyMediator} will be used when the {@code clazz} has a linked field needs
+     *                     to be created.
      * @param clazz the {@link RealmObject} model class to validate.
      * @param sharedRealm the wrapper object of underlying native database to validate against.
      * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
      *                          is thrown when the column count it more than expected.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
+    public abstract ColumnInfo validateTable(RealmProxyMediator rootMediator,
+                                             Class<? extends RealmModel> clazz,
                                              SharedRealm sharedRealm,
                                              boolean allowExtraColumns);
 
@@ -118,6 +121,12 @@ public abstract class RealmProxyMediator {
      * @return list of class references to RealmObject classes. Empty list if no RealmObjects are supported.
      */
     public abstract Set<Class<? extends RealmModel>> getModelClasses();
+
+    public void checkHasModelClass(Class<? extends RealmModel> clazz) {
+        if (!getModelClasses().contains(clazz)) {
+            throw new IllegalStateException("The mediator doesn't contain " + clazz.getSimpleName());
+        }
+    }
 
     /**
      * Copies an unmanaged {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
