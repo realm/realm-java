@@ -357,11 +357,16 @@ public final class Realm extends BaseRealm {
                     (version == UNVERSIONED) ? realm.configuration.getSchemaVersion() : version,
                     columnInfoMap);
 
-            if (version == UNVERSIONED && !syncAvailable) {
+            if (version == UNVERSIONED) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
                 if (transaction != null) {
-                    transaction.execute(realm);
+                    if (syncAvailable) {
+                        realm.executeTransaction(transaction);
+                    } else {
+                        transaction.execute(realm);
+                    }
                 }
+
             }
         } finally {
             if (!syncAvailable) {

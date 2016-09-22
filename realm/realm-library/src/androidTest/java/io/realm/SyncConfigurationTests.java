@@ -24,19 +24,24 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -50,6 +55,9 @@ public class SyncConfigurationTests {
 
     @Rule
     public final TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private Context context;
 
@@ -217,4 +225,153 @@ public class SyncConfigurationTests {
         }
     }
 
+    @Test
+    public void equals() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .build();
+        assertTrue(config.equals(config));
+    }
+
+    @Test
+    public void not_equals_same() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user, url).build();
+
+        assertFalse(config1.equals(config2));
+    }
+
+    @Test
+    public void equals_not() {
+        User user = createTestUser();
+        String url1 = "realm://objectserver.realm.io/default1";
+        String url2 = "realm://objectserver.realm.io/default2";
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user, url1).build();
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user, url2).build();
+        assertFalse(config1.equals(config2));
+    }
+
+    @Test
+    public void hashCode_equal() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .build();
+
+        assertEquals(config.hashCode(), config.hashCode());
+    }
+
+    @Test
+    public void hashCode_notEquals() {
+        User user = createTestUser();
+        String url1 = "realm://objectserver.realm.io/default1";
+        String url2 = "realm://objectserver.realm.io/default2";
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user, url1).build();
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user, url2).build();
+        assertNotEquals(config1.hashCode(), config2.hashCode());
+    }
+
+    @Test
+    public void get_syncSpecificValues() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        assertTrue(user.equals(config.getUser()));
+        assertEquals("realm://objectserver.realm.io:80/default", config.getServerUrl().toString());
+        assertFalse(config.shouldDeleteRealmOnLogout());
+        assertTrue(config.isSyncConfiguration());
+    }
+
+    @Test
+    public void encryption() {
+       User user = createTestUser();
+       String url = "realm://objectserver.realm.io/default";
+       SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+               .encryptionKey(TestHelper.getRandomKey())
+               .build();
+       assertNotNull(config.getEncryptionKey());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void encryption_invalid_null() {
+       User user = createTestUser();
+       String url = "realm://objectserver.realm.io/default";
+
+       new SyncConfiguration.Builder(user, url).encryptionKey(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void encryption_invalid_wrong_length() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+
+        new SyncConfiguration.Builder(user, url).encryptionKey(new byte[]{1, 2, 3});
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void directory_null() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        new SyncConfiguration.Builder(user, url).directory(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void directory_writeProtectedDir() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+
+        File dir = new File("/");
+        new SyncConfiguration.Builder(user, url).directory(dir);
+    }
+
+    @Test
+    public void directory_dirIsAFile() throws IOException {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+
+        File dir = configFactory.getRoot();
+        File file = new File(dir, "dummyfile");
+        assertTrue(file.createNewFile());
+        thrown.expect(IllegalArgumentException.class);
+        new SyncConfiguration.Builder(user, url).directory(file);
+        file.delete(); // clean up
+    }
+
+    @Test
+    public void deleteOnLogout() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .deleteRealmOnLogout()
+                .build();
+        assertTrue(config.shouldDeleteRealmOnLogout());
+    }
+
+    @Test
+    public void initialData() {
+        User user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        StringOnly stringOnly = realm.createObject(StringOnly.class);
+                        stringOnly.setChars("TEST 42");
+                    }
+                })
+                .build();
+
+        assertNotNull(config.getInitialDataTransaction());
+
+        Realm realm = Realm.getInstance(config);
+        RealmResults<StringOnly> results = realm.where(StringOnly.class).findAll();
+        assertEquals(1, results.size());
+        assertEquals("TEST 42", results.first().getChars());
+        realm.close();
+    }
 }

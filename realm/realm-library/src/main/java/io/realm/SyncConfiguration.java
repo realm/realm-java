@@ -157,8 +157,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!syncPolicy.equals(that.syncPolicy)) return false;
-        return errorHandler.equals(that.errorHandler);
-
+        if (!errorHandler.equals(that.errorHandler)) return false;
+        return true;
     }
 
     @Override
@@ -166,9 +166,9 @@ public final class SyncConfiguration extends RealmConfiguration {
         int result = super.hashCode();
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
+        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + syncPolicy.hashCode();
         result = 31 * result + errorHandler.hashCode();
-        result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         return result;
     }
 
