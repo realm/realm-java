@@ -233,7 +233,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         return sharedRealm.getTable("class_Booleans");
     }
 
-    public static BooleansColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    @SuppressWarnings("UnusedParameters")
+    public static BooleansColumnInfo validateTable(RealmProxyMediator mediator, SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Booleans")) {
             Table table = sharedRealm.getTable("class_Booleans");
             final long columnCount = table.getColumnCount();

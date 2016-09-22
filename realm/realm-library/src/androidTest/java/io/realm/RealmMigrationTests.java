@@ -35,9 +35,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
+import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
@@ -832,13 +836,33 @@ public class RealmMigrationTests {
     // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
     // migrated the file format. If the user adds the @Required annotation to a field and does not
     // change the schema version, no migration is needed. But then, null cannot be used as a value.
+    // FIXME: Clean this up!!! Just generate a only one object db with the old version of Realm!!!
     @Test
     public void openPreNullWithRequired() throws IOException {
         configFactory.copyRealmFromAssets(context,
                 "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmObjectSchema dogSchema = realm.getSchema().getSchemaForClass(Dog.CLASS_NAME);
+                dogSchema.setNullable(Dog.FIELD_NAME, true);
+                dogSchema.setNullable(Dog.FIELD_BIRTHDAY, true);
+
+                RealmObjectSchema ownerSchema = realm.getSchema().getSchemaForClass(Owner.CLASS_NAME);
+                ownerSchema.setNullable(Owner.FIELD_NAME, true);
+
+                RealmObjectSchema catSchema = realm.getSchema().getSchemaForClass(Cat.CLASS_NAME);
+                catSchema.setNullable(Cat.FIELD_NAME, true);
+                catSchema.setNullable(Cat.FIELD_BIRTHDAY, true);
+
+                RealmObjectSchema dogPKSchema = realm.getSchema().getSchemaForClass(DogPrimaryKey.CLASS_NAME);
+                dogPKSchema.addIndex(DogPrimaryKey.FIELD_ID);
+            }
+        };
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(0)
-                .schema(AllTypes.class)
+                .schema(AllTypes.class, Dog.class, Owner.class, Cat.class, DogPrimaryKey.class)
+                .migration(migration)
                 .build();
         // FIXME this test should fail since AllTypes contains a link to Dog table.
         // We should add other required classes to the schema above and also we should

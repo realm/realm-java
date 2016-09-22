@@ -150,6 +150,7 @@ public class RealmProxyMediatorGenerator {
                 "ColumnInfo",
                 "validateTable",
                 EnumSet.of(Modifier.PUBLIC),
+                "RealmProxyMediator", "rootMediator",
                 "Class<? extends RealmModel>", "clazz", // Argument type & argument name
                 "SharedRealm", "sharedRealm",
                 "boolean", "allowExtraColumns"
@@ -157,7 +158,7 @@ public class RealmProxyMediatorGenerator {
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.validateTable(sharedRealm, allowExtraColumns)",
+                writer.emitStatement("return %s.validateTable(rootMediator, sharedRealm, allowExtraColumns)",
                         qualifiedProxyClasses.get(i));
             }
         }, writer);

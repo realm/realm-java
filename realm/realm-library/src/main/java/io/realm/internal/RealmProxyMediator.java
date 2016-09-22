@@ -124,7 +124,8 @@ public abstract class RealmProxyMediator {
 
     public void checkHasModelClass(Class<? extends RealmModel> clazz) {
         if (!getModelClasses().contains(clazz)) {
-            throw new IllegalStateException("The mediator doesn't contain " + clazz.getSimpleName());
+            throw new IllegalStateException(String.format(
+                    "The mediator doesn't contain %s class.", clazz.getSimpleName()));
         }
     }
 

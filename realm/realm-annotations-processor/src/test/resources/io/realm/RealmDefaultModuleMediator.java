@@ -42,11 +42,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
+    public ColumnInfo validateTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.validateTable(sharedRealm, allowExtraColumns);
+            return io.realm.AllTypesRealmProxy.validateTable(rootMediator, sharedRealm, allowExtraColumns);
         } else {
             throw getMissingProxyClassException(clazz);
         }

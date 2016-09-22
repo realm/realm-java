@@ -169,7 +169,8 @@ public class SimpleRealmProxy extends some.test.Simple
         return sharedRealm.getTable("class_Simple");
     }
 
-    public static SimpleColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
+    @SuppressWarnings("UnusedParameters")
+    public static SimpleColumnInfo validateTable(RealmProxyMediator mediator, SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_Simple")) {
             Table table = sharedRealm.getTable("class_Simple");
             final long columnCount = table.getColumnCount();

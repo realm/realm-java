@@ -585,11 +585,13 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitValidateTableMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("SuppressWarnings", "\"UnusedParameters\"");
         writer.beginMethod(
                 columnInfoClassName(),        // Return type
                 "validateTable",              // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "SharedRealm", "sharedRealm", // Argument type & argument name
+                "RealmProxyMediator", "mediator",// Argument type & argument name
+                "SharedRealm", "sharedRealm",
                 "boolean", "allowExtraColumns");
 
         writer.beginControlFlow("if (sharedRealm.hasTable(\"" + Constants.TABLE_PREFIX + this.simpleClassName + "\"))");
@@ -708,6 +710,7 @@ public class RealmProxyClassGenerator {
                 }
 
             } else if (Utils.isRealmModel(field)) { // Links
+                writer.emitStatement("mediator.checkHasModelClass(%s.class)", Utils.getFieldTypeQualifiedName(field));
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing field '%s' in existing Realm file. " +
                         "Either remove field or migrate using io.realm.internal.Table.addColumn().\")", fieldName);
@@ -729,6 +732,7 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
             } else if (Utils.isRealmList(field)) { // Link Lists
                 String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
+                writer.emitStatement("mediator.checkHasModelClass(%s.class)", Utils.getGenericTypeQualifiedName(field));
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();

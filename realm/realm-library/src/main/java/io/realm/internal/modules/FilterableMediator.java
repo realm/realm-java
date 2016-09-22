@@ -69,10 +69,6 @@ public class FilterableMediator extends RealmProxyMediator {
         this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
     }
 
-    public RealmProxyMediator getOriginalMediator() {
-        return originalMediator;
-    }
-
     @Override
     public Table createTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz,
                              SharedRealm sharedRealm) {
@@ -81,10 +77,12 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
+    public ColumnInfo validateTable(RealmProxyMediator rootMediator,
+                                    Class<? extends RealmModel> clazz,
+                                    SharedRealm sharedRealm,
                                     boolean allowExtraColumns) {
         checkSchemaHasClass(clazz);
-        return originalMediator.validateTable(clazz, sharedRealm, allowExtraColumns);
+        return originalMediator.validateTable(rootMediator, clazz, sharedRealm, allowExtraColumns);
     }
 
     @Override

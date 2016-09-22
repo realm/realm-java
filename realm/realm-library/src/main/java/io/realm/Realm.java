@@ -268,7 +268,7 @@ public final class Realm extends BaseRealm {
                 deleteRealm(configuration);
             } else {
                 try {
-                    migrateRealm(configuration);
+                    migrateRealm(configuration, e);
                 } catch (FileNotFoundException fileNotFoundException) {
                     // Should never happen
                     throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
@@ -1465,7 +1465,16 @@ public final class Realm extends BaseRealm {
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     public static void migrateRealm(RealmConfiguration configuration) throws FileNotFoundException {
-        migrateRealm(configuration, null);
+        migrateRealm(configuration, (RealmMigration)null);
+    }
+
+    private static void migrateRealm(RealmConfiguration configuration, RealmMigrationNeededException cause)
+            throws FileNotFoundException {
+        BaseRealm.migrateRealm(configuration, null, new MigrationCallback() {
+            @Override
+            public void migrationComplete() {
+            }
+        }, cause);
     }
 
     /**
@@ -1482,7 +1491,7 @@ public final class Realm extends BaseRealm {
             @Override
             public void migrationComplete() {
             }
-        });
+        }, null);
     }
 
     /**
@@ -1555,7 +1564,7 @@ public final class Realm extends BaseRealm {
             map = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
             try {
                 for (Class<? extends RealmModel> clazz : modelClasses) {
-                    final ColumnInfo columnInfo = mediator.validateTable(clazz, sharedRealm, true);
+                    final ColumnInfo columnInfo = mediator.validateTable(mediator, clazz, sharedRealm, true);
                     map.put(clazz, columnInfo);
                 }
             } catch (RealmMigrationNeededException e) {
