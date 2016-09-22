@@ -40,8 +40,9 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.HandlerControllerConstants;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -233,6 +234,12 @@ public class DynamicRealmTests {
         realm.createObject(DogPrimaryKey.CLASS_NAME, "bar");
     }
 
+    @Test(expected = RealmException.class)
+    public void createObject_absentPrimaryKeyThrows() {
+        realm.beginTransaction();
+        realm.createObject(DogPrimaryKey.CLASS_NAME);
+    }
+
     @Test
     public void where() {
         realm.beginTransaction();
@@ -375,6 +382,7 @@ public class DynamicRealmTests {
                 looperThread.testComplete();
             }
         });
+        looperThread.keepStrongReference.add(allTypes);
     }
 
     @Test
@@ -399,6 +407,7 @@ public class DynamicRealmTests {
                 looperThread.testComplete();
             }
         });
+        looperThread.keepStrongReference.add(allTypes);
     }
 
     // Initialize a Dynamic Realm used by the *Async tests and keep it ref in the looperThread.

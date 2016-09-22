@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.internal.log;
+package io.realm.internal;
 
-/**
- * Interface for Realm logger implementations.
- */
-public interface Logger {
-    void v(String message);
-    void v(String message, Throwable t);
-    void d(String message);
-    void d(String message, Throwable t);
-    void i(String message);
-    void i(String message, Throwable t);
-    void w(String message);
-    void w(String message, Throwable t);
-    void e(String message);
-    void e(String message, Throwable t);
+class TestUtil {
+
+    public native static long getMaxExceptionNumber();
+    public native static String getExpectedMessage(long exceptionKind);
+    public native static void testThrowExceptions(long exceptionKind);
 }

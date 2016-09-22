@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.exceptions;
+package io.realm.examples.json;
 
-import io.realm.internal.Keep;
+import android.app.Application;
 
-/**
- * Class for reporting problems with Realm files.
- */
-@Keep
-public class RealmIOException extends RuntimeException {
+import io.realm.Realm;
 
-    public RealmIOException(Throwable cause) {
-        super(cause);
+public class MyApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
     }
-
-    public RealmIOException() {
-    }
-
-    public RealmIOException(String message) {
-        super(message);
-    }
-
-    public RealmIOException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

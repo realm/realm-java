@@ -42,36 +42,6 @@ public class RealmCore {
     }
 
     /**
-     * Loads the .so file. This method is useful for static blocks as it does not rely on access to a Context.
-     *
-     * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
-     * KEEP synchronized here for old devices!
-     */
-    public static synchronized void loadLibrary() {
-        if (libraryIsLoaded) {
-            // The java native should ensure only load the lib once, but we met some problems before.
-            // So keep the flag.
-            return;
-        }
-
-        if (osIsWindows()) {
-            loadLibraryWindows();
-        }
-        else {
-            String jnilib;
-            String debug = System.getenv("REALM_JAVA_DEBUG");
-            if (debug == null || debug.isEmpty()) {
-                jnilib = "realm-jni";
-            }
-            else {
-                jnilib = "realm-jni-dbg";
-            }
-            System.loadLibrary(jnilib);
-        }
-        libraryIsLoaded = true;
-    }
-
-    /**
      * Loads the .so file. Typically, the .so file is installed and can be found by System.loadLibrary() but
      * can be damaged or missing. This happens for the Android installer, especially when apps are installed
      * through other means than the official Play store. In this case, the .so file can be found in the .apk.

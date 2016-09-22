@@ -32,6 +32,7 @@ public class AllJavaTypes extends RealmObject {
     public static String FIELD_SHORT = "fieldShort";
     public static String FIELD_INT = "fieldInt";
     public static String FIELD_LONG = "fieldLong";
+    public static String FIELD_ID = "fieldId";
     public static String FIELD_BYTE = "fieldByte";
     public static String FIELD_FLOAT = "fieldFloat";
     public static String FIELD_DOUBLE = "fieldDouble";
@@ -46,9 +47,10 @@ public class AllJavaTypes extends RealmObject {
 
     @Ignore private String fieldIgnored;
     @Index private String fieldString;
+    @PrimaryKey private long fieldId;
+    private long fieldLong;
     private short fieldShort;
     private int fieldInt;
-    @PrimaryKey private long fieldLong;
     private byte fieldByte;
     private float fieldFloat;
     private double fieldDouble;
@@ -63,6 +65,7 @@ public class AllJavaTypes extends RealmObject {
     }
 
     public AllJavaTypes(long fieldLong) {
+        this.fieldId = fieldLong;
         this.fieldLong = fieldLong;
     }
 
@@ -90,6 +93,14 @@ public class AllJavaTypes extends RealmObject {
         this.fieldShort = fieldShort;
     }
 
+    public long getFieldLong() {
+        return fieldLong;
+    }
+
+    public void setFieldLong(long fieldLong) {
+        this.fieldLong = fieldLong;
+    }
+
     public int getFieldInt() {
         return fieldInt;
     }
@@ -98,12 +109,12 @@ public class AllJavaTypes extends RealmObject {
         this.fieldInt = fieldInt;
     }
 
-    public long getFieldLong() {
-        return fieldLong;
+    public long getFieldId() {
+        return fieldId;
     }
 
-    public void setFieldLong(long fieldLong) {
-        this.fieldLong = fieldLong;
+    public void setFieldId(long fieldId) {
+        this.fieldId = fieldId;
     }
 
     public byte getFieldByte() {

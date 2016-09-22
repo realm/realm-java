@@ -42,7 +42,7 @@ public class CustomMethods extends RealmObject {
             return reverseEquals;
         }
         CustomMethods other = (CustomMethods) o;
-        if (isValid() == other.isValid() && other.name.equals(name)) {
+        if (isManaged() == other.isManaged() && other.name.equals(name)) {
             return !reverseEquals;
         } else {
             return reverseEquals;

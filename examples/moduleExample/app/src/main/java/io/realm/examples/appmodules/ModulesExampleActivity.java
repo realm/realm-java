@@ -58,19 +58,19 @@ public class ModulesExampleActivity extends Activity {
         // The default Realm instance implicitly knows about all classes in the realmModuleAppExample Android Studio
         // module. This does not include the classes from the realmModuleLibraryExample AS module so a Realm using this
         // configuration would know about the following classes: { Cow, Pig, Snake, Spider }
-        RealmConfiguration defaultConfig = new RealmConfiguration.Builder(this).build();
+        RealmConfiguration defaultConfig = new RealmConfiguration.Builder().build();
 
         // It is possible to extend the default schema by adding additional Realm modules using modules(). This can
         // also be Realm modules from libraries. The below Realm contains the following classes: { Cow, Pig, Snake,
         // Spider, Cat, Dog }
-        RealmConfiguration farmAnimalsConfig = new RealmConfiguration.Builder(this)
+        RealmConfiguration farmAnimalsConfig = new RealmConfiguration.Builder()
                 .name("farm.realm")
                 .modules(Realm.getDefaultModule(), new DomesticAnimalsModule())
                 .build();
 
         // Or you can completely replace the default schema.
         // This Realm contains the following classes: { Elephant, Lion, Zebra, Snake, Spider }
-        RealmConfiguration exoticAnimalsConfig = new RealmConfiguration.Builder(this)
+        RealmConfiguration exoticAnimalsConfig = new RealmConfiguration.Builder()
                 .name("exotic.realm")
                 .modules(new ZooAnimalsModule(), new CreepyAnimalsModule())
                 .build();
@@ -144,7 +144,7 @@ public class ModulesExampleActivity extends Activity {
         // And Realms in library projects are independent from Realms in the app code
         showStatus("Interacting with library code that uses Realm internally");
         int animals = 5;
-        Zoo libraryZoo = new Zoo(this);
+        Zoo libraryZoo = new Zoo();
         libraryZoo.open();
         showStatus("Adding animals: " + animals);
         libraryZoo.addAnimals(5);

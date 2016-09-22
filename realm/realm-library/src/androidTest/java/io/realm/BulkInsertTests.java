@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -88,6 +87,7 @@ public class BulkInsertTests {
     public void insert() {
         AllJavaTypes obj = new AllJavaTypes();
         obj.setFieldIgnored("cookie");
+        obj.setFieldId(42);
         obj.setFieldLong(42);
         obj.setFieldString("obj1");
 
@@ -98,6 +98,7 @@ public class BulkInsertTests {
 
         AllJavaTypes allTypes = new AllJavaTypes();
         allTypes.setFieldString("String");
+        allTypes.setFieldId(1L);
         allTypes.setFieldLong(1L);
         allTypes.setFieldFloat(1F);
         allTypes.setFieldDouble(1D);
@@ -765,6 +766,7 @@ public class BulkInsertTests {
     @Test
     public void insertOrUpdate_managedObject() {
         AllJavaTypes obj = new AllJavaTypes();
+        obj.setFieldId(42);
         obj.setFieldIgnored("cookie");
         obj.setFieldLong(42);
         obj.setFieldString("obj1");
@@ -808,11 +810,11 @@ public class BulkInsertTests {
         realm.insertOrUpdate(unmanagedObject);
         realm.commitTransaction();
 
-        AllJavaTypes first = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 8).findFirst();
+        AllJavaTypes first = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 8).findFirst();
         assertNotNull(first);
-        assertEquals(8, first.getFieldLong(), 0);
+        assertEquals(8, first.getFieldId(), 0);
         assertNotNull(first.getFieldObject());
-        assertEquals(42, first.getFieldObject().getFieldLong());
+        assertEquals(42, first.getFieldObject().getFieldId());
         assertEquals(2, realm.where(AllJavaTypes.class).count());
     }
 

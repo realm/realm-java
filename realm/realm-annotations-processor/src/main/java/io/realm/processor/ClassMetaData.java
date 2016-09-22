@@ -373,6 +373,19 @@ public class ClassMetaData {
         return nullableFields.contains(variableElement);
     }
 
+    /**
+     * Checks if a VariableElement is a primary key.
+     *
+     * @param variableElement the element/field
+     * @return {@code true} if a VariableElement is primary key, {@code false} otherwise.
+     */
+    public boolean isPrimaryKey(VariableElement variableElement) {
+        if (primaryKey == null) {
+            return false;
+        }
+        return primaryKey.equals(variableElement);
+    }
+
     private boolean isValidPrimaryKeyType(TypeMirror type) {
         for (TypeMirror validType : validPrimaryKeyTypes) {
             if (typeUtils.isAssignable(type, validType)) {

@@ -25,10 +25,11 @@ import java.lang.annotation.Target;
  * The @PrimaryKey annotation will mark a field as a primary key inside Realm. Only one field in a
  * RealmObject class can have this annotation, and the field should uniquely identify the object.
  * Trying to insert an object with an existing primary key will result in an
- * {@link io.realm.exceptions.RealmPrimaryKeyConstraintException}.
- *
+ * {@link io.realm.exceptions.RealmPrimaryKeyConstraintException}. Primary key cannot be changed
+ * after the object created.
+ * <p>
  * Primary keys also count as having the {@link Index} annotation.
- *
+ * <p>
  * It is allowed to apply this annotation on the following primitive types: byte, short, int, and long.
  * String, Byte, Short, Integer, and Long are also allowed, and further permitted to have {@code null}
  * as a primary key value.

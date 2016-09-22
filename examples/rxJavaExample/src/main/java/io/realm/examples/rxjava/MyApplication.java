@@ -45,7 +45,8 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         context = this;
-        RealmConfiguration config = new RealmConfiguration.Builder(this).build();
+        Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
         Realm.setDefaultConfiguration(config);
         createTestData();

@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.5.1'
+ext.coreVersion = '2.0.0-rc7'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'a034d3250c820a15126721142d168a2ac4a12223b75bb324958ca2a70442720d'
+ext.coreSha256Hash = '5707af75cd3624505d687c5fa31ccb6a61fe754f72ff6c79d98a342af3b9942b'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -51,7 +51,8 @@ android {
                 if (!project.hasProperty('android.injected.build.abi') && project.hasProperty('buildTargetABIs')) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
-                    abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                    // armeabi is not supported anymore.
+                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
                 }
             }
         }

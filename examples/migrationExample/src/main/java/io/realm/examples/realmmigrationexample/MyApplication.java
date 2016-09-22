@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.internal;
+package io.realm.examples.realmmigrationexample;
 
-public class ReadTransaction extends Group {
+import android.app.Application;
 
-    private final SharedGroup db;
+import io.realm.Realm;
 
-    ReadTransaction(Context context, SharedGroup db, long nativePointer) {
-        super(context, nativePointer, true); // make Group immutable
-        this.db = db;
-    }
-
-    public void endRead() {
-        db.endRead();
-    }
+public class MyApplication extends Application {
 
     @Override
-    public void close() {
-        db.endRead();
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
     }
-
-    protected void finalize() {} // Nullify the actions of Group.finalize()
 }

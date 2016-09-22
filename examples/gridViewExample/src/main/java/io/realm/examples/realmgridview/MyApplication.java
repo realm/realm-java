@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef JAVA_LANG_LIST_UTIL_H
-#define JAVA_LANG_LIST_UTIL_H
+package io.realm.examples.realmgridview;
 
-#include <jni.h>
+import android.app.Application;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+import io.realm.Realm;
 
-jint java_lang_List_size(JNIEnv* env, jobject jList);
-jobject java_lang_List_get(JNIEnv* env, jobject jList, jint index);
+public class MyApplication extends Application {
 
-#ifdef __cplusplus
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
+    }
 }
-#endif
-
-#endif

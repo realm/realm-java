@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.internal.android;
+package io.realm.examples.appmodules;
 
-import io.realm.internal.log.RealmLog;
+import android.app.Application;
 
-/**
- * This is the RealmLogger used by Realm in Release builds. It only logs warnings and errors by default.
- */
-public class ReleaseAndroidLogger extends AndroidLogger {
+import io.realm.Realm;
 
-    public ReleaseAndroidLogger() {
-        setMinimumLogLevel(RealmLog.WARN);
+public class MyApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
     }
 }

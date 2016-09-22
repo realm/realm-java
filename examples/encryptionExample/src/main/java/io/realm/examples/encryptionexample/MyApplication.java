@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.exceptions;
+package io.realm.examples.encryptionexample;
 
-import io.realm.internal.Keep;
+import android.app.Application;
 
-/**
- * Triggered from the JNI level when there was something wrong with the lock file.
- * This can happen if two different versions of Realm tries to access the same file concurrently.
- */
-@Keep
-public class IncompatibleLockFileException extends RealmIOException {
+import io.realm.Realm;
 
-    public IncompatibleLockFileException(String detailMessage) {
-        super(detailMessage);
-    }
+public class MyApplication extends Application {
 
-    public IncompatibleLockFileException(String detailMessage, Throwable exception) {
-        super(detailMessage, exception);
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
     }
 }

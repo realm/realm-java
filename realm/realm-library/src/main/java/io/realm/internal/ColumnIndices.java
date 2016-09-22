@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmModel;
@@ -23,12 +24,17 @@ import io.realm.RealmModel;
 /**
  * Utility class used to cache the mapping between object field names and their column indices.
  */
-public class ColumnIndices {
+public final class ColumnIndices implements Cloneable {
+    private long schemaVersion;
+    private Map<Class<? extends RealmModel>, ColumnInfo> classes;
 
-    private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
-
-    public ColumnIndices(Map<Class<? extends RealmModel>, ColumnInfo> classes) {
+    public ColumnIndices(long schemaVersion, Map<Class<? extends RealmModel>, ColumnInfo> classes) {
+        this.schemaVersion = schemaVersion;
         this.classes = classes;
+    }
+
+    public long getSchemaVersion() {
+        return schemaVersion;
     }
 
     /**
@@ -49,5 +55,36 @@ public class ColumnIndices {
         } else {
             return -1;
         }
+    }
+
+    @Override
+    public ColumnIndices clone() {
+        try {
+            final ColumnIndices clone = (ColumnIndices) super.clone();
+            clone.classes = duplicateColumnInfoMap();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Map<Class<? extends RealmModel>, ColumnInfo> duplicateColumnInfoMap() {
+        final Map<Class<? extends RealmModel>, ColumnInfo> copy = new HashMap<>();
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+            copy.put(entry.getKey(), entry.getValue().clone());
+        }
+        return copy;
+    }
+
+    public void copyFrom(ColumnIndices other, RealmProxyMediator mediator) {
+        for (Map.Entry<Class<? extends RealmModel>, ColumnInfo> entry : classes.entrySet()) {
+            final ColumnInfo otherColumnInfo = other.getColumnInfo(entry.getKey());
+            if (otherColumnInfo == null) {
+                throw new IllegalStateException("Failed to copy ColumnIndices cache: "
+                        + Table.tableNameToClassName(mediator.getTableName(entry.getKey())));
+            }
+            entry.getValue().copyColumnInfoFrom(otherColumnInfo);
+        }
+        this.schemaVersion = other.schemaVersion;
     }
 }

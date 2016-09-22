@@ -24,10 +24,10 @@ else()
 endif()
 
 create_javah(TARGET jni_headers
-  CLASSES io.realm.internal.Table io.realm.internal.TableView
-  io.realm.internal.CheckedRow io.realm.internal.SharedGroup io.realm.internal.Group
+  CLASSES io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
   io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
-  io.realm.internal.TableQuery
+  io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
+  io.realm.log.LogLevel
 
   CLASSPATH ${classes_PATH}
   OUTPUT_DIR ${CMAKE_SOURCE_DIR}/jni_include
@@ -62,9 +62,9 @@ set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PAT
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/jni_include)
+    ${CMAKE_SOURCE_DIR}/jni_include
+    ${CMAKE_SOURCE_DIR}/object-store/src)
 
-# Set compile flags
 set(ANDROID_STL "gnustl_static")
 
 if (ARMEABI)
@@ -80,9 +80,11 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros \
 -Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
 set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG -flto")
+# There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
+# And this issue doesn't seem to impact the core compiling.
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -flto")
 #-ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Os -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-ggdb -Og -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set link flags
@@ -92,7 +94,13 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS
 file(GLOB jni_SRC
     "*.cpp"
 )
-add_library(realm-jni SHARED ${jni_SRC})
+file(GLOB objectstore_SRC
+    "object-store/src/*.cpp"
+    "object-store/src/impl/*.cpp"
+    "object-store/src/impl/android/*.cpp"
+    "object-store/src/util/*.cpp"
+)
+add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC})
 add_dependencies(realm-jni jni_headers)
 # -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
 target_link_libraries(realm-jni log android atomic lib_realm_core)
