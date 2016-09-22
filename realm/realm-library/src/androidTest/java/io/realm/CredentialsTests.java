@@ -54,6 +54,24 @@ public class CredentialsTests {
     }
 
     @Test
+    public void google() {
+        Credentials creds = Credentials.google("foo");
+
+        assertEquals(Credentials.IdentityProvider.GOOGLE, creds.getIdentityProvider());
+        assertEquals("foo", creds.getUserIdentifier());
+        assertTrue(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
+    public void twitter() {
+        Credentials creds = Credentials.twitter("foo");
+
+        assertEquals(Credentials.IdentityProvider.TWITTER, creds.getIdentityProvider());
+        assertEquals("foo", creds.getUserIdentifier());
+        assertTrue(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
     public void facebook_invalidInput() {
         String[] invalidInput = { null, ""};
         for (String input : invalidInput) {
@@ -90,6 +108,19 @@ public class CredentialsTests {
     }
 
     @Test
+    public void custom_invalidUserName() {
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("custom", "property");
+        for (String username : new String[]{null, ""}) {
+            try {
+                Credentials.custom("facebook", username, userInfo);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
     public void custom() {
         Map<java.lang.String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("custom", "property");
@@ -99,5 +130,19 @@ public class CredentialsTests {
         assertEquals("customProvider", creds.getIdentityProvider());
         assertEquals(1, creds.getUserInfo().size());
         assertEquals("property", creds.getUserInfo().get("custom"));
+    }
+
+    @Test
+    public void custom_invalidProvider() {
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("custom", "property");
+
+        for (String provider : new String[]{null, ""}) {
+            try {
+                Credentials.custom(null, "foo", userInfo);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
     }
 }

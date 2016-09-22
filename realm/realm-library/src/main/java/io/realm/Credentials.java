@@ -107,6 +107,36 @@ public class Credentials {
     }
 
     /**
+     * Creates credentials based on a Google login.
+     *
+     * @param googleToken a google userIdentifier acquired by logging into Google.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
+     */
+    public static Credentials google(String googleToken) {
+        if (googleToken == null || googleToken.equals("")) {
+            throw new IllegalArgumentException("Non-null 'googleToken' required.");
+        }
+        return new Credentials(IdentityProvider.GOOGLE, googleToken, null);
+    }
+
+    /**
+     * Creates credentials based on a Twitter login.
+     *
+     * @param twitterToken a google userIdentifier acquired by logging into Twitter.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
+     */
+    public static Credentials twitter(String twitterToken) {
+        if (twitterToken == null || twitterToken.equals("")) {
+            throw new IllegalArgumentException("Non-null 'twitterToken' required.");
+        }
+        return new Credentials(IdentityProvider.TWITTER, twitterToken, null);
+    }
+
+    /**
      * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
      * {@code userInfo} used.
      *
