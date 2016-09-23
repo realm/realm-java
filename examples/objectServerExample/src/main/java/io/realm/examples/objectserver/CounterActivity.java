@@ -68,7 +68,10 @@ public class CounterActivity extends AppCompatActivity {
                     .initialData(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
-                            realm.createObject(CRDTCounter.class, 1);
+                            // Workaround for initialData right now https://github.com/realm/realm-java-private/issues/164
+                            if (realm.isEmpty()) {
+                                realm.createObject(CRDTCounter.class, 1);
+                            }
                         }
                     })
                     .build();

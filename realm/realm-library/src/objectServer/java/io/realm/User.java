@@ -72,7 +72,6 @@ public class User {
     public static User currentUser() {
         User user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
         if (user != null && user.isValid()) {
-            user.getSyncUser().scheduleRefresh();
             return user;
         }
         return null;

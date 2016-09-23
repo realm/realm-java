@@ -23,8 +23,6 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.util.Log;
 
-import com.getkeepsafe.relinker.BuildConfig;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -188,7 +186,7 @@ public final class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             RealmCore.loadLibrary(context);
-            RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
+            RealmLog.add(io.realm.BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();

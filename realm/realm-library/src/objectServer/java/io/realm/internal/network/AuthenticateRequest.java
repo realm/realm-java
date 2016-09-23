@@ -42,7 +42,7 @@ public class AuthenticateRequest {
     /**
      * Generates a proper login request for a new user.
      */
-    public static AuthenticateRequest fromCredentials(Credentials credentials) {
+    public static AuthenticateRequest userLogin(Credentials credentials) {
         if (credentials == null) {
            throw new IllegalArgumentException("Non-null credentials required.");
         }
@@ -54,16 +54,26 @@ public class AuthenticateRequest {
     }
 
     /**
-     * Authenticate access to a given Realm using an already logged in user.
-     *
-     * @param refreshToken user's refresh token.
+     * Generates a request for refreshing a user token.
      */
-    public static AuthenticateRequest fromRefreshToken(Token refreshToken) {
+    public static AuthenticateRequest userRefresh(Token userToken) {
+        return new AuthenticateRequest("realm",
+                userToken.value(),
+                SyncManager.APP_ID,
+                null,
+                Collections.<String, Object>emptyMap()
+        );
+    }
+
+    /**
+     * Generates a request for accessing a Realm
+     */
+    public static AuthenticateRequest realmLogin(Token userToken, URI serverUrl) {
         // Authenticate a given Realm path using an already logged in user.
         return new AuthenticateRequest("realm",
-                refreshToken.value(),
+                userToken.value(),
                 SyncManager.APP_ID,
-                refreshToken.path(),
+                serverUrl.getPath(),
                 Collections.<String, Object>emptyMap()
         );
     }
