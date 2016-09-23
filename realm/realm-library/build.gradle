@@ -116,12 +116,9 @@ repositories {
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
-
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.1'
-
-    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
-
+    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -130,7 +127,6 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-
     androidTestApt project(':realm-annotations-processor')
 }
 
@@ -278,6 +274,34 @@ install {
     }
 }
 
+// The publications doesn't know about our AAR dependencies, so we have to manually add them to the pom
+// Credit: http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
+def createPomDependencies(configurationNames) {
+    return {
+        def dependenciesNode = asNode().appendNode('dependencies')
+        configurationNames.each { configurationName ->
+            configurations[configurationName].allDependencies.each {
+                if (it.group != null && it.name != null) {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+
+                    //If there are any exclusions in dependency
+                    if (it.excludeRules.size() > 0) {
+                        def exclusionsNode = dependencyNode.appendNode('exclusions')
+                        it.excludeRules.each { rule ->
+                            def exclusionNode = exclusionsNode.appendNode('exclusion')
+                            exclusionNode.appendNode('groupId', rule.group)
+                            exclusionNode.appendNode('artifactId', rule.module)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 publishing {
     publications {
         basePublication(MavenPublication) {
@@ -287,7 +311,10 @@ publishing {
             artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
             artifact sourcesJar
             artifact javadocJar
+
+            pom.withXml(createPomDependencies(["baseCompile", "compile"]))
         }
+
         objectServerPublication(MavenPublication) {
             groupId 'io.realm'
             artifactId 'realm-android-library-object-server'
@@ -296,18 +323,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            //The publication doesn't know about our dependencies, so we have to manually add them to the pom
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', it.group)
-                    dependencyNode.appendNode('artifactId', it.name)
-                    dependencyNode.appendNode('version', it.version)
-                }
-            }
+            pom.withXml(createPomDependencies(["objectServerCompile", "compile"]))
         }
     }
     repositories {
