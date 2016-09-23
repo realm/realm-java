@@ -58,6 +58,12 @@ public class ProcessCommitTests {
         HttpUtils.stopSyncServer();
     }
 
+    // FIXME: At least need one method in the test class
+    @Test
+    public void dummy() {
+
+    }
+
     // FIXME: Disable for now.
     /*
     @Test
