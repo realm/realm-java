@@ -43,7 +43,6 @@ public class CounterActivity extends AppCompatActivity {
     private RealmResults<CounterOperation> counter;
     private User user;
 
-
     @BindView(R.id.text_counter) TextView counterView;
 
     @Override
