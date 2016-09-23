@@ -16,31 +16,30 @@
 
 package io.realm.internal.objectserver;
 
-import io.realm.BaseRealm;
 import io.realm.ObjectServerError;
 import io.realm.Session;
 import io.realm.SessionState;
 import io.realm.internal.network.NetworkStateReceiver;
 
 /**
- * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access this
- * Realm when attempting to bind it. This can happen in 3 ways:
+ * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access the
+ * Realm when attempting to bind it. Reasons for not having proper access or invalid credentials include:
  *
  * <ol>
  *     <li>
  *          <b>Refresh token has expired:</b>
- *          This effectively means the user has been logged out from the Realm Object Server and credentials has
- *          to be re-verified on the Authentication Server. Since this involves creating a new User object object,
- *          this session will be stopped and and error reported.
+ *          This effectively means the user has been logged out from the Realm Object Server and credentials have
+ *          to be re-verified by the Authentication Server. Since verification involves creating a new User object,
+ *          this session will be stopped and an error reported.
  *     </li>
  *     <li>
  *          <b>Access token has expired:</b>
- *          This state will automatically refresh it and retry binding the Realm.
+ *          In this case, the token is automatically refreshed and will retry binding the Realm.
  *     </li>
  *     <li>
- *          <b>Access token does not exists:</b>
- *          This state means the user has logged in, but not yet gained a specific access token for this Realm.
- *          This state will automatically fetch the access token and retry binding the Realm.
+ *          <b>Access token does not exist:</b>
+ *          This state means the user has logged in, but not yet gained a specific access token for the Realm.
+ *          The access token will automatically be fetched and binding the Realm is retried.
  *      </li>
  * </ol>
  */
@@ -48,7 +47,7 @@ class AuthenticatingState extends FsmState {
 
     @Override
     public void onEnterState() {
-        if (NetworkStateReceiver.isOnline(BaseRealm.applicationContext)) {
+        if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
             authenticate(session);
         } else {
             // Wait for connection to become available, before trying again.

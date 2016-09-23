@@ -24,20 +24,20 @@ import java.util.Map;
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
  * Object Server to verify the user and grant access.
  * <p>
- * Logging into the Object Server consists of the following steps:
+ * Logging into the Realm Object Server consists of the following steps:
  * <ol>
  * <li>
- *     Login to 3rd party like Facebook, Google or Twitter. The result is usually an Authorization Grant that must be
- *     saved in a {@link Credentials} object of the proper type, e.g {@link Credentials#facebook(String)} for a
+ *     Log in to 3rd party provider (Facebook, Google or Twitter). The result is usually an Authorization Grant that must be
+ *     saved in a {@link Credentials} object of the proper type e.g., {@link Credentials#facebook(String)} for a
  *     Facebook login.
  * </li>
  * <li>
- *     Authenticate a {@link User} through the Object Server using these credentials. Once authenticated
- *     an Object Server user is returned. This user can then be attached to a {@link SyncConfiguration}, which
+ *     Authenticate a {@link User} through the Object Server using these credentials. Once authenticated,
+ *     an Object Server user is returned. Then this user can be attached to a {@link SyncConfiguration}, which
  *     will make it possible to synchronize data between the local and remote Realm.
  *     <p>
- *     It is possible to persist the user object using e.g. the {@link UserStore} so logging
- *     into e.g Facebook is only required the first time the app is used.
+ *     It is possible to persist the user object e.g., using the {@link UserStore}. That means, logging
+ *     into an OAuth2 provider is only required the first time the app is used.
  * </li>
  * </ol>
  *
@@ -72,13 +72,14 @@ public class Credentials {
      * Creates credentials based on a login with username and password. These credentials will only be verified
      * by the Object Server.
      *
-     * @param username username of the user
-     * @param password the users password
+     * @param username username of the user.
+     * @param password the users password.
      * @param createUser {@code true} if the user should be created, {@code false} otherwise. It is not possible to
      *                   create a user twice when logging in, so this flag should only be set to {@code true} the first
      *                   time a users log in.
      * @return a set of credentials that can be used to log into the Object Server using
      *         {@link User#loginAsync(Credentials, String, User.Callback)}.
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static Credentials usernamePassword(String username, String password, boolean createUser) {
         if (username == null || username.equals("")) {
@@ -95,13 +96,44 @@ public class Credentials {
      *
      * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link User#loginAsync(Credentials, String, User.Callback)}.
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static Credentials facebook(String facebookToken) {
         if (facebookToken == null || facebookToken.equals("")) {
             throw new IllegalArgumentException("Non-null 'facebookToken' required.");
         }
         return new Credentials(IdentityProvider.FACEBOOK, facebookToken, null);
+    }
+
+    /**
+     * Creates credentials based on a Google login.
+     *
+     * @param googleToken a google userIdentifier acquired by logging into Google.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
+     */
+    public static Credentials google(String googleToken) {
+        if (googleToken == null || googleToken.equals("")) {
+            throw new IllegalArgumentException("Non-null 'googleToken' required.");
+        }
+        return new Credentials(IdentityProvider.GOOGLE, googleToken, null);
+    }
+
+    /**
+     * Creates credentials based on a Twitter login.
+     *
+     * @param twitterToken a google userIdentifier acquired by logging into Twitter.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
+     */
+    public static Credentials twitter(String twitterToken) {
+        if (twitterToken == null || twitterToken.equals("")) {
+            throw new IllegalArgumentException("Non-null 'twitterToken' required.");
+        }
+        return new Credentials(IdentityProvider.TWITTER, twitterToken, null);
     }
 
     /**
@@ -115,6 +147,7 @@ public class Credentials {
      *              classes will be converted using {@code toString()}.
      * @return a set of credentials that can be used to log into the Object Server using
      *         {@link User#loginAsync(Credentials, String, User.Callback)}.
+     * @throws IllegalArgumentException if any parameter is either {@code null} or empty.
      */
     public static Credentials custom(String identityProvider, String userIdentifier, Map<String, Object> userInfo) {
         if (identityProvider == null || identityProvider.equals("")) {

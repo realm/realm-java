@@ -20,8 +20,8 @@ import io.realm.ObjectServerError;
 import io.realm.SessionState;
 
 /**
- * BINDING State. After bind() is called, this state will attempt to bind the local Realm to the remote. This is an
- * asynchronous operation that must be able to be interrupted.
+ * BINDING State. After {@code bind()} is called, the state will attempt to bind the local Realm to the remote. This is an
+ * asynchronous operation which must be interruptible.
  */
 class BindingState extends FsmState {
 

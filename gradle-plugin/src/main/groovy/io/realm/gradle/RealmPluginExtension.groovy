@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package io.realm.internal.network;
+package io.realm.gradle
 
-import io.realm.User;
-
-/**
- * This class encapsulates a request to logout a user on the Realm Authentication Server. It is responsible for
- * constructing the JSON understood by the Realm Authentication Server.
- */
-public class LogoutRequest {
-    // TODO Endpoint not finished yet
-
-    LogoutRequest fromUser(User user) {
-        return new LogoutRequest();
-    }
-
+class RealmPluginExtension {
+    boolean syncEnabled = false
 }

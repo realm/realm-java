@@ -56,7 +56,7 @@ public class AuthenticateRequest {
     /**
      * Authenticate access to a given Realm using an already logged in user.
      *
-     * @param refreshToken Users refresh token
+     * @param refreshToken user's refresh token.
      */
     public static AuthenticateRequest fromRefreshToken(Token refreshToken) {
         // Authenticate a given Realm path using an already logged in user.

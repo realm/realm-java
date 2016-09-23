@@ -24,7 +24,7 @@ import io.realm.ObjectServerError;
 import okhttp3.Response;
 
 /**
- * This class represents the response for a logout request.
+ * This class represents the response for a log out request.
  */
 public class LogoutResponse extends AuthServerResponse {
 
@@ -32,7 +32,10 @@ public class LogoutResponse extends AuthServerResponse {
 
     /**
      * Helper method for creating the proper Authenticate response. This method will set the appropriate error
-     * depending on any HTTP response codes or IO errors.
+     * depending on any HTTP response codes or I/O errors.
+     *
+     * @param response the server response.
+     * @return the log out response.
      */
     static LogoutResponse createFrom(Response response) {
         String serverResponse;
@@ -51,7 +54,10 @@ public class LogoutResponse extends AuthServerResponse {
     }
 
     /**
-     * Creates a unsuccessful authentication response. This should only happen in case of network / IO problems.
+     * Creates an unsuccessful authentication response. This should only happen in case of network or I/O
+     * related issues.
+     *
+     * @param error an authentication response error.
      */
     private LogoutResponse(ObjectServerError error) {
         this.error = error;
@@ -59,17 +65,29 @@ public class LogoutResponse extends AuthServerResponse {
 
     /**
      * Parses a valid (200) server response.
+     *
+     * @param serverResponse the server response.
      */
     private LogoutResponse(String serverResponse) {
         this.error = null;
         // TODO endpoint not finalized
     }
 
+    /**
+     * Checks if response was valid.
+     *
+     * @return {@code true} if valid.
+     */
     public boolean isValid() {
 //        return (error == null);
         return true;
     }
 
+    /**
+     * Returns the error.
+     *
+     * @return the error.
+     */
     public ObjectServerError getError() {
         return error;
     }

@@ -60,7 +60,7 @@ try {
           archiveLog = false;
         } finally {
           stopLogCatCollector(backgroundPid, archiveLog)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
+          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
         }
 
         // TODO: add support for running monkey on the example apps

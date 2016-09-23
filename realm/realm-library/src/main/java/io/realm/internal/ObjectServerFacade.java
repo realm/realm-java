@@ -17,7 +17,7 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
-            Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
+            Class syncFacadeClass = Class.forName("io.realm.internal.objectserver.SyncObjectServerFacade");
             syncFacade = (ObjectServerFacade) syncFacadeClass.newInstance();
         } catch (ClassNotFoundException ignored) {
         } catch (InstantiationException e) {

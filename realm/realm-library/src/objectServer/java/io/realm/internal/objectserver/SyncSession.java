@@ -40,13 +40,13 @@ import io.realm.internal.syncpolicy.SyncPolicy;
 /**
  * Internal class describing a Realm Object Server Session.
  * There is currently a split between the public {@link Session} and this class.
- * This class is intended as a wrapper around Object Stores Sync Session, but it is not that yet.
+ * This class is intended as a wrapper for Object Store's Sync Session, but it is not that yet.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
- * a Realm instance. Once a session has been created it will continue to exist until explicitly closed or the
+ * a Realm instance. Once a session has been created, it will continue to exist until explicitly closed or the
  * underlying Realm file is deleted.
  * <p>
- * It is normally not necessary to interact directly with a session. That should be done by the {@code SyncPolicy}
+ * It is typically not necessary to interact directly with a session. The interaction should be done by the {@code SyncPolicy}
  * defined using {@code io.realm.SyncConfiguration.Builder#syncPolicy(SyncPolicy)}.
  * <p>
  * A session has a lifecycle consisting of the following states:
@@ -54,22 +54,22 @@ import io.realm.internal.syncpolicy.SyncPolicy;
  * <dl>
  * <li>
  *     <b>INITIAL</b> Initial state when creating the Session object. No connections to the object server have been
- *     made yet. At this point it is possible to register any relevant error and event listeners. Calling
+ *     created yet. At this point it is possible to register any relevant error and event listeners. Calling
  *     {@link #start()} will cause the session to become <b>UNBOUND</b> and notify the {@code SyncPolicy} that the
  *     session is ready by calling {@code SyncPolicy#onSessionCreated(Session)}.
  * </li>
  * <li>
- *     <b>UNBOUND</b> When a session is unbound, no synchronization between the local and remote Realm is happening.
+ *     <b>UNBOUND</b> When a session is unbound, no synchronization between the local and remote Realm is taking place.
  *     Call {@link #bind()} to start synchronizing changes.
  * </li>
  * <li>
  *     <b>BINDING</b> A session is in the process of binding a local Realm to a remote one. Calling {@link #unbind()}
- *     at this stage, will cancel the process. If binding fails, the session will revert to being unbound and the error
+ *     at this stage, will cancel the process. If binding fails, the session will revert to being INBOUND and an error
  *     will be reported to the error handler.
  * </li>
  * <li>
  *     <b>AUTHENTICATING</b> During binding, if a users access has expired, the session will be <b>AUTHENTICATING</b>.
- *     During this state, Realm will automatically try to acquire new valid credentials. If this succeed <b>BINDING</b>
+ *     During this state, Realm will automatically try to acquire new valid credentials. If it succeed <b>BINDING</b>
  *     will automatically be resumed, if not, the session will become <b>UNBOUND</b> or <b>STOPPED</b> and an
  *     appropriate error reported.
  * </li>
@@ -79,7 +79,7 @@ import io.realm.internal.syncpolicy.SyncPolicy;
  * </li>
  * <li>
  *     <b>STOPPED</b> The session are in an unrecoverable state. Check the error log for additional information, but
- *     the type of errors are usually wrong credentials for the Realm being accessed or a mismatching Object Server.
+ *     the type of errors is usually wrong credentials for the Realm being accessed or a mismatching Object Server.
  *     Most problems can be solved by creating a new {@link SyncConfiguration} with a new {@code serverUrl} and
  *     {@code user}.
  * </li>
@@ -154,7 +154,7 @@ public final class SyncSession {
     }
 
     /**
-     * Starts the session. This will cause the session to come <i>unbound</i>. {@link #bind()} must be called to
+     * Starts the session. This will cause the session to come <b>UNBOUND</b>. {@link #bind()} must be called to
      * actually start synchronizing data.
      */
     public synchronized void start() {
@@ -173,7 +173,7 @@ public final class SyncSession {
      * synchronized immediately.
      * <p>
      * While this method will return immediately, binding a Realm is not guaranteed to succeed. Possible reasons for
-     * failure could be either if the device is offline or credentials have expired. Binding is an asynchronous
+     * failure could be if the device is offline or credentials have expired. Binding is an asynchronous
      * operation and all errors will be sent first to {@code SyncPolicy#onError(Session, ObjectServerError)} and if the
      * SyncPolicy doesn't handle it, to the {@link Session.ErrorHandler} defined by
      * {@link SyncConfiguration.Builder#errorHandler(Session.ErrorHandler)}.
@@ -285,6 +285,9 @@ public final class SyncSession {
 
     /**
      * Checks if a user has valid credentials for accessing this Realm.
+     *
+     * @param configuration the configuration.
+     * @return {@code true} if credentials are valid, {@code false} otherwise.
      */
     boolean isAuthenticated(SyncConfiguration configuration) {
         return user.isAuthenticated(configuration);
@@ -329,6 +332,8 @@ public final class SyncSession {
 
     /**
      * Notify session that a commit on the device has happened.
+     *
+     * @param version the commit number/version.
      */
     public void notifyCommit(long version) {
         if (isBound()) {

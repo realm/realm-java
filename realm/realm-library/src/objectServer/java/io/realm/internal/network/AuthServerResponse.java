@@ -30,13 +30,17 @@ public class AuthServerResponse {
 
     /**
      * Checks if this response was valid.
+     *
+     * @return {@code true} if valid, {@code false} otherwise.
      */
     public boolean isValid() {
         return (error == null);
     }
 
     /**
-     * If {@link #isValid()} returns {@code false}, this method must return the error causing this.
+     * If {@link #isValid()} returns {@code false}, this method will return the error causing this.
+     *
+     * @return the error.
      */
     public ObjectServerError getError() {
         return error;
@@ -46,9 +50,16 @@ public class AuthServerResponse {
         this.error = error;
     }
 
-    // Parse an http error form the Auth server.
-    // The server returns errors following https://tools.ietf.org/html/rfc7807 with an extra "code" field
-    // for Realm specific error codes.
+
+
+    /**
+     * Parse an HTTP error from a Realm Authentication Server. The server returns errors following
+     * https://tools.ietf.org/html/rfc7807 with an extra "code" field for Realm specific error codes.
+     *
+     * @param response the server response.
+     * @param httpErrorCode the HTTP error code.
+     * @return an server error.
+     */
     public static ObjectServerError createError(String response, int httpErrorCode) {
         try {
             JSONObject obj = new JSONObject(response);

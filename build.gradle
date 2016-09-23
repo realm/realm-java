@@ -28,7 +28,7 @@ task installAnnotations(type:GradleBuild) {
     group = 'Install'
     description = 'Install the jar realm-annotations into mavenLocal()'
     buildFile = file('realm-annotations/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
 }
 
 task assembleTransformer(type:GradleBuild) {
@@ -44,7 +44,7 @@ task installTransformer(type:GradleBuild) {
     description = 'Install the jar realm-transformer into mavenLocal()'
     dependsOn installAnnotations
     buildFile = file('realm-transformer/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
 }
 
 task assembleRealm(type:GradleBuild) {
@@ -105,7 +105,7 @@ task installRealm(type:GradleBuild) {
     description = 'Install the artifacts of Realm libraries into mavenLocal()'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
     }
@@ -129,7 +129,7 @@ task installGradlePlugin(type:GradleBuild) {
     dependsOn installRealm
     dependsOn installTransformer
     buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
 }
 
 task installRealmJava(type:Task) {

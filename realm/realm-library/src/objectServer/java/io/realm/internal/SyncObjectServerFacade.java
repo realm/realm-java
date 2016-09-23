@@ -1,6 +1,7 @@
-package io.realm.internal;
+package io.realm.internal.objectserver;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
@@ -11,8 +12,8 @@ import io.realm.Session;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.objectserver.SessionStore;
-import io.realm.internal.objectserver.SyncSession;
+import io.realm.internal.Keep;
+import io.realm.internal.ObjectServerFacade;
 
 @SuppressWarnings("unused") // Used through reflection. See ObjectServerFacade
 @Keep
@@ -20,12 +21,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     private static final String WRONG_TYPE_OF_CONFIGURATION =
             "'configuration' has to be an instance of 'SyncConfiguration'.";
+    @SuppressLint("StaticFieldLeak") //
+    private static Context applicationContext;
 
     @Override
     public void init(Context context) {
         // Trying to keep things out the public API is no fun :/
         // Just use reflection on init. It is a one-time method call so should be acceptable.
+        //noinspection TryWithIdenticalCatches
         try {
+            // FIXME: Reflection can be avoided by moving some functions of SyncManager and ObjectServer out of public
             Class<?> syncManager = Class.forName("io.realm.ObjectServer");
             Method method = syncManager.getDeclaredMethod("init", Context.class);
             method.setAccessible(true);
@@ -38,6 +43,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             throw new RealmException("Could not initialize the Realm Object Server", e);
         } catch (ClassNotFoundException e) {
             throw new RealmException("Could not initialize the Realm Object Server", e);
+        }
+        if (applicationContext == null) {
+            applicationContext = context;    
         }
     }
 
@@ -84,5 +92,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         } else {
             return new String[2];
         }
+    }
+
+    static Context getApplicationContext() {
+        return applicationContext;
     }
 }

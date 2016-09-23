@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver;
+package io.realm.internal.network;
 
-import io.realm.ObjectServerError;
-import io.realm.Session;
+import io.realm.User;
 
 /**
- * As {@link Session} is modeled as a state machine, this interface describe all
- * possible actions in that machine.
- *
- * All states should implement this so all possible permutations of state/actions are covered.
- *
- * TODO Move this to the Object Store
+ * This class encapsulates a request to log out a user on the Realm Authentication Server. It is responsible for
+ * constructing the JSON understood by the Realm Authentication Server.
  */
-interface FsmAction {
-    void onStart();
-    void onBind();
-    void onUnbind();
-    void onStop();
-    void onError(ObjectServerError error);
+public class LogoutRequest {
+    // TODO Endpoint not finished yet
+
+    LogoutRequest fromUser(User user) {
+        return new LogoutRequest();
+    }
+
 }

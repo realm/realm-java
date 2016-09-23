@@ -32,8 +32,12 @@ import io.realm.log.RealmLog;
  * The SyncManager is the central controller for interacting with the Realm Object Server.
  * It handles the creation of {@link Session}s and it is possible to configure session defaults and the underlying
  * network client using this class.
+ * <p>
+ * Through the SyncManager, it is possible to add authentication listeners. An authentication listener will
+ * response to events like user logging in or out.
+ * <p>
+ * Default error handling for any {@link SyncConfiguration} can be added using the SyncManager.
  *
- * // TODO Rewrite this section.
  */
 @Keep
 public final class SyncManager {
@@ -101,6 +105,7 @@ public final class SyncManager {
      * If no Userstore is specified {@link User#currentUser()} will always return {@code null}.
      *
      * @param userStore {@link UserStore} to use.
+     * @throws IllegalArgumentException if {@code userStore} is {@code null}.
      */
     public static void setUserStore(UserStore userStore) {
         if (userStore == null) {
@@ -154,6 +159,7 @@ public final class SyncManager {
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link Session} for the specified Realm.
+     * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
     public static synchronized Session getSession(SyncConfiguration syncConfiguration) {
         if (syncConfiguration == null) {
@@ -219,7 +225,7 @@ public final class SyncManager {
     }
 
     /**
-     * Sets the log level for the underlying
+     * Sets the log level for the underlying.
      * @param logLevel
      */
     public static void setLogLevel(int logLevel) {
