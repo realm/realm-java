@@ -53,7 +53,6 @@ public class AuthenticateResponse extends AuthServerResponse {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new AuthenticateResponse(error);
         }
-        RealmLog.debug("Authenticate response: " + serverResponse);
         if (response.code() != 200) {
             return new AuthenticateResponse(AuthServerResponse.createError(serverResponse, response.code()));
         } else {
@@ -82,6 +81,7 @@ public class AuthenticateResponse extends AuthServerResponse {
      * @param error the network or I/O error.
      */
     private AuthenticateResponse(ObjectServerError error) {
+        RealmLog.debug("AuthenticateResponse. Error " + error.getErrorMessage());
         setError(error);
         this.accessToken = null;
         this.refreshToken = null;
@@ -97,6 +97,7 @@ public class AuthenticateResponse extends AuthServerResponse {
         ObjectServerError error;
         Token accessToken;
         Token refreshToken;
+        String message;
         try {
             JSONObject obj = new JSONObject(serverResponse);
             accessToken = obj.has(JSON_FIELD_ACCESS_TOKEN) ?
@@ -104,13 +105,19 @@ public class AuthenticateResponse extends AuthServerResponse {
             refreshToken = obj.has(JSON_FIELD_REFRESH_TOKEN) ?
                     Token.from(obj.getJSONObject(JSON_FIELD_REFRESH_TOKEN)) : null;
             error = null;
+            if (accessToken == null) {
+                message = "accessToken = null";
+            } else {
+                message = String.format("Identity %s; Path %s", accessToken.identity(), accessToken.path());
+            }
         } catch (JSONException ex) {
             accessToken = null;
             refreshToken = null;
             //noinspection ThrowableInstanceNeverThrown
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
+            message = String.format("Error %s", error.getErrorMessage());
         }
-
+        RealmLog.debug("AuthenticateResponse. " + message);
         setError(error);
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
