@@ -11,6 +11,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -110,6 +111,13 @@ public class SimpleRealmProxy extends some.test.Simple
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
+            final Row row = proxyState.getRow$realm();
+            if (value == null) {
+                row.getTable().setNull(columnInfo.nameIndex, row.getIndex(), true);
+                return;
+            }
+            row.getTable().setString(columnInfo.nameIndex, row.getIndex(), value, true);
+            return;
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -141,6 +149,9 @@ public class SimpleRealmProxy extends some.test.Simple
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
+            final Row row = proxyState.getRow$realm();
+            row.getTable().setLong(columnInfo.ageIndex, row.getIndex(), value, true);
+            return;
         }
 
         proxyState.getRealm$realm().checkIfValid();
@@ -315,9 +326,9 @@ public class SimpleRealmProxy extends some.test.Simple
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
         if (realmGet$name != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
         }
-        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age(), false);
         return rowIndex;
     }
 
@@ -337,9 +348,9 @@ public class SimpleRealmProxy extends some.test.Simple
                 cache.put(object, rowIndex);
                 String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
                 if (realmGet$name != null) {
-                    Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+                    Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
                 }
-                Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+                Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age(), false);
             }
         }
     }
@@ -355,11 +366,11 @@ public class SimpleRealmProxy extends some.test.Simple
         cache.put(object, rowIndex);
         String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
         if (realmGet$name != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+            Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
         } else {
-            Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex);
+            Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex, false);
         }
-        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age(), false);
         return rowIndex;
     }
 
@@ -379,11 +390,11 @@ public class SimpleRealmProxy extends some.test.Simple
                 cache.put(object, rowIndex);
                 String realmGet$name = ((SimpleRealmProxyInterface)object).realmGet$name();
                 if (realmGet$name != null) {
-                    Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name);
+                    Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
                 } else {
-                    Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex);
+                    Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex, false);
                 }
-                Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age());
+                Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface)object).realmGet$age(), false);
             }
         }
     }
