@@ -214,7 +214,7 @@ public class Table implements TableOrView, TableSchema {
                 }
                 long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
                 if (pkRowIndex != NO_MATCH) {
-                    pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName, false);
+                    nativeSetStringUnique(pkTable.nativePtr, PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName);
                 } else {
                     throw new IllegalStateException("Non-existent PrimaryKey column cannot be renamed");
                 }
