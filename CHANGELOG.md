@@ -3,6 +3,7 @@
 ### Internal
 
 * Move JNI build to CMake.
+* Upgrade ReLinker to 1.2.2.
 
 ### Bug fixes
 
