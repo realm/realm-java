@@ -5,7 +5,9 @@
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
+#ifdef REALM_SYNC
 #include "sync_config.hpp"
+#endif
 
 using namespace realm;
 using namespace realm::_impl;
@@ -39,13 +41,17 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
+#ifdef REALM_SYNC
         if (sync_server_url) {
             JStringAccessor url(env, sync_server_url);
             JStringAccessor token(env, sync_user_token);
             config->sync_config = std::make_shared<SyncConfig>();
             config->sync_config->user_tag = token;
             config->sync_config->realm_url = url;
+            // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
+            config->sync_config->create_session = false;
         }
+#endif
         return reinterpret_cast<jlong>(config);
     } CATCH_STD()
 
@@ -152,8 +158,25 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
 
-    // FIXME: Use constant value
-    return -1;
+    return static_cast<jlong>(ObjectStore::NotVersioned);
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeSetVersion(JNIEnv *env, jclass, jlong shared_realm_ptr, jlong version)
+{
+    TR_ENTER_PTR(env, shared_realm_ptr)
+
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        if (!shared_realm->is_in_transaction()) {
+            std::ostringstream ss;
+            ss << "Cannot set schema version when the realm is not in transaction.";
+            ThrowException(env, IllegalState, ss.str());
+            return;
+        }
+
+        ObjectStore::set_schema_version(shared_realm->read_group(), static_cast<uint64_t>(version));
+    } CATCH_STD()
 }
 
 JNIEXPORT jboolean JNICALL
@@ -395,6 +418,18 @@ Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass,
         return LangBindHelper::get_version_of_latest_snapshot(shared_group);
     } CATCH_STD ()
     return 0;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong nativePtr,
+                                                      jlong nativeSchemaPtr, jlong version) {
+    TR_ENTER(env)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
+        auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version));
+    }
+    CATCH_STD()
 }
 
 

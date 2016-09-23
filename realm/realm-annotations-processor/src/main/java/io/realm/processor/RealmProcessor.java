@@ -90,6 +90,28 @@ import io.realm.annotations.RealmClass;
  *  <li>Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
  *    Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.</li>
  * </ol>
+ *
+ * <h1>CREATING A MANAGED RealmObject</h1>
+ *
+ * To allow to specify default values by model's constructor or direct field assignment,
+ * the flow of creating the proxy object is a bit complicated. This section illustrates
+ * how proxy object should be created.
+ *
+ * <ol>
+ *  <li>Get the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by {@code BaseRealm.objectContext.get()} </li>
+ *  <li>Set the object context information to the {@code RealmObjectContext} those should be set to the creating proxy object.</li>
+ *  <li>Create proxy object ({@code new io.realm.FooRealmProxy()}).</li>
+ *  <li>Set the object context information to the created proxy when the first access of its accessors (or in its constructor if accessors are not used in the model's constructor).</li>
+ *  <li>Clear the object context information in the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by calling {@code
+ *  #clear()} method.</li>
+ * </ol>
+ *
+ * The reason of this complicated step is that we can't pass these context information
+ * via the constructor of the proxy. It's because the constructor of the proxy is executed
+ * <b>after</b> the constructor of the model class. The access to the fields in the model's
+ * constructor happens before the assignment of the context information to the 'proxyState'.
+ * This will cause the {@link NullPointerException} if getters/setter is accessed in the model's
+ * constructor (see https://github.com/realm/realm-java/issues/2536 ).
  */
 @SupportedAnnotationTypes({
         "io.realm.annotations.RealmClass",

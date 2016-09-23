@@ -31,9 +31,12 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -73,15 +76,21 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
+        checkSchemaHasClass(clazz);
+        return originalMediator.createRealmObjectSchema(clazz, schema);
+    }
+    @Override
     public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
         checkSchemaHasClass(clazz);
         return originalMediator.createTable(clazz, sharedRealm);
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
+                                    boolean allowExtraColumns) {
         checkSchemaHasClass(clazz);
-        return originalMediator.validateTable(clazz, sharedRealm);
+        return originalMediator.validateTable(clazz, sharedRealm, allowExtraColumns);
     }
 
     @Override
@@ -97,9 +106,14 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
+    public <E extends RealmModel> E newInstance(Class<E> clazz,
+                                                Object baseRealm,
+                                                Row row,
+                                                ColumnInfo columnInfo,
+                                                boolean acceptDefaultValue,
+                                                List<String> excludeFields) {
         checkSchemaHasClass(clazz);
-        return originalMediator.newInstance(clazz, columnInfo);
+        return originalMediator.newInstance(clazz, baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
     }
 
     @Override

@@ -2,9 +2,11 @@ package io.realm;
 
 
 import android.util.JsonReader;
+import io.realm.RealmObjectSchema;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import java.io.IOException;
@@ -41,11 +43,22 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.validateTable(sharedRealm);
+            return io.realm.AllTypesRealmProxy.createRealmObjectSchema(realmSchema);
+        } else {
+            throw getMissingProxyClassException(clazz);
+        }
+    }
+
+    @Override
+    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm, boolean allowExtraColumns) {
+        checkClass(clazz);
+
+        if (clazz.equals(some.test.AllTypes.class)) {
+            return io.realm.AllTypesRealmProxy.validateTable(sharedRealm, allowExtraColumns);
         } else {
             throw getMissingProxyClassException(clazz);
         }
@@ -74,13 +87,19 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
-        checkClass(clazz);
+    public <E extends RealmModel> E newInstance(Class<E> clazz, Object baseRealm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue, List<String> excludeFields) {
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        try {
+            objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue, excludeFields);
+            checkClass(clazz);
 
-        if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(new io.realm.AllTypesRealmProxy(columnInfo));
-        } else {
-            throw getMissingProxyClassException(clazz);
+            if (clazz.equals(some.test.AllTypes.class)) {
+                return clazz.cast(new io.realm.AllTypesRealmProxy());
+            } else {
+                throw getMissingProxyClassException(clazz);
+            }
+        } finally {
+            objectContext.clear();
         }
     }
 

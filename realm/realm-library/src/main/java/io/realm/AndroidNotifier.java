@@ -28,7 +28,6 @@ import io.realm.log.RealmLog;
 /**
  * Implementation of {@link RealmNotifier} for Android based on {@link Handler}.
  */
-// FIXME: Please move me to the io.realm.internal when HandlerController is there.
 class AndroidNotifier implements RealmNotifier {
     private Handler handler;
 
@@ -66,7 +65,7 @@ class AndroidNotifier implements RealmNotifier {
 
     // This is called by OS when other thread/process changes the Realm.
     // This is getting called on the same thread which created the Realm.
-    // FIXME: The whole calling routine is twisted and needs to be rewritten in the near future.
+    // https://github.com/realm/realm-java-private/issues/127
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
     // | Thread A                                                      | Thread B     | Daemon Thread                                  |
     // |---------------------------------------------------------------+--------------+------------------------------------------------|

@@ -5,7 +5,8 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmFieldType;
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
@@ -14,6 +15,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,101 +31,115 @@ import org.json.JSONObject;
 public class NullTypesRealmProxy extends some.test.NullTypes
         implements RealmObjectProxy, NullTypesRealmProxyInterface {
 
-    static final class NullTypesColumnInfo extends ColumnInfo {
+    static final class NullTypesColumnInfo extends ColumnInfo
+            implements Cloneable {
 
-        public final long fieldStringNotNullIndex;
-        public final long fieldStringNullIndex;
-        public final long fieldBooleanNotNullIndex;
-        public final long fieldBooleanNullIndex;
-        public final long fieldBytesNotNullIndex;
-        public final long fieldBytesNullIndex;
-        public final long fieldByteNotNullIndex;
-        public final long fieldByteNullIndex;
-        public final long fieldShortNotNullIndex;
-        public final long fieldShortNullIndex;
-        public final long fieldIntegerNotNullIndex;
-        public final long fieldIntegerNullIndex;
-        public final long fieldLongNotNullIndex;
-        public final long fieldLongNullIndex;
-        public final long fieldFloatNotNullIndex;
-        public final long fieldFloatNullIndex;
-        public final long fieldDoubleNotNullIndex;
-        public final long fieldDoubleNullIndex;
-        public final long fieldDateNotNullIndex;
-        public final long fieldDateNullIndex;
-        public final long fieldObjectNullIndex;
+        public long fieldStringNotNullIndex;
+        public long fieldStringNullIndex;
+        public long fieldBooleanNotNullIndex;
+        public long fieldBooleanNullIndex;
+        public long fieldBytesNotNullIndex;
+        public long fieldBytesNullIndex;
+        public long fieldByteNotNullIndex;
+        public long fieldByteNullIndex;
+        public long fieldShortNotNullIndex;
+        public long fieldShortNullIndex;
+        public long fieldIntegerNotNullIndex;
+        public long fieldIntegerNullIndex;
+        public long fieldLongNotNullIndex;
+        public long fieldLongNullIndex;
+        public long fieldFloatNotNullIndex;
+        public long fieldFloatNullIndex;
+        public long fieldDoubleNotNullIndex;
+        public long fieldDoubleNullIndex;
+        public long fieldDateNotNullIndex;
+        public long fieldDateNullIndex;
+        public long fieldObjectNullIndex;
 
         NullTypesColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(21);
             this.fieldStringNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNotNull");
             indicesMap.put("fieldStringNotNull", this.fieldStringNotNullIndex);
-
             this.fieldStringNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNull");
             indicesMap.put("fieldStringNull", this.fieldStringNullIndex);
-
             this.fieldBooleanNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNotNull");
             indicesMap.put("fieldBooleanNotNull", this.fieldBooleanNotNullIndex);
-
             this.fieldBooleanNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNull");
             indicesMap.put("fieldBooleanNull", this.fieldBooleanNullIndex);
-
             this.fieldBytesNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNotNull");
             indicesMap.put("fieldBytesNotNull", this.fieldBytesNotNullIndex);
-
             this.fieldBytesNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNull");
             indicesMap.put("fieldBytesNull", this.fieldBytesNullIndex);
-
             this.fieldByteNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNotNull");
             indicesMap.put("fieldByteNotNull", this.fieldByteNotNullIndex);
-
             this.fieldByteNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNull");
             indicesMap.put("fieldByteNull", this.fieldByteNullIndex);
-
             this.fieldShortNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNotNull");
             indicesMap.put("fieldShortNotNull", this.fieldShortNotNullIndex);
-
             this.fieldShortNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNull");
             indicesMap.put("fieldShortNull", this.fieldShortNullIndex);
-
             this.fieldIntegerNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNotNull");
             indicesMap.put("fieldIntegerNotNull", this.fieldIntegerNotNullIndex);
-
             this.fieldIntegerNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNull");
             indicesMap.put("fieldIntegerNull", this.fieldIntegerNullIndex);
-
             this.fieldLongNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNotNull");
             indicesMap.put("fieldLongNotNull", this.fieldLongNotNullIndex);
-
             this.fieldLongNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNull");
             indicesMap.put("fieldLongNull", this.fieldLongNullIndex);
-
             this.fieldFloatNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNotNull");
             indicesMap.put("fieldFloatNotNull", this.fieldFloatNotNullIndex);
-
             this.fieldFloatNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNull");
             indicesMap.put("fieldFloatNull", this.fieldFloatNullIndex);
-
             this.fieldDoubleNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNotNull");
             indicesMap.put("fieldDoubleNotNull", this.fieldDoubleNotNullIndex);
-
             this.fieldDoubleNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNull");
             indicesMap.put("fieldDoubleNull", this.fieldDoubleNullIndex);
-
             this.fieldDateNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNotNull");
             indicesMap.put("fieldDateNotNull", this.fieldDateNotNullIndex);
-
             this.fieldDateNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNull");
             indicesMap.put("fieldDateNull", this.fieldDateNullIndex);
-
             this.fieldObjectNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldObjectNull");
             indicesMap.put("fieldObjectNull", this.fieldObjectNullIndex);
 
             setIndicesMap(indicesMap);
         }
-    }
 
-    private final NullTypesColumnInfo columnInfo;
-    private final ProxyState proxyState;
+        @Override
+        public final void copyColumnInfoFrom(ColumnInfo other) {
+            final NullTypesColumnInfo otherInfo = (NullTypesColumnInfo) other;
+            this.fieldStringNotNullIndex = otherInfo.fieldStringNotNullIndex;
+            this.fieldStringNullIndex = otherInfo.fieldStringNullIndex;
+            this.fieldBooleanNotNullIndex = otherInfo.fieldBooleanNotNullIndex;
+            this.fieldBooleanNullIndex = otherInfo.fieldBooleanNullIndex;
+            this.fieldBytesNotNullIndex = otherInfo.fieldBytesNotNullIndex;
+            this.fieldBytesNullIndex = otherInfo.fieldBytesNullIndex;
+            this.fieldByteNotNullIndex = otherInfo.fieldByteNotNullIndex;
+            this.fieldByteNullIndex = otherInfo.fieldByteNullIndex;
+            this.fieldShortNotNullIndex = otherInfo.fieldShortNotNullIndex;
+            this.fieldShortNullIndex = otherInfo.fieldShortNullIndex;
+            this.fieldIntegerNotNullIndex = otherInfo.fieldIntegerNotNullIndex;
+            this.fieldIntegerNullIndex = otherInfo.fieldIntegerNullIndex;
+            this.fieldLongNotNullIndex = otherInfo.fieldLongNotNullIndex;
+            this.fieldLongNullIndex = otherInfo.fieldLongNullIndex;
+            this.fieldFloatNotNullIndex = otherInfo.fieldFloatNotNullIndex;
+            this.fieldFloatNullIndex = otherInfo.fieldFloatNullIndex;
+            this.fieldDoubleNotNullIndex = otherInfo.fieldDoubleNotNullIndex;
+            this.fieldDoubleNullIndex = otherInfo.fieldDoubleNullIndex;
+            this.fieldDateNotNullIndex = otherInfo.fieldDateNotNullIndex;
+            this.fieldDateNullIndex = otherInfo.fieldDateNullIndex;
+            this.fieldObjectNullIndex = otherInfo.fieldObjectNullIndex;
+
+            setIndicesMap(otherInfo.getIndicesMap());
+        }
+
+        @Override
+        public final NullTypesColumnInfo clone() {
+            return (NullTypesColumnInfo) super.clone();
+        }
+
+    }
+    private NullTypesColumnInfo columnInfo;
+    private ProxyState proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -151,18 +167,46 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
-    NullTypesRealmProxy(ColumnInfo columnInfo) {
-        this.columnInfo = (NullTypesColumnInfo) columnInfo;
+    NullTypesRealmProxy() {
+        if (proxyState == null) {
+            injectObjectContext();
+        }
+        proxyState.setConstructionFinished();
+    }
+
+    private void injectObjectContext() {
+        final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
+        this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();
         this.proxyState = new ProxyState(some.test.NullTypes.class, this);
+        proxyState.setRealm$realm(context.getRealm());
+        proxyState.setRow$realm(context.getRow());
+        proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
+        proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
 
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNotNullIndex);
     }
 
     public void realmSet$fieldStringNotNull(String value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldStringNotNull' to null.");
@@ -172,11 +216,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public String realmGet$fieldStringNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.fieldStringNullIndex);
     }
 
     public void realmSet$fieldStringNull(String value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldStringNullIndex);
@@ -187,11 +247,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.fieldBooleanNotNullIndex);
     }
 
     public void realmSet$fieldBooleanNotNull(Boolean value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldBooleanNotNull' to null.");
@@ -201,6 +277,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Boolean realmGet$fieldBooleanNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldBooleanNullIndex)) {
             return null;
@@ -209,6 +290,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldBooleanNull(Boolean value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldBooleanNullIndex);
@@ -219,11 +311,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
     }
 
     public void realmSet$fieldBytesNotNull(byte[] value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldBytesNotNull' to null.");
@@ -233,11 +341,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public byte[] realmGet$fieldBytesNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.fieldBytesNullIndex);
     }
 
     public void realmSet$fieldBytesNull(byte[] value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldBytesNullIndex);
@@ -248,11 +372,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (byte) proxyState.getRow$realm().getLong(columnInfo.fieldByteNotNullIndex);
     }
 
     public void realmSet$fieldByteNotNull(Byte value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldByteNotNull' to null.");
@@ -262,6 +402,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Byte realmGet$fieldByteNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldByteNullIndex)) {
             return null;
@@ -270,6 +415,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldByteNull(Byte value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldByteNullIndex);
@@ -280,11 +436,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (short) proxyState.getRow$realm().getLong(columnInfo.fieldShortNotNullIndex);
     }
 
     public void realmSet$fieldShortNotNull(Short value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldShortNotNull' to null.");
@@ -294,6 +466,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Short realmGet$fieldShortNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldShortNullIndex)) {
             return null;
@@ -302,6 +479,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldShortNull(Short value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldShortNullIndex);
@@ -312,11 +500,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (int) proxyState.getRow$realm().getLong(columnInfo.fieldIntegerNotNullIndex);
     }
 
     public void realmSet$fieldIntegerNotNull(Integer value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldIntegerNotNull' to null.");
@@ -326,6 +530,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Integer realmGet$fieldIntegerNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldIntegerNullIndex)) {
             return null;
@@ -334,6 +543,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldIntegerNull(Integer value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldIntegerNullIndex);
@@ -344,11 +564,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (long) proxyState.getRow$realm().getLong(columnInfo.fieldLongNotNullIndex);
     }
 
     public void realmSet$fieldLongNotNull(Long value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldLongNotNull' to null.");
@@ -358,6 +594,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Long realmGet$fieldLongNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldLongNullIndex)) {
             return null;
@@ -366,6 +607,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldLongNull(Long value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldLongNullIndex);
@@ -376,11 +628,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (float) proxyState.getRow$realm().getFloat(columnInfo.fieldFloatNotNullIndex);
     }
 
     public void realmSet$fieldFloatNotNull(Float value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldFloatNotNull' to null.");
@@ -390,6 +658,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Float realmGet$fieldFloatNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldFloatNullIndex)) {
             return null;
@@ -398,6 +671,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldFloatNull(Float value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldFloatNullIndex);
@@ -408,11 +692,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (double) proxyState.getRow$realm().getDouble(columnInfo.fieldDoubleNotNullIndex);
     }
 
     public void realmSet$fieldDoubleNotNull(Double value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldDoubleNotNull' to null.");
@@ -422,6 +722,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Double realmGet$fieldDoubleNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldDoubleNullIndex)) {
             return null;
@@ -430,6 +735,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldDoubleNull(Double value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldDoubleNullIndex);
@@ -440,11 +756,27 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNotNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.fieldDateNotNullIndex);
     }
 
     public void realmSet$fieldDateNotNull(Date value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'fieldDateNotNull' to null.");
@@ -454,6 +786,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     @SuppressWarnings("cast")
     public Date realmGet$fieldDateNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNull(columnInfo.fieldDateNullIndex)) {
             return null;
@@ -462,6 +799,17 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public void realmSet$fieldDateNull(Date value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().setNull(columnInfo.fieldDateNullIndex);
@@ -471,14 +819,36 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public some.test.NullTypes realmGet$fieldObjectNull() {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (proxyState.getRow$realm().isNullLink(columnInfo.fieldObjectNullIndex)) {
             return null;
         }
-        return proxyState.getRealm$realm().get(some.test.NullTypes.class, proxyState.getRow$realm().getLink(columnInfo.fieldObjectNullIndex));
+        return proxyState.getRealm$realm().get(some.test.NullTypes.class, proxyState.getRow$realm().getLink(columnInfo.fieldObjectNullIndex), false, Collections.<String>emptyList());
     }
 
     public void realmSet$fieldObjectNull(some.test.NullTypes value) {
+        if (proxyState == null) {
+            // Called from model's constructor. Inject context.
+            injectObjectContext();
+        }
+
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("fieldObjectNull")) {
+                return;
+            }
+            if (value != null && !RealmObject.isManaged(value)) {
+                value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
+            }
+        }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().nullifyLink(columnInfo.fieldObjectNullIndex);
@@ -491,6 +861,38 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
         proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy)value).realmGet$proxyState().getRow$realm().getIndex());
+    }
+
+    public static RealmObjectSchema createRealmObjectSchema(RealmSchema realmSchema) {
+        if (!realmSchema.contains("NullTypes")) {
+            RealmObjectSchema realmObjectSchema = realmSchema.create("NullTypes");
+            realmObjectSchema.add(new Property("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldBooleanNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldBytesNotNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldBytesNull", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldByteNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldByteNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldShortNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldShortNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldIntegerNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldIntegerNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldLongNotNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldLongNull", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldFloatNotNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldFloatNull", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldDoubleNotNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldDoubleNull", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED));
+            realmObjectSchema.add(new Property("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED));
+            if (!realmSchema.contains("NullTypes")) {
+                NullTypesRealmProxy.createRealmObjectSchema(realmSchema);
+            }
+            realmObjectSchema.add(new Property("fieldObjectNull", RealmFieldType.OBJECT, realmSchema.get("NullTypes")));
+            return realmObjectSchema;
+        }
+        return realmSchema.get("NullTypes");
     }
 
     public static Table initTable(SharedRealm sharedRealm) {
@@ -526,11 +928,19 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return sharedRealm.getTable("class_NullTypes");
     }
 
-    public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm) {
+    public static NullTypesColumnInfo validateTable(SharedRealm sharedRealm, boolean allowExtraColumns) {
         if (sharedRealm.hasTable("class_NullTypes")) {
             Table table = sharedRealm.getTable("class_NullTypes");
-            if (table.getColumnCount() != 21) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count does not match - expected 21 but was " + table.getColumnCount());
+            final long columnCount = table.getColumnCount();
+            if (columnCount != 21) {
+                if (columnCount < 21) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is less than expected - expected 21 but was " + columnCount);
+                }
+                if (allowExtraColumns) {
+                    RealmLog.debug("Field count is more than expected - expected 21 but was %1$d", columnCount);
+                } else {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Field count is more than expected - expected 21 but was " + columnCount);
+                }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 21; i++) {
@@ -749,7 +1159,11 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @SuppressWarnings("cast")
     public static some.test.NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        some.test.NullTypes obj = realm.createObject(some.test.NullTypes.class);
+        final List<String> excludeFields = new ArrayList<String>(1);
+        if (json.has("fieldObjectNull")) {
+            excludeFields.add("fieldObjectNull");
+        }
+        some.test.NullTypes obj = realm.createObjectInternal(some.test.NullTypes.class, true, excludeFields);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
                 ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull(null);
@@ -915,7 +1329,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        some.test.NullTypes obj = realm.createObject(some.test.NullTypes.class);
+        some.test.NullTypes obj = new some.test.NullTypes();
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -1082,6 +1496,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
         }
         reader.endObject();
+        obj = realm.copyToRealm(obj);
         return obj;
     }
 
@@ -1092,6 +1507,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy)object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return object;
         }
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
@@ -1105,7 +1521,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
         } else {
-            some.test.NullTypes realmObject = realm.createObject(some.test.NullTypes.class);
+            // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
+            some.test.NullTypes realmObject = realm.createObjectInternal(some.test.NullTypes.class, false, Collections.<String>emptyList());
             cache.put(newObject, (RealmObjectProxy) realmObject);
             ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldStringNotNull());
             ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) newObject).realmGet$fieldStringNull());
@@ -1806,7 +2223,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
         String path = proxyState.getRealm$realm().getPath();
         String otherPath = aNullTypes.proxyState.getRealm$realm().getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aNullTypes.proxyState.getRow$realm().getTable().getName();

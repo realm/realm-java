@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '0.28.0'
+ext.coreVersion = '1.0.0-beta-33.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'e4d8ed7342824a1574449700b16cd36f663f4d6768fc09c1aca986f19e27162b'
+ext.coreSha256Hash = 'cb86996a80a41b074cfd5162dee85ca0b799dc5fa92e23fd0de33938ed61dbdd'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -25,7 +25,7 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
     ext.coreArchiveDir = ".."
 }
-ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/core-android-${project.coreVersion}.tar.gz")
+ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
 ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 
@@ -48,8 +48,12 @@ android {
                           // JNI build currently (lack of lto linking support).
                           // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
-                // armeabi is not supported anymore.
-                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                if (!project.hasProperty('android.injected.build.abi') && project.hasProperty('buildTargetABIs')) {
+                    abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
+                } else {
+                    // armeabi is not supported anymore.
+                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                }
             }
         }
     }
@@ -80,6 +84,23 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    productFlavors {
+        base {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=base"
+                }
+            }
+        }
+        objectServer {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=objectServer"
+                }
+            }
+        }
+    }
 }
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
@@ -94,9 +115,11 @@ repositories {
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
+
     compile "io.realm:realm-annotations:${version}"
-    compile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
     compile 'com.getkeepsafe.relinker:relinker:1.2.1'
+
+    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
@@ -111,11 +134,13 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
 task javadoc(type: Javadoc) {
+    source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -128,9 +153,9 @@ task javadoc(type: Javadoc) {
         locale = 'en_US'
         overview = 'src/overview.html'
 
-        links "http://docs.oracle.com/javase/7/docs/api/"
+        links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "http://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
@@ -255,13 +280,34 @@ install {
 
 publishing {
     publications {
-        realmPublication(MavenPublication) {
+        basePublication(MavenPublication) {
             groupId 'io.realm'
             artifactId 'realm-android-library'
             version project.version
-            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-release.aar")
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
             artifact sourcesJar
             artifact javadocJar
+        }
+        objectServerPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library-object-server'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+
+            //The publication doesn't know about our dependencies, so we have to manually add them to the pom
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.compile.allDependencies.each {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+                }
+            }
         }
     }
     repositories {
@@ -286,7 +332,7 @@ bintray {
     dryRun = false
     publish = false
 
-    configurations = ['realmPublication']
+    configurations = ['basePublication', 'objectServerPublication']
 
     pkg {
         repo = 'maven'
@@ -311,7 +357,7 @@ artifactory {
             maven = true
         }
         defaults {
-            publishConfigs('realmPublication')
+            publishConfigs('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }
@@ -365,7 +411,7 @@ task downloadCore() {
     doLast {
         if (shouldDownloadCore()) {
             // CI artifacts are only available if on the internal network or VPN
-            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/sync-core-${project.coreVersion}.tar.gz"
+            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/realm-sync-android-${project.coreVersion}.tar.gz"
 
             println "Downloading ${downloadUrl}"
             exec {
@@ -409,7 +455,7 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
         copy {
             from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
             into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "core-android-${coreVersion}.tar.gz"
+            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
         }
     }
 }
@@ -444,6 +490,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
+publishToMavenLocal.dependsOn assemble
 preBuild.dependsOn deployCore
 
 if (project.hasProperty('dontCleanJniFiles')) {

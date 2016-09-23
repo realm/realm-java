@@ -16,7 +16,6 @@
 
 #include <realm.hpp>
 #include <realm/group_shared.hpp>
-#include <realm/commit_log.hpp>
 #include <shared_realm.hpp>
 #include <object_store.hpp>
 #include "util.hpp"
@@ -1613,15 +1612,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = pQuery->get_table().get();
-    if (!QUERY_VALID(env, pQuery) ||
-        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+    if (!QUERY_VALID(env, pQuery))
         return 0;
     try {
-        return pQuery->remove(S(start), S(end), S(limit));
+        return pQuery->remove();
     } CATCH_STD()
     return 0;
 }

@@ -19,6 +19,7 @@ package io.realm;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +66,7 @@ public final class RealmQuery<E extends RealmModel> {
     private String className;
     private TableOrView table;
     private RealmObjectSchema schema;
-    private LinkView view;
+    private LinkView linkView;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -136,7 +137,7 @@ public final class RealmQuery<E extends RealmModel> {
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.table;
-        this.view = null;
+        this.linkView = null;
         this.query = table.where();
     }
 
@@ -144,18 +145,18 @@ public final class RealmQuery<E extends RealmModel> {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = queryResults.getTable();
-        this.view = null;
-        this.query = queryResults.getTable().where();
+        this.table = queryResults.getTableOrView();
+        this.linkView = null;
+        this.query = this.table.where();
     }
 
-    private RealmQuery(BaseRealm realm, LinkView view, Class<E> clazz) {
+    private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.query = view.where();
-        this.view = view;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.table;
+        this.linkView = linkView;
+        this.query = linkView.where();
     }
 
     private RealmQuery(BaseRealm realm, String className) {
@@ -171,16 +172,16 @@ public final class RealmQuery<E extends RealmModel> {
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
-        this.query = queryResults.getTable().where();
+        this.query = queryResults.getTableOrView().where();
     }
 
-    private RealmQuery(BaseRealm realm, LinkView view, String className) {
+    private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
         this.realm = realm;
         this.className = className;
-        this.query = view.where();
-        this.view = view;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
+        this.linkView = linkView;
+        this.query = linkView.where();
     }
 
     /**
@@ -194,8 +195,8 @@ public final class RealmQuery<E extends RealmModel> {
             return false;
         }
 
-        if (view != null) {
-            return view.isAttached();
+        if (linkView != null) {
+            return linkView.isAttached();
         }
         return table != null && table.getTable().isValid();
     }
@@ -2064,9 +2065,9 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public E findFirst() {
         checkQueryIsNotReused();
-        long sourceRowIndex = getSourceRowIndexForFirstObject();
-        if (sourceRowIndex >= 0) {
-            E realmObject = realm.get(clazz, className, sourceRowIndex);
+        long tableRowIndex = getSourceRowIndexForFirstObject();
+        if (tableRowIndex >= 0) {
+            E realmObject = realm.get(clazz, className, tableRowIndex);
             return realmObject;
         } else {
             return null;
@@ -2101,15 +2102,15 @@ public final class RealmQuery<E extends RealmModel> {
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
-            result = (E) new DynamicRealmObject(className);
+            result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW, false);
         } else {
-            result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getSchema().getColumnInfo(clazz));
+            result = realm.getConfiguration().getSchemaMediator().newInstance(
+                    clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz),
+                    false, Collections.<String>emptyList());
         }
 
-        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        final RealmObjectProxy proxy = (RealmObjectProxy) result;
         final WeakReference<RealmObjectProxy> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
-        proxy.realmGet$proxyState().setRealm$realm(realm);
-        proxy.realmGet$proxyState().setRow$realm(Row.EMPTY_ROW);
 
         final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
             @Override
@@ -2217,19 +2218,9 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     private long getSourceRowIndexForFirstObject() {
-        long rowIndex = this.query.find();
-        if (rowIndex < 0) {
-            return rowIndex;
-        }
-        if (this.view != null) {
-            return view.getTargetRowIndex(rowIndex);
-        } else if (table instanceof TableView){
-            return ((TableView) table).getSourceRowIndex(rowIndex);
-        } else {
-            return rowIndex;
-        }
+        long tableRowIndex = this.query.find();
+        return tableRowIndex;
     }
-
     // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
     // or it belongs to the child object.
     private long getColumnIndexForSort(String fieldName) {

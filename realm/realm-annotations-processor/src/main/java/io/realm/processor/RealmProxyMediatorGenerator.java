@@ -77,7 +77,9 @@ public class RealmProxyMediatorGenerator {
                 "io.realm.internal.SharedRealm",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
+                "io.realm.internal.Row",
                 "io.realm.internal.Table",
+                "io.realm.RealmObjectSchema",
                 "org.json.JSONException",
                 "org.json.JSONObject"
         );
@@ -94,6 +96,7 @@ public class RealmProxyMediatorGenerator {
 
         emitFields(writer);
         emitCreateTableMethod(writer);
+        emitCreateRealmObjectSchema(writer);
         emitValidateTableMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitGetTableNameMethod(writer);
@@ -123,6 +126,24 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
+    private void emitCreateRealmObjectSchema(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "RealmObjectSchema",
+                "createRealmObjectSchema",
+                EnumSet.of(Modifier.PUBLIC),
+                "Class<? extends RealmModel>", "clazz", "RealmSchema", "realmSchema"
+        );
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.createRealmObjectSchema(realmSchema)", qualifiedProxyClasses.get(i));
+            }
+        }, writer);
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
     private void emitCreateTableMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
@@ -147,12 +168,15 @@ public class RealmProxyMediatorGenerator {
                 "ColumnInfo",
                 "validateTable",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz", "SharedRealm", "sharedRealm"
+                "Class<? extends RealmModel>", "clazz", // Argument type & argument name
+                "SharedRealm", "sharedRealm",
+                "boolean", "allowExtraColumns"
         );
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.validateTable(sharedRealm)", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return %s.validateTable(sharedRealm, allowExtraColumns)",
+                        qualifiedProxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();
@@ -201,14 +225,25 @@ public class RealmProxyMediatorGenerator {
                 "<E extends RealmModel> E",
                 "newInstance",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<E>", "clazz", "ColumnInfo", "columnInfo"
+                "Class<E>", "clazz",
+                "Object", "baseRealm",
+                "Row", "row",
+                "ColumnInfo", "columnInfo",
+                "boolean", "acceptDefaultValue",
+                "List<String>", "excludeFields"
         );
+        writer.emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()");
+        writer.beginControlFlow("try")
+                .emitStatement("objectContext.set((BaseRealm) baseRealm, row, columnInfo, acceptDefaultValue, excludeFields)");
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(new %s(columnInfo))", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return clazz.cast(new %s())", qualifiedProxyClasses.get(i));
             }
         }, writer);
+        writer.nextControlFlow("finally")
+                .emitStatement("objectContext.clear()")
+                .endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
     }

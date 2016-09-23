@@ -25,28 +25,19 @@
     <Match>
         <Class name="io.realm.internal.RealmObjectProxy$CacheData" />
         <Field name="minDepth" />
-        <essiBug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
     <Match>
-        <Class name="io.realm.internal.objectserver.Token" />
-        <Field name="permissions" />
-        <Bug pattern="EI_EXPOSE_REP2" />
+        <Class name="io.realm.SyncManager" />
+        <Field name="APP_ID" />
+        <Bug pattern="MS_SHOULD_BE_FINAL" />
     </Match>
     <Match>
-        <Class name="io.realm.internal.objectserver.network.RefreshResponse" />
-        <Field name="errorCode" />
-        <Bug pattern="UWF_NULL_FIELD" />
+        <Class name="io.realm.SyncManager" />
+        <Field name="APP_ID" />
+        <Bug pattern="MS_CANNOT_BE_FINAL" />
     </Match>
-    <Match>
-        <Class name="io.realm.internal.objectserver.network.RefreshResponse" />
-        <Field name="errorMessage" />
-        <Bug pattern="UWF_NULL_FIELD" />
-    </Match>
-    <Match>
-        <Class name="io.realm.internal.objectserver.network.RefreshResponse" />
-        <Field name="refreshToken" />
-        <Bug pattern="UWF_NULL_FIELD" />
-    </Match>
+
     <!-- Unit tests -->
     <Match>
         <Class name="io.realm.RealmTests" />

@@ -22,7 +22,6 @@ import android.text.TextUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -30,7 +29,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -98,22 +96,33 @@ public class RealmConfiguration {
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
-    private final WeakReference<Context> contextWeakRef;
 
-    protected RealmConfiguration(Builder builder) {
-        this.realmDirectory = builder.directory;
-        this.realmFileName = builder.fileName;
-        this.canonicalPath = getCanonicalPath(new File(realmDirectory, realmFileName));
-        this.assetFilePath = builder.assetFilePath;
-        this.key = builder.key;
-        this.schemaVersion = builder.schemaVersion;
-        this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.migration = builder.migration;
-        this.durability = builder.durability;
-        this.schemaMediator = createSchemaMediator(builder);
-        this.rxObservableFactory = builder.rxFactory;
-        this.initialDataTransaction = builder.initialDataTransaction;
-        this.contextWeakRef = builder.contextWeakRef;
+    // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
+    // subsets of them.
+    protected RealmConfiguration(File realmDirectory,
+                              String realmFileName,
+                              String canonicalPath,
+                              String assetFilePath,
+                              byte[] key,
+                              long schemaVersion,
+                              RealmMigration migration,
+                              boolean deleteRealmIfMigrationNeeded,
+                              SharedRealm.Durability durability,
+                              RealmProxyMediator schemaMediator,
+                              RxObservableFactory rxObservableFactory,
+                              Realm.Transaction initialDataTransaction) {
+        this.realmDirectory = realmDirectory;
+        this.realmFileName = realmFileName;
+        this.canonicalPath = canonicalPath;
+        this.assetFilePath = assetFilePath;
+        this.key = key;
+        this.schemaVersion = schemaVersion;
+        this.migration = migration;
+        this.deleteRealmIfMigrationNeeded = deleteRealmIfMigrationNeeded;
+        this.durability = durability;
+        this.schemaMediator = schemaMediator;
+        this.rxObservableFactory = rxObservableFactory;
+        this.initialDataTransaction = initialDataTransaction;
     }
 
     public File getRealmDirectory() {
@@ -178,12 +187,7 @@ public class RealmConfiguration {
      * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
-        Context context = contextWeakRef.get();
-        if (context != null) {
-            return context.getAssets().open(assetFilePath);
-        } else {
-            throw new IllegalArgumentException("Context should not be null. Use Application Context instead of Activity Context.");
-        }
+        return BaseRealm.applicationContext.getAssets().open(assetFilePath);
     }
 
     /**
@@ -257,10 +261,8 @@ public class RealmConfiguration {
     }
 
     // Creates the mediator that defines the current schema
-    private RealmProxyMediator createSchemaMediator(Builder builder) {
-
-        Set<Object> modules = builder.modules;
-        Set<Class<? extends RealmModel>> debugSchema = builder.debugSchema;
+    protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
+                                                             Set<Class<? extends RealmModel>> debugSchema) {
 
         // If using debug schema, use special mediator
         if (debugSchema.size() > 0) {
@@ -347,10 +349,6 @@ public class RealmConfiguration {
         return rxJavaAvailable;
     }
 
-    public Context getContext() {
-        return contextWeakRef.get();
-    }
-
     // Get the canonical path for a given file
     protected static String getCanonicalPath(File realmFile) {
         try {
@@ -362,13 +360,16 @@ public class RealmConfiguration {
         }
     }
 
+    // Check if this configuration is a SyncConfiguration instance.
+    boolean isSyncConfiguration() {
+        return false;
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
-        /**
-         * IMPORTANT: When adding any new methods to this class also add them to ObjectServerConfiguration.Builder
-         */
+         // IMPORTANT: When adding any new methods to this class also add them to SyncConfiguration.
         private File directory;
         private String fileName;
         private String assetFilePath;
@@ -379,7 +380,6 @@ public class RealmConfiguration {
         private SharedRealm.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
-        private WeakReference<Context> contextWeakRef;
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
 
@@ -389,12 +389,14 @@ public class RealmConfiguration {
          * This will use the app's own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
-         *
-         * @param context the Android application context.
          */
-        public Builder(Context context) {
+        public Builder() {
+            this(BaseRealm.applicationContext);
+        }
+
+        Builder(Context context) {
             if (context == null) {
-                throw new IllegalArgumentException("A non-null Context must be provided");
+                throw new IllegalStateException("Call `Realm.init(Context)` before creating a RealmConfiguration");
             }
             RealmCore.loadLibrary(context);
             initializeBuilder(context);
@@ -402,7 +404,6 @@ public class RealmConfiguration {
 
         // Setup builder in its initial state
         private void initializeBuilder(Context context) {
-            this.contextWeakRef = new WeakReference<Context>(context);
             this.directory = context.getFilesDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
@@ -453,6 +454,7 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 bit key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {
@@ -650,7 +652,20 @@ public class RealmConfiguration {
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }
-            return new RealmConfiguration(this);
+
+            return new RealmConfiguration(directory,
+                    fileName,
+                    getCanonicalPath(new File(directory, fileName)),
+                    assetFilePath,
+                    key,
+                    schemaVersion,
+                    migration,
+                    deleteRealmIfMigrationNeeded,
+                    durability,
+                    createSchemaMediator(modules, debugSchema),
+                    rxFactory,
+                    initialDataTransaction
+            );
         }
 
         private void checkModule(Object module) {

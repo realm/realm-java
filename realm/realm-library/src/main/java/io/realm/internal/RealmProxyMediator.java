@@ -29,6 +29,8 @@ import java.util.Set;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 import io.realm.exceptions.RealmException;
 
 /**
@@ -43,10 +45,19 @@ import io.realm.exceptions.RealmException;
 public abstract class RealmProxyMediator {
 
     /**
+     * Create a object schema for the given RealmObject class.
+     *
+     * @param clazz the {@link RealmObject} model class to create object schema for.
+     * @param realmSchema the {@link RealmSchema} to associate the object schema with.
+     * @return The object schema.
+     */
+    public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema);
+
+    /**
      * Creates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to create backing table for.
-     * @param transaction the read transaction for the Realm to create table in.
+     * @param sharedRealm the wrapper object of underlying native database.
      */
     public abstract Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
 
@@ -54,10 +65,14 @@ public abstract class RealmProxyMediator {
      * Validates the backing table in Realm for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to validate.
-     * @param sharedRealm the read transaction for the Realm to validate against.
+     * @param sharedRealm the wrapper object of underlying native database to validate against.
+     * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
+     *                          is thrown when the column count it more than expected.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm);
+    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
+                                             SharedRealm sharedRealm,
+                                             boolean allowExtraColumns);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.
@@ -81,10 +96,19 @@ public abstract class RealmProxyMediator {
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
-     * @param columnInfo the {@link ColumnInfo} object for the RealmObject class of {@code E}.
+     * @param acceptDefaultValue {@code true} to accept the values set in the constructor, {@code false} otherwise.
+     * @param excludeFields the column names whose default value will be ignored if the {@code acceptDefaultValue}
+     *                       is {@code true}. Only {@link io.realm.RealmModel} and {@link io.realm.RealmList}
+     *                       column will respect this.
+     *                       No effects if the {@code acceptDefaultValue} is {@code false}.
      * @return created {@link RealmObjectProxy} object.
      */
-    public abstract <E extends RealmModel> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
+    public abstract <E extends RealmModel> E newInstance(Class<E> clazz,
+                                                         Object baseRealm,
+                                                         Row row,
+                                                         ColumnInfo columnInfo,
+                                                         boolean acceptDefaultValue,
+                                                         List<String> excludeFields);
 
     /**
      * Returns the list of RealmObject classes that can be saved in this Realm.
@@ -153,7 +177,7 @@ public abstract class RealmProxyMediator {
      * @param clazz the type of {@link RealmObject}
      * @param realm the reference to {@link Realm} where to create the object.
      * @param json the JSON data
-     * @param update {@code true} if Realm should try to update a existing object. This requires that the RealmObject 
+     * @param update {@code true} if Realm should try to update a existing object. This requires that the RealmObject
      *               class has a @PrimaryKey.
      * @return RealmObject that has been created or updated.
      * @throws JSONException if the JSON mapping doesn't match the expected class.

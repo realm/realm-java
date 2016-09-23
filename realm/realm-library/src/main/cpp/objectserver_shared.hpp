@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef REALM_OBJECTSERVER_SHARED_HPP
 #define REALM_OBJECTSERVER_SHARED_HPP
 
@@ -25,40 +24,40 @@
 #include <realm/sync/client.hpp>
 #include <realm/util/logger.hpp>
 #include <object-store/src/impl/realm_coordinator.hpp>
+#include <object-store/src/sync_manager.hpp>
 
 #include "util.hpp"
 
-// maintain a reference to the threads allocated dynamically, to prevent deallocation
-// after Java_io_realm_internal_SharedGroup_nativeStartSession completes.
-// To be released later, maybe on JNI_OnUnload
-extern std::thread* sync_client_thread;
-extern JNIEnv* sync_client_env;
-
 
 // Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
-// TODO Use OS SyncSession instead
+// TODO Use OS SyncSession instead - https://github.com/realm/realm-java-private/issues/123
 class JniSession {
 
 public:
     JniSession() = delete;
-    JniSession(realm::sync::Client* sync_client, std::string local_realm_path, jobject java_session_obj, JNIEnv* env)
+    JniSession(JNIEnv* env, std::string local_realm_path, jobject java_session_obj)
     {
+        extern std::unique_ptr<realm::sync::Client> sync_client;
         // Get the coordinator for the given path, or null if there is none
         m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
-            m_global_obj_ref = env->NewGlobalRef(java_session_obj);
-            jobject global_obj_ref_tmp(m_global_obj_ref);
-            auto sync_transact_callback = [local_realm_path](realm::sync::Session::version_type) {
-                auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(realm::StringData(local_realm_path));
-                if (coordinator) {
-                    coordinator->notify_others();
-                }
-            };
-            auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
-                std::string log = num_to_string(error_code) + " " + message.c_str();
-                log_message(sync_client_env, log_debug, log.c_str());
-            };
-            m_sync_session->set_sync_transact_callback(sync_transact_callback);
-            m_sync_session->set_error_handler(std::move(error_handler));
+        m_global_obj_ref = env->NewGlobalRef(java_session_obj);
+        jobject global_obj_ref_tmp(m_global_obj_ref);
+        auto sync_transact_callback = [local_realm_path](realm::VersionID, realm::VersionID) {
+            auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(
+                    realm::StringData(local_realm_path));
+            if (coordinator) {
+                coordinator->notify_others();
+            }
+        };
+        auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
+            // FIXME: Simplify this by moving log_message to AndroidLogger
+            JNIEnv *local_env;
+            g_vm->AttachCurrentThread(&env, nullptr);
+            std::string log = num_to_string(error_code) + " " + message.c_str();
+            log_message(local_env, log_debug, log.c_str());
+        };
+        m_sync_session->set_sync_transact_callback(sync_transact_callback);
+        m_sync_session->set_error_handler(std::move(error_handler));
     }
 
     inline realm::sync::Session* get_session() const noexcept
@@ -66,9 +65,14 @@ public:
         return m_sync_session;
     }
 
+    // Call this just before destroying the object to release JNI ressources.
+    inline void close(JNIEnv* env)
+    {
+        env->DeleteGlobalRef(m_global_obj_ref);
+    }
+
     ~JniSession()
     {
-        sync_client_env->DeleteGlobalRef(m_global_obj_ref);
         delete m_sync_session;
     }
 

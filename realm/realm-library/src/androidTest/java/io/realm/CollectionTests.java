@@ -94,8 +94,8 @@ public abstract class CollectionTests {
             }
 
             // Add all items to the RealmList on the first object
-            AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst();
-            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+            AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 0).findFirst();
+            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_ID, Sort.ASCENDING);
             RealmList<AllJavaTypes> list = firstObj.getFieldList();
             for (int i = 0; i < listData.size(); i++) {
                 list.add(listData.get(i));

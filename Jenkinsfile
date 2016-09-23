@@ -22,36 +22,18 @@ try {
       // Make sure not to delete the folder that Jenkins allocates to store scripts
       sh 'git clean -ffdx -e .????????'
 
-      stage 'Collect info'
-      def dependencies = readProperties file: 'dependencies.list'
-      def syncVersion = dependencies.REALM_SYNC_VERSION
-      echo "Sync Version: ${syncVersion}"
-      def currentDir = pwd()
-
       stage 'Docker build'
       def buildEnv = docker.build 'realm-java:snapshot'
-
       buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android") {
-        withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-          sh "s3cmd -c ${env.S3CFG} sync s3://realm-ci-artifacts/sync/v${syncVersion}/linux/ /tmp/opt/"
-          sh 'tar zxf /tmp/opt/*.tgz -C /tmp/opt'
-        }
-
         stage 'JVM tests'
-        boolean archiveLog = true
-        String backgroundPid
         try {
-          backgroundPid = startLogCatCollector()
           withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-            sh "chmod +x gradlew && ./gradlew installRealmJava integrationTestsConnectedCheck -Ps3cfg=${env.S3CFG}"
+            sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG}"
           }
-          archiveLog = false;
         } finally {
-          stopLogCatCollector(backgroundPid, archiveLog)
-          storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/**/TEST-*.xml'
-          storeJunitResults 'integration-tests/sync/build/outputs/androidTest-results/**/TEST-*.xml'
+          storeJunitResults 'realm/realm-annotations-processor/build/test-results/TEST-*.xml'
+          storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
           step([$class: 'LintPublisher'])
-          sh "cat integration-tests/sync/test_server/debug.log"
         }
 
         stage 'Static code analysis'
@@ -70,14 +52,15 @@ try {
         }
 
         stage 'Run instrumented tests'
-
+        boolean archiveLog = true
+        String backgroundPid
         try {
-
+          backgroundPid = startLogCatCollector()
           gradle('realm', 'connectedUnitTests')
-
+          archiveLog = false;
         } finally {
-
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/TEST-*.xml'
+          stopLogCatCollector(backgroundPid, archiveLog)
+          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
         }
 
         // TODO: add support for running monkey on the example apps
@@ -101,16 +84,16 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (['master', 'releases'].contains(env.BRANCH_NAME)) {
+  if (['master', 'releases'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
           username: 'Mr. Jenkins',
           icon_emoji: ':jenkins:',
           attachments: [[
-            'title': "The ${env.BRANCH_NAME} branch is ${buildSuccess?'healthy.':'broken!'}",
+            'title': "The ${env.BRANCH_NAME} branch is broken!",
             'text': "<${env.BUILD_URL}|Click here> to check the build.",
-            'color': "${buildSuccess?'good':'danger'}"
+            'color': "danger"
           ]]
         ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
@@ -122,7 +105,7 @@ try {
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
-  adb logcat > "logcat.txt" &
+  adb logcat -v time > "logcat.txt" &
   echo $! > pid
   '''
   return readFile("pid").trim()

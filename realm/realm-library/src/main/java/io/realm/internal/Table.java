@@ -19,7 +19,6 @@ package io.realm.internal;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
@@ -38,7 +37,6 @@ public class Table implements TableOrView, TableSchema {
     public static final String STRING_DEFAULT_VALUE = "";
     @SuppressWarnings("WeakerAccess")
     public static final long INTEGER_DEFAULT_VALUE = 0;
-    public static final String METADATA_TABLE_NAME = "metadata";
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
 
@@ -53,10 +51,6 @@ public class Table implements TableOrView, TableSchema {
     private final Context context;
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
-
-    static {
-        RealmCore.loadLibrary();
-    }
 
     /**
      * Constructs a Table base object. It can be used to register columns in this table. Registering into table is
@@ -373,33 +367,43 @@ public class Table implements TableOrView, TableSchema {
         nativeMoveLastOver(nativePtr, rowIndex);
     }
 
+    /**
+     * Add an empty row to the table which doesn't have a primary key defined.
+     * <p>
+     * NOTE: To add a table with a primary key defined, use {@link #addEmptyRowWithPrimaryKey(Object)} instead. This
+     * won't check if this table has a primary key.
+     *
+     * @return row index.
+     */
     public long addEmptyRow() {
         checkImmutable();
-        if (hasPrimaryKey()) {
-            long primaryKeyColumnIndex = getPrimaryKey();
-            RealmFieldType type = getColumnType(primaryKeyColumnIndex);
-            switch (type) {
-                case STRING:
-                    if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
-                    }
-                    break;
-                case INTEGER:
-                    if (findFirstLong(primaryKeyColumnIndex, INTEGER_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
-                    }
-                    break;
-                default:
-                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
-            }
-        }
-
         return nativeAddEmptyRow(nativePtr, 1);
     }
 
+    /**
+     * Add an empty row to the table and set the primary key with the given value. Equivalent to call
+     * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code validation = true}.
+     *
+     * @param primaryKeyValue the primary key value
+     * @return the row index.
+     */
     public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
-        checkImmutable();
-        checkHasPrimaryKey();
+        return addEmptyRowWithPrimaryKey(primaryKeyValue, true);
+    }
+
+    /**
+     * Add an empty row to the table and set the primary key with the given value.
+     *
+     * @param primaryKeyValue the primary key value.
+     * @param validation set to {@code false} to skip all validations. This is currently used by bulk insert which
+     *                     has its own validations.
+     * @return the row index.
+     */
+    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue, boolean validation) {
+        if (validation) {
+            checkImmutable();
+            checkHasPrimaryKey();
+        }
 
         long primaryKeyColumnIndex = getPrimaryKey();
         RealmFieldType type = getColumnType(primaryKeyColumnIndex);
@@ -411,11 +415,12 @@ public class Table implements TableOrView, TableSchema {
             switch (type) {
                 case STRING:
                 case INTEGER:
-                    if (findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
+                    if (validation && findFirstNull(primaryKeyColumnIndex) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException("null");
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
                     row = getUncheckedRow(rowIndex);
+                    // FIXME: Use core's set_null_unique when core supports it.
                     row.setNull(primaryKeyColumnIndex);
                     break;
 
@@ -429,12 +434,11 @@ public class Table implements TableOrView, TableSchema {
                     if (!(primaryKeyValue instanceof String)) {
                         throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
                     }
-                    if (findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
+                    if (validation && findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(primaryKeyValue);
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    row = getUncheckedRow(rowIndex);
-                    row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                    nativeSetStringUnique(nativePtr, primaryKeyColumnIndex, rowIndex, (String) primaryKeyValue);
                     break;
 
                 case INTEGER:
@@ -444,12 +448,11 @@ public class Table implements TableOrView, TableSchema {
                     } catch (RuntimeException e) {
                         throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
                     }
-                    if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
+                    if (validation && findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(pkValue);
                     }
                     rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                    row = getUncheckedRow(rowIndex);
-                    row.setLong(primaryKeyColumnIndex, pkValue);
+                    nativeSetLongUnique(nativePtr, primaryKeyColumnIndex, rowIndex, pkValue);
                     break;
 
                 default:
@@ -479,6 +482,9 @@ public class Table implements TableOrView, TableSchema {
      *
      * @param values values.
      * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * withprimary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
      */
     protected long add(Object... values) {
         long rowIndex = addEmptyRow();
@@ -1266,10 +1272,10 @@ public class Table implements TableOrView, TableSchema {
     }
 
     /**
-     * Checks if a given table name is a meta-table, i.e. a table used by Realm to track its internal state.
+     * Checks if a given table name is a name for a model table.
      */
-    public static boolean isMetaTable(String tableName) {
-        return (tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME));
+    public static boolean isModelTable(String tableName) {
+        return tableName.startsWith(TABLE_PREFIX);
     }
 
     /**
@@ -1324,11 +1330,13 @@ public class Table implements TableOrView, TableSchema {
     private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
     native long nativeGetRowPtr(long nativePtr, long index);
     public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    public static native void nativeSetLongUnique(long nativeTablePtr, long columnIndex, long rowIndex, long value);
     public static native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
     public static native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
     public static native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
     public static native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
     public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    public static native void nativeSetStringUnique(long nativeTablePtr, long columnIndex, long rowIndex, String value);
     public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex);
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
