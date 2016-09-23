@@ -21,7 +21,8 @@ import android.content.Intent;
 import android.os.IBinder;
 
 import io.realm.Realm;
-import io.realm.objectserver.SyncConfiguration;
+import io.realm.SyncConfiguration;
+import io.realm.User;
 import io.realm.objectserver.UserFactory;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
@@ -34,10 +35,13 @@ public class SendsALot extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(this)
+        // FIXME: Disable for now.
+        /*
+        User user = UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL_2, Constants.USER_TOKEN);
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user)
                 .name(SendsALot.class.getSimpleName())
                 .serverUrl(Constants.SYNC_SERVER_URL_2)
-                .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL_2, Constants.USER_TOKEN))
+                .user()
                 .build();
         Realm.deleteRealm(syncConfig);
         Realm realm = Realm.getInstance(syncConfig);
@@ -52,6 +56,7 @@ public class SendsALot extends Service {
         realm.commitTransaction();
 
         realm.close();//FIXME the close may not give a chance to the sync client to process/upload the changeset
+        */
     }
 
 

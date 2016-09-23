@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.os.IBinder;
 
 import io.realm.Realm;
-import io.realm.objectserver.SyncConfiguration;
 import io.realm.objectserver.UserFactory;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.utils.Constants;
@@ -34,6 +33,8 @@ public class SendOneCommit extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // FIXME: Disable for now
+        /*
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(this)
                 .name(SendOneCommit.class.getSimpleName())
                 .serverUrl(Constants.SYNC_SERVER_URL)
@@ -50,6 +51,7 @@ public class SendOneCommit extends Service {
         realm.commitTransaction();
 
         realm.close();//FIXME the close may not give a chance to the sync client to process/upload the changeset
+        */
     }
 
 

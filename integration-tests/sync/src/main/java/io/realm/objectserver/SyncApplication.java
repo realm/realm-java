@@ -16,25 +16,14 @@
 
 package io.realm.objectserver;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import android.app.Application;
 
-import io.realm.User;
-import io.realm.objectserver.utils.Constants;
+import io.realm.Realm;
 
-// Must be in `io.realm.objectserver` to work around package protected methods.
-public class UserFactory {
-    // FIXME: Not working right now.
-    /*
-    public static User createDefaultUser(String SERVER_URL, String USER_TOKEN) {
-        try {
-            User user = User.createLocal();
-
-            user.addAccessToken(new URI(SERVER_URL), USER_TOKEN);
-            return user;
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+public class SyncApplication extends Application{
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
     }
-    */
 }

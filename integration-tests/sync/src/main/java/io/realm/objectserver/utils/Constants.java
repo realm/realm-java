@@ -24,4 +24,7 @@ public class Constants {
             "mR0/GMc0b5XHFNJEM4D9fb94oXMjho0jKxopaU1lQW4FqY1QPBa/bPiVCMhAosZVSNhEP6vEZxVjFHAxoPODKoml1Ry78geKt5Iql395HRvO6KCCN0VkMpx2eXy+SzF2pcEjU5jlldbTAcO6nMyVaQ9g2XF2SZPVjBqpkY1cy2IjMHN0HRWy9SfGelwZY/jW72jZM7+89kWpIB0SmNH8kEPKVZlnRMW4KwNAUPA8P0/+qyoRTr/4l7k7N6z5kBxIKB/+m55AeOUDiFsxA53QPlpHGvF7ThZpiv8i+UhyKZcQlXi1utoj8H1CzpeU/YzrrEf3xrr2qCO3/niU5WdnHA==";
     public static String SYNC_SERVER_URL = "realm://127.0.0.1:7800/tests";
     public static String SYNC_SERVER_URL_2 = "realm://127.0.0.1:7800/tests2";
+
+    public static String AUTH_SERVER_URL = "http://127.0.0.1:8080/";
+    public static String AUTH_URL = AUTH_SERVER_URL + "AUTH";
 }

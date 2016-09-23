@@ -28,13 +28,13 @@ import okhttp3.Response;
  * temp directory & start a sync server on it for each unit test.
  */
 public class HttpUtils {
-    private final OkHttpClient client = new OkHttpClient();
+    private final static OkHttpClient client = new OkHttpClient();
     // adb reverse tcp:8888 tcp:8888
     // will forward this query to the host, running the integration test server on 8888
     private final static String START_SERVER = "http://127.0.0.1:8888/start";
     private final static String STOP_SERVER = "http://127.0.0.1:8888/stop";
 
-    public void startSyncServer() throws Exception {
+    public static void startSyncServer() throws Exception {
         Request request = new Request.Builder()
                 .url(START_SERVER)
                 .build();
@@ -48,9 +48,38 @@ public class HttpUtils {
         }
 
         System.out.println(response.body().string());
+
+        // FIXME: Server ready checking should be done in the control server side!
+        if (!waitAuthServerReady()) {
+            stopSyncServer();
+            throw new RuntimeException("Auth server cannot be started.");
+        }
     }
 
-    public void stopSyncServer() throws Exception {
+    // Checking the server
+    private static boolean waitAuthServerReady() throws InterruptedException {
+        int retryTimes = 20;
+        Request request = new Request.Builder()
+                .url(Constants.AUTH_SERVER_URL)
+                .build();
+
+        while (retryTimes != 0) {
+            try {
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    return true;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Thread.sleep(50);
+            }
+            retryTimes--;
+        }
+
+        return false;
+    }
+
+    public static void stopSyncServer() throws Exception {
         Request request = new Request.Builder()
                 .url(STOP_SERVER)
                 .build();

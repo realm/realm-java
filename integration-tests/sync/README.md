@@ -7,14 +7,30 @@ This description is only temporary. We should find a better solution.
 
 1. Test server server needs to be started before running the integration test.
 
-a) Download the matching server version from S3: `s3://ealm-ci-artifacts/sync/<version>/cocoa/realm-sync-server-<version>.zip`
-b) Extract the files to `./realm-sync-server`
+a) Install docker.
+b) Build the docker image:
+   The `token` is to access to our private yum repo. Ask mc for it.
 
+```sh
+# From the project root dir
+docker build integration-tests/sync/test_server --build-arg ACCESS_TOKEN=<token>-t sync-test
+```
 
 2. Start the test server
 
-a) Run `sh start.sh`
+a) Start the docker:
 
+```sh
+docker run  -p 8080:8080 -p 7800:7800 -p 8888:8888 sync-test /bin/sh -c "ros-testing-server /tmp/some.log"
+```
+
+b) stop the docker:
+
+```
+# Get the running docker id
+docker stats
+#docker stop -t1 <container-id>
+```
 
 # Future plans
 

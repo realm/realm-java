@@ -2,6 +2,7 @@
     package="io.realm.objectserver">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
+        android:name=".SyncApplication"
         android:label="Object Server Integration Tests">
         <service
             android:name="io.realm.objectserver.service.SendOneCommit"
