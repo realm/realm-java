@@ -123,7 +123,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         this.deleteRealmOnLogout = deleteRealmOnLogout;
     }
 
-
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
         try {
             return new URI(serverUrl.toString().replace("/~/", "/" + userIdentifier + "/"));

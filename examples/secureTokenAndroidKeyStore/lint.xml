@@ -1,0 +1,5 @@
+<lint>
+    <issue id="AllowBackup" severity="ignore" />
+    <issue id="InvalidPackage" severity="ignore" />
+    <issue id="GoogleAppIndexingWarning" severity="ignore" />
+</lint>
