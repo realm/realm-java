@@ -52,7 +52,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             String requestBody = AuthenticateRequest.userLogin(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
+            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
 

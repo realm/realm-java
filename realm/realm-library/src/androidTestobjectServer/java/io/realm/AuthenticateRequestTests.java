@@ -7,16 +7,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import io.realm.internal.network.AuthenticateRequest;
+import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class AuthenticateRequestTests {
@@ -53,5 +59,20 @@ public class AuthenticateRequestTests {
         assertFalse(obj.has("path"));
         assertEquals(t.value(), obj.get("data"));
         assertEquals("realm", obj.get("provider"));
+    }
+
+
+    @Test
+    public void errorsNotWrapped() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        when(authServer.loginUser(any(Credentials.class), any(URL.class))).thenReturn(SyncTestUtils.createErrorResponse(ErrorCode.ACCESS_DENIED));
+        SyncManager.setAuthServerImpl(authServer);
+
+        try {
+            User.login(Credentials.facebook("foo"), "http://foo.bar/auth");
+            fail();
+        } catch (ObjectServerError e) {
+            assertEquals(ErrorCode.ACCESS_DENIED, e.getErrorCode());
+        }
     }
 }
