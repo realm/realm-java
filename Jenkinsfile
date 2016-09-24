@@ -122,7 +122,7 @@ def String startLogCatCollector() {
 }
 
 def stopBgProcAndSaveLog(String[] backgroundPids, boolean archiveLog) {
-  for (pid : backgroundPids) {
+  for (pid in backgroundPids) {
       sh "kill ${pid}"
   }
   if (archiveLog) {
