@@ -1,3 +1,0 @@
-include ':sync'
-
-rootProject.name = 'integration-tests'
