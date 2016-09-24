@@ -55,8 +55,8 @@ try {
         boolean archiveLog = true
         String backgroundPids = []
         try {
-          backgroundPid.add(startLogCatCollector())
-          backgroundPid.add(startSyncTestingServer())
+          backgroundPids.add(startLogCatCollector())
+          backgroundPids.add(startSyncTestingServer())
           gradle('realm', 'connectedUnitTests')
           archiveLog = false;
         } finally {
