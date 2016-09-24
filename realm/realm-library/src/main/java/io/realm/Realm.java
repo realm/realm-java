@@ -360,6 +360,12 @@ public final class Realm extends BaseRealm {
                 if (transaction != null) {
                     if (syncAvailable) {
                         realm.executeTransaction(transaction);
+                        realm.executeTransaction(new Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.setVersion(realm.configuration.getSchemaVersion());
+                            }
+                        });
                     } else {
                         transaction.execute(realm);
                     }

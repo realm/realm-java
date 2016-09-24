@@ -368,10 +368,16 @@ public class SyncConfigurationTests {
 
         assertNotNull(config.getInitialDataTransaction());
 
-        Realm realm = Realm.getInstance(config);
-        RealmResults<StringOnly> results = realm.where(StringOnly.class).findAll();
+        // open the first time - initialData must be triggered
+        Realm realm1 = Realm.getInstance(config);
+        RealmResults<StringOnly> results = realm1.where(StringOnly.class).findAll();
         assertEquals(1, results.size());
         assertEquals("TEST 42", results.first().getChars());
-        realm.close();
+        realm1.close();
+
+        // open the second time - initialData must not be triggered
+        Realm realm2 = Realm.getInstance(config);
+        assertEquals(1, realm2.where(StringOnly.class).count());
+        realm2.close();
     }
 }

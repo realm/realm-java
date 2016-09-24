@@ -619,7 +619,7 @@ public final class SyncConfiguration extends RealmConfiguration {
                     getCanonicalPath(new File(realmFileDirectory, realmFileName)),
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
-                    -1, // Schema version not supported
+                    0,
                     null, // Custom migrations not supported
                     false, // MigrationNeededException is never thrown
                     durability,
