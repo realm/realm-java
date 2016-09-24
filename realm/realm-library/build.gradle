@@ -75,6 +75,8 @@ android {
     sourceSets {
         androidTest {
             java.srcDirs += 'src/benchmarks/java'
+        }
+        androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
         }
     }
