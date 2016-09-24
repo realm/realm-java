@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver;
+package io.realm.objectserver.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;

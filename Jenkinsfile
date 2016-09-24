@@ -53,13 +53,14 @@ try {
 
         stage 'Run instrumented tests'
         boolean archiveLog = true
-        String backgroundPid
+        String backgroundPids = []
         try {
-          backgroundPid = startLogCatCollector()
+          backgroundPid.add(startLogCatCollector())
+          backgroundPid.add(startSyncTestingServer())
           gradle('realm', 'connectedUnitTests')
           archiveLog = false;
         } finally {
-          stopLogCatCollector(backgroundPid, archiveLog)
+          stopBgProcAndSaveLog(backgroundPid, archiveLog)
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
         }
 
@@ -102,6 +103,15 @@ try {
   }
 }
 
+def String startSyncTestingServer() {
+  sh ''' adb reverse tcp:7800 tcp:7800 &&
+      adb reverse tcp:8080 tcp:8080 &&
+      adb reverse tcp:8888 tcp:8888 &&
+      ros-testing-server "sync-server.log" > "ros-testing-server.log" &
+      echo $! > sync_pid
+  '''
+  return readFile("sync_pid").trim()
+}
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
@@ -111,13 +121,17 @@ def String startLogCatCollector() {
   return readFile("pid").trim()
 }
 
-def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
-  sh "kill ${backgroundPid}"
+def
+
+def stopBgProcAndSaveLog(String[] backgroundPids, boolean archiveLog) {
+  for (pid : backgroundPids) {
+      sh "kill ${pid}"
+  }
   if (archiveLog) {
     zip([
       'zipFile': 'logcat.zip',
       'archive': true,
-      'glob' : 'logcat.txt'
+      'glob' : 'logcat.txt', 'sync-server.log', 'ros-testing-server.log'
     ])
   }
   sh 'rm logcat.txt '

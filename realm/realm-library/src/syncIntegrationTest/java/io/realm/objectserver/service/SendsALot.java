@@ -20,13 +20,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-import io.realm.Realm;
-import io.realm.SyncConfiguration;
-import io.realm.User;
-import io.realm.objectserver.UserFactory;
-import io.realm.objectserver.model.TestObject;
-import io.realm.objectserver.utils.Constants;
-
 /**
  * Open a sync Realm on a different process, then send one commit.
  */

@@ -164,6 +164,19 @@ The `./examples` folder contain a number of example projects showing how Realm c
 
 Standalone examples can be [downloaded from website](https://realm.io/docs/java/latest/#getting-started).
 
+## Running testing Realm Object Server
+
+Tests in `syncIntegrationTest` requires a testing server running to complete.
+A docker image can be built from `tools/sync_test_server/Dockerfile` to run a testing server.
+
+To run a testing server locally:
+a) Install docker.
+b) run the `tools/sync_test_server/start_server.sh` from `tools/sync_test_server` dir:
+```sh
+cd tools/sync_test_server
+./start_server.sh
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!

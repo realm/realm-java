@@ -26,5 +26,5 @@ public class Constants {
     public static String SYNC_SERVER_URL_2 = "realm://127.0.0.1:7800/tests2";
 
     public static String AUTH_SERVER_URL = "http://127.0.0.1:8080/";
-    public static String AUTH_URL = AUTH_SERVER_URL + "AUTH";
+    public static String AUTH_URL = AUTH_SERVER_URL + "auth";
 }

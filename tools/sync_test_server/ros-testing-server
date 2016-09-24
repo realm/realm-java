@@ -1,4 +1,4 @@
-#!/bin/env node
+#!/usr/bin/env nodejs
 
 var winston = require('winston');//logging
 const temp = require('temp');
