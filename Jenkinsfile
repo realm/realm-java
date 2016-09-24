@@ -121,8 +121,6 @@ def String startLogCatCollector() {
   return readFile("pid").trim()
 }
 
-def
-
 def stopBgProcAndSaveLog(String[] backgroundPids, boolean archiveLog) {
   for (pid : backgroundPids) {
       sh "kill ${pid}"
