@@ -129,7 +129,7 @@ def stopBgProcAndSaveLog(String[] backgroundPids, boolean archiveLog) {
     zip([
       'zipFile': 'logcat.zip',
       'archive': true,
-      'glob' : 'logcat.txt', 'sync-server.log', 'ros-testing-server.log'
+      'glob' : ['logcat.txt', 'sync-server.log', 'ros-testing-server.log']
     ])
   }
   sh 'rm logcat.txt '
