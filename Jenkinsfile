@@ -60,7 +60,7 @@ try {
           gradle('realm', 'connectedUnitTests')
           archiveLog = false;
         } finally {
-          stopBgProcAndSaveLog(backgroundPid, archiveLog)
+          stopBgProcAndSaveLog(backgroundPids, archiveLog)
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
         }
 
