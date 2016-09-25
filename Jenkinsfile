@@ -107,7 +107,7 @@ def String startSyncTestingServer() {
   sh ''' adb reverse tcp:7800 tcp:7800 &&
       adb reverse tcp:8080 tcp:8080 &&
       adb reverse tcp:8888 tcp:8888 &&
-      ros-testing-server "sync-server.log" > "ros-testing-server.log" &
+      ros-testing-server "sync-server.build.log" > "ros-testing-server.build.log" &
       echo $! > sync_pid
   '''
   return readFile("sync_pid").trim()
@@ -115,7 +115,7 @@ def String startSyncTestingServer() {
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
-  adb logcat -v time > "logcat.txt" &
+  adb logcat -v time > "logcat.build.log" &
   echo $! > pid
   '''
   return readFile("pid").trim()
@@ -127,12 +127,12 @@ def stopBgProcAndSaveLog(List<String> backgroundPids, boolean archiveLog) {
   }
   if (archiveLog) {
     zip([
-      'zipFile': 'logcat.zip',
+      'zipFile': 'log.zip',
       'archive': true,
-      'glob' : ['logcat.txt', 'sync-server.log', 'ros-testing-server.log']
+      'glob' : '*.build.log'
     ])
   }
-  sh 'rm logcat.txt '
+  sh 'rm *.build.log'
 }
 
 def sendMetrics(String metric, String value) {
