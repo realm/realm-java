@@ -61,7 +61,7 @@ try {
           archiveLog = false;
         } finally {
           stopBgProcAndSaveLog(backgroundPids, archiveLog)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/flavors/**/TEST-*.xml'
         }
 
         // TODO: add support for running monkey on the example apps
