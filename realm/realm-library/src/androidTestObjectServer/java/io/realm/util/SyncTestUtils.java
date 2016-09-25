@@ -22,6 +22,8 @@ import org.json.JSONObject;
 
 import java.util.UUID;
 
+import io.realm.ErrorCode;
+import io.realm.ObjectServerError;
 import io.realm.User;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.SyncUser;
@@ -78,5 +80,9 @@ public class SyncTestUtils {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
+        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
     }
 }

@@ -1,4 +1,4 @@
-package io.realm.internal.objectserver;/*
+/*
  * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@ package io.realm.internal.objectserver;/*
  * limitations under the License.
  */
 
-import android.os.SystemClock;
+package io.realm.internal.objectserver;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,19 +27,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmAsyncTask;
 import io.realm.Session;
 import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
 import io.realm.User;
-import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.internal.network.AuthenticationServer;
-import io.realm.internal.network.ExponentialBackoffTask;
-import io.realm.log.RealmLog;
 
 /**
  * Internal representation of a user on the Realm Object Server.
@@ -47,17 +40,11 @@ import io.realm.log.RealmLog;
  */
 public class SyncUser {
 
-    // Time left on current refresh token, before we want to begin refreshing it.
-    // Failing to refresh it before it expires, will result in the user no longer being valid, and not being able
-    // to synchronize changes. It will still be possible to open Realms and read their data.
-    private final long REFRESH_WINDOW_MS = TimeUnit.SECONDS.toMillis(5);
-
     private final String identity;
     private Token refreshToken;
     private URL authenticationUrl;
     private Map<URI, AccessDescription> realms = new HashMap<URI, AccessDescription>();
     private List<Session> sessions = new ArrayList<Session>();
-    private RealmAsyncTask refreshTask;
     private boolean loggedIn;
 
     /**
@@ -72,36 +59,6 @@ public class SyncUser {
 
     public void setRefreshToken(final Token refreshToken) {
         this.refreshToken = refreshToken; // Replace any existing token. TODO re-save the user with latest token.
-        scheduleRefresh();
-    }
-
-    // Schedule a refresh. This method cannot fail, but will continue retrying until either the app is killed
-    // or the attempt was successful.
-    // We should probably optimize this. See https://github.com/realm/realm-java-private/issues/140
-    public void scheduleRefresh() {
-        final long expire = refreshToken.expiresMs();
-        final AuthenticationServer server = SyncManager.getAuthServer();
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
-            @Override
-            protected AuthenticateResponse execute() {
-                long timeToExpiration = System.currentTimeMillis() - expire;
-                if (timeToExpiration - REFRESH_WINDOW_MS > 0) {
-                    SystemClock.sleep(timeToExpiration);
-                }
-                return server.refreshUser(refreshToken, authenticationUrl);
-            }
-
-            @Override
-            protected void onSuccess(AuthenticateResponse response) {
-                setRefreshToken(response.getRefreshToken());
-            }
-
-            @Override
-            protected void onError(AuthenticateResponse response) {
-                RealmLog.warn("Failed refreshing a user.\n" + response.getError().toString());
-            }
-        });
-        refreshTask = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
     /**
@@ -190,10 +147,6 @@ public class SyncUser {
     public void clearTokens() {
         realms.clear();
         refreshToken = null;
-        if (refreshTask != null) {
-            refreshTask.cancel();
-            refreshTask = null;
-        }
     }
 
     public boolean isLoggedIn() {

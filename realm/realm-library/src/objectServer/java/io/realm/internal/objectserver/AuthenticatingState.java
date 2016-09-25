@@ -20,6 +20,7 @@ import io.realm.ObjectServerError;
 import io.realm.Session;
 import io.realm.SessionState;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.log.RealmLog;
 
 /**
  * AUTHENTICATING State. This step is needed if the user does not have proper access or credentials to access the
@@ -100,11 +101,13 @@ class AuthenticatingState extends FsmState {
         session.authenticateRealm(new Runnable() {
             @Override
             public void run() {
+                RealmLog.debug("Session[%s]: Access token acquired", session.getConfiguration().getPath());
                 gotoNextState(SessionState.BINDING);
             }
         }, new Session.ErrorHandler() {
             @Override
             public void onError(Session s, ObjectServerError error) {
+                RealmLog.debug("Session[%s]: Failed to get access token (%d)", session.getConfiguration().getPath(), error.getErrorCode());
                 session.onError(error);
             }
         });

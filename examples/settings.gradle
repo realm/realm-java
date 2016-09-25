@@ -1,3 +1,4 @@
+include 'secureTokenAndroidKeyStore'
 include 'encryptionExample'
 include 'gridViewExample'
 include 'introExample'

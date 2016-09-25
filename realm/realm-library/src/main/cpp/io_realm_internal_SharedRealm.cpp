@@ -157,8 +157,6 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
     try {
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
-
-    return static_cast<jlong>(ObjectStore::NotVersioned);
 }
 
 JNIEXPORT void JNICALL

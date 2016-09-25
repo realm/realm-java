@@ -23,8 +23,6 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.util.Log;
 
-import com.getkeepsafe.relinker.BuildConfig;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -188,7 +186,7 @@ public final class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             RealmCore.loadLibrary(context);
-            RealmLog.add(BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
+            RealmLog.add(io.realm.BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
@@ -362,6 +360,12 @@ public final class Realm extends BaseRealm {
                 if (transaction != null) {
                     if (syncAvailable) {
                         realm.executeTransaction(transaction);
+                        realm.executeTransaction(new Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.setVersion(realm.configuration.getSchemaVersion());
+                            }
+                        });
                     } else {
                         transaction.execute(realm);
                     }
@@ -395,6 +399,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return;
         }
+        checkIfValid();
 
         for (int i = 0; i < json.length(); i++) {
             try {
@@ -424,6 +429,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
         for (int i = 0; i < json.length(); i++) {
             try {
@@ -479,6 +485,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null || json.length() == 0) {
             return;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         JSONArray arr;
@@ -510,6 +517,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return;
         }
+        checkIfValid();
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
@@ -545,6 +553,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || in == null) {
             return;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         // As we need the primary key value we have to first parse the entire input stream as in the general
@@ -582,6 +591,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return null;
         }
+        checkIfValid();
 
         try {
             return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
@@ -609,6 +619,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null) {
             return null;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
         try {
             E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
@@ -665,6 +676,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || json == null || json.length() == 0) {
             return null;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         JSONObject obj;
@@ -697,6 +709,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return null;
         }
+        checkIfValid();
         E realmObject;
         Table table = schema.getTable(clazz);
         if (table.hasPrimaryKey()) {
@@ -749,6 +762,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || in == null) {
             return null;
         }
+        checkIfValid();
         checkHasPrimaryKey(clazz);
 
         // As we need the primary key value we have to first parse the entire input stream as in the general

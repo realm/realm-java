@@ -72,7 +72,6 @@ public class User {
     public static User currentUser() {
         User user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
         if (user != null && user.isValid()) {
-            user.getSyncUser().scheduleRefresh();
             return user;
         }
         return null;
@@ -127,6 +126,7 @@ public class User {
         }
 
         final AuthenticationServer server = SyncManager.getAuthServer();
+        ObjectServerError error;
         try {
             AuthenticateResponse result = server.loginUser(credentials, authUrl);
             if (result.isValid()) {
@@ -138,13 +138,12 @@ public class User {
                 return user;
             } else {
                 RealmLog.info("Failed authenticating user.\n%s", result.getError());
-                throw result.getError();
+                error = result.getError();
             }
-        } catch (IOException e) {
-            throw new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
         } catch (Throwable e) {
             throw new ObjectServerError(ErrorCode.UNKNOWN, e);
         }
+        throw error;
     }
 
     /**

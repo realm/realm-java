@@ -12,9 +12,9 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.0.0-beta-33.0'
+ext.coreVersion = '1.0.0-beta-37.2'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'cb86996a80a41b074cfd5162dee85ca0b799dc5fa92e23fd0de33938ed61dbdd'
+ext.coreSha256Hash = '7c8bd6bf952aff39ae56dace9674b951005cf6f320bc2266cbe7a71af73f4e2b'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -120,12 +120,9 @@ repositories {
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
-
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.1'
-
-    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1' // Should be moved to a seperate library
-
+    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -134,7 +131,6 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-
     androidTestApt project(':realm-annotations-processor')
 }
 
@@ -206,7 +202,6 @@ task pmd(type: Pmd) {
 
     source = fileTree('src/main/java')
     ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-    ruleSets = [] // This needs to be here to remove the default checks
 
     reports {
         xml.enabled = false
@@ -283,6 +278,34 @@ install {
     }
 }
 
+// The publications doesn't know about our AAR dependencies, so we have to manually add them to the pom
+// Credit: http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
+def createPomDependencies(configurationNames) {
+    return {
+        def dependenciesNode = asNode().appendNode('dependencies')
+        configurationNames.each { configurationName ->
+            configurations[configurationName].allDependencies.each {
+                if (it.group != null && it.name != null) {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+
+                    //If there are any exclusions in dependency
+                    if (it.excludeRules.size() > 0) {
+                        def exclusionsNode = dependencyNode.appendNode('exclusions')
+                        it.excludeRules.each { rule ->
+                            def exclusionNode = exclusionsNode.appendNode('exclusion')
+                            exclusionNode.appendNode('groupId', rule.group)
+                            exclusionNode.appendNode('artifactId', rule.module)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 publishing {
     publications {
         basePublication(MavenPublication) {
@@ -292,7 +315,10 @@ publishing {
             artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
             artifact sourcesJar
             artifact javadocJar
+
+            pom.withXml(createPomDependencies(["baseCompile", "compile"]))
         }
+
         objectServerPublication(MavenPublication) {
             groupId 'io.realm'
             artifactId 'realm-android-library-object-server'
@@ -301,18 +327,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            //The publication doesn't know about our dependencies, so we have to manually add them to the pom
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', it.group)
-                    dependencyNode.appendNode('artifactId', it.name)
-                    dependencyNode.appendNode('version', it.version)
-                }
-            }
+            pom.withXml(createPomDependencies(["objectServerCompile", "compile"]))
         }
     }
     repositories {

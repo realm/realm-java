@@ -49,17 +49,17 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public AuthenticateResponse loginUser(Credentials credentials, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.fromCredentials(credentials).toJson();
+            String requestBody = AuthenticateRequest.userLogin(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
-            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.OTHER_ERROR, Util.getStackTrace(e)));
+            return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
         }
     }
 
     @Override
     public AuthenticateResponse loginToRealm(Token refreshToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.fromRefreshToken(refreshToken).toJson();
+            String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
@@ -69,7 +69,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public AuthenticateResponse refreshUser(Token userToken, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.fromRefreshToken(userToken).toJson();
+            String requestBody = AuthenticateRequest.userRefresh(userToken).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
