@@ -1535,17 +1535,23 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
 // - All Realms created by Cocoa and used by Realm-android up to 0.84.1
 // - All Realms created by Realm-Android 0.84.1 and below
 // See https://github.com/realm/realm-java/issues/1703
+//
+// 3> PK table's column 'pk_table' needs search index in order to use set_string_unique.
+// This affects:
+// - All Realms created by Cocoa and used by Realm-java before 2.0.0
+// See https://github.com/realm/realm-java/pull/3488
 
 // This methods converts the old (wrong) table format (string, integer) to the right (string,string) format and strips
 // any class names in the col[0] of their "class_" prefix
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
-    (JNIEnv*, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
+    (JNIEnv*, jclass, jlong groupNativePtr, jlong privateKeyTableNativePtr)
 {
     const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
     const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
 
     auto group = reinterpret_cast<Group*>(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
+    jboolean changed = JNI_FALSE;
 
     // Fix wrong types (string, int) -> (string, string)
     if (pk_table->get_column_type(FIELD_COLUMN_INDEX) == type_Int) {
@@ -1566,6 +1572,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         // The column index for the renamed column will then be the same as the deleted old column
         pk_table->remove_column(FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
+        changed = JNI_TRUE;
     }
 
     // If needed remove "class_" prefix from class names
@@ -1577,8 +1584,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
             std::string str(table_name.substr(TABLE_PREFIX.length()));
             StringData sd(str);
             pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, sd);
+            changed = JNI_TRUE;
         }
     }
+
+    // From realm-java 2.0.0, pk table's class column requires a search index.
+    if (!pk_table->has_search_index(CLASS_COLUMN_INDEX)) {
+        pk_table->add_search_index(CLASS_COLUMN_INDEX);
+        changed = JNI_TRUE;
+    }
+    return changed;
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
