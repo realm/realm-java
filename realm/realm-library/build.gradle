@@ -5,7 +5,6 @@ apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -344,28 +343,6 @@ publishing {
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-
-    dryRun = false
-    publish = false
-
-    configurations = ['basePublication', 'objectServerPublication']
-
-    pkg {
-        repo = 'maven'
-        name = 'realm-android-library'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
-    }
-}
-
 artifactory {
     contextUrl = 'https://oss.jfrog.org/artifactory'
     publish {
@@ -557,6 +534,79 @@ task checkNdk() << {
                             + ' must point the same directory.')
         }
     }
+}
+
+android.productFlavors.all { flavor ->
+    def librarySuffix = flavor.name == 'base' ? '' : '-object-server'
+    def userName = project.findProperty('bintrayUser') ?: 'noUser'
+    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
+
+    task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "assemble${flavor.name.capitalize()}"
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}.aar?publish=0"
+    }
+
+    task("bintraySources${flavor.name.capitalize()}", type: Exec) {
+        dependsOn sourcesJar
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-sources.jar?publish=0"
+    }
+
+    task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
+        dependsOn javadocJar
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-javadoc.jar?publish=0"
+    }
+
+    task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}.pom?publish=0"
+    }
+
+    task("bintray${flavor.name.capitalize()}") {
+        dependsOn "bintrayAar${flavor.name.capitalize()}"
+        dependsOn "bintraySources${flavor.name.capitalize()}"
+        dependsOn "bintrayJavadoc${flavor.name.capitalize()}"
+        dependsOn "bintrayPom${flavor.name.capitalize()}"
+        group = 'Publishing'
+    }
+}
+
+task bintrayUpload() {
+    android.productFlavors.all { flavor ->
+        dependsOn "bintray${flavor.name.capitalize()}"
+    }
+    group = 'Publishing'
 }
 
 def checkNdk(String ndkPath) {
