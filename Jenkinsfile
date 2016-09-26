@@ -107,7 +107,7 @@ def String startSyncTestingServer() {
   sh ''' adb reverse tcp:7800 tcp:7800 &&
       adb reverse tcp:8080 tcp:8080 &&
       adb reverse tcp:8888 tcp:8888 &&
-      ros-testing-server "sync-server.build.log" > "ros-testing-server.build.log" &
+      ros-testing-server.js "sync-server.build.log" > /dev/null &
       echo $! > sync_pid
   '''
   return readFile("sync_pid").trim()

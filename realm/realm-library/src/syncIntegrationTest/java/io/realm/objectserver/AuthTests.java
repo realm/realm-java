@@ -40,7 +40,8 @@ public class AuthTests {
             User.login(credentials, Constants.AUTH_URL);
         } catch (ObjectServerError expected) {
             // FIXME: It doesn't throw the right exception!
-            assertEquals(ErrorCode.UNKNOWN, expected.getErrorCode());
+            // The auth server needs an admin user to be created first! Find a workaround for it!!!
+            assertEquals(ErrorCode.MISSING_PARAMETERS, expected.getErrorCode());
         }
     }
 

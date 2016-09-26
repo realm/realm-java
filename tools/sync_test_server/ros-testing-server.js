@@ -19,7 +19,7 @@ winston.add(winston.transports.File, { filename: logFile });
 
 const PORT = 8888;
 
-function handleRequest(request, response){
+function handleRequest(request, response) {
     try {
         //log the request on console
         winston.log(request.url);
@@ -32,9 +32,8 @@ function handleRequest(request, response){
 
 var syncServerChildProcess;
 
-// start sync server
-dispatcher.onGet("/start", function(req, res) {
-    temp.mkdir('naruto', function(err, path) {
+function startRealmObjectServer() {
+    temp.mkdir('ros', function(err, path) {
         if (!err) {
             winston.info("Starting sync server in ", path);
             syncServerChildProcess = spawn('realm-object-server',
@@ -54,6 +53,11 @@ dispatcher.onGet("/start", function(req, res) {
             });
         }
     });
+}
+
+// start sync server
+dispatcher.onGet("/start", function(req, res) {
+    startRealmObjectServer();
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Starting a server');
 });
@@ -66,8 +70,6 @@ dispatcher.onGet("/stop", function(req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Stopping the server');
 });
-
-
 
 //Create and start the Http server
 var server = http.createServer(handleRequest);
