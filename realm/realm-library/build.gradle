@@ -138,6 +138,11 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
+def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This software is considered in beta phase. ' +
+        'It indicates that any public interface can change without prior announcements. ' +
+        'Moreover, classes, constructors, and methods annotated as beta are not ' +
+        'considered at production quality, and should be used with care.</div>'
+
 task javadoc(type: Javadoc) {
     source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
@@ -155,6 +160,8 @@ task javadoc(type: Javadoc) {
         links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
         linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+
+        tags = [ betaTag ]
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'

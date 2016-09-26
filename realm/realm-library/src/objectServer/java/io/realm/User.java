@@ -32,18 +32,19 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import io.realm.internal.IOException;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.internal.objectserver.SyncUser;
-import io.realm.internal.objectserver.Token;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
-import io.realm.log.RealmLog;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.objectserver.SyncUser;
+import io.realm.internal.objectserver.Token;
+import io.realm.log.RealmLog;
 
 /**
+ * @Beta
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
  * providers (Facebook, Google, etc.).
  * <p>
@@ -54,6 +55,7 @@ import io.realm.internal.network.LogoutResponse;
  * Persisting a user between sessions, the user's credentials are stored locally on the device, and should be treated
  * as sensitive data.
  */
+@Beta
 public class User {
 
     private final SyncUser syncUser;

@@ -18,9 +18,9 @@ package io.realm.internal.network;
 
 import java.io.IOException;
 
-import io.realm.log.RealmLog;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.log.RealmLog;
 import okhttp3.Response;
 
 /**
