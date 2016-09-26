@@ -52,7 +52,6 @@ class Realm implements Plugin<Project> {
             project.plugins.apply(AndroidAptPlugin)
         }
 
-        project.android.registerTransform(new RealmTransformer(project))
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (isKaptProject) {
@@ -70,6 +69,7 @@ class Realm implements Plugin<Project> {
         project.getGradle().addListener(new DependencyResolutionListener() {
             @Override
             void beforeResolve(ResolvableDependencies resolvableDependencies) {
+                project.android.registerTransform(new RealmTransformer(project))
                 def suffix = project.realm.syncEnabled?'-object-server':''
                 compileDeps.add(project.getDependencies().create("io.realm:realm-android-library${suffix}:${Version.VERSION}"))
                 project.getGradle().removeListener(this)

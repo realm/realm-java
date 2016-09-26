@@ -12,9 +12,12 @@ apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.0.0-beta-37.2'
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
+
+ext.coreVersion = properties.getProperty('REALM_SYNC_VERSION')
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '7c8bd6bf952aff39ae56dace9674b951005cf6f320bc2266cbe7a71af73f4e2b'
+ext.coreSha256Hash = properties.getProperty('REALM_SYNC_SHA256')
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from

@@ -146,7 +146,7 @@ class RealmTransformer extends Transform {
         def toc = System.currentTimeMillis()
         logger.info "Realm Transform time: ${toc-tic} milliseconds"
 
-        sendAnalytics(inputs, inputModelClasses)
+        this.sendAnalytics(inputs, inputModelClasses)
     }
 
     /**
@@ -154,7 +154,7 @@ class RealmTransformer extends Transform {
      * @param inputs the inputs provided by the Transform API
      * @param inputModelClasses a list of ctClasses describing the Realm models
      */
-    private static sendAnalytics(Collection<TransformInput> inputs, List<CtClass> inputModelClasses) {
+    private sendAnalytics(Collection<TransformInput> inputs, List<CtClass> inputModelClasses) {
         def containsKotlin = false
         inputs.each {
             it.directoryInputs.each {
@@ -177,7 +177,8 @@ class RealmTransformer extends Transform {
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
         if (disableAnalytics == null || disableAnalytics != "true") {
-            def analytics = RealmAnalytics.getInstance(packages as Set, containsKotlin)
+            boolean sync = project?.realm?.syncEnabled != null && project.realm.syncEnabled
+            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync)
             analytics.execute()
         }
     }
@@ -246,7 +247,7 @@ class RealmTransformer extends Transform {
                     // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
                     // `/`. It depends on how the jar file was created.
                     // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
-                    def className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
+                    String className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
                             .replace('/' as char , '.' as char)
                             .replace('\\' as char , '.' as char)
                     classNames.add(className)
