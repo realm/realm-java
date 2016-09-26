@@ -45,6 +45,7 @@
 
 ### Bug fixes
 
+* Async query might block caller thread for disposing resources.
 * Fixed a wrong JNI method declaration which might cause "method not found" crash on some devices.
 * Fixed a bug that `Error` in the background async thread is not forwarded to the caller thread.
 * Fixed a crash when an empty `Collection` is passed to `insert()`/`insertOrUpdate()` (#3103).

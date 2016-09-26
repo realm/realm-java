@@ -1399,9 +1399,8 @@ public final class RealmQuery<E extends RealmModel> {
                                 realmConfiguration.getDurability(),
                                 realmConfiguration.getEncryptionKey());
 
-                        long handoverTableViewPointer = query.
+                        long handoverTableViewPointer = TableQuery.
                                 findDistinctWithHandover(sharedGroup.getNativePointer(),
-                                        sharedGroup.getNativeReplicationPointer(),
                                         handoverQueryPointer,
                                         columnIndex);
 
@@ -1710,7 +1709,8 @@ public final class RealmQuery<E extends RealmModel> {
                         // Run the query & handover the table view for the caller thread
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
                         // to import it.
-                        long handoverTableViewPointer = query.findAllWithHandover(sharedGroup.getNativePointer(), sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);
+                        long handoverTableViewPointer = TableQuery.findAllWithHandover(sharedGroup.getNativePointer(),
+                                handoverQueryPointer);
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
@@ -1828,8 +1828,8 @@ public final class RealmQuery<E extends RealmModel> {
                         long columnIndex = getColumnIndexForSort(fieldName);
 
                         // run the query & handover the table view for the caller thread
-                        long handoverTableViewPointer = query.findAllSortedWithHandover(sharedGroup.getNativePointer(),
-                                sharedGroup.getNativeReplicationPointer(), handoverQueryPointer, columnIndex, sortOrder);
+                        long handoverTableViewPointer = TableQuery.findAllSortedWithHandover(sharedGroup.getNativePointer(),
+                                handoverQueryPointer, columnIndex, sortOrder);
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
@@ -2001,8 +2001,8 @@ public final class RealmQuery<E extends RealmModel> {
                                     realmConfiguration.getEncryptionKey());
 
                             // run the query & handover the table view for the caller thread
-                            long handoverTableViewPointer = query.findAllMultiSortedWithHandover(sharedGroup.getNativePointer(),
-                                    sharedGroup.getNativeReplicationPointer(), handoverQueryPointer, indices, sortOrders);
+                            long handoverTableViewPointer = TableQuery.findAllMultiSortedWithHandover(sharedGroup.getNativePointer(),
+                                    handoverQueryPointer, indices, sortOrders);
 
                             QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                             result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
@@ -2140,8 +2140,7 @@ public final class RealmQuery<E extends RealmModel> {
                                 realmConfiguration.getDurability(),
                                 realmConfiguration.getEncryptionKey());
 
-                        long handoverRowPointer = query.findWithHandover(sharedGroup.getNativePointer(),
-                                sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);
+                        long handoverRowPointer = TableQuery.findWithHandover(sharedGroup.getNativePointer(), handoverQueryPointer);
                         if (handoverRowPointer == 0) { // empty row
                             realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
                             realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
