@@ -24,7 +24,6 @@ import io.realm.Credentials;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.User;
-import io.realm.internal.Util;
 import io.realm.internal.objectserver.Token;
 import okhttp3.Call;
 import okhttp3.MediaType;

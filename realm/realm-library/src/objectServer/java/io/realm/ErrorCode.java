@@ -16,9 +16,13 @@
 
 package io.realm;
 
+import io.realm.annotations.Beta;
+
 /**
+ * @Beta
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
+@Beta
 public enum ErrorCode {
 
     // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md

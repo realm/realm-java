@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
@@ -38,6 +40,7 @@ import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
+ * @Beta
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
@@ -67,6 +70,7 @@ import io.realm.rx.RxObservableFactory;
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  */
+@Beta
 public final class SyncConfiguration extends RealmConfiguration {
 
     public static final int PORT_REALM = 80;
