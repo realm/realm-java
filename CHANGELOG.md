@@ -36,6 +36,7 @@
 
 * Moved JNI build to CMake.
 * Updated Realm Core to 2.0.0-rc7.
+* Upgrade ReLinker to 1.2.2.
 
 ### Enhancements
 
