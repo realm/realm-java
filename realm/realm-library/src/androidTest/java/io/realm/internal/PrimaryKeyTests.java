@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public class PrimaryKeyTests {
         tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
-        // Create first entry with name "foo"
+        // Create first entry with name "Foo"
         tbl.setString(0, tbl.addEmptyRow(), "Foo", false);
 
         long rowIndex = tbl.addEmptyRow();
@@ -124,6 +124,7 @@ public class PrimaryKeyTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+        sharedRealm.cancelTransaction();
     }
 
     @Test
@@ -131,6 +132,7 @@ public class PrimaryKeyTests {
         Table t = getTableWithStringPrimaryKey();
         t.addEmptyRowWithPrimaryKey(null);
         assertEquals(1, t.size());
+        sharedRealm.cancelTransaction();
     }
 
     @Test
@@ -141,6 +143,7 @@ public class PrimaryKeyTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+        sharedRealm.cancelTransaction();
     }
 
     @Test
@@ -149,6 +152,7 @@ public class PrimaryKeyTests {
         long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
         assertEquals(1, t.size());
         assertEquals("Foo", t.getUncheckedRow(rowIndex).getString(0));
+        sharedRealm.cancelTransaction();
     }
 
     @Test
@@ -157,6 +161,7 @@ public class PrimaryKeyTests {
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
         assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
+        sharedRealm.cancelTransaction();
     }
 
     @Test
