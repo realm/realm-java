@@ -599,15 +599,17 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
+     * @param cause which triggers this migration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback) throws FileNotFoundException {
+                                       final MigrationCallback callback, final RealmMigrationNeededException cause)
+            throws FileNotFoundException {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (migration == null && configuration.getMigration() == null) {
-            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
+            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided", cause);
         }
 
         final AtomicBoolean fileNotFound = new AtomicBoolean(false);
