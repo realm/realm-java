@@ -39,9 +39,7 @@ dispatcher.onGet("/start", function(req, res) {
             winston.info("Starting sync server in ", path);
             syncServerChildProcess = spawn('realm-object-server',
                     ['--root', path,
-                    '--listen-address', '0.0.0.0',
-                    '--http-listen-address', '0.0.0.0',
-                    '--configuration', '/etc/realm/configuration.yml']);
+                    '--configuration', '/configuration.yml']);
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
                 winston.info(`stdout: ${data}`);
