@@ -206,6 +206,7 @@ public final class SyncManager {
     // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
     // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
     // from here. This can be removed once better error propagation is implemented in Sync Core.
+    @SuppressWarnings("unused")
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
         for (SyncSession session : SessionStore.getAllSessions()) {

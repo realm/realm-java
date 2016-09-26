@@ -73,13 +73,28 @@ struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
 } s_logger_factory;
 
 // TODO: Move to a better place & not needed after moving to OS
-AndroidLogger& AndroidLogger::shared() noexcept {
+AndroidLogger& AndroidLogger::shared() noexcept
+{
     static AndroidLogger logger;
     return logger;
 }
 
+static jclass sync_manager = nullptr;
+static jmethodID sync_manager_notify_error_handler = nullptr;
+
+static void error_handler(int error_code, std::string message)
+{
+    JNIEnv* env;
+    if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        throw std::runtime_error("JVM is not attached to this thread. Called in error_handler.");
+    }
+
+    env->CallStaticVoidMethod(sync_manager,
+                              sync_manager_notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
+}
+
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv *env, jclass)
+    (JNIEnv *env, jclass sync_manager_class)
 {
     TR_ENTER(env)
     if (sync_client) return;
@@ -90,13 +105,19 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
         sync::Client::Config config;
         config.logger = &AndroidLogger::shared();
         sync_client = std::make_unique<Client>(std::move(config)); // Throws
-        // FIXME setup error handler for client
+
+        // This function should only be called once, so below is safe.
+        sync_manager = sync_manager_class;
+        sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
+                                                                   "notifyErrorHandler", "(ILjava/lang/String;)V");
+        sync_client->set_error_handler(error_handler);
     } CATCH_STD()
 }
 
 // Create the thread from java side to avoid some strange errors when native throws.
 JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass) {
+Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
+{
     try {
         sync_client->run();
     } CATCH_STD()

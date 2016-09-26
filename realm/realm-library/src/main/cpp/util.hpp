@@ -713,8 +713,6 @@ extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
 
 // FIXME Move to own library
-extern jclass sync_manager;
-extern jmethodID sync_manager_notify_error_handler;
 extern jclass session_class_ref;
 extern jmethodID session_error_handler;
 
