@@ -51,7 +51,12 @@ public:
     virtual ~JavaBindingContext();
     virtual void changes_available();
 
-    JavaBindingContext(const ConcreteJavaBindContext&);
+    explicit JavaBindingContext(const ConcreteJavaBindContext&);
+    JavaBindingContext(const JavaBindingContext&) = delete;
+    JavaBindingContext& operator=(const JavaBindingContext&) = delete;
+    JavaBindingContext(JavaBindingContext&&) = delete;
+    JavaBindingContext& operator=(JavaBindingContext&&) = delete;
+
     static inline std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier)
     {
         return std::make_unique<JavaBindingContext>(ConcreteJavaBindContext{env, notifier});

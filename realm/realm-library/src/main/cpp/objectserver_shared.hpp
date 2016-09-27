@@ -34,7 +34,11 @@
 class JniSession {
 
 public:
-    JniSession() = delete;
+    JniSession(const JniSession&) = delete;
+    JniSession& operator=(const JniSession&) = delete;
+    JniSession(JniSession&&) = delete;
+    JniSession& operator=(JniSession&&) = delete;
+
     JniSession(JNIEnv* env, std::string local_realm_path, jobject java_session_obj)
     {
         extern std::unique_ptr<realm::sync::Client> sync_client;
@@ -52,7 +56,7 @@ public:
         auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
             // FIXME: Simplify this by moving log_message to AndroidLogger
             JNIEnv *local_env;
-            g_vm->AttachCurrentThread(&env, nullptr);
+            g_vm->AttachCurrentThread(&local_env, nullptr);
             std::string log = num_to_string(error_code) + " " + message.c_str();
             log_message(local_env, log_debug, log.c_str());
         };
