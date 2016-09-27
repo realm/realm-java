@@ -160,7 +160,7 @@ public class PrimaryKeyTests {
         Table t = getTableWithIntegerPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
-        assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
+        assertEquals(42L, t.getUncheckedRow(rowIndex).getLong(0));
         sharedRealm.cancelTransaction();
     }
 
@@ -172,8 +172,8 @@ public class PrimaryKeyTests {
         assertTrue(Table.migratePrimaryKeyTableIfNeeded(sharedRealm));
         sharedRealm.commitTransaction();
         Table t = sharedRealm.getTable("class_AnnotationTypes");
-        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
+        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertEquals(RealmFieldType.STRING, sharedRealm.getTable("pk").getColumnType(0));
     }
 
@@ -185,8 +185,8 @@ public class PrimaryKeyTests {
         assertTrue(Table.migratePrimaryKeyTableIfNeeded(sharedRealm));
         sharedRealm.commitTransaction();
         Table t = sharedRealm.getTable("class_AnnotationTypes");
-        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
+        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertEquals("AnnotationTypes", sharedRealm.getTable("pk").getString(0, 0));
     }
 
@@ -208,7 +208,7 @@ public class PrimaryKeyTests {
         assertTrue(Table.migratePrimaryKeyTableIfNeeded(sharedRealm));
         sharedRealm.commitTransaction();
 
-        Table table =  sharedRealm.getTable("pk");
+        Table table = sharedRealm.getTable("pk");
         for (int i = 0; i < table.size(); i++) {
             UncheckedRow row = table.getUncheckedRow(i);
             // io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
