@@ -26,6 +26,8 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.SharedRealm;
+import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 import io.realm.internal.ObjectServerFacade;
 
@@ -117,6 +119,19 @@ final class RealmCache {
         }
 
         RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.valueOf(realmClass));
+
+        if (refAndCount.globalCount == 0) {
+            SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
+            if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
+                sharedRealm.beginTransaction();
+                if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
+                    sharedRealm.commitTransaction();
+                } else {
+                    sharedRealm.cancelTransaction();
+                }
+            }
+            sharedRealm.close();
+        }
 
         if (refAndCount.localRealm.get() == null) {
             // Create a new local Realm instance

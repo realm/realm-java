@@ -214,7 +214,7 @@ public class Table implements TableOrView, TableSchema {
                 }
                 long pkRowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
                 if (pkRowIndex != NO_MATCH) {
-                    pkTable.setString(PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName, false);
+                    nativeSetString(pkTable.nativePtr, PRIMARY_KEY_FIELD_COLUMN_INDEX, pkRowIndex, newName, false);
                 } else {
                     throw new IllegalStateException("Non-existent PrimaryKey column cannot be renamed");
                 }
@@ -879,10 +879,10 @@ public class Table implements TableOrView, TableSchema {
         }
         Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {
-            pkTable.addColumn(RealmFieldType.STRING, PRIMARY_KEY_CLASS_COLUMN_NAME);
+            checkImmutable();
+            long columnIndex = pkTable.addColumn(RealmFieldType.STRING, PRIMARY_KEY_CLASS_COLUMN_NAME);
+            pkTable.addSearchIndex(columnIndex);
             pkTable.addColumn(RealmFieldType.STRING, PRIMARY_KEY_FIELD_COLUMN_NAME);
-        } else {
-            migratePrimaryKeyTableIfNeeded(sharedRealm.getGroupNative(), pkTable);
         }
 
         return pkTable;
@@ -904,8 +904,23 @@ public class Table implements TableOrView, TableSchema {
      * This will remove the prefix "class_" from all table names in the pk_column
      * Any database created on Realm-Java 0.84.1 and below will have this error.
      */
-    private void migratePrimaryKeyTableIfNeeded(long groupNativePtr, Table pkTable) {
-        nativeMigratePrimaryKeyTableIfNeeded(groupNativePtr, pkTable.nativePtr);
+    public static boolean migratePrimaryKeyTableIfNeeded(SharedRealm sharedRealm) {
+        if (sharedRealm == null || !sharedRealm.isInTransaction()) {
+            throwImmutable();
+        }
+        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+            return false;
+        }
+        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
+        return nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getGroupNative(), pkTable.nativePtr);
+    }
+
+    public static boolean primaryKeyTableNeedsMigration(SharedRealm sharedRealm) {
+        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+            return false;
+        }
+        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
+        return nativePrimaryKeyTableNeedsMigration(pkTable.nativePtr);
     }
 
     public boolean hasSearchIndex(long columnIndex) {
@@ -1266,7 +1281,7 @@ public class Table implements TableOrView, TableSchema {
         throw new RuntimeException("Not supported for tables");
     }
 
-    private void throwImmutable() {
+    private static void throwImmutable() {
         throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
     }
 
@@ -1356,7 +1371,8 @@ public class Table implements TableOrView, TableSchema {
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data, boolean isDefault);
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
-    private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
+    private static native boolean nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
+    private static native boolean nativePrimaryKeyTableNeedsMigration(long primaryKeyTableNativePtr);
     private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
     private native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
     private native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
