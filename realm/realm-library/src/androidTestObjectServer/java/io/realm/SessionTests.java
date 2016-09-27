@@ -71,7 +71,7 @@ public class SessionTests {
         );
         Session session = new Session(internalSession);
 
-        assertEquals("realm://objectserver.realm.io:80/JohnDoe/default", session.getServerUrl().toString());
+        assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
         assertNull(session.getState());

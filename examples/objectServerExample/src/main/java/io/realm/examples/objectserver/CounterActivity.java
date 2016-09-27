@@ -23,24 +23,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import java.util.Locale;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmResults;
-import io.realm.examples.objectserver.model.CRDTCounter;
-import io.realm.examples.objectserver.model.CounterOperation;
 import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
 import io.realm.User;
+import io.realm.examples.objectserver.model.CRDTCounter;
 
 public class CounterActivity extends AppCompatActivity {
 
-    private static final String REALM_URL = "realm://" + MyApplication.OBJECT_SERVER_IP + ":7800/~/default";
+    private static final String REALM_URL = "realm://" + BuildConfig.OBJECT_SERVER_IP + ":9080/~/default";
 
     private Realm realm;
-    private RealmResults<CounterOperation> counter;
+    private CRDTCounter counter;
     private User user;
 
     @BindView(R.id.text_counter) TextView counterView;
@@ -67,10 +66,7 @@ public class CounterActivity extends AppCompatActivity {
                     .initialData(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
-                            // Workaround for initialData right now https://github.com/realm/realm-java-private/issues/164
-                            if (realm.isEmpty()) {
-                                realm.createObject(CRDTCounter.class, 1);
-                            }
+                            realm.createObject(CRDTCounter.class, 1);
                         }
                     })
                     .build();
@@ -78,30 +74,14 @@ public class CounterActivity extends AppCompatActivity {
             // This will automatically sync all changes in the background for as long as the Realm is open
             realm = Realm.getInstance(config);
 
-            // FIXME Looks like PrimaryKey and lists are not working correctly yet
-            // FIXME Also need support for the `setDefault` instruction for this to make sense.
-//            counter = realm.where(CRDTCounter.class).findFirstAsync();
-//            counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
-//                @Override
-//                public void onChange(CRDTCounter counter) {
-//                    if (counter.isValid()) {
-//                        counterView.setText(String.format(Locale.US, "%d", counter.getCount()));
-//                    } else {
-//                        counterView.setText("-");
-//                    }
-//                }
-//            });
-
-            counter = realm.where(CounterOperation.class).findAllAsync();
-            counter.addChangeListener(new RealmChangeListener<RealmResults<CounterOperation>>() {
+            counter = realm.where(CRDTCounter.class).findFirstAsync();
+            counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
                 @Override
-                public void onChange(RealmResults<CounterOperation> result) {
-                    // FIXME Why isn't this triggered when the DB is opened?
-                    Number sum = result.sum("adjustment");
-                    if (sum != null) {
-                        counterView.setText(Long.toString(sum.longValue()));
+                public void onChange(CRDTCounter counter) {
+                    if (counter.isValid()) {
+                        counterView.setText(String.format(Locale.US, "%d", counter.getCount()));
                     } else {
-                        counterView.setText("0");
+                        counterView.setText("-");
                     }
                 }
             });
@@ -144,21 +124,22 @@ public class CounterActivity extends AppCompatActivity {
 
     @OnClick(R.id.upper)
     public void incrementCounter() {
-        adjustCounter(new CounterOperation(1));
+        adjustCounter(1);
     }
 
     @OnClick(R.id.lower)
     public void decrementCounter() {
-        adjustCounter(new CounterOperation(-1));
+        adjustCounter(-1);
     }
 
-    private void adjustCounter(final CounterOperation ops) {
+    private void adjustCounter(final int adjustment) {
         // A synchronized Realm can get written to at any point in time, so doing synchronous writes on the UI
         // thread is HIGHLY discouraged as it might block longer than intended. Only use async transactions.
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.copyToRealm(ops);
+                CRDTCounter counter = realm.where(CRDTCounter.class).findFirst();
+                counter.add(adjustment);
             }
         });
     }
