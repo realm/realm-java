@@ -524,6 +524,8 @@ public class DynamicRealmTests {
                 signalCallbackDone.run();
             }
         });
+        looperThread.keepStrongReference.add(realmResults1);
+        looperThread.keepStrongReference.add(realmResults2);
     }
 
     @Test
