@@ -1,7 +1,11 @@
 ## 2.0.0
 
+This release introduces support for the Realm Mobile Platform! 
+See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview of these great new features.
+
 ### Breaking Changes
 
+* Files written by Realm 2.0 cannot be read by 1.x or earlier versions. Old files can still be opened.
 * It is now required to call `Realm.init(Context)` before calling any other Realm API.
 * Removed `RealmConfiguration.Builder(Context)`, `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
 * `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
@@ -23,6 +27,8 @@
 * Added `RealmConfiguration.Builder.directory(File)`.
 * `RealmLog` has been moved to the public API. It is now possible to control which events Realm emit to Logcat. See the `RealmLog` class for more details.
 * Typed `RealmObject`s can now continue to access their fields properly even though the schema was changed while the Realm was open (#3409).
+* A `RealmMigrationNeededException` will be thrown with a cause to show the detailed message when a migration is needed and the migration block is not in the `RealmConfiguration`.
+
 
 ### Bug fixes
 
@@ -37,10 +43,6 @@
 * Moved JNI build to CMake.
 * Updated Realm Core to 2.0.0.
 * Updated ReLinker to 1.2.2.
-
-### Enhancements
-
-* A `RealmMigrationNeededException` will be thrown with a cause to show the detailed message when a migration is needed and the migration block is not in the `RealmConfiguration`.
 
 ## 1.2.0
 
