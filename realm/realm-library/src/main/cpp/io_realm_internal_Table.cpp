@@ -1596,6 +1596,35 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyT
     return changed;
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_Table_nativePrimaryKeyTableNeedsMigration(JNIEnv *, jclass, jlong primaryKeyTableNativePtr)
+{
+
+    const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
+    const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
+
+    Table* pk_table = TBL(primaryKeyTableNativePtr);
+
+    // Fix wrong types (string, int) -> (string, string)
+    if (pk_table->get_column_type(FIELD_COLUMN_INDEX) == type_Int) {
+        return JNI_TRUE;
+    }
+
+    // If needed remove "class_" prefix from class names
+    size_t number_of_rows = pk_table->size();
+    for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
+        StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
+        if (table_name.begins_with(TABLE_PREFIX)) {
+            return JNI_TRUE;
+        }
+    }
+    // From realm-java 2.0.0, pk table's class column requires a search index.
+    if (!pk_table->has_search_index(CLASS_COLUMN_INDEX)) {
+        return JNI_TRUE;
+    }
+    return JNI_FALSE;
+}
+
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
   (JNIEnv*, jobject, jlong thisTablePtr, jlong otherTablePtr)
 {

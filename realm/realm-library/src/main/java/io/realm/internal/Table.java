@@ -915,6 +915,14 @@ public class Table implements TableOrView, TableSchema {
         return nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getGroupNative(), pkTable.nativePtr);
     }
 
+    public static boolean primaryKeyTableNeedsMigration(SharedRealm sharedRealm) {
+        if (!sharedRealm.hasTable(PRIMARY_KEY_TABLE_NAME)) {
+            return false;
+        }
+        Table pkTable = sharedRealm.getTable(PRIMARY_KEY_TABLE_NAME);
+        return nativePrimaryKeyTableNeedsMigration(pkTable.nativePtr);
+    }
+
     public boolean hasSearchIndex(long columnIndex) {
         return nativeHasSearchIndex(nativePtr, columnIndex);
     }
@@ -1364,6 +1372,7 @@ public class Table implements TableOrView, TableSchema {
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
     private static native boolean nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
+    private static native boolean nativePrimaryKeyTableNeedsMigration(long primaryKeyTableNativePtr);
     private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
     private native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
     private native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
