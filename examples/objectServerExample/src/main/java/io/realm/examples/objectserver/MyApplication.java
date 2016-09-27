@@ -25,7 +25,6 @@ import io.realm.log.RealmLog;
 
 public class MyApplication extends Application {
 
-    public static final String OBJECT_SERVER_IP = "192.168.104.22";
     @Override
     public void onCreate() {
         super.onCreate();
