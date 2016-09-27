@@ -536,10 +536,12 @@ public final class SyncConfiguration extends RealmConfiguration {
          * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.
          */
+        /* FIXME: Disable this API since we cannot support it without https://github.com/realm/realm-core/issues/2165
         public Builder deleteRealmOnLogout() {
             this.deleteRealmOnLogout = true;
             return this;
         }
+        */
 
         /**
          * Creates the RealmConfiguration based on the builder parameters.
