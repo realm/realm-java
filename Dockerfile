@@ -63,7 +63,8 @@ RUN chmod -R a+rX ${ANDROID_HOME}
 
 # Install cache and lcache
 RUN apt-get install -y ccache \
-    && wget https://github.com/beeender/lcache/releases/download/v0.0.0/lcache-linux /usr/bin/lcache
+    && wget https://github.com/beeender/lcache/releases/download/v0.0.0/lcache-linux -O /usr/bin/lcache \
+    && chmod +x /usr/bin/lcache
 # Just test wit Home which is the temp dir
 #ENV CCACHE_DIR /ccache
 #ENV LCACHE_DIR ${CCACHE_DIR}/lcache
