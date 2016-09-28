@@ -156,7 +156,7 @@ def collectAarMetrics() {
       cd realm/realm-library/build/outputs/aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
       find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
-      $(cat dx) --dex --output=temp${flavor}.dex unzipped${flavor}/classes.jar
+      \$(cat dx) --dex --output=temp${flavor}.dex unzipped${flavor}/classes.jar
       cat temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
     """
 
