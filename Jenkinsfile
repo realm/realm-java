@@ -63,7 +63,7 @@ try {
 
         // TODO: add support for running monkey on the example apps
 
-        if (env.BRANCH_NAME == 'master') {
+        //if (env.BRANCH_NAME == 'master') {
           stage 'Collect metrics'
           collectAarMetrics()
 
@@ -71,7 +71,7 @@ try {
           withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
             sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
           }
-        }
+        //}
       }
     }
   }
@@ -133,6 +133,14 @@ def sendTaggedMetric(String metric, String value, String tagName, String tagValu
   }
 }
 
+@NonCPS
+def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
+  def tagString = tags.collect { k,v -> "$k=$v" }.join(',')
+  withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
+    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric},${tagString} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
+  }
+}
+
 def storeJunitResults(String path) {
   step([
     $class: 'JUnitResultArchiver',
@@ -140,26 +148,31 @@ def storeJunitResults(String path) {
   ])
 }
 
+@NonCPS
 def collectAarMetrics() {
-  sh '''set -xe
-  cd realm/realm-library/build/outputs/aar
-  unzip realm-android-library-release.aar -d unzipped
-  find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
-  $(cat dx) --dex --output=temp.dex unzipped/classes.jar
-  cat temp.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 "%d"' > methods
-  '''
+  for (String flavor : ['base', 'objectServer']) {
+    sh """
+      set -xe
+      cd realm/realm-library/build/outputs/aar
+      unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
+      find $ANDROID_HOME -name dx | sort -r | head -n 1 > dx
+      $(cat dx) --dex --output=temp${flavor}.dex unzipped${flavor}/classes.jar
+      cat temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
+    """
 
-  sendMetrics('methods', readFile('realm/realm-library/build/outputs/aar/methods'))
+    sendMetrics('methods', readFile("realm/realm-library/build/outputs/aar/methods${flavor}"), ['flavor':flavor])
 
-  def aarFile = findFiles(glob: 'realm/realm-library/build/outputs/aar/realm-android-library-release.aar')[0]
-  sendMetrics('aar_size', aarFile.length as String)
+    def aarFile = findFiles(glob: "realm/realm-library/build/outputs/aar/realm-android-library-${flavor}-release.aar")[0]
+    sendMetrics('aar_size', aarFile.length as String, ['flavor':flavor])
 
-  def soFiles = findFiles(glob: 'realm/realm-library/build/outputs/aar/unzipped/jni/*/librealm-jni.so')
-  for (int i = 0; i < soFiles.length; i++) {
-      def abiName = soFiles[i].path.tokenize('/')[-2]
-      def libSize = soFiles[i].length as String
-      sendTaggedMetric('abi_size', libSize, 'type', abiName)
+    def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/jni/*/librealm-jni.so")
+    for (String soFile : soFiles) {
+        def abiName = soFile.path.tokenize('/')[-2]
+        def libSize = soFile.length as String
+        sendTaggedMetric('abi_size', libSize, ['flavor':flavor, 'type':abiName])
+    }
   }
+
 }
 
 def gradle(String commands) {
