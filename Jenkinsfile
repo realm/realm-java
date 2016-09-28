@@ -7,69 +7,77 @@ try {
   node('android') {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
-      stage 'SCM'
-      checkout([
-        $class: 'GitSCM',
-        branches: scm.branches,
-        gitTool: 'native git',
-        extensions: scm.extensions + [[$class: 'CleanCheckout']],
-        userRemoteConfigs: scm.userRemoteConfigs
-      ])
-      sh 'git submodule sync'
-      sh 'git submodule update --init --recursive'
-      // Make sure not to delete the folder that Jenkins allocates to store scripts
-      sh 'git clean -ffdx -e .????????'
+      stage('SCM') {
+        checkout([
+          $class: 'GitSCM',
+          branches: scm.branches,
+          gitTool: 'native git',
+          extensions: scm.extensions + [[$class: 'CleanCheckout']],
+          userRemoteConfigs: scm.userRemoteConfigs
+        ])
+        sh 'git submodule sync'
+        sh 'git submodule update --init --recursive'
+        // Make sure not to delete the folder that Jenkins allocates to store scripts
+        sh 'git clean -ffdx -e .????????'
+      }
 
-      stage 'Docker build'
-      def buildEnv = docker.build 'realm-java:snapshot'
+      stage('Docker build') {
+        def buildEnv = docker.build 'realm-java:snapshot'
+      }
+
       buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android -v ${env.HOME}/ccache:/tmp/.ccache") {
-        stage 'JVM tests'
-        try {
-          withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-            sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG}"
+        stage('JVM tests') {
+          try {
+            withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+              sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG}"
+            }
+          } finally {
+            storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+            storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+            step([$class: 'LintPublisher'])
           }
-        } finally {
-          storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-          storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-          step([$class: 'LintPublisher'])
         }
 
-        stage 'Static code analysis'
-        try {
-          gradle('realm', 'findbugs pmd checkstyle')
-        } finally {
-          publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-          publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-          step([$class: 'CheckStylePublisher',
-          canComputeNew: false,
-          defaultEncoding: '',
-          healthy: '',
-          pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-          unHealthy: ''
-          ])
+        stage('Static code analysis') {
+          try {
+            gradle('realm', 'findbugs pmd checkstyle')
+          } finally {
+            publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+            publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+            step([$class: 'CheckStylePublisher',
+            canComputeNew: false,
+            defaultEncoding: '',
+            healthy: '',
+            pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+            unHealthy: ''
+            ])
+          }
         }
 
-        stage 'Run instrumented tests'
-        boolean archiveLog = true
-        String backgroundPid
-        try {
-          backgroundPid = startLogCatCollector()
-          gradle('realm', 'connectedUnitTests')
-          archiveLog = false;
-        } finally {
-          stopLogCatCollector(backgroundPid, archiveLog)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        stage('Run instrumented tests') {
+          boolean archiveLog = true
+          String backgroundPid
+          try {
+            backgroundPid = startLogCatCollector()
+            gradle('realm', 'connectedUnitTests')
+            archiveLog = false;
+          } finally {
+            stopLogCatCollector(backgroundPid, archiveLog)
+            storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+          }
         }
 
         // TODO: add support for running monkey on the example apps
 
         //if (env.BRANCH_NAME == 'master') {
-          stage 'Collect metrics'
-          collectAarMetrics()
+          stage('Collect metrics') {
+            collectAarMetrics()
+          }
 
-          stage 'Publish to OJO'
-          withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-            sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+          stage('Publish to OJO') {
+            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
+              sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+            }
           }
         //}
       }
@@ -139,8 +147,7 @@ def storeJunitResults(String path) {
 @NonCPS
 def collectAarMetrics() {
   for (String flavor : ['base', 'objectServer']) {
-    sh """
-      set -xe
+    sh """set -xe
       cd realm/realm-library/build/outputs/aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
       find \$ANDROID_HOME -name dx | sort -r | head -n 1 > dx
