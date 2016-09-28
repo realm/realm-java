@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.internal.TableView;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -61,6 +62,7 @@ public class SortTest {
 
     private void populateRealm(Realm realm) {
         realm.beginTransaction();
+
         realm.delete(AllTypes.class);
         AllTypes object1 = realm.createObject(AllTypes.class);
         object1.setColumnLong(5);
@@ -77,6 +79,23 @@ public class SortTest {
         AllTypes object4 = realm.createObject(AllTypes.class);
         object4.setColumnLong(5);
         object4.setColumnString("Adam");
+
+        realm.delete(AnnotationIndexTypes.class);
+        AnnotationIndexTypes obj1 = realm.createObject(AnnotationIndexTypes.class);
+        obj1.setIndexLong(1);
+        obj1.setIndexInt(1);
+        obj1.setIndexString("A");
+
+        AnnotationIndexTypes obj2 = realm.createObject(AnnotationIndexTypes.class);
+        obj2.setIndexLong(2);
+        obj2.setIndexInt(1);
+        obj2.setIndexString("B");
+
+        AnnotationIndexTypes obj3 = realm.createObject(AnnotationIndexTypes.class);
+        obj3.setIndexLong(3);
+        obj3.setIndexInt(1);
+        obj3.setIndexString("C");
+
         realm.commitTransaction();
     }
 
@@ -516,5 +535,30 @@ public class SortTest {
         AllTypes allTypes = realm.createObject(AllTypes.class);
         allTypes.setColumnDate(new Date(TEST_SIZE));
         realm.commitTransaction();
+    }
+
+    @Test
+    // https://github.com/realm/realm-java/issues/3503
+    public void sortByLongDistinctByInt() {
+        // Before sorting:
+        // (FIELD_INDEX_LONG, FIELD_INDEX_INT, FIELD_INDEX_STRING)
+        // (1, 1, "A")
+        // (2, 1, "B")
+        // (3, 1, "C")
+        // After sorting
+        // (3, 1, "C")
+        // (2, 1, "B")
+        // (1, 1, "A)
+        RealmResults<AnnotationIndexTypes> results1 = realm.where(AnnotationIndexTypes.class)
+                .findAllSorted(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING);
+        assertEquals(3, results1.size());
+        assertEquals(3, results1.get(0).getIndexLong());
+
+        // After distinct:
+        // (3, 1, "C")
+        RealmResults<AnnotationIndexTypes> results2 =  results1.distinct(AnnotationIndexTypes.FIELD_INDEX_INT);
+        assertEquals(1, results2.size());
+        assertEquals("C", results2.get(0).getIndexString());
+        assertEquals(3, results2.get(0).getIndexLong());
     }
 }
