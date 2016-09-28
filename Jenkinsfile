@@ -121,23 +121,11 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
   sh 'rm logcat.txt '
 }
 
-def sendMetrics(String metric, String value) {
-  withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
-  }
-}
-
-def sendTaggedMetric(String metric, String value, String tagName, String tagValue) {
-  withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric},${tagName}=${tagValue} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
-  }
-}
-
 @NonCPS
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
   def tagString = tags.collect { k,v -> "$k=$v" }.join(',')
   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metric},${tagString} value=${value}i' --user '${env.influx_user}:${env.influx_pass}'"
+    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metricName},${tagString} value=${metricValue}i' --user '${env.influx_user}:${env.influx_pass}'"
   }
 }
 
@@ -160,7 +148,8 @@ def collectAarMetrics() {
       cat temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
     """
 
-    sendMetrics('methods', readFile("realm/realm-library/build/outputs/aar/methods${flavor}"), ['flavor':flavor])
+    def methods = readFile("realm/realm-library/build/outputs/aar/methods${flavor}")
+    sendMetrics('methods', methods, ['flavor':flavor])
 
     def aarFile = findFiles(glob: "realm/realm-library/build/outputs/aar/realm-android-library-${flavor}-release.aar")[0]
     sendMetrics('aar_size', aarFile.length as String, ['flavor':flavor])
@@ -172,7 +161,6 @@ def collectAarMetrics() {
         sendTaggedMetric('abi_size', libSize, ['flavor':flavor, 'type':abiName])
     }
   }
-
 }
 
 def gradle(String commands) {
