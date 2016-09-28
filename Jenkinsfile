@@ -21,8 +21,9 @@ try {
         sh 'git clean -ffdx -e .????????'
       }
 
+      def buildEnv
       stage('Docker build') {
-        def buildEnv = docker.build 'realm-java:snapshot'
+        buildEnv = docker.build 'realm-java:snapshot'
       }
 
       buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android -v ${env.HOME}/ccache:/tmp/.ccache") {
