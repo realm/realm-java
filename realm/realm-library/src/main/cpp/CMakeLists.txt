@@ -97,6 +97,7 @@ include_directories(${REALM_CORE_DIST_DIR}/include
 set(ANDROID_STL "gnustl_static")
 set(ANDROID_NO_UNDEFINED OFF)
 set(ANDROID_SO_UNDEFINED ON)
+set(ANDROID_EXPLICIT_CRT_LINK OFF)
 
 if (ARMEABI)
     set(ABI_CXX_FLAGS "-mthumb")

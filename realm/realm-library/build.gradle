@@ -49,7 +49,9 @@ android {
                           // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
                           // JNI build currently (lack of lto linking support).
                           // This file should be removed and use the one from Android SDK cmake package when it supports lto.
-                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
+                        "-DNDK_CCACHE=/usr/bin/ccache",
+                        "-DLCACHE=/usr/bin/lcache"
                 if (!project.hasProperty('android.injected.build.abi') && project.hasProperty('buildTargetABIs')) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
