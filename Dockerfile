@@ -13,18 +13,29 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 ENV ANDROID_NDK_HOME /opt/android-ndk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
+ENV NDK_CCACHE /usr/bin/ccache
 
-# Install the JDK
-# We are going to need some 32 bit binaries because aapt requires it
-# file is need by the script that creates NDK toolchains
+# The 32 bit binaries because aapt requires it
+# `file` is need by the script that creates NDK toolchains
+# Keep the packages in alphabetical order to make it easy to avoid duplication
 RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
     && apt-get update -qq \
-    && apt-get install -y file git curl wget zip unzip \
-                       bsdmainutils \
-                       build-essential \
-                       openjdk-8-jdk-headless \
-                       libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 \
-                       s3cmd \
+    && apt-get install -y bsdmainutils \
+                          build-essential \
+                          ccache \
+                          curl \
+                          file \
+                          git \
+                          libc6:i386 \
+                          libgcc1:i386 \
+                          libncurses5:i386 \
+                          libstdc++6:i386 \
+                          libz1:i386 \
+                          openjdk-8-jdk-headless \
+                          s3cmd \
+                          unzip \
+                          wget \
+                          zip \
     && apt-get clean
 
 # Install the Android SDK
@@ -60,11 +71,3 @@ RUN mkdir /opt/cmake-tmp && \
 
 # Make the SDK universally readable
 RUN chmod -R a+rX ${ANDROID_HOME}
-
-# Install cache and lcache
-RUN apt-get install -y ccache \
-    && wget https://github.com/beeender/lcache/releases/download/v0.0.0/lcache-linux -O /usr/bin/lcache \
-    && chmod +x /usr/bin/lcache
-# Just test wit Home which is the temp dir
-#ENV CCACHE_DIR /ccache
-#ENV LCACHE_DIR ${CCACHE_DIR}/lcache
