@@ -1306,14 +1306,6 @@ if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
  endif()
 endif()
 
-if(LCACHE)
-  set( __cmd "${CMAKE_CXX_CREATE_SHARED_LIBRARY}" )
-  if (NDK_CCACHE)
-      string( REPLACE "${NDK_CCACHE}" "" __cmd "${__cmd}")
-  endif()
-  set ( CMAKE_CXX_CREATE_SHARED_LIBRARY "${LCACHE} ${__cmd}")
-endif()
-
 # variables controlling optional build flags
 if( ANDROID_NDK_RELEASE_NUM LESS 7000 ) # before r7
  # libGLESv2.so in NDK's prior to r7 refers to missing external symbols.
@@ -1470,9 +1462,6 @@ link_directories( "${__android_install_path}" )
 # detect if need link crtbegin_so.o explicitly
 if( NOT DEFINED ANDROID_EXPLICIT_CRT_LINK )
  set( __cmd "${CMAKE_CXX_CREATE_SHARED_LIBRARY}" )
- if ( LCACHE )
-   string( REPLACE "${LCACHE}" "" __cmd "${__cmd}" )
- endif()
  string( REPLACE "<CMAKE_CXX_COMPILER>" "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ARG1}" __cmd "${__cmd}" )
  string( REPLACE "<CMAKE_C_COMPILER>"   "${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ARG1}"   __cmd "${__cmd}" )
  string( REPLACE "<CMAKE_SHARED_LIBRARY_CXX_FLAGS>" "${CMAKE_CXX_FLAGS}" __cmd "${__cmd}" )
