@@ -17,6 +17,11 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Setup lcache
+if(NDK_LCACHE)
+    set(CMAKE_CXX_CREATE_SHARED_LIBRARY "${NDK_LCACHE} ${CMAKE_CXX_CREATE_SHARED_LIBRARY}")
+endif()
+
 # Set flag build_SYNC
 if (REALM_FLAVOR STREQUAL base)
     set(build_SYNC OFF)
@@ -180,4 +185,3 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:realm-jni> ${unstripped_SO_DIR}
         COMMAND ${CMAKE_STRIP} $<TARGET_FILE:realm-jni>)
 endif()
-
