@@ -30,8 +30,8 @@ if (!ext.coreArchiveDir) {
 ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
 ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
-ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('REALM_CCACHE_PATH')
-ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('REALM_LCACHE_PATH')
+ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
+ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 
 android {
     compileSdkVersion 24
