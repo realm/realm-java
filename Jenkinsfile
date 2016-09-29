@@ -70,7 +70,7 @@ try {
 
         // TODO: add support for running monkey on the example apps
 
-        //if (env.BRANCH_NAME == 'master') {
+        if (env.BRANCH_NAME == 'master') {
           stage('Collect metrics') {
             collectAarMetrics()
           }
@@ -80,7 +80,7 @@ try {
               sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
             }
           }
-        //}
+        }
       }
     }
   }
