@@ -413,12 +413,10 @@ task downloadCore() {
 
     doLast {
         if (shouldDownloadCore()) {
-            // CI artifacts are only available if on the internal network or VPN
-            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/realm-sync-android-${project.coreVersion}.tar.gz"
-
-            println "Downloading ${downloadUrl}"
-            exec {
-                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+            download {
+                src "http://static.realm.io/downloads/sync/realm-sync-android-${project.coreVersion}.tar.gz"
+                dest project.coreArchiveFile
+                onlyIfNewer false
             }
             coreDownloaded = true
 

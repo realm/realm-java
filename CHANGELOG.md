@@ -5,6 +5,9 @@
 * Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
 * Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
 
+## Internal
+
+* Upgraded to Realm Core 2.0.1 / Realm Sync 1.3-BETA
 
 ## 2.0.0
 
