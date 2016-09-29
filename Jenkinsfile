@@ -145,9 +145,10 @@ def storeJunitResults(String path) {
   ])
 }
 
-@NonCPS
 def collectAarMetrics() {
-  for (String flavor : ['base', 'objectServer']) {
+  def flavors = ['base', 'objectServer']
+  for (def i = 0; i < flavors.size(); i++) {
+    def flavor = flavors[i]
     sh """set -xe
       cd realm/realm-library/build/outputs/aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
@@ -163,7 +164,8 @@ def collectAarMetrics() {
     sendMetrics('aar_size', aarFile.length as String, ['flavor':flavor])
 
     def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/jni/*/librealm-jni.so")
-    for (String soFile : soFiles) {
+    for (def j = 0; j < soFiles.size(); j++) {
+        def soFile = soFiles[j]
         def abiName = soFile.path.tokenize('/')[-2]
         def libSize = soFile.length as String
         sendTaggedMetric('abi_size', libSize, ['flavor':flavor, 'type':abiName])
