@@ -1,3 +1,15 @@
+## 2.1.0
+
+### Enhancement
+
+* `Realm.compactRealm()` works for encrypted Realms.
+
+## 2.0.1
+
+### Bug fixes
+
+* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
+
 ## 2.0.0
 
 This release introduces support for the Realm Mobile Platform! 
