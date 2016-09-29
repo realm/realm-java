@@ -172,7 +172,7 @@ def collectAarMetrics() {
         def soFile = soFiles[j]
         def abiName = soFile.path.tokenize('/')[-2]
         def libSize = soFile.length as String
-        sendTaggedMetric('abi_size', libSize, ['flavor':flavor, 'type':abiName])
+        sendMetrics('abi_size', libSize, ['flavor':flavor, 'type':abiName])
     }
   }
 }
