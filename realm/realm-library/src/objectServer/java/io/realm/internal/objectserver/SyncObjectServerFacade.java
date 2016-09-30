@@ -18,6 +18,8 @@ package io.realm.internal.objectserver;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,6 +31,7 @@ import io.realm.SyncManager;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Keep;
 import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.network.NetworkStateReceiver;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -61,6 +64,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
         if (applicationContext == null) {
             applicationContext = context;
+
+            applicationContext.registerReceiver(new NetworkStateReceiver(),
+                    new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
     }
 
