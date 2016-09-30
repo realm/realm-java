@@ -1,7 +1,22 @@
+## 2.0.1
+
+### Bug fixes
+
+* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
+* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
+
+### Enhancements
+
+* A `RealmMigrationNeededException` will be thrown with a cause to show the detailed message when a migration is needed and the migration block is not in the `RealmConfiguration`.
+
 ## 2.0.0
+
+This release introduces support for the Realm Mobile Platform! 
+See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview of these great new features.
 
 ### Breaking Changes
 
+* Files written by Realm 2.0 cannot be read by 1.x or earlier versions. Old files can still be opened.
 * It is now required to call `Realm.init(Context)` before calling any other Realm API.
 * Removed `RealmConfiguration.Builder(Context)`, `RealmConfiguration.Builder(Context, File)` and `RealmConfiguration.Builder(File)` constructors.
 * `isValid()` now always returns `true` instead of `false` for unmanaged `RealmObject` and `RealmList`. This puts it in line with the behaviour of the Cocoa and .NET API's (#3101).
@@ -30,12 +45,14 @@
 * Fixed a lint error in proxy classes when the 'minSdkVersion' of user's project is smaller than 11 (#3356).
 * Fixed a potential crash when there were lots of async queries waiting in the queue.
 * Fixed a bug causing the Realm Transformer to not transform field access in the model's constructors (#3361).
+* Fixed a bug causing a build failure when the Realm Transformer adds accessors to a model class that was already transformed in other project (#3469).
 * Fixed a bug causing the `NullPointerException` when calling getters/setters in the model's constructors (#2536).
 
 ### Internal
 
 * Moved JNI build to CMake.
-* Updated Realm Core to 2.0.0-rc7.
+* Updated Realm Core to 2.0.0.
+* Updated ReLinker to 1.2.2.
 
 ## 1.2.0
 
@@ -86,6 +103,7 @@
 ### Internal
 
 * Updated Realm Core to 1.4.2.
+* Improved sorting speed.
 
 ## 1.1.0
 

@@ -20,7 +20,7 @@ import java.io.Closeable;
 import java.io.File;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmFieldType;
+import io.realm.RealmSchema;
 import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
@@ -67,14 +67,19 @@ public final class SharedRealm implements Closeable {
         SchemaMode(byte value) {
             this .value = value;
         }
+
+        public byte getNativeValue() {
+            return value;
+        }
     }
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
+    public final ObjectServerFacade objectServerFacade;
 
     public static class VersionID implements Comparable<VersionID> {
-        final long version;
-        final long index;
+        public final long version;
+        public final long index;
 
         VersionID(long version, long index) {
             this.version = version;
@@ -143,6 +148,7 @@ public final class SharedRealm implements Closeable {
         this.schemaChangeListener = schemaVersionListener;
         context = new Context();
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
+        objectServerFacade = null;
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
@@ -151,14 +157,22 @@ public final class SharedRealm implements Closeable {
 
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
                                           SchemaVersionListener schemaVersionListener) {
+        String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
+        String rosServerUrl = userAndServer[0];
+        String rosUserToken = userAndServer[1];
+        boolean enable_caching = false; // Handled in Java currently
+        boolean disableFormatUpgrade = false; // TODO Double negatives :/
+        boolean autoChangeNotifications = true;
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
-                SchemaMode.SCHEMA_MODE_MANUAL.value,
+                rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
-                false,
-                false,
-                true);
+                enable_caching,
+                disableFormatUpgrade,
+                autoChangeNotifications,
+                rosServerUrl,
+                rosUserToken);
         try {
             return new SharedRealm(
                     nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
@@ -255,6 +269,10 @@ public final class SharedRealm implements Closeable {
         return new SharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
+    public long getLastSnapshotVersion() {
+        return nativeGetSnapshotVersion(nativePtr);
+    }
+
     public boolean isClosed() {
         return nativePtr == 0 || nativeIsClosed(nativePtr);
     }
@@ -276,6 +294,10 @@ public final class SharedRealm implements Closeable {
 
     public boolean compact() {
         return nativeCompact(nativePtr);
+    }
+
+    public void updateSchema(RealmSchema schema, long version) {
+        nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
     }
 
     @Override
@@ -320,7 +342,8 @@ public final class SharedRealm implements Closeable {
 
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
-                                                  boolean autoChangeNotification);
+                                                  boolean autoChangeNotification,
+                                                  String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
@@ -330,6 +353,7 @@ public final class SharedRealm implements Closeable {
     private static native void nativeCancelTransaction(long nativeSharedRealmPtr);
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
     private static native long nativeGetVersion(long nativeSharedRealmPtr);
+    private static native long nativeGetSnapshotVersion(long nativeSharedRealmPtr);
     private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
@@ -346,4 +370,5 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
+    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
 }

@@ -23,6 +23,8 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ResolvableDependencies
 
 class Realm implements Plugin<Project> {
 
@@ -39,6 +41,8 @@ class Realm implements Plugin<Project> {
             throw new GradleException('Realm gradle plugin only supports android gradle plugin 1.5.0 or later.')
         }
 
+        project.extensions.create('realm', RealmPluginExtension)
+
         def usesKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
 
@@ -48,9 +52,7 @@ class Realm implements Plugin<Project> {
             project.plugins.apply(AndroidAptPlugin)
         }
 
-        project.android.registerTransform(new RealmTransformer(project))
         project.repositories.add(project.getRepositories().jcenter())
-        project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (isKaptProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
@@ -61,6 +63,21 @@ class Realm implements Plugin<Project> {
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
+
+        // Using afterEvaluate is now deprecated so this callback is used instead
+        def compileDeps = project.getConfigurations().getByName("compile").getDependencies()
+        project.getGradle().addListener(new DependencyResolutionListener() {
+            @Override
+            void beforeResolve(ResolvableDependencies resolvableDependencies) {
+                project.android.registerTransform(new RealmTransformer(project))
+                def suffix = project.realm.syncEnabled?'-object-server':''
+                compileDeps.add(project.getDependencies().create("io.realm:realm-android-library${suffix}:${Version.VERSION}"))
+                project.getGradle().removeListener(this)
+            }
+
+            @Override
+            void afterResolve(ResolvableDependencies resolvableDependencies) {}
+        })
     }
 
     private static boolean isTransformAvailable() {

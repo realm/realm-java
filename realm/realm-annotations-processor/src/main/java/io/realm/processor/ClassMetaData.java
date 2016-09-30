@@ -374,6 +374,16 @@ public class ClassMetaData {
     }
 
     /**
+     * Checks if a VariableElement is indexed.
+     *
+     * @param variableElement the element/field
+     * @return {@code true} if a VariableElement is indexed, {@code false} otherwise.
+     */
+    public boolean isIndexed(VariableElement variableElement) {
+        return indexedFields.contains(variableElement);
+    }
+
+    /**
      * Checks if a VariableElement is a primary key.
      *
      * @param variableElement the element/field

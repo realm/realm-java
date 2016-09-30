@@ -50,6 +50,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         return JNI_ERR;
     }
     else {
+        g_vm = vm;
         // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
         java_lang_long        = GetClass(env, "java/lang/Long");
         java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");

@@ -22,7 +22,6 @@ import android.text.TextUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -30,9 +29,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmFileException;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
@@ -61,7 +60,7 @@ import io.realm.rx.RxObservableFactory;
  * <li>It has its schema version set to 0.</li>
  * </ul>
  */
-public final class RealmConfiguration {
+public class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
     public static final int KEY_LENGTH = 64;
@@ -98,19 +97,32 @@ public final class RealmConfiguration {
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
 
-    private RealmConfiguration(Builder builder) {
-        this.realmDirectory = builder.directory;
-        this.realmFileName = builder.fileName;
-        this.canonicalPath = Realm.getCanonicalPath(new File(realmDirectory, realmFileName));
-        this.assetFilePath = builder.assetFilePath;
-        this.key = builder.key;
-        this.schemaVersion = builder.schemaVersion;
-        this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.migration = builder.migration;
-        this.durability = builder.durability;
-        this.schemaMediator = createSchemaMediator(builder);
-        this.rxObservableFactory = builder.rxFactory;
-        this.initialDataTransaction = builder.initialDataTransaction;
+    // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
+    // subsets of them.
+    protected RealmConfiguration(File realmDirectory,
+                              String realmFileName,
+                              String canonicalPath,
+                              String assetFilePath,
+                              byte[] key,
+                              long schemaVersion,
+                              RealmMigration migration,
+                              boolean deleteRealmIfMigrationNeeded,
+                              SharedRealm.Durability durability,
+                              RealmProxyMediator schemaMediator,
+                              RxObservableFactory rxObservableFactory,
+                              Realm.Transaction initialDataTransaction) {
+        this.realmDirectory = realmDirectory;
+        this.realmFileName = realmFileName;
+        this.canonicalPath = canonicalPath;
+        this.assetFilePath = assetFilePath;
+        this.key = key;
+        this.schemaVersion = schemaVersion;
+        this.migration = migration;
+        this.deleteRealmIfMigrationNeeded = deleteRealmIfMigrationNeeded;
+        this.durability = durability;
+        this.schemaMediator = schemaMediator;
+        this.rxObservableFactory = rxObservableFactory;
+        this.initialDataTransaction = initialDataTransaction;
     }
 
     public File getRealmDirectory() {
@@ -225,8 +237,11 @@ public final class RealmConfiguration {
         //noinspection SimplifiableIfStatement
         if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) return false;
+
         return schemaMediator.equals(that.schemaMediator);
     }
+
+
 
     @Override
     public int hashCode() {
@@ -246,10 +261,8 @@ public final class RealmConfiguration {
     }
 
     // Creates the mediator that defines the current schema
-    private RealmProxyMediator createSchemaMediator(Builder builder) {
-
-        Set<Object> modules = builder.modules;
-        Set<Class<? extends RealmModel>> debugSchema = builder.debugSchema;
+    protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
+                                                             Set<Class<? extends RealmModel>> debugSchema) {
 
         // If using debug schema, use special mediator
         if (debugSchema.size() > 0) {
@@ -336,10 +349,27 @@ public final class RealmConfiguration {
         return rxJavaAvailable;
     }
 
+    // Get the canonical path for a given file
+    protected static String getCanonicalPath(File realmFile) {
+        try {
+            return realmFile.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
+                    "Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath(),
+                    e);
+        }
+    }
+
+    // Check if this configuration is a SyncConfiguration instance.
+    boolean isSyncConfiguration() {
+        return false;
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
-    public static final class Builder {
+    public static class Builder {
+         // IMPORTANT: When adding any new methods to this class also add them to SyncConfiguration.
         private File directory;
         private String fileName;
         private String assetFilePath;
@@ -622,7 +652,20 @@ public final class RealmConfiguration {
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }
-            return new RealmConfiguration(this);
+
+            return new RealmConfiguration(directory,
+                    fileName,
+                    getCanonicalPath(new File(directory, fileName)),
+                    assetFilePath,
+                    key,
+                    schemaVersion,
+                    migration,
+                    deleteRealmIfMigrationNeeded,
+                    durability,
+                    createSchemaMediator(modules, debugSchema),
+                    rxFactory,
+                    initialDataTransaction
+            );
         }
 
         private void checkModule(Object module) {

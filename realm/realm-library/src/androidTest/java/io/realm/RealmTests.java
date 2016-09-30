@@ -3758,4 +3758,57 @@ public class RealmTests {
         //noinspection ConstantConditions
         assertEquals("pochi", realm.where(Cat.class).findFirst().getName());
     }
+
+    @Test
+    public void getGlobalInstanceCount() {
+        final CountDownLatch bgDone = new CountDownLatch(1);
+
+        final RealmConfiguration config = configFactory.createConfiguration("globalCountTest");
+        assertEquals(0, Realm.getGlobalInstanceCount(config));
+
+        // Open thread local Realm
+        Realm realm = Realm.getInstance(config);
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+
+        // Open thread local DynamicRealm
+        DynamicRealm dynRealm = DynamicRealm.getInstance(config);
+        assertEquals(2, Realm.getGlobalInstanceCount(config));
+
+        // Open Realm in another thread
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config);
+                assertEquals(3, Realm.getGlobalInstanceCount(config));
+                realm.close();
+                assertEquals(2, Realm.getGlobalInstanceCount(config));
+                bgDone.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgDone);
+        dynRealm.close();
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        realm.close();
+        assertEquals(0, Realm.getGlobalInstanceCount(config));
+    }
+
+    @Test
+    public void getLocalInstanceCount() {
+        final RealmConfiguration config = configFactory.createConfiguration("localInstanceCount");
+        assertEquals(0, Realm.getGlobalInstanceCount(config));
+
+        // Open thread local Realm
+        Realm realm = Realm.getInstance(config);
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+
+        // Open thread local DynamicRealm
+        DynamicRealm dynRealm = DynamicRealm.getInstance(config);
+        assertEquals(2, Realm.getGlobalInstanceCount(config));
+
+        dynRealm.close();
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        realm.close();
+        assertEquals(0, Realm.getGlobalInstanceCount(config));
+    }
 }

@@ -19,11 +19,9 @@ package io.realm.transformer;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
-import java.util.Enumeration;
 import java.util.Set;
 
 // Asynchronously submits build information to Realm when the annotation
@@ -69,6 +67,7 @@ public class RealmAnalytics {
             + "      \"Anonymized Bundle ID\": \"%APP_ID%\",\n"
             + "      \"Binding\": \"java\",\n"
             + "      \"Language\": \"%LANGUAGE%\",\n"
+            + "      \"Sync Version\": %SYNC_VERSION%,\n"
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
             + "      \"Host OS Type\": \"%OS_TYPE%\",\n"
             + "      \"Host OS Version\": \"%OS_VERSION%\",\n"
@@ -80,17 +79,12 @@ public class RealmAnalytics {
     private Set<String> packages;
 
     private boolean usesKotlin;
+    private boolean usesSync;
 
-    private RealmAnalytics(Set<String> packages, boolean usesKotlin) {
+    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync) {
         this.packages = packages;
         this.usesKotlin = usesKotlin;
-    }
-
-    public static RealmAnalytics getInstance(Set<String> packages, boolean usesKotlin) {
-        if (instance == null) {
-            instance = new RealmAnalytics(packages, usesKotlin);
-        }
-        return instance;
+        this.usesSync = usesSync;
     }
 
     private void send() {
@@ -135,7 +129,8 @@ public class RealmAnalytics {
                 .replaceAll("%TOKEN%", TOKEN)
                 .replaceAll("%USER_ID%", ComputerIdentifierGenerator.get())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
-                .replaceAll("%LANGUAGE%", usesKotlin?"kotlin":"java")
+                .replaceAll("%LANGUAGE%", usesKotlin ? "kotlin" : "java")
+                .replaceAll("%SYNC_VERSION%", usesSync ? "\"" + Version.SYNC_VERSION + "\"": "null")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
                 .replaceAll("%OS_TYPE%", System.getProperty("os.name"))
                 .replaceAll("%OS_VERSION%", System.getProperty("os.version"));

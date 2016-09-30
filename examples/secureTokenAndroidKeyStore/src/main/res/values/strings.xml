@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">secureTokenAndroidKeyStore</string>
+    <string name="locked_text">Key Store Locked/Uninitialised:\nYou can not encrypt the Token</string>
+    <string name="unlocked_text">Key Store Unlocked:\nYou can encrypt the Token</string>
+</resources>

@@ -26,7 +26,10 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.SharedRealm;
+import io.realm.internal.Table;
 import io.realm.log.RealmLog;
+import io.realm.internal.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.
@@ -117,6 +120,19 @@ final class RealmCache {
 
         RefAndCount refAndCount = cache.refAndCountMap.get(RealmCacheType.valueOf(realmClass));
 
+        if (refAndCount.globalCount == 0) {
+            SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
+            if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
+                sharedRealm.beginTransaction();
+                if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
+                    sharedRealm.commitTransaction();
+                } else {
+                    sharedRealm.cancelTransaction();
+                }
+            }
+            sharedRealm.close();
+        }
+
         if (refAndCount.localRealm.get() == null) {
             // Create a new local Realm instance
             BaseRealm realm;
@@ -155,6 +171,11 @@ final class RealmCache {
 
         @SuppressWarnings("unchecked")
         E realm = (E) refAndCount.localRealm.get();
+
+        // Notify SyncPolicy that the Realm has been opened for the first time
+        if (refAndCount.globalCount == 1) {
+            ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).realmOpened(configuration);
+        }
         return realm;
     }
 
@@ -210,13 +231,17 @@ final class RealmCache {
             for (RealmCacheType type : RealmCacheType.values()) {
                 totalRefCount += cache.refAndCountMap.get(type).globalCount;
             }
-            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
-            if (totalRefCount == 0) {
-                cachesMap.remove(canonicalPath);
-            }
 
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
+
+            // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
+            if (totalRefCount == 0) {
+                cachesMap.remove(canonicalPath);
+                ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())
+                        .realmClosed(realm.getConfiguration());
+            }
+
         } else {
             refAndCount.localCount.set(refCount);
         }
@@ -367,6 +392,19 @@ final class RealmCache {
             if (exceptionWhenClose != null) {
                 throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR, exceptionWhenClose);
             }
+        }
+    }
+
+    static int getLocalThreadCount(RealmConfiguration configuration) {
+        RealmCache cache = cachesMap.get(configuration.getPath());
+        if (cache == null) {
+            return 0;
+        } else {
+            int totalRefCount = 0;
+            for (RealmCacheType type : RealmCacheType.values()) {
+                totalRefCount += cache.refAndCountMap.get(type).localCount.get();
+            }
+            return totalRefCount;
         }
     }
 

@@ -32,6 +32,7 @@
 #include <realm/timestamp.hpp>
 #include <realm/util/meta.hpp>
 #include <realm/util/safe_int_ops.hpp>
+#include <realm/sync/client.hpp>
 
 #include <util/format.hpp>
 
@@ -86,6 +87,8 @@ std::string num_to_string(T pNumber)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
+#define SC(ptr) reinterpret_cast<realm::sync::Client*>(ptr)
+#define SS(ptr) reinterpret_cast<JniSession*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
@@ -150,12 +153,14 @@ inline void log_message(JNIEnv *env, jmethodID log_method, const char *msg, ...)
     #define TR_ENTER_PTR(env, ptr) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " --> %s %" PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
     #define TR(env, msg, ...) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, msg, __VA_ARGS__)); } else {}
     #define TR_ERR(env, msg, ...) if (trace_level <= io_realm_log_LogLevel_ERROR) { log_message(env, log_error, msg, __VA_ARGS__); } else {}
+    #define TR_ERR_NO_VA_ARG(env, msg) if (trace_level <= io_realm_log_LogLevel_ERROR) { log_message(env, log_error, msg); } else {}
     #define TR_LEAVE(env) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " <-- %s", __FUNCTION__); } else {}
 #else // TRACE - these macros must be empty
     #define TR_ENTER(env)
     #define TR_ENTER_PTR(env, ptr)
     #define TR(env, msg, ...)
     #define TR_ERR(env, msg, ...)
+    #define TR_ERR_NO_VA_ARG(env, msg)
     #define TR_LEAVE(env)
 #endif
 
@@ -418,7 +423,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
         return true;
     }
 
-    TR_ERR(env, "Expected nullable column type", NULL)
+    TR_ERR_NO_VA_ARG(env, "Expected nullable column type")
     ThrowException(env, IllegalArgument, "This field is not nullable.");
     return false;
 }
@@ -699,12 +704,17 @@ private:
     JNIEnv* m_env;
 };
 
+extern JavaVM* g_vm;
 extern jclass java_lang_long;
 extern jmethodID java_lang_long_init;
 extern jclass java_lang_float;
 extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
+
+// FIXME Move to own library
+extern jclass session_class_ref;
+extern jmethodID session_error_handler;
 
 inline jobject NewLong(JNIEnv* env, int64_t value)
 {
@@ -740,5 +750,9 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
 }
 
 extern const std::string TABLE_PREFIX;
+
+static inline bool to_bool(jboolean b) {
+    return b == JNI_TRUE;
+}
 
 #endif // REALM_JAVA_UTIL_HPP

@@ -42,7 +42,6 @@ import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.log.RealmLog;
 
-import static android.R.attr.version;
 import static io.realm.internal.HandlerControllerConstants.LOCAL_COMMIT;
 import static io.realm.internal.HandlerControllerConstants.REALM_CHANGED;
 

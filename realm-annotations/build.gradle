@@ -54,6 +54,19 @@ publishing {
             }
         }
     }
+    repositories {
+        maven {
+            credentials(AwsCredentials) {
+                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
+                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://realm-ci-artifacts/maven/snapshots/"
+            } else {
+                url "s3://realm-ci-artifacts/maven/releases/"
+            }
+        }
+    }
 }
 
 bintray {
