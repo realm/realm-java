@@ -95,12 +95,12 @@ public final class DynamicRealm extends BaseRealm {
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException if the model clazz does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
-     *                                  expectd value.
+     *                                  expected value.
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(this, table.getCheckedRow(index), false);
+        return new DynamicRealmObject(this, table.getCheckedRow(index));
     }
 
     /**
