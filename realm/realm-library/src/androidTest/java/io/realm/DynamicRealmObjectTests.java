@@ -326,7 +326,7 @@ public class DynamicRealmObjectTests {
                 case STRING: target.setString(fieldName, "foo"); break;
                 case BINARY: target.setBlob(fieldName, new byte[]{}); break;
                 case DATE: target.getDate(fieldName); break;
-                case OBJECT: target.setObject(fieldName, null); break;
+                case OBJECT: target.setObject(fieldName, null); target.setObject(fieldName, target); break;
                 case LIST: target.setList(fieldName, new RealmList<DynamicRealmObject>()); break;
                 default:
                     fail();
