@@ -46,6 +46,7 @@ public final class Session {
 
     Session(SyncSession rosSession) {
         this.syncSession = rosSession;
+        rosSession.setUserSession(this);
     }
 
     /**
