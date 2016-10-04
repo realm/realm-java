@@ -9,7 +9,7 @@
 
 ## Internal
 
-* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA
+* Upgraded to Realm Core 2.0.1 / Realm Sync 1.3-BETA
 
 ## 2.0.0
 
