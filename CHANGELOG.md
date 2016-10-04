@@ -7,6 +7,10 @@
 * `distinctAsync` did not respect other query parameters (#3537).
 * `ConcurrentModificationException` from Gradle when building an application (#3501).
 
+## Internal
+
+* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA
+
 ## 2.0.0
 
 This release introduces support for the Realm Mobile Platform! 
