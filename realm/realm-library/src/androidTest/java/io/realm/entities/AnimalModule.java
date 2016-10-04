@@ -18,6 +18,6 @@ package io.realm.entities;
 
 import io.realm.annotations.RealmModule;
 
-@RealmModule(classes = {Dog.class, Cat.class})
+@RealmModule(classes = {Dog.class, Cat.class, DogPrimaryKey.class})
 public class AnimalModule {
 }

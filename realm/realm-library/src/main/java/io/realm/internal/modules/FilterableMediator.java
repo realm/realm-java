@@ -80,10 +80,12 @@ public class FilterableMediator extends RealmProxyMediator {
         checkSchemaHasClass(clazz);
         return originalMediator.createRealmObjectSchema(clazz, schema);
     }
+
     @Override
-    public Table createTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm) {
+    public Table createTable(RealmProxyMediator rootMediator, Class<? extends RealmModel> clazz,
+                             SharedRealm sharedRealm) {
         checkSchemaHasClass(clazz);
-        return originalMediator.createTable(clazz, sharedRealm);
+        return originalMediator.createTable(rootMediator, clazz, sharedRealm);
     }
 
     @Override

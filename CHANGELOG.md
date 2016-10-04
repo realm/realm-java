@@ -1,3 +1,13 @@
+## 2.1.0
+
+### Enhancement
+
+* `Realm.compactRealm()` works for encrypted Realms.
+
+### Enhancements
+
+* Throw a `RealmException` when an object is used as a `RealmObject`/`RealmList` field but is not declared in the `RealmModule` (#3398).
+
 ## 2.0.1
 
 ### Bug fixes
@@ -8,6 +18,8 @@
 * `ConcurrentModificationException` from Gradle when building an application (#3501).
 
 ## Internal
+
+### Enhancements
 
 * Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA
 

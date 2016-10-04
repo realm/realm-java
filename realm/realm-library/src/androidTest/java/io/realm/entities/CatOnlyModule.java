@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package io.realm.entities;
 
 import io.realm.annotations.RealmModule;
 
-@RealmModule(classes = {CatOwner.class, Owner.class})
-public class HumanModule {
+@RealmModule(classes = {Cat.class})
+public class CatOnlyModule {
 }
+

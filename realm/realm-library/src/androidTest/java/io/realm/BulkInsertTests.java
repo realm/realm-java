@@ -35,7 +35,6 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.Cat;
-import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
@@ -43,6 +42,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
 import io.realm.entities.NoPrimaryKeyWithPrimaryKeyObjectRelation;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
@@ -464,7 +464,7 @@ public class BulkInsertTests {
     public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(Owner.class, Cat.class, Dog.class, DogPrimaryKey.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -560,7 +560,7 @@ public class BulkInsertTests {
     public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(Owner.class, Cat.class, Dog.class, DogPrimaryKey.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);

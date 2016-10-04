@@ -11,6 +11,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -487,7 +488,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return realmSchema.get("AllTypes");
     }
 
-    public static Table initTable(SharedRealm sharedRealm) {
+    @SuppressWarnings("UnusedParameters")
+    public static Table initTable(RealmProxyMediator mediator, SharedRealm sharedRealm) {
         if (!sharedRealm.hasTable("class_AllTypes")) {
             Table table = sharedRealm.getTable("class_AllTypes");
             table.addColumn(RealmFieldType.STRING, "columnString", Table.NULLABLE);
@@ -498,11 +500,11 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             table.addColumn(RealmFieldType.DATE, "columnDate", Table.NOT_NULLABLE);
             table.addColumn(RealmFieldType.BINARY, "columnBinary", Table.NOT_NULLABLE);
             if (!sharedRealm.hasTable("class_AllTypes")) {
-                AllTypesRealmProxy.initTable(sharedRealm);
+                mediator.createTable(some.test.AllTypes.class, sharedRealm);
             }
             table.addColumnLink(RealmFieldType.OBJECT, "columnObject", sharedRealm.getTable("class_AllTypes"));
             if (!sharedRealm.hasTable("class_AllTypes")) {
-                AllTypesRealmProxy.initTable(sharedRealm);
+                mediator.createTable(some.test.AllTypes.class, sharedRealm);
             }
             table.addColumnLink(RealmFieldType.LIST, "columnRealmList", sharedRealm.getTable("class_AllTypes"));
             table.addSearchIndex(table.getColumnIndex("columnString"));
