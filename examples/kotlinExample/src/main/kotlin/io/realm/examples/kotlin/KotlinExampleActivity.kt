@@ -23,7 +23,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import io.realm.Realm
 import io.realm.Sort
-import io.realm.RealmConfiguration
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
@@ -40,7 +39,6 @@ class KotlinExampleActivity : Activity() {
 
     private var rootLayout: LinearLayout by Delegates.notNull()
     private var realm: Realm by Delegates.notNull()
-    private var realmConfig: RealmConfiguration by Delegates.notNull()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,8 +94,7 @@ class KotlinExampleActivity : Activity() {
         // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.executeTransaction {
             // Add a person
-            var person = realm.createObject(Person::class.java)
-            person.id = 1
+            var person = realm.createObject(Person::class.java, 1)
             person.name = "Young Person"
             person.age = 14
         }
@@ -137,7 +134,7 @@ class KotlinExampleActivity : Activity() {
 
         // Open the default realm. All threads must use it's own reference to the realm.
         // Those can not be transferred across threads.
-        val realm = Realm.getInstance(realmConfig)
+        val realm = Realm.getDefaultInstance()
 
         // Add ten persons in one transaction
         realm.executeTransaction {
@@ -193,7 +190,7 @@ class KotlinExampleActivity : Activity() {
 
         // Realm implements the Closable interface, therefore we can make use of Kotlin's built-in
         // extension method 'use' (pun intended).
-        Realm.getInstance(realmConfig).use {
+        Realm.getDefaultInstance().use {
             // 'it' is the implicit lambda parameter of type Realm
             status += "\nNumber of persons: ${it.where(Person::class.java).count()}"
 
