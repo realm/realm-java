@@ -1639,6 +1639,7 @@ public class RealmAsyncQueryTests {
             @Override
             public void onChange(RealmResults<AllJavaTypes> results) {
                 assertEquals(TEST_SIZE - 1, results.size());
+                assertEquals(0, results.where().equalTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2).count());
                 looperThread.testComplete();
             }
         });
