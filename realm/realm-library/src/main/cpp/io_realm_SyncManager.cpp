@@ -107,7 +107,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
         sync_client = std::make_unique<Client>(std::move(config)); // Throws
 
         // This function should only be called once, so below is safe.
-        sync_manager = sync_manager_class;
+        sync_manager = reinterpret_cast<jclass>(env->NewGlobalRef(sync_manager_class));
         sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
                                                                    "notifyErrorHandler", "(ILjava/lang/String;)V");
         sync_client->set_error_handler(error_handler);

@@ -106,6 +106,7 @@ public final class SyncSession {
     private SessionState currentStateDescription;
     private FsmState currentState;
     private Session userSession;
+    private Session publicSession;
 
     /**
      * Creates a new Object Server Session.
@@ -199,7 +200,7 @@ public final class SyncSession {
     public synchronized void onError(ObjectServerError error) {
         currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
         if (errorHandler != null) {
-            errorHandler.onError(this.getUserSession(), error);
+            errorHandler.onError(getUserSession(), error);
         }
     }
 
@@ -347,6 +348,10 @@ public final class SyncSession {
 
     public Session getUserSession() {
         return userSession;
+    }
+
+    public void setUserSession(Session userSession) {
+        this.userSession = userSession;
     }
 
     private native long nativeCreateSession(String localRealmPath);
