@@ -716,7 +716,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
                 expectedIndefiniteVowel = "n";
             }
             String columnTypeIndefiniteVowel = "";
-            if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.OBJECT) {
+            if (columnType == RealmFieldType.INTEGER || columnType == RealmFieldType.OBJECT) {
                 columnTypeIndefiniteVowel = "n";
             }
             throw new IllegalArgumentException(String.format("'%s' is not a%s '%s', but a%s '%s'.",
