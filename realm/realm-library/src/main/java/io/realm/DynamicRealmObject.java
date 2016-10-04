@@ -32,6 +32,7 @@ import io.realm.internal.android.JsonUtils;
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
+@SuppressWarnings("WeakerAccess")
 public final class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
 
     private final ProxyState proxyState = new ProxyState(this);
@@ -67,24 +68,18 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         proxyState.setConstructionFinished();
     }
 
-    DynamicRealmObject(BaseRealm realm, Row row, boolean convertTocheckedRow) {
+    // row must not be an instance of UncheckedRow
+    DynamicRealmObject(BaseRealm realm, Row row) {
         proxyState.setRealm$realm(realm);
-        if (convertTocheckedRow) {
-            proxyState.setRow$realm((row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked());
-        } else {
-            proxyState.setRow$realm(row);
-        }
+        proxyState.setRow$realm(row);
         proxyState.setConstructionFinished();
     }
 
-    DynamicRealmObject(String className, BaseRealm realm, Row row, boolean convertTocheckedRow) {
+    // row must not be an instance of UncheckedRow
+    DynamicRealmObject(String className, BaseRealm realm, Row row) {
         proxyState.setClassName(className);
         proxyState.setRealm$realm(realm);
-        if (convertTocheckedRow) {
-            proxyState.setRow$realm((row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked());
-        } else {
-            proxyState.setRow$realm(row);
-        }
+        proxyState.setRow$realm(row);
         proxyState.setConstructionFinished();
     }
 
@@ -129,8 +124,12 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public boolean getBoolean(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.BOOLEAN);
-        return proxyState.getRow$realm().getBoolean(columnIndex);
+        try {
+            return proxyState.getRow$realm().getBoolean(columnIndex);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.BOOLEAN);
+            throw e;
+        }
     }
 
     /**
@@ -176,8 +175,12 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public long getLong(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.INTEGER);
-        return proxyState.getRow$realm().getLong(columnIndex);
+        try {
+            return proxyState.getRow$realm().getLong(columnIndex);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.INTEGER);
+            throw e;
+        }
     }
 
     /**
@@ -208,8 +211,12 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public float getFloat(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.FLOAT);
-        return proxyState.getRow$realm().getFloat(columnIndex);
+        try {
+            return proxyState.getRow$realm().getFloat(columnIndex);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.FLOAT);
+            throw e;
+        }
     }
 
     /**
@@ -225,8 +232,12 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public double getDouble(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.DOUBLE);
-        return proxyState.getRow$realm().getDouble(columnIndex);
+        try {
+            return proxyState.getRow$realm().getDouble(columnIndex);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.DOUBLE);
+            throw e;
+        }
     }
 
     /**
@@ -238,8 +249,12 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public byte[] getBlob(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.BINARY);
-        return proxyState.getRow$realm().getBinaryByteArray(columnIndex);
+        try {
+            return proxyState.getRow$realm().getBinaryByteArray(columnIndex);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.BINARY);
+            throw e;
+        }
     }
 
     /**
@@ -251,8 +266,12 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public String getString(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.STRING);
-        return proxyState.getRow$realm().getString(columnIndex);
+        try {
+            return proxyState.getRow$realm().getString(columnIndex);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.STRING);
+            throw e;
+        }
     }
 
     /**
@@ -287,7 +306,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         } else {
             long linkRowIndex = proxyState.getRow$realm().getLink(columnIndex);
             CheckedRow linkRow = proxyState.getRow$realm().getTable().getLinkTarget(columnIndex).getCheckedRow(linkRowIndex);
-            return new DynamicRealmObject(proxyState.getRealm$realm(), linkRow, false);
+            return new DynamicRealmObject(proxyState.getRealm$realm(), linkRow);
         }
     }
 
@@ -300,10 +319,14 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
      */
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
-        LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
-        String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
-        return new RealmList<DynamicRealmObject>(className, linkView, proxyState.getRealm$realm());
+        try {
+            LinkView linkView = proxyState.getRow$realm().getLinkList(columnIndex);
+            String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
+            return new RealmList<DynamicRealmObject>(className, linkView, proxyState.getRealm$realm());
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnIndex, RealmFieldType.LIST);
+            throw e;
+        }
     }
 
     /**
@@ -693,7 +716,7 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
                 expectedIndefiniteVowel = "n";
             }
             String columnTypeIndefiniteVowel = "";
-            if (expectedType == RealmFieldType.INTEGER || expectedType == RealmFieldType.OBJECT) {
+            if (columnType == RealmFieldType.INTEGER || columnType == RealmFieldType.OBJECT) {
                 columnTypeIndefiniteVowel = "n";
             }
             throw new IllegalArgumentException(String.format("'%s' is not a%s '%s', but a%s '%s'.",

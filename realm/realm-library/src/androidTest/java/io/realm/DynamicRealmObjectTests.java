@@ -151,7 +151,12 @@ public class DynamicRealmObjectTests {
             // of failing values. Only difference is the wrong type column has to be different.
             List<String> args = (type == SupportedType.STRING) ? stringArguments : arguments;
             try {
-                callGetter(type, args);
+                callGetter(dObjTyped, type, args);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            try {
+                callGetter(dObjDynamic, type, args);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -164,9 +169,19 @@ public class DynamicRealmObjectTests {
             try {
                 // Make sure we hit the wrong underlying type for all types.
                 if (type == SupportedType.DOUBLE) {
-                    callGetter(type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                    callGetter(dObjTyped, type, Arrays.asList(AllJavaTypes.FIELD_STRING));
                 } else {
-                    callGetter(type, Arrays.asList(AllJavaTypes.FIELD_DOUBLE));
+                    callGetter(dObjTyped, type, Arrays.asList(AllJavaTypes.FIELD_DOUBLE));
+                }
+                fail(type + " failed to throw.");
+            } catch (IllegalArgumentException ignored) {
+            }
+            try {
+                // Make sure we hit the wrong underlying type for all types.
+                if (type == SupportedType.DOUBLE) {
+                    callGetter(dObjDynamic, type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                } else {
+                    callGetter(dObjDynamic, type, Arrays.asList(AllJavaTypes.FIELD_DOUBLE));
                 }
                 fail(type + " failed to throw.");
             } catch (IllegalArgumentException ignored) {
@@ -175,21 +190,21 @@ public class DynamicRealmObjectTests {
     }
 
     // Helper method for calling getters with different field names
-    private void callGetter(SupportedType type, List<String> fieldNames) {
+    private static void callGetter(DynamicRealmObject target, SupportedType type, List<String> fieldNames) {
         for (String fieldName : fieldNames) {
             switch (type) {
-                case BOOLEAN: dObjTyped.getBoolean(fieldName); break;
-                case SHORT: dObjTyped.getShort(fieldName); break;
-                case INT: dObjTyped.getInt(fieldName); break;
-                case LONG: dObjTyped.getLong(fieldName); break;
-                case BYTE: dObjTyped.getByte(fieldName); break;
-                case FLOAT: dObjTyped.getFloat(fieldName); break;
-                case DOUBLE: dObjTyped.getDouble(fieldName); break;
-                case STRING: dObjTyped.getString(fieldName); break;
-                case BINARY: dObjTyped.getBlob(fieldName); break;
-                case DATE: dObjTyped.getDate(fieldName); break;
-                case OBJECT: dObjTyped.getObject(fieldName); break;
-                case LIST: dObjTyped.getList(fieldName); break;
+                case BOOLEAN: target.getBoolean(fieldName); break;
+                case SHORT: target.getShort(fieldName); break;
+                case INT: target.getInt(fieldName); break;
+                case LONG: target.getLong(fieldName); break;
+                case BYTE: target.getByte(fieldName); break;
+                case FLOAT: target.getFloat(fieldName); break;
+                case DOUBLE: target.getDouble(fieldName); break;
+                case STRING: target.getString(fieldName); break;
+                case BINARY: target.getBlob(fieldName); break;
+                case DATE: target.getDate(fieldName); break;
+                case OBJECT: target.getObject(fieldName); break;
+                case LIST: target.getList(fieldName); break;
                 default:
                     fail();
             }
@@ -209,7 +224,12 @@ public class DynamicRealmObjectTests {
         for (SupportedType type : SupportedType.values()) {
             List<String> args = (type == SupportedType.STRING) ? stringArguments : arguments;
             try {
-                callSetter(type, args);
+                callSetter(dObjTyped, type, args);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            try {
+                callSetter(dObjDynamic, type, args);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -223,14 +243,27 @@ public class DynamicRealmObjectTests {
             try {
                 // Make sure we hit the wrong underlying type for all types.
                 if (type == SupportedType.STRING) {
-                    callSetter(type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
+                    callSetter(dObjTyped, type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
                 } else {
-                    callSetter(type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                    callSetter(dObjTyped, type, Arrays.asList(AllJavaTypes.FIELD_STRING));
                 }
                 fail();
             } catch (IllegalArgumentException ignored) {
             } finally {
                 realm.cancelTransaction();
+            }
+            dynamicRealm.beginTransaction();
+            try {
+                // Make sure we hit the wrong underlying type for all types.
+                if (type == SupportedType.STRING) {
+                    callSetter(dObjDynamic, type, Arrays.asList(AllJavaTypes.FIELD_BOOLEAN));
+                } else {
+                    callSetter(dObjDynamic, type, Arrays.asList(AllJavaTypes.FIELD_STRING));
+                }
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            } finally {
+                dynamicRealm.cancelTransaction();
             }
         }
     }
@@ -280,21 +313,21 @@ public class DynamicRealmObjectTests {
     }
 
     // Helper method for calling setters with different field names
-    private void callSetter(SupportedType type, List<String> fieldNames) {
+    private static void callSetter(DynamicRealmObject target, SupportedType type, List<String> fieldNames) {
         for (String fieldName : fieldNames) {
             switch (type) {
-                case BOOLEAN: dObjTyped.setBoolean(fieldName, false); break;
-                case SHORT: dObjTyped.setShort(fieldName, (short) 1); break;
-                case INT: dObjTyped.setInt(fieldName, 1); break;
-                case LONG: dObjTyped.setLong(fieldName, 1L); break;
-                case BYTE: dObjTyped.setByte(fieldName, (byte) 4); break;
-                case FLOAT: dObjTyped.setFloat(fieldName, 1.23f); break;
-                case DOUBLE: dObjTyped.setDouble(fieldName, 1.23d); break;
-                case STRING: dObjTyped.setString(fieldName, "foo"); break;
-                case BINARY: dObjTyped.setBlob(fieldName, new byte[]{}); break;
-                case DATE: dObjTyped.getDate(fieldName); break;
-                case OBJECT: dObjTyped.setObject(fieldName, null); break;
-                case LIST: dObjTyped.setList(fieldName, null); break;
+                case BOOLEAN: target.setBoolean(fieldName, false); break;
+                case SHORT: target.setShort(fieldName, (short) 1); break;
+                case INT: target.setInt(fieldName, 1); break;
+                case LONG: target.setLong(fieldName, 1L); break;
+                case BYTE: target.setByte(fieldName, (byte) 4); break;
+                case FLOAT: target.setFloat(fieldName, 1.23f); break;
+                case DOUBLE: target.setDouble(fieldName, 1.23d); break;
+                case STRING: target.setString(fieldName, "foo"); break;
+                case BINARY: target.setBlob(fieldName, new byte[]{}); break;
+                case DATE: target.getDate(fieldName); break;
+                case OBJECT: target.setObject(fieldName, null); target.setObject(fieldName, target); break;
+                case LIST: target.setList(fieldName, new RealmList<DynamicRealmObject>()); break;
                 default:
                     fail();
             }

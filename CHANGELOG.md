@@ -1,13 +1,27 @@
-## 2.0.1
+## 2.1.0
 
-### Bug fixes
+### Enhancement
 
-* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
-* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
+* `Realm.compactRealm()` works for encrypted Realms.
 
 ### Enhancements
 
 * Throw a `RealmException` when an object is used as a `RealmObject`/`RealmList` field but is not declared in the `RealmModule` (#3398).
+
+## 2.0.1
+
+### Bug fixes
+
+* `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
+* `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
+* `distinctAsync` did not respect other query parameters (#3537).
+* `ConcurrentModificationException` from Gradle when building an application (#3501).
+
+## Internal
+
+### Enhancements
+
+* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA
 
 ## 2.0.0
 
