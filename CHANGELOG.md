@@ -2,9 +2,10 @@
 
 ### Bug fixes
 
-* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
-* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
-* Fixed a bug causing the `ConcurrentModificationException` while building an application (#3501).
+* `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
+* `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
+* `distinctAsync` did not respect other query parameters (#3537).
+* `ConcurrentModificationException` from Gradle when building an application (#3501).
 
 ## Internal
 

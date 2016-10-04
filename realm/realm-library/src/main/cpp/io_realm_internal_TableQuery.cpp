@@ -116,7 +116,8 @@ static jlong getDistinctViewWithHandover
             case type_Int:
             case type_Timestamp:
             case type_String: {
-                TableView tableView(table->get_distinct_view(S(columnIndex)) );
+                TableView tableView(query->find_all());
+                tableView.distinct(S(columnIndex));
 
                 // handover the result
                 auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
