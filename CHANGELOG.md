@@ -4,7 +4,8 @@
 
 * `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
 * `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
-* `distinctAsync` did not respect any other query parameters (#3537).
+* `distinctAsync` did not respect other query parameters (#3537).
+* `ConcurrentModificationException` from Gradle when building an application (#3501).
 
 ## 2.0.0
 
