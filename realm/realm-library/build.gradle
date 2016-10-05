@@ -556,7 +556,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-{project.version}.aar?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
     }
 
     task("bintraySources${flavor.name.capitalize()}", type: Exec) {
@@ -569,7 +569,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-sources-{project.version}.jar?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
     }
 
     task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
@@ -582,7 +582,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-javadoc-{project.version}.jar?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
     }
 
     task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
@@ -595,7 +595,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-{project.version}.pom?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
     }
 
     task("bintray${flavor.name.capitalize()}") {
