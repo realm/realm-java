@@ -21,6 +21,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +59,7 @@ public class UserStoreTest {
         }
     }
 
+    @Ignore("See https://github.com/realm/realm-java/issues/3555")
     @Test
     public void encrypt_decrypt_UsingAndroidKeyStoreUserStore() throws KeyStoreException {
         User user = createTestUser();
