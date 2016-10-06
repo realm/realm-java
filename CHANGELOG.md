@@ -1,3 +1,9 @@
+## 2.0.2
+
+### Bug fixes
+
+* Build error when using Java 7 (#3563).
+
 ## 2.0.1
 
 ### Bug fixes
