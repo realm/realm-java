@@ -1,3 +1,9 @@
+## 2.1.0
+
+### Enhancement
+
+* `Realm.compactRealm()` works for encrypted Realms.
+
 ## 2.0.2
 
 This release is not protocol-compatible with previous versions of the Realm Mobile Platform. The base library is still fully compatible.
