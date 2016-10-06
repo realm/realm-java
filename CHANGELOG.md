@@ -1,3 +1,9 @@
+## 2.0.2
+
+## Internal
+
+* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. This version of Sync is not compatible with previous versions, but the base library still is.
+
 ## 2.0.1
 
 ### Bug fixes
