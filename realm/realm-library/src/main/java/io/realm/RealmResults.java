@@ -236,12 +236,37 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     @Override
+    public E first(E defaultValue) {
+        if (size() > 0) {
+            return get(0);
+        } else {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public E last() {
         int size = size();
         if (size > 0) {
             return get(size - 1);
         } else {
             throw new IndexOutOfBoundsException("No results were found.");
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public E last(E defaultValue) {
+        int size = size();
+        if (size > 0) {
+            return get(size - 1);
+        } else {
+            return defaultValue;
         }
     }
 

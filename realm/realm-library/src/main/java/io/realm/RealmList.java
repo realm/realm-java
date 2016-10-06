@@ -468,6 +468,21 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
     }
 
     /**
+    * {@inheritDoc}
+    */
+    public E first(E defaultValue) {
+        if (managedMode) {
+            checkValidView();
+            if (!view.isEmpty()) {
+                return get(0);
+            }
+        } else if (unmanagedList != null && unmanagedList.size() > 0) {
+            return unmanagedList.get(0);
+        }
+        return defaultValue;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public E last() {
@@ -480,6 +495,21 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
             return unmanagedList.get(unmanagedList.size() - 1);
         }
         throw new IndexOutOfBoundsException("The list is empty.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public E last(E defaultValue) {
+        if (managedMode) {
+            checkValidView();
+            if (!view.isEmpty()) {
+                return get((int) view.size() - 1);
+            }
+        } else if (unmanagedList != null && unmanagedList.size() > 0) {
+            return unmanagedList.get(unmanagedList.size() - 1);
+        }
+        return defaultValue;
     }
 
     /**

@@ -35,12 +35,26 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
     E first();
 
     /**
+     * Gets the first object from the collection. If the collection is empty, the provided default will be used.
+     *
+     * @return the first object or the provided default.
+     */
+    E first(E defaultObject);
+
+    /**
      * Gets the last object from the collection.
      *
      * @return the last object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
     E last();
+
+    /**
+     * Gets the last object from the collection. If the collection is empty, the provided default will be used.
+     *
+     * @return the last object or the provided default.
+     */
+    E last(E defaultObject);
 
     /**
      * Sorts a collection based on the provided field in ascending order.
