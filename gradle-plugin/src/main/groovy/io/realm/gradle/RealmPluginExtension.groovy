@@ -31,11 +31,12 @@ class RealmPluginExtension {
         this.syncEnabled = value;
 
         // remove realm android library first
-        project.getConfigurations().getByName("compile").getDependencies().removeIf() {
-            if (it.group != 'io.realm') {
-                return false
+        def iterator = project.getConfigurations().getByName("compile").getDependencies().iterator();
+        while (iterator.hasNext()) {
+            def item = iterator.next()
+            if (item.group == 'io.realm' && item.name.startsWith('realm-android-library')) {
+                iterator.remove()
             }
-            return it.name.startsWith('realm-android-library')
         }
 
         // then add again
