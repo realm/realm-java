@@ -1,8 +1,14 @@
 ## 2.0.2
 
+This release is not protocol-compatible with previous versionss of the Realm Mobile Platform. The base library is still fully compatible.
+
+### Bug fixes
+
+* Build error when using Java 7 (#3563).
+
 ## Internal
 
-* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. This version of Sync is not compatible with previous versions, but the base library still is.
+* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. 
 
 ## 2.0.1
 
