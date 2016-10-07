@@ -35,11 +35,11 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
     E first();
 
     /**
-     * Gets the first object from the collection. If the collection is empty, the provided default will be used.
+     * Gets the first object from the collection. If the collection is empty, the provided default will be used instead.
      *
      * @return the first object or the provided default.
      */
-    E first(E defaultObject);
+    E first(E defaultValue);
 
     /**
      * Gets the last object from the collection.
@@ -50,11 +50,11 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
     E last();
 
     /**
-     * Gets the last object from the collection. If the collection is empty, the provided default will be used.
+     * Gets the last object from the collection. If the collection is empty, the provided default will be used instead.
      *
      * @return the last object or the provided default.
      */
-    E last(E defaultObject);
+    E last(E defaultValue);
 
     /**
      * Sorts a collection based on the provided field in ascending order.

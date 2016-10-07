@@ -225,11 +225,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E first() {
-        if (size() > 0) {
-            return get(0);
-        } else {
-            throw new IndexOutOfBoundsException("No results were found.");
-        }
+        return firstImpl(true, null);
     }
 
     /**
@@ -237,10 +233,18 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E first(E defaultValue) {
-        if (size() > 0) {
+        return firstImpl(false, defaultValue);
+    }
+
+    private E firstImpl(boolean shouldThrow, E defaultValue) {
+        if (!isEmpty()) {
             return get(0);
         } else {
-            return defaultValue;
+            if (shouldThrow) {
+                throw new IndexOutOfBoundsException("No results were found.");
+            } else {
+                return defaultValue;
+            }
         }
     }
 
@@ -249,12 +253,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E last() {
-        int size = size();
-        if (size > 0) {
-            return get(size - 1);
-        } else {
-            throw new IndexOutOfBoundsException("No results were found.");
-        }
+        return lastImpl(true, null);
     }
 
     /**
@@ -262,11 +261,19 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E last(E defaultValue) {
-        int size = size();
-        if (size > 0) {
-            return get(size - 1);
+        return lastImpl(false, defaultValue);
+        
+    }
+
+    private E lastImpl(boolean shouldThrow, E defaultValue) {
+        if (!isEmpty()) {
+            return get(size() - 1);
         } else {
-            return defaultValue;
+            if (shouldThrow) {
+                throw new IndexOutOfBoundsException("No results were found.");
+            } else {
+                return defaultValue;
+            }
         }
     }
 

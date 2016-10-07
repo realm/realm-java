@@ -3,6 +3,7 @@
 ### Enhancement
 
 * `Realm.compactRealm()` works for encrypted Realms.
+*  Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
 
 ## 2.0.1
 

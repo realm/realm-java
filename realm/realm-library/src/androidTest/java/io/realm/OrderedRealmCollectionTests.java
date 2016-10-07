@@ -222,7 +222,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void first_withDefault() {
-        AllJavaTypes defaultObject = collection.get(0);
+        AllJavaTypes defaultObject = new AllJavaTypes();
         collection = createEmptyCollection(realm, collectionClass);
         assertEquals(defaultObject, collection.first(defaultObject));
         assertEquals(null, collection.first(null)); // Null is an acceptable default
@@ -245,7 +245,7 @@ public class OrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void last_withDefault() {
-        AllJavaTypes defaultObject = collection.get(0);
+        AllJavaTypes defaultObject = new AllJavaTypes();
         collection = createEmptyCollection(realm, collectionClass);
         assertEquals(defaultObject, collection.last(defaultObject));
         assertEquals(null, collection.last(null)); // Null is an acceptable default
