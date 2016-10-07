@@ -33,7 +33,7 @@ import kotlin.properties.Delegates
 class KotlinExampleActivity : Activity() {
 
     companion object {
-        val TAG: String? = KotlinExampleActivity::class.java.simpleName
+        val TAG: String = KotlinExampleActivity::class.java.simpleName
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
