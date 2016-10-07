@@ -30,11 +30,10 @@ import org.jetbrains.anko.async
 import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
 
-
 class KotlinExampleActivity : Activity() {
 
     companion object {
-        val TAG: String = KotlinExampleActivity::class.qualifiedName as String
+        val TAG: String? = KotlinExampleActivity::class.java.simpleName
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
@@ -50,7 +49,7 @@ class KotlinExampleActivity : Activity() {
         // we can generally safely run them on the UI thread.
 
         // Open the realm for the UI thread.
-        realm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance()
 
         basicCRUD(realm)
         basicQuery(realm)
@@ -94,13 +93,13 @@ class KotlinExampleActivity : Activity() {
         // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.executeTransaction {
             // Add a person
-            var person = realm.createObject(Person::class.java, 1)
+            val person = realm.createObject(Person::class.java, 1)
             person.name = "Young Person"
             person.age = 14
         }
 
         // Find the first person (no query conditions) and read a field
-        var person = realm.where(Person::class.java).findFirst()
+        val person = realm.where(Person::class.java).findFirst()
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction
@@ -177,7 +176,7 @@ class KotlinExampleActivity : Activity() {
         }
 
         // Sorting
-        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING);
+        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
         check(realm.where(Person::class.java).findAll().last().name == sortedPersons.first().name)
         status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
 
