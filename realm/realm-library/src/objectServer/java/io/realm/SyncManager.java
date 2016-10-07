@@ -68,6 +68,8 @@ public final class SyncManager {
                 case RECOVERABLE:
                     RealmLog.info(errorMsg);
                     break;
+                default:
+                    throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
             }
         }
     };

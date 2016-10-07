@@ -518,14 +518,14 @@ abstract class BaseRealm implements Closeable {
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
-        final Table table = (dynamicClassName != null) ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
+        final boolean isDynamicRealmObject = dynamicClassName != null;
+        final Table table = isDynamicRealmObject ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
 
         E result;
-        if (dynamicClassName != null) {
+        if (isDynamicRealmObject) {
             @SuppressWarnings("unchecked")
             E dynamicObj = (E) new DynamicRealmObject(this,
-                    (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                    false);
+                    (rowIndex != Table.NO_MATCH) ? table.getCheckedRow(rowIndex) : InvalidRow.INSTANCE);
             result = dynamicObj;
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this,

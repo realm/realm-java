@@ -4,12 +4,30 @@
 
 * `Realm.compactRealm()` works for encrypted Realms.
 
+## 2.0.2
+
+This release is not protocol-compatible with previous versions of the Realm Mobile Platform. The base library is still fully compatible.
+
+### Bug fixes
+
+* Build error when using Java 7 (#3563).
+
+## Internal
+
+* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. 
+
 ## 2.0.1
 
 ### Bug fixes
 
-* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
-* Fixed a bug that `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
+* `android.net.conn.CONNECTIVITY_CHANGE` broadcast caused `RuntimeException` if sync extension was disabled (#3505).
+* `android.net.conn.CONNECTIVITY_CHANGE` was not delivered on Android 7 devices.
+* `distinctAsync` did not respect other query parameters (#3537).
+* `ConcurrentModificationException` from Gradle when building an application (#3501).
+
+## Internal
+
+* Upgraded to Realm Core 2.0.1 / Realm Sync 1.3-BETA
 
 ## 2.0.0
 
