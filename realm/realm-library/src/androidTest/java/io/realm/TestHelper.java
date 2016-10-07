@@ -1086,4 +1086,20 @@ public class TestHelper {
             throw throwable;
         }
     }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                deleteRecursively(f);
+            }
+        }
+
+        if (!file.delete()) {
+            throw new AssertionError("failed to delete " + file.getAbsolutePath());
+        }
+    }
 }

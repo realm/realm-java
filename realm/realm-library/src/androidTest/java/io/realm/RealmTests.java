@@ -145,6 +145,7 @@ public class RealmTests {
         // Injecting the Instrumentation instance is required
         // for your test to run with AndroidJUnitRunner.
         context = InstrumentationRegistry.getInstrumentation().getContext();
+        Realm.init(context);
         realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
@@ -3810,5 +3811,32 @@ public class RealmTests {
         assertEquals(1, Realm.getGlobalInstanceCount(config));
         realm.close();
         assertEquals(0, Realm.getGlobalInstanceCount(config));
+    }
+
+    @Test
+    public void testExternalStorage() {
+        // test for https://github.com/realm/realm-java/issues/3140
+        realm.close();
+        realm = null;
+
+        final File namedPipeDir = new File(SharedRealm.namedPipeDir);
+        TestHelper.deleteRecursively(namedPipeDir);
+
+        final File externalFilesDir = context.getExternalFilesDir(null);
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+                .directory(externalFilesDir)
+                .name("external.realm")
+                .build();
+
+        // test if it works when the namedPipeDir does not exist.
+        Realm realmOnExternalStorage = Realm.getInstance(config);
+        realmOnExternalStorage.close();
+
+        assertTrue(namedPipeDir.isDirectory());
+        assertEquals(2, namedPipeDir.list().length);
+
+        // test if it works when the namedPipeDir and the named pipe files already exist.
+        realmOnExternalStorage = Realm.getInstance(config);
+        realmOnExternalStorage.close();
     }
 }
