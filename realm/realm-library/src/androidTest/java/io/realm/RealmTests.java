@@ -3811,4 +3811,19 @@ public class RealmTests {
         realm.close();
         assertEquals(0, Realm.getGlobalInstanceCount(config));
     }
+
+    @Test
+    public void testExternalStorage() {
+        // test for https://github.com/realm/realm-java/issues/3140
+
+        final File externalFilesDir = context.getExternalFilesDir(null);
+
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+                .directory(externalFilesDir)
+                .name("external.realm")
+                .build();
+
+        final Realm realm = Realm.getInstance(config);
+        realm.close();
+    }
 }
