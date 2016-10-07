@@ -33,6 +33,10 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
 
+    // Initialized by Realm.init(Context)
+    // namedPipeDir must end with '/'
+    public static String namedPipeDir;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -171,6 +175,7 @@ public final class SharedRealm implements Closeable {
                 enable_caching,
                 disableFormatUpgrade,
                 autoChangeNotifications,
+                SharedRealm.namedPipeDir,
                 rosServerUrl,
                 rosUserToken);
         try {
@@ -342,7 +347,7 @@ public final class SharedRealm implements Closeable {
 
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
-                                                  boolean autoChangeNotification,
+                                                  boolean autoChangeNotification, String namedPipeDir,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);

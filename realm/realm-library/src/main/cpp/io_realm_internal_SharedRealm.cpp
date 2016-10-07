@@ -27,13 +27,14 @@ static_assert(SchemaMode::Manual ==
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
-        jboolean auto_change_notification, jstring sync_server_url, jstring sync_user_token)
+        jboolean auto_change_notification, jstring temp_dir, jstring sync_server_url, jstring sync_user_token)
 {
     TR_ENTER(env)
 
     try {
         JStringAccessor path(env, realm_path); // throws
         JniByteArray key_array(env, key);
+        JStringAccessor temp_dir_str(env, temp_dir); // throws
         Realm::Config *config = new Realm::Config();
         config->path = path;
         config->encryption_key = key_array;
@@ -42,6 +43,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
+        config->temp_dir = temp_dir_str;
 #ifdef REALM_SYNC
         if (sync_server_url) {
             JStringAccessor url(env, sync_server_url);
