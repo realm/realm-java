@@ -1,3 +1,9 @@
+## 2.0.3
+
+### Bug fixes
+
+* Permission error when a database file is located at external storage (#3140).
+
 ## 2.0.2
 
 This release is not protocol-compatible with previous versions of the Realm Mobile Platform. The base library is still fully compatible.
