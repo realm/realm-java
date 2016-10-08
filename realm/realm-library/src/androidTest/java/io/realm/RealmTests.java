@@ -145,7 +145,6 @@ public class RealmTests {
         // Injecting the Instrumentation instance is required
         // for your test to run with AndroidJUnitRunner.
         context = InstrumentationRegistry.getInstrumentation().getContext();
-        Realm.init(context);
         realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
@@ -3820,7 +3819,10 @@ public class RealmTests {
         realm = null;
 
         final File namedPipeDir = new File(SharedRealm.namedPipeDir);
+        assertTrue(namedPipeDir.isDirectory());
         TestHelper.deleteRecursively(namedPipeDir);
+        //noinspection ResultOfMethodCallIgnored
+        namedPipeDir.mkdirs();
 
         final File externalFilesDir = context.getExternalFilesDir(null);
         final RealmConfiguration config = new RealmConfiguration.Builder()
@@ -3828,7 +3830,7 @@ public class RealmTests {
                 .name("external.realm")
                 .build();
 
-        // test if it works when the namedPipeDir does not exist.
+        // test if it works when the namedPipeDir is empty.
         Realm realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
 
