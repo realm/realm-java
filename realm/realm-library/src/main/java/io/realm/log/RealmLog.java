@@ -110,7 +110,6 @@ public final class RealmLog {
      * @param message message to log.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    // called from io_realm_internal_Util.cpp
     public static void trace(String message, Object... args) {
         trace(null, message, args);
     }
@@ -145,7 +144,6 @@ public final class RealmLog {
      * @param message message to log.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    // called from io_realm_internal_Util.cpp
     public static void debug(String message, Object... args) {
         debug(null, message, args);
     }
@@ -180,7 +178,6 @@ public final class RealmLog {
      * @param message message to log.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    // called from io_realm_internal_Util.cpp
     public static void info(String message, Object... args) {
         info(null, message, args);
     }
@@ -215,7 +212,6 @@ public final class RealmLog {
      * @param message message to log.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    // called from io_realm_internal_Util.cpp
     public static void warn(String message, Object... args) {
         warn(null, message, args);
     }
@@ -250,7 +246,6 @@ public final class RealmLog {
      * @param message message to log.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    // called from io_realm_internal_Util.cpp
     public static void error(String message, Object... args) {
         error(null, message, args);
     }
@@ -285,7 +280,6 @@ public final class RealmLog {
      * @param message message to log.
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
-    // called from io_realm_internal_Util.cpp
     public static void fatal(String message, Object... args) {
         fatal(null, message, args);
     }
