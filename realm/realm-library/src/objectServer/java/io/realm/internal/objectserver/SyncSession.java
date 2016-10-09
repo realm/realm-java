@@ -201,6 +201,13 @@ public final class SyncSession {
         }
     }
 
+    // Called from Session.cpp and SyncMaanger
+    // This callback will happen on the thread running the Sync Client.
+    void notifySessionError(int errorCode, String errorMessage) {
+        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
+        onError(error);
+    }
+
     /**
      * Checks if the local Realm is bound to the remote Realm and can synchronize any changes happening on either
      * sides.
