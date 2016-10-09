@@ -39,7 +39,6 @@ android {
         minSdkVersion 9
         targetSdkVersion 24
         project.archivesBaseName = "realm-android-library"
-        consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -94,6 +93,7 @@ android {
                     arguments "-DREALM_FLAVOR=base"
                 }
             }
+            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
         }
         objectServer {
             externalNativeBuild {
@@ -101,6 +101,7 @@ android {
                     arguments "-DREALM_FLAVOR=objectServer"
                 }
             }
+            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
         }
     }
 }
