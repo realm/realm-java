@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.Future;
 
+import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.RealmAsyncTask;
 import io.realm.Session;
