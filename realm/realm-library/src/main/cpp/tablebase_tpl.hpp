@@ -17,13 +17,15 @@
 #ifndef REALM_JNI_TABLEBASE_TPL_HPP
 #define REALM_JNI_TABLEBASE_TPL_HPP
 
+#include <string>
+#include <exception>
+
 #include <realm.hpp>
 
 template <class T>
 jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!TBL_AND_INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex))
-        return NULL;
+    TBL_AND_INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex);
 
     realm::BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
     if (bin.is_null()) {
@@ -32,12 +34,11 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     if (bin.size() <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));
         return jresult;
     }
     else {
-        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
-        return NULL;
+        throw std::invalid_argument(std::string("Length of ByteArray is larger than an Int."));
     }
 }
 

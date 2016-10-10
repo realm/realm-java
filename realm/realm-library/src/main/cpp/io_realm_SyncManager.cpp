@@ -54,9 +54,7 @@ public:
             case Level::fatal: log_method = log_fatal; break;
             case Level::all:
             case Level::off:
-                ThrowException(env, IllegalArgument,
-                        util::format("Unknown logger argument: %s.", util::Logger::get_level_prefix(level)));
-                return;
+                throw invalid_argument(util::format("Unknown logger argument: %s.", util::Logger::get_level_prefix(level)));
         }
         log_message(env, log_method, msg.c_str());
     }
@@ -97,9 +95,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
     (JNIEnv *env, jclass sync_manager_class)
 {
     TR_ENTER(env)
-    if (sync_client) return;
+    try_catch<void>(env, [&]() {
+        if (sync_client) return;
 
-    try {
         AndroidLogger::shared().set_level_threshold(util::Logger::Level::warn);
 
         sync::Client::Config config;
@@ -111,35 +109,36 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
         sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
                                                                    "notifyErrorHandler", "(ILjava/lang/String;)V");
         sync_client->set_error_handler(error_handler);
-    } CATCH_STD()
+    });
 }
 
 // Create the thread from java side to avoid some strange errors when native throws.
 JNIEXPORT void JNICALL
 Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
 {
-    try {
+    try_catch<void>(env, [&]() {
         sync_client->run();
-    } CATCH_STD()
+    });
 }
 
 JNIEXPORT void JNICALL
 Java_io_realm_SyncManager_nativeSetSyncClientLogLevel(JNIEnv* env, jclass, jint logLevel)
 {
-    util::Logger::Level native_log_level;
-    switch(logLevel) {
-        case io_realm_log_LogLevel_ALL: native_log_level = util::Logger::Level::all; break;
-        case io_realm_log_LogLevel_TRACE: native_log_level = util::Logger::Level::trace; break;
-        case io_realm_log_LogLevel_DEBUG: native_log_level = util::Logger::Level::debug; break;
-        case io_realm_log_LogLevel_INFO: native_log_level = util::Logger::Level::info; break;
-        case io_realm_log_LogLevel_WARN: native_log_level = util::Logger::Level::warn; break;
-        case io_realm_log_LogLevel_ERROR: native_log_level = util::Logger::Level::error; break;
-        case io_realm_log_LogLevel_FATAL: native_log_level = util::Logger::Level::fatal; break;
-        case io_realm_log_LogLevel_OFF: native_log_level = util::Logger::Level::off; break;
-        default:
-            ThrowException(env, IllegalArgument, "Invalid log level: " + logLevel);
-            return;
-    }
-    // FIXME: This call is not thread safe. Switch to OS implementation to make it thread safe.
-    AndroidLogger::shared().set_level_threshold(native_log_level);
+    try_catch<void>(env, [&]() {
+        util::Logger::Level native_log_level;
+        switch(logLevel) {
+            case io_realm_log_LogLevel_ALL: native_log_level = util::Logger::Level::all; break;
+            case io_realm_log_LogLevel_TRACE: native_log_level = util::Logger::Level::trace; break;
+            case io_realm_log_LogLevel_DEBUG: native_log_level = util::Logger::Level::debug; break;
+            case io_realm_log_LogLevel_INFO: native_log_level = util::Logger::Level::info; break;
+            case io_realm_log_LogLevel_WARN: native_log_level = util::Logger::Level::warn; break;
+            case io_realm_log_LogLevel_ERROR: native_log_level = util::Logger::Level::error; break;
+            case io_realm_log_LogLevel_FATAL: native_log_level = util::Logger::Level::fatal; break;
+            case io_realm_log_LogLevel_OFF: native_log_level = util::Logger::Level::off; break;
+            default:
+                throw invalid_argument("Invalid log level: " + logLevel);
+        }
+        // FIXME: This call is not thread safe. Switch to OS implementation to make it thread safe.
+        AndroidLogger::shared().set_level_threshold(native_log_level);
+    });
 }

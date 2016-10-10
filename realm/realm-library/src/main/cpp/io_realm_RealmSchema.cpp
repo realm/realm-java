@@ -28,7 +28,7 @@ using namespace realm;
 JNIEXPORT jlong JNICALL
 Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv *env, jclass, jlongArray objectSchemaPtrs_) {
     TR_ENTER(env)
-    try {
+    return try_catch<jlong>(env, [&]() {
         std::vector<ObjectSchema> object_schemas;
         JniLongArray array(env, objectSchemaPtrs_);
         for (jsize i = 0; i < array.len(); ++i) {
@@ -37,9 +37,7 @@ Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv *env, jclass, jlongArray o
         }
         auto *schema = new Schema(object_schemas);
         return reinterpret_cast<jlong>(schema);
-    }
-    CATCH_STD()
-    return 0;
+    });
 }
 
 JNIEXPORT void JNICALL
@@ -52,7 +50,7 @@ Java_io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong nativePtr) {
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_RealmSchema_nativeGetAll(JNIEnv *env, jclass, jlong nativePtr) {
     TR_ENTER_PTR(env, nativePtr)
-    try {
+    return try_catch<jlongArray>(env, [&]() {
         Schema* schema = reinterpret_cast<Schema*>(nativePtr);
         size_t size = schema->size();
         jlongArray native_ptr_array = env->NewLongArray(static_cast<jsize>(size));
@@ -68,8 +66,6 @@ Java_io_realm_RealmSchema_nativeGetAll(JNIEnv *env, jclass, jlong nativePtr) {
         env->SetLongArrayRegion(native_ptr_array, 0, static_cast<jsize>(size), tmp);
         delete tmp;
         return native_ptr_array;
-    }
-    CATCH_STD()
-    return NULL;
+    });
 }
 
