@@ -1621,6 +1621,31 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
+    @RunTestInLooperThread()
+    public void distinctAsync_rememberQueryParams() {
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final int TEST_SIZE = 10;
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllJavaTypes.class, i);
+        }
+        realm.commitTransaction();
+
+        RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class)
+                .notEqualTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2)
+                .distinctAsync(AllJavaTypes.FIELD_ID);
+
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> results) {
+                assertEquals(TEST_SIZE - 1, results.size());
+                assertEquals(0, results.where().equalTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2).count());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
     @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() throws Throwable {
         Realm realm = looperThread.realm;

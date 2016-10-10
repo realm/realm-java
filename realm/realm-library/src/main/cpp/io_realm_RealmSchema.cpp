@@ -39,6 +39,7 @@ Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv *env, jclass, jlongArray o
         return reinterpret_cast<jlong>(schema);
     }
     CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT void JNICALL
@@ -69,5 +70,6 @@ Java_io_realm_RealmSchema_nativeGetAll(JNIEnv *env, jclass, jlong nativePtr) {
         return native_ptr_array;
     }
     CATCH_STD()
+    return NULL;
 }
 

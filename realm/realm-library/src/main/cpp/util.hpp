@@ -153,12 +153,14 @@ inline void log_message(JNIEnv *env, jmethodID log_method, const char *msg, ...)
     #define TR_ENTER_PTR(env, ptr) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " --> %s %" PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
     #define TR(env, msg, ...) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, msg, __VA_ARGS__)); } else {}
     #define TR_ERR(env, msg, ...) if (trace_level <= io_realm_log_LogLevel_ERROR) { log_message(env, log_error, msg, __VA_ARGS__); } else {}
+    #define TR_ERR_NO_VA_ARG(env, msg) if (trace_level <= io_realm_log_LogLevel_ERROR) { log_message(env, log_error, msg); } else {}
     #define TR_LEAVE(env) if (trace_level <= io_realm_log_LogLevel_TRACE) { log_message(env, log_trace, " <-- %s", __FUNCTION__); } else {}
 #else // TRACE - these macros must be empty
     #define TR_ENTER(env)
     #define TR_ENTER_PTR(env, ptr)
     #define TR(env, msg, ...)
     #define TR_ERR(env, msg, ...)
+    #define TR_ERR_NO_VA_ARG(env, msg)
     #define TR_LEAVE(env)
 #endif
 
@@ -421,7 +423,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
         return true;
     }
 
-    TR_ERR(env, "Expected nullable column type", NULL)
+    TR_ERR_NO_VA_ARG(env, "Expected nullable column type")
     ThrowException(env, IllegalArgument, "This field is not nullable.");
     return false;
 }
@@ -711,8 +713,6 @@ extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
 
 // FIXME Move to own library
-extern jclass sync_manager;
-extern jmethodID sync_manager_notify_error_handler;
 extern jclass session_class_ref;
 extern jmethodID session_error_handler;
 

@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
@@ -38,6 +40,7 @@ import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
+ * @Beta
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
@@ -67,6 +70,7 @@ import io.realm.rx.RxObservableFactory;
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  */
+@Beta
 public final class SyncConfiguration extends RealmConfiguration {
 
     public static final int PORT_REALM = 80;
@@ -316,15 +320,6 @@ public final class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("Invalid scheme: " + scheme);
             }
 
-            // set port if not set by user
-            int port;
-            int currentPort = serverUrl.getPort();
-            if (currentPort == -1) {
-                port = scheme.equals("realm") ? PORT_REALM : PORT_REALMS;
-            } else {
-                port = currentPort;
-            }
-
             // Detect last path segment as it is the default file name
             String path = serverUrl.getPath();
             if (path == null) {
@@ -354,13 +349,6 @@ public final class SyncConfiguration extends RealmConfiguration {
                     || defaultLocalFileName.endsWith(".realm.lock")
                     || defaultLocalFileName.endsWith(".realm.management")) {
                 throw new IllegalArgumentException("The URI must not end with '.realm', '.realm.lock' or '.realm.management: " + uri);
-            }
-
-            try {
-                this.serverUrl = new URI(scheme, serverUrl.getUserInfo(), serverUrl.getHost(),
-                        port, serverUrl.getPath(), serverUrl.getQuery(), serverUrl.getFragment());
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Cannot reconstruct URI: " + uri, e);
             }
         }
 
@@ -548,10 +536,12 @@ public final class SyncConfiguration extends RealmConfiguration {
          * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.
          */
+        /* FIXME: Disable this API since we cannot support it without https://github.com/realm/realm-core/issues/2165
         public Builder deleteRealmOnLogout() {
             this.deleteRealmOnLogout = true;
             return this;
         }
+        */
 
         /**
          * Creates the RealmConfiguration based on the builder parameters.

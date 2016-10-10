@@ -30,7 +30,9 @@ open class Person(
         // All properties are by default persisted.
         // Properties can be annotated with PrimaryKey or Index.
         // If you use non-nullable types, properties must be initialized with non-null values.
-        @PrimaryKey open var name: String = "",
+        @PrimaryKey open var id: Long = 0,
+
+        open var name: String = "",
 
         open var age: Int = 0,
 
@@ -41,9 +43,8 @@ open class Person(
         open var cats: RealmList<Cat> = RealmList(),
 
         // You can instruct Realm to ignore a field and not persist it.
-        @Ignore open var tempReference: Int = 0,
+        @Ignore open var tempReference: Int = 0
 
-        open var id: Long = 0
 ) : RealmObject() {
     // The Kotlin compiler generates standard getters and setters.
     // Realm will overload them and code inside them is ignored.

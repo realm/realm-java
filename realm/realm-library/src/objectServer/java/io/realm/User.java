@@ -32,18 +32,19 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import io.realm.internal.IOException;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.internal.objectserver.SyncUser;
-import io.realm.internal.objectserver.Token;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
-import io.realm.log.RealmLog;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.objectserver.SyncUser;
+import io.realm.internal.objectserver.Token;
+import io.realm.log.RealmLog;
 
 /**
+ * @Beta
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
  * providers (Facebook, Google, etc.).
  * <p>
@@ -54,6 +55,7 @@ import io.realm.internal.network.LogoutResponse;
  * Persisting a user between sessions, the user's credentials are stored locally on the device, and should be treated
  * as sensitive data.
  */
+@Beta
 public class User {
 
     private final SyncUser syncUser;
@@ -202,12 +204,14 @@ public class User {
     /**
      * Logs out the user from the Realm Object Server. Once the Object Server has confirmed the logout any registered
      * {@link AuthenticationListener} will be notified and user credentials will be deleted from this device.
-     * <p>
-     * Any Realms owned by the user will be deleted if {@link SyncConfiguration.Builder#deleteRealmOnLogout()} is
-     * also set.
      *
      * @throws IllegalStateException if any Realms owned by this user is still open. They should be closed before
      *         logging out.
+     */
+    /* FIXME: Add this back to the javadoc when enable SyncConfiguration.Builder#deleteRealmOnLogout()
+     <p>
+     Any Realms owned by the user will be deleted if {@link SyncConfiguration.Builder#deleteRealmOnLogout()} is
+     also set.
      */
     public void logout() {
         // Acquire lock to prevent users creating new instances
@@ -254,6 +258,8 @@ public class User {
 
                     // Delete all Realms if needed.
                     for (SyncUser.AccessDescription desc : syncUser.getRealms()) {
+                        // FIXME: This will always be false since SyncConfiguration.Builder.deleteRealmOnLogout() is
+                        // disabled. Make sure this works for Realm opened in the client thread/other processes.
                         if (desc.deleteOnLogout) {
                             File realmFile = new File(desc.localPath);
                             if (realmFile.exists() && !Util.deleteRealm(desc.localPath, realmFile.getParentFile(), realmFile.getName())) {

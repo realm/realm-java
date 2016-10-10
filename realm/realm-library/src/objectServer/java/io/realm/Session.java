@@ -18,11 +18,13 @@ package io.realm;
 
 import java.net.URI;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.log.RealmLog;
 import io.realm.internal.objectserver.SyncSession;
 
 /**
+ * @Beta
  * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
@@ -37,12 +39,14 @@ import io.realm.internal.objectserver.SyncSession;
  * @see SessionState
  */
 @Keep
+@Beta
 public final class Session {
 
     private final SyncSession syncSession;
 
     Session(SyncSession rosSession) {
         this.syncSession = rosSession;
+        rosSession.setUserSession(this);
     }
 
     /**

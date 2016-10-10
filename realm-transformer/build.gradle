@@ -18,6 +18,11 @@ apply plugin: 'com.jfrog.bintray'
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim();
 
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+
+def syncVersion = properties.getProperty('REALM_SYNC_VERSION')
+
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
@@ -59,7 +64,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
     into 'build/generated-src/main/java/io/realm/transformer'
-    filter(ReplaceTokens, tokens: [version: version])
+    filter(ReplaceTokens, tokens: [version: version, syncVersion: syncVersion])
     outputs.upToDateWhen { false }
 }
 

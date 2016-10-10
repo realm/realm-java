@@ -518,14 +518,14 @@ abstract class BaseRealm implements Closeable {
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
-        final Table table = (dynamicClassName != null) ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
+        final boolean isDynamicRealmObject = dynamicClassName != null;
+        final Table table = isDynamicRealmObject ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
 
         E result;
-        if (dynamicClassName != null) {
+        if (isDynamicRealmObject) {
             @SuppressWarnings("unchecked")
             E dynamicObj = (E) new DynamicRealmObject(this,
-                    (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE,
-                    false);
+                    (rowIndex != Table.NO_MATCH) ? table.getCheckedRow(rowIndex) : InvalidRow.INSTANCE);
             result = dynamicObj;
         } else {
             result = configuration.getSchemaMediator().newInstance(clazz, this,
@@ -599,15 +599,17 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
+     * @param cause which triggers this migration.
      * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback) throws FileNotFoundException {
+                                       final MigrationCallback callback, final RealmMigrationNeededException cause)
+            throws FileNotFoundException {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (migration == null && configuration.getMigration() == null) {
-            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
+            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided", cause);
         }
 
         final AtomicBoolean fileNotFound = new AtomicBoolean(false);

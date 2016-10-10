@@ -70,10 +70,12 @@ Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong na
         return to_jstring(env, name);
     }
     CATCH_STD()
+
+    return NULL;
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass type, jlong nativePtr) {
+Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass, jlong nativePtr) {
     TR_ENTER_PTR(env, nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
@@ -93,5 +95,7 @@ Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass type, jl
         return native_ptr_array;
     }
     CATCH_STD()
+
+    return NULL;
 }
 

@@ -1,3 +1,4 @@
+#include <object-store/src/sync_manager.hpp>
 #include "io_realm_internal_SharedRealm.h"
 
 #include "object_store.hpp"
@@ -45,9 +46,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         if (sync_server_url) {
             JStringAccessor url(env, sync_server_url);
             JStringAccessor token(env, sync_user_token);
-            config->sync_config = std::make_shared<SyncConfig>();
-            config->sync_config->user_tag = token;
-            config->sync_config->realm_url = url;
+            config->sync_config = std::make_shared<SyncConfig>(token, url, nullptr, SyncSessionStopPolicy::Immediately);
             // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
             config->sync_config->create_session = false;
         }

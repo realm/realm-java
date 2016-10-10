@@ -38,8 +38,6 @@ jclass java_lang_float;
 jmethodID java_lang_float_init;
 jclass java_lang_double;
 jmethodID java_lang_double_init;
-jclass sync_manager;
-jmethodID sync_manager_notify_error_handler;
 jclass session_class_ref;
 jmethodID session_error_handler;
 
@@ -154,7 +152,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         TR_ERR(env, "Exception has been throw: %s", message.c_str())
     }
     else {
-        TR_ERR(env, "ERROR: Couldn't throw exception.", NULL)
+        TR_ERR_NO_VA_ARG(env, "ERROR: Couldn't throw exception.")
     }
 
     env->DeleteLocalRef(jExceptionClass);
@@ -165,6 +163,7 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     jclass cls = env->FindClass("io/realm/exceptions/RealmFileException");
 
     jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
+    // Initial value to suppress gcc warning.
     jbyte kind_code;
     switch (kind) {
         case realm::RealmFileException::Kind::AccessError:

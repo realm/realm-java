@@ -2102,7 +2102,7 @@ public final class RealmQuery<E extends RealmModel> {
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
-            result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW, false);
+            result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW);
         } else {
             result = realm.getConfiguration().getSchemaMediator().newInstance(
                     clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz),

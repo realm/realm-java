@@ -169,8 +169,8 @@ public class SyncConfigurationTests {
     @Test
     public void serverUrl_port() {
         Map<String, Integer> urlPort = new HashMap<String, Integer>();
-        urlPort.put("realm://objectserver.realm.io/~/default", SyncConfiguration.PORT_REALM);
-        urlPort.put("realms://objectserver.realm.io/~/default", SyncConfiguration.PORT_REALMS);
+        urlPort.put("realm://objectserver.realm.io/~/default", -1); // default port - handled by sync client
+        urlPort.put("realms://objectserver.realm.io/~/default", -1); // default port - handled by sync client
         urlPort.put("realm://objectserver.realm.io:8080/~/default", 8080);
         urlPort.put("realms://objectserver.realm.io:2443/~/default", 2443);
 
@@ -280,7 +280,7 @@ public class SyncConfigurationTests {
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
         assertTrue(user.equals(config.getUser()));
-        assertEquals("realm://objectserver.realm.io:80/default", config.getServerUrl().toString());
+        assertEquals("realm://objectserver.realm.io/default", config.getServerUrl().toString());
         assertFalse(config.shouldDeleteRealmOnLogout());
         assertTrue(config.isSyncConfiguration());
     }
@@ -340,6 +340,7 @@ public class SyncConfigurationTests {
         file.delete(); // clean up
     }
 
+    /* FIXME: deleteRealmOnLogout is not supported by now
     @Test
     public void deleteOnLogout() {
         User user = createTestUser();
@@ -350,6 +351,7 @@ public class SyncConfigurationTests {
                 .build();
         assertTrue(config.shouldDeleteRealmOnLogout());
     }
+    */
 
     @Test
     public void initialData() {
