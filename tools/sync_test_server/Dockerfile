@@ -8,4 +8,5 @@ RUN apt-get update -qq \
 COPY keys/private.pem keys/public.pem configuration.yml /
 COPY ros-testing-server.js /usr/bin/
 # Install realm object server
-RUN apt-get install -y realm-object-server-de=1.0.0-beta-18.0-203
+RUN apt-get update -qq \
+    && apt-get install -y realm-object-server-de=1.0.0-BETA-2.1-271

@@ -89,14 +89,6 @@ task check {
     dependsOn checkExamples
 }
 
-task integrationTestsConnectedCheck(type:GradleBuild) {
-    group = 'Test'
-    description = 'Run the integration tests of the Realm project'
-    dependsOn installTransformer
-    buildFile = file('integration-tests/build.gradle')
-    tasks = ['connectedCheck']		
- }
-
 task connectedUnitTests(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'

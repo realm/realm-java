@@ -81,4 +81,5 @@ RUN apt-get update -qq \
 COPY tools/sync_test_server/keys/private.pem tools/sync_test_server/keys/public.pem tools/sync_test_server/configuration.yml /
 COPY tools/sync_test_server/ros-testing-server.js /usr/bin/
 # Install realm object server
-RUN apt-get install -y realm-object-server-de=1.0.0-beta-18.0-203
+RUN apt-get update -qq \
+    && apt-get install -y realm-object-server-de=1.0.0-BETA-2.1-271

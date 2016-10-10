@@ -1,6 +1,6 @@
 package io.realm.objectserver;
 
-import android.support.test.rule.UiThreadTestRule;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.AfterClass;
@@ -12,19 +12,24 @@ import org.junit.runner.RunWith;
 import io.realm.Credentials;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.Realm;
 import io.realm.User;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class AuthTests {
     @Rule
-    public UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+    public RunInLooperThread looperThread = new RunInLooperThread();
 
     @BeforeClass
     public static void setUp () throws Exception {
+        Realm.init(InstrumentationRegistry.getContext());
         HttpUtils.startSyncServer();
     }
 
@@ -38,20 +43,17 @@ public class AuthTests {
         Credentials credentials = Credentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         try {
             User.login(credentials, Constants.AUTH_URL);
+            fail();
         } catch (ObjectServerError expected) {
-            // FIXME: It doesn't throw the right exception!
-            // The auth server needs an admin user to be created first! Find a workaround for it!!!
-            assertEquals(ErrorCode.MISSING_PARAMETERS, expected.getErrorCode());
+            assertEquals(ErrorCode.UNKNOWN_ACCOUNT, expected.getErrorCode());
         }
     }
 
-    // FIXME: Need LooperThread support!
-    /*
     @Test
-    @UiThreadTest
+    @RunTestInLooperThread
     public void loginAsync_userNotExist() {
         Credentials credentials = Credentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        User.loginAsync(credentials, Constants.AUTH_SERVER_URL, new User.Callback() {
+        User.loginAsync(credentials, Constants.AUTH_URL, new User.Callback() {
             @Override
             public void onSuccess(User user) {
                 fail();
@@ -59,11 +61,9 @@ public class AuthTests {
 
             @Override
             public void onError(ObjectServerError error) {
-                // FIXME: It should check the error code!!
-                assertNotNull(error);
+                assertEquals(ErrorCode.UNKNOWN_ACCOUNT, error.getErrorCode());
+                looperThread.testComplete();
             }
         });
-        Looper.loop();
     }
-    */
 }

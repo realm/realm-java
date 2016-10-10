@@ -171,7 +171,7 @@ A docker image can be built from `tools/sync_test_server/Dockerfile` to run a te
 
 To run a testing server locally:
 a) Install docker.
-b) run the `tools/sync_test_server/start_server.sh` from `tools/sync_test_server` dir:
+b) run the `tools/sync_test_server/start_server.sh`:
 ```sh
 cd tools/sync_test_server
 ./start_server.sh
