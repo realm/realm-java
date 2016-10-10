@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +52,11 @@ public class UserTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Before
+    public void setUp() {
+        Realm.init(InstrumentationRegistry.getTargetContext());
+    }
+
     @Test
     public void toAndFromJson() {
         User user1 = createTestUser();
@@ -73,7 +79,8 @@ public class UserTests {
     // `all()` returns an empty list if no users are logged in
     @Test
     public void all_empty() {
-        assertTrue(User.all().isEmpty());
+        Collection<User> users = User.all();
+        assertTrue(users.isEmpty());
     }
 
     // `all()` returns only valid users. Invalid users are filtered.
