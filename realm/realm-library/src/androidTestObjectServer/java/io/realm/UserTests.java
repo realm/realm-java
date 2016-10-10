@@ -27,6 +27,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.android.SharedPrefsUserStore;
@@ -40,6 +41,7 @@ import io.realm.util.SyncTestUtils;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +68,26 @@ public class UserTests {
 
         // Invalid users should not be returned when asking the for the current user
         assertNull(User.currentUser());
+    }
+
+    // `all()` returns an empty list if no users are logged in
+    @Test
+    public void all_empty() {
+        assertTrue(User.all().isEmpty());
+    }
+
+    // `all()` returns only valid users. Invalid users are filtered.
+    @Test
+    public void all_validUsers() {
+        // Add 1 expired user and 1 valid user to the user store
+        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
+        SyncManager.setUserStore(userStore);
+        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MAX_VALUE));
+
+        Collection<User> users = User.all();
+        assertEquals(1, users.size());
+
     }
 
     // Tests that the user store returns the last user to login
