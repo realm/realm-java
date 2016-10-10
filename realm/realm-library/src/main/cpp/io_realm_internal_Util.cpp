@@ -50,21 +50,23 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         return JNI_ERR;
     }
     else {
-        g_vm = vm;
-        // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
-        java_lang_long        = GetClass(env, "java/lang/Long");
-        java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");
-        java_lang_float       = GetClass(env, "java/lang/Float");
-        java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
-        java_lang_double      = GetClass(env, "java/lang/Double");
-        java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
-        realmlog_class        = GetClass(env, "io/realm/log/RealmLog");
-        log_trace             = env->GetStaticMethodID(realmlog_class, "trace", "(Ljava/lang/String;[Ljava/lang/Object;)V");
-        log_debug             = env->GetStaticMethodID(realmlog_class, "debug", "(Ljava/lang/String;[Ljava/lang/Object;)V");
-        log_info              = env->GetStaticMethodID(realmlog_class, "info", "(Ljava/lang/String;[Ljava/lang/Object;)V");
-        log_warn              = env->GetStaticMethodID(realmlog_class, "warn", "(Ljava/lang/String;[Ljava/lang/Object;)V");
-        log_error             = env->GetStaticMethodID(realmlog_class, "error", "(Ljava/lang/String;[Ljava/lang/Object;)V");
-        log_fatal             = env->GetStaticMethodID(realmlog_class, "fatal", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        try_catch<void>(env, [&]() {
+            g_vm = vm;
+            // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
+            java_lang_long        = GetClass(env, "java/lang/Long");
+            java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");
+            java_lang_float       = GetClass(env, "java/lang/Float");
+            java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
+            java_lang_double      = GetClass(env, "java/lang/Double");
+            java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
+            realmlog_class        = GetClass(env, "io/realm/log/RealmLog");
+            log_trace             = env->GetStaticMethodID(realmlog_class, "trace", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+            log_debug             = env->GetStaticMethodID(realmlog_class, "debug", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+            log_info              = env->GetStaticMethodID(realmlog_class, "info", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+            log_warn              = env->GetStaticMethodID(realmlog_class, "warn", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+            log_error             = env->GetStaticMethodID(realmlog_class, "error", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+            log_fatal             = env->GetStaticMethodID(realmlog_class, "fatal", "(Ljava/lang/String;[Ljava/lang/Object;)V");
+        });
     }
 
     return JNI_VERSION_1_6;
@@ -107,6 +109,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, j
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(
     JNIEnv* env, jclass)
 {
-    realm::StringData sd(TABLE_PREFIX);
-    return to_jstring(env, sd);
+    return try_catch<jstring>(env, [&]() {
+        realm::StringData sd(TABLE_PREFIX);
+        return to_jstring(env, sd);
+    });
 }
