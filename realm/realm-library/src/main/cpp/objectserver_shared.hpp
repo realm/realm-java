@@ -69,7 +69,7 @@ public:
         return m_sync_session;
     }
 
-    // Call this just before destroying the object to release JNI ressources.
+    // Call this just before destroying the object to release JNI resources.
     inline void close(JNIEnv* env)
     {
         env->DeleteGlobalRef(m_global_obj_ref);
