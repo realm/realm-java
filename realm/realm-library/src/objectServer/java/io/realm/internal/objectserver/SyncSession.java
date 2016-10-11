@@ -203,10 +203,11 @@ public final class SyncSession {
         }
     }
 
-    // Called from Session.cpp and SyncMaanger
+    // Called from JniSession in native code.
     // This callback will happen on the thread running the Sync Client.
+    @SuppressWarnings("unused")
     @KeepMember
-    void notifySessionError(int errorCode, String errorMessage) {
+    private void notifySessionError(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
         onError(error);
     }

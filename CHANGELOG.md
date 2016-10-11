@@ -4,6 +4,7 @@
 
 * Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
 * Missing ProGuard configuration for libraries used by Sync extension (#3596).
+* Fixed a bug that error handler is not called when sync session fails (#3597).
 
 ### Enhancements
 
