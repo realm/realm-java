@@ -5,6 +5,10 @@
 * Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
 * Missing ProGuard configuration for libraries used by Sync extension (#3596).
 
+### Enhancements
+
+* Reduce transformer logger verbosity (#3608).
+
 ## 2.0.2
 
 This release is not protocol-compatible with previous versions of the Realm Mobile Platform. The base library is still fully compatible.
@@ -12,10 +16,6 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 ### Bug fixes
 
 * Build error when using Java 7 (#3563).
-
-### Enhancements
-
-* Reduce transformer logger verbosity (#3608).
 
 ## Internal
 
