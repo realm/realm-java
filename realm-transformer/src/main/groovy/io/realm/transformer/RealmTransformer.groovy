@@ -94,7 +94,7 @@ class RealmTransformer extends Transform {
         // javassist. See https://github.com/realm/realm-java/issues/2703.
         addBootClassesToClassPool(classPool)
 
-        logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
+        logger.debug "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
         // mark as transformed
         def baseProxyMediator = classPool.get('io.realm.internal.RealmProxyMediator')
@@ -103,7 +103,7 @@ class RealmTransformer extends Transform {
                 .findAll { it.matches(mediatorPattern) }
                 .collect { classPool.getCtClass(it) }
                 .findAll { it.superclass?.equals(baseProxyMediator) }
-        logger.info "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
+        logger.debug "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
         proxyMediatorClasses.each {
             BytecodeModifier.overrideTransformedMarker(it);
         }
@@ -116,7 +116,7 @@ class RealmTransformer extends Transform {
         def inputModelClasses = allModelClasses.findAll {
             inputClassNames.contains(it.name)
         }
-        logger.info "Model Classes: ${allModelClasses*.name}"
+        logger.debug "Model Classes: ${allModelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation
         def allManagedFields = []
@@ -125,7 +125,7 @@ class RealmTransformer extends Transform {
                 !it.hasAnnotation(Ignore.class) && !Modifier.isStatic(it.getModifiers())
             })
         }
-        logger.info "Managed Fields: ${allManagedFields*.name}"
+        logger.debug "Managed Fields: ${allManagedFields*.name}"
 
         // Add accessors to the model classes in the target project
         inputModelClasses.each {
@@ -135,7 +135,7 @@ class RealmTransformer extends Transform {
 
         // Use accessors instead of direct field access
         inputClassNames.each {
-            logger.info "  Modifying class ${it}"
+            logger.debug "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
             BytecodeModifier.useRealmAccessors(ctClass, allManagedFields)
             ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
@@ -144,7 +144,7 @@ class RealmTransformer extends Transform {
         copyResourceFiles(inputs, outputProvider)
 
         def toc = System.currentTimeMillis()
-        logger.info "Realm Transform time: ${toc-tic} milliseconds"
+        logger.debug "Realm Transform time: ${toc-tic} milliseconds"
 
         this.sendAnalytics(inputs, inputModelClasses)
     }
@@ -263,7 +263,7 @@ class RealmTransformer extends Transform {
                 def dirPath = it.file.absolutePath
                 it.file.eachFileRecurse(FileType.FILES) {
                     if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                        logger.info "  Copying resource ${it}"
+                        logger.debug "  Copying resource ${it}"
                         def dest = new File(getOutputFile(outputProvider),
                                 it.absolutePath.substring(dirPath.length()))
                         dest.parentFile.mkdirs()
@@ -294,13 +294,13 @@ class RealmTransformer extends Transform {
         try {
             project.android.bootClasspath.each {
                 String path = it.absolutePath
-                logger.info "Add boot class " + path + " to class pool."
+                logger.debug "Add boot class " + path + " to class pool."
                 classPool.appendClassPath(path)
             }
         } catch (Exception e) {
             // Just log it. It might not impact the transforming if the method which needs to be transformer doesn't
             // contain classes from android.jar.
-            logger.info("Cannot get bootClasspath caused by:", e)
+            logger.debug("Cannot get bootClasspath caused by:", e)
         }
     }
 }
