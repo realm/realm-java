@@ -14,9 +14,9 @@ As an Agile project, Realm Java embraces change by considering issues filed by u
 
 This project can evolve iteratively in two different way: by adding features and correcting bugs. For this reason, Realm Java is divided in two main branches, both of which originate releases:
 
- *The master branch is responsible for the creation of new features and major changes in the project. As a result, is where new versions are released from.
+ * The master branch is responsible for the creation of new features and major changes in the project. As a result, is where new versions are released from.
 
- *On the other hand, the releases branch takes care of minor changes such as bug fixes, documentation, tests and build system. Patch versions are released from this branch.
+ * On the other hand, the releases branch takes care of minor changes such as bug fixes, documentation, tests and build system. Patch versions are released from this branch.
 
 Realm Java started 5 years ago and is developed by a team within the Realm organisation (Realm Inc.). It counts on 6-7 members, all developers (who also act as release managers, supporters, and testers). The team has regular video conferences and uses closed Slack channels for communication.
 
