@@ -32,3 +32,9 @@ However, there are some things that can be improved:
 * A roadmap could be helpful so that contributors know what features to implement
 
 To sum up, in our opinion this project follows a good process model which allows a continuous evolution through times.
+
+## Contribuitions
+Carolina Centeio: 25%
+Inês Proença: 25%
+Hélder Antunes: 25%
+Renato Abreu: 25%
