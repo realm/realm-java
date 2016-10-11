@@ -2,7 +2,8 @@
 
 ### Bug fixes
 
-* Fixed ProGuard configuration.
+* Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
+* Missing ProGuard configuration for libraries used by Sync extension (#3596).
 
 ## 2.0.2
 
