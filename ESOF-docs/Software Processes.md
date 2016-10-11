@@ -26,7 +26,7 @@ defining the organization of the
 system and implementing the system
 
 ### Validation
-checking that it does what the customer wants
+All PR's must be accompanied by related unit tests. All bug fixes must have a unit test proving that the bug is fixed. You can use ./realm/gradlew connectedCheck createDebugCoverageReport to generate a coverage report to check for missing unit test coverage. The aim is 100% code coverage.
 
 ### Evolution
 As a Agile project, Realm Java embraces change by considering issues filed by users.
