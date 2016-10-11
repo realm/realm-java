@@ -1,3 +1,4 @@
+![Realm](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/realmDark.jpg)
 # Analysis of the software developing process of Realm
 
 ## Introduction
