@@ -83,9 +83,9 @@ public class User {
 
     /**
      * Returns all valid users known by this device.
-     * A user is invalidated when he/she logs out or the user's access token expire.
+     * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return a list of all known users
+     * @return a list of all known valid users.
      */
     public static Collection<User> all() {
         UserStore userStore = SyncManager.getUserStore();

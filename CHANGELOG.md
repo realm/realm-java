@@ -3,7 +3,7 @@
 ### Enhancement
 
 * `Realm.compactRealm()` works for encrypted Realms.
-*  Added `User.all()` that returnal all known Realm Object Server users.
+*  Added `User.all()` that returns all known Realm Object Server users.
 
 ## 2.0.2
 
