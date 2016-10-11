@@ -11,7 +11,15 @@ Realm also supports easy thread-safety, relationships and encryption. Another fe
 ## Development process
 
 ### Specification
-defining what the system should do
+You can declare bugs, declaring an issue, which you should have the following information:
+- Goals
+- Expected results
+- Current results
+- Steps to reproduce
+- Code sample that highlights the issue
+
+You can work at some improvements that you think is useful, and send an issue to receive someone's feedback.
+Also, it is possible to work on an idea proposed by other contributors that you find interesting.
 
 ### Design and implementation
 defining the organization of the
