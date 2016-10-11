@@ -1187,7 +1187,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                     break;
                 }
                 default:
-                    throw fatal_error("Unknown type of query.");
+                    throw JavaFatalError("Unknown type of query.");
             }
         }
 
@@ -1551,7 +1551,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
                     // __builtin_unreachable is an alternative to throwing an exception but behavior is
                     // up to the compiler vendor (and that's scary to think about)
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
                     break;
                 case type_Binary:
                     pQuery->equal(S(column_idx), BinaryData());
@@ -1566,7 +1566,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     break;
                 default:
                     // this point is unreachable
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
             }
         } else {
             switch (col_type) {
@@ -1574,7 +1574,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     throw std::invalid_argument("isNull() by nested query for link field is not supported.");
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
                     break;
                 case type_String:
                     pQuery->and_query(src_table_ref->column<String>(S(column_idx)) == realm::null());
@@ -1599,7 +1599,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     break;
                 default:
                     // this point is unreachable
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
             }
         }
     });
@@ -1690,7 +1690,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     break;
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
                 case type_Binary:
                     pQuery->not_equal(S(column_idx), realm::BinaryData());
                     break;
@@ -1704,7 +1704,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     break;
                 default:
                     // this point is unreachable
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
             }
         }
         else {
@@ -1713,7 +1713,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     throw std::invalid_argument("isNotNull() by nested query for link field is not supported.");
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
                 case type_String:
                     pQuery->and_query(src_table_ref->column<String>(S(column_idx)) != realm::null());
                     break;
@@ -1737,7 +1737,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     break;
                 default:
                     // this point is unreachable
-                    throw fatal_error("This is not reachable.");
+                    throw JavaFatalError("This is not reachable.");
             }
         }
     });

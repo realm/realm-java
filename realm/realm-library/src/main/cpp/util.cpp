@@ -110,7 +110,7 @@ void ConvertException(JNIEnv* env) {
         ss << "Illegal Argument: " << e.what();
         j_exception = JThrowableNew(env, illegal_argument_exception, ss.str().c_str());
     }
-    catch (illegal_state& e) {
+    catch (JavaIllegalState& e) {
         j_exception = JThrowableNew(env, illegal_state_exception, e.what());
     }
     catch (InvalidTransactionException& e) {
@@ -122,15 +122,15 @@ void ConvertException(JNIEnv* env) {
     catch (InvalidEncryptionKeyException& e) {
         j_exception = JThrowableNew(env, illegal_argument_exception, e.what());
     }
-    catch (unsupported_operation& e) {
+    catch (JavaUnsupportedOperation& e) {
         j_exception = JThrowableNew(env, unsupported_operation_exception, e.what());
     }
-    catch (fatal_error& e) {
+    catch (JavaFatalError& e) {
         ostringstream ss;
         ss << "Unrecoverable error. " << e.what();
         j_exception = JThrowableNew(env, realm_error, ss.str().c_str());
     }
-    catch (class_not_found& e) {
+    catch (JavaClassNotFound& e) {
         ostringstream ss;
         ss << "Class '" << e.what() << "' could not be located.";
         j_exception = JThrowableNew(env, class_not_found_exception, ss.str().c_str());
@@ -165,7 +165,7 @@ void ConvertException(JNIEnv* env) {
         }
         j_exception = JThrowableNew(env, realm_file_exception, e.what(), kind_code);
     }
-    catch (null_value& e) {
+    catch (JavaNullValue& e) {
         std::ostringstream ss;
         ss << "Trying to set a non-nullable field '"
            << e.get_table()->get_column_name(e.get_column_index())
@@ -191,6 +191,7 @@ void ConvertException(JNIEnv* env) {
     }
     else {
         TR_ERR_NO_VA_ARG(env, "ERROR: Couldn't throw exception.")
+        throw runtime_error("Couldn't throw Java exception.");
     }
     env->DeleteLocalRef(j_exception);
 }
@@ -199,7 +200,7 @@ jclass GetClass(JNIEnv* env, const char* classStr)
 {
     jclass localRefClass = env->FindClass(classStr);
     if (localRefClass == NULL) {
-        throw class_not_found(classStr);
+        throw JavaClassNotFound(classStr);
     }
 
     jclass myClass = reinterpret_cast<jclass>(env->NewGlobalRef(localRefClass));

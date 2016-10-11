@@ -32,7 +32,7 @@ inline void view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
     bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            throw illegal_state("The Realm has been closed and is no longer accessible.");
+            throw JavaIllegalState("The Realm has been closed and is no longer accessible.");
         }
         // depends_on_deleted_linklist() will return true if and only if the current TableView was created from a
         // query on a RealmList and that RealmList was then deleted (as a result of the object being deleted).
@@ -60,7 +60,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
         VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr);
         COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex);
         if (!TV(nativeViewPtr)->get_parent().has_search_index(S(columnIndex))) {
-            throw unsupported_operation("The field must be indexed before distinct() can be used.");
+            throw JavaUnsupportedOperation("The field must be indexed before distinct() can be used.");
         }
 
         switch (TV(nativeViewPtr)->get_column_type(S(columnIndex))) {
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
                 pivotOp = Table::aggr_max;
                 break;
             default:
-                throw unsupported_operation("No pivot operation specified.");
+                throw JavaUnsupportedOperation("No pivot operation specified.");
         }
         dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
     });
@@ -355,7 +355,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetString(
         VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr);
         INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String);
         if (!TV(nativeViewPtr)->get_parent().is_nullable(S(columnIndex))) {
-            throw null_value(&(TV(nativeViewPtr)->get_parent()), S(columnIndex));
+            throw JavaNullValue(&(TV(nativeViewPtr)->get_parent()), S(columnIndex));
         }
         JStringAccessor value2(env, value);
         TV(nativeViewPtr)->set_string(S(columnIndex), S(rowIndex), value2);
@@ -863,7 +863,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
         bool valid = (TV(nativeViewPtr) != NULL);
         if (valid) {
             if (!TV(nativeViewPtr)->is_attached()) {
-                throw illegal_state("The Realm has been closed and is no longer accessible.");
+                throw JavaIllegalState("The Realm has been closed and is no longer accessible.");
             }
         }
 

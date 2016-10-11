@@ -96,7 +96,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
 {
     TR_ENTER(env)
     try_catch<void>(env, [&]() {
-        if (sync_client) return;
+        if (sync_client) {
+            return;
+        }
 
         AndroidLogger::shared().set_level_threshold(util::Logger::Level::warn);
 

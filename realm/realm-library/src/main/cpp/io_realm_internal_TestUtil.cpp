@@ -35,7 +35,7 @@ throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
             case ClassNotFound:
                 expect = "java.lang.ClassNotFoundException: Class 'parm1' could not be located.";
                 if (should_throw)
-                    throw class_not_found("parm1");
+                    throw JavaClassNotFound("parm1");
                 break;
             case IllegalArgument:
                 expect = "java.lang.IllegalArgumentException: Illegal Argument: parm1";
@@ -50,7 +50,7 @@ throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
             case UnsupportedOperation:
                 expect = "java.lang.UnsupportedOperationException: parm1";
                 if (should_throw)
-                    throw unsupported_operation("parm1");
+                    throw JavaUnsupportedOperation("parm1");
                 break;
             case OutOfMemory:
                 expect = "io.realm.internal.OutOfMemoryError: std::bad_alloc";
@@ -60,7 +60,7 @@ throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
             case FatalError:
                 expect = "io.realm.exceptions.RealmError: Unrecoverable error. parm1";
                 if (should_throw)
-                    throw fatal_error("parm1");
+                    throw JavaFatalError("parm1");
                 break;
             case RuntimeError:
                 expect = "java.lang.RuntimeException: parm1";
@@ -75,7 +75,7 @@ throwOrGetExpectedMessage(JNIEnv *env, jlong testcase, bool should_throw)
             case IllegalState:
                 expect = "java.lang.IllegalStateException: parm1";
                 if (should_throw)
-                    throw illegal_state("parm1");
+                    throw JavaIllegalState("parm1");
                 break;
                 // FIXME: This is difficult to test right now. Need to refactor the test.
                 // See https://github.com/realm/realm-java/issues/3348

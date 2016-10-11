@@ -28,7 +28,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnCount
   (JNIEnv* env, jobject obj, jlong nativeRowPtr)
 {
     return try_catch<jlong>(env, [&]() {
-        Row* row = reinterpret_cast<Row*>(nativeRowPtr);
+        Row* row = ROW(nativeRowPtr);
         if (!row->is_attached())
             return static_cast<jlong>(0);
 
@@ -40,7 +40,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnName
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex)
 {
     return try_catch<jstring>(env, [&]() {
-        Row *row = reinterpret_cast<Row *>(nativeRowPtr);
+        Row *row = ROW(nativeRowPtr);
         ROW_AND_COL_INDEX_VALID(env, row, columnIndex);
         return Java_io_realm_internal_UncheckedRow_nativeGetColumnName(env, obj, nativeRowPtr, columnIndex);
     });
@@ -50,7 +50,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnIndex
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jstring columnName)
 {
     return try_catch<jlong>(env, [&]() {
-        Row *row = reinterpret_cast<Row *>(nativeRowPtr);
+        Row *row = ROW(nativeRowPtr);
         if (!row->is_attached())
             return static_cast<jlong>(0);
 

@@ -90,38 +90,38 @@ T try_catch(JNIEnv* env, F func) {
 }
 
 // we need to have specialized C++ exceptions so we know what kind of error state has been reached
-// illegal_state - the internal state of the Realm is wrong; it is not serious but execution cannot continue
-class illegal_state : public std::runtime_error {
+// JavaIllegalState - the internal state of the Realm is wrong; it is not serious but execution cannot continue
+class JavaIllegalState : public std::runtime_error {
 public:
-    illegal_state(const std::string& msg) : std::runtime_error(msg) {};
-    illegal_state(const char* msg) : std::runtime_error(msg) {};
+    JavaIllegalState(const std::string& msg) : std::runtime_error(msg) {};
+    JavaIllegalState(const char* msg) : std::runtime_error(msg) {};
 };
 
-// unsupported_operation - the operation is either not supported or implemented; see also java.lang.UnsupportedOperationException
-class unsupported_operation : public std::runtime_error {
+// JavaUnsupportedOperation - the operation is either not supported or implemented; see also java.lang.UnsupportedOperationException
+class JavaUnsupportedOperation : public std::runtime_error {
 public:
-    unsupported_operation(const std::string& msg) : std::runtime_error(msg) {};
-    unsupported_operation(const char* msg) : std::runtime_error(msg) {};
+    JavaUnsupportedOperation(const std::string& msg) : std::runtime_error(msg) {};
+    JavaUnsupportedOperation(const char* msg) : std::runtime_error(msg) {};
 };
 
-// fatal_error - the app cannot recover from its error state
-class fatal_error : public std::runtime_error {
+// JavaFatalError - the app cannot recover from its error state
+class JavaFatalError : public std::runtime_error {
 public:
-    fatal_error(const std::string& msg) : std::runtime_error(msg) {};
-    fatal_error(const char* msg) : std::runtime_error(msg) {};
+    JavaFatalError(const std::string& msg) : std::runtime_error(msg) {};
+    JavaFatalError(const char* msg) : std::runtime_error(msg) {};
 };
 
-// class_not_found - looking on a class in JVM failed; see also java.lang.ClassNotFoundException
-class class_not_found : public std::runtime_error {
+// JavaClassNotFound - looking on a class in JVM failed; see also java.lang.ClassNotFoundException
+class JavaClassNotFound : public std::runtime_error {
 public:
-    class_not_found(const std::string& msg) : std::runtime_error(msg) {};
-    class_not_found(const char* msg) : std::runtime_error(msg) {};
+    JavaClassNotFound(const std::string& msg) : std::runtime_error(msg) {};
+    JavaClassNotFound(const char* msg) : std::runtime_error(msg) {};
 };
 
-// null_value - trying to set a required field to null
-class null_value : public std::exception {
+// JavaNullValue - trying to set a required field to null
+class JavaNullValue : public std::exception {
 public:
-    null_value(realm::Table* table, std::size_t column_index) : table (table), column_index (column_index) {};
+    JavaNullValue(realm::Table* table, std::size_t column_index) : table (table), column_index (column_index) {};
     realm::Table* get_table() { return table; };
     std::size_t get_column_index() { return column_index; };
 private:
@@ -296,7 +296,7 @@ inline void TableIsValid(JNIEnv* env, T* objPtr)
     }
     if (!valid) {
         TR_ERR(env, "Table %p is no longer attached!", VOID_PTR(objPtr))
-        throw illegal_state("Table is no longer valid to operate on.");
+        throw JavaIllegalState("Table is no longer valid to operate on.");
     }
 }
 
@@ -305,7 +305,7 @@ inline void RowIsValid(JNIEnv* env, realm::Row* rowPtr)
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
         TR_ERR(env, "Row %p is no longer attached!", VOID_PTR(rowPtr))
-        throw illegal_state("Object is no longer valid to operate on. Was it deleted by another thread?");
+        throw JavaIllegalState("Object is no longer valid to operate on. Was it deleted by another thread?");
     }
 }
 

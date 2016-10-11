@@ -51,7 +51,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
         Table* table = TBL(nativeTablePtr);
         TABLE_VALID(env, table);
         if (table->has_shared_type()) {
-            throw unsupported_operation(
+            throw JavaUnsupportedOperation(
                     "Not allowed to add field in subtable. Use getSubtableSchema() on root table instead.");
         }
         JStringAccessor name2(env, name); // throws
@@ -72,10 +72,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink
         Table* table = TBL(nativeTablePtr);
         TABLE_VALID(env, table);
         if (table->has_shared_type()) {
-            throw unsupported_operation("Not allowed to add field in subtable. Use getSubtableSchema() on root table instead.");
+            throw JavaUnsupportedOperation("Not allowed to add field in subtable. Use getSubtableSchema() on root table instead.");
         }
         if (!table->is_group_level()) {
-            throw unsupported_operation("Links can only be made to toplevel tables.");
+            throw JavaUnsupportedOperation("Links can only be made to toplevel tables.");
         }
         JStringAccessor name2(env, name); // throws
         return table->add_column_link(DataType(colType), name2, *TBL(targetTablePtr));
@@ -106,7 +106,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativePivot
                 pivotOp = Table::aggr_max;
                 break;
             default:
-                throw unsupported_operation("No pivot operation specified.");
+                throw JavaUnsupportedOperation("No pivot operation specified.");
         }
         dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
     });
@@ -119,7 +119,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn
         Table* table = TBL(nativeTablePtr);
         TBL_AND_COL_INDEX_VALID(env, table, columnIndex);
         if (table->has_shared_type()) {
-            throw unsupported_operation(
+            throw JavaUnsupportedOperation(
                     "Not allowed to remove field in subtable. Use getSubtableSchema() on root table instead.");
         }
         table->remove_column(S(columnIndex));
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
         Table* table = TBL(nativeTablePtr);
         TBL_AND_COL_INDEX_VALID(env, table, columnIndex);
         if (table->has_shared_type()) {
-            throw unsupported_operation("Not allowed to rename field in subtable. Use getSubtableSchema() on root table instead.");
+            throw JavaUnsupportedOperation("Not allowed to rename field in subtable. Use getSubtableSchema() on root table instead.");
         }
         JStringAccessor name2(env, name); // throws
         table->rename_column(S(columnIndex), name2);
@@ -146,7 +146,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
         Table *table = TBL(nativeTablePtr);
         TBL_AND_COL_INDEX_VALID(env, table, columnIndex);
         if (table->has_shared_type()) {
-            throw unsupported_operation("Not allowed to convert field in subtable.");
+            throw JavaUnsupportedOperation("Not allowed to convert field in subtable.");
         }
         size_t column_index = S(columnIndex);
         return table->is_nullable(column_index);
@@ -175,7 +175,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         Table *table = TBL(nativeTablePtr);
         TBL_AND_COL_INDEX_VALID(env, table, columnIndex);
         if (table->has_shared_type()) {
-            throw unsupported_operation("Not allowed to convert field in subtable.");
+            throw JavaUnsupportedOperation("Not allowed to convert field in subtable.");
         }
 
         size_t column_index = S(columnIndex);
@@ -245,7 +245,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                     // checked previously
                     break;
                 case type_OldDateTime:
-                    throw unsupported_operation("The old DateTime type is not supported.");
+                    throw JavaUnsupportedOperation("The old DateTime type is not supported.");
             }
         }
         if (table->has_search_index(column_index + 1)) {
@@ -263,7 +263,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         Table *table = TBL(nativeTablePtr);
         TBL_AND_COL_INDEX_VALID(env, table, columnIndex);
         if (table->has_shared_type()) {
-            throw unsupported_operation("Not allowed to convert field in subtable.");
+            throw JavaUnsupportedOperation("Not allowed to convert field in subtable.");
         }
 
         size_t column_index = S(columnIndex);
@@ -368,7 +368,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                     break;
                 case type_OldDateTime:
                     // not used
-                    throw unsupported_operation("The old DateTime type is not supported.");
+                    throw JavaUnsupportedOperation("The old DateTime type is not supported.");
             }
         }
         if (table->has_search_index(column_index + 1)) {
@@ -1205,7 +1205,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
         Table *table = TBL(nativeTablePtr);
         TBL_AND_COL_INDEX_VALID(env, table, columnIndex);
         if (!table->has_search_index(S(columnIndex))) {
-            throw unsupported_operation("The field must be indexed before distinct() can be used.");
+            throw JavaUnsupportedOperation("The field must be indexed before distinct() can be used.");
         }
         switch (table->get_column_type(S(columnIndex))) {
             case type_Bool:
@@ -1538,7 +1538,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
         bool valid = (table != NULL);
         if (valid) {
             if (!table->is_attached()) {
-                throw illegal_state("The Realm has been closed and is no longer accessible.");
+                throw JavaIllegalState("The Realm has been closed and is no longer accessible.");
             }
         }
         return static_cast<jlong>(table->get_version_counter());

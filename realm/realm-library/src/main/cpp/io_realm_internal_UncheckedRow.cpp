@@ -28,7 +28,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnCount
 {
     TR_ENTER_PTR(env, nativeRowPtr)
     return try_catch<jlong>(env, [&]() {
-        Row* row = reinterpret_cast<Row*>(nativeRowPtr);
+        Row* row = ROW(nativeRowPtr);
         if (!row->is_attached()) {
             return static_cast<jlong>(0);
         }
@@ -254,7 +254,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetString
         ROW_VALID(env, ROW(nativeRowPtr));
 
         if ((value == NULL) && !(ROW(nativeRowPtr)->get_table()->is_nullable(S(columnIndex)))) {
-            throw null_value(ROW(nativeRowPtr)->get_table(), S(columnIndex));
+            throw JavaNullValue(ROW(nativeRowPtr)->get_table(), S(columnIndex));
         }
         JStringAccessor value2(env, value);
         ROW(nativeRowPtr)->set_string(S(columnIndex), value2);
@@ -271,7 +271,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray
         jbyte* bytePtr = NULL;
         if (value == NULL) {
             if (!(ROW(nativeRowPtr)->get_table()->is_nullable(S(columnIndex)))) {
-                throw null_value(ROW(nativeRowPtr)->get_table(), S(columnIndex));
+                throw JavaNullValue(ROW(nativeRowPtr)->get_table(), S(columnIndex));
             }
             ROW(nativeRowPtr)->set_binary(S(columnIndex), BinaryData());
         }

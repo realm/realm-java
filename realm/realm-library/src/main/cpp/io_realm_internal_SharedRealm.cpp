@@ -163,7 +163,7 @@ Java_io_realm_internal_SharedRealm_nativeSetVersion(JNIEnv *env, jclass, jlong s
     try_catch<void>(env, [&]() {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         if (!shared_realm->is_in_transaction()) {
-            throw illegal_state("Cannot set schema version when the Realm is not in transaction.");
+            throw JavaIllegalState("Cannot set schema version when the Realm is not in transaction.");
         }
         ObjectStore::set_schema_version(shared_realm->read_group(), static_cast<uint64_t>(version));
     });
@@ -251,7 +251,7 @@ Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv *env, jclass, jlong sha
         if (!shared_realm->read_group().has_table(name) && !shared_realm->is_in_transaction()) {
             std::ostringstream ss;
             ss << "Class " << name << " doesn't exist and the shared Realm is not in transaction.";
-            throw illegal_state(ss.str());
+            throw JavaIllegalState(ss.str());
         }
         Table* pTable = LangBindHelper::get_or_add_table(shared_realm->read_group(), name);
         return reinterpret_cast<jlong>(pTable);
@@ -296,7 +296,7 @@ Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIEnv *env, jclass, jlong 
         if (!shared_realm->is_in_transaction()) {
             std::ostringstream ss;
             ss << "Class " << old_name << " cannot be removed when the realm is not in transaction.";
-            throw illegal_state(ss.str());
+            throw JavaIllegalState(ss.str());
         }
         JStringAccessor new_name(env, new_table_name);
         shared_realm->read_group().rename_table(old_name, new_name);
@@ -314,7 +314,7 @@ Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv *env, jclass, jlong 
         if (!shared_realm->is_in_transaction()) {
             std::ostringstream ss;
             ss << "Class " << name << " cannot be removed when the realm is not in transaction.";
-            throw illegal_state(ss.str());
+            throw JavaIllegalState(ss.str());
         }
         shared_realm->read_group().remove_table(name);
     });
