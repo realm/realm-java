@@ -25,7 +25,7 @@ This project can evolve iteratively in two different way: by adding features and
 
 ![Commits graph](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/commits%20graph.png)
 
-After analysing this graphs, we can conclude that the development process is continuous with the main team supervising the pull requests, trying to maintain code standards and design. To asure this, good contributing guidelines are available in [Contributing.md] (https://github.com/realm/realm-java/blob/master/CONTRIBUTING.md). In addition, it is very easy for new contributors and users to understand this application as it's [API](https://realm.io/docs/java/latest/) is well documented.
+After analysing this graphs, we can conclude that the development process is continuous with the main team supervising the pull requests, trying to maintain code standards and design. To ensure this, good contributing guidelines are available in [Contributing.md] (https://github.com/realm/realm-java/blob/master/CONTRIBUTING.md). In addition, it is very easy for new contributors and users to understand this application as it's [API](https://realm.io/docs/java/latest/) is well documented.
 
 However, there are some things that can be improved:
 * Coding guidelines should be more specific
