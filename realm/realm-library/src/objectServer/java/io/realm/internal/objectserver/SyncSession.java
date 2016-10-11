@@ -20,22 +20,22 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.Future;
 
-import io.realm.RealmAsyncTask;
-import io.realm.internal.Keep;
-import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.log.RealmLog;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.RealmAsyncTask;
 import io.realm.Session;
 import io.realm.SessionState;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.User;
+import io.realm.internal.KeepMember;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.syncpolicy.SyncPolicy;
+import io.realm.log.RealmLog;
 
 /**
  * Internal class describing a Realm Object Server Session.
@@ -87,7 +87,6 @@ import io.realm.internal.syncpolicy.SyncPolicy;
  *
  * This object is thread safe.
  */
-@Keep
 public final class SyncSession {
 
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
@@ -206,6 +205,7 @@ public final class SyncSession {
 
     // Called from Session.cpp and SyncMaanger
     // This callback will happen on the thread running the Sync Client.
+    @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
         onError(error);
