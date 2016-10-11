@@ -54,7 +54,7 @@ public:
             case Level::fatal: log_method = log_fatal; break;
             case Level::all:
             case Level::off:
-                throw invalid_argument(util::format("Unknown logger argument: %s.", util::Logger::get_level_prefix(level)));
+                throw std::invalid_argument(util::format("Unknown logger argument: %s.", util::Logger::get_level_prefix(level)));
         }
         log_message(env, log_method, msg.c_str());
     }
@@ -136,7 +136,7 @@ Java_io_realm_SyncManager_nativeSetSyncClientLogLevel(JNIEnv* env, jclass, jint 
             case io_realm_log_LogLevel_FATAL: native_log_level = util::Logger::Level::fatal; break;
             case io_realm_log_LogLevel_OFF: native_log_level = util::Logger::Level::off; break;
             default:
-                throw invalid_argument("Invalid log level: " + logLevel);
+                throw std::invalid_argument("Invalid log level: " + logLevel);
         }
         // FIXME: This call is not thread safe. Switch to OS implementation to make it thread safe.
         AndroidLogger::shared().set_level_threshold(native_log_level);
