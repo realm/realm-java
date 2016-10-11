@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation is used to mark the classes to be kept by ProGuard/DexGuard.
- * The ProGuard configuration must have '-keep class io.realm.internal.Keep'
- * and '-keep,includedescriptorclasses @io.realm.internal.Keep class * { *; }'.
+ * This annotation is used to mark the fields and methods to be kept by ProGuard/DexGuard.
+ * The ProGuard configuration must have '-keep class io.realm.internal.KeepMember'
+ * and '-keep,includedescriptorclasses class * { @io.realm.internal.KeepMember *; }'.
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-public @interface Keep {
+@Target({ElementType.METHOD,ElementType.FIELD})
+public @interface KeepMember {
 }
