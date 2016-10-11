@@ -4,6 +4,9 @@
 -keep class io.realm.internal.Keep
 -keep,includedescriptorclasses @io.realm.internal.Keep class * { *; }
 
+-keep class io.realm.internal.KeepMember
+-keep,includedescriptorclasses class * { @io.realm.internal.KeepMember *; }
+
 -dontwarn javax.**
 -dontwarn io.realm.**
 -keep class io.realm.RealmCollection

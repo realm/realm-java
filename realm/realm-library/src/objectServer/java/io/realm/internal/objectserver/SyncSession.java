@@ -28,6 +28,7 @@ import io.realm.SessionState;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.User;
+import io.realm.internal.KeepMember;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
@@ -204,6 +205,7 @@ public final class SyncSession {
 
     // Called from Session.cpp and SyncMaanger
     // This callback will happen on the thread running the Sync Client.
+    @KeepMember
     void notifySessionError(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
         onError(error);
