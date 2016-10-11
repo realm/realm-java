@@ -71,6 +71,10 @@ public class SyncManagerTests {
             public Collection<User> allUsers() {
                 return null;
             }
+
+            @Override
+            public void clear() {
+            }
         };
     }
 

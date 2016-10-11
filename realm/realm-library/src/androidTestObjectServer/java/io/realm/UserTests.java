@@ -23,28 +23,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import java.net.URL;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.android.SharedPrefsUserStore;
-import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
-import io.realm.internal.objectserver.Token;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class UserTests {
@@ -55,6 +44,7 @@ public class UserTests {
     @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getTargetContext());
+        SyncManager.getUserStore().clear();
     }
 
     @Test
@@ -94,7 +84,7 @@ public class UserTests {
 
         Collection<User> users = User.all();
         assertEquals(1, users.size());
-
+        assertTrue(users.iterator().next().isValid());
     }
 
     // Tests that the user store returns the last user to login
