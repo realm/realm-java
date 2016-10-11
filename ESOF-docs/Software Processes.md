@@ -29,8 +29,13 @@ system and implementing the system
 checking that it does what the customer wants
 
 ### Evolution
-changing the system in response to changing
-customer needs
+As a Agile project, Realm Java embraces change by considering issues filed by users.
+
+This project can evolve iteratively in two different ways, by adding features or correcting bugs. For this reason, Realm Java is divided in two main branches, both of which originate releases.
+
+The master branch is responsible for the creation of new features and major changes in the project. As a result is where new versions are released from.
+
+On the other hand, the releases branch takes care of minor changes such as bug fixes, documentation, tests and build system. Patch versions are released from this branch.
 
 ## Software process model
 
