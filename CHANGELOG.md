@@ -1,3 +1,9 @@
+## 2.1.0
+
+### Enhancement
+
+* `Realm.compactRealm()` works for encrypted Realms.
+
 ## 2.0.3
 
 ### Bug fixes
