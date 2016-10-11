@@ -6,7 +6,7 @@
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables. However at the moment, it currently runs only on Android.
 
-The data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. In addition, the API has very few classes so that most of our users can pick it up intuitively, which, in turn allows getting simple apps up and running in minutes.
+The data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance and maintenance issues. In addition, the API has very few classes so that most of our users can pick it up intuitively, which, in turn allows getting simple apps up and running in minutes.
 
 Realm also supports easy thread-safety, relationships and encryption. Another feature is that this database has proven to be faster than even raw SQLite on common operations, while maintaining an extremely rich feature set.
 
@@ -37,11 +37,11 @@ These changes are then verified by the admnisters, and if accepted merged to the
 All PR's must be accompanied by related unit tests. All bug fixes must have a unit test proving that the bug is fixed. You can use ./realm/gradlew connectedCheck createDebugCoverageReport to generate a coverage report to check for missing unit test coverage. The aim is 100% code coverage.
 
 ### Evolution
-As a Agile project, Realm Java embraces change by considering issues filed by users.
+As an Agile project, Realm Java embraces change by considering issues filed by users.
 
 This project can evolve iteratively in two different ways, by adding features or correcting bugs. For this reason, Realm Java is divided in two main branches, both of which originate releases.
 
-The master branch is responsible for the creation of new features and major changes in the project. As a result is where new versions are released from.
+The master branch is responsible for the creation of new features and major changes in the project. As a result, is where new versions are released from.
 
 On the other hand, the releases branch takes care of minor changes such as bug fixes, documentation, tests and build system. Patch versions are released from this branch.
 
