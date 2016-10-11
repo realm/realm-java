@@ -22,8 +22,14 @@ You can work at some improvements that you think is useful, and send an issue to
 Also, it is possible to work on an idea proposed by other contributors that you find interesting.
 
 ### Design and implementation
-defining the organization of the
-system and implementing the system
+Since Realm is a large open source project with a lot of developers, the project development and implementation follow a set of rules defined by the main contributors. 
+So, first is necessary to accept a Contributor License Agreement. Then, it is possible to contribute code, documentation, or any other improvements. However, every pull request must obey this guidelines:
+- Code Style
+- Unit Tests
+- Javadoc
+- Branch Strategy
+
+These changes are then verified by the admnisters, and if accepted merged to the main branch of the project.
 
 ### Validation
 All PR's must be accompanied by related unit tests. All bug fixes must have a unit test proving that the bug is fixed. You can use ./realm/gradlew connectedCheck createDebugCoverageReport to generate a coverage report to check for missing unit test coverage. The aim is 100% code coverage.
