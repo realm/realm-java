@@ -6,6 +6,10 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 * Build error when using Java 7 (#3563).
 
+### Enhancements
+
+* Reduce transformer logger verbosity (#3608).
+
 ## Internal
 
 * Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. 
