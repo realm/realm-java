@@ -1,3 +1,5 @@
+![alt tag](https://realm.io/assets/svg/general_logo.svg)
+
 # Analysis of the software developing process of Realm
 
 ## Introduction
