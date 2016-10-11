@@ -35,6 +35,9 @@ To sum up, in our opinion this project follows a good process model which allows
 
 ## Contribuitions
 Carolina Centeio: 25%
+
 Inês Proença: 25%
+
 Hélder Antunes: 25%
+
 Renato Abreu: 25%
