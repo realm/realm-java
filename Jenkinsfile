@@ -22,11 +22,27 @@ try {
       }
 
       def buildEnv
+      def rosEnv
       stage('Docker build') {
+        // Docker image for build
         buildEnv = docker.build 'realm-java:snapshot'
+        // Docker image for testing Realm Object Server
+        rosEnv = docker.build 'ros:snapshot', 'tools/sync_test_server'
       }
 
-      buildEnv.inside("-e HOME=/tmp -e _JAVA_OPTIONS=-Duser.home=/tmp --privileged -v /dev/bus/usb:/dev/bus/usb -v ${env.HOME}/gradle-cache:/tmp/.gradle -v ${env.HOME}/.android:/tmp/.android -v ${env.HOME}/ccache:/tmp/.ccache") {
+      def rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
+              "-p 8080:8080 " +
+              "-p 7800:7800 " +
+              "-p 8888:8888")
+
+      buildEnv.inside("-e HOME=/tmp " +
+              "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
+              "--privileged " +
+              "-v /dev/bus/usb:/dev/bus/usb " +
+              "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
+              "-v ${env.HOME}/.android:/tmp/.android " +
+              "-v ${env.HOME}/ccache:/tmp/.ccache " +
+              "--link ros:snapshot") {
         stage('JVM tests') {
           try {
             withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
@@ -55,17 +71,18 @@ try {
           }
         }
 
-        stage 'Run instrumented tests'
-        boolean archiveLog = true
-        def backgroundPids = []
-        try {
-          backgroundPids.add(startLogCatCollector())
-          backgroundPids.add(startSyncTestingServer())
-          gradle('realm', 'connectedUnitTests')
-          archiveLog = false;
-        } finally {
-          stopBgProcAndSaveLog(backgroundPids, archiveLog)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        stage('Run instrumented tests') {
+          boolean archiveLog = true
+          String backgroundPid
+          try {
+            backgroundPid = startLogCatCollector()
+            forwardAdbPorts()
+            gradle('realm', 'connectedUnitTests')
+            archiveLog = false;
+          } finally {
+            stopLogCatCollector(backgroundPid, archiveLog)
+            storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+          }
         }
 
         // TODO: add support for running monkey on the example apps
@@ -82,6 +99,7 @@ try {
           }
         }
       }
+      rosContainer.stop()
     }
   }
   currentBuild.rawBuild.setResult(Result.SUCCESS)
@@ -109,36 +127,31 @@ try {
   }
 }
 
-def String startSyncTestingServer() {
+def forwardAdbPorts() {
   sh ''' adb reverse tcp:7800 tcp:7800 &&
       adb reverse tcp:8080 tcp:8080 &&
-      adb reverse tcp:8888 tcp:8888 &&
-      ros-testing-server.js "sync-server.build.log" > /dev/null &
-      echo $! > sync_pid
+      adb reverse tcp:8888 tcp:8888
   '''
-  return readFile("sync_pid").trim()
 }
 
 def String startLogCatCollector() {
   sh '''adb logcat -c
-  adb logcat -v time > "logcat.build.log" &
+  adb logcat -v time > "logcat.txt" &
   echo $! > pid
   '''
   return readFile("pid").trim()
 }
 
-def stopBgProcAndSaveLog(List<String> backgroundPids, boolean archiveLog) {
-  for (pid in backgroundPids) {
-      sh "kill ${pid}"
-  }
+def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
+  sh "kill ${backgroundPid}"
   if (archiveLog) {
     zip([
-      'zipFile': 'log.zip',
+      'zipFile': 'logcat.zip',
       'archive': true,
-      'glob' : '*.build.log'
+      'glob' : 'logcat.txt'
     ])
   }
-  sh 'rm *.build.log'
+  sh 'rm logcat.txt'
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
