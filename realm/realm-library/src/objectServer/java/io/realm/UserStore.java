@@ -67,4 +67,10 @@ public interface UserStore {
      * @return Collection of all users. If no users exist, an empty collection is returned.
      */
     Collection<User> allUsers();
+
+
+    /**
+     * Removes all saved users.
+     */
+    void clear();
 }
