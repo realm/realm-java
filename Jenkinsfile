@@ -2,8 +2,6 @@
 
 import groovy.json.JsonOutput
 
-def dependProperties = readProperties file: 'dependencies.list'
-
 def buildSuccess = false
 try {
   node('android') {
@@ -29,6 +27,7 @@ try {
         // Docker image for build
         buildEnv = docker.build 'realm-java:snapshot'
         // Docker image for testing Realm Object Server
+        def dependProperties = readProperties file: 'dependencies.list'
         def rosDeVersion = dependProperties["REALM_OBJECT_SERVER_DE_VERSION"]
         rosEnv = docker.build 'ros:snapshot', "tools/sync_test_server --build-arg ROS_DE_VERSION=${rosDeVersion}"
       }
