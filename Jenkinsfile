@@ -35,7 +35,8 @@ try {
       def rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
               "-p 8080:8080 " +
               "-p 7800:7800 " +
-              "-p 8888:8888")
+              "-p 8888:8888 " +
+              "--name ros")
 
       buildEnv.inside("-e HOME=/tmp " +
               "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
@@ -44,7 +45,7 @@ try {
               "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
               "-v ${env.HOME}/.android:/tmp/.android " +
               "-v ${env.HOME}/ccache:/tmp/.ccache " +
-              "--link ros:snapshot") {
+              "--link ros") {
         stage('JVM tests') {
           try {
             withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
