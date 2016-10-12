@@ -42,6 +42,7 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.SyncUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
+import io.realm.permissions.PermissionsModule;
 
 /**
  * @Beta
@@ -59,6 +60,7 @@ import io.realm.log.RealmLog;
 public class User {
 
     private final SyncUser syncUser;
+    private SyncConfiguration permissionRealmConfig;
 
     private User(SyncUser user) {
         this.syncUser = user;
@@ -330,6 +332,25 @@ public class User {
     public String getAccessToken() {
         Token userToken = syncUser.getUserToken();
         return (userToken != null) ? userToken.value() : null;
+    }
+
+    /**
+     * Returns an instance of the Permission Realm owned by the given user
+     *
+     * This Realm enables the user to control and modify permissions for Realms owned by the user. This includes e.g.
+     * granting or removing access to the Realm by other users.
+     *
+     * @see <a href="XXX">How to use the Permissions Realm</a>
+     */
+    public synchronized Realm getPermissionRealm() {
+        if (permissionRealmConfig == null) {
+            String managementUrl = "<ConstructOrGetURLSomehow>";
+            permissionRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
+                    .modules(new PermissionsModule())
+                    .build();
+        }
+
+        return Realm.getInstance(permissionRealmConfig);
     }
 
     @Override
