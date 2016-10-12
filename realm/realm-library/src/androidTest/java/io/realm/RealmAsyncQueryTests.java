@@ -424,6 +424,7 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
+        looperThread.keepStrongReference.add(results);
 
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
