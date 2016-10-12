@@ -64,7 +64,7 @@ public class AuthenticateRequestTests {
 
     @Test
     public void errorsNotWrapped() {
-        AuthenticationServer orgAuthServer = SyncManager.getAuthServer();
+        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         when(authServer.loginUser(any(Credentials.class), any(URL.class))).thenReturn(SyncTestUtils.createErrorResponse(ErrorCode.ACCESS_DENIED));
         SyncManager.setAuthServerImpl(authServer);
@@ -76,7 +76,7 @@ public class AuthenticateRequestTests {
             assertEquals(ErrorCode.ACCESS_DENIED, e.getErrorCode());
         } finally {
             // Reset the auth server implementation for other tests.
-            SyncManager.setAuthServerImpl(orgAuthServer);
+            SyncManager.setAuthServerImpl(originalAuthServer);
         }
     }
 }

@@ -57,7 +57,7 @@ try {
 
         stage 'Run instrumented tests'
         boolean archiveLog = true
-        String backgroundPids = []
+        def backgroundPids = []
         try {
           backgroundPids.add(startLogCatCollector())
           backgroundPids.add(startSyncTestingServer())
