@@ -27,7 +27,8 @@ try {
         // Docker image for build
         buildEnv = docker.build 'realm-java:snapshot'
         // Docker image for testing Realm Object Server
-        rosEnv = docker.build 'ros:snapshot', 'tools/sync_test_server'
+        def rosDeVersion = getRosDeVersion()
+        rosEnv = docker.build 'ros:snapshot', "tools/sync_test_server --build-arg ROS_DE_VERSION=${rosDeVersion}"
       }
 
       def rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
@@ -207,4 +208,13 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def getRosDeVersion() {
+  def props = new Properties()
+  new File("dependencies.list").withInputStream {
+    stream -> props.load(stream)
+  }
+
+  return props["REALM_OBJECT_SERVER_DE_VERSION"]
 }
