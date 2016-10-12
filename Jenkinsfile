@@ -3,6 +3,7 @@
 import groovy.json.JsonOutput
 
 def buildSuccess = false
+def rosContainer
 try {
   node('android') {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
@@ -32,7 +33,7 @@ try {
         rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
       }
 
-      def rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
+      rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
               "-p 8080:8080 " +
               "-p 7800:7800 " +
               "-p 8888:8888 " +
@@ -102,7 +103,6 @@ try {
           }
         }
       }
-      rosContainer.stop()
     }
   }
   currentBuild.rawBuild.setResult(Result.SUCCESS)
@@ -112,6 +112,7 @@ try {
   buildSuccess = false
   throw e
 } finally {
+  rosContainer.stop()
   if (['master', 'releases'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
