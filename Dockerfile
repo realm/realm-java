@@ -71,15 +71,3 @@ RUN mkdir /opt/cmake-tmp && \
 
 # Make the SDK universally readable
 RUN chmod -R a+rX ${ANDROID_HOME}
-
-#### Install Testing Realm Object Server
-# Add realm repo
-RUN apt-get update -qq \
-    && apt-get install -y curl npm \
-    && curl -s https://packagecloud.io/install/repositories/realm/realm/script.deb.sh | bash \
-    && npm install winston temp httpdispatcher
-COPY tools/sync_test_server/keys/private.pem tools/sync_test_server/keys/public.pem tools/sync_test_server/configuration.yml /
-COPY tools/sync_test_server/ros-testing-server.js /usr/bin/
-# Install realm object server
-RUN apt-get update -qq \
-    && apt-get install -y realm-object-server-de=1.0.0-BETA-2.1-271
