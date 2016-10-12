@@ -15,7 +15,6 @@
  */
 
 #include <jni.h>
-#include <exception>
 
 #include "io_realm_internal_CheckedRow.h"
 #include "io_realm_internal_UncheckedRow.h"

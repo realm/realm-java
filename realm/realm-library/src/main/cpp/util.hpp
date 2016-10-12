@@ -122,8 +122,15 @@ public:
 class JavaNullValue : public std::exception {
 public:
     JavaNullValue(realm::Table* table, std::size_t column_index) : table (table), column_index (column_index) {};
-    realm::Table* get_table() { return table; };
-    std::size_t get_column_index() { return column_index; };
+    const char* what() const noexcept {
+        std::ostringstream ss;
+        ss << "Trying to set a non-nullable field '"
+           << table->get_column_name(column_index)
+           << "' in '"
+           << table->get_name()
+           << "' to null.";
+        return ss.str().c_str();
+    }
 private:
     realm::Table* table;
     std::size_t column_index;

@@ -15,7 +15,6 @@
  */
 
 #include <sstream>
-#include <exception>
 
 #include <realm/table.hpp>
 #include <realm/table_view.hpp>

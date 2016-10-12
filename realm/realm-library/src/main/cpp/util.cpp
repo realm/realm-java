@@ -166,13 +166,7 @@ void ConvertException(JNIEnv* env) {
         j_exception = JThrowableNew(env, realm_file_exception, e.what(), kind_code);
     }
     catch (JavaNullValue& e) {
-        std::ostringstream ss;
-        ss << "Trying to set a non-nullable field '"
-           << e.get_table()->get_column_name(e.get_column_index())
-           << "' in '"
-           << e.get_table()->get_name()
-           << "' to null.";
-        j_exception = JThrowableNew(env, illegal_argument_exception, ss.str().c_str());
+        j_exception = JThrowableNew(env, illegal_argument_exception, e.what());
     }
     catch (runtime_error& e) {
         j_exception = JThrowableNew(env, runtime_exception, e.what());

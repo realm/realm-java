@@ -15,7 +15,6 @@
  */
 
 #include <jni.h>
-#include <exception>
 #include "io_realm_RealmObjectSchema.h"
 
 #include <object-store/src/object_schema.hpp>
