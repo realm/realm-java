@@ -34,9 +34,6 @@ try {
       }
 
       rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
-              "-p 8080:8080 " +
-              "-p 7800:7800 " +
-              "-p 8888:8888 " +
               "--name ros")
 
       buildEnv.inside("-e HOME=/tmp " +
