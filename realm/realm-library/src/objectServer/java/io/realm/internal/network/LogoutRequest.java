@@ -16,7 +16,7 @@
 
 package io.realm.internal.network;
 
-import io.realm.User;
+import io.realm.SyncUser;
 
 /**
  * This class encapsulates a request to log out a user on the Realm Authentication Server. It is responsible for
@@ -25,7 +25,7 @@ import io.realm.User;
 public class LogoutRequest {
     // TODO Endpoint not finished yet
 
-    LogoutRequest fromUser(User user) {
+    LogoutRequest fromUser(SyncUser user) {
         return new LogoutRequest();
     }
 

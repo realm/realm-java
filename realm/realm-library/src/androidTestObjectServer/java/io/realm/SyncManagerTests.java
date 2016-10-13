@@ -53,22 +53,22 @@ public class SyncManagerTests {
         context = InstrumentationRegistry.getContext();
         userStore = new UserStore() {
             @Override
-            public User put(String key, User user) {
+            public SyncUser put(String key, SyncUser user) {
                 return null;
             }
 
             @Override
-            public User get(String key) {
+            public SyncUser get(String key) {
                 return null;
             }
 
             @Override
-            public User remove(String key) {
+            public SyncUser remove(String key) {
                 return null;
             }
 
             @Override
-            public Collection<User> allUsers() {
+            public Collection<SyncUser> allUsers() {
                 return null;
             }
 
@@ -109,17 +109,17 @@ public class SyncManagerTests {
 
     @Test
     public void authListener() {
-        User user = createTestUser();
+        SyncUser user = createTestUser();
         final int[] counter = {0, 0};
 
         AuthenticationListener authenticationListener = new AuthenticationListener() {
             @Override
-            public void loggedIn(User user) {
+            public void loggedIn(SyncUser user) {
                 counter[0]++;
             }
 
             @Override
-            public void loggedOut(User user) {
+            public void loggedOut(SyncUser user) {
                 counter[1]++;
             }
         };
@@ -138,17 +138,17 @@ public class SyncManagerTests {
 
     @Test
     public void authListener_remove() {
-        User user = createTestUser();
+        SyncUser user = createTestUser();
         final int[] counter = {0, 0};
 
         AuthenticationListener authenticationListener = new AuthenticationListener() {
             @Override
-            public void loggedIn(User user) {
+            public void loggedIn(SyncUser user) {
                 counter[0]++;
             }
 
             @Override
-            public void loggedOut(User user) {
+            public void loggedOut(SyncUser user) {
                 counter[1]++;
             }
         };
@@ -167,12 +167,12 @@ public class SyncManagerTests {
 
     @Test
     public void session() {
-        User user = createTestUser();
+        SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
                 .build();
 
-        Session session = SyncManager.getSession(config);
+        SyncSession session = SyncManager.getSession(config);
         assertEquals(user, session.getUser()); // see also SessionTests
     }
 }

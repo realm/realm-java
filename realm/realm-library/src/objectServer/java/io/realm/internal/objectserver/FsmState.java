@@ -16,26 +16,26 @@
 
 package io.realm.internal.objectserver;
 
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.ObjectServerError;
 import io.realm.SessionState;
 
 /**
- * Abstract class containing shared logic for all {@link Session} states. All states must extend
+ * Abstract class containing shared logic for all {@link SyncSession} states. All states must extend
  * this class as it contains the logic for entering and leaving states.
  */
 abstract class FsmState implements FsmAction {
 
-    volatile SyncSession session; // This is non-null when this state is active.
+    volatile ObjectServerSession session; // This is non-null when this state is active.
     private boolean exiting; // TODO: Remind me again what race condition necessitated this.
 
     /**
      * Entry into the state. This method is also responsible for executing any asynchronous work
      * this state might run.
      *
-     * This should only be called from {@link Session}.
+     * This should only be called from {@link SyncSession}.
      */
-    public void entry(SyncSession session) {
+    public void entry(ObjectServerSession session) {
         this.session = session;
         this.exiting = false;
         onEnterState();
@@ -43,9 +43,9 @@ abstract class FsmState implements FsmAction {
 
     /**
      * Called just before leaving the state. Once this method is called no more state changes can be triggered from
-     * this state until {@link #entry(SyncSession)} has been called again.
+     * this state until {@link #entry(ObjectServerSession)} has been called again.
      * <p>
-     * This should only be called from {@link Session}.
+     * This should only be called from {@link SyncSession}.
      */
     public void exit() {
         exiting = true;

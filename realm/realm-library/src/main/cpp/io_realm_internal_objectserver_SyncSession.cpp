@@ -37,7 +37,7 @@ using namespace realm;
 using namespace sync;
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeCreateSession
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeCreateSession
   (JNIEnv *env, jobject obj, jstring localRealmPath)
 {
     TR_ENTER(env)
@@ -49,7 +49,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeCr
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeBind
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeBind
   (JNIEnv *env, jobject, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
 {
     TR_ENTER(env)
@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeBin
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeUnbind
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeUnbind
   (JNIEnv *env, jobject, jlong sessionPointer)
 {
     TR_ENTER(env)
@@ -78,7 +78,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeUnb
     delete session; // TODO Can we avoid killing the session here?
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeRefresh
+JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeRefresh
   (JNIEnv *env, jobject, jlong sessionPointer, jstring accessToken)
 {
     TR_ENTER(env)
@@ -93,7 +93,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_SyncSession_nativeRef
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectserver_SyncSession_nativeNotifyCommitHappened
+Java_io_realm_internal_objectserver_ObjectServerSession_nativeNotifyCommitHappened
   (JNIEnv *env, jobject, jlong sessionPointer, jlong version)
 {
     TR_ENTER(env)

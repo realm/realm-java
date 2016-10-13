@@ -1,5 +1,9 @@
 ## 2.1.0
 
+### Breaking changes
+
+* Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
+
 ### Enhancement
 
 * `Realm.compactRealm()` works for encrypted Realms.

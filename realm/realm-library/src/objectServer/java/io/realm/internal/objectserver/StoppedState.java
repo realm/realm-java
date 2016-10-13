@@ -17,10 +17,10 @@
 package io.realm.internal.objectserver;
 
 import io.realm.ObjectServerError;
-import io.realm.Session;
+import io.realm.SyncSession;
 
 /**
- * STOPPED State. This is the final state for a {@link Session}. After this, all actions will throw an
+ * STOPPED State. This is the final state for a {@link SyncSession}. After this, all actions will throw an
  * {@link IllegalStateException}.
  */
 class StoppedState extends FsmState {

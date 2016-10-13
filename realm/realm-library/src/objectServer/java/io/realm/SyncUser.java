@@ -41,7 +41,6 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
-import io.realm.internal.objectserver.SyncUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 
@@ -58,11 +57,11 @@ import io.realm.log.RealmLog;
  * as sensitive data.
  */
 @Beta
-public class User {
+public class SyncUser {
 
-    private final SyncUser syncUser;
+    private final io.realm.internal.objectserver.SyncUser syncUser;
 
-    private User(SyncUser user) {
+    private SyncUser(io.realm.internal.objectserver.SyncUser user) {
         this.syncUser = user;
     }
 
@@ -70,11 +69,11 @@ public class User {
      * Returns the last user that has logged in and who is still valid.
      * A user is invalidated when he/she logs out or the user's access token expire.
      *
-     * @return last {@link User} that has logged in and who is still valid. {@code null} if no current user or user has
+     * @return last {@link SyncUser} that has logged in and who is still valid. {@code null} if no current user or user has
      *         been invalidated.
      */
-    public static User currentUser() {
-        User user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
+    public static SyncUser currentUser() {
+        SyncUser user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
         if (user != null && user.isValid()) {
             return user;
         }
@@ -87,11 +86,11 @@ public class User {
      *
      * @return a list of all known valid users.
      */
-    public static Collection<User> all() {
+    public static Collection<SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
-        Collection<User> storedUsers = userStore.allUsers();
-        List<User> result = new ArrayList<User>(storedUsers.size());
-        for (User user : storedUsers) {
+        Collection<SyncUser> storedUsers = userStore.allUsers();
+        List<SyncUser> result = new ArrayList<SyncUser>(storedUsers.size());
+        for (SyncUser user : storedUsers) {
             if (user.isValid()) {
                 result.add(user);
             }
@@ -105,22 +104,22 @@ public class User {
      * @param user JSON string representing the user.
      *
      * @return the user object.
-     * @throws IllegalArgumentException if the JSON couldn't be converted to a valid {@link User} object.
+     * @throws IllegalArgumentException if the JSON couldn't be converted to a valid {@link SyncUser} object.
      */
-    public static User fromJson(String user) {
+    public static SyncUser fromJson(String user) {
         try {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
             Token userToken = Token.from(obj.getJSONObject("userToken"));
-            SyncUser syncUser = new SyncUser(userToken, authUrl);
+            io.realm.internal.objectserver.SyncUser syncUser = new io.realm.internal.objectserver.SyncUser(userToken, authUrl);
             JSONArray realmTokens = obj.getJSONArray("realms");
             for (int i = 0; i < realmTokens.length(); i++) {
                 JSONObject token = realmTokens.getJSONObject(i);
                 URI uri = new URI(token.getString("uri"));
-                SyncUser.AccessDescription realmDesc = SyncUser.AccessDescription.fromJson(token.getJSONObject("description"));
+                io.realm.internal.objectserver.SyncUser.AccessDescription realmDesc = io.realm.internal.objectserver.SyncUser.AccessDescription.fromJson(token.getJSONObject("description"));
                 syncUser.addRealm(uri, realmDesc);
             }
-            return new User(syncUser);
+            return new SyncUser(syncUser);
         } catch (JSONException e) {
             throw new IllegalArgumentException("Could not parse user json: " + user, e);
         } catch (MalformedURLException e) {
@@ -139,7 +138,7 @@ public class User {
      * @throws ObjectServerError if the login failed.
      * @throws IllegalArgumentException if the URL is malformed.
      */
-    public static User login(final Credentials credentials, final String authenticationUrl) throws ObjectServerError {
+    public static SyncUser login(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
         final URL authUrl;
         try {
             authUrl = new URL(authenticationUrl);
@@ -152,8 +151,8 @@ public class User {
         try {
             AuthenticateResponse result = server.loginUser(credentials, authUrl);
             if (result.isValid()) {
-                SyncUser syncUser = new SyncUser(result.getRefreshToken(), authUrl);
-                User user = new User(syncUser);
+                io.realm.internal.objectserver.SyncUser syncUser = new io.realm.internal.objectserver.SyncUser(result.getRefreshToken(), authUrl);
+                SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
                 SyncManager.getUserStore().put(UserStore.CURRENT_USER_KEY, user);
                 SyncManager.notifyUserLoggedIn(user);
@@ -178,7 +177,7 @@ public class User {
      *                 as this this method is called on.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public static RealmAsyncTask loginAsync(final Credentials credentials, final String authenticationUrl, final Callback callback) {
+    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback callback) {
         if (Looper.myLooper() == null) {
             throw new IllegalStateException("Asynchronous login is only possible from looper threads.");
         }
@@ -188,7 +187,7 @@ public class User {
             @Override
             public void run() {
                 try {
-                    User user = login(credentials, authenticationUrl);
+                    SyncUser user = login(credentials, authenticationUrl);
                     postSuccess(user);
                 } catch (ObjectServerError e) {
                     postError(e);
@@ -206,7 +205,7 @@ public class User {
                 }
             }
 
-            private void postSuccess(final User user) {
+            private void postSuccess(final SyncUser user) {
                 if (callback != null) {
                     handler.post(new Runnable() {
                         @Override
@@ -242,8 +241,8 @@ public class User {
 
             // Ensure that we can log out. If any Realm file is still open we should abort before doing anything
             // else.
-            Collection<Session> sessions = syncUser.getSessions();
-            for (Session session : sessions) {
+            Collection<SyncSession> sessions = syncUser.getSessions();
+            for (SyncSession session : sessions) {
                 SyncConfiguration config = session.getConfiguration();
                 if (Realm.getGlobalInstanceCount(config) > 0) {
                     throw new IllegalStateException("A Realm controlled by this user is still open. Close all Realms " +
@@ -254,8 +253,8 @@ public class User {
             // Stop all active sessions immediately. If we waited until after talking to the server
             // there is a high chance errors would be reported from the Sync Client first which would
             // be confusing.
-            for (Session session : sessions) {
-                session.getSyncSession().stop();
+            for (SyncSession session : sessions) {
+                session.getOsSession().stop();
             }
 
             final AuthenticationServer server = SyncManager.getAuthServer();
@@ -264,7 +263,7 @@ public class User {
 
                 @Override
                 protected LogoutResponse execute() {
-                    return server.logout(User.this, syncUser.getAuthenticationUrl());
+                    return server.logout(SyncUser.this, syncUser.getAuthenticationUrl());
                 }
 
                 @Override
@@ -272,12 +271,12 @@ public class User {
                     // Remove all local tokens, preventing further connections.
                     syncUser.clearTokens();
 
-                    if (User.this.equals(User.currentUser())) {
+                    if (SyncUser.this.equals(SyncUser.currentUser())) {
                         SyncManager.getUserStore().remove(UserStore.CURRENT_USER_KEY);
                     }
 
                     // Delete all Realms if needed.
-                    for (SyncUser.AccessDescription desc : syncUser.getRealms()) {
+                    for (io.realm.internal.objectserver.SyncUser.AccessDescription desc : syncUser.getRealms()) {
                         // FIXME: This will always be false since SyncConfiguration.Builder.deleteRealmOnLogout() is
                         // disabled. Make sure this works for Realm opened in the client thread/other processes.
                         if (desc.deleteOnLogout) {
@@ -288,7 +287,7 @@ public class User {
                         }
                     }
 
-                    SyncManager.notifyUserLoggedOut(User.this);
+                    SyncManager.notifyUserLoggedOut(SyncUser.this);
                 }
 
                 @Override
@@ -320,8 +319,8 @@ public class User {
      * <p>
      * The user might still be have been logged out by the Realm Object Server which will not be detected before the
      * user tries to actively synchronize a Realm. If a logged out user tries to synchronize a Realm, an error will be
-     * reported to the {@link Session.ErrorHandler} defined by
-     * {@link SyncConfiguration.Builder#errorHandler(Session.ErrorHandler)}.
+     * reported to the {@link SyncSession.ErrorHandler} defined by
+     * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)}.
      *
      * @return {@code true} if the User is logged into the Realm Object Server, {@code false} otherwise.
      */
@@ -357,7 +356,7 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        User user = (User) o;
+        SyncUser user = (SyncUser) o;
 
         return syncUser.equals(user.syncUser);
 
@@ -369,12 +368,12 @@ public class User {
     }
 
     // Expose internal representation for other package protected classes
-    SyncUser getSyncUser() {
+    io.realm.internal.objectserver.SyncUser getSyncUser() {
         return syncUser;
     }
 
     public interface Callback {
-        void onSuccess(User user);
+        void onSuccess(SyncUser user);
         void onError(ObjectServerError error);
     }
 }

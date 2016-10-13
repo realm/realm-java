@@ -27,16 +27,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import io.realm.RealmAsyncTask;
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
-import io.realm.User;
 
 /**
  * Internal representation of a user on the Realm Object Server.
- * The public API is defined by {@link User}.
+ * The public API is defined by {@link io.realm.SyncUser}.
  */
 public class SyncUser {
 
@@ -44,7 +41,7 @@ public class SyncUser {
     private Token refreshToken;
     private URL authenticationUrl;
     private Map<URI, AccessDescription> realms = new HashMap<URI, AccessDescription>();
-    private List<Session> sessions = new ArrayList<Session>();
+    private List<SyncSession> sessions = new ArrayList<SyncSession>();
     private boolean loggedIn;
 
     /**
@@ -105,7 +102,7 @@ public class SyncUser {
     }
 
     // When a session is started, add it to the user so it can be tracked
-    public void addSession(Session session) {
+    public void addSession(SyncSession session) {
         sessions.add(session);
     }
 
@@ -140,7 +137,7 @@ public class SyncUser {
         return refreshToken;
     }
 
-    public List<Session> getSessions() {
+    public List<SyncSession> getSessions() {
         return sessions;
     }
 

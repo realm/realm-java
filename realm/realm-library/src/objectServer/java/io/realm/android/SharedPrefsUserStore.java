@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.UserStore;
 
 /**
@@ -33,7 +33,7 @@ import io.realm.UserStore;
 public class SharedPrefsUserStore implements UserStore {
 
     private final SharedPreferences sp;
-    private User cachedCurrentUser; // Keep a quick reference to the current user
+    private SyncUser cachedCurrentUser; // Keep a quick reference to the current user
 
     public SharedPrefsUserStore(Context context) {
         sp = context.getSharedPreferences("realm_object_server_users", Context.MODE_PRIVATE);
@@ -43,7 +43,7 @@ public class SharedPrefsUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public User put(String key, User user) {
+    public SyncUser put(String key, SyncUser user) {
         String previousUser = sp.getString(key, null);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString(key, user.toJson());
@@ -55,7 +55,7 @@ public class SharedPrefsUserStore implements UserStore {
         }
 
         if (previousUser != null) {
-            return User.fromJson(previousUser);
+            return SyncUser.fromJson(previousUser);
         } else {
             return null;
         }
@@ -65,7 +65,7 @@ public class SharedPrefsUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public User get(String key) {
+    public SyncUser get(String key) {
         if (UserStore.CURRENT_USER_KEY.equals(key) && cachedCurrentUser != null) {
             return cachedCurrentUser;
         }
@@ -75,7 +75,7 @@ public class SharedPrefsUserStore implements UserStore {
             return null;
         }
 
-        User user = User.fromJson(userData);
+        SyncUser user = SyncUser.fromJson(userData);
         if (UserStore.CURRENT_USER_KEY.equals(key)) {
             cachedCurrentUser = user;
         }
@@ -86,7 +86,7 @@ public class SharedPrefsUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public User remove(String key) {
+    public SyncUser remove(String key) {
         String currentUser = sp.getString(key, null);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString(key, null);
@@ -97,7 +97,7 @@ public class SharedPrefsUserStore implements UserStore {
         }
 
         if (currentUser != null) {
-            return User.fromJson(currentUser);
+            return SyncUser.fromJson(currentUser);
         } else {
             return null;
         }
@@ -107,11 +107,11 @@ public class SharedPrefsUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public Collection<User> allUsers() {
+    public Collection<SyncUser> allUsers() {
         Map<String, ?> all = sp.getAll();
-        ArrayList<User> users = new ArrayList<User>(all.size());
+        ArrayList<SyncUser> users = new ArrayList<SyncUser>(all.size());
         for (Object userJson : all.values()) {
-            users.add(User.fromJson((String) userJson));
+            users.add(SyncUser.fromJson((String) userJson));
         }
         return users;
     }

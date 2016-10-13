@@ -23,11 +23,11 @@ import java.util.concurrent.Future;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.RealmAsyncTask;
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SessionState;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.internal.KeepMember;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
@@ -39,7 +39,7 @@ import io.realm.log.RealmLog;
 
 /**
  * Internal class describing a Realm Object Server Session.
- * There is currently a split between the public {@link Session} and this class.
+ * There is currently a split between the public {@link SyncSession} and this class.
  * This class is intended as a wrapper for Object Store's Sync Session, but it is not that yet.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
@@ -87,16 +87,16 @@ import io.realm.log.RealmLog;
  *
  * This object is thread safe.
  */
-public final class SyncSession {
+public final class ObjectServerSession {
 
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
 
     // Variables used by the FSM
     final SyncConfiguration configuration;
     private final AuthenticationServer authServer;
-    private final Session.ErrorHandler errorHandler;
+    private final SyncSession.ErrorHandler errorHandler;
     private long nativeSessionPointer;
-    private final SyncUser user;
+    private final io.realm.internal.objectserver.SyncUser user;
     RealmAsyncTask networkRequest;
     NetworkStateReceiver.ConnectionListener networkListener;
     private SyncPolicy syncPolicy;
@@ -104,8 +104,8 @@ public final class SyncSession {
     // Keeping track of current FSM state
     private SessionState currentStateDescription;
     private FsmState currentState;
-    private Session userSession;
-    private Session publicSession;
+    private SyncSession userSession;
+    private SyncSession publicSession;
 
     /**
      * Creates a new Object Server Session.
@@ -114,11 +114,11 @@ public final class SyncSession {
      * @param authServer Authentication server used to refresh credentials if needed
      * @param policy Sync Policy to use by this Session.
      */
-    public SyncSession(SyncConfiguration syncConfiguration,
-                       AuthenticationServer authServer,
-                       SyncUser user,
-                       SyncPolicy policy,
-                       Session.ErrorHandler errorHandler) {
+    public ObjectServerSession(SyncConfiguration syncConfiguration,
+                               AuthenticationServer authServer,
+                               io.realm.internal.objectserver.SyncUser user,
+                               SyncPolicy policy,
+                               SyncSession.ErrorHandler errorHandler) {
         this.configuration = syncConfiguration;
         this.user = user;
         this.authServer = authServer;
@@ -175,8 +175,8 @@ public final class SyncSession {
      * While this method will return immediately, binding a Realm is not guaranteed to succeed. Possible reasons for
      * failure could be if the device is offline or credentials have expired. Binding is an asynchronous
      * operation and all errors will be sent first to {@code SyncPolicy#onError(Session, ObjectServerError)} and if the
-     * SyncPolicy doesn't handle it, to the {@link Session.ErrorHandler} defined by
-     * {@link SyncConfiguration.Builder#errorHandler(Session.ErrorHandler)}.
+     * SyncPolicy doesn't handle it, to the {@link SyncSession.ErrorHandler} defined by
+     * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)}.
      */
     public synchronized void bind() {
         currentState.onBind();
@@ -251,7 +251,7 @@ public final class SyncSession {
     }
 
     // Authenticate by getting access tokens for the specific Realm
-    void authenticateRealm(final Runnable onSuccess, final Session.ErrorHandler errorHandler) {
+    void authenticateRealm(final Runnable onSuccess, final SyncSession.ErrorHandler errorHandler) {
         if (networkRequest != null) {
             networkRequest.cancel();
         }
@@ -268,7 +268,7 @@ public final class SyncSession {
 
             @Override
             protected void onSuccess(AuthenticateResponse response) {
-                SyncUser.AccessDescription desc = new SyncUser.AccessDescription(
+                io.realm.internal.objectserver.SyncUser.AccessDescription desc = new io.realm.internal.objectserver.SyncUser.AccessDescription(
                         response.getAccessToken(),
                         configuration.getPath(),
                         configuration.shouldDeleteRealmOnLogout()
@@ -305,12 +305,12 @@ public final class SyncSession {
     }
 
     /**
-     * Returns the {@link User} defined by the {@link SyncConfiguration} that is used to connect to the
+     * Returns the {@link SyncUser} defined by the {@link SyncConfiguration} that is used to connect to the
      * Realm Object Server.
      *
-     * @return {@link User} used to authenticate the session on the Realm Object Server.
+     * @return {@link SyncUser} used to authenticate the session on the Realm Object Server.
      */
-    public User getUser() {
+    public SyncUser getUser() {
         return configuration.getUser();
     }
 
@@ -347,11 +347,11 @@ public final class SyncSession {
         return syncPolicy;
     }
 
-    public Session getUserSession() {
+    public SyncSession getUserSession() {
         return userSession;
     }
 
-    public void setUserSession(Session userSession) {
+    public void setUserSession(SyncSession userSession) {
         this.userSession = userSession;
     }
 

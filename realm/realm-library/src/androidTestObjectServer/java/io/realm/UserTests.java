@@ -49,8 +49,8 @@ public class UserTests {
 
     @Test
     public void toAndFromJson() {
-        User user1 = createTestUser();
-        User user2 = User.fromJson(user1.toJson());
+        SyncUser user1 = createTestUser();
+        SyncUser user2 = SyncUser.fromJson(user1.toJson());
         assertEquals(user1, user2);
     }
 
@@ -63,13 +63,13 @@ public class UserTests {
         userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
-        assertNull(User.currentUser());
+        assertNull(SyncUser.currentUser());
     }
 
     // `all()` returns an empty list if no users are logged in
     @Test
     public void all_empty() {
-        Collection<User> users = User.all();
+        Collection<SyncUser> users = SyncUser.all();
         assertTrue(users.isEmpty());
     }
 
@@ -82,7 +82,7 @@ public class UserTests {
         userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
         userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MAX_VALUE));
 
-        Collection<User> users = User.all();
+        Collection<SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
         assertTrue(users.iterator().next().isValid());
     }
