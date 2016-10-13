@@ -43,7 +43,7 @@ jmethodID session_error_handler;
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
 
-jthrowable JThrowableNew(JNIEnv* env, const char* class_name, const char* message) {
+static jthrowable JThrowableNew(JNIEnv* env, const char* class_name, const char* message) {
     jclass j_exception_class = env->FindClass(class_name);
     if (j_exception_class == nullptr) {
         return nullptr;
@@ -59,7 +59,7 @@ jthrowable JThrowableNew(JNIEnv* env, const char* class_name, const char* messag
     return reinterpret_cast<jthrowable>(exception);
 }
 
-jthrowable JThrowableNew(JNIEnv* env, const char* class_name, const char* message, jbyte kind) {
+static jthrowable JThrowableNew(JNIEnv* env, const char* class_name, const char* message, jbyte kind) {
     jclass j_exception_class = env->FindClass(class_name);
     if (j_exception_class == nullptr) {
         return nullptr;
@@ -76,22 +76,23 @@ jthrowable JThrowableNew(JNIEnv* env, const char* class_name, const char* messag
 }
 
 void ConvertException(JNIEnv* env) {
-    const char out_of_memory_error[]             = "io/realm/internal/OutOfMemoryError";
-    const char illegal_state_exception[]         = "java/lang/IllegalStateException";
-    const char illegal_argument_exception[]      = "java/lang/IllegalArgumentException";
-    const char realm_error[]                     = "io/realm/exceptions/RealmError";
-    const char bad_version[]                     = "io/realm/internal/async/BadVersionException";
-    const char realm_file_exception[]            = "io/realm/exceptions/RealmFileException";
-    const char index_out_of_bound_exception[]    = "java/lang/ArrayIndexOutOfBoundsException";
-    const char unsupported_operation_exception[] = "java/lang/UnsupportedOperationException";
-    const char class_not_found_exception[]       = "java/lang/ClassNotFoundException";
-    const char runtime_exception[]               = "java/lang/RuntimeException";
+    static const char out_of_memory_error[]             = "io/realm/internal/OutOfMemoryError";
+    static const char illegal_state_exception[]         = "java/lang/IllegalStateException";
+    static const char illegal_argument_exception[]      = "java/lang/IllegalArgumentException";
+    static const char realm_error[]                     = "io/realm/exceptions/RealmError";
+    static const char bad_version[]                     = "io/realm/internal/async/BadVersionException";
+    static const char realm_file_exception[]            = "io/realm/exceptions/RealmFileException";
+    static const char index_out_of_bound_exception[]    = "java/lang/ArrayIndexOutOfBoundsException";
+    static const char unsupported_operation_exception[] = "java/lang/UnsupportedOperationException";
+    static const char class_not_found_exception[]       = "java/lang/ClassNotFoundException";
+    static const char runtime_exception[]               = "java/lang/RuntimeException";
 
     jthrowable j_exception;
 
-    // we are going to "throw" a Java exception so it is safest to clear
-    // already occurred exceptions
-    env->ExceptionClear();
+    // if an (Java) exception already has occurred, we rather see the first one
+    if (env->ExceptionCheck() == JNI_TRUE) {
+        return;
+    }
 
     try {
         throw;
