@@ -28,7 +28,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -77,6 +79,24 @@ public class User {
             return user;
         }
         return null;
+    }
+
+    /**
+     * Returns all valid users known by this device.
+     * A user is invalidated when he/she logs out or the user's access token expires.
+     *
+     * @return a list of all known valid users.
+     */
+    public static Collection<User> all() {
+        UserStore userStore = SyncManager.getUserStore();
+        Collection<User> storedUsers = userStore.allUsers();
+        List<User> result = new ArrayList<User>(storedUsers.size());
+        for (User user : storedUsers) {
+            if (user.isValid()) {
+                result.add(user);
+            }
+        }
+        return result;
     }
 
     /**

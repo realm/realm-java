@@ -3,6 +3,7 @@
 ### Enhancement
 
 * `Realm.compactRealm()` works for encrypted Realms.
+*  Added `User.all()` that returns all known Realm Object Server users.
 
 ## 2.0.3
 
@@ -10,6 +11,11 @@
 
 * Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
 * Missing ProGuard configuration for libraries used by Sync extension (#3596).
+* Error handler was not called when sync session failed (#3597).
+
+### Enhancements
+
+* Reduce transformer logger verbosity (#3608).
 
 ## 2.0.2
 

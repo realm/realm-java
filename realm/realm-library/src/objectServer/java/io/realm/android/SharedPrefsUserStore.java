@@ -22,6 +22,7 @@ import android.content.SharedPreferences;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import io.realm.User;
 import io.realm.UserStore;
@@ -113,5 +114,18 @@ public class SharedPrefsUserStore implements UserStore {
             users.add(User.fromJson((String) userJson));
         }
         return users;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void clear() {
+        Set<String> all = sp.getAll().keySet();
+        SharedPreferences.Editor editor = sp.edit();
+        for (String key : all) {
+            editor.remove(key);
+        }
+        editor.apply();
     }
 }
