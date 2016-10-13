@@ -78,7 +78,6 @@ try {
               String backgroundPid
               try {
                 backgroundPid = startLogCatCollector()
-                forwardAdbPorts()
                 gradle('realm', 'connectedUnitTests')
                 archiveLog = false;
               } finally {
@@ -129,13 +128,6 @@ try {
       }
     }
   }
-}
-
-def forwardAdbPorts() {
-  sh ''' adb reverse tcp:7800 tcp:7800 &&
-      adb reverse tcp:8080 tcp:8080 &&
-      adb reverse tcp:8888 tcp:8888
-  '''
 }
 
 def String startLogCatCollector() {
