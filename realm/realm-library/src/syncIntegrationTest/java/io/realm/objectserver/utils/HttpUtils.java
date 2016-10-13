@@ -17,6 +17,8 @@
 package io.realm.objectserver.utils;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
@@ -29,10 +31,26 @@ import okhttp3.Response;
  */
 public class HttpUtils {
     private final static OkHttpClient client = new OkHttpClient();
+    final static String TEST_SERVER_IP;
+    static {
+        String dockerIp = resolveTestingDockerIpAddress();
+        TEST_SERVER_IP = dockerIp != null ? dockerIp : "127.0.0.1";
+    }
     // adb reverse tcp:8888 tcp:8888
     // will forward this query to the host, running the integration test server on 8888
-    private final static String START_SERVER = "http://127.0.0.1:8888/start";
-    private final static String STOP_SERVER = "http://127.0.0.1:8888/stop";
+    private final static String START_SERVER = "http://" + TEST_SERVER_IP + ":8888/start";
+    private final static String STOP_SERVER = "http://" + TEST_SERVER_IP + ":8888/stop";
+
+    // This is mainly for CI. CI is running the ros in a docker container which is linked to the build docker container.
+    // The tests are running in the build container, thus it needs to know the ros testing container's ip address.
+    private static String resolveTestingDockerIpAddress() {
+        try {
+            InetAddress address = InetAddress.getByName("ros");
+            return address.getHostAddress();
+        } catch (UnknownHostException e) {
+            return null;
+        }
+    }
 
     public static void startSyncServer() throws Exception {
         Request request = new Request.Builder()
