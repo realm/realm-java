@@ -44,8 +44,8 @@ public:
         extern std::unique_ptr<realm::sync::Client> sync_client;
         // Get the coordinator for the given path, or null if there is none
         m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
-        m_global_obj_ref = env->NewGlobalRef(java_session_obj);
-        jobject global_obj_ref_tmp(m_global_obj_ref);
+        m_java_session_ref = env->NewGlobalRef(java_session_obj);
+        jobject global_obj_ref_tmp(m_java_session_ref);
         auto sync_transact_callback = [local_realm_path](realm::VersionID, realm::VersionID) {
             auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(
                     realm::StringData(local_realm_path));
@@ -54,11 +54,13 @@ public:
             }
         };
         auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
-            // FIXME: Simplify this by moving log_message to AndroidLogger
             JNIEnv *local_env;
             g_vm->AttachCurrentThread(&local_env, nullptr);
-            std::string log = num_to_string(error_code) + " " + message.c_str();
-            log_message(local_env, log_debug, log.c_str());
+            jclass java_session_class = local_env->GetObjectClass(global_obj_ref_tmp);
+            jmethodID notify_error_handler = local_env->GetMethodID(java_session_class,
+                                                                       "notifySessionError", "(ILjava/lang/String;)V");
+            local_env->CallVoidMethod(global_obj_ref_tmp,
+                                      notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
         };
         m_sync_session->set_sync_transact_callback(sync_transact_callback);
         m_sync_session->set_error_handler(std::move(error_handler));
@@ -72,7 +74,7 @@ public:
     // Call this just before destroying the object to release JNI resources.
     inline void close(JNIEnv* env)
     {
-        env->DeleteGlobalRef(m_global_obj_ref);
+        env->DeleteGlobalRef(m_java_session_ref);
     }
 
     ~JniSession()
@@ -82,7 +84,7 @@ public:
 
 private:
     realm::sync::Session* m_sync_session;
-    jobject m_global_obj_ref;
+    jobject m_java_session_ref;
 };
 
 #endif // REALM_OBJECTSERVER_SHARED_HPP
