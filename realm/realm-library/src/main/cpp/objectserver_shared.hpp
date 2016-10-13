@@ -30,7 +30,7 @@
 
 
 // Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
-// TODO Use OS SyncSession instead - https://github.com/realm/realm-java-private/issues/123
+// TODO Use OS SyncSession instead
 class JniSession {
 
 public:
