@@ -54,11 +54,8 @@ public:
             }
         };
         auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
-            // FIXME: Simplify this by moving log_message to AndroidLogger
             JNIEnv *local_env;
             g_vm->AttachCurrentThread(&local_env, nullptr);
-            std::string log = num_to_string(error_code) + " " + message.c_str();
-            log_message(local_env, log_debug, log.c_str());
             jclass java_session_class = local_env->GetObjectClass(global_obj_ref_tmp);
             jmethodID notify_error_handler = local_env->GetMethodID(java_session_class,
                                                                        "notifySessionError", "(ILjava/lang/String;)V");
