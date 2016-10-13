@@ -41,7 +41,7 @@ set(classes_LIST
 set(jni_headers_PATH ${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.SyncManager io.realm.internal.objectserver.SyncSession)
+        io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
