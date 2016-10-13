@@ -34,14 +34,14 @@ import io.realm.Realm;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.User;
-import io.realm.android.SecureUserStore;
-import io.realm.internal.android.crypto.CipherClient;
 import io.realm.internal.objectserver.SyncUser;
 import io.realm.internal.objectserver.Token;
+import realm.io.android.CipherClient;
+import realm.io.android.SecureUserStore;
 
 /**
  * Activity responsible of unlocking the KeyStore
- * before using the {@link io.realm.android.SecureUserStore} to encrypt
+ * before using the {@link realm.io.android.SecureUserStore} to encrypt
  * the Token we get from the session
  */
 public class MainActivity extends AppCompatActivity {
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             cryptoClient = new CipherClient(this);
             if (cryptoClient.isKeystoreUnlocked()) {
-                buildSyncConf();
+//                buildSyncConf();
                 keystoreUnlockedMessage();
             } else {
                 cryptoClient.unlockKeystore();
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             // We return to the app after the KeyStore is unlocked or not.
             if (cryptoClient.isKeystoreUnlocked()) {
-                buildSyncConf();
+//                buildSyncConf();
                 keystoreUnlockedMessage ();
             } else {
                 keystoreLockedMessage ();
@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
             // the rest of Sync logic ...
             User user = createTestUser(0);
             String url = "realm://objectserver.realm.io/default";
+            Realm.init(this);
             SyncConfiguration secureConfig = new SyncConfiguration.Builder(user, url).build();
             Realm realm = Realm.getInstance(secureConfig);
             // ... 
@@ -110,11 +111,11 @@ public class MainActivity extends AppCompatActivity {
         try {
             JSONArray realmList = new JSONArray();
             JSONObject realmDesc = new JSONObject();
-            realmDesc.put("uri", "realm://objectserver.realm.io/default");
+            realmDesc.put("uri", "realm://objectserver.realm.io/default");// <---- REPLACE WITH YOUR URL
             realmDesc.put("description", desc.toJson());
             realmList.put(realmDesc);
 
-            obj.put("authUrl", "http://objectserver.realm.io/auth");
+            obj.put("authUrl", "http://objectserver.realm.io/auth");// <---- REPLACE WITH YOUR URL
             obj.put("userToken", userToken.toJson());
             obj.put("realms", realmList);
             return User.fromJson(obj.toString());

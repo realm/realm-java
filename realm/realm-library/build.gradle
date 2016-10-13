@@ -57,7 +57,8 @@ android {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // armeabi is not supported anymore.
-                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+//                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                    abiFilters 'x86'
                 }
             }
         }
@@ -384,7 +385,8 @@ task downloadCore() {
     group = 'build setup'
     description = 'Download the latest version of Realm Core'
     def isHashCheckingEnabled = {
-        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
+//        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
+        return false
     }
 
     def calcSha256Hash = {File targetFile ->
@@ -395,25 +397,26 @@ task downloadCore() {
     }
 
     def shouldDownloadCore = {
-        if (!project.coreArchiveFile.exists()) {
-            return true
-        }
-        if (project.forceDownloadCore) {
-            return true;
-        }
-        if (!isHashCheckingEnabled()) {
-            println "Skipping hash check(empty \'coreSha256Hash\')."
-            return false
-        }
-
-        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
-        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
-            return false
-        }
-
-        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
-                " but got ${calculatedHash.toLowerCase()}). Download new version."
-        return true
+//        if (!project.coreArchiveFile.exists()) {
+//            return true
+//        }
+//        if (project.forceDownloadCore) {
+//            return true;
+//        }
+//        if (!isHashCheckingEnabled()) {
+//            println "Skipping hash check(empty \'coreSha256Hash\')."
+//            return false
+//        }
+//
+//        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
+//        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
+//            return false
+//        }
+//
+//        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
+//                " but got ${calculatedHash.toLowerCase()}). Download new version."
+//        return true
+        return false
     }
 
     doLast {
