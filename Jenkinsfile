@@ -78,7 +78,7 @@ try {
               String backgroundPid
               try {
                 backgroundPid = startLogCatCollector()
-                forwardAdbPorts()
+                forwardPorts()
                 gradle('realm', 'connectedUnitTests')
                 archiveLog = false;
               } finally {
@@ -131,10 +131,17 @@ try {
   }
 }
 
-def forwardAdbPorts() {
+// Forward the adb ports to the build docker. And forward the ports from build container to the ros container.
+// So when access 127.0.0.1:8888 from the Android device, it is actually access the relevant port of ros container.
+def forwardPorts() {
   sh ''' adb reverse tcp:7800 tcp:7800 &&
       adb reverse tcp:8080 tcp:8080 &&
       adb reverse tcp:8888 tcp:8888
+      sysctl -w net.ipv4.conf.all.route_localnet=1
+      iptables -t nat -A OUTPUT -p tcp --dport 7800 -j DNAT --to-destination $(getent hosts ros | awk '{ print $1 }'):7800
+      iptables -t nat -A OUTPUT -p tcp --dport 8080 -j DNAT --to-destination $(getent hosts ros | awk '{ print $1 }'):8080
+      iptables -t nat -A OUTPUT -p tcp --dport 8888 -j DNAT --to-destination $(getent hosts ros | awk '{ print $1 }'):8888
+      iptables -t nat -A POSTROUTING -j MASQUERADE
   '''
 }
 
