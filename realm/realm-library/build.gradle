@@ -385,8 +385,7 @@ task downloadCore() {
     group = 'build setup'
     description = 'Download the latest version of Realm Core'
     def isHashCheckingEnabled = {
-//        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
-        return false
+        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
     def calcSha256Hash = {File targetFile ->
@@ -397,26 +396,25 @@ task downloadCore() {
     }
 
     def shouldDownloadCore = {
-//        if (!project.coreArchiveFile.exists()) {
-//            return true
-//        }
-//        if (project.forceDownloadCore) {
-//            return true;
-//        }
-//        if (!isHashCheckingEnabled()) {
-//            println "Skipping hash check(empty \'coreSha256Hash\')."
-//            return false
-//        }
-//
-//        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
-//        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
-//            return false
-//        }
-//
-//        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
-//                " but got ${calculatedHash.toLowerCase()}). Download new version."
-//        return true
-        return false
+        if (!project.coreArchiveFile.exists()) {
+            return true
+        }
+        if (project.forceDownloadCore) {
+            return true;
+        }
+        if (!isHashCheckingEnabled()) {
+            println "Skipping hash check(empty \'coreSha256Hash\')."
+            return false
+        }
+
+        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
+        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
+            return false
+        }
+
+        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
+                " but got ${calculatedHash.toLowerCase()}). Download new version."
+        return true
     }
 
     doLast {
