@@ -141,7 +141,7 @@ file(GLOB jni_SRC
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_SyncSession.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_ObjectServerSession.cpp)
 endif()
 
 # Object Store source files
