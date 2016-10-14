@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -3814,6 +3815,8 @@ public class RealmTests {
 
     @Test
     public void testExternalStorage() {
+        Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
+
         // test for https://github.com/realm/realm-java/issues/3140
         realm.close();
         realm = null;

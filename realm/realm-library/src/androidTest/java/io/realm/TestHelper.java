@@ -18,6 +18,7 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Build;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.util.Log;
@@ -38,6 +39,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -1100,6 +1102,36 @@ public class TestHelper {
 
         if (!file.delete()) {
             throw new AssertionError("failed to delete " + file.getAbsolutePath());
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static boolean isSelinuxEnforcing() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // SELinux is not enabled for these versions.
+            return false;
+        }
+        try {
+            final Process process = new ProcessBuilder("/system/bin/getenforce").start();
+            try {
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    return reader.readLine().toLowerCase(Locale.ENGLISH).equals("enforcing");
+                } finally {
+                    try {
+                        reader.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            } finally {
+                try {
+                    process.waitFor();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        } catch (IOException e) {
+            return false;
         }
     }
 }
