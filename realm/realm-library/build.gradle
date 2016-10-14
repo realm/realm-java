@@ -79,6 +79,9 @@ android {
         androidTest {
             java.srcDirs += 'src/benchmarks/java'
         }
+        androidTestObjectServer {
+            java.srcDirs += 'src/syncIntegrationTest/java'
+        }
     }
 
     packagingOptions {
@@ -109,7 +112,6 @@ android {
         }
     }
 }
-
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
