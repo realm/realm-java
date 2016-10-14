@@ -16,7 +16,7 @@
 
 #include <jni.h>
 
-#include "io_realm_internal_objectserver_SyncSession.h"
+#include "io_realm_internal_objectserver_ObjectServerSession.h"
 #include "objectserver_shared.hpp"
 #include "util.hpp"
 #include <realm/group_shared.hpp>
