@@ -25,12 +25,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.UserStore;
 import io.realm.internal.android.crypto.CipherClient;
 
 /**
- * Encrypt and decrypt the token ({@link User}) using Android built in KeyStore capabilities.
+ * Encrypt and decrypt the token ({@link SyncUser}) using Android built in KeyStore capabilities.
  * According to the Android API this picks the right algorithm to perfom the operations.
  * Prior to API 18 there were no AndroidKeyStore API, but the UNIX deamon existed to it's possible
  * with the help of this code: https://github.com/nelenkov/android-keystore.
@@ -47,7 +47,7 @@ public class SecureUserStore implements UserStore {
     private static final String REALM_OBJECT_SERVER_USERS = "realm_object_server_users";
     private final CipherClient cipherClient;
     private final SharedPreferences sp;
-    private User cachedCurrentUser; // Keep a quick reference to the current user
+    private SyncUser cachedCurrentUser; // Keep a quick reference to the current user
 
     public SecureUserStore(final Context context) throws KeyStoreException {
         cipherClient = new CipherClient(context);
@@ -61,7 +61,7 @@ public class SecureUserStore implements UserStore {
      * @return The previous user saved with this key or {@code null} if no user was replaced.
      */
     @Override
-    public User put(String key, User user) {
+    public SyncUser put(String key, SyncUser user) {
         String previousUser = sp.getString(key, null);
         SharedPreferences.Editor editor = sp.edit();
         String userSerialisedAndEncrypted;
@@ -81,7 +81,7 @@ public class SecureUserStore implements UserStore {
         if (previousUser != null) {
             try {
                 String userSerialisedAndDecrypted = cipherClient.decrypt(previousUser);
-                return User.fromJson(userSerialisedAndDecrypted);
+                return SyncUser.fromJson(userSerialisedAndDecrypted);
             } catch (KeyStoreException e) {
                 e.printStackTrace();
                 return null;
@@ -92,12 +92,12 @@ public class SecureUserStore implements UserStore {
     }
 
     /**
-     * Retrieves the {@link User} by decrypting first the serialised Json.
+     * Retrieves the {@link SyncUser} by decrypting first the serialised Json.
      * @param key the {@link android.content.SharedPreferences} key.
-     * @return the {@link User} with the given key.
+     * @return the {@link SyncUser} with the given key.
      */
     @Override
-    public User get(String key) {
+    public SyncUser get(String key) {
         if (key.equals(UserStore.CURRENT_USER_KEY) && cachedCurrentUser != null) {
             return cachedCurrentUser;
         }
@@ -109,7 +109,7 @@ public class SecureUserStore implements UserStore {
 
         try {
             String userSerialisedAndDecrypted = cipherClient.decrypt(userData);
-            User user = User.fromJson(userSerialisedAndDecrypted);
+            SyncUser user = SyncUser.fromJson(userSerialisedAndDecrypted);
             if (UserStore.CURRENT_USER_KEY.equals(key)) {
                 cachedCurrentUser = user;
             }
@@ -121,7 +121,7 @@ public class SecureUserStore implements UserStore {
     }
 
     @Override
-    public User remove(String key) {
+    public SyncUser remove(String key) {
         String currentUser = sp.getString(key, null);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString(key, null);
@@ -134,7 +134,7 @@ public class SecureUserStore implements UserStore {
         if (currentUser != null) {
             try {
                 String userSerialisedAndDecrypted = cipherClient.decrypt(currentUser);
-                return User.fromJson(userSerialisedAndDecrypted);
+                return SyncUser.fromJson(userSerialisedAndDecrypted);
             } catch (KeyStoreException e) {
                 e.printStackTrace();
                 return null;
@@ -145,9 +145,9 @@ public class SecureUserStore implements UserStore {
     }
 
     @Override
-    public Collection<User> allUsers() {
+    public Collection<SyncUser> allUsers() {
         Map<String, ?> all = sp.getAll();
-        ArrayList<User> users = new ArrayList<User>(all.size());
+        ArrayList<SyncUser> users = new ArrayList<SyncUser>(all.size());
         for (Object userJson : all.values()) {
             String userSerialisedAndDecrypted = null;
             try {
@@ -156,7 +156,7 @@ public class SecureUserStore implements UserStore {
                 e.printStackTrace();
                 // returning null will probably penalise the other Users
             }
-            users.add(User.fromJson(userSerialisedAndDecrypted));
+            users.add(SyncUser.fromJson(userSerialisedAndDecrypted));
         }
         return users;
     }

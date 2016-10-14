@@ -112,7 +112,7 @@ public class ObjectServerError extends RuntimeException {
     /**
      * Returns the {@link ErrorCode.Category} category for this error.
      * Errors that are {@link ErrorCode.Category#RECOVERABLE} mean that it is still possible for a
-     * given {@link Session} to resume synchronization. {@link ErrorCode.Category#FATAL} errors
+     * given {@link SyncSession} to resume synchronization. {@link ErrorCode.Category#FATAL} errors
      * means that session has stopped and cannot be recovered.
      *
      * @return the error category.

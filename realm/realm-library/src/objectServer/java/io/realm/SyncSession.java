@@ -21,7 +21,7 @@ import java.net.URI;
 import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.log.RealmLog;
-import io.realm.internal.objectserver.SyncSession;
+import io.realm.internal.objectserver.ObjectServerSession;
 
 /**
  * @Beta
@@ -32,7 +32,7 @@ import io.realm.internal.objectserver.SyncSession;
  * is closed or the {@link SyncConfiguration} is no longer used.
  * <p>
  * A session is fully controlled by Realm, but can provide additional information in case of errors.
- * It is passed along in all {@link Session.ErrorHandler}s.
+ * It is passed along in all {@link SyncSession.ErrorHandler}s.
  * <p>
  * This object is thread safe.
  *
@@ -40,13 +40,13 @@ import io.realm.internal.objectserver.SyncSession;
  */
 @Keep
 @Beta
-public final class Session {
+public final class SyncSession {
 
-    private final SyncSession syncSession;
+    private final ObjectServerSession osSession;
 
-    Session(SyncSession rosSession) {
-        this.syncSession = rosSession;
-        rosSession.setUserSession(this);
+    SyncSession(ObjectServerSession osSession) {
+        this.osSession = osSession;
+        osSession.setUserSession(this);
     }
 
     /**
@@ -55,17 +55,17 @@ public final class Session {
      * @return SyncConfiguration that defines and controls this session.
      */
     public SyncConfiguration getConfiguration() {
-        return syncSession.getConfiguration();
+        return osSession.getConfiguration();
     }
 
     /**
-     * Returns the {@link User} defined by the {@link SyncConfiguration} that is used to connect to the
+     * Returns the {@link SyncUser} defined by the {@link SyncConfiguration} that is used to connect to the
      * Realm Object Server.
      *
-     * @return {@link User} used to authenticate the session on the Realm Object Server.
+     * @return {@link SyncUser} used to authenticate the session on the Realm Object Server.
      */
-    public User getUser() {
-        return syncSession.getConfiguration().getUser();
+    public SyncUser getUser() {
+        return osSession.getConfiguration().getUser();
     }
 
     /**
@@ -74,7 +74,7 @@ public final class Session {
      * @return {@link URI} describing the remote Realm.
      */
     public URI getServerUrl() {
-        return syncSession.getConfiguration().getServerUrl();
+        return osSession.getConfiguration().getServerUrl();
     }
 
     /**
@@ -83,19 +83,19 @@ public final class Session {
      * @return the current {@link SessionState} for this session.
      */
     public SessionState getState() {
-        return syncSession.getState();
+        return osSession.getState();
     }
 
-    SyncSession getSyncSession() {
-        return syncSession;
+    ObjectServerSession getOsSession() {
+        return osSession;
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        if (syncSession.getState() != SessionState.STOPPED) {
+        if (osSession.getState() != SessionState.STOPPED) {
             RealmLog.warn("Session was not closed before being finalized. This is a potential resource leak.");
-            syncSession.stop();
+            osSession.stop();
         }
     }
 
@@ -109,10 +109,10 @@ public final class Session {
         /**
          * Callback for errors on a session object.
          *
-         * @param session {@link Session} this error happened on.
+         * @param session {@link SyncSession} this error happened on.
          * @param error type of error.
          */
-        void onError(Session session, ObjectServerError error);
+        void onError(SyncSession session, ObjectServerError error);
     }
 }
 
