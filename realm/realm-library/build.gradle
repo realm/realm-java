@@ -57,8 +57,9 @@ android {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // armeabi is not supported anymore.
-//                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
-                    abiFilters 'x86'
+                    //abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                    //FIXME: For testing CI
+                    abiFilters 'armeabi-v7a'
                 }
             }
         }
@@ -79,6 +80,9 @@ android {
     sourceSets {
         androidTest {
             java.srcDirs += 'src/benchmarks/java'
+        }
+        androidTestObjectServer {
+            java.srcDirs += 'src/syncIntegrationTest/java'
         }
     }
 
@@ -110,7 +114,6 @@ android {
         }
     }
 }
-
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
@@ -511,8 +514,6 @@ if (project.hasProperty('dontCleanJniFiles')) {
 } else {
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
-        // Clean .so files that were created by old build script (realm/realm-jni/build.gradle).
-        delete project.file('src/main/jniLibs')
     }
     clean.dependsOn cleanExternalBuildFiles
 }
