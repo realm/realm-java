@@ -33,37 +33,36 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
 
-    // Initialized by Realm.init(Context)
-    public static void initialize(File namedPipeDirectory) {
-        if (SharedRealm.namedPipeDirectory != null) {
+    public static void initialize(File temporaryDirectory) {
+        if (SharedRealm.temporaryDirectory != null) {
             // already initialized
             return;
         }
-        if (namedPipeDirectory == null) {
-            throw new IllegalArgumentException("'namedPipeDirectory' must not be null.");
+        if (temporaryDirectory == null) {
+            throw new IllegalArgumentException("'temporaryDirectory' must not be null.");
         }
 
-        String namedPipeDirectoryPath = namedPipeDirectory.getAbsolutePath();
-        if (!namedPipeDirectory.isDirectory()) {
-            if (!namedPipeDirectory.mkdirs()) {
-                if (!namedPipeDirectory.isDirectory()) {
-                    throw new IOException("failed to create namedPipe directory: " + namedPipeDirectoryPath);
+        String temporaryDirectoryPath = temporaryDirectory.getAbsolutePath();
+        if (!temporaryDirectory.isDirectory()) {
+            if (!temporaryDirectory.mkdirs()) {
+                if (!temporaryDirectory.isDirectory()) {
+                    throw new IOException("failed to create temporary directory: " + temporaryDirectoryPath);
                 }
             }
         }
 
-        if (!namedPipeDirectoryPath.endsWith("/")) {
-            namedPipeDirectoryPath += "/";
+        if (!temporaryDirectoryPath.endsWith("/")) {
+            temporaryDirectoryPath += "/";
         }
-        nativeInit(namedPipeDirectoryPath);
-        SharedRealm.namedPipeDirectory = namedPipeDirectory;
+        nativeInit(temporaryDirectoryPath);
+        SharedRealm.temporaryDirectory = temporaryDirectory;
     }
 
-    public static File getNamedPipeDirectory() {
-        return namedPipeDirectory;
+    public static File getTemporaryDirectory() {
+        return temporaryDirectory;
     }
 
-    private static File namedPipeDirectory;
+    private static File temporaryDirectory;
 
     public enum Durability {
         FULL(0),
@@ -372,7 +371,7 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    private static native void nativeInit(String namedPipeDirectoryPath);
+    private static native void nativeInit(String temporaryDirectoryPath);
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,

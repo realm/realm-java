@@ -25,13 +25,13 @@ static_assert(SchemaMode::Manual ==
               static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL), "");
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring named_pipe_directory_path)
+Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring temporary_directory_path)
 {
     TR_ENTER(env)
 
     try {
-        JStringAccessor path(env, named_pipe_directory_path); // throws
-        realm::set_named_pipe_directory(std::string(path)); // throws
+        JStringAccessor path(env, temporary_directory_path); // throws
+        realm::set_temporary_directory(std::string(path)); // throws
     } CATCH_STD()
 }
 
