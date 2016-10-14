@@ -3814,8 +3814,7 @@ public class RealmTests {
     }
 
     @Test
-    public void testExternalStorage() {
-        Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
+    public void namedPipeDirForExternalStorage() {
 
         // test for https://github.com/realm/realm-java/issues/3140
         realm.close();
@@ -3838,6 +3837,9 @@ public class RealmTests {
         realmOnExternalStorage.close();
 
         assertTrue(namedPipeDir.isDirectory());
+
+        Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
+
         assertEquals(2, namedPipeDir.list().length);
 
         // test if it works when the namedPipeDir and the named pipe files already exist.
