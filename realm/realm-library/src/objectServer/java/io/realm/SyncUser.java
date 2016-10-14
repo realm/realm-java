@@ -41,6 +41,7 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 
@@ -59,9 +60,9 @@ import io.realm.log.RealmLog;
 @Beta
 public class SyncUser {
 
-    private final io.realm.internal.objectserver.SyncUser syncUser;
+    private final ObjectServerUser syncUser;
 
-    private SyncUser(io.realm.internal.objectserver.SyncUser user) {
+    private SyncUser(ObjectServerUser user) {
         this.syncUser = user;
     }
 
@@ -111,12 +112,12 @@ public class SyncUser {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
             Token userToken = Token.from(obj.getJSONObject("userToken"));
-            io.realm.internal.objectserver.SyncUser syncUser = new io.realm.internal.objectserver.SyncUser(userToken, authUrl);
+            ObjectServerUser syncUser = new ObjectServerUser(userToken, authUrl);
             JSONArray realmTokens = obj.getJSONArray("realms");
             for (int i = 0; i < realmTokens.length(); i++) {
                 JSONObject token = realmTokens.getJSONObject(i);
                 URI uri = new URI(token.getString("uri"));
-                io.realm.internal.objectserver.SyncUser.AccessDescription realmDesc = io.realm.internal.objectserver.SyncUser.AccessDescription.fromJson(token.getJSONObject("description"));
+                ObjectServerUser.AccessDescription realmDesc = ObjectServerUser.AccessDescription.fromJson(token.getJSONObject("description"));
                 syncUser.addRealm(uri, realmDesc);
             }
             return new SyncUser(syncUser);
@@ -151,7 +152,7 @@ public class SyncUser {
         try {
             AuthenticateResponse result = server.loginUser(credentials, authUrl);
             if (result.isValid()) {
-                io.realm.internal.objectserver.SyncUser syncUser = new io.realm.internal.objectserver.SyncUser(result.getRefreshToken(), authUrl);
+                ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
                 SyncManager.getUserStore().put(UserStore.CURRENT_USER_KEY, user);
@@ -276,7 +277,7 @@ public class SyncUser {
                     }
 
                     // Delete all Realms if needed.
-                    for (io.realm.internal.objectserver.SyncUser.AccessDescription desc : syncUser.getRealms()) {
+                    for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
                         // FIXME: This will always be false since SyncConfiguration.Builder.deleteRealmOnLogout() is
                         // disabled. Make sure this works for Realm opened in the client thread/other processes.
                         if (desc.deleteOnLogout) {
@@ -368,7 +369,7 @@ public class SyncUser {
     }
 
     // Expose internal representation for other package protected classes
-    io.realm.internal.objectserver.SyncUser getSyncUser() {
+    ObjectServerUser getSyncUser() {
         return syncUser;
     }
 

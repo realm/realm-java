@@ -35,7 +35,7 @@ import io.realm.SyncConfiguration;
  * Internal representation of a user on the Realm Object Server.
  * The public API is defined by {@link io.realm.SyncUser}.
  */
-public class SyncUser {
+public class ObjectServerUser {
 
     private final String identity;
     private Token refreshToken;
@@ -47,7 +47,7 @@ public class SyncUser {
     /**
      * Create a new Realm Object Server User
      */
-    public SyncUser(Token refreshToken, URL authenticationUrl) {
+    public ObjectServerUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
         this.authenticationUrl = authenticationUrl;
         setRefreshToken(refreshToken);
@@ -161,7 +161,7 @@ public class SyncUser {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SyncUser syncUser = (SyncUser) o;
+        ObjectServerUser syncUser = (ObjectServerUser) o;
 
         if (!identity.equals(syncUser.identity)) return false;
         if (!refreshToken.equals(syncUser.refreshToken)) return false;

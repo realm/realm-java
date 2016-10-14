@@ -26,6 +26,7 @@ import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.SyncUser;
 import io.realm.internal.network.AuthenticateResponse;
+import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 
 public class SyncTestUtils {
@@ -40,7 +41,7 @@ public class SyncTestUtils {
     public static SyncUser createTestUser(long expires) {
         Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
         Token accessToken = new Token(REALM_TOKEN, "JohnDoe", "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
-        io.realm.internal.objectserver.SyncUser.AccessDescription desc = new io.realm.internal.objectserver.SyncUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
+        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
         JSONObject obj = new JSONObject();
         try {

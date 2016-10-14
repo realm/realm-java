@@ -96,7 +96,7 @@ public final class ObjectServerSession {
     private final AuthenticationServer authServer;
     private final SyncSession.ErrorHandler errorHandler;
     private long nativeSessionPointer;
-    private final io.realm.internal.objectserver.SyncUser user;
+    private final ObjectServerUser user;
     RealmAsyncTask networkRequest;
     NetworkStateReceiver.ConnectionListener networkListener;
     private SyncPolicy syncPolicy;
@@ -116,7 +116,7 @@ public final class ObjectServerSession {
      */
     public ObjectServerSession(SyncConfiguration syncConfiguration,
                                AuthenticationServer authServer,
-                               io.realm.internal.objectserver.SyncUser user,
+                               ObjectServerUser user,
                                SyncPolicy policy,
                                SyncSession.ErrorHandler errorHandler) {
         this.configuration = syncConfiguration;
@@ -268,7 +268,7 @@ public final class ObjectServerSession {
 
             @Override
             protected void onSuccess(AuthenticateResponse response) {
-                io.realm.internal.objectserver.SyncUser.AccessDescription desc = new io.realm.internal.objectserver.SyncUser.AccessDescription(
+                ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
                         response.getAccessToken(),
                         configuration.getPath(),
                         configuration.shouldDeleteRealmOnLogout()
