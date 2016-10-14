@@ -3818,7 +3818,7 @@ public class RealmTests {
         realm.close();
         realm = null;
 
-        final File namedPipeDir = new File(SharedRealm.namedPipeDir);
+        final File namedPipeDir = SharedRealm.getNamedPipeDirectory();
         assertTrue(namedPipeDir.isDirectory());
         TestHelper.deleteRecursively(namedPipeDir);
         //noinspection ResultOfMethodCallIgnored

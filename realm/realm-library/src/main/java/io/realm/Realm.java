@@ -192,10 +192,7 @@ public final class Realm extends BaseRealm {
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
-            final File namedPipeDir = new File(context.getFilesDir(), ".realmNamedPipes");
-            //noinspection ResultOfMethodCallIgnored
-            namedPipeDir.mkdirs();
-            SharedRealm.namedPipeDir = namedPipeDir.getAbsolutePath() + '/';
+            SharedRealm.initialize(new File(context.getFilesDir(), ".realmNamedPipes"));
         }
     }
 

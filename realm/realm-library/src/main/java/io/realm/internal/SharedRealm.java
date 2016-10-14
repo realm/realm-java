@@ -34,8 +34,36 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
 
     // Initialized by Realm.init(Context)
-    // namedPipeDir must end with '/'
-    public static String namedPipeDir;
+    public static void initialize(File namedPipeDirectory) {
+        if (SharedRealm.namedPipeDirectory != null) {
+            // already initialized
+            return;
+        }
+        if (namedPipeDirectory == null) {
+            throw new IllegalArgumentException("'namedPipeDirectory' must not be null.");
+        }
+
+        String namedPipeDirectoryPath = namedPipeDirectory.getAbsolutePath();
+        if (!namedPipeDirectory.isDirectory()) {
+            if (!namedPipeDirectory.mkdirs()) {
+                if (!namedPipeDirectory.isDirectory()) {
+                    throw new IOException("failed to create namedPipe directory: " + namedPipeDirectoryPath);
+                }
+            }
+        }
+
+        if (!namedPipeDirectoryPath.endsWith("/")) {
+            namedPipeDirectoryPath += "/";
+        }
+        nativeInit(namedPipeDirectoryPath);
+        SharedRealm.namedPipeDirectory = namedPipeDirectory;
+    }
+
+    public static File getNamedPipeDirectory() {
+        return namedPipeDirectory;
+    }
+
+    private static File namedPipeDirectory;
 
     public enum Durability {
         FULL(0),
@@ -175,7 +203,6 @@ public final class SharedRealm implements Closeable {
                 enable_caching,
                 disableFormatUpgrade,
                 autoChangeNotifications,
-                SharedRealm.namedPipeDir,
                 rosServerUrl,
                 rosUserToken);
         try {
@@ -345,9 +372,10 @@ public final class SharedRealm implements Closeable {
         }
     }
 
+    private static native void nativeInit(String namedPipeDirectoryPath);
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
-                                                  boolean autoChangeNotification, String namedPipeDir,
+                                                  boolean autoChangeNotification,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
