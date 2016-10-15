@@ -29,7 +29,7 @@ After analysing this graphs, we can conclude that the development process is con
 
 However, there are some things that can be improved:
 * Coding guidelines should be more specific
-* Automatize some pull requests analysis in order to avoid bottleneck effect: it is useless to have a lot of contributers when the amount of code checked is always the same. Besides, when the latest contribuitions are finally checked, there is the chance that they are already outdated.
+* Automatize some pull requests analysis in order to avoid bottleneck effect: it is useless to have a lot of contributers when the amount of code checked is always the same. Besides, when the latest contributions are finally checked, there is the chance that they are already outdated.
 * A roadmap could be helpful so that contributors know what features to implement
 
 To sum up, in our opinion this project follows a good process model which allows a continuous evolution through times.
