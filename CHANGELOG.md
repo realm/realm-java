@@ -3,6 +3,7 @@
 ### Breaking changes
 
 * Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
+* Added `Logger.log()` to replaces the mutiple methods in the `Logger` interface.
 
 ### Bug fixes
 
