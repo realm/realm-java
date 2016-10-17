@@ -4,6 +4,10 @@
 
 * Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
 
+### Bug fixes
+
+* `SyncUser.logout()` now correctly clears `SyncUser.currentUser()` (#3638).
+
 ### Enhancement
 
 * `Realm.compactRealm()` works for encrypted Realms.
