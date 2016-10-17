@@ -66,6 +66,21 @@ public class UserTests {
         assertNull(SyncUser.currentUser());
     }
 
+    // Test that current user is cleared if it is logged out
+    @Test
+    public void currentUser_clearedOnLogout() {
+        // Add an expired user to the user store
+        SyncUser user = SyncTestUtils.createTestUser(Long.MAX_VALUE);
+        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
+        SyncManager.setUserStore(userStore);
+        userStore.put(UserStore.CURRENT_USER_KEY, user);
+
+        SyncUser savedUser = SyncUser.currentUser();
+        assertEquals(user, savedUser);
+        savedUser.logout();
+        assertNull(SyncUser.currentUser());
+    }
+
     // `all()` returns an empty list if no users are logged in
     @Test
     public void all_empty() {

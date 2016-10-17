@@ -258,6 +258,27 @@ public class SyncUser {
                 session.getOsSession().stop();
             }
 
+            // Remove all local tokens, preventing further connections.
+            // FIXME We still need to cache the user token so it can be revoked.
+            syncUser.clearTokens();
+
+            if (SyncUser.this.equals(SyncUser.currentUser())) {
+                SyncManager.getUserStore().remove(UserStore.CURRENT_USER_KEY);
+            }
+
+            // Delete all Realms if needed.
+            for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
+                // FIXME: This will always be false since SyncConfiguration.Builder.deleteRealmOnLogout() is
+                // disabled. Make sure this works for Realm opened in the client thread/other processes.
+                if (desc.deleteOnLogout) {
+                    File realmFile = new File(desc.localPath);
+                    if (realmFile.exists() && !Util.deleteRealm(desc.localPath, realmFile.getParentFile(), realmFile.getName())) {
+                        RealmLog.error("Could not delete Realm when user logged out: " + desc.localPath);
+                    }
+                }
+            }
+
+            // Finally revoke server token. The local user is logged out in any case.
             final AuthenticationServer server = SyncManager.getAuthServer();
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
             networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
@@ -269,25 +290,6 @@ public class SyncUser {
 
                 @Override
                 protected void onSuccess(LogoutResponse response) {
-                    // Remove all local tokens, preventing further connections.
-                    syncUser.clearTokens();
-
-                    if (SyncUser.this.equals(SyncUser.currentUser())) {
-                        SyncManager.getUserStore().remove(UserStore.CURRENT_USER_KEY);
-                    }
-
-                    // Delete all Realms if needed.
-                    for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
-                        // FIXME: This will always be false since SyncConfiguration.Builder.deleteRealmOnLogout() is
-                        // disabled. Make sure this works for Realm opened in the client thread/other processes.
-                        if (desc.deleteOnLogout) {
-                            File realmFile = new File(desc.localPath);
-                            if (realmFile.exists() && !Util.deleteRealm(desc.localPath, realmFile.getParentFile(), realmFile.getName())) {
-                                RealmLog.error("Could not delete Realm when user logged out: " + desc.localPath);
-                            }
-                        }
-                    }
-
                     SyncManager.notifyUserLoggedOut(SyncUser.this);
                 }
 
