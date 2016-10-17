@@ -62,7 +62,7 @@ public final class SharedRealm implements Closeable {
         return temporaryDirectory;
     }
 
-    private static File temporaryDirectory;
+    private volatile static File temporaryDirectory;
 
     public enum Durability {
         FULL(0),
