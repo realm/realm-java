@@ -50,11 +50,12 @@ public class ObjectServerUser {
     public ObjectServerUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
         this.authenticationUrl = authenticationUrl;
-        setRefreshToken(refreshToken);
+        this.refreshToken = refreshToken;
         this.loggedIn = true;
     }
 
     private void setRefreshToken(final Token refreshToken) {
+        // TODO Shouldn't we check if the identity of the new refreshToken is the same with previous identity?
         this.refreshToken = refreshToken; // Replace any existing token. TODO re-save the user with latest token.
     }
 
@@ -168,16 +169,19 @@ public class ObjectServerUser {
         ObjectServerUser syncUser = (ObjectServerUser) o;
 
         if (!identity.equals(syncUser.identity)) return false;
-        if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        if (refreshToken == null) {
+            if (syncUser.refreshToken != null) return false;
+        } else {
+            if (!refreshToken.equals(syncUser.refreshToken)) return false;
+        }
         if (!authenticationUrl.toString().equals(syncUser.authenticationUrl.toString())) return false;
         return realms.equals(syncUser.realms);
-
     }
 
     @Override
     public int hashCode() {
         int result = identity.hashCode();
-        result = 31 * result + refreshToken.hashCode();
+        result = 31 * result + (refreshToken == null ? 0 : refreshToken.hashCode());
         result = 31 * result + authenticationUrl.toString().hashCode();
         result = 31 * result + realms.hashCode();
         return result;
