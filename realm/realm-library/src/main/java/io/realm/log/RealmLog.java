@@ -16,11 +16,9 @@
 
 package io.realm.log;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.util.Log;
 
 import io.realm.internal.Keep;
-import io.realm.internal.Util;
 
 /**
  * Global logger used by all Realm components.
@@ -29,12 +27,8 @@ import io.realm.internal.Util;
 @Keep
 public final class RealmLog {
 
-    private static final Logger[] NO_LOGGERS = new Logger[0];
-
-    // All of the below should be modified together under under a lock on LOGGERS.
-    private static final List<Logger> LOGGERS = new ArrayList<>();
-    private static volatile Logger[] loggersAsArray = NO_LOGGERS;
-    private static int minimumNativeLogLevel = Integer.MAX_VALUE;
+    @SuppressWarnings("FieldCanBeLocal")
+    private static String REALM_JAVA_TAG = "REALM_JAVA";
 
     /**
      * Adds a logger implementation that will be notified on log events.
@@ -45,19 +39,25 @@ public final class RealmLog {
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
-        synchronized (LOGGERS) {
-            LOGGERS.add(logger);
-            int minimumLogLevel = logger.getMinimumNativeDebugLevel();
-            if (minimumLogLevel < minimumNativeLogLevel) {
-                setMinimumNativeDebugLevel(minimumLogLevel);
-            }
-            loggersAsArray = LOGGERS.toArray(new Logger[LOGGERS.size()]);
-        }
+        nativeAddLogger(logger);
     }
 
-    private static void setMinimumNativeDebugLevel(int nativeDebugLevel) {
-        minimumNativeLogLevel = nativeDebugLevel;
-        Util.setDebugLevel(nativeDebugLevel); // Log level for Realm Core
+    /**
+     * Sets the current {@link LogLevel}.
+     *
+     * @param level see {@link LogLevel}.
+     */
+    public static void setLevel(int level) {
+        nativeSetLogLevel(level);
+    }
+
+    /**
+     * Get the current {@link LogLevel}.
+     *
+     * @return the current {@link LogLevel}.
+     */
+    public static int getLevel() {
+        return nativeGetLogLevel();
     }
 
     /**
@@ -69,18 +69,7 @@ public final class RealmLog {
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
-        synchronized (LOGGERS) {
-            LOGGERS.remove(logger);
-            int newMinLevel = Integer.MAX_VALUE;
-            for (int i = 0; i < LOGGERS.size(); i++) {
-                int logMin = LOGGERS.get(i).getMinimumNativeDebugLevel();
-                if (logMin < newMinLevel) {
-                    newMinLevel = logMin;
-                }
-            }
-            setMinimumNativeDebugLevel(newMinLevel);
-            loggersAsArray = LOGGERS.toArray(new Logger[LOGGERS.size()]);
-        }
+        nativeRemoveLogger(logger);
         return true;
     }
 
@@ -88,11 +77,7 @@ public final class RealmLog {
      * Remove all loggers.
      */
     public static void clear() {
-        synchronized (LOGGERS) {
-            LOGGERS.clear();
-            setMinimumNativeDebugLevel(Integer.MAX_VALUE);
-            loggersAsArray = NO_LOGGERS;
-        }
+        nativeClearLoggers();
     }
 
     /**
@@ -122,11 +107,7 @@ public final class RealmLog {
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
     public static void trace(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].trace(throwable, message, args);
-        }
+        log(LogLevel.TRACE, throwable, message, args);
     }
 
     /**
@@ -156,11 +137,7 @@ public final class RealmLog {
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
     public static void debug(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].debug(throwable, message, args);
-        }
+        log(LogLevel.DEBUG, throwable, message, args);
     }
 
     /**
@@ -190,11 +167,7 @@ public final class RealmLog {
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
     public static void info(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].info(throwable, message, args);
-        }
+        log(LogLevel.INFO, throwable, message, args);
     }
 
     /**
@@ -224,11 +197,7 @@ public final class RealmLog {
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
     public static void warn(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].warn(throwable, message, args);
-        }
+        log(LogLevel.WARN, throwable, message, args);
     }
 
     /**
@@ -258,11 +227,7 @@ public final class RealmLog {
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
     public static void error(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].error(throwable, message, args);
-        }
+        log(LogLevel.ERROR, throwable, message, args);
     }
 
     /**
@@ -292,10 +257,25 @@ public final class RealmLog {
      * @param args optional args used to format the message using {@link String#format(String, Object...)}.
      */
     public static void fatal(Throwable throwable, String message, Object... args) {
-        Logger[] loggers = loggersAsArray;
-        //noinspection ForLoopReplaceableByForEach
-        for (int i = 0; i < loggers.length; i++) {
-            loggers[i].fatal(throwable, message, args);
-        }
+        log(LogLevel.FATAL, throwable, message, args);
     }
+
+    // Format the message, parse the stacktrace of given throwable and pass them to nativeLog.
+    private static void log(int level, Throwable throwable, String message, Object... args) {
+        if (args != null && args.length > 0) {
+            message = String.format(message, args);
+        }
+        String stackTrace = null;
+        if (throwable != null) {
+            stackTrace = Log.getStackTraceString(throwable);
+        }
+        nativeLog(level,REALM_JAVA_TAG, throwable, stackTrace, message);
+    }
+
+    private static native void nativeAddLogger(Logger logger);
+    private static native void nativeRemoveLogger(Logger logger);
+    private static native void nativeClearLoggers();
+    private static native void nativeLog(int level, String tag, Throwable throwable, String stackTrace, String message);
+    private static native void nativeSetLogLevel(int level);
+    private static native int nativeGetLogLevel();
 }

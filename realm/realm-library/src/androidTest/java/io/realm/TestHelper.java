@@ -57,7 +57,6 @@ import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.log.AndroidLogger;
 import io.realm.log.LogLevel;
 import io.realm.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -174,44 +173,17 @@ public class TestHelper {
      * @return Logger implementation
      */
     public static Logger getFailureLogger(final int failureLevel) {
-        return new AndroidLogger(Log.VERBOSE) {
-
-            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+        return new Logger() {
+            private void failIfEqualOrAbove(int logLevel) {
                 if (logLevel >= failureLevel) {
                     fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
                 }
             }
 
             @Override
-            public void trace(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            public void log(int level, String tag, Throwable throwable, String message) {
+                failIfEqualOrAbove(level);
             }
-
-            @Override
-            public void debug(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.DEBUG, failureLevel);
-            }
-
-            @Override
-            public void info(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.INFO, failureLevel);
-            }
-
-            @Override
-            public void warn(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.WARN, failureLevel);
-            }
-
-            @Override
-            public void error(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
-            @Override
-            public void fatal(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
         };
     }
 
@@ -242,53 +214,10 @@ public class TestHelper {
         }
 
         @Override
-        public int getMinimumNativeDebugLevel() {
-            return minimumLevel;
-        }
-
-        @Override
-        public void trace(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.TRACE) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void debug(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.DEBUG) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void info(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.INFO) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void warn(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
-        }
-
-        @Override
-        public void error(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.ERROR) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void fatal(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.FATAL) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
+        public void log(int level, String tag, Throwable throwable, String message) {
+            if (minimumLevel <= level) {
+                this.message = message;
+                this.throwable = throwable;
             }
         }
     }

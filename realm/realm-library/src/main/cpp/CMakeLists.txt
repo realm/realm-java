@@ -36,7 +36,8 @@ set(classes_LIST
     io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
-    io.realm.log.LogLevel io.realm.Property io.realm.RealmSchema io.realm.RealmObjectSchema
+    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
+    io.realm.RealmObjectSchema
 )
 set(jni_headers_PATH ${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
@@ -136,6 +137,8 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS
 # JNI source files
 file(GLOB jni_SRC
     "*.cpp"
+    "jni_util/*.cpp"
+    "jni_impl/android_logger.cpp"
 )
 # Those source file are only needed for sync.
 if (NOT build_SYNC)

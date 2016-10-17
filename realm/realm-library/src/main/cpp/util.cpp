@@ -29,6 +29,7 @@
 using namespace std;
 using namespace realm;
 using namespace realm::util;
+using namespace realm::jni_util;
 
 // Caching classes and constructors for boxed types.
 JavaVM* g_vm;
@@ -94,7 +95,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     string message;
     jclass jExceptionClass = NULL;
 
-    TR_ERR(env, "jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
+    Log::e("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str());
 
     switch (exception) {
         case ClassNotFound:
@@ -149,10 +150,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
-        TR_ERR(env, "Exception has been throw: %s", message.c_str())
+        Log::e("Exception has been throw: %s", message.c_str());
     }
     else {
-        TR_ERR_NO_VA_ARG(env, "ERROR: Couldn't throw exception.")
+        Log::e("ERROR: Couldn't throw exception.");
     }
 
     env->DeleteLocalRef(jExceptionClass);

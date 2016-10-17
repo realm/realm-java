@@ -36,12 +36,6 @@ public class Util {
     }
     static native long nativeGetMemUsage();
 
-    // Set to level=1 to get some trace from JNI native part.
-    public static void setDebugLevel(int level) {
-        nativeSetDebugLevel(level);
-    }
-    static native void nativeSetDebugLevel(int level);
-
     // Called by JNI. Do not remove
     static void javaPrint(String txt) {
         System.out.print(txt);
