@@ -3830,6 +3830,7 @@ public class RealmTests {
                 .directory(externalFilesDir)
                 .name("external.realm")
                 .build();
+        Realm.deleteRealm(config);
 
         // test if it works when the namedPipeDir is empty.
         Realm realmOnExternalStorage = Realm.getInstance(config);
