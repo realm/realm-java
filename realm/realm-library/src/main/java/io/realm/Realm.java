@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +55,7 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
@@ -188,6 +190,7 @@ public final class Realm extends BaseRealm {
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
+            SharedRealm.initialize(new File(context.getFilesDir(), ".realmNamedPipes"));
         }
     }
 
