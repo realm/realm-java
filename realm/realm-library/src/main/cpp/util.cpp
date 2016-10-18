@@ -95,7 +95,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     string message;
     jclass jExceptionClass = NULL;
 
-    Log::e("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str());
+    Log::e("jni: ThrowingException %1, %2, %3.", exception, classStr.c_str(), itemStr.c_str());
 
     switch (exception) {
         case ClassNotFound:
@@ -149,7 +149,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
     }
     if (jExceptionClass != NULL) {
-        Log::e("Exception has been throw: %s", message.c_str());
+        Log::e("Exception has been throw: %1", message.c_str());
         env->ThrowNew(jExceptionClass, message.c_str());
     }
     else {
