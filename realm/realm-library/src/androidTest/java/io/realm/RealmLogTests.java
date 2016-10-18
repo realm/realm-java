@@ -50,4 +50,22 @@ public class RealmLogTests {
 
         RealmLog.remove(testLogger);
     }
+
+    @Test
+    public void clear() {
+        TestHelper.TestLogger testLogger1 = new TestHelper.TestLogger();
+        TestHelper.TestLogger testLogger2 = new TestHelper.TestLogger();
+        RealmLog.add(testLogger1);
+        RealmLog.add(testLogger2);
+        RealmLog.fatal("TEST");
+
+        assertEquals("TEST", testLogger1.message);
+        assertEquals("TEST", testLogger2.message);
+
+        RealmLog.clear();
+
+        RealmLog.fatal("TEST_AGAIN");
+        assertEquals("TEST", testLogger1.message);
+        assertEquals("TEST", testLogger2.message);
+    }
 }

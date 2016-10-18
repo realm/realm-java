@@ -38,7 +38,7 @@ Java_io_realm_log_RealmLog_nativeRemoveLogger(JNIEnv *env, jclass, jobject java_
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_crendRealmLog_nativeClearLoggers(JNIEnv *env, jclass)
+Java_io_realm_log_RealmLog_nativeClearLoggers(JNIEnv *env, jclass)
 {
     try {
         Log::shared().clear_loggers();
