@@ -74,7 +74,7 @@ void AndroidLogger::print(android_LogPriority priority, const char* tag, const c
             size_t count = log_size - start > LOG_ENTRY_MAX_LENGTH ? LOG_ENTRY_MAX_LENGTH : log_size - start;
             std::string tmp_str(log_string, start, count);
             __android_log_write(priority, tag, tmp_str.c_str());
-            start += LOG_ENTRY_MAX_LENGTH;
+            start += count;
         }
     } else {
         __android_log_write(priority, tag, log_string);

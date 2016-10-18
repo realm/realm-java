@@ -167,18 +167,18 @@ void Log::log(Level level, const char* tag, jthrowable throwable, const char* st
 
 void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
 {
-    // Ignore the leve threshold from the root logger.
+    // Ignore the level threshold from the root logger.
     Log::Level jni_level;
     switch (level) {
         case Level::trace: jni_level = Log::trace; break;
-        case Level::debug: // Map to same debug level.
+        case Level::debug: // Fall through. Map to same level debug.
         case Level::detail: jni_level = Log::debug; break;
         case Level::info: jni_level = Log::info; break;
         case Level::warn: jni_level = Log::warn; break;
         case Level::error: jni_level = Log::error; break;
         case Level::fatal: jni_level = Log::fatal; break;
-        case Level::all:
-        case Level::off:
+        case Level::all: // Fall through.
+        case Level::off: // Fall through.
         default:
             jni_level = Log::fatal; // Should not get here.
             break;

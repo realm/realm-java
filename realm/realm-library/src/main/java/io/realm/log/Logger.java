@@ -27,7 +27,7 @@ public interface Logger {
     /**
      * Handles a log event
      *
-     * @param level  for this log event. It can only be a value between {@link LogLevel#TRACE} and
+     * @param level for this log event. It can only be a value between {@link LogLevel#TRACE} and
      * {@link LogLevel#FATAL}
      * @param tag for this log event.
      * @param throwable optional exception to log.

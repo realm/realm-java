@@ -60,7 +60,7 @@ public:
         off = io_realm_log_LogLevel_OFF
     };
 
-    // Add & Remove a Java Logger. An Java logger needs to be implemented from io.realm.log.Logger interface.
+    // Add & Remove a Java Logger. A Java logger needs to be implemented from io.realm.log.Logger interface.
     void add_java_logger(JNIEnv* env, const jobject java_logger);
     void remove_java_logger(JNIEnv* env, const jobject java_logger);
 
