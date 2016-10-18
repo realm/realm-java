@@ -149,8 +149,8 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
     }
     if (jExceptionClass != NULL) {
-        env->ThrowNew(jExceptionClass, message.c_str());
         Log::e("Exception has been throw: %s", message.c_str());
+        env->ThrowNew(jExceptionClass, message.c_str());
     }
     else {
         Log::e("ERROR: Couldn't throw exception.");

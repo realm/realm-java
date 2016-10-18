@@ -84,6 +84,10 @@ void JavaLogger::log(Log::Level level, const char* tag, jthrowable throwable, co
         const char* message)
 {
     JNIEnv *env = get_current_env();
+
+    // NOTE: If there are Java exception has been thrown in native code, the below call will trigger an JNI exception
+    // "JNI called with pending exception". This is something should be avoided when printing log in JNI -- Always
+    // print log before calling env->ThrowNew. Doing env->ExceptionCheck() here creates overhead for normal cases.
     env->CallVoidMethod(m_java_logger, m_log_method, level, env->NewStringUTF(tag),
             throwable, env->NewStringUTF(message));
 }
