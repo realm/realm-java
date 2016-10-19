@@ -14,6 +14,10 @@
 *  Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
 *  Added `User.all()` that returns all known Realm Object Server users.
 
+### Credits
+
+* Thanks to Max Furman (@maxfurman) for adding support for `first()` and `last()` default values.
+
 ## 2.0.3
 
 ### Bug fixes
