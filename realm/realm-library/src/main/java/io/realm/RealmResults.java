@@ -225,10 +225,26 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E first() {
-        if (size() > 0) {
+        return firstImpl(true, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public E first(E defaultValue) {
+        return firstImpl(false, defaultValue);
+    }
+
+    private E firstImpl(boolean shouldThrow, E defaultValue) {
+        if (!isEmpty()) {
             return get(0);
         } else {
-            throw new IndexOutOfBoundsException("No results were found.");
+            if (shouldThrow) {
+                throw new IndexOutOfBoundsException("No results were found.");
+            } else {
+                return defaultValue;
+            }
         }
     }
 
@@ -237,11 +253,27 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E last() {
-        int size = size();
-        if (size > 0) {
-            return get(size - 1);
+        return lastImpl(true, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public E last(E defaultValue) {
+        return lastImpl(false, defaultValue);
+        
+    }
+
+    private E lastImpl(boolean shouldThrow, E defaultValue) {
+        if (!isEmpty()) {
+            return get(size() - 1);
         } else {
-            throw new IndexOutOfBoundsException("No results were found.");
+            if (shouldThrow) {
+                throw new IndexOutOfBoundsException("No results were found.");
+            } else {
+                return defaultValue;
+            }
         }
     }
 
