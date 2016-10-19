@@ -17,7 +17,6 @@
 ### Enhancements
 
 * Reduce transformer logger verbosity (#3608).
->>>>>>> base/master
 
 ## 2.0.2
 
