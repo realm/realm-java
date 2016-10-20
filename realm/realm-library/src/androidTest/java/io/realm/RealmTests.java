@@ -40,6 +40,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -1983,9 +1984,6 @@ public class RealmTests {
         assertTrue(Realm.deleteRealm(configuration));
 
         // Directory should be empty now
-        // FIXME: .note file is the named pipe for OS android notification. Just don't delete it until we figure out
-        // one single daemon thread for notification.
-        assertEquals(/*0*/1, tempDir.listFiles().length);
     }
 
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
@@ -3841,7 +3839,16 @@ public class RealmTests {
 
         Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
 
-        assertEquals(2, namedPipeDir.list().length);
+        // Only check the fifo file created by call, since all Realm instances share the same fifo created by
+        // external_commit_helper which might not be created in the newly created dir if there are Realm instances are
+        // are not deleted when TestHelper.deleteRecursively(namedPipeDir) called.
+        File[] files = namedPipeDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.matches("realm_.*cv");
+            }
+        });
+        assertEquals(1, files.length);
 
         // test if it works when the namedPipeDir and the named pipe files already exist.
         realmOnExternalStorage = Realm.getInstance(config);

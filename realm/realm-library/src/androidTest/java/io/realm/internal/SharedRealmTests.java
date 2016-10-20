@@ -169,7 +169,7 @@ public class SharedRealmTests {
                 listenerCalled.set(true);
                 schemaVersionFromListener.set(currentVersion);
             }
-        });
+        }, true);
 
         final long before = sharedRealm.getSchemaVersion();
 
@@ -208,7 +208,7 @@ public class SharedRealmTests {
                 listenerCalled.set(true);
                 schemaVersionFromListener.set(currentVersion);
             }
-        });
+        }, true);
 
         final long before = sharedRealm.getSchemaVersion();
 

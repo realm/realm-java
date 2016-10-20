@@ -86,7 +86,7 @@ abstract class BaseRealm implements Closeable {
                     public void onSchemaVersionChanged(long currentVersion) {
                         RealmCache.updateSchemaCache((Realm) BaseRealm.this);
                     }
-                });
+                }, true);
         this.schema = new RealmSchema(this);
 
         if (handlerController.isAutoRefreshAvailable()) {
