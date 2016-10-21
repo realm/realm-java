@@ -16,11 +16,14 @@
 
 #include <cstring>
 
+#include "util/format.hpp"
+
 #include "android_logger.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::jni_impl;
+using namespace realm::util;
 
 std::shared_ptr<AndroidLogger> AndroidLogger::shared()
 {
@@ -29,8 +32,7 @@ std::shared_ptr<AndroidLogger> AndroidLogger::shared()
     return android_logger;
 }
 
-void AndroidLogger::log(Log::Level level, const char* tag, jthrowable, const char* stacktrace,
-        const char* message) {
+void AndroidLogger::log(Log::Level level, const char* tag, jthrowable, const char* message) {
     android_LogPriority android_log_priority;
     switch (level) {
         case Log::Level::trace:
@@ -51,12 +53,8 @@ void AndroidLogger::log(Log::Level level, const char* tag, jthrowable, const cha
         case Log::Level::fatal:
             android_log_priority = ANDROID_LOG_FATAL;
             break;
-        default:
-            android_log_priority = ANDROID_LOG_VERBOSE; // Cannot get here. Remove the warning only.
-            break;
-    }
-    if (stacktrace) {
-        print(android_log_priority, tag, stacktrace);
+        default:// Cannot get here.
+            throw std::invalid_argument(format("Invalid log level: %1.", level));
     }
     if (message) {
         print(android_log_priority, tag, message);

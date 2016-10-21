@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.log.LogLevel;
-import io.realm.log.Logger;
+import io.realm.log.RealmLogger;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -648,7 +648,7 @@ public class NotificationsTest {
         // Create a commit on another thread
         TestHelper.awaitOrFail(backgroundLooperStartedAndStopped);
         Realm realm = Realm.getInstance(realmConfig);
-        Logger logger = TestHelper.getFailureLogger(Log.WARN);
+        RealmLogger logger = TestHelper.getFailureLogger(Log.WARN);
         RealmLog.add(logger);
 
         realm.beginTransaction();

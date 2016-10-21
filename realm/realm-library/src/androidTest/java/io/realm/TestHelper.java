@@ -60,7 +60,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
-import io.realm.log.Logger;
+import io.realm.log.RealmLogger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
@@ -169,13 +169,13 @@ public class TestHelper {
     }
 
     /**
-     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     * Returns a RealmLogger that will fail if it is asked to log a message above a certain level.
      *
      * @param failureLevel {@link Log} level from which the unit test will fail.
-     * @return Logger implementation
+     * @return RealmLogger implementation
      */
-    public static Logger getFailureLogger(final int failureLevel) {
-        return new Logger() {
+    public static RealmLogger getFailureLogger(final int failureLevel) {
+        return new RealmLogger() {
             private void failIfEqualOrAbove(int logLevel) {
                 if (logLevel >= failureLevel) {
                     fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
@@ -201,7 +201,7 @@ public class TestHelper {
     /**
      * Returns a naive logger that can be used to test the values that are sent to the logger.
      */
-    public static class TestLogger implements Logger {
+    public static class TestLogger implements RealmLogger {
 
         private final int minimumLevel;
         public String message;

@@ -46,7 +46,7 @@ namespace jni_util {
 class JniLogger;
 
 // This is built for Realm logging, bother for Java and native side.
-// There are multiple loggers can be registered. All registered loggers will receive the same log events.
+// Multiple loggers can be registered. All registered loggers will receive the same log events.
 class Log {
 public:
     enum Level {
@@ -60,82 +60,85 @@ public:
         off = io_realm_log_LogLevel_OFF
     };
 
-    // Add & Remove a Java Logger. A Java logger needs to be implemented from io.realm.log.Logger interface.
+    // Add & Remove a Java RealmLogger. A Java logger needs to be implemented from io.realm.log.RealmLogger interface.
     void add_java_logger(JNIEnv* env, const jobject java_logger);
     void remove_java_logger(JNIEnv* env, const jobject java_logger);
 
     void add_logger(std::shared_ptr<JniLogger> logger);
     void remove_logger(std::shared_ptr<JniLogger> logger);
 
+    // Remove all custom loggers, but keep the default logger.
     void clear_loggers();
+
+    // Add the default logger if it has been removed before.
+    void register_default_logger();
 
     void set_level(Level level);
     inline Level get_level() {
         return s_level;
     };
 
-    void log(Level level, const char* tag, jthrowable throwable, const char* stacktrace,
-            const char* message);
+    void log(Level level, const char* tag, jthrowable throwable, const char* message);
 
     inline void log(Level level, const char* tag, const char* message)
     {
-        log(level, tag, nullptr, nullptr, message);
+        log(level, tag, nullptr, message);
     }
 
     // Helper functions for logging with REALM_JNI tag.
     inline static void t(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, message);
+        shared().log(error, REALM_JNI_TAG, nullptr, message);
     }
     inline static void d(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, message);
+        shared().log(error, REALM_JNI_TAG, nullptr, message);
     }
     inline static void i(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, message);
+        shared().log(error, REALM_JNI_TAG, nullptr, message);
     }
     inline static void w(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, message);
+        shared().log(error, REALM_JNI_TAG, nullptr, message);
     }
     inline static void e(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, message);
+        shared().log(error, REALM_JNI_TAG, nullptr, message);
     }
     inline static void f(const char* message)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, message);
+        shared().log(error, REALM_JNI_TAG, nullptr, message);
     }
 
     template<typename... Args>
     inline static void t(const char* fmt, Args&&... args)
     {
-        shared().log(trace, REALM_JNI_TAG, nullptr, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(trace, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
     template<typename... Args>
     inline static void d(const char* fmt, Args&&... args)
     {
-        shared().log(debug, REALM_JNI_TAG, nullptr, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(debug, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
     template<typename... Args>
     inline static void i(const char* fmt, Args&&... args)
     {
-        shared().log(info, REALM_JNI_TAG, nullptr, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(info, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
     template<typename... Args>
     inline static void w(const char* fmt, Args&&... args)
     {
-        shared().log(warn, REALM_JNI_TAG, nullptr, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(warn, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
     template<typename... Args>
     inline static void e(const char* fmt, Args&&... args)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(error, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
     template<typename... Args>
     inline static void f(const char* fmt, Args&&... args) {
-        shared().log(fatal, REALM_JNI_TAG, nullptr, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(fatal, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
     }
 
     // Get the shared Log instance.
@@ -161,15 +164,13 @@ protected:
     JniLogger();
     // Used by JavaLogger.
     JniLogger(bool is_java_logger);
-    // Indicate if this is a wrapper for Java Logger class. See JavaLogger
+    // Indicate if this is a wrapper for Java RealmLogger class. See JavaLogger
     bool m_is_java_logger;
 
 protected:
     // Overwrite this method to handle the log event.
     // throwable is the Throwable passed from Java which could be null.
-    // statcktrace is the stracktrace string parsed from throwable by the Java layer which could be an empty string.
-    virtual void log(Log::Level level, const char* tag, jthrowable throwable, const char* stacktrace,
-            const char* message) = 0;
+    virtual void log(Log::Level level, const char* tag, jthrowable throwable, const char* message) = 0;
     friend class Log;
 };
 

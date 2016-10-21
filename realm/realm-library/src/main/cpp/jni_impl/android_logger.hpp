@@ -29,8 +29,7 @@ public:
     static std::shared_ptr<AndroidLogger> shared();
 
 protected:
-    void log(realm::jni_util::Log::Level level, const char* tag, jthrowable throwable,
-            const char* stacktrace, const char* message) override;
+    void log(realm::jni_util::Log::Level level, const char* tag, jthrowable throwable, const char* message) override;
 
 private:
     AndroidLogger() {};

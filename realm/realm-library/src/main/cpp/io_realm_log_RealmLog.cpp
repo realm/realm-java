@@ -46,15 +46,22 @@ Java_io_realm_log_RealmLog_nativeClearLoggers(JNIEnv *env, jclass)
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_log_RealmLog_nativeRegisterDefaultLogger(JNIEnv *env, jclass)
+{
+    try {
+        Log::shared().register_default_logger();
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_log_RealmLog_nativeLog(JNIEnv *env, jclass, jint level, jstring tag, jthrowable throwable,
-        jstring stacktrace, jstring message)
+                                     jstring message)
 {
     try {
         JStringAccessor tag_accessor(env, tag);
         JStringAccessor message_accessor(env, message);
-        JStringAccessor stacktrace_accessor(env, stacktrace);
         Log::shared().log(static_cast<Log::Level>(level), std::string(tag_accessor).c_str(), throwable,
-                std::string(stacktrace_accessor).c_str(), std::string(message_accessor).c_str());
+                          std::string(message_accessor).c_str());
     } CATCH_STD()
 }
 

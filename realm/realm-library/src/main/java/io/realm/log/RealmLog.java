@@ -18,28 +18,87 @@ package io.realm.log;
 
 import android.util.Log;
 
-import io.realm.internal.Keep;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Global logger used by all Realm components.
- * Custom loggers can be added by registering classes implementing {@link Logger}.
+ * Custom loggers can be added by registering classes implementing {@link RealmLogger}.
  */
-@Keep
 public final class RealmLog {
 
     @SuppressWarnings("FieldCanBeLocal")
     private static String REALM_JAVA_TAG = "REALM_JAVA";
 
     /**
+     * To convert the old {@link Logger} to the new {@link RealmLogger}.
+     */
+    private static class LoggerAdaptor implements RealmLogger {
+        private Logger logger;
+        private static final Map<Logger, LoggerAdaptor> loggerMap = new HashMap<Logger, LoggerAdaptor>();
+
+        LoggerAdaptor(Logger logger) {
+            this.logger = logger;
+            if (loggerMap.containsKey(logger)) {
+                throw new IllegalStateException(String.format("Logger %s exists in the map!", logger.toString()));
+            }
+            loggerMap.put(logger, this);
+        }
+
+        static RealmLogger removeLogger(Logger logger) {
+            return loggerMap.remove(logger);
+        }
+
+        @Override
+        public void log(int level, String tag, Throwable throwable, String message) {
+            switch (level) {
+                case LogLevel.TRACE:
+                    logger.trace(throwable, message);
+                    break;
+                case LogLevel.INFO:
+                    logger.info(throwable, message);
+                    break;
+                case LogLevel.DEBUG:
+                    logger.debug(throwable, message);
+                    break;
+                case LogLevel.WARN:
+                    logger.warn(throwable, message);
+                    break;
+                case LogLevel.ERROR:
+                    logger.error(throwable, message);
+                    break;
+                case LogLevel.FATAL:
+                    logger.fatal(throwable, message);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Level: " + level + " cannot be logged.");
+            }
+        }
+    }
+
+    /**
      * Adds a logger implementation that will be notified on log events.
      *
-     * @param logger the reference to a {@link Logger} implementation.
+     * @param logger the reference to a {@link RealmLogger} implementation.
      */
-    public static void add(Logger logger) {
+    public static void add(RealmLogger logger) {
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
         nativeAddLogger(logger);
+    }
+
+
+    /**
+     * Adds a logger implementation that will be notified on log events.
+     *
+     * @param logger the reference to a {@link Logger} implementation.
+     * @deprecated use {@link #add(RealmLogger)} instead.
+     */
+    public static void add(Logger logger) {
+        synchronized (LoggerAdaptor.class) {
+            add(new LoggerAdaptor(logger));
+        }
     }
 
     /**
@@ -65,7 +124,7 @@ public final class RealmLog {
      *
      * @return {@code true} if the logger was removed, {@code false} otherwise.
      */
-    public static boolean remove(Logger logger) {
+    public static boolean remove(RealmLogger logger) {
         if (logger == null) {
             throw new IllegalArgumentException("A non-null logger has to be provided");
         }
@@ -74,10 +133,37 @@ public final class RealmLog {
     }
 
     /**
-     * Remove all loggers.
+     * Removes the given logger if it is currently added.
+     *
+     * @return {@code true} if the logger was removed, {@code false} otherwise.
+     * @deprecated use {@link #remove(RealmLogger)} instead.
+     */
+    public static boolean remove(Logger logger) {
+        synchronized (LoggerAdaptor.class) {
+            if (logger == null) {
+                throw new IllegalArgumentException("A non-null logger has to be provided");
+            }
+            RealmLogger adaptor = LoggerAdaptor.removeLogger(logger);
+            if (adaptor != null) {
+                nativeRemoveLogger(adaptor);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Removes all loggers except the default logger. The default native logger will be removed as well. Use
+     * {@link #registerDefaultLogger()} to add it back.
      */
     public static void clear() {
         nativeClearLoggers();
+    }
+
+    /**
+     * Adds default native logger if it has been removed before.
+     */
+    public static void registerDefaultLogger() {
+        nativeRegisterDefaultLogger();
     }
 
     /**
@@ -262,20 +348,27 @@ public final class RealmLog {
 
     // Format the message, parse the stacktrace of given throwable and pass them to nativeLog.
     private static void log(int level, Throwable throwable, String message, Object... args) {
+        StringBuilder stringBuilder = new StringBuilder();
         if (args != null && args.length > 0) {
             message = String.format(message, args);
         }
-        String stackTrace = null;
         if (throwable != null) {
-            stackTrace = Log.getStackTraceString(throwable);
+            stringBuilder.append(Log.getStackTraceString(throwable));
         }
-        nativeLog(level,REALM_JAVA_TAG, throwable, stackTrace, message);
+        if (message != null) {
+            if (throwable != null) {
+                stringBuilder.append("\n");
+            }
+            stringBuilder.append(message);
+        }
+        nativeLog(level,REALM_JAVA_TAG, throwable, stringBuilder.toString());
     }
 
-    private static native void nativeAddLogger(Logger logger);
-    private static native void nativeRemoveLogger(Logger logger);
+    private static native void nativeAddLogger(RealmLogger logger);
+    private static native void nativeRemoveLogger(RealmLogger logger);
     private static native void nativeClearLoggers();
-    private static native void nativeLog(int level, String tag, Throwable throwable, String stackTrace, String message);
+    private static native void nativeRegisterDefaultLogger();
+    private static native void nativeLog(int level, String tag, Throwable throwable, String message);
     private static native void nativeSetLogLevel(int level);
     private static native int nativeGetLogLevel();
 }

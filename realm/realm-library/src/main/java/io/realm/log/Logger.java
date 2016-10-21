@@ -16,23 +16,76 @@
 
 package io.realm.log;
 
-import io.realm.internal.KeepMember;
-
 /**
  * Interface for custom loggers that can be registered at {@link RealmLog#add(Logger)}.
  * The different log levels are described in {@link LogLevel}.
+ * @deprecated Use {@link RealmLogger} instead.
  */
 public interface Logger {
 
     /**
-     * Handles a log event
+     * Defines which {@link LogLevel} events this logger cares about from the native components.
+     * <p>
+     * If multiple loggers are registered, the minimum value among all loggers is used.
+     * <p>
+     * Note that sending log events from the native layer is relatively expensive, so only set this value to events
+     * that are truly useful.
      *
-     * @param level for this log event. It can only be a value between {@link LogLevel#TRACE} and
-     * {@link LogLevel#FATAL}
-     * @param tag for this log event.
+     * @return the minimum {@link LogLevel} native events this logger cares about.
+     */
+    int getMinimumNativeDebugLevel();
+
+    /**
+     * Handles a {@link LogLevel#TRACE} event.
+     *
      * @param throwable optional exception to log.
      * @param message optional additional message.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
      */
-    @KeepMember
-    void log(int level, String tag, Throwable throwable, String message);
+    void trace(Throwable throwable, String message, Object... args);
+
+    /**
+     * Handles a {@link LogLevel#DEBUG} event.
+     *
+     * @param throwable optional exception to log.
+     * @param message optional additional message.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
+     */
+    void debug(Throwable throwable, String message, Object... args);
+
+    /**
+     * Handles an {@link LogLevel#INFO} event.
+     *
+     * @param throwable optional exception to log.
+     * @param message optional additional message.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
+     */
+    void info(Throwable throwable, String message, Object... args);
+
+    /**
+     * Handles a {@link LogLevel#WARN} event.
+     *
+     * @param throwable optional exception to log.
+     * @param message optional additional message.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
+     */
+    void warn(Throwable throwable, String message, Object... args);
+
+    /**
+     * Handles an {@link LogLevel#ERROR} event.
+     *
+     * @param throwable optional exception to log.
+     * @param message optional additional message.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
+     */
+    void error(Throwable throwable, String message, Object... args);
+
+    /**
+     * Handles a {@link LogLevel#FATAL} event.
+     *
+     * @param throwable optional exception to log.
+     * @param message optional additional message.
+     * @param args optional arguments used to format the message using {@link String#format(String, Object...)}.
+     */
+    void fatal(Throwable throwable, String message, Object... args);
 }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "jni_util/log.hpp"
 #include "util/format.hpp"
 
@@ -25,7 +27,7 @@ const char* CoreLoggerBridge::TAG = "REALM_CORE";
 const char* Log::REALM_JNI_TAG = "REALM_JNI";
 Log::Level Log::s_level = Log::Level::warn;
 
-// Native wrapper for Java Logger class
+// Native wrapper for Java RealmLogger class
 class JavaLogger : public JniLogger {
 public:
     JavaLogger(JNIEnv* env, jobject java_logger);
@@ -34,8 +36,7 @@ public:
     bool is_same_object(JNIEnv* env, jobject java_logger);
 
 protected:
-    void log(Log::Level level, const char* tag, jthrowable throwable, const char* stacktrace,
-            const char* message) override;
+    void log(Log::Level level, const char* tag, jthrowable throwable, const char* message) override;
 
 private:
     JavaVM* m_jvm;
@@ -80,13 +81,12 @@ JavaLogger::~JavaLogger()
     get_current_env()->DeleteGlobalRef(m_java_logger);
 }
 
-void JavaLogger::log(Log::Level level, const char* tag, jthrowable throwable, const char*,
-        const char* message)
+void JavaLogger::log(Log::Level level, const char* tag, jthrowable throwable, const char* message)
 {
     JNIEnv *env = get_current_env();
 
-    // NOTE: If there are Java exception has been thrown in native code, the below call will trigger an JNI exception
-    // "JNI called with pending exception". This is something should be avoided when printing log in JNI -- Always
+    // NOTE: If a Java exception has been thrown in native code, the below call will trigger an JNI exception
+    // "JNI called with pending exception". This is something that should be avoided when printing log in JNI -- Always
     // print log before calling env->ThrowNew. Doing env->ExceptionCheck() here creates overhead for normal cases.
     env->CallVoidMethod(m_java_logger, m_log_method, level, env->NewStringUTF(tag),
             throwable, env->NewStringUTF(message));
@@ -130,7 +130,9 @@ void Log::remove_java_logger(JNIEnv* env, const jobject java_logger)
 void Log::add_logger(std::shared_ptr<JniLogger> logger)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_loggers.push_back(logger);
+    if (std::find(m_loggers.begin(), m_loggers.end(), logger) == m_loggers.end()) {
+        m_loggers.push_back(logger);
+    }
 }
 
 void Log::remove_logger(std::shared_ptr<JniLogger> logger)
@@ -141,6 +143,10 @@ void Log::remove_logger(std::shared_ptr<JniLogger> logger)
             m_loggers.erase(it);
         }
     }
+}
+
+void Log::register_default_logger() {
+    add_logger(get_default_logger());
 }
 
 void Log::clear_loggers()
@@ -154,13 +160,12 @@ void Log::set_level(Level level)
     s_level = level;
 }
 
-void Log::log(Level level, const char* tag, jthrowable throwable, const char* stacktrace,
-        const char* message)
+void Log::log(Level level, const char* tag, jthrowable throwable, const char* message)
 {
     if (s_level <= level) {
         std::lock_guard<std::mutex> lock(m_mutex);
         for (auto& logger : m_loggers) {
-            logger->log(level, tag, throwable, stacktrace, message);
+            logger->log(level, tag, throwable, message);
         }
     }
 }
@@ -179,9 +184,7 @@ void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
         case Level::fatal: jni_level = Log::fatal; break;
         case Level::all: // Fall through.
         case Level::off: // Fall through.
-        default:
-            jni_level = Log::fatal; // Should not get here.
-            break;
+            throw std::invalid_argument(format("Invalid log level."));
     }
     Log::shared().log(jni_level, TAG, msg.c_str());
 }
