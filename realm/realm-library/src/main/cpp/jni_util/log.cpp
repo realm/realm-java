@@ -119,7 +119,7 @@ void Log::remove_java_logger(JNIEnv* env, const jobject java_logger)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_loggers.erase(std::remove_if(m_loggers.begin(), m_loggers.end(), [&](const auto& obj) {
-        return std::static_pointer_cast<JavaLogger>(obj)->is_same_object(env, java_logger);
+        return obj->m_is_java_logger && std::static_pointer_cast<JavaLogger>(obj)->is_same_object(env, java_logger);
     }), m_loggers.end());
 }
 
