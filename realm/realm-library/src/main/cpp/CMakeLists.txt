@@ -178,7 +178,8 @@ endif()
 
 # Strip the release so files and backup the unstripped versions
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(unstripped_SO_DIR "${CMAKE_SOURCE_DIR}/../../../build/outputs/jniLibs-unstripped/${ANDROID_ABI}")
+    set(unstripped_SO_DIR
+        "${CMAKE_SOURCE_DIR}/../../../build/outputs/jniLibs-unstripped/${REALM_FLAVOR}/${ANDROID_ABI}")
     add_custom_command(TARGET realm-jni
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory ${unstripped_SO_DIR}
