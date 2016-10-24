@@ -18,7 +18,7 @@ package io.realm.log;
 
 import android.util.Log;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
@@ -35,7 +35,7 @@ public final class RealmLog {
      */
     private static class LoggerAdaptor implements RealmLogger {
         private Logger logger;
-        private static final Map<Logger, LoggerAdaptor> loggerMap = new HashMap<Logger, LoggerAdaptor>();
+        private static final Map<Logger, LoggerAdaptor> loggerMap = new IdentityHashMap<Logger, LoggerAdaptor>();
 
         LoggerAdaptor(Logger logger) {
             this.logger = logger;
