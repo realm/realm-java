@@ -167,7 +167,7 @@ public final class RealmLog {
 
     /**
      * Adds default native logger if it has been removed before. If the default logger has been registered already,
-     * it won't be added again. The default logger on Android will log to the logcat.
+     * it won't be added again. The default logger on Android will log to logcat.
      */
     public static void registerDefaultLogger() {
         nativeRegisterDefaultLogger();
