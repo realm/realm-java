@@ -37,8 +37,8 @@ import static android.util.Log.getStackTraceString;
  * </tr>
  * </table>
  *
- * @deprecated The new {@link RealmLogger} for Android is implemented in native code. Please don't to use this
- * class anymore.
+ * @deprecated The new {@link RealmLogger} for Android is implemented in native code. This class will be removed in a
+ * future release.
  */
 public class AndroidLogger implements Logger {
 

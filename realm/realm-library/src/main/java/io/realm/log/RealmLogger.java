@@ -25,7 +25,7 @@ import io.realm.internal.KeepMember;
 public interface RealmLogger {
 
     /**
-     * Handles a log event
+     * Handles a log event.
      *
      * @param level for this log event. It can only be a value between {@link LogLevel#TRACE} and
      * {@link LogLevel#FATAL}

@@ -112,7 +112,6 @@ public class RealmLogTests {
 
         @Override
         public void info(Throwable throwable, String message, Object... args) {
-
         }
 
         @Override

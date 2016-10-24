@@ -33,11 +33,11 @@ public final class RealmLog {
     /**
      * To convert the old {@link Logger} to the new {@link RealmLogger}.
      */
-    private static class LoggerAdaptor implements RealmLogger {
+    private static class LoggerAdapter implements RealmLogger {
         private Logger logger;
-        private static final Map<Logger, LoggerAdaptor> loggerMap = new IdentityHashMap<Logger, LoggerAdaptor>();
+        private static final Map<Logger, LoggerAdapter> loggerMap = new IdentityHashMap<Logger, LoggerAdapter>();
 
-        LoggerAdaptor(Logger logger) {
+        LoggerAdapter(Logger logger) {
             this.logger = logger;
             if (loggerMap.containsKey(logger)) {
                 throw new IllegalStateException(String.format("Logger %s exists in the map!", logger.toString()));
@@ -47,6 +47,10 @@ public final class RealmLog {
 
         static RealmLogger removeLogger(Logger logger) {
             return loggerMap.remove(logger);
+        }
+
+        static void clear() {
+            loggerMap.clear();
         }
 
         @Override
@@ -88,7 +92,6 @@ public final class RealmLog {
         nativeAddLogger(logger);
     }
 
-
     /**
      * Adds a logger implementation that will be notified on log events.
      *
@@ -96,13 +99,13 @@ public final class RealmLog {
      * @deprecated use {@link #add(RealmLogger)} instead.
      */
     public static void add(Logger logger) {
-        synchronized (LoggerAdaptor.class) {
-            add(new LoggerAdaptor(logger));
+        synchronized (LoggerAdapter.class) {
+            add(new LoggerAdapter(logger));
         }
     }
 
     /**
-     * Sets the current {@link LogLevel}.
+     * Sets the current {@link LogLevel}. Setting this will affect all registered loggers.
      *
      * @param level see {@link LogLevel}.
      */
@@ -139,11 +142,11 @@ public final class RealmLog {
      * @deprecated use {@link #remove(RealmLogger)} instead.
      */
     public static boolean remove(Logger logger) {
-        synchronized (LoggerAdaptor.class) {
+        synchronized (LoggerAdapter.class) {
             if (logger == null) {
                 throw new IllegalArgumentException("A non-null logger has to be provided");
             }
-            RealmLogger adaptor = LoggerAdaptor.removeLogger(logger);
+            RealmLogger adaptor = LoggerAdapter.removeLogger(logger);
             if (adaptor != null) {
                 nativeRemoveLogger(adaptor);
             }
@@ -152,15 +155,19 @@ public final class RealmLog {
     }
 
     /**
-     * Removes all loggers except the default logger. The default native logger will be removed as well. Use
-     * {@link #registerDefaultLogger()} to add it back.
+     * Removes all loggers. The default native logger will be removed as well. Use {@link #registerDefaultLogger()} to
+     * add it back.
      */
     public static void clear() {
-        nativeClearLoggers();
+        synchronized (LoggerAdapter.class) {
+            nativeClearLoggers();
+            LoggerAdapter.clear();
+        }
     }
 
     /**
-     * Adds default native logger if it has been removed before.
+     * Adds default native logger if it has been removed before. If the default logger has been registered already,
+     * it won't be added again. The default logger on Android will log to the logcat.
      */
     public static void registerDefaultLogger() {
         nativeRegisterDefaultLogger();

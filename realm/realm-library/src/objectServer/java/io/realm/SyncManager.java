@@ -230,16 +230,6 @@ public final class SyncManager {
         }
     }
 
-    /**
-     * Sets the log level for the underlying.
-     *
-     * @param logLevel
-     * @deprecated use {@link RealmLog#setLevel(int)} instead.
-     */
-    public static void setLogLevel(int logLevel) {
-        RealmLog.setLevel(logLevel);
-    }
-
     private static native void nativeInitializeSyncClient();
     private static native void nativeRunClient();
 
