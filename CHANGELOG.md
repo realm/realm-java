@@ -7,29 +7,26 @@
 ### Bug fixes
 
 * `SyncUser.logout()` now correctly clears `SyncUser.currentUser()` (#3638).
-
-### Enhancement
-
-* `Realm.compactRealm()` works for encrypted Realms.
-*  Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
-*  Added `User.all()` that returns all known Realm Object Server users.
-
-### Credits
-
-* Thanks to Max Furman (@maxfurman) for adding support for `first()` and `last()` default values.
-
-## 2.0.3
-
-### Bug fixes
-
 * Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
 * Missing ProGuard configuration for libraries used by Sync extension (#3596).
 * Error handler was not called when sync session failed (#3597).
 * Permission error when a database file is located at external storage (#3140).
 
-### Enhancements
+### Enhancement
 
+* `Realm.compactRealm()` now works for encrypted Realms.
+*  Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
 * Reduce transformer logger verbosity (#3608).
+*  Added `User.all()` that returns all known Realm Object Server users.
+
+#Internal
+
+* Upgraded Realm Core to 2.1.3
+* Upgraded Realm Sync to 1.0.0-BETA-3.1
+
+### Credits
+
+* Thanks to Max Furman (@maxfurman) for adding support for `first()` and `last()` default values.
 
 ## 2.0.2
 
@@ -41,7 +38,8 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 ## Internal
 
-* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. 
+* Upgraded Realm Core to 2.1.0
+* Upgraded Realm Sync to 1.0.0-BETA-2.0. 
 
 ## 2.0.1
 
