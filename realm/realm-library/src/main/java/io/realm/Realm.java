@@ -190,7 +190,7 @@ public final class Realm extends BaseRealm {
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
-            SharedRealm.initialize(new File(context.getFilesDir(), ".realmNamedPipes"));
+            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
 
