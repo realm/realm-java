@@ -19,7 +19,7 @@
 * Reduce transformer logger verbosity (#3608).
 * Added `User.all()` that returns all known Realm Object Server users.
 
-#Internal
+### Internal
 
 * Upgraded Realm Core to 2.1.3
 * Upgraded Realm Sync to 1.0.0-BETA-3.1
@@ -36,7 +36,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 * Build error when using Java 7 (#3563).
 
-## Internal
+### Internal
 
 * Upgraded Realm Core to 2.1.0
 * Upgraded Realm Sync to 1.0.0-BETA-2.0. 
@@ -50,7 +50,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 * `distinctAsync` did not respect other query parameters (#3537).
 * `ConcurrentModificationException` from Gradle when building an application (#3501).
 
-## Internal
+### Internal
 
 * Upgraded to Realm Core 2.0.1 / Realm Sync 1.3-BETA
 
