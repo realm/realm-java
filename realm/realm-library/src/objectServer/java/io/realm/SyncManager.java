@@ -230,16 +230,7 @@ public final class SyncManager {
         }
     }
 
-    /**
-     * Sets the log level for the underlying.
-     * @param logLevel
-     */
-    public static void setLogLevel(int logLevel) {
-        nativeSetSyncClientLogLevel(logLevel);
-    }
-
     private static native void nativeInitializeSyncClient();
-    private static native void nativeSetSyncClientLogLevel(int logLevel);
     private static native void nativeRunClient();
 
 }

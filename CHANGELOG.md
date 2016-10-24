@@ -3,6 +3,12 @@
 ### Breaking changes
 
 * Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
+* Removed `SyncManager.setLogLevel()`. Use `RealmLog.setLevel()` instead.
+
+### Deprecated
+
+* `Logger`. Use `RealmLogger` instead.
+* `AndroidLogger`. The logger for Android is implemented in native code instead.
 
 ### Bug fixes
 
