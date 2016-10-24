@@ -15,9 +15,9 @@
 ### Enhancement
 
 * `Realm.compactRealm()` now works for encrypted Realms.
-*  Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
+* Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
 * Reduce transformer logger verbosity (#3608).
-*  Added `User.all()` that returns all known Realm Object Server users.
+* Added `User.all()` that returns all known Realm Object Server users.
 
 #Internal
 
