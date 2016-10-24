@@ -6,6 +6,7 @@
 * Missing ProGuard configuration for libraries used by Sync extension (#3596).
 * Error handler was not called when sync session failed (#3597).
 * Permission error when a database file is located at external storage (#3140).
+* Memory leak when unsubscribing from a RealmResults/RealmObject RxJava Observable (#3552).
 
 ### Enhancements
 
