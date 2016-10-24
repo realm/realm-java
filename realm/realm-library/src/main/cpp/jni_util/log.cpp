@@ -118,13 +118,9 @@ void Log::add_java_logger(JNIEnv* env, const jobject java_logger)
 void Log::remove_java_logger(JNIEnv* env, const jobject java_logger)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto it = m_loggers.begin(); it != m_loggers.end(); ++it) {
-        if ((*it)->m_is_java_logger &&
-                std::static_pointer_cast<JavaLogger>(*it)->is_same_object(env, java_logger)) {
-            m_loggers.erase(it);
-            break;
-        }
-    }
+    m_loggers.erase(std::remove_if(m_loggers.begin(), m_loggers.end(), [&](const auto& obj) {
+        return std::static_pointer_cast<JavaLogger>(obj)->is_same_object(env, java_logger);
+    }), m_loggers.end());
 }
 
 void Log::add_logger(std::shared_ptr<JniLogger> logger)
@@ -138,11 +134,10 @@ void Log::add_logger(std::shared_ptr<JniLogger> logger)
 void Log::remove_logger(std::shared_ptr<JniLogger> logger)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto it = m_loggers.begin(); it != m_loggers.end(); ++it) {
-        if (*it == logger) {
-            m_loggers.erase(it);
-        }
-    }
+
+    m_loggers.erase(std::remove_if(m_loggers.begin(), m_loggers.end(), [&](const auto& obj) {
+        return obj == logger;
+    }), m_loggers.end());
 }
 
 void Log::register_default_logger() {
