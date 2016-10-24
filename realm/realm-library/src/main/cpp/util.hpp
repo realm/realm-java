@@ -20,6 +20,9 @@
 #include <string>
 #include <sstream>
 #include <memory>
+#include <functional>
+#include <type_traits>
+#include <exception>
 
 #include <jni.h>
 
@@ -58,11 +61,80 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #define STRINGIZE_DETAIL(x) #x
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
-// Exception handling
-#define CATCH_STD() \
-    catch (...) { \
-        ConvertException(env, __FILE__, __LINE__); \
+void ConvertException(JNIEnv* env);
+
+// Exception handling using lambdas
+// Credit: http://stackoverflow.com/questions/29202377/how-do-i-force-the-compiler-to-recognize-lambda-type-in-templated-function
+template<typename T, typename F>
+T try_catch(JNIEnv* env, F func) {
+    try {
+        // if an exception already has occurred, it is not possible to call any JNI
+        // functions, and we don't wish to try to execute the JNI function
+        // alternatively, we could clear the exception but then we can easily miss
+        // an error stage
+        if (env->ExceptionCheck() == JNI_FALSE) {
+            // the actual JNI code is executed
+            // it might throw C++ exceptions
+            return func();
+        }
     }
+    catch (std::exception& e) {
+        // we don't wish to do the exception handling in here; this is a templated function, and we might end up
+        // with multiple copies of the code for no good reason
+        ConvertException(env);
+    }
+
+    // when a Java exception is thrown, we return to Java with any return value; as soon as the execution point is
+    // back at the JVM, the Java exception is thrown, and the returned value isn't used for anything
+    return static_cast<T>(0);
+}
+
+// we need to have specialized C++ exceptions so we know what kind of error state has been reached
+// JavaIllegalState - the internal state of the Realm is wrong; it is not serious but execution cannot continue
+class JavaIllegalState : public std::runtime_error {
+public:
+    JavaIllegalState(const std::string& msg) : std::runtime_error(msg) {};
+    JavaIllegalState(const char* msg) : std::runtime_error(msg) {};
+};
+
+// JavaUnsupportedOperation - the operation is either not supported or implemented; see also java.lang.UnsupportedOperationException
+class JavaUnsupportedOperation : public std::runtime_error {
+public:
+    JavaUnsupportedOperation(const std::string& msg) : std::runtime_error(msg) {};
+    JavaUnsupportedOperation(const char* msg) : std::runtime_error(msg) {};
+};
+
+// JavaFatalError - the app cannot recover from its error state
+class JavaFatalError : public std::runtime_error {
+public:
+    JavaFatalError(const std::string& msg) : std::runtime_error(msg) {};
+    JavaFatalError(const char* msg) : std::runtime_error(msg) {};
+};
+
+// JavaClassNotFound - looking on a class in JVM failed; see also java.lang.ClassNotFoundException
+class JavaClassNotFound : public std::runtime_error {
+public:
+    JavaClassNotFound(const std::string& msg) : std::runtime_error(msg) {};
+    JavaClassNotFound(const char* msg) : std::runtime_error(msg) {};
+};
+
+// JavaNullValue - trying to set a required field to null
+class JavaNullValue : public std::exception {
+public:
+    JavaNullValue(realm::Table* table, std::size_t column_index) : table (table), column_index (column_index) {};
+    const char* what() const noexcept {
+        std::ostringstream ss;
+        ss << "Trying to set a non-nullable field '"
+           << table->get_column_name(column_index)
+           << "' in '"
+           << table->get_name()
+           << "' to null.";
+        return ss.str().c_str();
+    }
+private:
+    realm::Table* table;
+    std::size_t column_index;
+};
 
 template <typename T>
 std::string num_to_string(T pNumber)
@@ -108,11 +180,6 @@ enum ExceptionKind {
     // new exception kind.
     ExceptionKindMax // Always keep this as the last one!
 };
-
-void ConvertException(JNIEnv* env, const char *file, int line);
-void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr="");
-void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr);
-void ThrowNullValueException(JNIEnv* env, realm::Table *table, size_t col_ndx);
 
 jclass GetClass(JNIEnv* env, const char* classStr);
 
@@ -223,7 +290,7 @@ inline jlong to_jlong_or_not_found(size_t res) {
 }
 
 template <class T>
-inline bool TableIsValid(JNIEnv* env, T* objPtr)
+inline void TableIsValid(JNIEnv* env, T* objPtr)
 {
     bool valid = (objPtr != NULL);
     if (valid) {
@@ -236,251 +303,227 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     }
     if (!valid) {
         TR_ERR(env, "Table %p is no longer attached!", VOID_PTR(objPtr))
-        ThrowException(env, IllegalState, "Table is no longer valid to operate on.");
+        throw JavaIllegalState("Table is no longer valid to operate on.");
     }
-    return valid;
 }
 
-inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
+inline void RowIsValid(JNIEnv* env, realm::Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
         TR_ERR(env, "Row %p is no longer attached!", VOID_PTR(rowPtr))
-        ThrowException(env, IllegalState, "Object is no longer valid to operate on. Was it deleted by another thread?");
+        throw JavaIllegalState("Object is no longer valid to operate on. Was it deleted by another thread?");
     }
-    return valid;
 }
 
 // Requires an attached Table
 template <class T>
-bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
+void RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
 {
     size_t maxIndex = pTable->size();
     if (endIndex == -1)
         endIndex = maxIndex;
     if (startIndex < 0) {
         TR_ERR(env, "startIndex %" PRId64 " < 0 - invalid!", S64(startIndex))
-        ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
-        return false;
+        throw std::range_error("startIndex < 0.");
     }
     if (realm::util::int_greater_than(startIndex, maxIndex)) {
         TR_ERR(env, "startIndex %" PRId64 " > %" PRId64 " - invalid!", S64(startIndex), S64(maxIndex))
-        ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
-        return false;
+        throw std::range_error("startIndex > available rows.");
     }
 
     if (realm::util::int_greater_than(endIndex, maxIndex)) {
         TR_ERR(env, "endIndex %" PRId64 " > %" PRId64 " - invalid!", S64(endIndex), S64(maxIndex))
-        ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
-        return false;
+        throw std::range_error("endIndex > available rows.");
     }
     if (startIndex > endIndex) {
         TR_ERR(env, "startIndex %" PRId64 " > endIndex %" PRId64 " - invalid!", S64(startIndex), S64(endIndex))
-        ThrowException(env, IndexOutOfBounds, "startIndex > endIndex.");
-        return false;
+        throw std::range_error("startIndex > endIndex.");
     }
 
     if (range != -1 && range < 0) {
         TR_ERR(env, "range %" PRId64 " < 0 - invalid!", S64(range))
-        ThrowException(env, IndexOutOfBounds, "range < 0.");
-        return false;
+        throw std::range_error("range < 0.");
     }
-
-    return true;
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset=false)
+inline void RowIndexValid(JNIEnv* env, T pTable, jlong rowIndex, bool offset=false)
 {
     if (rowIndex < 0) {
-        ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
-        return false;
+        throw std::range_error("rowIndex is less than 0.");
     }
     size_t size = pTable->size();
-    if (size > 0 && offset)
+    if (size > 0 && offset) {
         size -= 1;
-    bool rowErr = realm::util::int_greater_than_or_equal(rowIndex, size);
-    if (rowErr) {
+    }
+    if (realm::util::int_greater_than_or_equal(rowIndex, size)) {
         TR_ERR(env, "rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(size))
-        ThrowException(env, IndexOutOfBounds,
+        throw std::range_error(
             "rowIndex > available rows: " +
             num_to_string(rowIndex) + " > " + num_to_string(size));
     }
-    return !rowErr;
 }
 
 template <class T>
-inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
+inline void TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
     if (std::is_same<realm::Table, T>::value) {
-        if (!TableIsValid(env, TBL(pTable)))
-            return false;
+        TableIsValid(env, TBL(pTable));
     }
-    return RowIndexValid(env, pTable, rowIndex, offset);
+    RowIndexValid(env, pTable, rowIndex, offset);
 }
 
 template <class T>
-inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
+inline void ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     if (columnIndex < 0) {
-        ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
-        return false;
+        throw std::range_error("columnIndex is less than 0.");
     }
-    bool colErr = realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
-    if (colErr) {
+    if (realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count())) {
         TR_ERR(env, "columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
-        ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
+        throw std::range_error("columnIndex > available columns.");
     }
-    return !colErr;
 }
 
 template <class T>
-inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
+inline void TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     if (std::is_same<realm::Table, T>::value) {
-        if (!TableIsValid(env, TBL(pTable)))
-            return false;
+        TableIsValid(env, TBL(pTable));
     }
-    return ColIndexValid(env, pTable, columnIndex);
+    ColIndexValid(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex)
+inline void RowColIndexValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex)
 {
-    return RowIsValid(env, pRow) && ColIndexValid(env, pRow->get_table(), columnIndex);
-}
-
-template <class T>
-inline bool IndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
-{
-    return ColIndexValid(env, pTable, columnIndex)
-        && RowIndexValid(env, pTable, rowIndex);
+    RowIsValid(env, pRow);
+    ColIndexValid(env, pRow->get_table(), columnIndex);
 }
 
 template <class T>
-inline bool TblIndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+inline void IndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
 {
-    return TableIsValid(env, pTable)
-        && IndexValid(env, pTable, columnIndex, rowIndex);
+    ColIndexValid(env, pTable, columnIndex);
+    RowIndexValid(env, pTable, rowIndex);
 }
 
 template <class T>
-inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+inline void TblIndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
 {
-    if (!TblColIndexValid(env, pTable, columnIndex))
-        return false;
-    bool rowErr = realm::util::int_greater_than(rowIndex, pTable->size()+1);
-    if (rowErr) {
+    TableIsValid(env, pTable);
+    IndexValid(env, pTable, columnIndex, rowIndex);
+}
+
+template <class T>
+inline void TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+{
+    TblColIndexValid(env, pTable, columnIndex);
+    if (realm::util::int_greater_than(rowIndex, pTable->size()+1)) {
         TR_ERR(env, "rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(pTable->size()))
-        ThrowException(env, IndexOutOfBounds,
+        throw std::range_error(
             "rowIndex " + num_to_string(rowIndex) +
             " > available rows " + num_to_string(pTable->size()) + ".");
     }
-    return !rowErr;
 }
 
 template <class T>
-inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
+inline void TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
     if (colType != expectColType) {
         TR_ERR(env, "Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
-        ThrowException(env, IllegalArgument, "ColumnType invalid.");
-        return false;
+        throw std::invalid_argument("ColumnType invalid.");
     }
-    return true;
 }
 
 template <class T>
-inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
+inline void TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
     if (colType == realm::type_Link || colType == realm::type_LinkList) {
-        return true;
+        return;
     }
 
     TR_ERR(env, "Expected columnType %d or %d, but got %d", realm::type_Link, realm::type_LinkList, colType)
-    ThrowException(env, IllegalArgument, "ColumnType invalid: expected type_Link or type_LinkList");
-    return false;
+    throw std::invalid_argument("ColumnType invalid: expected type_Link or type_LinkList");
 }
 
 template <class T>
-inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
+inline void ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
     if (colType == realm::type_Link) {
-        return true;
+        return;
     }
 
     if (colType == realm::type_LinkList) {
-        ThrowException(env, IllegalArgument, "RealmList is not nullable.");
-        return false;
+        throw std::invalid_argument("RealmList is not nullable.");
     }
 
     if (pTable->is_nullable(col)) {
-        return true;
+        return;
     }
 
     TR_ERR_NO_VA_ARG(env, "Expected nullable column type")
-    ThrowException(env, IllegalArgument, "This field is not nullable.");
-    return false;
+    throw std::invalid_argument("This field is not nullable.");
 }
 
 template <class T>
-inline bool ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
+inline void ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
-    return ColIndexValid(env, pTable, columnIndex)
-        && TypeValid(env, pTable, columnIndex, expectColType);
+    ColIndexValid(env, pTable, columnIndex);
+    TypeValid(env, pTable, columnIndex, expectColType);
 }
 template <class T>
-inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
+inline void TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
-    return TableIsValid(env, pTable)
-        && ColIndexAndTypeValid(env, pTable, columnIndex, expectColType);
+    TableIsValid(env, pTable);
+    ColIndexAndTypeValid(env, pTable, columnIndex, expectColType);
 }
 
 template <class T>
-inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnIndex) {
-    return TableIsValid(env, pTable)
-        && TypeIsLinkLike(env, pTable, columnIndex);
+inline void TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnIndex) {
+    TableIsValid(env, pTable);
+    TypeIsLinkLike(env, pTable, columnIndex);
 }
 
 // FIXME Usually this is called after TBL_AND_INDEX_AND_TYPE_VALID which will validate Table as well.
 // Try to avoid duplicated checks to improve performance.
 template <class T>
-inline bool TblColIndexAndNullable(JNIEnv* env, T* pTable, jlong columnIndex) {
-    return TableIsValid(env, pTable)
-        && ColIsNullable(env, pTable, columnIndex);
+inline void TblColIndexAndNullable(JNIEnv* env, T* pTable, jlong columnIndex) {
+    TableIsValid(env, pTable);
+    ColIsNullable(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex, int expectColType)
+inline void RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex, int expectColType)
 {
-    return RowIsValid(env, pRow)
-        && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
-}
-
-template <class T>
-inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
-{
-    return IndexValid(env, pTable, columnIndex, rowIndex)
-        && TypeValid(env, pTable, columnIndex, expectColType);
-}
-template <class T>
-inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
-{
-    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType);
+    RowIsValid(env, pRow);
+    ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
 }
 
 template <class T>
-inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+inline void IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
 {
-    return TblIndexInsertValid(env, pTable, columnIndex, rowIndex)
-        && TypeValid(env, pTable, columnIndex, expectColType);
+    IndexValid(env, pTable, columnIndex, rowIndex);
+    TypeValid(env, pTable, columnIndex, expectColType);
+}
+template <class T>
+inline void TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+{
+    TableIsValid(env, pTable);
+    IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType);
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
+template <class T>
+inline void TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+{
+    TblIndexInsertValid(env, pTable, columnIndex, rowIndex);
+    TypeValid(env, pTable, columnIndex, expectColType);
+}
 
 
 // Utility function for appending StringData, which is returned

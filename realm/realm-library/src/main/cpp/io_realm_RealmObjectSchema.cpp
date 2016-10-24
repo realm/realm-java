@@ -26,58 +26,51 @@ using namespace realm;
 JNIEXPORT jlong JNICALL
 Java_io_realm_RealmObjectSchema_nativeCreateRealmObjectSchema(JNIEnv *env, jclass, jstring className_) {
     TR_ENTER(env)
-    try {
+    return try_catch<jlong>(env, [&]() {
         JStringAccessor name(env, className_);
         ObjectSchema *object_schema = new ObjectSchema();
         object_schema->name = name;
         return reinterpret_cast<jlong>(object_schema);
-    }
-    CATCH_STD()
-    return 0;
+    });
 }
 
 JNIEXPORT void JNICALL
 Java_io_realm_RealmObjectSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr) {
     TR_ENTER_PTR(env, native_ptr)
-    try {
+    try_catch<void>(env, [&]() {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
         delete object_schema;
-    }
-    CATCH_STD()
+    });
 }
 
 
 JNIEXPORT void JNICALL
 Java_io_realm_RealmObjectSchema_nativeAddProperty(JNIEnv *env, jclass, jlong native_ptr, jlong property_ptr) {
     TR_ENTER_PTR(env, native_ptr)
-    try {
+    try_catch<void>(env, [&]() {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
         Property* property = reinterpret_cast<Property*>(property_ptr);
         object_schema->persisted_properties.push_back(*property);
         if (property->is_primary) {
             object_schema->primary_key = property->name;
         }
-    }
-    CATCH_STD()
+    });
 }
 
 JNIEXPORT jstring JNICALL
 Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong nativePtr) {
     TR_ENTER_PTR(env, nativePtr)
-    try {
+    return try_catch<jstring>(env, [&]() {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
         auto name = object_schema->name;
         return to_jstring(env, name);
-    }
-    CATCH_STD()
-
-    return NULL;
+    });
 }
 
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass, jlong nativePtr) {
     TR_ENTER_PTR(env, nativePtr)
-    try {
+    return try_catch<jlongArray>(env, [&]() {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
         size_t size = object_schema->persisted_properties.size();
         jlongArray native_ptr_array = env->NewLongArray(static_cast<jsize>(size));
@@ -93,9 +86,6 @@ Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass, jlong n
         env->SetLongArrayRegion(native_ptr_array, 0, static_cast<jsize>(size), tmp);
         delete tmp;
         return native_ptr_array;
-    }
-    CATCH_STD()
-
-    return NULL;
+    });
 }
 
