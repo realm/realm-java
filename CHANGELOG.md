@@ -1,9 +1,14 @@
 ## 2.1.0
 
-### Breaking changes
+### Object Server API Changes (In Beta)
 
 * Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
 * Removed `SyncManager.setLogLevel()`. Use `RealmLog.setLevel()` instead.
+* `SyncUser.logout()` now correctly clears `SyncUser.currentUser()` (#3638).
+* Missing ProGuard configuration for libraries used by Sync extension (#3596).
+* Error handler was not called when sync session failed (#3597).
+* Added `User.all()` that returns all known Realm Object Server users.
+* Upgraded Realm Sync to 1.0.0-BETA-3.2
 
 ### Deprecated
 
@@ -12,11 +17,8 @@
 
 ### Bug fixes
 
-* `SyncUser.logout()` now correctly clears `SyncUser.currentUser()` (#3638).
-* Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
-* Missing ProGuard configuration for libraries used by Sync extension (#3596).
-* Error handler was not called when sync session failed (#3597).
-* Permission error when a database file is located at external storage (#3140).
+* The following were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
+* Permission error when a database file was located on external storage (#3140).
 * Memory leak when unsubscribing from a RealmResults/RealmObject RxJava Observable (#3552).
 
 ### Enhancement
@@ -24,12 +26,11 @@
 * `Realm.compactRealm()` now works for encrypted Realms.
 * Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
 * Reduce transformer logger verbosity (#3608).
-* Added `User.all()` that returns all known Realm Object Server users.
+* `RealmLog.setLevel(int)` for setting the log level across all loggers.
 
 ### Internal
 
 * Upgraded Realm Core to 2.1.3
-* Upgraded Realm Sync to 1.0.0-BETA-3.2
 
 ### Credits
 
