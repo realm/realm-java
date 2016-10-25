@@ -2,19 +2,19 @@
 
 ## Index
 
-1. [Requirements: Introduction, Scope, and Description](#requirements introduction)
-2. [Specific Requirements and Features](#specific requirements)
-3. [Use Cases](#use cases)
+1. [Requirements: Introduction, Scope, and Description](#requirements)
+2. [Specific Requirements and Features](#features)
+3. [Use Cases](#cases)
 3. [Domain Model](#domain)
 4. [Critics and opinions](#conclusion)
 5. [Contribuition](#contribuition)
 
 
-## Requirements: Introduction, Scope, and Description <a name="requirements introduction"></a>
+## Requirements: Introduction, Scope, and Description <a name="requirements"></a>
 
-## Specific Requirements and Features <a name="specific requirements"></a>
+## Specific Requirements and Features <a name="features"></a>
 
-## Use Cases <a name="use cases"></a>
+## Use Cases <a name="cases"></a>
 
 ## Domain Model <a name="domain"></a>
 
