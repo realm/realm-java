@@ -22,7 +22,7 @@ For general pull-request, at least two developers (often working together) that 
 
 ## Specific Requirements and Features <a name="features"></a>
 
-An alternative to SQLite and Core Data was needed so that databases could run directly inside phones, tablets and wearables. Also, this alternative must be capable of a simple saving and fast queries, to save weeks of development time. In order to specify the requirements, the main communication is through GitHub issues, but the internal wiki or Google Doc/Sheet can also be used occasionally.
+An alternative to SQLite and Core Data was needed so that databases could run directly inside phones, tablets and wearables. Also, this alternative must be capable of a simple saving and fast queries, to save weeks of development time. In order to specify the project's requirements, the team chose GitHub issues as the main mean of communication, but the internal wiki or Google Doc/Sheet can also be used occasionally.
 
 >  We don't have a specification to write specifications. Mostly, we are using Github issues to specify requirements but in rare cases, we use our internal wiki (a private Github repo) or share a Google Doc/Sheet.
 
