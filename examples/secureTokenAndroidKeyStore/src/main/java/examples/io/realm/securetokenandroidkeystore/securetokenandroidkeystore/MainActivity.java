@@ -30,18 +30,19 @@ import org.json.JSONObject;
 import java.security.KeyStoreException;
 import java.util.UUID;
 
-import io.realm.Realm;
-import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
+import realm.io.android.CipherClient;
+import realm.io.android.SecureUserStore;
 import io.realm.SyncUser;
-import io.realm.android.SecureUserStore;
-import io.realm.internal.android.crypto.CipherClient;
-import io.realm.internal.objectserver.ObjectServerUser;
+import realm.io.android.SecureUserStore;
+import io.realm.SyncManager;
+import io.realm.SyncConfiguration;
+import io.realm.Realm;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.objectserver.ObjectServerUser;
 
 /**
  * Activity responsible of unlocking the KeyStore
- * before using the {@link io.realm.android.SecureUserStore} to encrypt
+ * before using the {@link realm.io.android.SecureUserStore} to encrypt
  * the Token we get from the session
  */
 public class MainActivity extends AppCompatActivity {
