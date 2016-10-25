@@ -4,7 +4,7 @@
 
 1. [Requirements: Introduction, Scope, and Description](#requirements)
 2. [Specific Requirements and Features](#features)
-3. [Use Cases](#use-cases-)
+3. [Use Cases](#cases)
 3. [Domain Model](#domain)
 4. [Critics and opinions](#conclusion)
 5. [Contribuition](#contribuition)
@@ -64,6 +64,12 @@ Current Limitations
 ## Use Cases <a name="cases"></a>
 
 ## Domain Model <a name="domain"></a>
+
+This project can be conceptually represented by six classes and the relations between them, as shown in the diagram bellow.
+
+![Domain model](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/domain%20model.png)
+
+This representation can bridge the gap between Use-Case Model and Software Design Model. Therefore, allowing everyone on the team to be on the same page regarding the structure of Realm.
 
 ## Critics and opinions <a name="conclusion"></a>
 
