@@ -12,13 +12,14 @@
 
 ## Requirements: Introduction, Scope, and Description <a name="requirements"></a>
 
-Realm, as open source project, isn't govern by strict procedures, and gradually change how do things depending on who they hire (a new hire might have brilliant idea or know a great tool) or what they did wrong in the last major release.
+Realm, as open source project, isn't govern by strict procedures, and gradually changes accordingly to whom they hire or what they did wrong in the last major release.
 
-The team have a good notion of what is needed. However, the team is very receptive to new ideas from general community.
+Regarding the requirements scope, the team has a good notion of what is needed, mainly because the developers are users too. Project issues and the discussion on those between contributors represents the main core of what could possible be accepted as the next feature to be implemented. 
+Also, the team is very receptive to new ideas from general community trough meetups or conferences.
 
-Decisions and prioritys are discussed in team. Altough, some team members have stronger opinion on some topics that are their area of expertise.
+Therefore, decisions and priorities are done as a team. Altough, some team members have stronger opinion on some topics that are their area of expertise.
 
-For general pull-request, at least two developers (often working together) that have not written any code, must approve the pull-request. For very large or complex pull-request, they might a meeting to highlight the hot spots.
+For general pull-request, at least two developers (often working together) that have not written any code, must approve the pull-request. For very large or complex pull-request, a private meeting might be scheduled in order to highlight the most important points of that pull.
 
 ## Specific Requirements and Features <a name="features"></a>
 
