@@ -34,6 +34,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.android.ContextWrapper;
 import io.realm.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
@@ -277,10 +278,10 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @see User#isValid()
          */
         public Builder(User user, String uri) {
-            this(BaseRealm.applicationContext, user, uri);
+            this(BaseRealm.contextWrapper, user, uri);
         }
 
-        Builder(Context context, User user, String url) {
+        Builder(ContextWrapper context, User user, String url) {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
