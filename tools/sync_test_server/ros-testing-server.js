@@ -30,9 +30,10 @@ function handleRequest(request, response) {
     }
 }
 
-var syncServerChildProcess;
+var syncServerChildProcess = null;
 
 function startRealmObjectServer() {
+    stopRealmObjectServer();
     temp.mkdir('ros', function(err, path) {
         if (!err) {
             winston.info("Starting sync server in ", path);
@@ -55,6 +56,14 @@ function startRealmObjectServer() {
     });
 }
 
+function stopRealmObjectServer() {
+    if (syncServerChildProcess) {
+        syncServerChildProcess.kill();
+        syncServerChildProcess = null;
+    }
+}
+
+
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
     startRealmObjectServer();
@@ -64,7 +73,7 @@ dispatcher.onGet("/start", function(req, res) {
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-    syncServerChildProcess.kill();
+    stopRealmObjectServer();
     winston.info("Sync server stopped");
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Stopping the server');

@@ -26,9 +26,9 @@ import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.realm.Credentials;
+import io.realm.SyncCredentials;
 import io.realm.ObjectServerError;
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.UserStore;
 
 import static io.realm.ErrorCode.UNKNOWN_ACCOUNT;
@@ -76,11 +76,11 @@ public class LoginActivity extends AppCompatActivity {
         String username = this.username.getText().toString();
         String password = this.password.getText().toString();
 
-        Credentials creds = Credentials.usernamePassword(username, password, createUser);
+        SyncCredentials creds = SyncCredentials.usernamePassword(username, password, createUser);
         String authUrl = "http://" + BuildConfig.OBJECT_SERVER_IP + ":9080/auth";
-        User.Callback callback = new User.Callback() {
+        SyncUser.Callback callback = new SyncUser.Callback() {
             @Override
-            public void onSuccess(User user) {
+            public void onSuccess(SyncUser user) {
                 progressDialog.dismiss();
                 onLoginSuccess();
             }
@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        User.loginAsync(creds, authUrl, callback);
+        SyncUser.loginAsync(creds, authUrl, callback);
     }
 
     @Override

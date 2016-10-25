@@ -35,7 +35,7 @@ public class CredentialsTests {
 
     @Test
     public void getUserInfo_isUnmodifiable() {
-        Credentials creds = Credentials.custom("foo", "bar", null);
+        SyncCredentials creds = SyncCredentials.custom("foo", "bar", null);
         Map<java.lang.String, Object> userInfo = creds.getUserInfo();
         try {
             userInfo.put("boom", null);
@@ -46,27 +46,27 @@ public class CredentialsTests {
 
     @Test
     public void facebook() {
-        Credentials creds = Credentials.facebook("foo");
+        SyncCredentials creds = SyncCredentials.facebook("foo");
 
-        assertEquals(Credentials.IdentityProvider.FACEBOOK, creds.getIdentityProvider());
+        assertEquals(SyncCredentials.IdentityProvider.FACEBOOK, creds.getIdentityProvider());
         assertEquals("foo", creds.getUserIdentifier());
         assertTrue(creds.getUserInfo().isEmpty());
     }
 
     @Test
     public void google() {
-        Credentials creds = Credentials.google("foo");
+        SyncCredentials creds = SyncCredentials.google("foo");
 
-        assertEquals(Credentials.IdentityProvider.GOOGLE, creds.getIdentityProvider());
+        assertEquals(SyncCredentials.IdentityProvider.GOOGLE, creds.getIdentityProvider());
         assertEquals("foo", creds.getUserIdentifier());
         assertTrue(creds.getUserInfo().isEmpty());
     }
 
     @Test
     public void twitter() {
-        Credentials creds = Credentials.twitter("foo");
+        SyncCredentials creds = SyncCredentials.twitter("foo");
 
-        assertEquals(Credentials.IdentityProvider.TWITTER, creds.getIdentityProvider());
+        assertEquals(SyncCredentials.IdentityProvider.TWITTER, creds.getIdentityProvider());
         assertEquals("foo", creds.getUserIdentifier());
         assertTrue(creds.getUserInfo().isEmpty());
     }
@@ -76,7 +76,7 @@ public class CredentialsTests {
         String[] invalidInput = { null, ""};
         for (String input : invalidInput) {
             try {
-                Credentials.facebook(input);
+                SyncCredentials.facebook(input);
                 fail(input + " should have failed");
             } catch (IllegalArgumentException ignored) {
             }
@@ -85,11 +85,11 @@ public class CredentialsTests {
 
     @Test
     public void usernamePassword() {
-        Credentials creds = Credentials.usernamePassword("foo", "bar", true);
+        SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar", true);
         assertEquals("foo", creds.getUserIdentifier());
         Map<String, Object> userInfo = creds.getUserInfo();
 
-        assertEquals(Credentials.IdentityProvider.USERNAME_PASSWORD, creds.getIdentityProvider());
+        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, creds.getIdentityProvider());
         assertEquals("bar", userInfo.get("password"));
         assertTrue((Boolean) userInfo.get("register"));
     }
@@ -100,7 +100,7 @@ public class CredentialsTests {
         String[] invalidInput = { null, ""};
         for (String input : invalidInput) {
             try {
-                Credentials.usernamePassword(input, "bar", true);
+                SyncCredentials.usernamePassword(input, "bar", true);
                 fail(input + " should have failed");
             } catch (IllegalArgumentException ignored) {
             }
@@ -113,7 +113,7 @@ public class CredentialsTests {
         userInfo.put("custom", "property");
         for (String username : new String[]{null, ""}) {
             try {
-                Credentials.custom("facebook", username, userInfo);
+                SyncCredentials.custom("facebook", username, userInfo);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -124,7 +124,7 @@ public class CredentialsTests {
     public void custom() {
         Map<java.lang.String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("custom", "property");
-        Credentials creds = Credentials.custom("customProvider", "foo", userInfo);
+        SyncCredentials creds = SyncCredentials.custom("customProvider", "foo", userInfo);
 
         assertEquals("foo", creds.getUserIdentifier());
         assertEquals("customProvider", creds.getIdentityProvider());
@@ -139,7 +139,7 @@ public class CredentialsTests {
 
         for (String provider : new String[]{null, ""}) {
             try {
-                Credentials.custom(null, "foo", userInfo);
+                SyncCredentials.custom(null, "foo", userInfo);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }

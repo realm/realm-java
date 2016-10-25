@@ -1,21 +1,39 @@
 ## 2.1.0
 
-### Enhancement
+### Breaking changes
 
-* `Realm.compactRealm()` works for encrypted Realms.
-*  Added `User.all()` that returns all known Realm Object Server users.
+* Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
+* Removed `SyncManager.setLogLevel()`. Use `RealmLog.setLevel()` instead.
 
-## 2.0.3
+### Deprecated
+
+* `Logger`. Use `RealmLogger` instead.
+* `AndroidLogger`. The logger for Android is implemented in native code instead.
 
 ### Bug fixes
 
+* `SyncUser.logout()` now correctly clears `SyncUser.currentUser()` (#3638).
 * Those were not kept by ProGuard: names of native methods not in the `io.realm.internal` package, names of classes used in method signature (#3596).
 * Missing ProGuard configuration for libraries used by Sync extension (#3596).
 * Error handler was not called when sync session failed (#3597).
+* Permission error when a database file is located at external storage (#3140).
+* Memory leak when unsubscribing from a RealmResults/RealmObject RxJava Observable (#3552).
 
-### Enhancements
+### Enhancement
 
+* `Realm.compactRealm()` now works for encrypted Realms.
+* Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
 * Reduce transformer logger verbosity (#3608).
+* Added `User.all()` that returns all known Realm Object Server users.
+
+### Internal
+
+* Upgraded Realm Core to 2.1.3
+* Upgraded Realm Sync to 1.0.0-BETA-3.1
+
+### Credits
+
+* Thanks to Max Furman (@maxfurman) for adding support for `first()` and `last()` default values.
 
 ## 2.0.2
 
@@ -25,9 +43,10 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 * Build error when using Java 7 (#3563).
 
-## Internal
+### Internal
 
-* Upgraded to Realm Core 2.1.0 / Realm Sync 2.0-BETA. 
+* Upgraded Realm Core to 2.1.0
+* Upgraded Realm Sync to 1.0.0-BETA-2.0. 
 
 ## 2.0.1
 
@@ -38,7 +57,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 * `distinctAsync` did not respect other query parameters (#3537).
 * `ConcurrentModificationException` from Gradle when building an application (#3501).
 
-## Internal
+### Internal
 
 * Upgraded to Realm Core 2.0.1 / Realm Sync 1.3-BETA
 

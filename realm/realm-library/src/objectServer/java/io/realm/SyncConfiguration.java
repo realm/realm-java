@@ -44,8 +44,8 @@ import io.realm.rx.RxObservableFactory;
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
- * A valid {@link User} is required to create a {@link SyncConfiguration}. See {@link Credentials} and
- * {@link User#loginAsync(Credentials, String, User.Callback)} for more information on
+ * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
+ * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
  * how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.
@@ -83,9 +83,9 @@ public final class SyncConfiguration extends RealmConfiguration {
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
 
     private final URI serverUrl;
-    private final User user;
+    private final SyncUser user;
     private final SyncPolicy syncPolicy;
-    private final Session.ErrorHandler errorHandler;
+    private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
 
     private SyncConfiguration(File directory,
@@ -100,10 +100,10 @@ public final class SyncConfiguration extends RealmConfiguration {
                                 RealmProxyMediator schemaMediator,
                                 RxObservableFactory rxFactory,
                                 Realm.Transaction initialDataTransaction,
-                                User user,
+                                SyncUser user,
                                 URI serverUrl,
                                 SyncPolicy syncPolicy,
-                                Session.ErrorHandler errorHandler,
+                                SyncSession.ErrorHandler errorHandler,
                                 boolean deleteRealmOnLogout
     ) {
         super(directory,
@@ -192,7 +192,7 @@ public final class SyncConfiguration extends RealmConfiguration {
      *
      * @return the user.
      */
-    public User getUser() {
+    public SyncUser getUser() {
         return user;
     }
 
@@ -206,14 +206,14 @@ public final class SyncConfiguration extends RealmConfiguration {
         return serverUrl;
     }
 
-    public Session.ErrorHandler getErrorHandler() {
+    public SyncSession.ErrorHandler getErrorHandler() {
         return errorHandler;
     }
 
     /**
-     * Returns {@code true} if the Realm file must be deleted once the {@link User} owning it logs out.
+     * Returns {@code true} if the Realm file must be deleted once the {@link SyncUser} owning it logs out.
      *
-     * @return {@code true} if the Realm file must be deleted if the {@link User} logs out. {@code false} if the file
+     * @return {@code true} if the Realm file must be deleted if the {@link SyncUser} logs out. {@code false} if the file
      *         is allowed to remain behind.
      */
     public boolean shouldDeleteRealmOnLogout() {
@@ -240,9 +240,9 @@ public final class SyncConfiguration extends RealmConfiguration {
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
         private URI serverUrl;
-        private User user = null;
+        private SyncUser user = null;
         private SyncPolicy syncPolicy = new AutomaticSyncPolicy();
-        private Session.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
         private File defaultFolder;
         private String defaultLocalFileName;
         private SharedRealm.Durability durability = SharedRealm.Durability.FULL;
@@ -270,17 +270,17 @@ public final class SyncConfiguration extends RealmConfiguration {
          * If file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
          * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
          *
-         * @param user the user for this Realm. An authenticated {@link User} is required to open any Realm managed
+         * @param user the user for this Realm. An authenticated {@link SyncUser} is required to open any Realm managed
          *             by a Realm Object Server.
          * @param uri URI identifying the Realm.
          *
-         * @see User#isValid()
+         * @see SyncUser#isValid()
          */
-        public Builder(User user, String uri) {
+        public Builder(SyncUser user, String uri) {
             this(BaseRealm.applicationContext, user, uri);
         }
 
-        Builder(Context context, User user, String url) {
+        Builder(Context context, SyncUser user, String url) {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
@@ -293,7 +293,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             validateAndSet(url);
         }
 
-        private void validateAndSet(User user) {
+        private void validateAndSet(SyncUser user) {
             if (user == null) {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
@@ -488,7 +488,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          *
          * @param syncPolicy policy to use.
          *
-         * @see Session
+         * @see SyncSession
          */
         Builder syncPolicy(SyncPolicy syncPolicy) {
             // Package protected until SyncPolicy API is more stable.
@@ -498,14 +498,14 @@ public final class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
-         * {@link SyncManager#setDefaultSessionErrorHandler(Session.ErrorHandler)}.
+         * {@link SyncManager#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
          * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
          * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
-        public Builder errorHandler(Session.ErrorHandler errorHandler) {
+        public Builder errorHandler(SyncSession.ErrorHandler errorHandler) {
             if (errorHandler == null) {
                 throw new IllegalArgumentException("Non-null 'errorHandler' required.");
             }
@@ -530,8 +530,8 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link User}
-         * owning this Realm logs out from the device using {@link User#logout()}.
+         * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link SyncUser}
+         * owning this Realm logs out from the device using {@link SyncUser#logout()}.
          * <p>
          * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.

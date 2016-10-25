@@ -24,6 +24,17 @@ static_assert(SchemaMode::Additive ==
 static_assert(SchemaMode::Manual ==
               static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL), "");
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring temporary_directory_path)
+{
+    TR_ENTER(env)
+
+    try {
+        JStringAccessor path(env, temporary_directory_path); // throws
+        realm::set_temporary_directory(std::string(path)); // throws
+    } CATCH_STD()
+}
+
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,

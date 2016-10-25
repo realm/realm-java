@@ -17,10 +17,10 @@
 package io.realm.internal.objectserver;
 
 import io.realm.ObjectServerError;
-import io.realm.Session;
+import io.realm.SyncSession;
 
 /**
- * As {@link Session} is modeled as a state machine, this interface describe all
+ * As {@link SyncSession} is modeled as a state machine, this interface describe all
  * possible actions in that machine.
  * <p>
  * All states should implement this interface so all possible permutations of state/actions are covered.

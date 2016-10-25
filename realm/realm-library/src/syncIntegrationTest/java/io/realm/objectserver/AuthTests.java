@@ -9,11 +9,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.Credentials;
+import io.realm.SyncCredentials;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
@@ -40,9 +40,9 @@ public class AuthTests {
 
     @Test
     public void login_userNotExist() {
-        Credentials credentials = Credentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         try {
-            User.login(credentials, Constants.AUTH_URL);
+            SyncUser.login(credentials, Constants.AUTH_URL);
             fail();
         } catch (ObjectServerError expected) {
             assertEquals(ErrorCode.UNKNOWN_ACCOUNT, expected.getErrorCode());
@@ -52,10 +52,10 @@ public class AuthTests {
     @Test
     @RunTestInLooperThread
     public void loginAsync_userNotExist() {
-        Credentials credentials = Credentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        User.loginAsync(credentials, Constants.AUTH_URL, new User.Callback() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
-            public void onSuccess(User user) {
+            public void onSuccess(SyncUser user) {
                 fail();
             }
 

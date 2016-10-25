@@ -27,30 +27,27 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import io.realm.RealmAsyncTask;
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
-import io.realm.User;
 
 /**
  * Internal representation of a user on the Realm Object Server.
- * The public API is defined by {@link User}.
+ * The public API is defined by {@link io.realm.SyncUser}.
  */
-public class SyncUser {
+public class ObjectServerUser {
 
     private final String identity;
     private Token refreshToken;
     private URL authenticationUrl;
     private Map<URI, AccessDescription> realms = new HashMap<URI, AccessDescription>();
-    private List<Session> sessions = new ArrayList<Session>();
+    private List<SyncSession> sessions = new ArrayList<SyncSession>();
     private boolean loggedIn;
 
     /**
      * Create a new Realm Object Server User
      */
-    public SyncUser(Token refreshToken, URL authenticationUrl) {
+    public ObjectServerUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
         this.authenticationUrl = authenticationUrl;
         setRefreshToken(refreshToken);
@@ -105,7 +102,7 @@ public class SyncUser {
     }
 
     // When a session is started, add it to the user so it can be tracked
-    public void addSession(Session session) {
+    public void addSession(SyncSession session) {
         sessions.add(session);
     }
 
@@ -140,7 +137,7 @@ public class SyncUser {
         return refreshToken;
     }
 
-    public List<Session> getSessions() {
+    public List<SyncSession> getSessions() {
         return sessions;
     }
 
@@ -164,7 +161,7 @@ public class SyncUser {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SyncUser syncUser = (SyncUser) o;
+        ObjectServerUser syncUser = (ObjectServerUser) o;
 
         if (!identity.equals(syncUser.identity)) return false;
         if (!refreshToken.equals(syncUser.refreshToken)) return false;

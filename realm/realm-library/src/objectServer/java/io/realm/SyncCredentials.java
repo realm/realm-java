@@ -31,11 +31,11 @@ import io.realm.annotations.Beta;
  * <ol>
  * <li>
  *     Log in to 3rd party provider (Facebook, Google or Twitter). The result is usually an Authorization Grant that must be
- *     saved in a {@link Credentials} object of the proper type e.g., {@link Credentials#facebook(String)} for a
+ *     saved in a {@link SyncCredentials} object of the proper type e.g., {@link SyncCredentials#facebook(String)} for a
  *     Facebook login.
  * </li>
  * <li>
- *     Authenticate a {@link User} through the Object Server using these credentials. Once authenticated,
+ *     Authenticate a {@link SyncUser} through the Object Server using these credentials. Once authenticated,
  *     an Object Server user is returned. Then this user can be attached to a {@link SyncConfiguration}, which
  *     will make it possible to synchronize data between the local and remote Realm.
  *     <p>
@@ -64,7 +64,7 @@ import io.realm.annotations.Beta;
  * </pre>
  */
 @Beta
-public class Credentials {
+public class SyncCredentials {
 
     private String identityProvider;
     private String userIdentifier;
@@ -82,17 +82,17 @@ public class Credentials {
      *                   create a user twice when logging in, so this flag should only be set to {@code true} the first
      *                   time a users log in.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link User#loginAsync(Credentials, String, User.Callback)}.
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
-    public static Credentials usernamePassword(String username, String password, boolean createUser) {
+    public static SyncCredentials usernamePassword(String username, String password, boolean createUser) {
         if (username == null || username.equals("")) {
             throw new IllegalArgumentException("Non-null 'username' required.");
         }
         Map<String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("register", createUser);
         userInfo.put("password", password);
-        return new Credentials(IdentityProvider.USERNAME_PASSWORD, username, userInfo);
+        return new SyncCredentials(IdentityProvider.USERNAME_PASSWORD, username, userInfo);
     }
 
     /**
@@ -100,14 +100,14 @@ public class Credentials {
      *
      * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
-    public static Credentials facebook(String facebookToken) {
+    public static SyncCredentials facebook(String facebookToken) {
         if (facebookToken == null || facebookToken.equals("")) {
             throw new IllegalArgumentException("Non-null 'facebookToken' required.");
         }
-        return new Credentials(IdentityProvider.FACEBOOK, facebookToken, null);
+        return new SyncCredentials(IdentityProvider.FACEBOOK, facebookToken, null);
     }
 
     /**
@@ -115,14 +115,14 @@ public class Credentials {
      *
      * @param googleToken a google userIdentifier acquired by logging into Google.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
-    public static Credentials google(String googleToken) {
+    public static SyncCredentials google(String googleToken) {
         if (googleToken == null || googleToken.equals("")) {
             throw new IllegalArgumentException("Non-null 'googleToken' required.");
         }
-        return new Credentials(IdentityProvider.GOOGLE, googleToken, null);
+        return new SyncCredentials(IdentityProvider.GOOGLE, googleToken, null);
     }
 
     /**
@@ -130,14 +130,14 @@ public class Credentials {
      *
      * @param twitterToken a google userIdentifier acquired by logging into Twitter.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link User#loginAsync(Credentials, String, User.Callback)}
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
-    public static Credentials twitter(String twitterToken) {
+    public static SyncCredentials twitter(String twitterToken) {
         if (twitterToken == null || twitterToken.equals("")) {
             throw new IllegalArgumentException("Non-null 'twitterToken' required.");
         }
-        return new Credentials(IdentityProvider.TWITTER, twitterToken, null);
+        return new SyncCredentials(IdentityProvider.TWITTER, twitterToken, null);
     }
 
     /**
@@ -150,10 +150,10 @@ public class Credentials {
      *              data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom
      *              classes will be converted using {@code toString()}.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link User#loginAsync(Credentials, String, User.Callback)}.
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if any parameter is either {@code null} or empty.
      */
-    public static Credentials custom(String identityProvider, String userIdentifier, Map<String, Object> userInfo) {
+    public static SyncCredentials custom(String identityProvider, String userIdentifier, Map<String, Object> userInfo) {
         if (identityProvider == null || identityProvider.equals("")) {
             throw new IllegalArgumentException("Non-null 'identityProvider' required.");
         }
@@ -163,10 +163,10 @@ public class Credentials {
         if (userInfo == null) {
             userInfo = new HashMap<String, Object>();
         }
-        return new Credentials(identityProvider, userIdentifier, userInfo);
+        return new SyncCredentials(identityProvider, userIdentifier, userInfo);
     }
 
-    private Credentials(String identityProvider, String token, Map<String, Object> userInfo) {
+    private SyncCredentials(String identityProvider, String token, Map<String, Object> userInfo) {
         this.identityProvider = identityProvider;
         this.userIdentifier = token;
         this.userInfo = (userInfo == null) ? new HashMap<String, Object>() : userInfo;
@@ -192,7 +192,7 @@ public class Credentials {
 
     /**
      * Returns any custom user information associated with this credential.
-     * The type of information will depend on the type of {@link Credentials.IdentityProvider}
+     * The type of information will depend on the type of {@link SyncCredentials.IdentityProvider}
      * used.
      *
      * @return a map of additional information about the user.
