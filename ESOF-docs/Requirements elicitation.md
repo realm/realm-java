@@ -30,36 +30,27 @@ Mostly, we are using Github issues to specify requirements but in rare cases, we
 
 ## Specific Requirements and Features <a name="features"></a>
 
-Needs: 
-- database to run directly inside phones, tablets and wearables.
-- Simple saving. Fast queries. Save weeks of development time.
-- an alternative to SQLite and Core Data
+An alternative to SQLite and Core Data was needed so that databases could run directly inside phones, tablets and wearables. Also, this alternative must be capable of a simple saving and fast queries, in order to save weeks of develpment time.
 
-Specific Requirements and Features (Functional and Non-Functional requirements):
+As such, Realm funcional requirements are:
 
-Funcional:
+- creation and removal database classes and their instances
+- classes should be able to have relationships with one another
+- perform database queries and access the results
+- insure the implementation and integrity of transactions
 
-- create and remove instances of your RealmObjects (database classes)
-- create relationships between RealmObjects
-- make queries
-- perform transactions
+However, there are some factors that constrict the solution used by Realm, such as:
 
-Non-Funcional:
+- all Android versions since API Level 9 (Android 2.3 Gingerbread) have to be supported.
+- funcionality must be offline-first
+- queries need to be fast
+- access the same data concurrently from multiple threads should be possible and originate no crashes
+- on any major platform, the same database must be used for all apps
+- data should be secure with transparent encryption and decryption
+- data changes must appear automatically when UI connects to Realm
 
-- support all Android versions since API Level 9 (Android 2.3 Gingerbread & above).
-- Offline-first functionality
-- Fast queries
-- Access the same data concurrently from multiple threads, with no crashes
-- Use the same database for all apps, on any major platform.
-- Secure data with transparent encryption and decryption
-- Reactive architecture (Connect your UI to Realm, and data changes will appear automatically)
-
-Current Limitations
-
-- Realm aims to strike a balance between flexibility and performance. In order to accomplish this goal, realistic limits are imposed on various aspects of storing information in a Realm like the length of names of classes.
-- Sorting and querying on String.
-- Although Realm files can be accessed by multiple threads concurrently, you cannot hand over Realms, Realm objects, queries, and results between threads
-- Realm files cannot be accessed by concurrent processes
+Furthermore, at the moment, the solution implemented has limitations. In order to strike a balance between flexibility and performance,  realistic limits are imposed on various aspects of information storage in a Realm like the length of names of classes. In addition,
+sorting and case insensitive string matches in queries are only supported for some character sets and the case insensitive flag used in string comparison only works on characters from the English locale. Thirdly, although Realm files can be accessed by multiple threads concurrently, handing over Realms, Realm objects, queries, and results between threads is not possible. Finally, Realm files cannot be accessed by concurrent processes.
 
 ## Use Cases <a name="cases"></a>
 
@@ -69,7 +60,8 @@ This project can be conceptually represented by six classes and the relations be
 
 ![Domain model](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/domain%20model.png)
 
-This representation can bridge the gap between Use-Case Model and Software Design Model. Therefore, allowing everyone on the team to be on the same page regarding the structure of Realm.
+This representation can bridge the gap between Use-Case Model and Software Design Models. Therefore, allowing everyone on the team to 
+have a understanding of the structure of Realm and minimizing miscommunication and misunderstanding of the solution that will be used.
 
 ## Critics and opinions <a name="conclusion"></a>
 
