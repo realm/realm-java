@@ -19,7 +19,7 @@ package io.realm.objectserver.utils;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.objectserver.utils.Constants;
 
 // Must be in `io.realm.objectserver` to work around package protected methods.

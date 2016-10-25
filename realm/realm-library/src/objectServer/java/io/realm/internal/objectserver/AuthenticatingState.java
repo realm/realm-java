@@ -17,7 +17,7 @@
 package io.realm.internal.objectserver;
 
 import io.realm.ObjectServerError;
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SessionState;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
@@ -97,16 +97,16 @@ class AuthenticatingState extends FsmState {
         gotoNextState(SessionState.STOPPED);
     }
 
-    private synchronized void authenticate(final SyncSession session) {
+    private synchronized void authenticate(final ObjectServerSession session) {
         session.authenticateRealm(new Runnable() {
             @Override
             public void run() {
                 RealmLog.debug("Session[%s]: Access token acquired", session.getConfiguration().getPath());
                 gotoNextState(SessionState.BINDING);
             }
-        }, new Session.ErrorHandler() {
+        }, new SyncSession.ErrorHandler() {
             @Override
-            public void onError(Session s, ObjectServerError error) {
+            public void onError(SyncSession s, ObjectServerError error) {
                 RealmLog.debug("Session[%s]: Failed to get access token (%d)", session.getConfiguration().getPath(), error.getErrorCode());
                 session.onError(error);
             }

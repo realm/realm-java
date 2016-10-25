@@ -22,7 +22,7 @@ package io.realm.log;
  * Realm uses the log levels defined by Log4J:
  * https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Level.html
  *
- * @see RealmLog#add(Logger)
+ * @see RealmLog#add(RealmLogger)
  */
 public class LogLevel {
 

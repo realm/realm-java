@@ -19,29 +19,21 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
 
 import io.realm.android.SharedPrefsUserStore;
-import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
-import io.realm.internal.objectserver.Token;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class UserTests {
@@ -49,10 +41,16 @@ public class UserTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Before
+    public void setUp() {
+        Realm.init(InstrumentationRegistry.getTargetContext());
+        SyncManager.getUserStore().clear();
+    }
+
     @Test
     public void toAndFromJson() {
-        User user1 = createTestUser();
-        User user2 = User.fromJson(user1.toJson());
+        SyncUser user1 = createTestUser();
+        SyncUser user2 = SyncUser.fromJson(user1.toJson());
         assertEquals(user1, user2);
     }
 
@@ -65,7 +63,43 @@ public class UserTests {
         userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
-        assertNull(User.currentUser());
+        assertNull(SyncUser.currentUser());
+    }
+
+    // Test that current user is cleared if it is logged out
+    @Test
+    public void currentUser_clearedOnLogout() {
+        // Add an expired user to the user store
+        SyncUser user = SyncTestUtils.createTestUser(Long.MAX_VALUE);
+        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
+        SyncManager.setUserStore(userStore);
+        userStore.put(UserStore.CURRENT_USER_KEY, user);
+
+        SyncUser savedUser = SyncUser.currentUser();
+        assertEquals(user, savedUser);
+        savedUser.logout();
+        assertNull(SyncUser.currentUser());
+    }
+
+    // `all()` returns an empty list if no users are logged in
+    @Test
+    public void all_empty() {
+        Collection<SyncUser> users = SyncUser.all();
+        assertTrue(users.isEmpty());
+    }
+
+    // `all()` returns only valid users. Invalid users are filtered.
+    @Test
+    public void all_validUsers() {
+        // Add 1 expired user and 1 valid user to the user store
+        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
+        SyncManager.setUserStore(userStore);
+        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MAX_VALUE));
+
+        Collection<SyncUser> users = SyncUser.all();
+        assertEquals(1, users.size());
+        assertTrue(users.iterator().next().isValid());
     }
 
     // Tests that the user store returns the last user to login

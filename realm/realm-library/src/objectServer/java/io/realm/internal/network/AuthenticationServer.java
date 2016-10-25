@@ -19,8 +19,8 @@ package io.realm.internal.network;
 import java.net.URI;
 import java.net.URL;
 
-import io.realm.Credentials;
-import io.realm.User;
+import io.realm.SyncCredentials;
+import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
 
 /**
@@ -34,12 +34,12 @@ public interface AuthenticationServer {
      * Login a User on the Object Server. This will create a "UserToken" (Currently called RefreshToken) that acts as
      * the users credentials.
      */
-    AuthenticateResponse loginUser(Credentials credentials, URL authenticationUrl);
+    AuthenticateResponse loginUser(SyncCredentials credentials, URL authenticationUrl);
 
     /**
      * Requests access to a specific Realm. Only users with a valid user token can ask for permission to a remote Realm.
      * Permission to a Realm is granted through an "AccessToken". Each Realm have their own access token, and all
-     * tokens should be managed by {@link User}.
+     * tokens should be managed by {@link SyncUser}.
      */
     AuthenticateResponse loginToRealm(Token userToken, URI serverUrl,  URL authenticationUrl);
 
@@ -55,5 +55,5 @@ public interface AuthenticationServer {
      * own refresh token, but if the refresh token for some reason was shared or stolen all these devices will be
      * logged out as well.
      */
-    LogoutResponse logout(User user, URL authenticationUrl);
+    LogoutResponse logout(SyncUser user, URL authenticationUrl);
 }

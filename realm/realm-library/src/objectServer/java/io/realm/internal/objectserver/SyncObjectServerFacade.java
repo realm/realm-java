@@ -25,7 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.realm.RealmConfiguration;
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.exceptions.RealmException;
@@ -73,8 +73,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
         if (configuration instanceof SyncConfiguration) {
-            Session publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-            SyncSession session = SessionStore.getPrivateSession(publicSession);
+            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
             session.notifyCommit(lastSnapshotVersion);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
@@ -84,8 +84,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void realmClosed(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
-            Session publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-            SyncSession session = SessionStore.getPrivateSession(publicSession);
+            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
             session.getSyncPolicy().onRealmClosed(session);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
@@ -95,8 +95,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void realmOpened(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
-            Session publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-            SyncSession session = SessionStore.getPrivateSession(publicSession);
+            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
             session.getSyncPolicy().onRealmOpened(session);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
