@@ -45,7 +45,7 @@ public class AuthTests {
             SyncUser.login(credentials, Constants.AUTH_URL);
             fail();
         } catch (ObjectServerError expected) {
-            assertEquals(ErrorCode.UNKNOWN_ACCOUNT, expected.getErrorCode());
+            assertEquals(ErrorCode.INVALID_CREDENTIALS, expected.getErrorCode());
         }
     }
 
@@ -61,7 +61,7 @@ public class AuthTests {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.UNKNOWN_ACCOUNT, error.getErrorCode());
+                assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
                 looperThread.testComplete();
             }
         });

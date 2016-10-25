@@ -29,7 +29,7 @@
 ### Internal
 
 * Upgraded Realm Core to 2.1.3
-* Upgraded Realm Sync to 1.0.0-BETA-3.1
+* Upgraded Realm Sync to 1.0.0-BETA-3.2
 
 ### Credits
 
