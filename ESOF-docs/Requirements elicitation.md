@@ -4,7 +4,7 @@
 
 1. [Requirements: Introduction, Scope, and Description](#requirements)
 2. [Specific Requirements and Features](#features)
-3. [Use Cases](#cases)
+3. [Use Cases](#use-cases-)
 3. [Domain Model](#domain)
 4. [Critics and opinions](#conclusion)
 5. [Contribuition](#contribuition)
