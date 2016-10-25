@@ -12,45 +12,51 @@
 
 ## Requirements: Introduction, Scope, and Description <a name="requirements"></a>
 
-In the last two-three decades, the software development process has changed a lot. Back then, the waterfall model was the thing. Open source changed that very much. In general, Realm isn't govern by strict procedures, and we gradually change how we do things depending on who we hire (a new hire might have brilliant idea or know a great tool) and what we did wrong in the last major release.
+Realm, as open source project, isn't govern by strict procedures, and gradually change how do things depending on who they hire (a new hire might have brilliant idea or know a great tool) or what they did wrong in the last major release.
 
-How does the team decides on whether to implement a new feature?
-We are very much driven by what make sense for our users. Since our users are developers like us, we believe we have a pretty good idea of what makes sense. Of course, we listen - and therefore we enjoy attending meetups and conferences.
+The team have a good notion of what is needed. However, the team is very receptive to new ideas from general community.
 
-Does someone is responsible to decide which functionality will be implemented?
-Decisions are done as a team. Of course, some team members have stronger opinion on some topics than others. In your area of expertise, your opinion weight more.
+Decisions and prioritys are discussed in team. Altough, some team members have stronger opinion on some topics that are their area of expertise.
 
-What is the process to analyse and accept a pull request or an issue?
-There is no formal process but at least two developers who have not written any code, must approve the PR (yes, for larger PRs, we are often two working together). For very large or complex PRs, we might schedule a meeting to highlight the hot spots. We prefer not do to that as such meetings are not done in public.
+For general pull-request, at least two developers (often working together) that have not written any code, must approve the pull-request. For very large or complex pull-request, they might a meeting to highlight the hot spots.
+
+## Specific Requirements and Features <a name="features"></a>
 
 There are a Software Requirements Specification (SRS) document?
 We don't have a specification to write specifications.
 
 Mostly, we are using Github issues to specify requirements but in rare cases, we use our internal wiki (a private Github repo) or share a Google Doc/Sheet.
 
-## Specific Requirements and Features <a name="features"></a>
+Needs: 
+- database to run directly inside phones, tablets and wearables.
+- Simple saving. Fast queries. Save weeks of development time.
+- an alternative to SQLite and Core Data
 
-An alternative to SQLite and Core Data was needed so that databases could run directly inside phones, tablets and wearables. Also, this alternative must be capable of a simple saving and fast queries, in order to save weeks of develpment time.
+Specific Requirements and Features (Functional and Non-Functional requirements):
 
-As such, Realm funcional requirements are:
+Funcional:
 
-- creation and removal database classes and their instances
-- classes should be able to have relationships with one another
-- perform database queries and access the results
-- insure the implementation and integrity of transactions
+- create and remove instances of your RealmObjects (database classes)
+- create relationships between RealmObjects
+- make queries
+- perform transactions
 
-However, there are some factors that constrict the solution used by Realm, such as:
+Non-Funcional:
 
-- all Android versions since API Level 9 (Android 2.3 Gingerbread) have to be supported.
-- funcionality must be offline-first
-- queries need to be fast
-- access the same data concurrently from multiple threads should be possible and originate no crashes
-- on any major platform, the same database must be used for all apps
-- data should be secure with transparent encryption and decryption
-- data changes must appear automatically when UI connects to Realm
+- support all Android versions since API Level 9 (Android 2.3 Gingerbread & above).
+- Offline-first functionality
+- Fast queries
+- Access the same data concurrently from multiple threads, with no crashes
+- Use the same database for all apps, on any major platform.
+- Secure data with transparent encryption and decryption
+- Reactive architecture (Connect your UI to Realm, and data changes will appear automatically)
 
-Furthermore, at the moment, the solution implemented has limitations. In order to strike a balance between flexibility and performance,  realistic limits are imposed on various aspects of information storage in a Realm like the length of names of classes. In addition,
-sorting and case insensitive string matches in queries are only supported for some character sets and the case insensitive flag used in string comparison only works on characters from the English locale. Thirdly, although Realm files can be accessed by multiple threads concurrently, handing over Realms, Realm objects, queries, and results between threads is not possible. Finally, Realm files cannot be accessed by concurrent processes.
+Current Limitations
+
+- Realm aims to strike a balance between flexibility and performance. In order to accomplish this goal, realistic limits are imposed on various aspects of storing information in a Realm like the length of names of classes.
+- Sorting and querying on String.
+- Although Realm files can be accessed by multiple threads concurrently, you cannot hand over Realms, Realm objects, queries, and results between threads
+- Realm files cannot be accessed by concurrent processes
 
 ## Use Cases <a name="cases"></a>
 
@@ -60,8 +66,7 @@ This project can be conceptually represented by six classes and the relations be
 
 ![Domain model](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/domain%20model.png)
 
-This representation can bridge the gap between Use-Case Model and Software Design Models. Therefore, allowing everyone on the team to 
-have a understanding of the structure of Realm and minimizing miscommunication and misunderstanding of the solution that will be used.
+This representation can bridge the gap between Use-Case Model and Software Design Model. Therefore, allowing everyone on the team to be on the same page regarding the structure of Realm.
 
 ## Critics and opinions <a name="conclusion"></a>
 
