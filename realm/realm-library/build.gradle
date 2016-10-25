@@ -512,6 +512,8 @@ if (project.hasProperty('dontCleanJniFiles')) {
 } else {
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
+        // Clean .so files that were created by old build script (realm/realm-jni/build.gradle).
+        delete project.file('src/main/jniLibs')
     }
     clean.dependsOn cleanExternalBuildFiles
 }
