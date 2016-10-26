@@ -1,3 +1,9 @@
+## 2.1.1
+
+### bug fixes
+
+* Missing default RxFactory in `SyncConfiguration`.
+
 ## 2.1.0
 
 ### Object Server API Changes (In Beta)
