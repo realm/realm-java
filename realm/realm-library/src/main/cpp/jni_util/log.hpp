@@ -29,12 +29,11 @@
 #include "realm/util/logger.hpp"
 #include "util/format.hpp"
 
-// FIXME: env is not needed any more. Will remove it in another PR.
-#define TR_ENTER(env) \
+#define TR_ENTER() \
     if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) { \
         realm::jni_util::Log::t(" --> %1", __FUNCTION__); \
     }
-#define TR_ENTER_PTR(env, ptr) \
+#define TR_ENTER_PTR(ptr) \
     if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) { \
         realm::jni_util::Log::t(" --> %1 %2" PRId64, __FUNCTION__, static_cast<int64_t>(ptr)); \
     }
