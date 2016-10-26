@@ -22,6 +22,7 @@ import io.realm.internal.KeepMember;
  * Interface for custom loggers that can be registered at {@link RealmLog#add(RealmLogger)}.
  * The different log levels are described in {@link LogLevel}.
  */
+@KeepMember
 public interface RealmLogger {
 
     /**

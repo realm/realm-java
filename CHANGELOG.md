@@ -1,3 +1,9 @@
+## 2.1.1
+
+### bug fixes
+
+* ProGuard configuration introduced in 2.1.0 unexpectedly keeps classes those do not have any fields with KeepMember annotation.
+
 ## 2.1.0
 
 ### Object Server API Changes (In Beta)

@@ -24,9 +24,9 @@ import java.lang.annotation.Target;
 /**
  * This annotation is used to mark the fields and methods to be kept by ProGuard/DexGuard.
  * The ProGuard configuration must have '-keep class io.realm.internal.KeepMember'
- * and '-keep,includedescriptorclasses class * { @io.realm.internal.KeepMember *; }'.
+ * and '-keep,includedescriptorclasses @io.realm.internal.KeepMember class * { @io.realm.internal.KeepMember *; }'.
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.METHOD,ElementType.FIELD})
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 public @interface KeepMember {
 }
