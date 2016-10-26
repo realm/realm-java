@@ -18,6 +18,11 @@ apply plugin: 'com.jfrog.bintray'
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim();
 
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+
+def syncVersion = properties.getProperty('REALM_SYNC_VERSION')
+
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
@@ -59,7 +64,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
     into 'build/generated-src/main/java/io/realm/transformer'
-    filter(ReplaceTokens, tokens: [version: version])
+    filter(ReplaceTokens, tokens: [version: version, syncVersion: syncVersion])
     outputs.upToDateWhen { false }
 }
 
@@ -96,6 +101,19 @@ publishing {
                 root.appendNode('description', 'Android Gradle Transformer for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
                 root.children().last() + commonPom
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials(AwsCredentials) {
+                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
+                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://realm-ci-artifacts/maven/snapshots/"
+            } else {
+                url "s3://realm-ci-artifacts/maven/releases/"
             }
         }
     }

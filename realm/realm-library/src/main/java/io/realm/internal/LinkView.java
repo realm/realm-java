@@ -74,8 +74,11 @@ public class LinkView implements NativeObject {
         return CheckedRow.get(context, this, index);
     }
 
-    public long getTargetRowIndex(long pos) {
-        return nativeGetTargetRowIndex(nativePtr, pos);
+    /**
+     * Returns the row index in the underlying table.
+     */
+    public long getTargetRowIndex(long linkViewIndex) {
+        return nativeGetTargetRowIndex(nativePtr, linkViewIndex);
     }
 
     public void add(long rowIndex) {
@@ -155,7 +158,7 @@ public class LinkView implements NativeObject {
 
     public Table getTargetTable() {
         long nativeTablePointer = nativeGetTargetTable(nativePtr);
-        Table table = new Table(context, this.parent, nativeTablePointer);
+        Table table = new Table(this.parent, nativeTablePointer);
         return table;
     }
 
@@ -167,7 +170,7 @@ public class LinkView implements NativeObject {
 
     public static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
-    private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
+    private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long linkViewIndex);
     public static native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
     private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
     private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);

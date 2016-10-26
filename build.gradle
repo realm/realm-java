@@ -14,7 +14,7 @@ def currentVersion = file("${projectDir}/version.txt").text.trim();
 def props = new Properties()
 props.load(new FileInputStream("${rootDir}/realm.properties"))
 props.each { key, val ->
-    project.set(key, val)
+    project.ext.set(key, val)
 }
 
 task assembleAnnotations(type:GradleBuild) {
@@ -28,7 +28,7 @@ task installAnnotations(type:GradleBuild) {
     group = 'Install'
     description = 'Install the jar realm-annotations into mavenLocal()'
     buildFile = file('realm-annotations/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
 }
 
 task assembleTransformer(type:GradleBuild) {
@@ -44,7 +44,7 @@ task installTransformer(type:GradleBuild) {
     description = 'Install the jar realm-transformer into mavenLocal()'
     dependsOn installAnnotations
     buildFile = file('realm-transformer/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
 }
 
 task assembleRealm(type:GradleBuild) {
@@ -56,6 +56,9 @@ task assembleRealm(type:GradleBuild) {
     tasks = ['assemble', 'javadocJar', 'sourcesJar']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
     }
 }
 
@@ -102,9 +105,12 @@ task installRealm(type:GradleBuild) {
     description = 'Install the artifacts of Realm libraries into mavenLocal()'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
     }
 }
 
@@ -123,7 +129,7 @@ task installGradlePlugin(type:GradleBuild) {
     dependsOn installRealm
     dependsOn installTransformer
     buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['install']
+    tasks = ['publishToMavenLocal']
 }
 
 task installRealmJava(type:Task) {
@@ -348,7 +354,7 @@ task ojoRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP SNAPSHOT to Bintray'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
-    tasks = ['artifactoryPublish']
+    tasks = ['ojoUpload']
     startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]

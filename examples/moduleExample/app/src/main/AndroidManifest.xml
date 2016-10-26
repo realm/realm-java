@@ -3,6 +3,7 @@
     package="io.realm.examples.appmodules" >
 
     <application
+        android:name=".MyApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >

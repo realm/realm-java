@@ -23,6 +23,8 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ResolvableDependencies
 
 class Realm implements Plugin<Project> {
 
@@ -39,6 +41,9 @@ class Realm implements Plugin<Project> {
             throw new GradleException('Realm gradle plugin only supports android gradle plugin 1.5.0 or later.')
         }
 
+        def syncEnabledDefault = false
+        project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault)
+
         def usesKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
 
@@ -49,8 +54,8 @@ class Realm implements Plugin<Project> {
         }
 
         project.android.registerTransform(new RealmTransformer(project))
+
         project.repositories.add(project.getRepositories().jcenter())
-        project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (isKaptProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")

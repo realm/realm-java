@@ -50,7 +50,7 @@ public class RealmAnnotationTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
-        AnnotationTypes object = realm.createObject(AnnotationTypes.class);
+        AnnotationTypes object = realm.createObject(AnnotationTypes.class, 0);
         object.setNotIndexString("String 1");
         object.setIndexString("String 2");
         object.setIgnoreString("String 3");
@@ -102,9 +102,8 @@ public class RealmAnnotationTests {
     public void primaryKey_migration_long() {
         realm.beginTransaction();
         for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class);
+            PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class, "String" + i);
             obj.setId(i);
-            obj.setName("String" + i);
         }
 
         Table table = realm.getTable(PrimaryKeyAsString.class);
@@ -118,9 +117,8 @@ public class RealmAnnotationTests {
     public void primaryKey_migration_longDuplicateValues() {
         realm.beginTransaction();
         for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class);
+            PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class, "String" + i);
             obj.setId(1); // Create duplicate values
-            obj.setName("String" + i);
         }
 
         Table table = realm.getTable(PrimaryKeyAsString.class);
@@ -139,8 +137,7 @@ public class RealmAnnotationTests {
     public void primaryKey_migration_string() {
         realm.beginTransaction();
         for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class);
-            obj.setId(i);
+            PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class, i);
             obj.setName("String" + i);
         }
 
@@ -155,8 +152,7 @@ public class RealmAnnotationTests {
     public void primaryKey_migration_stringDuplicateValues() {
         realm.beginTransaction();
         for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class);
-            obj.setId(i);
+            PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class, i);
             obj.setName("String"); // Create duplicate values
         }
 
@@ -175,7 +171,7 @@ public class RealmAnnotationTests {
     public void primaryKey_checkPrimaryKeyOnCreate() {
         realm.beginTransaction();
         try {
-            realm.createObject(AnnotationTypes.class);
+            realm.createObject(AnnotationTypes.class, 0);
             fail("Two empty objects cannot be created on the same table if a primary key is defined");
         } catch (RealmPrimaryKeyConstraintException ignored) {
         } finally {
@@ -183,32 +179,12 @@ public class RealmAnnotationTests {
         }
     }
 
-    // It should be allowed to override the primary key value with the same value
-    @Test
-    public void primaryKey_defaultStringValue() {
-        realm.beginTransaction();
-        PrimaryKeyAsString str = realm.createObject(PrimaryKeyAsString.class);
-        str.setName("");
-        realm.commitTransaction();
-    }
-
-    // It should be allowed to override the primary key value with the same value
-    @Test
-    public void primaryKey_defaultLongValue() {
-        realm.beginTransaction();
-        PrimaryKeyAsLong str = realm.createObject(PrimaryKeyAsLong.class);
-        str.setId(0);
-        realm.commitTransaction();
-    }
-
     @Test
     public void primaryKey_errorOnInsertingSameObject() {
         try {
             realm.beginTransaction();
-            AnnotationTypes obj1 = realm.createObject(AnnotationTypes.class);
-            obj1.setId(1);
-            AnnotationTypes obj2 = realm.createObject(AnnotationTypes.class);
-            obj2.setId(1);
+            realm.createObject(AnnotationTypes.class, 1);
+            realm.createObject(AnnotationTypes.class, 1);
             fail("Inserting two objects with same primary key should fail");
         } catch (RealmPrimaryKeyConstraintException ignored) {
         } finally {

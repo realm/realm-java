@@ -139,7 +139,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
                 realm.beginTransaction();
-                NullTypes obj = realm.createObject(NullTypes.class);
+                NullTypes obj = realm.createObject(NullTypes.class, 0);
                 realm.commitTransaction();
                 return obj.getFieldListNull();
 
@@ -522,6 +522,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case WHERE:
                         case DELETE_ALL_FROM_REALM:
                         case IS_VALID:
+                        case IS_MANAGED:
                             continue;
 
                         default:
@@ -553,6 +554,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case WHERE:
                     case DELETE_ALL_FROM_REALM:
                     case IS_VALID:
+                    case IS_MANAGED:
                         continue;
 
                     default:
@@ -637,6 +639,11 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
+    public void isManaged() {
+        assertTrue(collection.isManaged());
+    }
+
+    @Test
     public void contains_deletedRealmObject() {
         AllJavaTypes obj = collection.iterator().next();
         realm.beginTransaction();
@@ -717,6 +724,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case MAX_DATE: collection.maxDate(AllJavaTypes.FIELD_DATE); break;
                         case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
                         case IS_VALID: collection.isValid(); break;
+                        case IS_MANAGED: collection.isManaged(); return true;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {

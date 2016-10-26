@@ -178,7 +178,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
                 view.setTag(viewHolder);
             }
             ViewHolder vh = (ViewHolder) view.getTag();
-            vh.text.setText(view.getResources().getString(R.string.coordinate, getItem(i).getX(),getItem(i).getY()));
+            vh.text.setText(view.getResources().getString(R.string.coordinate, getItem(i).getX(), getItem(i).getY()));
             return view;
         }
 

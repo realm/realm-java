@@ -93,6 +93,16 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     /**
+     * Submits a runnable for executing a network request.
+     *
+     * @param task the task to submit
+     * @return a future representing pending completion of the task
+     */
+    public Future<?> submitNetworkRequest(Runnable task) {
+        return super.submit(new BgPriorityRunnable(task));
+    }
+
+    /**
      * Method invoked prior to executing the given Runnable to pause execution of the thread.
      *
      * @param t the thread that will run task r

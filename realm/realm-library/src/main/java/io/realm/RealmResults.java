@@ -38,7 +38,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.BadVersionException;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
@@ -72,7 +72,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
 
-    BaseRealm realm;
+    final BaseRealm realm;
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
@@ -146,7 +146,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.currentTableViewVersion = table.syncIfNeeded();
     }
 
-    TableOrView getTable() {
+    TableOrView getTableOrView() {
         if (table == null) {
             return realm.schema.getTable(classSpec);
         } else {
@@ -158,7 +158,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * {@inheritDoc}
      */
     public boolean isValid() {
-        return realm != null && !realm.isClosed();
+        return !realm.isClosed();
+    }
+
+    /**
+     * A {@link RealmResults} is always a managed collection.
+     *
+     * @return {@code true}.
+     * @see RealmCollection#isManaged()
+     */
+    public boolean isManaged() {
+        return true;
     }
 
     /**
@@ -167,7 +177,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public RealmQuery<E> where() {
         realm.checkIfValid();
-
         return RealmQuery.createQueryFromResult(this);
     }
 
@@ -201,7 +210,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
-        TableOrView table = getTable();
+        TableOrView table = getTableOrView();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
         } else {
@@ -216,10 +225,26 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E first() {
-        if (size() > 0) {
+        return firstImpl(true, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public E first(E defaultValue) {
+        return firstImpl(false, defaultValue);
+    }
+
+    private E firstImpl(boolean shouldThrow, E defaultValue) {
+        if (!isEmpty()) {
             return get(0);
         } else {
-            throw new IndexOutOfBoundsException("No results were found.");
+            if (shouldThrow) {
+                throw new IndexOutOfBoundsException("No results were found.");
+            } else {
+                return defaultValue;
+            }
         }
     }
 
@@ -228,11 +253,27 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E last() {
-        int size = size();
-        if (size > 0) {
-            return get(size - 1);
+        return lastImpl(true, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public E last(E defaultValue) {
+        return lastImpl(false, defaultValue);
+        
+    }
+
+    private E lastImpl(boolean shouldThrow, E defaultValue) {
+        if (!isEmpty()) {
+            return get(size() - 1);
         } else {
-            throw new IndexOutOfBoundsException("No results were found.");
+            if (shouldThrow) {
+                throw new IndexOutOfBoundsException("No results were found.");
+            } else {
+                return defaultValue;
+            }
         }
     }
 
@@ -242,7 +283,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
-        TableOrView table = getTable();
+        TableOrView table = getTableOrView();
         table.remove(location);
     }
 
@@ -253,7 +294,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteAllFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            TableOrView table = getTable();
+            TableOrView table = getTableOrView();
             table.clear();
             return true;
         } else {
@@ -372,7 +413,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (!isLoaded()) {
             return 0;
         } else {
-            long size = getTable().size();
+            long size = getTableOrView().size();
             return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
     }
@@ -499,7 +540,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         realm.checkIfValid();
         long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
 
-        TableOrView tableOrView = getTable();
+        TableOrView tableOrView = getTableOrView();
         if (tableOrView instanceof Table) {
             this.table = ((Table) tableOrView).getDistinctView(columnIndex);
         } else {
@@ -608,7 +649,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteLastFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            TableOrView table = getTable();
+            TableOrView table = getTableOrView();
             table.removeLast();
             return true;
         } else {
@@ -638,7 +679,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean deleteFirstFromRealm() {
         if (size() > 0) {
-            TableOrView table = getTable();
+            TableOrView table = getTableOrView();
             table.removeFirst();
             return true;
         } else {
@@ -837,7 +878,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     void swapTableViewPointer(long handoverTableViewPointer) {
         try {
-            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
+            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedRealm);
             asyncQueryCompleted = true;
         } catch (BadVersionException e) {
             throw new IllegalStateException("Caller and Worker Realm should have been at the same version");
@@ -903,11 +944,11 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             // this may fail with BadVersionException if the caller and/or the worker thread
             // are not in sync. COMPLETED_ASYNC_REALM_RESULTS will be fired by the worker thread
             // this should handle more complex use cases like retry, ignore etc
-            table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
+            table = query.importHandoverTableView(tvHandover, realm.sharedRealm);
             asyncQueryCompleted = true;
             notifyChangeListeners(true);
         } catch (Exception e) {
-            RealmLog.d(e.getMessage());
+            RealmLog.debug(e.getMessage());
             return false;
         }
         return true;

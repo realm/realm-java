@@ -18,7 +18,9 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Build;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import org.junit.Assert;
@@ -37,6 +39,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -56,11 +59,12 @@ import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.log.Logger;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLogger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
-import static org.junit.Assert.assertEquals;
 
 public class TestHelper {
 
@@ -165,68 +169,22 @@ public class TestHelper {
     }
 
     /**
-     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     * Returns a RealmLogger that will fail if it is asked to log a message above a certain level.
      *
      * @param failureLevel {@link Log} level from which the unit test will fail.
-     * @return Logger implementation
+     * @return RealmLogger implementation
      */
-    public static Logger getFailureLogger(final int failureLevel) {
-        return new Logger() {
-
-            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+    public static RealmLogger getFailureLogger(final int failureLevel) {
+        return new RealmLogger() {
+            private void failIfEqualOrAbove(int logLevel) {
                 if (logLevel >= failureLevel) {
                     fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
                 }
             }
 
             @Override
-            public void v(String message) {
-                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
-            }
-
-            @Override
-            public void v(String message, Throwable t) {
-                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
-            }
-
-            @Override
-            public void d(String message) {
-                failIfEqualOrAbove(Log.DEBUG, failureLevel);
-            }
-
-            @Override
-            public void d(String message, Throwable t) {
-                failIfEqualOrAbove(Log.DEBUG, failureLevel);
-            }
-
-            @Override
-            public void i(String message) {
-                failIfEqualOrAbove(Log.INFO, failureLevel);
-            }
-
-            @Override
-            public void i(String message, Throwable t) {
-                failIfEqualOrAbove(Log.INFO, failureLevel);
-            }
-
-            @Override
-            public void w(String message) {
-                failIfEqualOrAbove(Log.WARN, failureLevel);
-            }
-
-            @Override
-            public void w(String message, Throwable t) {
-                failIfEqualOrAbove(Log.WARN, failureLevel);
-            }
-
-            @Override
-            public void e(String message) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
-            @Override
-            public void e(String message, Throwable t) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            public void log(int level, String tag, Throwable throwable, String message) {
+                failIfEqualOrAbove(level);
             }
         };
     }
@@ -243,64 +201,26 @@ public class TestHelper {
     /**
      * Returns a naive logger that can be used to test the values that are sent to the logger.
      */
-    public static class TestLogger implements Logger {
+    public static class TestLogger implements RealmLogger {
 
+        private final int minimumLevel;
         public String message;
         public Throwable throwable;
 
-        @Override
-        public void v(String message) {
-            this.message = message;
+        public TestLogger() {
+            this(LogLevel.DEBUG);
+        }
+
+        public TestLogger(int minimumLevel) {
+            this.minimumLevel = minimumLevel;
         }
 
         @Override
-        public void v(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void d(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void d(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void i(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void i(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void w(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void w(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
-        }
-
-        @Override
-        public void e(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void e(String message, Throwable t) {
-            this.message = message;
-            this.throwable = t;
+        public void log(int level, String tag, Throwable throwable, String message) {
+            if (minimumLevel <= level) {
+                this.message = message;
+                this.throwable = throwable;
+            }
         }
     }
 
@@ -382,7 +302,9 @@ public class TestHelper {
      */
     @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+                .directory(dir)
+                .name(name);
         if (key != null) {
             config.encryptionKey(key);
         }
@@ -945,6 +867,64 @@ public class TestHelper {
         }
     }
 
+    public static void testNoObjectFound(
+            Realm realm,
+            Class<? extends RealmModel> clazz,
+            String fieldName, Object value) {
+        testObjectCount(realm, 0L, clazz, fieldName, value);
+    }
+
+    public static void testOneObjectFound(
+            Realm realm,
+            Class<? extends RealmModel> clazz,
+            String fieldName, Object value) {
+        testObjectCount(realm, 1L, clazz, fieldName, value);
+    }
+
+    public static void testObjectCount(
+            Realm realm,
+            long expectedCount,
+            Class<? extends RealmModel> clazz,
+            String fieldName, Object value) {
+        final RealmQuery<? extends RealmModel> query;
+        switch (value.getClass().getSimpleName()) {
+            case "String":
+                query = realm.where(clazz).equalTo(fieldName, (String) value);
+                break;
+            case "Byte":
+                query = realm.where(clazz).equalTo(fieldName, (Byte) value);
+                break;
+            case "Short":
+                query = realm.where(clazz).equalTo(fieldName, (Short) value);
+                break;
+            case "Integer":
+                query = realm.where(clazz).equalTo(fieldName, (Integer) value);
+                break;
+            case "Long":
+                query = realm.where(clazz).equalTo(fieldName, (Long) value);
+                break;
+            case "Float":
+                query = realm.where(clazz).equalTo(fieldName, (Float) value);
+                break;
+            case "Double":
+                query = realm.where(clazz).equalTo(fieldName, (Double) value);
+                break;
+            case "Boolean":
+                query = realm.where(clazz).equalTo(fieldName, (Boolean) value);
+                break;
+            case "Date":
+                query = realm.where(clazz).equalTo(fieldName, (Date) value);
+                break;
+            case "byte[]":
+                query = realm.where(clazz).equalTo(fieldName, (byte[]) value);
+                break;
+            default:
+                throw new AssertionError("unknown type: " + value.getClass().getSimpleName());
+        }
+
+        assertEquals(expectedCount, query.count());
+    }
+
     /**
      * Replaces the current thread executor with a another one for testing.
      * WARNING: This method should only be called before any async tasks have been started.
@@ -1035,6 +1015,52 @@ public class TestHelper {
         final Throwable throwable = thrown.get();
         if (throwable != null) {
             throw throwable;
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                deleteRecursively(f);
+            }
+        }
+
+        if (!file.delete()) {
+            throw new AssertionError("failed to delete " + file.getAbsolutePath());
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static boolean isSelinuxEnforcing() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // SELinux is not enabled for these versions.
+            return false;
+        }
+        try {
+            final Process process = new ProcessBuilder("/system/bin/getenforce").start();
+            try {
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    return reader.readLine().toLowerCase(Locale.ENGLISH).equals("enforcing");
+                } finally {
+                    try {
+                        reader.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            } finally {
+                try {
+                    process.waitFor();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        } catch (IOException e) {
+            return false;
         }
     }
 }

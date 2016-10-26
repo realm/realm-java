@@ -182,3 +182,19 @@ public RealmQuery<E> equalTo(String fieldName, String fieldValue, boolean caseSe
 
 Above is based on the official guidelines from Oracle regarding Javadoc: http://www.oracle.com/technetwork/articles/java/index-137868.html
 
+### Branch Strategy
+
+We have two branches for shared development: `master` and `releases`. We make releases from each.
+
+`master`:
+
+* The `master` branch is where major/minor versions are released from.
+* It is for new features and/or breaking changes.
+
+`releases`:
+
+* The releases branch is where patch versions are released from.
+* It is mainly for bug fixes.
+* Every commit is automatically merged to `master`.
+* Minor changes (e.g. to documentation, tests, and the build system) may not affect end users but should still be merged to `releases` to avoid diverging too far from `master` and to reduce the likelihood of merge conflicts.
+

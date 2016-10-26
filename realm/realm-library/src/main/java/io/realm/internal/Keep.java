@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * This annotation is used to mark the classes to be kept by ProGuard/DexGuard.
  * The ProGuard configuration must have '-keep class io.realm.internal.Keep'
- * and '-keep @io.realm.internal.Keep class *'.
+ * and '-keep,includedescriptorclasses @io.realm.internal.Keep class * { *; }'.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)

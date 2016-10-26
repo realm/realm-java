@@ -21,6 +21,9 @@ import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyAsInteger extends RealmObject {
 
+    public static final String CLASS_NAME = "PrimaryKeyAsInteger";
+    public static final String FIELD_ID = "id";
+
     @PrimaryKey
     private int id;
 

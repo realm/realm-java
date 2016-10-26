@@ -42,7 +42,7 @@ public class EncryptionExampleActivity extends Activity {
         // * http://nelenkov.blogspot.dk/2012/05/storing-application-secrets-in-androids.html
         byte[] key = new byte[64];
         new SecureRandom().nextBytes(key);
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this)
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder()
                 .encryptionKey(key)
                 .build();
 

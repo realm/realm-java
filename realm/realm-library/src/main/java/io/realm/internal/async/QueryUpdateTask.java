@@ -16,8 +16,6 @@
 
 package io.realm.internal.async;
 
-import android.os.Handler;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -26,17 +24,25 @@ import java.util.List;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
-import io.realm.internal.HandlerControllerConstants;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.SharedGroup;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.RealmLog;
 
 /**
  * Manages the update of async queries.
  */
 public class QueryUpdateTask implements Runnable {
+
+    public enum NotifyEvent {
+        COMPLETE_ASYNC_RESULTS,
+        COMPLETE_ASYNC_OBJECT,
+        COMPLETE_UPDATE_ASYNC_QUERIES,
+        THROW_BACKGROUND_EXCEPTION,
+    }
+
     // true if updating RealmResults, false if updating RealmObject, can't mix both
     // the builder pattern will prevent this.
     private final static int MODE_UPDATE_REALM_RESULTS = 0;
@@ -46,21 +52,21 @@ public class QueryUpdateTask implements Runnable {
     private RealmConfiguration realmConfiguration;
     private List<Builder.QueryEntry> realmResultsEntries;
     private Builder.QueryEntry realmObjectEntry;
-    private WeakReference<Handler> callerHandler;
-    private int message;
+    private WeakReference<RealmNotifier> callerNotifier;
+    private NotifyEvent event;
 
     private QueryUpdateTask (int mode,
                              RealmConfiguration realmConfiguration,
                              List<Builder.QueryEntry> listOfRealmResults,
                              Builder.QueryEntry realmObject,
-                             WeakReference<Handler> handler,
-                             int message) {
+                             WeakReference<RealmNotifier> notifier,
+                             NotifyEvent event) {
         this.updateMode = mode;
         this.realmConfiguration = realmConfiguration;
         this.realmResultsEntries = listOfRealmResults;
         this.realmObjectEntry = realmObject;
-        this.callerHandler = handler;
-        this.message = message;
+        this.callerNotifier = notifier;
+        this.event = event;
     }
 
     public static Builder.RealmConfigurationStep newBuilder() {
@@ -69,53 +75,62 @@ public class QueryUpdateTask implements Runnable {
 
     @Override
     public void run() {
-        SharedGroup sharedGroup = null;
+        SharedRealm sharedRealm = null;
         try {
-            sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                    SharedGroup.IMPLICIT_TRANSACTION,
-                    realmConfiguration.getDurability(),
-                    realmConfiguration.getEncryptionKey());
+            sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
             Result result;
             boolean updateSuccessful;
             if (updateMode == MODE_UPDATE_REALM_RESULTS) {
                 result = Result.newRealmResultsResponse();
                 AlignedQueriesParameters alignedParameters = prepareQueriesParameters();
-                long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedGroup.getNativePointer(),
+                long[] handoverTableViewPointer = TableQuery.batchUpdateQueries(sharedRealm,
                         alignedParameters.handoverQueries,
                         alignedParameters.queriesParameters,
                         alignedParameters.multiSortColumnIndices,
                         alignedParameters.multiSortOrder);
                 swapPointers(result, handoverTableViewPointer);
                 updateSuccessful = true;
-                result.versionID = sharedGroup.getVersion();
+                result.versionID = sharedRealm.getVersionID();
 
             } else {
                 result = Result.newRealmObjectResponse();
-                updateSuccessful = updateRealmObjectQuery(sharedGroup, result);
-                result.versionID = sharedGroup.getVersion();
+                updateSuccessful = updateRealmObjectQuery(sharedRealm, result);
+                result.versionID = sharedRealm.getVersionID();
             }
 
-            Handler handler = callerHandler.get();
-            if (updateSuccessful && !isTaskCancelled() && isAliveHandler(handler)) {
-                handler.obtainMessage(message, result).sendToTarget();
+            RealmNotifier notifier = callerNotifier.get();
+            if (updateSuccessful && !isTaskCancelled() && notifier != null) {
+                switch (event) {
+                    case COMPLETE_ASYNC_RESULTS:
+                        notifier.completeAsyncResults(result);
+                        break;
+                    case COMPLETE_ASYNC_OBJECT:
+                        notifier.completeAsyncObject(result);
+                        break;
+                    case COMPLETE_UPDATE_ASYNC_QUERIES:
+                        notifier.completeUpdateAsyncQueries(result);
+                        break;
+                    default:
+                        throw new IllegalStateException(String.format("%s is not handled here.", event));
+                }
             }
 
         } catch (BadVersionException e) {
             // In some rare race conditions, this can happen. In that case, just ignore the error.
-            RealmLog.d("Query update task could not complete due to a BadVersionException. " +
+            RealmLog.debug("Query update task could not complete due to a BadVersionException. " +
                     "Retry is scheduled by a REALM_CHANGED event.");
 
         } catch (Throwable e) {
-            RealmLog.e(e.getMessage(), e);
-            Handler handler = callerHandler.get();
-            if (handler != null && handler.getLooper().getThread().isAlive()) {
-                handler.obtainMessage(HandlerControllerConstants.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e)).sendToTarget();
+            RealmLog.error(e);
+            RealmNotifier notifier = callerNotifier.get();
+            if (notifier!= null) {
+                notifier.throwBackgroundException(e);
             }
 
         } finally {
-            if (sharedGroup != null) {
-                sharedGroup.close();
+            if (sharedRealm != null) {
+                sharedRealm.close();
             }
         }
     }
@@ -184,13 +199,12 @@ public class QueryUpdateTask implements Runnable {
         }
     }
 
-    private boolean updateRealmObjectQuery(SharedGroup sharedGroup, Result result) {
+    private boolean updateRealmObjectQuery(SharedRealm sharedRealm, Result result) {
         if (!isTaskCancelled()) {
             switch (realmObjectEntry.queryArguments.type) {
                 case ArgumentsHolder.TYPE_FIND_FIRST: {
-                    long handoverRowPointer = TableQuery.
-                            nativeFindWithHandover(sharedGroup.getNativePointer(),
-                                    realmObjectEntry.handoverQueryPointer, 0);
+                    long handoverRowPointer = TableQuery.findWithHandover(sharedRealm,
+                                    realmObjectEntry.handoverQueryPointer);
                     result.updatedRow.put(realmObjectEntry.element, handoverRowPointer);
                     break;
                 }
@@ -209,15 +223,11 @@ public class QueryUpdateTask implements Runnable {
         return Thread.currentThread().isInterrupted();
     }
 
-    private boolean isAliveHandler(Handler handler) {
-        return handler != null && handler.getLooper().getThread().isAlive();
-    }
-
     // result of the async query
     public static class Result {
         public IdentityHashMap<WeakReference<RealmResults<? extends RealmModel>>, Long> updatedTableViews;
         public IdentityHashMap<WeakReference<RealmObjectProxy>, Long> updatedRow;
-        public SharedGroup.VersionID versionID;
+        public SharedRealm.VersionID versionID;
 
         public static Result newRealmResultsResponse() {
             Result result = new Result();
@@ -245,13 +255,13 @@ public class QueryUpdateTask implements Runnable {
          .realmConfiguration(null, null)
          .add(null, 0, null)
          .add(null, 0, null)
-         .sendToHandler(null, 0)
+         .sendToNotifier(null, 0)
          .build();
 
      QueryUpdateTask task2 = QueryUpdateTask.newBuilder()
          .realmConfiguration(null, null)
          .addObject(null, 0, null)
-         .sendToHandler(null, 0)
+         .sendToNotifier(null, 0)
          .build();
      */
     public static class Builder {
@@ -272,11 +282,11 @@ public class QueryUpdateTask implements Runnable {
             RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmModel>> weakReference,
                                           long handoverQueryPointer,
                                           ArgumentsHolder queryArguments);
-            BuilderStep sendToHandler(Handler handler, int message);
+            BuilderStep sendToNotifier(RealmNotifier notifier, NotifyEvent event);
         }
 
         public interface HandlerStep {
-            BuilderStep sendToHandler (Handler handler, int message);
+            BuilderStep sendToNotifier(RealmNotifier notifier, NotifyEvent event);
         }
 
         public interface BuilderStep {
@@ -287,8 +297,8 @@ public class QueryUpdateTask implements Runnable {
             private RealmConfiguration realmConfiguration;
             private List<QueryEntry> realmResultsEntries;
             private QueryEntry realmObjectEntry;
-            private WeakReference<Handler> callerHandler;
-            private int message;
+            private WeakReference<RealmNotifier> callerNotifier;
+            private NotifyEvent event;
 
             @Override
             public UpdateQueryStep realmConfiguration(RealmConfiguration realmConfiguration) {
@@ -317,9 +327,9 @@ public class QueryUpdateTask implements Runnable {
             }
 
             @Override
-            public BuilderStep sendToHandler(Handler handler, int message) {
-                this.callerHandler = new WeakReference<Handler>(handler);
-                this.message = message;
+            public BuilderStep sendToNotifier(RealmNotifier notifier, NotifyEvent event) {
+                this.callerNotifier = new WeakReference<RealmNotifier>(notifier);
+                this.event = event;
                 return this;
             }
 
@@ -330,8 +340,8 @@ public class QueryUpdateTask implements Runnable {
                         realmConfiguration,
                         realmResultsEntries,
                         realmObjectEntry,
-                        callerHandler,
-                        message);
+                        callerNotifier,
+                        event);
             }
         }
 

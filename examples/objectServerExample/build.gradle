@@ -1,0 +1,67 @@
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+apply plugin: 'realm-android'
+
+// Credit: http://jeremie-martinez.com/2015/05/05/inject-host-gradle/
+def getIP() {
+    InetAddress result = null;
+    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+    while (interfaces.hasMoreElements()) {
+        Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses();
+        while (addresses.hasMoreElements()) {
+            InetAddress address = addresses.nextElement();
+            if (!address.isLoopbackAddress()) {
+                if (address.isSiteLocalAddress()) {
+                    return address.getHostAddress();
+                } else if (result == null) {
+                    result = address;
+                }
+            }
+        }
+    }
+    return (result != null ? result : InetAddress.getLocalHost()).getHostAddress();
+}
+
+android {
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
+    defaultConfig {
+        applicationId 'io.realm.examples.objectserver'
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion 15
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        // This will automatically try to detect the IP address of the machine
+        // building the example. It is assumed that this machine is also running
+        // the Object Server. If not, replace 'host' with the IP of the machine
+        // hosting the server. In some cases the wrong IP address will also
+        // be detected. In that case also insert the IP address manually.
+        def host = getIP()
+        debug {
+            buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+        }
+        release {
+            minifyEnabled false
+            buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+        }
+    }
+
+    command {
+        events 2000
+    }
+}
+
+realm {
+    syncEnabled = true
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:24.2.0'
+    compile 'com.android.support:design:24.2.0'
+    compile 'com.jakewharton:butterknife:8.3.0'
+    apt 'com.jakewharton:butterknife-compiler:8.3.0'
+}

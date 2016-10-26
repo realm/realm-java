@@ -5,4 +5,5 @@
     <issue id="IconMissingDensityFolder" severity="ignore" />
     <issue id="IconLauncherShape" severity="ignore" />
     <issue id="LogNotTimber" severity="ignore" />
+    <issue id="InvalidPackage" severity="ignore" />
 </lint>

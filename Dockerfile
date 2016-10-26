@@ -11,19 +11,32 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
+ENV ANDROID_NDK /opt/android-ndk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
+ENV NDK_CCACHE /usr/bin/ccache
 
-# Install the JDK
-# We are going to need some 32 bit binaries because aapt requires it
-# file is need by the script that creates NDK toolchains
+# The 32 bit binaries because aapt requires it
+# `file` is need by the script that creates NDK toolchains
+# Keep the packages in alphabetical order to make it easy to avoid duplication
 RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
     && apt-get update -qq \
-    && apt-get install -y file git curl wget zip unzip \
-                       bsdmainutils \
-                       build-essential \
-                       openjdk-8-jdk-headless \
-                       libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 \
+    && apt-get install -y bsdmainutils \
+                          build-essential \
+                          ccache \
+                          curl \
+                          file \
+                          git \
+                          libc6:i386 \
+                          libgcc1:i386 \
+                          libncurses5:i386 \
+                          libstdc++6:i386 \
+                          libz1:i386 \
+                          openjdk-8-jdk-headless \
+                          s3cmd \
+                          unzip \
+                          wget \
+                          zip \
     && apt-get clean
 
 # Install the Android SDK

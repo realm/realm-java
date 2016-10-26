@@ -127,7 +127,7 @@ public class RealmChangeListenerTests {
         });
 
         realm.beginTransaction();
-        AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class);
+        AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class, 0);
         model.columnString = "data 1";
         realm.commitTransaction();
     }
@@ -160,7 +160,7 @@ public class RealmChangeListenerTests {
     public void returnedRealmModelIsNotNull() {
         Realm realm = looperThread.realm;
         realm.beginTransaction();
-        AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class);
+        AllTypesRealmModel model = realm.createObject(AllTypesRealmModel.class, 0);
         realm.commitTransaction();
 
         looperThread.keepStrongReference.add(model);

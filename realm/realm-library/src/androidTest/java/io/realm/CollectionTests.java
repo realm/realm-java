@@ -49,7 +49,7 @@ public abstract class CollectionTests {
 
     // Enumerate all methods from the RealmCollection interface that depend on Realm API's.
     protected enum RealmCollectionMethod {
-        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID
+        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
     }
 
     // Enumerate all methods from the Collection interface
@@ -94,8 +94,8 @@ public abstract class CollectionTests {
             }
 
             // Add all items to the RealmList on the first object
-            AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst();
-            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+            AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 0).findFirst();
+            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_ID, Sort.ASCENDING);
             RealmList<AllJavaTypes> list = firstObj.getFieldList();
             for (int i = 0; i < listData.size(); i++) {
                 list.add(listData.get(i));
@@ -200,7 +200,7 @@ public abstract class CollectionTests {
                 return realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
 
             case MANAGED_REALMLIST:
-                AllJavaTypes first = realm.createObject(AllJavaTypes.class);
+                AllJavaTypes first = realm.createObject(AllJavaTypes.class, 0);
                 first.setFieldString(args[0]);
                 first.getFieldList().add(first);
                 for (int i = 1; i < args.length; i++) {

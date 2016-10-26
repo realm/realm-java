@@ -5,16 +5,18 @@ apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
 
-ext.coreVersion = '1.5.1'
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
+
+ext.coreVersion = properties.getProperty('REALM_SYNC_VERSION')
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = 'a034d3250c820a15126721142d168a2ac4a12223b75bb324958ca2a70442720d'
+ext.coreSha256Hash = properties.getProperty('REALM_SYNC_SHA256')
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
@@ -25,9 +27,11 @@ ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
     ext.coreArchiveDir = ".."
 }
-ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/core-android-${project.coreVersion}.tar.gz")
+ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
 ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
+ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
+ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 
 android {
     compileSdkVersion 24
@@ -37,7 +41,6 @@ android {
         minSdkVersion 9
         targetSdkVersion 24
         project.archivesBaseName = "realm-android-library"
-        consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -48,7 +51,14 @@ android {
                           // JNI build currently (lack of lto linking support).
                           // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
-                abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
+                if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
+                if (project.hasProperty('buildTargetABIs')) {
+                    abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
+                } else {
+                    // armeabi is not supported anymore.
+                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                }
             }
         }
     }
@@ -69,6 +79,9 @@ android {
         androidTest {
             java.srcDirs += 'src/benchmarks/java'
         }
+        androidTestObjectServer {
+            java.srcDirs += 'src/syncIntegrationTest/java'
+        }
     }
 
     packagingOptions {
@@ -79,8 +92,26 @@ android {
     lintOptions {
         abortOnError false
     }
-}
 
+    productFlavors {
+        base {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=base"
+                }
+            }
+            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
+        }
+        objectServer {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=objectServer"
+                }
+            }
+            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
+        }
+    }
+}
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
@@ -95,8 +126,8 @@ repositories {
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
-    compile 'com.getkeepsafe.relinker:relinker:1.2.1'
-
+    compile 'com.getkeepsafe.relinker:relinker:1.2.2'
+    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -105,16 +136,22 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-
     androidTestApt project(':realm-annotations-processor')
 }
 
 task sourcesJar(type: Jar) {
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
+def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This software is considered in beta phase. ' +
+        'It indicates that any public interface can change without prior announcements. ' +
+        'Moreover, classes, constructors, and methods annotated as beta are not ' +
+        'considered at production quality, and should be used with care.</div>'
+
 task javadoc(type: Javadoc) {
+    source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -127,9 +164,11 @@ task javadoc(type: Javadoc) {
         locale = 'en_US'
         overview = 'src/overview.html'
 
-        links "http://docs.oracle.com/javase/7/docs/api/"
+        links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "http://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+
+        tags = [ betaTag ]
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
@@ -175,7 +214,6 @@ task pmd(type: Pmd) {
 
     source = fileTree('src/main/java')
     ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-    ruleSets = [] // This needs to be here to remove the default checks
 
     reports {
         xml.enabled = false
@@ -252,25 +290,70 @@ install {
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+// The publications doesn't know about our AAR dependencies, so we have to manually add them to the pom
+// Credit: http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
+def createPomDependencies(configurationNames) {
+    return {
+        def dependenciesNode = asNode().appendNode('dependencies')
+        configurationNames.each { configurationName ->
+            configurations[configurationName].allDependencies.each {
+                if (it.group != null && it.name != null) {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
 
-    dryRun = false
-    publish = false
+                    //If there are any exclusions in dependency
+                    if (it.excludeRules.size() > 0) {
+                        def exclusionsNode = dependencyNode.appendNode('exclusions')
+                        it.excludeRules.each { rule ->
+                            def exclusionNode = exclusionsNode.appendNode('exclusion')
+                            exclusionNode.appendNode('groupId', rule.group)
+                            exclusionNode.appendNode('artifactId', rule.module)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
-    configurations = ['archives']
+publishing {
+    publications {
+        basePublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
 
-    pkg {
-        repo = 'maven'
-        name = 'realm-android-library'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
+            pom.withXml(createPomDependencies(["baseCompile", "compile"]))
+        }
+
+        objectServerPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library-object-server'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml(createPomDependencies(["objectServerCompile", "compile"]))
+        }
+    }
+    repositories {
+        maven {
+            credentials(AwsCredentials) {
+                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
+                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://realm-ci-artifacts/maven/snapshots/"
+            } else {
+                url "s3://realm-ci-artifacts/maven/releases/"
+            }
+        }
     }
 }
 
@@ -284,7 +367,7 @@ artifactory {
             maven = true
         }
         defaults {
-            publishConfigs('archives')
+            publishConfigs('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }
@@ -299,13 +382,15 @@ artifacts {
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of Realm Core') {
+task downloadCore() {
+    group = 'build setup'
+    description = 'Download the latest version of Realm Core'
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
 
     def calcSha256Hash = {File targetFile ->
-        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        MessageDigest sha = MessageDigest.getInstance("SHA-256")
         Formatter hexHash = new Formatter()
         sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
         return hexHash.toString()
@@ -336,7 +421,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     doLast {
         if (shouldDownloadCore()) {
             download {
-                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
+                src "http://static.realm.io/downloads/sync/realm-sync-android-${project.coreVersion}.tar.gz"
                 dest project.coreArchiveFile
                 onlyIfNewer false
             }
@@ -378,7 +463,7 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
         copy {
             from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
             into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "core-android-${coreVersion}.tar.gz"
+            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
         }
     }
 }
@@ -413,6 +498,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
+publishToMavenLocal.dependsOn assemble
 preBuild.dependsOn deployCore
 
 if (project.hasProperty('dontCleanJniFiles')) {
@@ -426,6 +512,8 @@ if (project.hasProperty('dontCleanJniFiles')) {
 } else {
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
+        // Clean .so files that were created by old build script (realm/realm-jni/build.gradle).
+        delete project.file('src/main/jniLibs')
     }
     clean.dependsOn cleanExternalBuildFiles
 }
@@ -460,6 +548,150 @@ task checkNdk() << {
                             + ' must point the same directory.')
         }
     }
+}
+
+android.productFlavors.all { flavor ->
+    def librarySuffix = flavor.name == 'base' ? '' : '-object-server'
+    def userName = project.findProperty('bintrayUser') ?: 'noUser'
+    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
+
+    // BINTRAY
+
+    task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "assemble${flavor.name.capitalize()}"
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
+    }
+
+    task("bintraySources${flavor.name.capitalize()}", type: Exec) {
+        dependsOn sourcesJar
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
+    }
+
+    task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
+        dependsOn javadocJar
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+    }
+
+    task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
+        group = 'Publishing'
+        commandLine 'curl',
+            '-X',
+            'PUT',
+            '-T',
+            "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
+            '-u',
+            "${userName}:${accessKey}",
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
+    }
+
+    // OJO
+
+    task("ojoAar${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "assemble${flavor.name.capitalize()}"
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
+    }
+
+    task("ojoSources${flavor.name.capitalize()}", type: Exec) {
+        dependsOn sourcesJar
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
+    }
+
+    task("ojoJavadoc${flavor.name.capitalize()}", type: Exec) {
+        dependsOn javadocJar
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+    }
+
+    task("ojoPom${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
+    }
+
+    task("bintray${flavor.name.capitalize()}") {
+        dependsOn "bintrayAar${flavor.name.capitalize()}"
+        dependsOn "bintraySources${flavor.name.capitalize()}"
+        dependsOn "bintrayJavadoc${flavor.name.capitalize()}"
+        dependsOn "bintrayPom${flavor.name.capitalize()}"
+        group = 'Publishing'
+    }
+
+    task("ojo${flavor.name.capitalize()}") {
+        dependsOn "ojoAar${flavor.name.capitalize()}"
+        dependsOn "ojoSources${flavor.name.capitalize()}"
+        dependsOn "ojoJavadoc${flavor.name.capitalize()}"
+        dependsOn "ojoPom${flavor.name.capitalize()}"
+        group = 'Publishing'
+    }
+}
+
+task bintrayUpload() {
+    android.productFlavors.all { flavor ->
+        dependsOn "bintray${flavor.name.capitalize()}"
+    }
+    group = 'Publishing'
+}
+
+task ojoUpload() {
+    android.productFlavors.all { flavor ->
+        dependsOn "ojo${flavor.name.capitalize()}"
+    }
+    group = 'Publishing'
 }
 
 def checkNdk(String ndkPath) {

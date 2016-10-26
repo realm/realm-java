@@ -21,7 +21,9 @@ import android.content.Context;
 import com.getkeepsafe.relinker.ReLinker;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
 
 /**
@@ -39,36 +41,6 @@ public class RealmCore {
     public static boolean osIsWindows() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
         return (os.contains("win"));
-    }
-
-    /**
-     * Loads the .so file. This method is useful for static blocks as it does not rely on access to a Context.
-     *
-     * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
-     * KEEP synchronized here for old devices!
-     */
-    public static synchronized void loadLibrary() {
-        if (libraryIsLoaded) {
-            // The java native should ensure only load the lib once, but we met some problems before.
-            // So keep the flag.
-            return;
-        }
-
-        if (osIsWindows()) {
-            loadLibraryWindows();
-        }
-        else {
-            String jnilib;
-            String debug = System.getenv("REALM_JAVA_DEBUG");
-            if (debug == null || debug.isEmpty()) {
-                jnilib = "realm-jni";
-            }
-            else {
-                jnilib = "realm-jni-dbg";
-            }
-            System.loadLibrary(jnilib);
-        }
-        libraryIsLoaded = true;
     }
 
     /**

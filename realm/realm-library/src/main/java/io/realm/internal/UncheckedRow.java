@@ -24,7 +24,7 @@ import io.realm.RealmFieldType;
  * Wrapper around a Row in Realm Core.
  *
  * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the annotation
- * processor and {@link RealmProxyMediator#validateTable(Class, ImplicitTransaction)} which is called before the typed
+ * processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm)} which is called before the typed
  * API can be used.
  *
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
@@ -309,7 +309,7 @@ public class UncheckedRow implements NativeObject, Row {
     protected native String nativeGetString(long nativePtr, long columnIndex);
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-    public static native long nativeGetLinkView(long nativePtr, long columnIndex);
+    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);

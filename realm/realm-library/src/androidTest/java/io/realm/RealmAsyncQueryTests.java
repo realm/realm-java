@@ -27,17 +27,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import dk.ilios.spanner.All;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
@@ -48,7 +45,8 @@ import io.realm.instrumentation.MockActivityManager;
 import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.log.RealmLog;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -174,7 +172,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void executeTransactionAsync_exceptionHandling() throws Throwable {
-        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger(LogLevel.DEBUG);
         RealmLog.add(testLogger);
 
         final Realm realm = looperThread.realm;
@@ -368,7 +366,8 @@ public class RealmAsyncQueryTests {
         dog.setAge(10);
 
         assertTrue(dog.isLoaded());
-        assertFalse(dog.isValid());
+        assertTrue(dog.isValid());
+        assertFalse(dog.isManaged());
     }
 
     @Test
@@ -425,6 +424,7 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
+        looperThread.keepStrongReference.add(results);
 
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
@@ -1125,7 +1125,7 @@ public class RealmAsyncQueryTests {
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
-                        if (numberOfIntercept.incrementAndGet() == 1) {
+                        if (numberOfIntercept.incrementAndGet() == 2 /* 2 queries are both completed */) {
                             // 6. The first time the async queries complete we start an update from
                             // another background thread. This will cause queries to rerun when the
                             // background thread notifies this thread.
@@ -1622,6 +1622,31 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
+    @RunTestInLooperThread()
+    public void distinctAsync_rememberQueryParams() {
+        final Realm realm = looperThread.realm;
+        realm.beginTransaction();
+        final int TEST_SIZE = 10;
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllJavaTypes.class, i);
+        }
+        realm.commitTransaction();
+
+        RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class)
+                .notEqualTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2)
+                .distinctAsync(AllJavaTypes.FIELD_ID);
+
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> results) {
+                assertEquals(TEST_SIZE - 1, results.size());
+                assertEquals(0, results.where().equalTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2).count());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
     @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() throws Throwable {
         Realm realm = looperThread.realm;
@@ -1873,8 +1898,8 @@ public class RealmAsyncQueryTests {
             public void run() {
                 Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
                 // Advancing the Realm without generating notifications
-                bgRealm.sharedGroupManager.promoteToWrite();
-                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                bgRealm.sharedRealm.beginTransaction();
+                bgRealm.sharedRealm.commitTransaction();
                 Realm.asyncTaskExecutor.resume();
                 bgRealm.close();
                 signalClosedRealm.countDown();

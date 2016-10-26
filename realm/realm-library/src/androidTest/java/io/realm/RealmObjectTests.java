@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.ConflictingFieldName;
@@ -48,6 +49,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -523,7 +525,7 @@ public class RealmObjectTests {
             realm_differentName.close();
         }
 
-        // Check the hash code of the object from a Realm in different folder.
+        // Check the hash code of the object from a Realm in different directory.
         RealmConfiguration realmConfig_differentPath = configFactory.createConfiguration(
                 "anotherDir", realmConfig.getRealmFileName());
         Realm realm_differentPath = Realm.getInstance(realmConfig_differentPath);
@@ -933,7 +935,7 @@ public class RealmObjectTests {
     @Test
     public void isValid_unmanagedObject() {
         AllTypes allTypes = new AllTypes();
-        assertFalse(allTypes.isValid());
+        assertTrue(allTypes.isValid());
     }
 
     @Test
@@ -971,7 +973,7 @@ public class RealmObjectTests {
     @Test
     public void set_get_nullOnNullableFields() {
         realm.beginTransaction();
-        NullTypes nullTypes = realm.createObject(NullTypes.class);
+        NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
         // 1 String
         nullTypes.setFieldStringNull(null);
         // 2 Bytes
@@ -1024,7 +1026,7 @@ public class RealmObjectTests {
         final byte[] testBytes = new byte[] {42};
         final Date testDate = newDate(2000, 1, 1);
         realm.beginTransaction();
-        NullTypes nullTypes = realm.createObject(NullTypes.class);
+        NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
         // 1 String
         nullTypes.setFieldStringNull(testString);
         // 2 Bytes
@@ -1075,7 +1077,7 @@ public class RealmObjectTests {
     public void set_nullValuesToNonNullableFields() {
         try {
             realm.beginTransaction();
-            NullTypes nullTypes = realm.createObject(NullTypes.class);
+            NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
             // 1 String
             try {
                 nullTypes.setFieldStringNotNull(null);
@@ -1144,7 +1146,7 @@ public class RealmObjectTests {
     @Test
     public void defaultValuesForNewObject() {
         realm.beginTransaction();
-        NullTypes nullTypes = realm.createObject(NullTypes.class);
+        NullTypes nullTypes = realm.createObject(NullTypes.class, 0);
         realm.commitTransaction();
 
         assertNotNull(nullTypes);
@@ -1225,6 +1227,21 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertFalse(dog.isValid());
+    }
+
+    @Test
+    public void isManaged_managedObject() {
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        realm.commitTransaction();
+
+        assertTrue(dog.isManaged());
+    }
+
+    @Test
+    public void isManaged_unmanagedObject() {
+        Dog dog = new Dog();
+        assertFalse(dog.isManaged());
     }
 
     // Test NaN value on float and double columns
@@ -1555,6 +1572,15 @@ public class RealmObjectTests {
         list.first().setFieldDateNull(null);
         realm.commitTransaction();
         assertNull(realm.where(NullTypes.class).findFirst().getFieldDateNull());
+    }
+
+    @Test
+    public void setter_changePrimaryKeyThrows() {
+        realm.beginTransaction();
+        AllJavaTypes allJavaTypes = realm.createObject(AllJavaTypes.class, 42);
+        thrown.expect(RealmException.class);
+        allJavaTypes.setFieldId(111);
+        realm.cancelTransaction();
     }
 
     @Test
