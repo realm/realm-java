@@ -191,7 +191,7 @@ public final class Realm extends BaseRealm {
             defaultConfiguration = new RealmConfiguration.Builder(wrapper).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.contextWrapper = wrapper;
-            SharedRealm.initialize(new File(wrapper.getDefaultRealmFileFolder(), ".realm.temp"));
+            SharedRealm.initialize(new File(wrapper.getDefaultRealmFileDirectory(), ".realm.temp"));
         }
     }
 

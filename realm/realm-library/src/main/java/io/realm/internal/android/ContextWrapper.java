@@ -42,7 +42,7 @@ public class ContextWrapper {
     /**
      * Returns the default location for Realm files.
      */
-    public File getDefaultRealmFileFolder() {
+    public File getDefaultRealmFileDirectory() {
         return filesDir;
     }
 

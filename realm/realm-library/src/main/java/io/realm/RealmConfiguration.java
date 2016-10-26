@@ -403,7 +403,7 @@ public class RealmConfiguration {
 
         // Setup builder in its initial state
         private void initializeBuilder(ContextWrapper context) {
-            this.directory = context.getDefaultRealmFileFolder();
+            this.directory = context.getDefaultRealmFileDirectory();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
             this.schemaVersion = 0;

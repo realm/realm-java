@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
-
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -285,7 +283,7 @@ public final class SyncConfiguration extends RealmConfiguration {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
-            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
+            this.defaultFolder = new File(context.getDefaultRealmFileDirectory(), "realm-object-server");
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
@@ -377,7 +375,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * this means that multiple users can save their Realms on disk without the risk of them overwriting
          * each other files.
          * <p>
-         * The default location is {@code context.getDefaultRealmFileFolder()}.
+         * The default location is {@code context.getFilesDir()}.
          *
          * @param directory directory on disk where the Realm file can be saved.
          * @throws IllegalArgumentException if the directory is not valid.
