@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package examples.io.realm.securetokenandroidkeystore.securetokenandroidkeystore;
+package examples.io.realm.securetokenandroidkeystore;
 
 import android.app.Application;
 

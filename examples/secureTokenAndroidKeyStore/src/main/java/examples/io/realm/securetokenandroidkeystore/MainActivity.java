@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package examples.io.realm.securetokenandroidkeystore.securetokenandroidkeystore;
+package examples.io.realm.securetokenandroidkeystore;
 
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -30,10 +30,10 @@ import org.json.JSONObject;
 import java.security.KeyStoreException;
 import java.util.UUID;
 
-import realm.io.android.CipherClient;
-import realm.io.android.SecureUserStore;
+import io.realm.android.CipherClient;
+import io.realm.android.SecureUserStore;
 import io.realm.SyncUser;
-import realm.io.android.SecureUserStore;
+import io.realm.android.SecureUserStore;
 import io.realm.SyncManager;
 import io.realm.SyncConfiguration;
 import io.realm.Realm;
