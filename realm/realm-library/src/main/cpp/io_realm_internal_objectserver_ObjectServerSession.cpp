@@ -40,7 +40,7 @@ using namespace sync;
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeCreateSession
   (JNIEnv *env, jobject obj, jstring localRealmPath)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JStringAccessor local_path(env, localRealmPath);
         JniSession* jni_session = new JniSession(env, local_path, obj);
@@ -52,7 +52,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_
 JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeBind
   (JNIEnv *env, jobject, jlong sessionPointer, jstring remoteUrl, jstring accessToken)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         auto *session_wrapper = reinterpret_cast<JniSession*>(sessionPointer);
 
@@ -72,7 +72,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
 JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeUnbind
   (JNIEnv *env, jobject, jlong sessionPointer)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     JniSession* session = SS(sessionPointer);
     session->close(env);
     delete session; // TODO Can we avoid killing the session here?
@@ -81,7 +81,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
 JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeRefresh
   (JNIEnv *env, jobject, jlong sessionPointer, jstring accessToken)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JniSession* session_wrapper = SS(sessionPointer);
 
@@ -96,7 +96,7 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_objectserver_ObjectServerSession_nativeNotifyCommitHappened
   (JNIEnv *env, jobject, jlong sessionPointer, jlong version)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JniSession* session_wrapper = SS(sessionPointer);
         session_wrapper->get_session()->nonsync_transact_notify(version);

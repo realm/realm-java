@@ -84,7 +84,7 @@ static TableRef getTableByArray(jlong nativeQueryPtr, JniLongArray& indicesArray
 
 static jlong findAllWithHandover(JNIEnv* env, jlong bgSharedRealmPtr, std::unique_ptr<Query> query, jlong start, jlong end, jlong limit)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     TableRef table = query.get()->get_table();
     if (!QUERY_VALID(env, query.get()) ||
         !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
@@ -1097,7 +1097,7 @@ static std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedRealmPtr, jlon
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover(
     JNIEnv* env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong fromTableRow)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, false); // throws
         TableRef table = query->get_table();
@@ -1133,7 +1133,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     Query* query = Q(nativeQueryPtr);
     TableRef table =  query->get_table();
     if (!QUERY_VALID(env, query) ||
@@ -1150,7 +1150,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
   (JNIEnv* env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong start, jlong end, jlong limit)
   {
-      TR_ENTER(env)
+      TR_ENTER()
       try {
           std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
           return findAllWithHandover(env, bgSharedRealmPtr, std::move(query), start, end, limit);
@@ -1171,7 +1171,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
          jobjectArray  multi_sorted_indices_matrix,
          jobjectArray  multi_sorted_order_matrix)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JniLongArray handover_queries_pointer_array(env, handover_queries_array);
 
@@ -1287,7 +1287,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
         (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong columnIndex)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
         return getDistinctViewWithHandover(env, bgSharedRealmPtr, std::move(query), columnIndex);
@@ -1298,7 +1298,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewW
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
   (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
   {
-      TR_ENTER(env)
+      TR_ENTER()
       try {
           std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
           return findAllSortedWithHandover(env, bgSharedRealmPtr, std::move(query), start, end, limit, columnIndex, ascending);
@@ -1309,7 +1309,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
   (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
   {
-      TR_ENTER(env)
+      TR_ENTER()
       try {
           // import the handover query pointer using the background SharedRealm
           std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
@@ -1707,7 +1707,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTableViewIntoSharedGroup
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
-    TR_ENTER_PTR(env, handoverPtr)
+    TR_ENTER_PTR(handoverPtr)
     SharedGroup::Handover<TableView> *handoverTableViewPtr = HO(TableView, handoverPtr);
     std::unique_ptr<SharedGroup::Handover<TableView>> handoverTableView(handoverTableViewPtr);
     try {
@@ -1727,7 +1727,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup
   (JNIEnv *env, jclass, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
-      TR_ENTER_PTR(env, handoverPtr)
+      TR_ENTER_PTR(handoverPtr)
       SharedGroup::Handover<Row> *handoverRowPtr = HO(Row, handoverPtr);
       std::unique_ptr<SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
 
@@ -1748,7 +1748,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
    (JNIEnv* env, jobject, jlong bgSharedRealmPtr, jlong nativeQueryPtr)
 {
-    TR_ENTER_PTR(env, nativeQueryPtr)
+    TR_ENTER_PTR(nativeQueryPtr)
     Query* pQuery = Q(nativeQueryPtr);
     if (!QUERY_VALID(env, pQuery))
         return 0;
@@ -1765,7 +1765,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
   (JNIEnv* env, jclass, jlong nativeHandoverQuery)
   {
-    TR_ENTER_PTR(env, nativeHandoverQuery)
+    TR_ENTER_PTR(nativeHandoverQuery)
     delete HO(Query, nativeHandoverQuery);
   }
 

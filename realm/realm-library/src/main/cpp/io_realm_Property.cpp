@@ -29,7 +29,7 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2IZZZ(JNIEnv *env, jclass, jstring name_,
                                                                      jint type, jboolean is_primary, jboolean is_indexed,
                                                                      jboolean is_nullable) {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JStringAccessor str(env, name_);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
@@ -52,7 +52,7 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_String_2(JNIEnv *env, jclass,
                                                                                      jstring name_, jint type,
                                                                                      jstring linkedToName_) {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JStringAccessor name(env, name_);
         JStringAccessor link_name(env, linkedToName_);
@@ -67,7 +67,7 @@ Java_io_realm_Property_nativeCreateProperty__Ljava_lang_String_2ILjava_lang_Stri
 
 JNIEXPORT void JNICALL
 Java_io_realm_Property_nativeClose(JNIEnv *env, jclass, jlong property_ptr) {
-    TR_ENTER_PTR(env, property_ptr)
+    TR_ENTER_PTR(property_ptr)
     try {
         Property *property = reinterpret_cast<Property *>(property_ptr);
         delete property;
