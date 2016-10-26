@@ -24,7 +24,6 @@
 #include <jni.h>
 
 // Used by logging
-#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
 #include <realm.hpp>
@@ -40,7 +39,6 @@
 
 #include "jni_util/log.hpp"
 
-#define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
 
 #ifdef __cplusplus

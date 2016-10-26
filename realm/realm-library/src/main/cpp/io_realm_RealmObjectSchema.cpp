@@ -25,7 +25,7 @@ using namespace realm;
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_RealmObjectSchema_nativeCreateRealmObjectSchema(JNIEnv *env, jclass, jstring className_) {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         JStringAccessor name(env, className_);
         ObjectSchema *object_schema = new ObjectSchema();
@@ -38,7 +38,7 @@ Java_io_realm_RealmObjectSchema_nativeCreateRealmObjectSchema(JNIEnv *env, jclas
 
 JNIEXPORT void JNICALL
 Java_io_realm_RealmObjectSchema_nativeClose(JNIEnv *env, jclass, jlong native_ptr) {
-    TR_ENTER_PTR(env, native_ptr)
+    TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
         delete object_schema;
@@ -49,7 +49,7 @@ Java_io_realm_RealmObjectSchema_nativeClose(JNIEnv *env, jclass, jlong native_pt
 
 JNIEXPORT void JNICALL
 Java_io_realm_RealmObjectSchema_nativeAddProperty(JNIEnv *env, jclass, jlong native_ptr, jlong property_ptr) {
-    TR_ENTER_PTR(env, native_ptr)
+    TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
         Property* property = reinterpret_cast<Property*>(property_ptr);
@@ -63,7 +63,7 @@ Java_io_realm_RealmObjectSchema_nativeAddProperty(JNIEnv *env, jclass, jlong nat
 
 JNIEXPORT jstring JNICALL
 Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong nativePtr) {
-    TR_ENTER_PTR(env, nativePtr)
+    TR_ENTER_PTR(nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
         auto name = object_schema->name;
@@ -76,7 +76,7 @@ Java_io_realm_RealmObjectSchema_nativeGetClassName(JNIEnv *env, jclass, jlong na
 
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_RealmObjectSchema_nativeGetProperties(JNIEnv *env, jclass, jlong nativePtr) {
-    TR_ENTER_PTR(env, nativePtr)
+    TR_ENTER_PTR(nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
         size_t size = object_schema->persisted_properties.size();
