@@ -377,7 +377,7 @@ public final class SyncConfiguration extends RealmConfiguration {
          * this means that multiple users can save their Realms on disk without the risk of them overwriting
          * each other files.
          * <p>
-         * The default location is {@code context.getFilesDir()}.
+         * The default location is {@code context.getDefaultRealmFileFolder()}.
          *
          * @param directory directory on disk where the Realm file can be saved.
          * @throws IllegalArgumentException if the directory is not valid.

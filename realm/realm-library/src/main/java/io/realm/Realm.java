@@ -21,7 +21,6 @@ import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -188,10 +187,11 @@ public final class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             RealmCore.loadLibrary(context);
-            defaultConfiguration = new RealmConfiguration.Builder(context).build();
+            ContextWrapper wrapper = new ContextWrapper(context);
+            defaultConfiguration = new RealmConfiguration.Builder(wrapper).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
-            BaseRealm.contextWrapper = new ContextWrapper(context.getApplicationContext());
-            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
+            BaseRealm.contextWrapper = wrapper;
+            SharedRealm.initialize(new File(wrapper.getDefaultRealmFileFolder(), ".realm.temp"));
         }
     }
 

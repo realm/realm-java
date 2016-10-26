@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -32,7 +31,6 @@ import java.util.Set;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
-import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.android.ContextWrapper;
@@ -188,7 +186,8 @@ public class RealmConfiguration {
      * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
-        return BaseRealm.contextWrapper.getAssets().open(assetFilePath);
+        return BaseRealm.contextWrapper.getAsset(assetFilePath);
+
     }
 
     /**
@@ -404,7 +403,7 @@ public class RealmConfiguration {
 
         // Setup builder in its initial state
         private void initializeBuilder(ContextWrapper context) {
-            this.directory = context.getFilesDir();
+            this.directory = context.getDefaultRealmFileFolder();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
             this.schemaVersion = 0;
