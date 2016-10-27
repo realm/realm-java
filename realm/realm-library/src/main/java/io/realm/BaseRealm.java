@@ -60,7 +60,7 @@ abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
-    // Thread pool for all async operations (Query & transaction)
+    
     volatile static Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
