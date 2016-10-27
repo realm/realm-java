@@ -1,3 +1,9 @@
+## 2.1.1
+
+### Object Server API Changes (In Beta)
+
+* Set default RxFactory to `SyncConfiguration`.
+
 ## 2.1.0
 
 ### Object Server API Changes (In Beta)
