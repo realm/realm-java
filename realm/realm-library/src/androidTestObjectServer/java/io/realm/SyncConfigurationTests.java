@@ -382,4 +382,13 @@ public class SyncConfigurationTests {
         assertEquals(1, realm2.where(StringOnly.class).count());
         realm2.close();
     }
+
+    @Test
+    public void defaultRxFactory() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+
+        assertNotNull(config.getRxFactory());
+    }
 }

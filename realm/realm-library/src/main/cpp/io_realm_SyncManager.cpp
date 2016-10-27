@@ -54,7 +54,7 @@ static void error_handler(int error_code, std::string message)
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
     (JNIEnv *env, jclass sync_manager_class)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     if (sync_client) return;
 
     try {
