@@ -665,13 +665,14 @@ public final class RealmObjectSchema {
      * each field is returned.
      *
      * @param fieldDescription fieldName or link path to a field name.
+     * @param allowList allows {@link RealmList} as a valid link field.
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return list of column indices.
      */
     // TODO: consider another caching strategy so linked classes are included in the cache.
-    long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+    long[] getColumnIndices(String fieldDescription, boolean allowList, RealmFieldType[] validColumnTypes) {
         if (fieldDescription == null || fieldDescription.equals("")) {
-            throw new IllegalArgumentException("Non-empty fieldname must be provided");
+            throw new IllegalArgumentException("Non-empty field name must be provided");
         }
         if (fieldDescription.startsWith(".") || fieldDescription.endsWith(".")) {
             throw new IllegalArgumentException("Illegal field name. It cannot start or end with a '.': " + fieldDescription);
@@ -685,14 +686,17 @@ public final class RealmObjectSchema {
             for (int i = 0; i < names.length - 1; i++) {
                 long index = table.getColumnIndex(names[i]);
                 if (index < 0) {
-                    throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
+                    throw new IllegalArgumentException("Invalid field name: " + names[i] + " does not refer to a class.");
                 }
                 RealmFieldType type = table.getColumnType(index);
-                if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
+                if (type == RealmFieldType.OBJECT || (allowList && type == RealmFieldType.LIST)) {
                     table = table.getLinkTarget(index);
                     columnIndices[i] = index;
+                } else if (!allowList && type == RealmFieldType.LIST) {
+                    throw new IllegalArgumentException(
+                            String.format("'RealmList' field '%s' is not a supported link field here.", names[i]));
                 } else {
-                    throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
+                    throw new IllegalArgumentException("Invalid field name: " + names[i] + " does not refer to a class.");
                 }
             }
 
@@ -719,6 +723,11 @@ public final class RealmObjectSchema {
             }
             return new long[] {fieldIndex};
         }
+    }
+
+    // For queries. List is allowed as a link field.
+    long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+        return getColumnIndices(fieldDescription, true, validColumnTypes);
     }
 
     private boolean isValidType(RealmFieldType columnType, RealmFieldType[] validColumnTypes) {

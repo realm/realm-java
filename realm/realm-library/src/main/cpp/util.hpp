@@ -493,6 +493,21 @@ public:
         , m_releaseMode(JNI_ABORT) {
     }
 
+    JniLongArray(JniLongArray& other) = delete;
+
+    JniLongArray(JniLongArray&& other)
+            : m_env(other.m_env)
+            , m_javaArray(other.m_javaArray)
+            , m_arrayLength(other.m_arrayLength)
+            , m_array(other.m_array)
+            , m_releaseMode(other.m_releaseMode)
+    {
+        other.m_env = nullptr;
+        other.m_javaArray = nullptr;
+        other.m_arrayLength = 0;
+        other.m_array = nullptr;
+    }
+
     ~JniLongArray()
     {
         if (m_array) {
@@ -521,11 +536,47 @@ public:
     }
 
 private:
-    JNIEnv*    const m_env;
-    jlongArray const m_javaArray;
-    jsize      const m_arrayLength;
-    jlong*     const m_array;
-    jint             m_releaseMode;
+    JNIEnv*    m_env;
+    jlongArray m_javaArray;
+    jsize      m_arrayLength;
+    jlong*     m_array;
+    jint       m_releaseMode;
+};
+
+template <typename T, typename J>
+class JniArrayOfArrays {
+public:
+    JniArrayOfArrays(JNIEnv* env, jobjectArray javaArray)
+            : m_env(env)
+            , m_javaArray(javaArray)
+            , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
+    {
+        for (int i = 0; i < m_arrayLength; i++) {
+            // No type checking. Internal use only.
+            J j_array = static_cast<J>(env->GetObjectArrayElement(m_javaArray, i));
+            m_array.push_back(T(env, j_array));
+        }
+    }
+
+    ~JniArrayOfArrays()
+    {
+    }
+
+    inline jsize len() const noexcept
+    {
+        return m_arrayLength;
+    }
+
+    inline T& operator[](const int index) noexcept
+    {
+        return m_array[index];
+    }
+
+private:
+    JNIEnv* const m_env;
+    jobjectArray const m_javaArray;
+    jsize const m_arrayLength;
+    std::vector<T> m_array;
 };
 
 class JniByteArray {

@@ -108,6 +108,11 @@ public class RealmQueryTests {
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
+
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setAge(i);
+            dog.setName("test data " + i);
+            allTypes.setColumnRealmObject(dog);
         }
         testRealm.commitTransaction();
     }
@@ -2571,10 +2576,12 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void findAllSorted_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    public void findAllSorted_onSubObjectField() {
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
@@ -2587,13 +2594,19 @@ public class RealmQueryTests {
 
     @Test
     public void findAllSorted_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(fieldNames, sorts);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test

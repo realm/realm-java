@@ -16,7 +16,7 @@
 
 package io.realm.internal.async;
 
-import io.realm.Sort;
+import io.realm.internal.SortDescriptor;
 
 /**
  * Value holder class to encapsulate the arguments of a RealmQuery (in case we want to re-query).
@@ -24,17 +24,22 @@ import io.realm.Sort;
 public class ArgumentsHolder {
     public final static int TYPE_FIND_ALL = 0;
     public final static int TYPE_FIND_ALL_SORTED = 1;
-    public final static int TYPE_FIND_ALL_MULTI_SORTED = 2;
+    // FIXME: This is not used anymore. Use TYPE_FIND_ALL_SORTED instead. This whole class will be removed when moving
+    //        to OS Results.
+    //public final static int TYPE_FIND_ALL_MULTI_SORTED = 2;
     public final static int TYPE_FIND_FIRST = 3;
     public final static int TYPE_DISTINCT = 4;
 
     public final int type;
-    public long columnIndex;
-    public Sort sortOrder;
-    public long[] columnIndices;
-    public Sort[] sortOrders;
+    public final SortDescriptor sortDescriptor;
 
     public ArgumentsHolder(int type) {
         this.type = type;
+        this.sortDescriptor = null;
+    }
+
+    public ArgumentsHolder(int type, SortDescriptor sortDescriptor) {
+        this.type = type;
+        this.sortDescriptor = sortDescriptor;
     }
 }

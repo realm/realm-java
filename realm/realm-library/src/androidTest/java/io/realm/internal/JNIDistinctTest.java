@@ -49,7 +49,7 @@ public class JNIDistinctTest extends TestCase {
         table.addSearchIndex(1);
         assertEquals(true, table.hasSearchIndex(1));
 
-        TableView view = table.getDistinctView(1);
+        TableView view = table.getDistinctView(new SortDescriptor(table, new long[] {1}));
         assertEquals(4, view.size());
         assertEquals(0, view.getLong(0, 0));
         assertEquals(1, view.getLong(0, 1));
@@ -60,7 +60,7 @@ public class JNIDistinctTest extends TestCase {
     public void testShouldTestDistinctErrorWhenNoIndex() {
         init();
         try {
-            TableView view = table.getDistinctView(1);
+            TableView view = table.getDistinctView(new SortDescriptor(table, new long[] {1}));
             fail();
         } catch (UnsupportedOperationException e) {
             assertNotNull(e);
@@ -70,7 +70,8 @@ public class JNIDistinctTest extends TestCase {
     public void testShouldTestDistinctErrorWhenIndexOutOfBounds() {
         init();
         try {
-            TableView view = table.getDistinctView(3);
+            TableView view = table.getDistinctView(new SortDescriptor(table, new long[] {3}));
+            fail();
             fail();
         } catch (Exception e) {
             assertNotNull(e);
@@ -81,7 +82,7 @@ public class JNIDistinctTest extends TestCase {
         init();
         table.addSearchIndex(1);
         try {
-            TableView view = table.getDistinctView(0);
+            TableView view = table.getDistinctView(new SortDescriptor(table, new long[] {0}));
             fail();
         } catch (Exception e) {
             assertNotNull(e);

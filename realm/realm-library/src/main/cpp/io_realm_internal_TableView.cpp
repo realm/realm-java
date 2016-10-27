@@ -54,65 +54,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_createNativeTableView(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlong nativeSortDescriptorPtr)
 {
     if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
         return;
-    if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
-        return;
-    if (!TV(nativeViewPtr)->get_parent().has_search_index(S(columnIndex))) {
-        ThrowException(env, UnsupportedOperation, "The field must be indexed before distinct() can be used.");
-        return;
-    }
-    try {
-        switch (TV(nativeViewPtr)->get_column_type(S(columnIndex))) {
-            case type_Bool:
-            case type_Int:
-            case type_String:
-            case type_Timestamp:
-                TV(nativeViewPtr)->distinct(S(columnIndex));
-                break;
-            default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
-                break;
-        }
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlongArray columnIndexes)
-{
-    if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-        return;
-    try {
-        TableView* tv = TV(nativeViewPtr);
-        JniLongArray indexes(env, columnIndexes);
-        jsize indexes_len = indexes.len();
-        std::vector<std::vector<size_t>> columns;
-        std::vector<bool> ascending;
-        for (int i = 0; i < indexes_len; ++i) {
-            if (!COL_INDEX_VALID(env, tv, indexes[i])) {
-                return;
-            }
-            if (!tv->get_parent().has_search_index(S(indexes[i]))) {
-                ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
-                return;
-            }
-            switch (tv->get_column_type(S(indexes[i]))) {
-                case type_Bool:
-                case type_Int:
-                case type_String:
-                case type_Timestamp:
-                    columns.push_back(std::vector<size_t> { S(indexes[i]) });
-                    ascending.push_back(true);
-                    break;
-                default:
-                    ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
-                    return;
-            }
-        }
-        tv->distinct(SortDescriptor(tv->get_parent(), columns, ascending));
-    } CATCH_STD()
+    TV(nativeViewPtr)->distinct(*reinterpret_cast<SortDescriptor*>(nativeSortDescriptorPtr));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
@@ -848,80 +794,14 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumTimestam
 
 // sort
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jboolean ascending)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
-            return;
-        int colType = TV(nativeViewPtr)->get_column_type( S(columnIndex) );
-    
-        switch (colType) {
-            case type_Bool:
-            case type_Int:
-            case type_Float:
-            case type_Double:
-            case type_String:
-            case type_Timestamp:
-                TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
-                break;
-            default:
-                ThrowException(env, IllegalArgument, "Sort is not supported on binary data, object references and RealmList.");
-                return;
-        }
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
-  JNIEnv* env, jobject, jlong nativeViewPtr, jlongArray columnIndices, jbooleanArray ascending)
+  JNIEnv* env, jobject, jlong nativeViewPtr, jlong nativeSortDescriptorPtr)
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return;
 
-        JniLongArray long_arr(env, columnIndices);
-        JniBooleanArray bool_arr(env, ascending);
-        jsize arr_len = long_arr.len();
-        jsize asc_len = bool_arr.len();
-
-        if (arr_len == 0) {
-            ThrowException(env, IllegalArgument, "You must provide at least one field name.");
-            return;
-        }
-        if (asc_len == 0) {
-            ThrowException(env, IllegalArgument, "You must provide at least one sort order.");
-            return;
-        }
-        if (arr_len != asc_len) {
-            ThrowException(env, IllegalArgument, "Number of fields and sort orders do not match.");
-            return;
-        }
-
         TableView* tv = TV(nativeViewPtr);
-        std::vector<std::vector<size_t>> indices;
-        std::vector<bool> ascendings;
-
-        for (int i = 0; i < arr_len; ++i) {
-            if (!COL_INDEX_VALID(env, tv, long_arr[i])) {
-                return;
-            }
-            int colType = tv->get_column_type( S(long_arr[i]) );
-            switch (colType) {
-                case type_Bool:
-                case type_Int:
-                case type_Float:
-                case type_Double:
-                case type_String:
-                case type_Timestamp:
-                    indices.push_back(std::vector<size_t> { S(long_arr[i]) });
-                    ascendings.push_back( B(bool_arr[i]) );
-                    break;
-                default:
-                    ThrowException(env, IllegalArgument, "Sort is not supported on binary data, object references and RealmList.");
-                    return;
-            }
-        }
-        tv->sort(SortDescriptor(tv->get_parent(), indices, ascendings));
+        tv->sort(SortDescriptor(*reinterpret_cast<SortDescriptor*>(nativeSortDescriptorPtr)));
     } CATCH_STD()
 }
 

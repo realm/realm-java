@@ -37,9 +37,9 @@ set(classes_LIST
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
-    io.realm.RealmObjectSchema
+    io.realm.RealmObjectSchema io.realm.internal.SortDescriptor
 )
-set(jni_headers_PATH ${PROJECT_BINARY_DIR}/jni_include)
+set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession)

@@ -43,7 +43,6 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
 
 
 const char* ERR_IMPORT_CLOSED_REALM = "Can not import results from a closed Realm";
-const char* ERR_SORT_NOT_SUPPORTED = "Sort is not supported on binary data, object references and RealmList";
 //-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv* env, jclass, jlong nativeQueryPtr) {
@@ -104,95 +103,27 @@ static jlong findAllWithHandover(JNIEnv* env, jlong bgSharedRealmPtr, std::uniqu
 }
 
 static jlong getDistinctViewWithHandover
-        (JNIEnv *env, jlong bgSharedRealmPtr, std::unique_ptr<Query> query, jlong columnIndex)
+        (JNIEnv *env, jlong bgSharedRealmPtr, std::unique_ptr<Query> query, jlong nativeSortDescPtr)
 {
-        TableRef table = query->get_table();
-        if (!QUERY_VALID(env, query.get()) ||
-            !TBL_AND_COL_INDEX_VALID(env, table.get(), columnIndex)) {
-            return 0;
-        }
-        switch (table->get_column_type(S(columnIndex))) {
-            case type_Bool:
-            case type_Int:
-            case type_Timestamp:
-            case type_String: {
-                TableView tableView(query->find_all());
-                tableView.distinct(S(columnIndex));
+    if (!QUERY_VALID(env, query.get())) {
+        return 0;
+    }
+    TableRef table = query->get_table();
+    TableView tableView(query->find_all());
+    tableView.distinct(*reinterpret_cast<SortDescriptor*>(nativeSortDescPtr));
 
-                // handover the result
-                auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-                using rf = realm::_impl::RealmFriend;
-                auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(
-                        tableView, MutableSourcePayload::Move);
-                return reinterpret_cast<jlong>(handover.release());
-            }
-            default:
-                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
-                return 0;
-        }
-    return 0;
+    // handover the result
+    auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
+    using rf = realm::_impl::RealmFriend;
+    auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(
+            tableView, MutableSourcePayload::Move);
+    return reinterpret_cast<jlong>(handover.release());
 }
 
 static jlong findAllSortedWithHandover
-        (JNIEnv *env, jlong bgSharedRealmPtr, std::unique_ptr<Query> query, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
+        (JNIEnv *env, jlong bgSharedRealmPtr, std::unique_ptr<Query> query, jlong start, jlong end, jlong limit,
+         jlong nativeSortDescPtr)
 {
-        TableRef table =  query->get_table();
-
-        if (!(QUERY_VALID(env, query.get()) && ROW_INDEXES_VALID(env, table.get(), start, end, limit))) {
-            return 0;
-        }
-
-        // run the query
-        TableView tableView( query->find_all(S(start), S(end), S(limit)) );
-
-        // sorting the results
-        if (!COL_INDEX_VALID(env, &tableView, columnIndex)) {
-            return 0;
-        }
-
-        int colType = tableView.get_column_type( S(columnIndex) );
-        switch (colType) {
-            case type_Bool:
-            case type_Int:
-            case type_Float:
-            case type_Double:
-            case type_String:
-            case type_Timestamp:
-                tableView.sort( S(columnIndex), ascending != 0);
-                break;
-            default:
-                ThrowException(env, IllegalArgument, ERR_SORT_NOT_SUPPORTED);
-                return 0;
-        }
-
-        // handover the result
-        auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
-        using rf = realm::_impl::RealmFriend;
-        auto handover = rf::get_shared_group(*sharedRealm).export_for_handover(tableView, MutableSourcePayload::Move);
-        return reinterpret_cast<jlong>(handover.release());
-}
-
-static jlong findAllMultiSortedWithHandover
-        (JNIEnv *env, jlong bgSharedRealmPtr, std::unique_ptr<Query> query, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
-{
-    JniLongArray long_arr(env, columnIndices);
-    JniBooleanArray bool_arr(env, ascending);
-    jsize arr_len = long_arr.len();
-    jsize asc_len = bool_arr.len();
-
-    if (arr_len == 0) {
-        ThrowException(env, IllegalArgument, "You must provide at least one field name.");
-        return 0;
-    }
-    if (asc_len == 0) {
-        ThrowException(env, IllegalArgument, "You must provide at least one sort order.");
-        return 0;
-    }
-    if (arr_len != asc_len) {
-        ThrowException(env, IllegalArgument, "Number of fields and sort orders do not match.");
-        return 0;
-    }
-
     TableRef table = query->get_table();
 
     if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
@@ -203,30 +134,7 @@ static jlong findAllMultiSortedWithHandover
     TableView tableView( query->find_all(S(start), S(end), S(limit)) );
 
     // sorting the results
-    std::vector<std::vector<size_t>> indices;
-    std::vector<bool> ascendings;
-    for (int i = 0; i < arr_len; ++i) {
-        if (!COL_INDEX_VALID(env, &tableView, long_arr[i])) {
-            return -1;
-        }
-        int colType = tableView.get_column_type( S(long_arr[i]) );
-        switch (colType) {
-            case type_Bool:
-            case type_Int:
-            case type_Float:
-            case type_Double:
-            case type_String:
-            case type_Timestamp:
-                indices.push_back(std::vector<size_t> { S(long_arr[i]) });
-                ascendings.push_back( B(bool_arr[i]) );
-                break;
-            default:
-                ThrowException(env, IllegalArgument, ERR_SORT_NOT_SUPPORTED);
-                return 0;
-        }
-    }
-
-    tableView.sort(SortDescriptor(*table, indices, ascendings));
+    tableView.sort(*(reinterpret_cast<SortDescriptor*>(nativeSortDescPtr)));
 
     // handover the result
     auto sharedRealm = *(reinterpret_cast<SharedRealm*>(bgSharedRealmPtr));
@@ -1164,19 +1072,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
 
 
 // Should match the values in Java ArgumentsHolder class
-enum query_type {QUERY_TYPE_FIND_ALL = 0, QUERY_TYPE_DISTINCT = 4, QUERY_TYPE_FIND_ALL_SORTED = 1, QUERY_TYPE_FIND_ALL_MULTI_SORTED = 2};
+enum query_type {QUERY_TYPE_FIND_ALL = 0, QUERY_TYPE_DISTINCT = 4, QUERY_TYPE_FIND_ALL_SORTED = 1};
 
 // batch update of async queries
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
         (JNIEnv *env, jclass, jlong bgSharedRealmPtr,
          jlongArray  handover_queries_array /*list of handover queries*/,
          jobjectArray  query_param_matrix /*type & params of the query to be updated*/,
-         jobjectArray  multi_sorted_indices_matrix,
-         jobjectArray  multi_sorted_order_matrix)
+         jlongArray native_sort_dest_ptrs)
 {
     TR_ENTER()
     try {
         JniLongArray handover_queries_pointer_array(env, handover_queries_array);
+        JniLongArray sort_desc_array(env, native_sort_dest_ptrs);
 
         const size_t number_of_queries = env->GetArrayLength(query_param_matrix);
 
@@ -1234,7 +1142,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                                     (env,
                                      bgSharedRealmPtr,
                                      std::move(queries[i]),
-                                     query_param_array[1]/*columnIndex*/);
+                                     sort_desc_array[i]);
                     break;
                 }
                 case QUERY_TYPE_FIND_ALL_SORTED: {// nativeFindAllSortedWithHandover
@@ -1246,25 +1154,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
                                      query_param_array[1]/*start*/,
                                      query_param_array[2]/*end*/,
                                      query_param_array[3]/*limit*/,
-                                     query_param_array[4]/*columnIndex*/,
-                                     query_param_array[5] == 1/*ascending order*/);
-                    break;
-                }
-                case QUERY_TYPE_FIND_ALL_MULTI_SORTED: {// nativeFindAllMultiSortedWithHandover
-                    jlongArray column_indices_array = (jlongArray) env->GetObjectArrayElement(
-                            multi_sorted_indices_matrix, i);
-                    jbooleanArray column_order_array = (jbooleanArray) env->GetObjectArrayElement(
-                            multi_sorted_order_matrix, i);
-                    exported_handover_tableview_array[i] =
-                            findAllMultiSortedWithHandover
-                                    (env,
-                                     bgSharedRealmPtr,
-                                     std::move(queries[i]),
-                                     query_param_array[1]/*start*/,
-                                     query_param_array[2]/*end*/,
-                                     query_param_array[3]/*limit*/,
-                                     column_indices_array/*columnIndices*/,
-                                     column_order_array/*ascending orders*/);
+                                     sort_desc_array[i]);
                     break;
                 }
                 default:
@@ -1288,38 +1178,28 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
-        (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong columnIndex)
+        (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong nativeSortDescPtr)
 {
     TR_ENTER()
     try {
         std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
-        return getDistinctViewWithHandover(env, bgSharedRealmPtr, std::move(query), columnIndex);
+        return getDistinctViewWithHandover(env, bgSharedRealmPtr, std::move(query), nativeSortDescPtr);
     } CATCH_STD()
     return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
-  (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
-  {
-      TR_ENTER()
-      try {
-          std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
-          return findAllSortedWithHandover(env, bgSharedRealmPtr, std::move(query), start, end, limit, columnIndex, ascending);
-      } CATCH_STD()
-      return 0;
-  }
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
-  (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
-  {
-      TR_ENTER()
-      try {
-          // import the handover query pointer using the background SharedRealm
-          std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
-          return findAllMultiSortedWithHandover(env, bgSharedRealmPtr, std::move(query), start, end, limit,columnIndices, ascending);
-      } CATCH_STD()
-      return 0;
-  }
+    (JNIEnv *env, jclass, jlong bgSharedRealmPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong nativeSortDescPtr)
+{
+    TR_ENTER()
+    try {
+        // import the handover query pointer using the background SharedRealm
+        std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedRealmPtr, queryPtr, true); // throws
+        return findAllSortedWithHandover(env, bgSharedRealmPtr, std::move(query), start, end, limit,
+                nativeSortDescPtr);
+    } CATCH_STD()
+    return 0;
+}
 
 // Integer Aggregates
 

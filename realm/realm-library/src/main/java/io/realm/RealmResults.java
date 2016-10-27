@@ -33,6 +33,7 @@ import java.util.concurrent.Future;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
@@ -538,13 +539,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(table.getTable(), fieldName);
 
         TableOrView tableOrView = getTableOrView();
         if (tableOrView instanceof Table) {
-            this.table = ((Table) tableOrView).getDistinctView(columnIndex);
+            this.table = ((Table) tableOrView).getDistinctView(sortDescriptor);
         } else {
-            ((TableView) tableOrView).distinct(columnIndex);
+            ((TableView) tableOrView).distinct(sortDescriptor);
         }
         return this;
     }
