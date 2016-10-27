@@ -33,14 +33,14 @@ An alternative to SQLite and Core Data was needed so that databases could run di
 
 >  We don't have a specification to write specifications. Mostly, we are using Github issues to specify requirements but in rare cases, we use our internal wiki (a private Github repo) or share a Google Doc/Sheet.
 
-As such, Realm functional requirements are:
+Then, Realm functional requirements are:
 
-- creation and removal database classes and their instances
-- classes should be able to have relationships with one another
-- perform database queries and access the results
-- insure the implementation and integrity of transactions
+- creation and removal of database classes and their instances
+- abitily of creating relationships between classes
+- performing database queries and accessing the results
+- insuring the implementation and integrity of transactions
 
-However, there are some factors that constrict the solution used by Realm, such as:
+However, there are some factors that constrain the solution used by Realm, such as:
 
 - all Android versions since API Level 9 (Android 2.3 Gingerbread) should be supported.
 - functionality must be offline-first
@@ -50,14 +50,14 @@ However, there are some factors that constrict the solution used by Realm, such 
 - data should be secure with transparent encryption and decryption
 - data changes must appear automatically when UI connects to Realm
 
-Furthermore, at the moment, the solution implemented has limitations. In order to strike a balance between flexibility and performance, realistic limits are imposed on various aspects of information storage in a Realm like the length of names of classes. In addition, sorting and case insensitive string matches in queries are only supported for some character sets and the case insensitive flag used in string comparison only works on characters from the English locale. Thirdly, although Realm files can be accessed by multiple threads concurrently, handing over Realms, Realm objects, queries, and results between threads is not possible. Finally, Realm files cannot be accessed by concurrent processes.
+Howerver, the present solution implemented has limitations. In order to strike a balance between flexibility and performance, realistic limits are imposed on various aspects of information storage in a Realm, like the length of names of classes. In addition, sorting and case insensitive string matches in queries are only supported for some character sets and the case insensitive flag used in string comparison only works on characters from the English locale. Thirdly, although Realm files can be accessed by multiple threads concurrently, handing over Realms, Realm objects, queries, and results between threads is not possible. Finally, Realm files cannot be accessed by concurrent processes.
 
 
 ## Use Cases <a name="cases"></a>
 
 ## Domain Model <a name="domain"></a>
 
-This project can be conceptually represented by six classes and the relations between them, as shown in the diagram bellow.
+This project can be conceptually represented by six classes and their relationships, as shown in the diagram bellow.
 
 ![Domain model](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/domain%20model.png)
 
