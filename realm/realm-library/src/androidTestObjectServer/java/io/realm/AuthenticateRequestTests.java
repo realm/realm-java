@@ -1,10 +1,12 @@
 package io.realm;
 
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -27,6 +29,11 @@ import static org.mockito.Mockito.when;
 @RunWith(AndroidJUnit4.class)
 public class AuthenticateRequestTests {
 
+    @Before
+    public void setUp() {
+        Realm.init(InstrumentationRegistry.getTargetContext());
+    }
+
     // Tests based on the schemas described here: https://github.com/realm/realm-sync-services/blob/master/doc/index.apib
 
     @Test
@@ -42,7 +49,7 @@ public class AuthenticateRequestTests {
 
     @Test
     public void userLogin() throws URISyntaxException, JSONException {
-        AuthenticateRequest request = AuthenticateRequest.userLogin(Credentials.facebook("foo"));
+        AuthenticateRequest request = AuthenticateRequest.userLogin(SyncCredentials.facebook("foo"));
 
         JSONObject obj = new JSONObject(request.toJson());
         assertFalse(obj.has("path"));
@@ -64,15 +71,19 @@ public class AuthenticateRequestTests {
 
     @Test
     public void errorsNotWrapped() {
+        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
-        when(authServer.loginUser(any(Credentials.class), any(URL.class))).thenReturn(SyncTestUtils.createErrorResponse(ErrorCode.ACCESS_DENIED));
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createErrorResponse(ErrorCode.ACCESS_DENIED));
         SyncManager.setAuthServerImpl(authServer);
 
         try {
-            User.login(Credentials.facebook("foo"), "http://foo.bar/auth");
+            SyncUser.login(SyncCredentials.facebook("foo"), "http://foo.bar/auth");
             fail();
         } catch (ObjectServerError e) {
             assertEquals(ErrorCode.ACCESS_DENIED, e.getErrorCode());
+        } finally {
+            // Reset the auth server implementation for other tests.
+            SyncManager.setAuthServerImpl(originalAuthServer);
         }
     }
 }

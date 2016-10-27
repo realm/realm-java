@@ -337,7 +337,7 @@ public class RealmConfiguration {
      *
      * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
-    private static synchronized boolean isRxJavaAvailable() {
+    static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
                 Class.forName("rx.Observable");

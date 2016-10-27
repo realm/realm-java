@@ -33,6 +33,33 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
 
+    public static void initialize(File tempDirectory) {
+        if (SharedRealm.temporaryDirectory != null) {
+            // already initialized
+            return;
+        }
+        if (tempDirectory == null) {
+            throw new IllegalArgumentException("'tempDirectory' must not be null.");
+        }
+
+        String temporaryDirectoryPath = tempDirectory.getAbsolutePath();
+        if (!tempDirectory.isDirectory() && !tempDirectory.mkdirs() && !tempDirectory.isDirectory()) {
+            throw new IOException("failed to create temporary directory: " + temporaryDirectoryPath);
+        }
+
+        if (!temporaryDirectoryPath.endsWith("/")) {
+            temporaryDirectoryPath += "/";
+        }
+        nativeInit(temporaryDirectoryPath);
+        SharedRealm.temporaryDirectory = tempDirectory;
+    }
+
+    public static File getTemporaryDirectory() {
+        return temporaryDirectory;
+    }
+
+    private volatile static File temporaryDirectory;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -340,6 +367,7 @@ public final class SharedRealm implements Closeable {
         }
     }
 
+    private static native void nativeInit(String temporaryDirectoryPath);
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,

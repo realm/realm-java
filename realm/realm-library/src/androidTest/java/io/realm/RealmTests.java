@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -3809,5 +3810,40 @@ public class RealmTests {
         assertEquals(1, Realm.getGlobalInstanceCount(config));
         realm.close();
         assertEquals(0, Realm.getGlobalInstanceCount(config));
+    }
+
+    @Test
+    public void namedPipeDirForExternalStorage() {
+
+        // test for https://github.com/realm/realm-java/issues/3140
+        realm.close();
+        realm = null;
+
+        final File namedPipeDir = SharedRealm.getTemporaryDirectory();
+        assertTrue(namedPipeDir.isDirectory());
+        TestHelper.deleteRecursively(namedPipeDir);
+        //noinspection ResultOfMethodCallIgnored
+        namedPipeDir.mkdirs();
+
+        final File externalFilesDir = context.getExternalFilesDir(null);
+        final RealmConfiguration config = new RealmConfiguration.Builder()
+                .directory(externalFilesDir)
+                .name("external.realm")
+                .build();
+        Realm.deleteRealm(config);
+
+        // test if it works when the namedPipeDir is empty.
+        Realm realmOnExternalStorage = Realm.getInstance(config);
+        realmOnExternalStorage.close();
+
+        assertTrue(namedPipeDir.isDirectory());
+
+        Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
+
+        assertEquals(2, namedPipeDir.list().length);
+
+        // test if it works when the namedPipeDir and the named pipe files already exist.
+        realmOnExternalStorage = Realm.getInstance(config);
+        realmOnExternalStorage.close();
     }
 }

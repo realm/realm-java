@@ -221,6 +221,14 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
+    public void first_withDefault() {
+        AllJavaTypes defaultObject = new AllJavaTypes();
+        collection = createEmptyCollection(realm, collectionClass);
+        assertEquals(defaultObject, collection.first(defaultObject));
+        assertEquals(null, collection.first(null)); // Null is an acceptable default
+    }
+
+    @Test
     public void last() {
         assertEquals(collection.get(TEST_SIZE - 1), collection.last());
     }
@@ -233,6 +241,14 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             fail();
         } catch (IndexOutOfBoundsException ignored) {
         }
+    }
+
+    @Test
+    public void last_withDefault() {
+        AllJavaTypes defaultObject = new AllJavaTypes();
+        collection = createEmptyCollection(realm, collectionClass);
+        assertEquals(defaultObject, collection.last(defaultObject));
+        assertEquals(null, collection.last(null)); // Null is an acceptable default
     }
 
     @Test

@@ -21,29 +21,29 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SyncManager;
 import io.realm.SyncConfiguration;
 
 /**
  * Private class for keeping track of sessions.
- * If {@link Session} and {@link SyncSession} are combined at some point, this class can
+ * If {@link SyncSession} and {@link ObjectServerSession} are combined at some point, this class can
  * be folded into {@link SyncManager};
  */
 public class SessionStore {
 
     // Map of between a local Realm path and any associated sessionInfo
-    private static HashMap<String, Session> sessions = new HashMap<String, Session>();
-    private static HashMap<String, SyncSession> privateSessions = new HashMap<String, SyncSession>();
+    private static HashMap<String, SyncSession> sessions = new HashMap<String, SyncSession>();
+    private static HashMap<String, ObjectServerSession> privateSessions = new HashMap<String, ObjectServerSession>();
 
-    static synchronized void removeSession(Session session) {
+    static synchronized void removeSession(SyncSession session) {
         if (session == null) {
             return;
         }
 
-        Iterator<Map.Entry<String, Session>> it = sessions.entrySet().iterator();
+        Iterator<Map.Entry<String, SyncSession>> it = sessions.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<String, Session> entry = it.next();
+            Map.Entry<String, SyncSession> entry = it.next();
             if (entry.getValue().equals(session)) {
                 it.remove();
                 break;
@@ -51,7 +51,7 @@ public class SessionStore {
         }
     }
 
-    public static synchronized void addSession(Session publicSession, SyncSession internalSession) {
+    public static synchronized void addSession(SyncSession publicSession, ObjectServerSession internalSession) {
         String localPath = publicSession.getConfiguration().getPath();
         sessions.put(localPath, publicSession);
         privateSessions.put(localPath, internalSession);
@@ -62,17 +62,17 @@ public class SessionStore {
         return sessions.containsKey(localPath);
     }
 
-    public static synchronized Session getPublicSession(SyncConfiguration config) {
+    public static synchronized SyncSession getPublicSession(SyncConfiguration config) {
         String localPath = config.getPath();
         return sessions.get(localPath);
     }
 
-    public static synchronized SyncSession getPrivateSession(Session session) {
+    public static synchronized ObjectServerSession getPrivateSession(SyncSession session) {
         String localPath = session.getConfiguration().getPath();
         return privateSessions.get(localPath);
     }
 
-    public static Collection<SyncSession> getAllSessions() {
+    public static Collection<ObjectServerSession> getAllSessions() {
         return privateSessions.values();
     }
 

@@ -38,6 +38,8 @@
 #### Version of Realm and tooling
 Realm version(s): ?
 
+Realm sync feature enabled: yes/no
+
 Android Studio version: ?
 
 Which Android version and device: ?

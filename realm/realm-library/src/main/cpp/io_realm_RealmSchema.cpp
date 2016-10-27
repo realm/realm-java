@@ -27,7 +27,7 @@ using namespace realm;
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv *env, jclass, jlongArray objectSchemaPtrs_) {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         std::vector<ObjectSchema> object_schemas;
         JniLongArray array(env, objectSchemaPtrs_);
@@ -44,14 +44,14 @@ Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv *env, jclass, jlongArray o
 
 JNIEXPORT void JNICALL
 Java_io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong nativePtr) {
-    TR_ENTER_PTR(env, nativePtr)
+    TR_ENTER_PTR(nativePtr)
     Schema* schema = reinterpret_cast<Schema*>(nativePtr);
     delete schema;
 }
 
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_RealmSchema_nativeGetAll(JNIEnv *env, jclass, jlong nativePtr) {
-    TR_ENTER_PTR(env, nativePtr)
+    TR_ENTER_PTR(nativePtr)
     try {
         Schema* schema = reinterpret_cast<Schema*>(nativePtr);
         size_t size = schema->size();

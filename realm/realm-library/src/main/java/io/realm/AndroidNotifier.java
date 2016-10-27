@@ -65,7 +65,6 @@ class AndroidNotifier implements RealmNotifier {
 
     // This is called by OS when other thread/process changes the Realm.
     // This is getting called on the same thread which created the Realm.
-    // https://github.com/realm/realm-java-private/issues/127
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
     // | Thread A                                                      | Thread B     | Daemon Thread                                  |
     // |---------------------------------------------------------------+--------------+------------------------------------------------|

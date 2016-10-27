@@ -34,7 +34,7 @@ public interface RealmNotifier {
      * This is getting called on the same thread which created this Realm when the same Realm file has been changed by
      * other thread. The changes on the same thread should not trigger this call.
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings("unused") // called from java_binding_context.cpp
     void notifyCommitByOtherThread();
 
     /**

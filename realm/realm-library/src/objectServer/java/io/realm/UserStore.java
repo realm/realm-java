@@ -37,34 +37,40 @@ public interface UserStore {
     String CURRENT_USER_KEY = "realm$currentUser";
 
     /**
-     * Saves a {@link User} object under the given key. If another user already exists, it will be replaced.
+     * Saves a {@link SyncUser} object under the given key. If another user already exists, it will be replaced.
      *
      * @param key key used to store the User.
-     * @param user {@link User} object to store.
+     * @param user {@link SyncUser} object to store.
      * @return The previous user saved with this key or {@code null} if no user was replaced.
      *
      */
-    User put(String key, User user);
+    SyncUser put(String key, SyncUser user);
 
     /**
-     * Retrieves the {@link User} with the given key.
+     * Retrieves the {@link SyncUser} with the given key.
      *
-     * @param key {@link User} saved under the given key or {@code null} if no user exists for that key.
+     * @param key {@link SyncUser} saved under the given key or {@code null} if no user exists for that key.
      */
-    User get(String key);
+    SyncUser get(String key);
 
     /**
      * Removes the user with the given key from the store.
      *
      * @param key key for the user to remove.
-     * @return {@link User} that was removed or {@code null} if no user matched the key.
+     * @return {@link SyncUser} that was removed or {@code null} if no user matched the key.
      */
-    User remove(String key);
+    SyncUser remove(String key);
 
     /**
      * Returns a collection of all users saved in the User store.
      *
      * @return Collection of all users. If no users exist, an empty collection is returned.
      */
-    Collection<User> allUsers();
+    Collection<SyncUser> allUsers();
+
+
+    /**
+     * Removes all saved users.
+     */
+    void clear();
 }
