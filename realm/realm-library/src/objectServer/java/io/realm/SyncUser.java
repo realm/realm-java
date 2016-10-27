@@ -44,7 +44,9 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionsModule;
+import io.realm.permissions.PermissionChange;
+import io.realm.permissions.PermissionOffer;
+import io.realm.permissions.PermissionRequest;
 
 /**
  * @Beta
@@ -357,22 +359,37 @@ public class SyncUser {
     }
 
     /**
-     * Returns an instance of the Permission Realm owned by the given user
+     * Returns an instance of the Permission Management Realm owned by the user.
      *
-     * This Realm enables the user to control and modify permissions for Realms owned by the user. This includes e.g.
-     * granting or removing access to the Realm by other users.
+     * This Realm can be used to control access and permissions for Realms owned by the user. This includes
+     * giving other users access to Realms.
      *
-     * @see <a href="XXX">How to use the Permissions Realm</a>
+     * @see <a href="XXX">How to use the Permission Management Realm</a>
      */
-    public synchronized Realm getPermissionRealm() {
+    public synchronized Realm getManagementRealm() {
         if (permissionRealmConfig == null) {
-            String managementUrl = "<ConstructOrGetURLSomehow>";
+            String managementUrl = getPermissionManagementRealmUrl(syncUser.getAuthenticationUrl());
+            //noinspection unchecked
             permissionRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
-                    .modules(new PermissionsModule())
+                    .schema(PermissionOffer.class, PermissionRequest.class, PermissionChange.class)
                     .build();
         }
 
         return Realm.getInstance(permissionRealmConfig);
+    }
+
+    // Creates the URL to the permission Realm based on the authentication URL.
+    private static String getPermissionManagementRealmUrl(URL authUrl) {
+        String scheme = "realm";
+        if (authUrl.getProtocol().equals("https")) {
+            scheme = "realms";
+        }
+        try {
+            return new URI(scheme, authUrl.getUserInfo(), authUrl.getHost(), authUrl.getPort(),
+                    "/~/__management", null, null).toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Could not create URL to the management Realm", e);
+        }
     }
 
     @Override
