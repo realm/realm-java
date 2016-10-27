@@ -4,6 +4,10 @@
 
 * Set default RxFactory to `SyncConfiguration`.
 
+### Bug fixes
+
+* ProGuard configuration introduced in 2.1.0 unexpectedly kept classes that did not have the @KeepMember annotation (#3689).
+
 ## 2.1.0
 
 ### Object Server API Changes (In Beta)
