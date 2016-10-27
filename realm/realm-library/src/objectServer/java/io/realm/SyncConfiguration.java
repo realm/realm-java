@@ -561,6 +561,10 @@ public final class SyncConfiguration extends RealmConfiguration {
                         " access token. Use a path without /~/.");
             }
 
+            if (rxFactory == null && isRxJavaAvailable()) {
+                rxFactory = new RealmObservableFactory();
+            }
+
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
             // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
