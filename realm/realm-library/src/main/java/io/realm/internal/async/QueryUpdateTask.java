@@ -75,6 +75,7 @@ public class QueryUpdateTask implements Runnable {
 
     @Override
     public void run() {
+        QueryUpdateTask thiz = this;
         SharedRealm sharedRealm = null;
         try {
             sharedRealm = SharedRealm.getInstance(realmConfiguration);
@@ -87,8 +88,7 @@ public class QueryUpdateTask implements Runnable {
                 long[] handoverTableViewPointer = TableQuery.batchUpdateQueries(sharedRealm,
                         alignedParameters.handoverQueries,
                         alignedParameters.queriesParameters,
-                        alignedParameters.multiSortColumnIndices,
-                        alignedParameters.multiSortOrder);
+                        alignedParameters.nativeSortDescriptorPtrs);
                 swapPointers(result, handoverTableViewPointer);
                 updateSuccessful = true;
                 result.versionID = sharedRealm.getVersionID();
@@ -138,8 +138,7 @@ public class QueryUpdateTask implements Runnable {
     private AlignedQueriesParameters prepareQueriesParameters() {
         long[] handoverQueries = new long[realmResultsEntries.size()];
         long[][] queriesParameters = new long[realmResultsEntries.size()][6];
-        long[][] multiSortColumnIndices = new long[realmResultsEntries.size()][];
-        boolean[][] multiSortOrder = new boolean[realmResultsEntries.size()][];
+        long[] nativeSortDescPtrs = new long[realmResultsEntries.size()];
 
         int i = 0;
         for (Builder.QueryEntry  queryEntry : realmResultsEntries) {
@@ -155,7 +154,7 @@ public class QueryUpdateTask implements Runnable {
                 case ArgumentsHolder.TYPE_DISTINCT: {
                     handoverQueries[i] = queryEntry.handoverQueryPointer;
                     queriesParameters[i][0] = ArgumentsHolder.TYPE_DISTINCT;
-                    queriesParameters[i][1] = queryEntry.queryArguments.columnIndex;
+                    nativeSortDescPtrs[i] = queryEntry.queryArguments.sortDescriptor.getNativePtr();
                     break;
                 }
                 case ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
@@ -164,19 +163,9 @@ public class QueryUpdateTask implements Runnable {
                     queriesParameters[i][1] = 0;
                     queriesParameters[i][2] = Table.INFINITE;
                     queriesParameters[i][3] = Table.INFINITE;
-                    queriesParameters[i][4] = queryEntry.queryArguments.columnIndex;
-                    queriesParameters[i][5] = (queryEntry.queryArguments.sortOrder.getValue()) ? 1 : 0;
+                    nativeSortDescPtrs[i] = queryEntry.queryArguments.sortDescriptor.getNativePtr();
                     break;
                 }
-                case ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
-                    handoverQueries[i] = queryEntry.handoverQueryPointer;
-                    queriesParameters[i][0] = ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED;
-                    queriesParameters[i][1] = 0;
-                    queriesParameters[i][2] = Table.INFINITE;
-                    queriesParameters[i][3] = Table.INFINITE;
-                    multiSortColumnIndices[i] = queryEntry.queryArguments.columnIndices;
-                    multiSortOrder[i] = TableQuery.getNativeSortOrderValues(queryEntry.queryArguments.sortOrders);
-                    break;
                 default:
                     throw new IllegalArgumentException("Query mode " + queryEntry.queryArguments.type + " not supported");
             }
@@ -185,9 +174,8 @@ public class QueryUpdateTask implements Runnable {
         AlignedQueriesParameters alignedParameters = new AlignedQueriesParameters();
 
         alignedParameters.handoverQueries = handoverQueries;
-        alignedParameters.multiSortColumnIndices = multiSortColumnIndices;
-        alignedParameters.multiSortOrder = multiSortOrder;
         alignedParameters.queriesParameters = queriesParameters;
+        alignedParameters.nativeSortDescriptorPtrs = nativeSortDescPtrs;
 
         return alignedParameters;
     }
@@ -244,8 +232,7 @@ public class QueryUpdateTask implements Runnable {
     private static class AlignedQueriesParameters {
         long[] handoverQueries;
         long[][] queriesParameters;
-        long[][] multiSortColumnIndices;
-        boolean[][] multiSortOrder;
+        long[] nativeSortDescriptorPtrs;
     }
     /*
       This uses the step builder pattern to guide the caller throughout the creation of the instance

@@ -1216,12 +1216,15 @@ public class Table implements TableOrView, TableSchema {
         return result;
     }
 
-    //
-
-    public TableView getDistinctView(long columnIndex) {
+    // FIXME: This function is not needed. Remove this and the nativeGetDistinctView.
+    public TableView getDistinctView(SortDescriptor sortDescriptor) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         this.context.executeDelayedDisposal();
-        long nativeViewPtr = nativeGetDistinctView(nativePtr, columnIndex);
+        long[][] columnIndices = sortDescriptor.getColumnIndices();
+        if (columnIndices.length != 1 && columnIndices[0].length != 1) {
+            throw new IllegalArgumentException("Invalid 'sortDescriptor'.");
+        }
+        long nativeViewPtr = nativeGetDistinctView(nativePtr, columnIndices[0][0]);
         try {
             return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {

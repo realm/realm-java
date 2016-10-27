@@ -17,7 +17,6 @@
 package io.realm.internal;
 
 import java.util.Date;
-import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
@@ -646,23 +645,20 @@ public class TableView implements TableOrView {
     }
 
     // Sorting
-    public void sort(long columnIndex, Sort sortOrder) {
+    public void sort(long[] columnIndices, Sort sortOrder) {
         // Don't check for immutable. Sorting does not modify original table
-        nativeSort(nativePtr, columnIndex, sortOrder.getValue());
+        SortDescriptor sortDescriptor = new SortDescriptor(parent, columnIndices, sortOrder);
+        nativeSort(nativePtr, sortDescriptor.getNativePtr());
     }
 
     public void sort(long columnIndex) {
         // Don't check for immutable. Sorting does not modify original table
-        nativeSort(nativePtr, columnIndex, true);
+        SortDescriptor sortDescriptor = new SortDescriptor(parent, new long[] {columnIndex}, Sort.ASCENDING);
+        nativeSort(nativePtr, sortDescriptor.getNativePtr());
     }
 
-    public void sort(List<Long> columnIndices, Sort[] sortOrders) {
-        long indices[] = new long[columnIndices.size()];
-        for (int i = 0; i < columnIndices.size(); i++) {
-            indices[i] = columnIndices.get(i);
-        }
-        boolean nativeSortOrder[] = TableQuery.getNativeSortOrderValues(sortOrders);
-        nativeSortMulti(nativePtr, indices, nativeSortOrder);
+    public void sort(SortDescriptor sortDescriptor) {
+        nativeSort(nativePtr, sortDescriptor.getNativePtr());
     }
 
     @Override
@@ -752,33 +748,14 @@ public class TableView implements TableOrView {
      * If two rows are indentical (for the given set of distinct-columns), then the last row is
      * removed unless sorted, in which case the first object is returned.
      *
-     * @param columnIndex the column index.
+     * @param sortDescriptor the {@link SortDescriptor}.
      * @throws IllegalArgumentException if the type of the column is unsupported.
      * @throws UnsupportedOperationException if a column is not indexed.
      */
-    public void distinct(long columnIndex) {
+    public void distinct(SortDescriptor sortDescriptor) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         this.context.executeDelayedDisposal();
-        nativeDistinct(nativePtr, columnIndex);
-    }
-
-    /**
-     * If two rows are indentical (for the given set of distinct-columns), then the last row is
-     * removed unless sorted, in which case the first object is returned.
-     * Each time distinct() gets called, it will first fetch the full original TableView contents
-     * and then apply distinct() on that, invalidating previous distinct().
-     *
-     * @param columnIndexes the column indexes.
-     * @throws IllegalArgumentException if a column is unsupported type, or is not indexed.
-     */
-    public void distinct(List<Long> columnIndexes) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
-        long[] indexes = new long[columnIndexes.size()];
-        for (int i = 0; i < columnIndexes.size(); i++) {
-            indexes[i] = columnIndexes.get(i);
-        }
-        nativeDistinctMulti(nativePtr, indexes);
+        nativeDistinct(nativePtr, sortDescriptor.getNativePtr());
     }
 
     @Override
@@ -842,14 +819,11 @@ public class TableView implements TableOrView {
     private native double nativeAverageDouble(long nativePtr, long columnIndex);
     private native Long nativeMaximumTimestamp(long nativePtr, long columnIndex);
     private native Long nativeMinimumTimestamp(long nativePtr, long columnIndex);
-    private native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean sortOrder);
-    private native void nativeSortMulti(long nativeTableViewPtr, long columnIndices[], boolean ascending[]);
+    private native void nativeSort(long nativeTableViewPtr, long nativeSortDescriptorPtr);
     private native long createNativeTableView(Table table, long nativeTablePtr);
     private native String nativeToJson(long nativeViewPtr);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
-    private native void nativeDistinct(long nativeViewPtr, long columnIndex);
+    private native void nativeDistinct(long nativeViewPtr, long nativeSortDescriptorPtr);
     private native long nativeSyncIfNeeded(long nativeTablePtr);
-    private native void nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
-    private native long nativeSync(long nativeTablePtr);
 }
