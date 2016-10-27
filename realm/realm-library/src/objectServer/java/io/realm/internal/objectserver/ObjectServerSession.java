@@ -87,6 +87,7 @@ import io.realm.log.RealmLog;
  *
  * This object is thread safe.
  */
+@KeepMember
 public final class ObjectServerSession {
 
     private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
