@@ -1,8 +1,8 @@
 ## 2.1.1
 
-### bug fixes
+### Bug fixes
 
-* ProGuard configuration introduced in 2.1.0 unexpectedly keeps classes those do not have any fields with KeepMember annotation (#3689).
+* ProGuard configuration introduced in 2.1.0 unexpectedly kept classes that did not have the @KeepMember annotation (#3689).
 
 ## 2.1.0
 
