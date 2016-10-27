@@ -12,14 +12,20 @@
 
 ## Requirements: Introduction, Scope, and Description <a name="requirements"></a>
 
-Realm, as open source project, isn't govern by strict procedures, and gradually changes accordingly to whom they hire or what they did wrong in the last major release.
+Realm, as an open source project, isn't govern by strict procedures, and gradually changes accordingly to whom they hire or what they did wrong in the last major release.
 
-Regarding the requirements scope, the team has a good notion of what is needed, mainly because the developers are users too. Project issues and the discussion on those between contributors represents the main core of what could possible be accepted as the next feature to be implemented. 
-Also, the team is very receptive to new ideas from general community trough meetups or conferences.
+Regarding the requirements scope, the team has their focus on what makes sense for the users. Since the developers/contributors are users as well, they have a good notion of what is needed to improve or implement. Also, the main team is quite available to attend and participate on meetups or conferences. By doing so, innovative ideas and constructive critics from general community are extremely well received and encouraged.
 
-Therefore, decisions and priorities are done as a team. Altough, some team members have stronger opinion on some topics that are their area of expertise.
+Realm's main team is responsible to define priorities and choose what will be implented or developed. Although, some team members have more influence accordingly to their area of expertise.
 
-For general pull-request, at least two developers (often working together) that have not written any code, must approve the pull-request. For very large or complex pull-request, a private meeting might be scheduled in order to highlight the most important points of that pull.
+In order to develop new features or improve the ones already implemented, the contributors can use Issues or Pull requests:
+
+Issues are used to keep track of tasks and bugs within the software. Also, it is possible to talk about the respective issue with other contributors.
+
+Furthermore, if someone patches a bug or adds a new feature, a new pull request is open and a lot of discussion revolves around that feature.
+For general pull-request, at least two developers (often working together) that have not written any code, must approve the pull-request. For very large or complex pull-request, a private meeting might be scheduled in order to highlight the most important points of that pull. Ultimately the decision to merge those changes is made by the main developers. 
+
+So, issues, pull requests and the discussion on those represents the main core of requirements elicitation and validation. 
 
 ## Specific Requirements and Features <a name="features"></a>
 
