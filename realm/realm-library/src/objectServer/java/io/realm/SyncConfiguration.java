@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
-
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -34,6 +32,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.android.ContextWrapper;
 import io.realm.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
@@ -277,14 +276,14 @@ public final class SyncConfiguration extends RealmConfiguration {
          * @see SyncUser#isValid()
          */
         public Builder(SyncUser user, String uri) {
-            this(BaseRealm.applicationContext, user, uri);
+            this(BaseRealm.contextWrapper, user, uri);
         }
 
-        Builder(Context context, SyncUser user, String url) {
+        Builder(ContextWrapper context, SyncUser user, String url) {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
-            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
+            this.defaultFolder = new File(context.getDefaultRealmFileDirectory(), "realm-object-server");
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }

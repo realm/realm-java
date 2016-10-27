@@ -37,6 +37,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
+import io.realm.internal.android.ContextWrapper;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 import io.realm.internal.ObjectServerFacade;
@@ -60,8 +61,8 @@ abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
-    // Thread pool for all async operations (Query & transaction)
-    volatile static Context applicationContext;
+    // Android ContextWrapper. Must be initialized by calling `Realm.init()` before calling any other API's.
+    volatile static ContextWrapper contextWrapper;
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();

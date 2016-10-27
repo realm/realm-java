@@ -21,7 +21,6 @@ import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,6 +56,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.android.ContextWrapper;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -182,15 +182,16 @@ public final class Realm extends BaseRealm {
      * @see #getDefaultInstance()
      */
     public static synchronized void init(Context context) {
-        if (BaseRealm.applicationContext == null) {
+        if (BaseRealm.contextWrapper == null) {
             if (context == null) {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             RealmCore.loadLibrary(context);
-            defaultConfiguration = new RealmConfiguration.Builder(context).build();
+            ContextWrapper wrapper = new ContextWrapper(context);
+            defaultConfiguration = new RealmConfiguration.Builder(wrapper).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
-            BaseRealm.applicationContext = context.getApplicationContext();
-            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
+            BaseRealm.contextWrapper = wrapper;
+            SharedRealm.initialize(new File(wrapper.getDefaultRealmFileDirectory(), ".realm.temp"));
         }
     }
 

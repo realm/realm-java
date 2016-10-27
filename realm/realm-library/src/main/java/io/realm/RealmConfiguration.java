@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -32,9 +31,9 @@ import java.util.Set;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
-import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.android.ContextWrapper;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rx.RealmObservableFactory;
@@ -187,7 +186,8 @@ public class RealmConfiguration {
      * @throws IOException if copying the file fails.
      */
     InputStream getAssetFile() throws IOException {
-        return BaseRealm.applicationContext.getAssets().open(assetFilePath);
+        return BaseRealm.contextWrapper.getAsset(assetFilePath);
+
     }
 
     /**
@@ -391,20 +391,19 @@ public class RealmConfiguration {
          * change depending on vendor implementations of Android.
          */
         public Builder() {
-            this(BaseRealm.applicationContext);
+            this(BaseRealm.contextWrapper);
         }
 
-        Builder(Context context) {
+        Builder(ContextWrapper context) {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a RealmConfiguration");
             }
-            RealmCore.loadLibrary(context);
             initializeBuilder(context);
         }
 
         // Setup builder in its initial state
-        private void initializeBuilder(Context context) {
-            this.directory = context.getFilesDir();
+        private void initializeBuilder(ContextWrapper context) {
+            this.directory = context.getDefaultRealmFileDirectory();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
             this.schemaVersion = 0;
