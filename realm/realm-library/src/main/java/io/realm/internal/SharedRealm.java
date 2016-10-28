@@ -30,7 +30,7 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 1;
     public static final byte FILE_EXCEPTION_KIND_EXISTS = 2;
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 3;
-    public static final byte FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE = 4;
+    public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
 
     public static void initialize(File tempDirectory) {
