@@ -37,7 +37,7 @@ public class PermissionChange extends RealmObject {
     private Date createdAt;
     @Required
     private Date updatedAt;
-    private Integer statusCode; // nil=not processed, 0=success, >0=error
+    private Integer statusCode; // null=not processed, 0=success, >0=error
     private String statusMessage;
 
     @Required
@@ -57,11 +57,11 @@ public class PermissionChange extends RealmObject {
      *
      * @param realmUrl Realm to change permissions for.
      * @param userId User or users to effect.
-     * @param mayRead Control read access. {@code true} or {@code false} to request this new value. {@code null} to
+     * @param mayRead Define read access. {@code true} or {@code false} to request this new value. {@code null} to
      *                keep current value.
-     * @param mayWrite Control write access. {@code true} or {@code false} to request this new value. {@code null} to
+     * @param mayWrite Define write access. {@code true} or {@code false} to request this new value. {@code null} to
      *                 keep current value.
-     * @param mayManage Control manage access. {@code true} or {@code false} to request this new value. {@code null} to
+     * @param mayManage Define manage access. {@code true} or {@code false} to request this new value. {@code null} to
      *                  keep current value.
      *
      * @see <a href="`https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
