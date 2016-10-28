@@ -22,16 +22,16 @@ import java.lang.ref.ReferenceQueue;
 // PhantomDaemon thread. And the destruction in both threads are locked by the corresponding context.
 // The purpose of locking on Context is:
 // Destruction of SharedGroup (and hence Group and Table) is currently not thread-safe with respect to destruction of
-// other accessors, you have two ensure mutual exclusion. This is also illustrated by the use of locks in the test
+// other accessors, you have to ensure mutual exclusion. This is also illustrated by the use of locks in the test
 // test_destructor_thread_safety.cpp. Explicit call of SharedGroup::close() or Table::detach() is also not thread-safe
 // with respect to destruction of other accessors.
 public class Context {
     private final static ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
-    private final static Thread phantomThread = new Thread(new FinalizerRunnable(referenceQueue));
+    private final static Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
 
     static {
-        phantomThread.setName("RealmPhantomDaemon");
-        phantomThread.start();
+        finalizingThread.setName("RealmFinalizingDaemon");
+        finalizingThread.start();
     }
 
     void addReference(NativeObject referent) {

@@ -22,6 +22,18 @@ package io.realm.internal;
  * All Java classes wrapping a core class should implement NativeObject.
  */
 interface NativeObject {
+    /**
+     * Gets the pointer of a native object.
+     *
+     * @return the native pointer.
+     */
     long getNativePtr();
+
+    /**
+     * Gets the function pointer which points to the function to free the native object.
+     * The function should be defined like: {@code typedef void (*FinalizeFunc)(jlong ptr)}.
+     *
+     * @return the function pointer for freeing the native resource.
+     */
     long getNativeFinalizerPtr();
 }
