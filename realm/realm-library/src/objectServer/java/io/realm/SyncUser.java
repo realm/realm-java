@@ -45,8 +45,6 @@ import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.permissions.PermissionChange;
-import io.realm.permissions.PermissionOffer;
-import io.realm.permissions.PermissionRequest;
 
 /**
  * @Beta
