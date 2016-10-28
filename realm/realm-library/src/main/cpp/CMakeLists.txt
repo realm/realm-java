@@ -39,7 +39,9 @@ set(classes_LIST
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
     io.realm.RealmObjectSchema io.realm.internal.NativeObjectReference
 )
-set(jni_headers_PATH ${PROJECT_BINARY_DIR}/jni_include)
+# /./ is the workaround for the problem that AS cannot find the jni headers.
+# See https://github.com/googlesamples/android-ndk/issues/319
+set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession)
