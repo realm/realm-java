@@ -21,7 +21,9 @@ In order to develop new features or improve the ones already implemented, the co
 Issues are used to keep track of tasks and bugs within the software. Also, it is possible to talk about the respective issue with other contributors.
 
 Furthermore, if someone patches a bug or adds a new feature, a new PR is open and a lot of discussion revolves around that feature.
-For general PR, at least two developers (often working together) that have not written any code, must approve the PR. For very large or complex PR, a private meeting might be scheduled in order to highlight the most important points of that PR. Ultimately the decision to merge those changes is made by the main developers. 
+For general PR, at least two developers (often working together) that have not written any code, must approve the PR. For very large or complex PR, a private meeting might be scheduled in order to highlight the most important points of that PR. Ultimately the decision to merge those changes is made by the main developers.
+
+An example of a discussion around a PR is shown [here](https://github.com/realm/realm-java/pull/3285).
 
 So, issues, PR and the discussion on those represents the main core of requirements elicitation and validation.
 
@@ -63,10 +65,11 @@ This project can be conceptually represented by six classes and their relationsh
 This representation can bridge the gap between Use-Case Model and Software Design Model. Therefore, allowing everyone on the team to be on the same page regarding the structure of Realm.
 
 ## Contribuition <a name="contribuition"></a>
-Carolina Centeio:
 
-Inês Proença:
+Carolina Centeio: 25%
 
-Hélder Antunes: 1%
+Inês Proença: 25%
 
-Renato Abreu: 2%
+Hélder Antunes: 25%
+
+Renato Abreu: 25%
