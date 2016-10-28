@@ -362,7 +362,7 @@ public class SyncUser {
      * This Realm can be used to control access and permissions for Realms owned by the user. This includes
      * giving other users access to Realms.
      *
-     * @see <a href="`https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public synchronized Realm getManagementRealm() {
         if (managementRealmConfig == null) {

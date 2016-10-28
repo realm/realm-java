@@ -25,7 +25,7 @@ import io.realm.annotations.Required;
 /**
  * This class is used for requesting changes to a Realms permissions.
  *
- * @see <a href="`https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
+ * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
  */
 public class PermissionChange extends RealmObject {
 
@@ -64,7 +64,7 @@ public class PermissionChange extends RealmObject {
      * @param mayManage Define manage access. {@code true} or {@code false} to request this new value. {@code null} to
      *                  keep current value.
      *
-     * @see <a href="`https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
      */
     public PermissionChange(String realmUrl, String userId, Boolean mayRead, Boolean mayWrite, Boolean mayManage) {
         this.realmUrl = realmUrl;
