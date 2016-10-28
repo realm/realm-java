@@ -34,9 +34,9 @@ public class PermissionChange extends RealmObject {
     @Required
     private String id = UUID.randomUUID().toString();
     @Required
-    private Date createdAt;
+    private Date createdAt = new Date();
     @Required
-    private Date updatedAt;
+    private Date updatedAt = new Date();
     private Integer statusCode; // null=not processed, 0=success, >0=error
     private String statusMessage;
 

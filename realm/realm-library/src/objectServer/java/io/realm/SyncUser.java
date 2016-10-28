@@ -45,6 +45,7 @@ import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.permissions.PermissionChange;
+import io.realm.permissions.PermissionModule;
 
 /**
  * @Beta
@@ -367,9 +368,8 @@ public class SyncUser {
     public synchronized Realm getManagementRealm() {
         if (managementRealmConfig == null) {
             String managementUrl = getManagementRealmUrl(syncUser.getAuthenticationUrl());
-            //noinspection unchecked
             managementRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
-                    .schema(PermissionChange.class)
+                    .modules(new PermissionModule())
                     .build();
         }
 
