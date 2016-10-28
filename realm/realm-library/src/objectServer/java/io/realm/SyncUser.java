@@ -63,7 +63,7 @@ import io.realm.permissions.PermissionRequest;
 @Beta
 public class SyncUser {
 
-    private SyncConfiguration permissionRealmConfig;
+    private SyncConfiguration managementRealmConfig;
     private final ObjectServerUser syncUser;
 
     private SyncUser(ObjectServerUser user) {
@@ -359,27 +359,27 @@ public class SyncUser {
     }
 
     /**
-     * Returns an instance of the Permission Management Realm owned by the user.
+     * Returns an instance of the Management Realm owned by the user.
      *
      * This Realm can be used to control access and permissions for Realms owned by the user. This includes
      * giving other users access to Realms.
      *
-     * @see <a href="XXX">How to use the Permission Management Realm</a>
+     * @see <a href="`https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public synchronized Realm getManagementRealm() {
-        if (permissionRealmConfig == null) {
-            String managementUrl = getPermissionManagementRealmUrl(syncUser.getAuthenticationUrl());
+        if (managementRealmConfig == null) {
+            String managementUrl = getManagementRealmUrl(syncUser.getAuthenticationUrl());
             //noinspection unchecked
-            permissionRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
-                    .schema(PermissionOffer.class, PermissionRequest.class, PermissionChange.class)
+            managementRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
+                    .schema(PermissionChange.class)
                     .build();
         }
 
-        return Realm.getInstance(permissionRealmConfig);
+        return Realm.getInstance(managementRealmConfig);
     }
 
     // Creates the URL to the permission Realm based on the authentication URL.
-    private static String getPermissionManagementRealmUrl(URL authUrl) {
+    private static String getManagementRealmUrl(URL authUrl) {
         String scheme = "realm";
         if (authUrl.getProtocol().equals("https")) {
             scheme = "realms";

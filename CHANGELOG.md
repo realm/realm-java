@@ -1,3 +1,9 @@
+## 2.2.0
+
+### Object Server API Changes (In Beta)
+
+* Add support for `SyncUser.getManagementRealm()` and permission changes.
+
 ## 2.1.1
 
 ### Object Server API Changes (In Beta)
