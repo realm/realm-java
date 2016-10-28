@@ -75,4 +75,4 @@ RUN mkdir /opt/cmake-tmp && \
 RUN chmod -R a+rX ${ANDROID_HOME}
 
 # Install lcache
-RUN wget -q https://github.com/beeender/lcache/releases/download/v0.0.2/lcache-linux /usr/bin/lcache
+RUN wget -q https://github.com/beeender/lcache/releases/download/v0.0.2/lcache-linux -O /usr/bin/lcache
