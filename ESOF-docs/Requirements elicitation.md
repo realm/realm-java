@@ -56,7 +56,7 @@ The present solution implemented has limitations. In order to strike a balance b
 
 ## Use Cases <a name="cases"></a>
 
-![Use cases]https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/usecases.jpg
+<img src="https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/usecases.jpg" width="500">
 
 ## Domain Model <a name="domain"></a>
 
