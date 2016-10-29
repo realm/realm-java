@@ -10,11 +10,11 @@
 
 ## Requirements: Introduction, Scope, and Description <a name="requirements"></a>
 
-Realm, as an open source project, isn't govern by strict procedures, and gradually changes accordingly to whom they hire or what they did wrong in the last major release.
+Realm, as an open source project, is not governed by strict procedures. This gradually changes according to the people hired and to what was previously done wrong in major releases.
 
 Regarding the requirements scope, the team has their focus on what makes sense for the users. Since the developers/contributors are users as well, they have a good notion of what is needed to improve or implement. Also, the main team is quite available to attend and participate on meetups or conferences. By doing so, innovative ideas and constructive critics from general community are extremely well received and encouraged.
 
-Realm's main team is responsible to define priorities and choose what will be implented or developed. Although, some team members have more influence accordingly to their area of expertise.
+Realm's main team is responsible to define priorities and choose what will be implented or developed. However, some team members have more influence according to their area of expertise.
 
 In order to develop new features or improve the ones already implemented, the contributors can use Issues or Pull requests:
 
