@@ -56,6 +56,8 @@ The present solution implemented has limitations. In order to strike a balance b
 
 ## Use Cases <a name="cases"></a>
 
+![Use cases]https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/usecases.jpg
+
 ## Domain Model <a name="domain"></a>
 
 This project can be conceptually represented by six classes and their relationships, as shown in the diagram bellow.
