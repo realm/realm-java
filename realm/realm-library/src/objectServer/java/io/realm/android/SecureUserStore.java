@@ -32,7 +32,7 @@ import io.realm.internal.android.crypto.CipherClient;
 /**
  * Encrypt and decrypt the token ({@link SyncUser}) using Android built in KeyStore capabilities.
  * According to the Android API this picks the right algorithm to perfom the operations.
- * Prior to API 18 there were no AndroidKeyStore API, but the UNIX deamon existed to it's possible
+ * Prior to API 18 there were no AndroidKeyStore API, but the UNIX deamon existed so it's possible
  * with the help of this code: https://github.com/nelenkov/android-keystore.
  *
  * On API &gt; = 18, we generate an AES key to encrypt we then generate and uses the RSA key inside the KeyStore
