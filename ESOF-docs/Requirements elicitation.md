@@ -57,6 +57,7 @@ The present solution implemented has limitations. In order to strike a balance b
 ## Use Cases <a name="cases"></a>
 
 As an alternative to SQLite and Core Data, Realm Mobile Database is simple saving and fast to store, organize and get your data. It offers a wide range of materials to build a database, making it easier to learn and implement.
+<img src="https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/usecaseslist.jpg" width="500">
 
 <img src="https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/usecases.jpg" width="500">
 
