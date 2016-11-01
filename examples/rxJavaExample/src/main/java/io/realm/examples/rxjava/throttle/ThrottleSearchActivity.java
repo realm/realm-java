@@ -75,7 +75,7 @@ public class ThrottleSearchActivity extends Activity {
                     @Override
                     public Boolean call(RealmResults<Person> persons) {
                         // Only continue once data is actually loaded
-                        // RealmObservables will emit the unloaded (empty) list as it's first item
+                        // RealmObservables will emit the unloaded (empty) list as its first item
                         return persons.isLoaded();
                     }
                 })
