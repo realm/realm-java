@@ -131,7 +131,7 @@ class KotlinExampleActivity : Activity() {
     private fun complexReadWrite(): String {
         var status = "\nPerforming complex Read/Write operation..."
 
-        // Open the default realm. All threads must use it's own reference to the realm.
+        // Open the default realm. All threads must use its own reference to the realm.
         // Those can not be transferred across threads.
         val realm = Realm.getDefaultInstance()
 

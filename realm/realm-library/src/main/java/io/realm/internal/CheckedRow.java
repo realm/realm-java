@@ -27,7 +27,7 @@ import io.realm.RealmFieldType;
  */
 public class CheckedRow extends UncheckedRow {
 
-    // Used if created from other row. This keeps a strong reference to avoid GC'ing the original object, and it's
+    // Used if created from other row. This keeps a strong reference to avoid GC'ing the original object, and its
     // underlying native data.
     @SuppressWarnings("unused")
     private UncheckedRow originalRow;
