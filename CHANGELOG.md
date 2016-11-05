@@ -1,8 +1,8 @@
 ## 2.1.2
 
-### Enhancement
+### Bug fixes
 
-* The default Realm module is no longer generated if no model classes exists (#3746).
+* Kotlin projects no longer creates the `RealmDefaultModule` if no Realm model classes are present (#3746).
 
 ## 2.1.1
 

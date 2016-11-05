@@ -101,8 +101,9 @@ public class ModuleMetaData {
             return false;
         }
 
-        // Default Realm module should only be created if some classes exists that can be part of it.
-        // i.e. library projects or projects with no model classes should not generate the module.
+        // Create default Realm module if needed.
+        // Note: Kotlin will trigger the annotation processor even if no Realm annotations are used.
+        // The DefaultRealmModule should not be created in this case either.
         if (libraryModules.size() == 0 && availableClasses.size() > 0) {
             shouldCreateDefaultModule = true;
             String defautModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
