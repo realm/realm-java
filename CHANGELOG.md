@@ -1,3 +1,9 @@
+## 2.1.2
+
+### Enhancement
+
+* The default Realm module is no longer generated if no model classes exists (#3746).
+
 ## 2.1.1
 
 ### Object Server API Changes (In Beta)

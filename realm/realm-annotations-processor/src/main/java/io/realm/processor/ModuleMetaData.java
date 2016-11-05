@@ -101,8 +101,9 @@ public class ModuleMetaData {
             return false;
         }
 
-        // Add default realm module if needed.
-        if (libraryModules.size() == 0) {
+        // Default Realm module should only be created if some classes exists that can be part of it.
+        // i.e. library projects or projects with no model classes should not generate the module.
+        if (libraryModules.size() == 0 && availableClasses.size() > 0) {
             shouldCreateDefaultModule = true;
             String defautModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
             modules.put(defautModuleName, availableClasses);
