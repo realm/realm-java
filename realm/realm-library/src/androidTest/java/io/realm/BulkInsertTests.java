@@ -48,8 +48,6 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyWithNoPrimaryKeyObjectRelation;
-import io.realm.entities.issue_3732.Child;
-import io.realm.entities.issue_3732.Parent;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.entities.pojo.InvalidRealmModel;
 import io.realm.exceptions.RealmException;
