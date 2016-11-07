@@ -45,7 +45,7 @@ class Realm implements Plugin<Project> {
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
         def usesKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
-        // TODO add a parameter in 'realm' block if this can be specified by users
+        // TODO add a parameter in 'realm' block if this should be specified by users
         def forceApplyAptPluginOnKotlinProject = false
 
         if (shouldApplyAndroidAptPlugin(usesAptPlugin, usesKotlinPlugin,
