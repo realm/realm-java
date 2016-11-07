@@ -1,5 +1,9 @@
 ## 2.1.1
 
+### Bug fixes
+
+* Fixed a bug in `Realm.insert` and `Realm.insertOrUpdate` methods causing a `StackOverFlow` when you try to insert a cyclic graph of objects between Realms (#3732).
+
 ### Object Server API Changes (In Beta)
 
 * Set default RxFactory to `SyncConfiguration`.
@@ -57,7 +61,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 ### Internal
 
 * Upgraded Realm Core to 2.1.0
-* Upgraded Realm Sync to 1.0.0-BETA-2.0. 
+* Upgraded Realm Sync to 1.0.0-BETA-2.0.
 
 ## 2.0.1
 
@@ -74,7 +78,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 ## 2.0.0
 
-This release introduces support for the Realm Mobile Platform! 
+This release introduces support for the Realm Mobile Platform!
 See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview of these great new features.
 
 ### Breaking Changes
