@@ -12,8 +12,8 @@ import io.realm.internal.Table;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +138,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     public void insert(Realm realm, Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size());
         if (iterator.hasNext()) {
             //  access the first element to figure out the clazz for the routing below
             object = iterator.next();
@@ -178,7 +178,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     public void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects) {
         Iterator<? extends RealmModel> iterator = objects.iterator();
         RealmModel object = null;
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size());
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size());
         if (iterator.hasNext()) {
             //  access the first element to figure out the clazz for the routing below
             object = iterator.next();
