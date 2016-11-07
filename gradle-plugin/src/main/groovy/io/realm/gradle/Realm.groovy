@@ -23,8 +23,6 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.DependencyResolutionListener
-import org.gradle.api.artifacts.ResolvableDependencies
 
 class Realm implements Plugin<Project> {
 
@@ -44,27 +42,36 @@ class Realm implements Plugin<Project> {
         def syncEnabledDefault = false
         project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault)
 
-        def usesKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
+        def usesKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
+        def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
+        // TODO add a parameter in 'realm' block if this can be specified by users
+        def forceApplyAptPluginOnKotlinProject = false
 
-        def isKaptProject = usesKotlinPlugin && !usesAptPlugin
-
-        if (!isKaptProject) {
+        if (shouldApplyAndroidAptPlugin(usesAptPlugin, usesKotlinPlugin,
+                                        hasAnnotationProcessorConfiguration, forceApplyAptPluginOnKotlinProject)) {
             project.plugins.apply(AndroidAptPlugin)
+            usesAptPlugin = true
         }
 
         project.android.registerTransform(new RealmTransformer(project))
 
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
-        if (isKaptProject) {
-            project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
-            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
-        } else {
+        if (usesAptPlugin) {
             project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+        } else if (usesKotlinPlugin) {
+            project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+        } else {
+            assert hasAnnotationProcessorConfiguration
+            project.dependencies.add("annotationProcessor", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("annotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("androidTestAnnotationProcessor", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("androidTestAnnotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
     }
 
@@ -75,5 +82,20 @@ class Realm implements Plugin<Project> {
         } catch (Exception ignored) {
             return false
         }
+    }
+
+    private static boolean shouldApplyAndroidAptPlugin(boolean usesAptPlugin, boolean usesKotlinPlugin,
+                                                       boolean hasAnnotationProcessorConfiguration,
+                                                       boolean forceApplyAptPluginOnKotlinProject) {
+        if (usesAptPlugin) {
+            // for any projects that use `android-apt` plugin
+            return false
+        }
+        if (!usesKotlinPlugin) {
+            // for any Java Projects that do not use 'android-apt' plugin
+            return !hasAnnotationProcessorConfiguration
+        }
+        // for any Kotlin Projects that do not use 'android-apt' plugin
+        return !hasAnnotationProcessorConfiguration || forceApplyAptPluginOnKotlinProject
     }
 }
