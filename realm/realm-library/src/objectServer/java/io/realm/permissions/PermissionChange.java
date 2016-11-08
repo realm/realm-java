@@ -37,16 +37,16 @@ public class PermissionChange extends RealmObject {
     private Date createdAt = new Date();
     @Required
     private Date updatedAt = new Date();
-    private Integer statusCode; // null=not processed, 0=success, >0=error
+    private Integer statusCode = null; // null=not processed, 0=success, >0=error
     private String statusMessage;
 
     @Required
     private String realmUrl;
     @Required
     private String userId;
-    private Boolean mayRead;
-    private Boolean mayWrite;
-    private Boolean mayManage;
+    private Boolean mayRead = false;
+    private Boolean mayWrite = false;
+    private Boolean mayManage = false;
 
     public PermissionChange() {
         // Default constructor required by Realm

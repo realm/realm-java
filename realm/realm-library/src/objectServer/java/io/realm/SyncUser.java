@@ -379,7 +379,7 @@ public class SyncUser {
     // Creates the URL to the permission Realm based on the authentication URL.
     private static String getManagementRealmUrl(URL authUrl) {
         String scheme = "realm";
-        if (authUrl.getProtocol().equals("https")) {
+        if (authUrl.getProtocol().equalsIgnoreCase("https")) {
             scheme = "realms";
         }
         try {

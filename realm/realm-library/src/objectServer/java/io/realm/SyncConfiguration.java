@@ -448,25 +448,6 @@ public final class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
-         * create a module. These classes must be available in the default module. Calling this will remove any
-         * previously configured modules.
-         */
-        Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
-            if (firstClass == null) {
-                throw new IllegalArgumentException("A non-null class must be provided");
-            }
-            modules.clear();
-            modules.add(DEFAULT_MODULE_MEDIATOR);
-            debugSchema.add(firstClass);
-            if (additionalClasses != null) {
-                Collections.addAll(debugSchema, additionalClasses);
-            }
-
-            return this;
-        }
-
-        /**
          * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
          * The default factory is {@link RealmObservableFactory}.
          *
