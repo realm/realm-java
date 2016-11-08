@@ -303,7 +303,9 @@ public class BulkInsertTests {
 
         realm1.beginTransaction();
         Owner owner = realm1.createObject(Owner.class);
+        owner.setName("Kiba");
         Dog dog = realm1.createObject(Dog.class);
+        dog.setName("Akamaru");
         owner.getDogs().add(dog);
         dog.setOwner(owner);
         realm1.commitTransaction();
@@ -321,6 +323,11 @@ public class BulkInsertTests {
         assertEquals(realm1.where(Dog.class).count(), realm2.where(Dog.class).count());
 
         assertEquals(1, realm2.where(Owner.class).findFirst().getDogs().size());
+
+        assertEquals(realm1.where(Owner.class).findFirst().getName(), realm2.where(Owner.class).findFirst().getName());
+
+        assertEquals(realm1.where(Owner.class).findFirst().getDogs().first().getName()
+                , realm2.where(Owner.class).findFirst().getDogs().first().getName());
 
         realm1.close();
         realm2.close();
