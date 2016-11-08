@@ -1,3 +1,9 @@
+## 2.1.2
+
+### Bug fixes
+
+* Kotlin projects no longer create the `RealmDefaultModule` if no Realm model classes are present (#3746).
+
 ## 2.1.1
 
 ### Object Server API Changes (In Beta)
