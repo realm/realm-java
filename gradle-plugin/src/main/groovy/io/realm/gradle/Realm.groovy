@@ -96,6 +96,6 @@ class Realm implements Plugin<Project> {
             return !hasAnnotationProcessorConfiguration
         }
         // for any Kotlin Projects that do not use 'android-apt' plugin
-        return !hasAnnotationProcessorConfiguration || forceApplyAptPluginOnKotlinProject
+        return forceApplyAptPluginOnKotlinProject
     }
 }
