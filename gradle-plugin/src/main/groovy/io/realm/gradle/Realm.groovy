@@ -46,10 +46,10 @@ class Realm implements Plugin<Project> {
         def usesKotlinPlugin = project.plugins.findPlugin('kotlin-android') != null
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
         // TODO add a parameter in 'realm' block if this should be specified by users
-        def forceApplyAptPluginOnKotlinProject = false
+        def preferAptOnKotlinProject = false
 
         if (shouldApplyAndroidAptPlugin(usesAptPlugin, usesKotlinPlugin,
-                                        hasAnnotationProcessorConfiguration, forceApplyAptPluginOnKotlinProject)) {
+                                        hasAnnotationProcessorConfiguration, preferAptOnKotlinProject)) {
             project.plugins.apply(AndroidAptPlugin)
             usesAptPlugin = true
         }
@@ -63,7 +63,7 @@ class Realm implements Plugin<Project> {
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
-        } else if (usesKotlinPlugin) {
+        } else if (usesKotlinPlugin && !preferAptOnKotlinProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
@@ -86,7 +86,7 @@ class Realm implements Plugin<Project> {
 
     private static boolean shouldApplyAndroidAptPlugin(boolean usesAptPlugin, boolean usesKotlinPlugin,
                                                        boolean hasAnnotationProcessorConfiguration,
-                                                       boolean forceApplyAptPluginOnKotlinProject) {
+                                                       boolean preferAptOnKotlinProject) {
         if (usesAptPlugin) {
             // for any projects that use `android-apt` plugin
             return false
@@ -96,6 +96,6 @@ class Realm implements Plugin<Project> {
             return !hasAnnotationProcessorConfiguration
         }
         // for any Kotlin Projects that do not use 'android-apt' plugin
-        return forceApplyAptPluginOnKotlinProject
+        return preferAptOnKotlinProject && !hasAnnotationProcessorConfiguration
     }
 }
