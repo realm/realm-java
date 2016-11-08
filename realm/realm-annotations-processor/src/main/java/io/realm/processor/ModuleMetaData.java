@@ -106,8 +106,8 @@ public class ModuleMetaData {
         // The DefaultRealmModule should not be created in this case either.
         if (libraryModules.size() == 0 && availableClasses.size() > 0) {
             shouldCreateDefaultModule = true;
-            String defautModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
-            modules.put(defautModuleName, availableClasses);
+            String defaultModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
+            modules.put(defaultModuleName, availableClasses);
         }
 
         return true;
