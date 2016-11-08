@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* Kotlin projects no longer creates the `RealmDefaultModule` if no Realm model classes are present (#3746).
+* Kotlin projects no longer create the `RealmDefaultModule` if no Realm model classes are present (#3746).
 
 ## 2.1.1
 
