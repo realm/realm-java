@@ -63,15 +63,6 @@ public class CredentialsTests {
     }
 
     @Test
-    public void twitter() {
-        SyncCredentials creds = SyncCredentials.twitter("foo");
-
-        assertEquals(SyncCredentials.IdentityProvider.TWITTER, creds.getIdentityProvider());
-        assertEquals("foo", creds.getUserIdentifier());
-        assertTrue(creds.getUserInfo().isEmpty());
-    }
-
-    @Test
     public void facebook_invalidInput() {
         String[] invalidInput = { null, ""};
         for (String input : invalidInput) {

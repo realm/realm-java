@@ -4,6 +4,10 @@
 
 * Add support for `SyncUser.getManagementRealm()` and permission changes.
 
+### Bug fixes
+
+* Kotlin projects no longer create the `RealmDefaultModule` if no Realm model classes are present (#3746).
+
 ## 2.1.1
 
 ### Object Server API Changes (In Beta)
@@ -15,6 +19,12 @@
 * ProGuard configuration introduced in 2.1.0 unexpectedly kept classes that did not have the @KeepMember annotation (#3689).
 
 ## 2.1.0
+
+### Breaking changes
+
+* * `SecureUserStore` has been moved to its own GitHub repository: https://github.com/realm/realm-android-user-store
+  See https://github.com/realm/realm-android-user-store/blob/master/README.md for further info on how to include it.
+
 
 ### Object Server API Changes (In Beta)
 
@@ -63,7 +73,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 ### Internal
 
 * Upgraded Realm Core to 2.1.0
-* Upgraded Realm Sync to 1.0.0-BETA-2.0. 
+* Upgraded Realm Sync to 1.0.0-BETA-2.0.
 
 ## 2.0.1
 
@@ -80,7 +90,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 ## 2.0.0
 
-This release introduces support for the Realm Mobile Platform! 
+This release introduces support for the Realm Mobile Platform!
 See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview of these great new features.
 
 ### Breaking Changes
@@ -286,7 +296,7 @@ No changes since 0.91.1.
 * Removed `HandlerController` from the public API.
 * Removed constructor of `RealmAsyncTask` from the public API (#1594).
 * `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
-  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
+  See https://github.com/realm/realm-android-adapters/blob/master/README.md for further info on how to include it.
 * File format of Realm files is changed. Files will be automatically upgraded but opening a Realm file with older
   versions of Realm is not possible.
 

@@ -65,7 +65,7 @@ public class RealmFileException extends RuntimeException {
                     return EXISTS;
                 case SharedRealm.FILE_EXCEPTION_KIND_NOT_FOUND:
                     return NOT_FOUND;
-                case SharedRealm.FILE_EXCEPTION_KIND_IMCOMPATIBLE_LOCK_FILE:
+                case SharedRealm.FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE:
                     return INCOMPATIBLE_LOCK_FILE;
                 case SharedRealm.FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED:
                     return FORMAT_UPGRADE_REQUIRED;

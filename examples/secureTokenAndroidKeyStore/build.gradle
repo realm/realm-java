@@ -6,7 +6,7 @@ android {
     buildToolsVersion "24.0.0"
 
     defaultConfig {
-        applicationId "examples.realm.io.securetokenandroidkeystore"
+        applicationId "io.realm.examples.securetokenandroidkeystore"
         minSdkVersion 9
         targetSdkVersion 24
         versionCode 1
@@ -30,6 +30,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:24.2.0'
     testCompile 'junit:junit:4.12'
+    compile 'io.realm:android-secure-userstore:1.0.0'
 }
 
 realm {
