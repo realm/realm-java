@@ -1,4 +1,7 @@
-#include <object-store/src/sync_manager.hpp>
+#ifdef REALM_SYNC
+#include <object-store/src/sync/sync_manager.hpp>
+#include <object-store/src/sync/sync_config.hpp>
+#endif
 #include "io_realm_internal_SharedRealm.h"
 
 #include "object_store.hpp"
@@ -6,9 +9,6 @@
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
-#ifdef REALM_SYNC
-#include "sync_config.hpp"
-#endif
 
 using namespace realm;
 using namespace realm::_impl;
@@ -57,7 +57,10 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         if (sync_server_url) {
             JStringAccessor url(env, sync_server_url);
             JStringAccessor token(env, sync_user_token);
-            config->sync_config = std::make_shared<SyncConfig>(token, url, nullptr, SyncSessionStopPolicy::Immediately);
+            // FIXME: Ignore User token for now. Will be fixed when moving to OS
+            // For now the Java session takes care of users
+            config->sync_config = std::make_shared<SyncConfig>(nullptr, url, SyncSessionStopPolicy::Immediately,
+                                                               nullptr);
             // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
             config->sync_config->create_session = false;
         }
@@ -69,7 +72,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv* env, jclass, jlong config_ptr)
+Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv*, jclass, jlong config_ptr)
 {
     TR_ENTER_PTR(config_ptr)
 
@@ -94,7 +97,7 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlo
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv* env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -137,7 +140,7 @@ Java_io_realm_internal_SharedRealm_nativeCancelTransaction(JNIEnv *env, jclass, 
 
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_SharedRealm_nativeIsInTransaction(JNIEnv* env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeIsInTransaction(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -254,7 +257,7 @@ Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv* env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 

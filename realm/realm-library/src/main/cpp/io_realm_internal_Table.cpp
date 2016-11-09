@@ -1406,7 +1406,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
-    JNIEnv* env, jclass, jlong nativeTablePtr)
+    JNIEnv*, jclass, jlong nativeTablePtr)
 {
     TR_ENTER_PTR(nativeTablePtr)
     LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
