@@ -88,7 +88,7 @@ class Realm implements Plugin<Project> {
                                                        boolean hasAnnotationProcessorConfiguration,
                                                        boolean preferAptOnKotlinProject) {
         if (usesAptPlugin) {
-            // for any projects that use `android-apt` plugin
+            // for any projects that uses android-apt plugin already. No need to apply it twice.
             return false
         }
         if (!usesKotlinPlugin) {

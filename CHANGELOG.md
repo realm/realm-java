@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* Supported `annotationProcessor` configuration provided by Android Gradle Plugin 2.2.0 or later. Realm plugin adds its annotation processor to `annotationProcessor` configuration instead of `apt` configuration if `annotationProcessor` configuration is provided and `com.neenbedankt.android-apt` plugin is not applied. In Kotlin project, `annotationProcessor` configuration is never used for now (#3026).
+* Added support for the `annotationProcessor` configuration provided by Android Gradle Plugin 2.2.0 or later. Realm plugin adds its annotation processor to the `annotationProcessor` configuration instead of `apt` configuration if it is available and the `com.neenbedankt.android-apt` plugin is not used. In Kotlin projects, `kapt` is used instead of the `annotationProcessor` configurationi (#3026).
 
 ## 2.1.1
 
