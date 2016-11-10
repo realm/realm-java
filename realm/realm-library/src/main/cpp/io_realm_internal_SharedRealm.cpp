@@ -60,7 +60,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
             // FIXME: Ignore User token for now. Will be fixed when moving to OS
             // For now the Java session takes care of users
             config->sync_config = std::make_shared<SyncConfig>(nullptr, url, SyncSessionStopPolicy::Immediately,
-                                                               nullptr);
+                                                               nullptr, nullptr);
             // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
             config->sync_config->create_session = false;
         }
