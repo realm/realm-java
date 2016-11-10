@@ -23,7 +23,7 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 /**
- * This class is used for requesting changes to a Realms permissions.
+ * This class is used for requesting changes to a Realm's permissions.
  *
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
  */

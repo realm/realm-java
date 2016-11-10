@@ -66,7 +66,7 @@ public class RealmConfiguration {
     public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
-    static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+    private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
     private static Boolean rxJavaAvailable;
 
     static {
