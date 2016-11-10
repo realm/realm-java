@@ -167,9 +167,10 @@ file(GLOB objectstore_SRC
 # Sync needed Object Store files
 if (build_SYNC)
     file(GLOB objectstore_sync_SRC
-        "object-store/src/sync_manager.cpp"
-        "object-store/src/sync_session.cpp"
-        "object-store/src/sync_config.cpp")
+        "object-store/src/sync/sync_manager.cpp"
+        "object-store/src/sync/sync_session.cpp"
+        "object-store/src/sync/sync_user.cpp"
+        "object-store/src/sync/sync_config.cpp")
 
 endif()
 
