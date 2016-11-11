@@ -55,8 +55,8 @@ public class PermissionChange extends RealmObject {
     /**
      * Construct a Permission Change Object.
      *
-     * @param realmUrl Realm to change permissions for.
-     * @param userId User or users to effect.
+     * @param realmUrl Realm to change permissions for. Use {@code *} to change the permissions of all Realms.
+     * @param userId User or users to effect. Use {@code *} to change the permissions for all users.
      * @param mayRead Define read access. {@code true} or {@code false} to request this new value. {@code null} to
      *                keep current value.
      * @param mayWrite Define write access. {@code true} or {@code false} to request this new value. {@code null} to
@@ -86,6 +86,11 @@ public class PermissionChange extends RealmObject {
         return updatedAt;
     }
 
+    /**
+     * Returns the status code for this change.
+     *
+     * @return {@code null} if not yet processed. {@code 0} if successfull, {@code >0} if an error happened. See {@link #getStatusMessage()}.
+     */
     public Integer getStatusCode() {
         return statusCode;
     }
