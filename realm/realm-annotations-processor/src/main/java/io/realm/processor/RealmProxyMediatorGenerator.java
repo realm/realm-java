@@ -69,7 +69,7 @@ public class RealmProxyMediatorGenerator {
                 "java.util.HashSet",
                 "java.util.List",
                 "java.util.Map",
-                "java.util.IdentityHashMap",
+                "java.util.HashMap",
                 "java.util.Set",
                 "java.util.Iterator",
                 "java.util.Collection",
@@ -330,7 +330,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitStatement("Iterator<? extends RealmModel> iterator = objects.iterator()");
         writer.emitStatement("RealmModel object = null");
-        writer.emitStatement("Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size())");
+        writer.emitStatement("Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size())");
 
         writer.beginControlFlow("if (iterator.hasNext())")
                 .emitSingleLineComment(" access the first element to figure out the clazz for the routing below")
@@ -371,7 +371,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitStatement("Iterator<? extends RealmModel> iterator = objects.iterator()");
         writer.emitStatement("RealmModel object = null");
-        writer.emitStatement("Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>(objects.size())");
+        writer.emitStatement("Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>(objects.size())");
 
         writer.beginControlFlow("if (iterator.hasNext())")
                 .emitSingleLineComment(" access the first element to figure out the clazz for the routing below")
