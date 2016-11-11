@@ -26,6 +26,7 @@ public class RealmFileException extends RuntimeException {
     /**
      * The specific kind of this {@link RealmFileException}.
      */
+    @Keep
     public enum Kind {
         /**
          * Thrown for any I/O related exception scenarios when a Realm is opened.
