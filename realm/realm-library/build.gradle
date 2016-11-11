@@ -1,7 +1,6 @@
 import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -124,6 +123,7 @@ repositories {
 }
 
 dependencies {
+    objectServerAnnotationProcessor project(':realm-annotations-processor')
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.2'
@@ -136,7 +136,7 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-    androidTestApt project(':realm-annotations-processor')
+    androidTestAnnotationProcessor project(':realm-annotations-processor')
 }
 
 task sourcesJar(type: Jar) {

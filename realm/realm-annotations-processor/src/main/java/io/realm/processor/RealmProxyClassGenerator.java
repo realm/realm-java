@@ -659,7 +659,7 @@ public class RealmProxyClassGenerator {
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
-        writer.beginControlFlow("for (long i = 0; i < " + metadata.getFields().size() + "; i++)");
+        writer.beginControlFlow("for (long i = 0; i < columnCount; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();
         writer.emitEmptyLine();

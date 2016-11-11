@@ -260,7 +260,7 @@ public class BooleansRealmProxy extends some.test.Booleans
                 }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < 4; i++) {
+            for (long i = 0; i < columnCount; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
