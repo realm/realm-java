@@ -12,6 +12,10 @@
 
 ## 2.1.1
 
+### Bug fixes
+
+* Fixed a bug in `Realm.insert` and `Realm.insertOrUpdate` methods causing a `StackOverFlow` when you try to insert a cyclic graph of objects between Realms (#3732).
+
 ### Object Server API Changes (In Beta)
 
 * Set default RxFactory to `SyncConfiguration`.

@@ -43,6 +43,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
 import io.realm.entities.NoPrimaryKeyWithPrimaryKeyObjectRelation;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
@@ -290,6 +291,46 @@ public class BulkInsertTests {
         assertEquals("One", realmObjects.get(0).getName());
         assertEquals("updated", realmObjects.get(0).getObject().getName());
         assertEquals(2, realm.where(CyclicTypePrimaryKey.class).count());
+    }
+
+    @Test
+    public void insertOrUpdate_cyclicDependenciesFromOtherRealm() {
+        RealmConfiguration config1 = configFactory.createConfiguration("realm1");
+        RealmConfiguration config2 = configFactory.createConfiguration("realm2");
+
+        Realm realm1 = Realm.getInstance(config1);
+        Realm realm2 = Realm.getInstance(config2);
+
+        realm1.beginTransaction();
+        Owner owner = realm1.createObject(Owner.class);
+        owner.setName("Kiba");
+        Dog dog = realm1.createObject(Dog.class);
+        dog.setName("Akamaru");
+        owner.getDogs().add(dog);
+        dog.setOwner(owner);
+        realm1.commitTransaction();
+
+        //Copy object with relations from realm1 to realm2
+        realm2.beginTransaction();
+        realm2.insertOrUpdate(owner);
+        realm2.commitTransaction();
+
+        assertEquals(1, realm1.where(Owner.class).count());
+        assertEquals(1, realm1.where(Owner.class).findFirst().getDogs().size());
+        assertEquals(1, realm1.where(Dog.class).count());
+
+        assertEquals(realm1.where(Owner.class).count(), realm2.where(Owner.class).count());
+        assertEquals(realm1.where(Dog.class).count(), realm2.where(Dog.class).count());
+
+        assertEquals(1, realm2.where(Owner.class).findFirst().getDogs().size());
+
+        assertEquals(realm1.where(Owner.class).findFirst().getName(), realm2.where(Owner.class).findFirst().getName());
+
+        assertEquals(realm1.where(Owner.class).findFirst().getDogs().first().getName()
+                , realm2.where(Owner.class).findFirst().getDogs().first().getName());
+
+        realm1.close();
+        realm2.close();
     }
 
     @Test
