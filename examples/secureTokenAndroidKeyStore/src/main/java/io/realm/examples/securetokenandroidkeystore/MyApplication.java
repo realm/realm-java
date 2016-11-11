@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.internal.android.crypto.misc;
+package io.realm.examples.securetokenandroidkeystore;
 
-/**
- * Base64 helper methods.
- */
-public class Base64 {
-    public static String to(byte[] bytes) {
-        return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+import android.app.Application;
+
+import io.realm.Realm;
+
+public class MyApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // Initialize Realm. Should only be done once when the application starts.
+        Realm.init(this);
     }
-
-    public static byte[] from(String base64) {
-        return android.util.Base64.decode(base64, android.util.Base64.NO_WRAP);
-    }
-
 }

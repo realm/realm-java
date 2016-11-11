@@ -1,3 +1,9 @@
+## 2.2.0
+
+### Enhancements
+
+* Added support for the `annotationProcessor` configuration provided by Android Gradle Plugin 2.2.0 or later. Realm plugin adds its annotation processor to the `annotationProcessor` configuration instead of `apt` configuration if it is available and the `com.neenbedankt.android-apt` plugin is not used. In Kotlin projects, `kapt` is used instead of the `annotationProcessor` configuration (#3026).
+
 ## 2.1.2
 
 ### Bug fixes
@@ -20,6 +26,12 @@
 
 ## 2.1.0
 
+### Breaking changes
+
+* * `SecureUserStore` has been moved to its own GitHub repository: https://github.com/realm/realm-android-user-store
+  See https://github.com/realm/realm-android-user-store/blob/master/README.md for further info on how to include it.
+
+
 ### Object Server API Changes (In Beta)
 
 * Renamed `User` to `SyncUser`, `Credentials` to `SyncCredentials` and `Session` to `SyncSession` to align names with Cocoa.
@@ -41,7 +53,7 @@
 * Permission error when a database file was located on external storage (#3140).
 * Memory leak when unsubscribing from a RealmResults/RealmObject RxJava Observable (#3552).
 
-### Enhancement
+### Enhancements
 
 * `Realm.compactRealm()` now works for encrypted Realms.
 * Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
@@ -290,7 +302,7 @@ No changes since 0.91.1.
 * Removed `HandlerController` from the public API.
 * Removed constructor of `RealmAsyncTask` from the public API (#1594).
 * `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
-  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
+  See https://github.com/realm/realm-android-adapters/blob/master/README.md for further info on how to include it.
 * File format of Realm files is changed. Files will be automatically upgraded but opening a Realm file with older
   versions of Realm is not possible.
 

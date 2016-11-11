@@ -30,7 +30,7 @@ import io.realm.annotations.Beta;
  * Logging into the Realm Object Server consists of the following steps:
  * <ol>
  * <li>
- *     Log in to 3rd party provider (Facebook, Google or Twitter). The result is usually an Authorization Grant that must be
+ *     Log in to 3rd party provider (Facebook or Google). The result is usually an Authorization Grant that must be
  *     saved in a {@link SyncCredentials} object of the proper type e.g., {@link SyncCredentials#facebook(String)} for a
  *     Facebook login.
  * </li>
@@ -126,21 +126,6 @@ public class SyncCredentials {
     }
 
     /**
-     * Creates credentials based on a Twitter login.
-     *
-     * @param twitterToken a google userIdentifier acquired by logging into Twitter.
-     * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
-     * @throws IllegalArgumentException if user name is either {@code null} or empty.
-     */
-    public static SyncCredentials twitter(String twitterToken) {
-        if (twitterToken == null || twitterToken.equals("")) {
-            throw new IllegalArgumentException("Non-null 'twitterToken' required.");
-        }
-        return new SyncCredentials(IdentityProvider.TWITTER, twitterToken, null);
-    }
-
-    /**
      * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
      * {@code userInfo} used.
      *
@@ -221,11 +206,6 @@ public class SyncCredentials {
          * Credentials will be verified by Google.
          */
         public static final String GOOGLE = "google";
-
-        /**
-         * Credentials will be verified by Twitter.
-         */
-        public static final String TWITTER = "twitter";
 
         /**
          * Credentials will be verified by the Object Server.
