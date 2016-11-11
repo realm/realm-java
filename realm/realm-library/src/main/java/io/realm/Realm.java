@@ -21,7 +21,6 @@ import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -996,7 +994,7 @@ public final class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insert(this, object, cache);
     }
 
@@ -1065,7 +1063,7 @@ public final class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insertOrUpdate(this, object, cache);
     }
 

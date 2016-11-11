@@ -1,3 +1,9 @@
+## 2.2.0
+
+### Enhancements
+
+* Added support for the `annotationProcessor` configuration provided by Android Gradle Plugin 2.2.0 or later. Realm plugin adds its annotation processor to the `annotationProcessor` configuration instead of `apt` configuration if it is available and the `com.neenbedankt.android-apt` plugin is not used. In Kotlin projects, `kapt` is used instead of the `annotationProcessor` configuration (#3026).
+
 ## 2.1.2
 
 ### Bug fixes
@@ -5,6 +11,10 @@
 * Kotlin projects no longer create the `RealmDefaultModule` if no Realm model classes are present (#3746).
 
 ## 2.1.1
+
+### Bug fixes
+
+* Fixed a bug in `Realm.insert` and `Realm.insertOrUpdate` methods causing a `StackOverFlow` when you try to insert a cyclic graph of objects between Realms (#3732).
 
 ### Object Server API Changes (In Beta)
 
@@ -43,7 +53,7 @@
 * Permission error when a database file was located on external storage (#3140).
 * Memory leak when unsubscribing from a RealmResults/RealmObject RxJava Observable (#3552).
 
-### Enhancement
+### Enhancements
 
 * `Realm.compactRealm()` now works for encrypted Realms.
 * Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
