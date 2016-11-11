@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Kotlin projects no longer create the `RealmDefaultModule` if no Realm model classes are present (#3746).
+* Unexpected `RealmMigrationNeededException` was thrown when a field was added to synced Realm.
 
 ## 2.1.1
 
