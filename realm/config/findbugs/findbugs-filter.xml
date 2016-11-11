@@ -37,6 +37,13 @@
         <Field name="APP_ID" />
         <Bug pattern="MS_CANNOT_BE_FINAL" />
     </Match>
+    <Match>
+        <Class name="io.realm.SyncUser" />
+        <Field name="managementRealmConfig" />
+        <Bug pattern="IS2_INCONSISTENT_SYNC" />
+    </Match>
+
+
 
     <!-- Unit tests -->
     <Match>
