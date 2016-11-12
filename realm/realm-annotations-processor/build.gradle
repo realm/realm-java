@@ -40,6 +40,11 @@ sourceSets {
 compileJava.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assemble'
 
+task ojoUpload() {
+    dependsOn "artifactoryPublish"
+    group = 'Publishing'
+}
+
 def commonPom = {
     licenses {
         license {
