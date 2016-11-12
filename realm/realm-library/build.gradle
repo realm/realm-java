@@ -364,10 +364,9 @@ artifactory {
             repoKey = 'oss-snapshot-local'
             username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-            maven = true
         }
         defaults {
-            publishConfigs('basePublication', 'objectServerPublication')
+            publications('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }
