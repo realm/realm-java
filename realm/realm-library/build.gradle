@@ -39,6 +39,7 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 24
+        versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
