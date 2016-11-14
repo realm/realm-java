@@ -1,3 +1,9 @@
+# 2.2.1
+
+### Object Server API Changes (In Beta)
+
+* Fixed `SyncConfiguration.toString()` so it now outputs a correct description instead of an empty string (#3787).
+
 ## 2.2.0
 
 ### Object Server API Changes (In Beta)
