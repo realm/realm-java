@@ -323,8 +323,9 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
-    public void updateSchema(RealmSchema schema, long version) {
-        nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
+    // inTransaction: true is write transaction is already started and commit will be done by caller
+    public void updateSchema(RealmSchema schema, long version, boolean inTransaction) {
+        nativeUpdateSchema(nativePtr, schema.getNativePtr(), version, inTransaction);
     }
 
     @Override
@@ -398,5 +399,5 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
-    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version, boolean inTransaction);
 }
