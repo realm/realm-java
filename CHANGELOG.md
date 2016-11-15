@@ -1,3 +1,9 @@
+## 2.2.1
+
+# Bug fixes
+
+* `Realm.getLocalInstanceCount(config)` throwing NullPointerException if called after all Realms have been closed (#3791).
+
 ## 2.2.0
 
 ### Object Server API Changes (In Beta)
