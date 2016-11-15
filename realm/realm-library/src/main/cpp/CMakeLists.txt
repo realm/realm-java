@@ -162,18 +162,15 @@ file(GLOB objectstore_SRC
     "object-store/src/impl/collection_change_builder.cpp"
     "object-store/src/impl/transact_log_handler.cpp"
     "object-store/src/impl/weak_realm_notifier.cpp"
-    "object-store/src/impl/android/*.cpp"
+    "object-store/src/impl/generic/*.cpp"
     "object-store/src/util/*.cpp")
+
 # Sync needed Object Store files
 if (build_SYNC)
     file(GLOB objectstore_sync_SRC
-        "object-store/src/sync/sync_manager.cpp"
-        "object-store/src/sync/sync_session.cpp"
-        "object-store/src/sync/sync_user.cpp"
-        "object-store/src/sync/sync_config.cpp")
+        "object-store/src/sync/*.cpp")
 
 endif()
-
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
 add_dependencies(realm-jni jni_headers)
 # -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
