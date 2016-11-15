@@ -1,3 +1,9 @@
+## 2.2.1
+
+### Bug fixes
+
+* Set native library version to ReLinker (#3775)
+
 ## 2.2.0
 
 ### Object Server API Changes (In Beta)
