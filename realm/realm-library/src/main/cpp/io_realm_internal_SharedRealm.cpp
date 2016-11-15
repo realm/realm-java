@@ -431,6 +431,7 @@ Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass,
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong nativePtr,
                                                       jlong nativeSchemaPtr, jlong version,
+                                                      jobject migration,
                                                       jboolean inTransaction) {
     TR_ENTER()
     try {

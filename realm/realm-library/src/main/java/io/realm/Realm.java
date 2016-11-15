@@ -344,7 +344,7 @@ public final class Realm extends BaseRealm {
             if (syncAvailable) {
                 RealmSchema schema = new RealmSchema(realmObjectSchemas);
                 // Assumption: when SyncConfiguration then additive schema update mode
-                realm.sharedRealm.updateSchema(schema, version, true);
+                realm.sharedRealm.updateSchema(schema, version, null, true);
                 commitNeeded = true;
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
                     columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
