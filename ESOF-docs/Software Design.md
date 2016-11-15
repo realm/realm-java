@@ -25,7 +25,9 @@ This diagram shows the main structure of the Realm Java project (its grouping me
 
 ## Development View <a name="development"></a>
 
-
+Realm has a complex system and because of this needs to follow an architecture that allows an optimal development process.
+TO DO talk a little about each component.
+The following diagram contains Realm software components, the dependencies between them and the main functionaly of each one.
 ![Development View](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/DevelopmentView.png)
 
 ## Deployment View <a name="deployment"></a>
