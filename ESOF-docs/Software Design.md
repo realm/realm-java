@@ -15,7 +15,7 @@ Software architecture is described as the organization of a system, where the sy
 
 4+1 Architectural View Model is a view model used to describe the system from the viewpoint of different stakeholders, such as end-users, developers and project managers. The four views of the model (Logical, development, deployment and process) are presented in this report. Use cases or scenarios (described in previous report) are used to illustrate the architecture serving as the 'plus one' view. 
 
-Realm follows client-server architecture pattern, because allows communication between a server and many devices. 
+Realm is a database intended to be part of larger systems. Therefore, Realm doesn't follow any architectural patterns, just try to be usable by them. For instance, most of the mobile apps that use Realm, allowing communication between a server and multiple devices, are following the client-server architectural pattern.
 
 ## Logical View <a name="logical"></a>
 
@@ -40,7 +40,7 @@ This deployment diagram illustrates how the devices sync with one another withou
 
 ![Process View Diagram](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/process%20view%20graph.png)
 
-Any mobile app can use Realm. An application start a transiction before add or modify data. When a transaction ends, other application functions can start. The Realm database is based on Realm objects, and to add information in database it's necessary create a Realm object. To search for data it's needed create a query, which returns the data found in the form of Realm objects. 
+Any mobile app can use Realm. An application start a transaction before add or modify data. When a transaction ends, other application functions can start. The Realm database is based on Realm objects, and to add information in database it's necessary create a Realm object. To search for data it's needed create a query, which returns the data found in the form of Realm objects. 
 
 ## Contribuition <a name="contribuition"></a>
 
