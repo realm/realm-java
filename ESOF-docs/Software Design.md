@@ -29,6 +29,10 @@ This deployment diagram illustrates how the devices sync with one another withou
 
 ## Process View <a name="process"></a>
 
+![Process View Diagram](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/process%20view%20graph.png)
+
+Any mobile app can use Realm. An application start a transiction before add or modify data. When a transaction ends, other application functions can start. The Realm database is based on Realm objects, and to add information in database it's necessary create a Realm object. To search for data it's needed create a query, which returns the data found in the form of Realm objects. 
+
 ## Contribuition <a name="contribuition"></a>
 
 Carolina Centeio: 25%
