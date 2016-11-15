@@ -25,6 +25,9 @@ This diagram shows the main structure of the Realm Java project (its grouping me
 
 ## Development View <a name="development"></a>
 
+
+![Development View](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/DevelopmentView.png)
+
 ## Deployment View <a name="deployment"></a>
 
 In order for the user to be able to use the same database for all his apps, on any major platform. Realm Java needs to connect to a server application named Realm Server Object which can, in turn, verify the user identity, grant permissions needed for reading and writing data, access and modify data mirrorded on mobile devices. The communication between devices is encrypted to ensure the security of the data.
