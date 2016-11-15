@@ -11,6 +11,12 @@
 
 ## Introduction <a name="introduction"></a>
 
+Software architecture is described as the organization of a system, where the system represents a set of components and the relationships between them that accomplish the requirements.
+
+4+1 Architectural View Model is a view model used to describe the system from the viewpoint of different stakeholders, such as end-users, developers and project managers. The four views of the model (Logical, development, deployment and process) are presented in this report. Use cases or scenarios (described in previous report) are used to illustrate the architecture serving as the 'plus one' view. 
+
+Realm follows client-server architecture pattern, because allows communication between a server and many devices. 
+
 ## Logical View <a name="logical"></a>
 
 This diagram shows the main structure of the Realm Java project (its grouping mechanisms and relations), starting at "io" package. Although this project also uses many java and android packages, we considered more important to represent it with Realm packages only.
