@@ -169,8 +169,8 @@ file(GLOB objectstore_SRC
 if (build_SYNC)
     file(GLOB objectstore_sync_SRC
         "object-store/src/sync/*.cpp")
-
 endif()
+
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
 add_dependencies(realm-jni jni_headers)
 # -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
