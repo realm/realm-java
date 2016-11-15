@@ -13,6 +13,10 @@
 
 ## Logical View <a name="logical"></a>
 
+This diagram shows the main structure of the Realm Java project (its grouping mechanisms and relations), starting at "io" package. Although this project also uses many java and android packages, we considered more important to represent it with Realm packages only.
+
+![Logical View](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/logicview.jpg)
+
 ## Development View <a name="development"></a>
 
 ## Deployment View <a name="deployment"></a>
