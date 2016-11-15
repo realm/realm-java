@@ -408,6 +408,17 @@ public class SyncUser {
         return syncUser.hashCode();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("UserId: ").append(syncUser.getIdentity());
+        sb.append(", AuthUrl: ").append(syncUser.getAuthenticationUrl());
+        sb.append(", IsValid: ").append(isValid());
+        sb.append(", Sessions: ").append(syncUser.getSessions().size());
+        sb.append("}");
+        return toString();
+    }
+
     // Expose internal representation for other package protected classes
     ObjectServerUser getSyncUser() {
         return syncUser;
