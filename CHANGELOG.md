@@ -3,6 +3,7 @@
 ### Object Server API Changes (In Beta)
 
 * Fixed `SyncConfiguration.toString()` so it now outputs a correct description instead of an empty string (#3787).
+* Added version number to the native library, preventing ReLinker from accidentally loading old code (#3775).
 
 ## 2.2.0
 
