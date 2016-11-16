@@ -391,4 +391,14 @@ public class SyncConfigurationTests {
 
         assertNotNull(config.getRxFactory());
     }
+
+    @Test
+    public void toString_nonEmpty() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+
+        String configStr = config.toString();
+        assertTrue(configStr != null && !configStr.isEmpty());
+    }
 }
