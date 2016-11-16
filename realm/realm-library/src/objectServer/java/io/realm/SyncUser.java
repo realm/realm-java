@@ -416,7 +416,7 @@ public class SyncUser {
         sb.append(", IsValid: ").append(isValid());
         sb.append(", Sessions: ").append(syncUser.getSessions().size());
         sb.append("}");
-        return toString();
+        return sb.toString();
     }
 
     // Expose internal representation for other package protected classes
