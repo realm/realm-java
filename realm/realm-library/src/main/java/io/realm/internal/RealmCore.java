@@ -26,6 +26,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
 
+import io.realm.BuildConfig;
+
 /**
  * Utility methods for Realm Core.
  */
@@ -56,7 +58,7 @@ public class RealmCore {
         if (libraryIsLoaded) {
             return;
         }
-        ReLinker.loadLibrary(context, "realm-jni");
+        ReLinker.loadLibrary(context, "realm-jni", BuildConfig.VERSION_NAME);
         libraryIsLoaded = true;
     }
 
