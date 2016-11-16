@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* Set native library version to ReLinker (#3775)
+* Added version number to the native library, preventing ReLinker from accidentally loading old code (#3775).
 
 ## 2.2.0
 
