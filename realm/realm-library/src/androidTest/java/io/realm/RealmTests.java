@@ -3796,20 +3796,20 @@ public class RealmTests {
     @Test
     public void getLocalInstanceCount() {
         final RealmConfiguration config = configFactory.createConfiguration("localInstanceCount");
-        assertEquals(0, Realm.getGlobalInstanceCount(config));
+        assertEquals(0, Realm.getLocalInstanceCount(config));
 
         // Open thread local Realm
         Realm realm = Realm.getInstance(config);
-        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        assertEquals(1, Realm.getLocalInstanceCount(config));
 
         // Open thread local DynamicRealm
         DynamicRealm dynRealm = DynamicRealm.getInstance(config);
-        assertEquals(2, Realm.getGlobalInstanceCount(config));
+        assertEquals(2, Realm.getLocalInstanceCount(config));
 
         dynRealm.close();
-        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        assertEquals(1, Realm.getLocalInstanceCount(config));
         realm.close();
-        assertEquals(0, Realm.getGlobalInstanceCount(config));
+        assertEquals(0, Realm.getLocalInstanceCount(config));
     }
 
     @Test
