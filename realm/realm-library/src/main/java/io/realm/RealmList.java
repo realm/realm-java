@@ -61,6 +61,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     protected LinkView view;
     protected BaseRealm realm;
     private List<E> unmanagedList;
+    private boolean ignoreModification;
 
     /**
      * Creates a RealmList in unmanaged mode, where the elements are not controlled by a Realm.
@@ -113,6 +114,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         this.className = className;
     }
 
+    void setIgnoreModification(boolean ignoreModification) {
+        this.ignoreModification = ignoreModification;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -160,6 +165,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public void add(int location, E object) {
         checkValidObject(object);
+        if (ignoreModification) {
+            return;
+        }
+
         if (managedMode) {
             checkValidView();
             if (location < 0 || location > size()) {
@@ -192,6 +201,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     @Override
     public boolean add(E object) {
         checkValidObject(object);
+        if (ignoreModification) {
+            return true;
+        }
         if (managedMode) {
             checkValidView();
             RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
@@ -227,12 +239,18 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         E oldObject;
         if (managedMode) {
             checkValidView();
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             oldObject = get(location);
-            view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
+            if (!ignoreModification) {
+                RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+                view.set(location, proxy.realmGet$proxyState().getRow$realm().getIndex());
+            }
             return oldObject;
         } else {
-            oldObject = unmanagedList.set(location, object);
+            if (ignoreModification) {
+                oldObject = unmanagedList.get(location);
+            } else {
+                oldObject = unmanagedList.set(location, object);
+            }
         }
         return oldObject;
     }
@@ -295,15 +313,19 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public void move(int oldPos, int newPos) {
         if (managedMode) {
             checkValidView();
-            view.move(oldPos, newPos);
+            if (!ignoreModification) {
+                view.move(oldPos, newPos);
+            }
         } else {
             checkIndex(oldPos);
             checkIndex(newPos);
-            E object = unmanagedList.remove(oldPos);
-            if (newPos > oldPos) {
-                unmanagedList.add(newPos - 1, object);
-            } else {
-                unmanagedList.add(newPos, object);
+            if (!ignoreModification) {
+                E object = unmanagedList.remove(oldPos);
+                if (newPos > oldPos) {
+                    unmanagedList.add(newPos - 1, object);
+                } else {
+                    unmanagedList.add(newPos, object);
+                }
             }
         }
     }
@@ -320,11 +342,16 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public void clear() {
         if (managedMode) {
             checkValidView();
-            view.clear();
+            if (!ignoreModification) {
+                view.clear();
+                modCount++;
+            }
         } else {
-            unmanagedList.clear();
+            if (!ignoreModification) {
+                unmanagedList.clear();
+                modCount++;
+            }
         }
-        modCount++;
     }
 
     /**
@@ -341,11 +368,18 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         if (managedMode) {
             checkValidView();
             removedItem = get(location);
-            view.remove(location);
+            if (!ignoreModification) {
+                view.remove(location);
+                modCount++;
+            }
         } else {
-            removedItem = unmanagedList.remove(location);
+            if (ignoreModification) {
+                removedItem = unmanagedList.get(location);
+            } else {
+                removedItem = unmanagedList.remove(location);
+                modCount++;
+            }
         }
-        modCount++;
         return removedItem;
     }
 
@@ -368,6 +402,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public boolean remove(Object object) {
+        if (ignoreModification) {
+            return false;
+        }
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -392,6 +429,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public boolean removeAll(Collection<?> collection) {
+        if (ignoreModification) {
+            return false;
+        }
         if (managedMode && !realm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
@@ -403,10 +443,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public boolean deleteFirstFromRealm() {
+        // no need to check ignoreModification since deleteFromRealm does.
         if (managedMode) {
             if (size() > 0) {
                 deleteFromRealm(0);
-                modCount++;
                 return true;
             } else {
                 return false;
@@ -421,10 +461,10 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public boolean deleteLastFromRealm() {
+        // no need to check ignoreModification since deleteFromRealm does.
         if (managedMode) {
             if (size() > 0) {
                 deleteFromRealm(size() - 1);
-                modCount++;
                 return true;
             } else {
                 return false;
@@ -562,6 +602,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public void deleteFromRealm(int location) {
         if (managedMode) {
             checkValidView();
+            if (ignoreModification) {
+                return;
+            }
             view.removeTargetRow(location);
             modCount++;
         } else {
@@ -681,6 +724,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     public boolean deleteAllFromRealm() {
         if (managedMode) {
             checkValidView();
+            if (ignoreModification) {
+                return false;
+            }
             if (size() > 0) {
                 view.removeAllTargetRows();
                 modCount++;
@@ -875,6 +921,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
                 throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
             }
             checkConcurrentModification();
+            if (ignoreModification) {
+                return;
+            }
 
             try {
                 RealmList.this.remove(lastRet);
@@ -958,6 +1007,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
             }
             checkConcurrentModification();
 
+            if (ignoreModification) {
+                return;
+            }
             try {
                 RealmList.this.set(lastRet, e);
                 expectedModCount = modCount;
@@ -975,6 +1027,9 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
         public void add(E e) {
             realm.checkIfValid();
             checkConcurrentModification();
+            if (ignoreModification) {
+                return;
+            }
             try {
                 int i = cursor;
                 RealmList.this.add(i, e);
