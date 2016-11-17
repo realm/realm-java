@@ -89,6 +89,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // clear it.
     private boolean viewUpdated = false;
 
+    private final long nativePtr;
+
+    static <E extends RealmModel> RealmResults<E> createFromQuery(BaseRealm realm, TableQuery query, Class<E> clazz,
+                                                                  String fieldNames[], Sort[] sortOrder) {
+        return new RealmResults<E>(realm, query, clazz, fieldNames, sortOrder);
+    }
 
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
@@ -110,16 +116,34 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         return realmResults;
     }
 
+    private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz, String fieldNames[], Sort[] sortOrder) {
+        this.realm = realm;
+        this.classSpec = clazz;
+        this.query = query;
+
+        if (sortOrder.length != fieldNames.length) {
+            throw new IllegalArgumentException("Number of field names and sort orders does not match");
+        }
+
+        boolean[] order = new boolean[sortOrder.length];
+        for (int i = 0; i < sortOrder.length; i++) {
+            order[i] = sortOrder[i] == Sort.ASCENDING;
+        }
+        this.nativePtr = nativeCreateResults(realm.sharedRealm.getNativePtr(), query.getNativePtr(), order);
+    }
+
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
         this.realm = realm;
         this.classSpec = clazz;
         this.query = query;
+        this.nativePtr = 0;
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, String className) {
         this.realm = realm;
         this.query = query;
         this.className = className;
+        this.nativePtr = 0;
     }
 
     private RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
@@ -130,6 +154,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.pendingQuery = null;
         this.query = null;
         this.currentTableViewVersion = table.syncIfNeeded();
+        this.nativePtr = 0;
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -138,6 +163,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
         pendingQuery = null;
         query = null;
+        this.nativePtr = 0;
     }
 
     private RealmResults(BaseRealm realm, TableOrView table, String className) {
@@ -262,7 +288,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public E last(E defaultValue) {
         return lastImpl(false, defaultValue);
-        
+
     }
 
     private E lastImpl(boolean shouldThrow, E defaultValue) {
@@ -294,8 +320,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteAllFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            TableOrView table = getTableOrView();
-            table.clear();
+            if (nativePtr == 0) {
+                TableOrView table = getTableOrView();
+                table.clear();
+            } else {
+                nativeClear(nativePtr);
+            }
             return true;
         } else {
             return false;
@@ -413,7 +443,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (!isLoaded()) {
             return 0;
         } else {
-            long size = getTableOrView().size();
+            long size;
+            if (nativePtr == 0) {
+                size = getTableOrView().size();
+            } else {
+                size = nativeSize(nativePtr);
+            }
             return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
     }
@@ -424,15 +459,19 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number min(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return table.minimumLong(columnIndex);
-            case FLOAT:
-                return table.minimumFloat(columnIndex);
-            case DOUBLE:
-                return table.minimumDouble(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        if (nativePtr == 0) {
+            switch (table.getColumnType(columnIndex)) {
+                case INTEGER:
+                    return table.minimumLong(columnIndex);
+                case FLOAT:
+                    return table.minimumFloat(columnIndex);
+                case DOUBLE:
+                    return table.minimumDouble(columnIndex);
+                default:
+                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+            }
+        } else {
+            return nativeAggregate(nativePtr, columnIndex, 1);
         }
     }
 
@@ -1056,4 +1095,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             }
         }
     }
+
+    native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, boolean[] order);
+    native long nativeGetRow(long nativePtr, int index);
+    native void nativeClear(long nativePtr);
+    native long nativeSize(long nativePtr);
+    native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
 }

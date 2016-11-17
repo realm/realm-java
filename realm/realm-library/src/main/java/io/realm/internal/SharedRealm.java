@@ -211,7 +211,8 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    long getNativePtr() {
+    // FIXME: can it be protected?
+    public long getNativePtr() {
         return nativePtr;
     }
 

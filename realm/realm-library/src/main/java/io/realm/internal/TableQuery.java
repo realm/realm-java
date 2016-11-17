@@ -60,6 +60,11 @@ public class TableQuery implements Closeable {
         this.origin = origin;
     }
 
+    // FIXME: can it be protected?
+    public long getNativePtr() {
+        return this.nativePtr;
+    }
+
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
