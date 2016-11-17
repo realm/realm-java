@@ -36,7 +36,7 @@ In order for the user to be able to use the same database for all his apps, on a
 
 ![Deployment Diagram](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/Deployment%20Diagram.png)
 
-This deployment diagram illustrates how the devices sync with one another without conficts.  
+This deployment diagram illustrates how the devices sync with one another without conficts. By operating like this, Realm works smoothly as a distributed system and is able become part of larger systems.
 
 ## Process View <a name="process"></a>
 
