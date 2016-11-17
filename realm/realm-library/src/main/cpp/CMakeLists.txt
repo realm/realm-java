@@ -120,7 +120,7 @@ set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macr
 -Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
 set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
-    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_SYNC -DREALM_ENABLE_SYNC")
+    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_SYNC -DREALM_ENABLE_SYNC -DREALM_HAVE_EPOLL")
 endif()
 # There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
 # And this issue doesn't seem to impact the core compiling.
@@ -151,18 +151,9 @@ endif()
 
 # Object Store source files
 file(GLOB objectstore_SRC
-    "object-store/src/collection_notifications.cpp"
-    "object-store/src/object_schema.cpp"
-    "object-store/src/object_store.cpp"
-    "object-store/src/schema.cpp"
-    "object-store/src/index_set.cpp"
-    "object-store/src/shared_realm.cpp"
-    "object-store/src/impl/realm_coordinator.cpp"
-    "object-store/src/impl/collection_notifier.cpp"
-    "object-store/src/impl/collection_change_builder.cpp"
-    "object-store/src/impl/transact_log_handler.cpp"
-    "object-store/src/impl/weak_realm_notifier.cpp"
-    "object-store/src/impl/generic/*.cpp"
+    "object-store/src/*.cpp"
+    "object-store/src/impl/*.cpp"
+    "object-store/src/impl/epoll/*.cpp"
     "object-store/src/util/*.cpp")
 
 # Sync needed Object Store files
