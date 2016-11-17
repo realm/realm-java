@@ -7,6 +7,7 @@
 ### Bug fixes
 
 * Added version number to the native library, preventing ReLinker from accidentally loading old code (#3775).
+* `Realm.getLocalInstanceCount(config)` throwing NullPointerException if called after all Realms have been closed (#3791).
 
 ## 2.2.0
 
