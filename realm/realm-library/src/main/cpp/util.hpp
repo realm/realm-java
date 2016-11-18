@@ -666,6 +666,8 @@ extern jclass java_lang_float;
 extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
 extern jmethodID java_lang_double_init;
+extern jclass java_util_date;
+extern jmethodID java_util_date_init;
 
 // FIXME Move to own library
 extern jclass session_class_ref;
@@ -702,6 +704,10 @@ inline realm::Timestamp from_milliseconds(jlong milliseconds)
     int64_t seconds = milliseconds / 1000;
     int32_t nanoseconds = (milliseconds % 1000) * 1000000;
     return realm::Timestamp(seconds, nanoseconds);
+}
+
+inline jobject NewDate(JNIEnv* env, const realm::Timestamp& ts) {
+    return env->NewObject(java_util_date, java_util_date_init, to_milliseconds(ts));
 }
 
 extern const std::string TABLE_PREFIX;

@@ -157,6 +157,7 @@ file(GLOB objectstore_SRC
     "object-store/src/schema.cpp"
     "object-store/src/index_set.cpp"
     "object-store/src/shared_realm.cpp"
+    "object-store/src/results.cpp"
     "object-store/src/impl/realm_coordinator.cpp"
     "object-store/src/impl/collection_notifier.cpp"
     "object-store/src/impl/collection_change_builder.cpp"

@@ -39,6 +39,8 @@ jclass java_lang_float;
 jmethodID java_lang_float_init;
 jclass java_lang_double;
 jmethodID java_lang_double_init;
+jclass java_util_date;
+jmethodID java_util_date_init;
 jclass session_class_ref;
 jmethodID session_error_handler;
 

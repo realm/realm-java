@@ -91,6 +91,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private final long nativePtr;
 
+    // Public for static checking in JNI
+    public static final byte AGGREGATE_FUNCTION_MINIMUM = 1;
+    public static final byte AGGREGATE_FUNCTION_MAXIMUM = 2;
+    public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
+    public static final byte AGGREGATE_FUNCTION_SUM     = 4;
+
     static <E extends RealmModel> RealmResults<E> createFromQuery(BaseRealm realm, TableQuery query, Class<E> clazz,
                                                                   String fieldNames[], Sort[] sortOrder) {
         return new RealmResults<E>(realm, query, clazz, fieldNames, sortOrder);
@@ -126,10 +132,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
 
         boolean[] order = new boolean[sortOrder.length];
+        long[] indices = new long[sortOrder.length];
         for (int i = 0; i < sortOrder.length; i++) {
             order[i] = sortOrder[i] == Sort.ASCENDING;
+            indices[i] = getColumnIndexForSort(fieldNames[i]);
         }
-        this.nativePtr = nativeCreateResults(realm.sharedRealm.getNativePtr(), query.getNativePtr(), order);
+
+        this.nativePtr = nativeCreateResults(realm.sharedRealm.getNativePtr(), query.getNativePtr(), indices, order);
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
@@ -170,6 +179,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this(realm, className);
         this.table = table;
         this.currentTableViewVersion = table.syncIfNeeded();
+    }
+
+    private RealmResults(BaseRealm realm, String className, long nativePtr) {
+        this.realm = realm;
+        this.className = className;
+        this.nativePtr = nativePtr;
+        this.query = null;
     }
 
     TableOrView getTableOrView() {
@@ -404,7 +420,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        return this.sort(fieldName, Sort.ASCENDING);
+        if (nativePtr == 0) {
+            return this.sort(fieldName, Sort.ASCENDING);
+        } else {
+            long ptr = nativeSort(nativePtr, new long[]{getColumnIndexForSort(fieldName)}, new boolean[]{Sort.ASCENDING.getValue()});
+            return new RealmResults<E>(realm, className, ptr);
+        }
     }
 
     /**
@@ -412,7 +433,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        return where().findAllSorted(fieldName, sortOrder);
+        if (nativePtr == 0) {
+            return where().findAllSorted(fieldName, sortOrder);
+        } else {
+            long ptr = nativeSort(nativePtr, new long[]{getColumnIndexForSort(fieldName)}, new boolean[]{sortOrder == Sort.ASCENDING});
+            return new RealmResults<E>(realm, className, ptr);
+        }
     }
 
     /**
@@ -420,7 +446,22 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
-        return where().findAllSorted(fieldNames, sortOrders);
+        if (nativePtr == 0) {
+            return where().findAllSorted(fieldNames, sortOrders);
+        } else {
+            long columnIndices[] = new long[fieldNames.length];
+            for(int i = 0; i < fieldNames.length; i++) {
+                columnIndices[i] = getColumnIndexForSort(fieldNames[i]);
+            }
+
+            boolean orders[] = new boolean[sortOrders.length];
+            for(int i = 0; i < sortOrders.length; i++) {
+                orders[i] = sortOrders[i].getValue()
+            }
+
+            long ptr = nativeSort(nativePtr, columnIndices, orders);
+            return new RealmResults<E>(realm, className, ptr);
+        }
     }
 
     /**
@@ -471,7 +512,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
                     throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
             }
         } else {
-            return nativeAggregate(nativePtr, columnIndex, 1);
+            return (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MINIMUM);
         }
     }
 
@@ -481,11 +522,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Date minDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
-            return table.minimumDate(columnIndex);
-        }
-        else {
-            throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
+        if (nativePtr == 0) {
+            if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
+                return table.minimumDate(columnIndex);
+            } else {
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
+            }
+        } else {
+            return (Date) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MINIMUM);
         }
     }
 
@@ -495,15 +539,19 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number max(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return table.maximumLong(columnIndex);
-            case FLOAT:
-                return table.maximumFloat(columnIndex);
-            case DOUBLE:
-                return table.maximumDouble(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        if (nativePtr == 0) {
+            switch (table.getColumnType(columnIndex)) {
+                case INTEGER:
+                    return table.maximumLong(columnIndex);
+                case FLOAT:
+                    return table.maximumFloat(columnIndex);
+                case DOUBLE:
+                    return table.maximumDouble(columnIndex);
+                default:
+                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+            }
+        } else {
+            return (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MAXIMUM);
         }
     }
 
@@ -520,11 +568,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
-            return table.maximumDate(columnIndex);
-        }
-        else {
-            throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
+        if (nativePtr == 0) {
+            if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
+                return table.maximumDate(columnIndex);
+            } else {
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
+            }
+        } else {
+            return (Date) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MAXIMUM);
         }
     }
 
@@ -535,15 +586,19 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number sum(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return table.sumLong(columnIndex);
-            case FLOAT:
-                return table.sumFloat(columnIndex);
-            case DOUBLE:
-                return table.sumDouble(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        if (nativePtr == 0) {
+            switch (table.getColumnType(columnIndex)) {
+                case INTEGER:
+                    return table.sumLong(columnIndex);
+                case FLOAT:
+                    return table.sumFloat(columnIndex);
+                case DOUBLE:
+                    return table.sumDouble(columnIndex);
+                default:
+                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+            }
+        } else {
+            return (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_SUM);
         }
     }
 
@@ -553,15 +608,21 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public double average(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        switch (table.getColumnType(columnIndex)) {
-            case INTEGER:
-                return table.averageLong(columnIndex);
-            case DOUBLE:
-                return table.averageDouble(columnIndex);
-            case FLOAT:
-                return table.averageFloat(columnIndex);
-            default:
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        if (nativePtr == 0) {
+            switch (table.getColumnType(columnIndex)) {
+                case INTEGER:
+                    return table.averageLong(columnIndex);
+                case DOUBLE:
+                    return table.averageDouble(columnIndex);
+                case FLOAT:
+                    return table.averageFloat(columnIndex);
+                default:
+                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+            }
+        } else {
+            // FIXME: Should we change return type to Double?
+            Number sum = (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_AVERAGE);
+            return sum.doubleValue();
         }
     }
 
@@ -1096,9 +1157,11 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
     }
 
-    native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, boolean[] order);
-    native long nativeGetRow(long nativePtr, int index);
-    native void nativeClear(long nativePtr);
-    native long nativeSize(long nativePtr);
-    native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
+    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long[] columnIndices, boolean[] orders);
+    private static native long nativeCreateSnapshot(long nativePtr);
+    private static native long nativeGetRow(long nativePtr, int index);
+    private static native void nativeClear(long nativePtr);
+    private static native long nativeSize(long nativePtr);
+    private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
+    private static native long nativeSort(long nativePtr, long[] columnIndices, boolean[] orders);
 }
