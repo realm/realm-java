@@ -25,8 +25,8 @@ This diagram shows the main structure of the Realm Java project (its grouping me
 
 ## Development View <a name="development"></a>
 
-Realm has a complex system and because of this needs to follow an architecture that allows an optimal development process.
-TO DO talk a little about each component.
+Realm has a system that can be easily integrated with other applications, so it follows a basic architecture that also allows an optimal development process.
+The system runs trough the created API and uses processor-annotations(ReamProcessor) made specifically for that API, where a bridge is created between both. The transformer component, throughout the application building process, is useful to send data to Realm.
 The following diagram contains Realm software components, the dependencies between them and the main functionaly of each one.
 ![Development View](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/DevelopmentView.png)
 
