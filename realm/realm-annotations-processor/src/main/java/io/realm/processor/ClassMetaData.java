@@ -322,7 +322,7 @@ public class ClassMetaData {
      */
     public boolean isModelClass() {
         String type = classType.toString();
-        if (type.equals("io.realm.dynamic.DynamicRealmObject")) {
+        if (type.equals("io.realm.DynamicRealmObject")) {
             return false;
         }
         return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));

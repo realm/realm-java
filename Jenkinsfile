@@ -25,6 +25,9 @@ try {
       def buildEnv
       def rosEnv
       stage('Docker build') {
+        // Clean any potential old containers
+        sh 'docker rm ros || true' 
+
         // Docker image for build
         buildEnv = docker.build 'realm-java:snapshot'
         // Docker image for testing Realm Object Server
@@ -44,6 +47,7 @@ try {
                   "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
+                  "-v ${env.HOME}/lcache:/tmp/.lcache " +
                   "--network container:ros") {
             stage('JVM tests') {
               try {
