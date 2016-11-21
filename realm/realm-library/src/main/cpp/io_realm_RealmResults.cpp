@@ -51,7 +51,7 @@ Java_io_realm_RealmResults_nativeCreateResults(JNIEnv* env, jclass, jlong shared
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeCreateSnapshort(JNIEnv* env, jclass, jlong native_ptr) {
+Java_io_realm_RealmResults_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -59,6 +59,18 @@ Java_io_realm_RealmResults_nativeCreateSnapshort(JNIEnv* env, jclass, jlong nati
         return reinterpret_cast<jlong>(new Results(snapshot));
     } CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_RealmResults_nativeContains(JNIEnv *env, jclass, jlong native_ptr, jlong native_row_ptr) {
+    TR_ENTER_PTR(native_ptr);
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+        auto row = reinterpret_cast<Row*>(native_row_ptr);
+        size_t index = results->index_of(*row);
+        return to_jbool(index != not_found);
+    } CATCH_STD();
+    return JNI_FALSE;
 }
 
 // FIXME: we don't use it at the moment

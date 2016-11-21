@@ -716,4 +716,8 @@ static inline bool to_bool(jboolean b) {
     return b == JNI_TRUE;
 }
 
+static inline jboolean to_jbool(bool b) {
+    return b?JNI_TRUE:JNI_FALSE;
+}
+
 #endif // REALM_JAVA_UTIL_HPP

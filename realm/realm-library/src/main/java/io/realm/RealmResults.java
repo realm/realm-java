@@ -31,12 +31,14 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.async.BadVersionException;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -234,8 +236,18 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         boolean contains = false;
         if (isLoaded() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
+            if (nativePtr == 0) {
+                if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
+                    contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
+                }
+            } else {
+                if (realm instanceof DynamicRealm) {
+                    UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
+                    contains = nativeContains(nativePtr, row.nativePointer);
+                } else {
+                    CheckedRow row = (CheckedRow) proxy.realmGet$proxyState().getRow$realm();
+                    contains = nativeContains(nativePtr, row.nativePointer);
+                }
             }
         }
         return contains;
@@ -456,7 +468,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
             boolean orders[] = new boolean[sortOrders.length];
             for(int i = 0; i < sortOrders.length; i++) {
-                orders[i] = sortOrders[i].getValue()
+                orders[i] = sortOrders[i].getValue();
             }
 
             long ptr = nativeSort(nativePtr, columnIndices, orders);
@@ -1160,6 +1172,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long[] columnIndices, boolean[] orders);
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
+    private static native boolean nativeContains(long nativePtr, long nativeRowPtr);
     private static native void nativeClear(long nativePtr);
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);

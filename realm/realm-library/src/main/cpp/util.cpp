@@ -25,6 +25,7 @@
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
+#include "results.hpp"
 
 using namespace std;
 using namespace realm;
@@ -78,6 +79,21 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     }
     catch (InvalidEncryptionKeyException& e) {
         ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::OutOfBoundsIndexException& e) {
+        ss << "Out of range  in " << file << " line " << line
+           << "(requested: " << e.requested << " valid: " << e.valid_count << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
+    }
+    catch (Results::IncorrectTableException& e) {
+        ss << "Incorrect class in " << file << " line " << line
+           << "(actual: " << e.actual << " expected: " << e.expected << ")";
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (Results::UnsupportedColumnTypeException& e) {
+        ss << "Unsupported type in " << file << " line " << line
+           << "(field name: " << e.column_name << ")";
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (exception& e) {
