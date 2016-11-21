@@ -21,14 +21,6 @@ using namespace realm;
 
 static void finalize_link_view(jlong ptr);
 
-JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClose
-  (JNIEnv*, jclass, jlong nativeLinkViewPtr)
-{
-    TR_ENTER_PTR(nativeLinkViewPtr)
-    finalize_link_view(nativeLinkViewPtr);
-}
-
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetRow
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
 {

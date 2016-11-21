@@ -168,7 +168,6 @@ public class LinkView implements NativeObject {
         }
     }
 
-    public static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long linkViewIndex);
     public static native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
