@@ -106,6 +106,7 @@ try {
             }
           }
       } finally {
+          sh "docker logs ros"
           rosContainer.stop()
       }
     }
