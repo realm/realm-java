@@ -131,17 +131,11 @@ dependencies {
     objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
-    androidTestCompile('com.android.support.test:rules:0.5') {
-        exclude group: 'org.hamcrest', module: 'hamcrest-core'
-    }
-    androidTestCompile('com.android.support.test:runner:0.5') {
-        exclude group: 'org.hamcrest', module: 'hamcrest-core'
-    }
-    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile('com.google.dexmaker:dexmaker-mockito:1.2') {
-        exclude group: 'org.hamcrest', module: 'hamcrest-core'
-    }
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
     androidTestAnnotationProcessor project(':realm-annotations-processor')
