@@ -1,8 +1,8 @@
-#ifdef REALM_SYNC
-#include <object-store/src/sync/sync_manager.hpp>
-#include <object-store/src/sync/sync_config.hpp>
-#endif
 #include "io_realm_internal_SharedRealm.h"
+#ifdef REALM_ENABLE_SYNC
+#include "object-store/src/sync/sync_manager.hpp"
+#include "object-store/src/sync/sync_config.hpp"
+#endif
 
 #include "object_store.hpp"
 #include "shared_realm.hpp"
@@ -53,7 +53,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
-#ifdef REALM_SYNC
+#ifdef REALM_ENABLE_SYNC
         if (sync_server_url) {
             JStringAccessor url(env, sync_server_url);
             JStringAccessor token(env, sync_user_token);
