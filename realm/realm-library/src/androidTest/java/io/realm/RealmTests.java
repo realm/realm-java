@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -2017,17 +2018,25 @@ public class RealmTests {
 
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (IllegalStateException expected) {}
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (IllegalStateException expected) {}
-        try { realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, jsonObjStream);       fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, jsonObjStream);   fail(); } catch (IllegalStateException expected) {}
+        }
         try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); } catch (IllegalStateException expected) {}
         try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); } catch (IllegalStateException expected) {}
-        try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+        }
 
         try { realm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); } catch (IllegalStateException expected) {}
         try { realm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); } catch (IllegalStateException expected) {}
-        try { realm.createAllFromJson(NoPrimaryKeyNullTypes.class, jsonArrStream);          fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createAllFromJson(NoPrimaryKeyNullTypes.class, jsonArrStream);      fail(); } catch (IllegalStateException expected) {}
+        }
         try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (IllegalStateException expected) {}
         try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (IllegalStateException expected) {}
-        try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);fail(); } catch (IllegalStateException expected) {}
+        }
     }
 
     // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
