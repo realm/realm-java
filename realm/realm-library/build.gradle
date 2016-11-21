@@ -132,12 +132,9 @@ dependencies {
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
     androidTestCompile('com.android.support.test:rules:0.5') {
-        exclude group: 'junit', module: 'junit'
+        exclude group: 'org.hamcrest', module: 'hamcrest-core'
     }
     androidTestCompile('com.android.support.test:runner:0.5') {
-        exclude group: 'junit', module: 'junit'
-    }
-    androidTestCompile('junit:junit:4.12') {
         exclude group: 'org.hamcrest', module: 'hamcrest-core'
     }
     androidTestCompile 'org.hamcrest:hamcrest-all:1.3'
