@@ -144,4 +144,11 @@ public class SyncUserTests {
         managementRealm.close();
     }
 
+    @Test
+    public void toString_returnDescription() {
+        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
+        String str = user.toString();
+        assertTrue(str != null && !str.isEmpty());
+    }
+
 }
