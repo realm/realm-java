@@ -22,6 +22,10 @@ import java.lang.ref.ReferenceQueue;
 /**
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
+ * The phantom references will be stored in a double linked list to avoid the reference itself gets GCed. When the
+ * referent get GCed, the reference will be added to the ReferenceQueue. Loop in the daemon thread will retrieve the
+ * phantom reference from the ReferenceQueue then dealloc the referent and remove the reference from the double linked
+ * list. See {@link FinalizerRunnable} for more implementation details.
  */
 final class NativeObjectReference extends PhantomReference<NativeObject> {
 

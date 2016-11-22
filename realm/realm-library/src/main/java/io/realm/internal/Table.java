@@ -44,14 +44,10 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     private static final long NO_PRIMARY_KEY = -2;
 
     protected long nativePtr;
-    private static final long nativeFinalizerPtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final Context context;
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
-
-    static {
-        nativeFinalizerPtr = nativeGetFinalizerPtr();
-    }
 
     /**
      * Constructs a Table base object. It can be used to register columns in this table. Registering into table is

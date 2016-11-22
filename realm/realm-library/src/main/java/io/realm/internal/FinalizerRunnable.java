@@ -19,6 +19,8 @@ package io.realm.internal;
 
 import java.lang.ref.ReferenceQueue;
 
+import io.realm.log.RealmLog;
+
 // Running in the FinalizingDaemon thread to free native objects.
 class FinalizerRunnable implements Runnable {
     private final ReferenceQueue<NativeObject>  referenceQueue;
@@ -29,14 +31,17 @@ class FinalizerRunnable implements Runnable {
 
     @Override
     public void run() {
-        //noinspection InfiniteLoopStatement
         while (true) {
             try {
                 NativeObjectReference reference = (NativeObjectReference) referenceQueue.remove();
                 reference.cleanup();
             } catch (InterruptedException e) {
-                // Restore interrupted exception
+                // Restore the interrupted status
                 Thread.currentThread().interrupt();
+
+                RealmLog.fatal("The FinalizerRunnable thread has been interrupted." +
+                        " Native resources cannot be freed anymore");
+                break;
             }
         }
     }

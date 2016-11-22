@@ -28,6 +28,8 @@ import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 import io.realm.benchmarks.config.BenchmarkConfig;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -57,8 +59,9 @@ public class RealmAllocBenchmarks {
 
     @Benchmark
     public void createObjects(long reps) {
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         for (long i = 0; i < reps; i++) {
-            realm.where(AllTypes.class).findFirst();
+            results.first();
         }
     }
 
@@ -70,19 +73,18 @@ public class RealmAllocBenchmarks {
     }
     @Benchmark
     public void createRealmResults(long reps) {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         for (long i = 0; i < reps; i++) {
-            realm.where(AllTypes.class).findAll();
+            query.findAll();
         }
     }
 
     @Benchmark
     public void createRealmLists(long reps) {
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         for (long i = 0; i < reps; i++) {
-            AllTypes allTypes = realm.where(AllTypes.class).findFirst();
-            // To suppress warning
-            if (allTypes != null) {
-                allTypes.getColumnRealmList();
-            }
+            //noinspection ConstantConditions
+            allTypes.getColumnRealmList();
         }
     }
 }

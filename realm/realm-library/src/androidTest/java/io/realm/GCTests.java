@@ -33,6 +33,7 @@ import static junit.framework.TestCase.assertNotNull;
 
 // This test is for the fact we don't have locks for native objects creation that when finalizer/phantom thread free the
 // native object, the same Realm could have some native objects creation at the same time.
+// If the native object's destructor is not thread safe, there is a big chance that those tests crash with a seg-fault.
 // test_destructor_thread_safety.cpp in core tests the similar things.
 @RunWith(AndroidJUnit4.class)
 public class GCTests {
