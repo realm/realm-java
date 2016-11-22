@@ -77,7 +77,7 @@ public class SyncUser {
      *         been invalidated.
      */
     public static SyncUser currentUser() {
-        SyncUser user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
+        SyncUser user = SyncManager.getUserStore().get();
         if (user != null && user.isValid()) {
             return user;
         }
@@ -114,7 +114,7 @@ public class SyncUser {
         try {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
-            Token userToken = Token.from(obj.getJSONObject("userToken"));
+            Token userToken = Token.from(obj.getJSONObject("userToken"));//TODO rename to refresh_token
             ObjectServerUser syncUser = new ObjectServerUser(userToken, authUrl);
             JSONArray realmTokens = obj.getJSONArray("realms");
             for (int i = 0; i < realmTokens.length(); i++) {
@@ -158,7 +158,7 @@ public class SyncUser {
                 ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
-                SyncManager.getUserStore().put(UserStore.CURRENT_USER_KEY, user);
+                SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
                 return user;
             } else {
@@ -266,7 +266,7 @@ public class SyncUser {
             syncUser.clearTokens();
 
             if (SyncUser.this.equals(SyncUser.currentUser())) {
-                SyncManager.getUserStore().remove(UserStore.CURRENT_USER_KEY);
+                SyncManager.getUserStore().remove();
             }
 
             // Delete all Realms if needed.
