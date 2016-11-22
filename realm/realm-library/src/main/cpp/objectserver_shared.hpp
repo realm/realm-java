@@ -24,7 +24,7 @@
 #include <realm/sync/client.hpp>
 #include <realm/util/logger.hpp>
 #include <object-store/src/impl/realm_coordinator.hpp>
-#include <object-store/src/sync_manager.hpp>
+#include <object-store/src/sync/sync_manager.hpp>
 
 #include "util.hpp"
 

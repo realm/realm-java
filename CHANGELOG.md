@@ -1,3 +1,14 @@
+## 2.2.1
+
+### Object Server API Changes (In Beta)
+
+* Fixed `SyncConfiguration.toString()` so it now outputs a correct description instead of an empty string (#3787).
+
+### Bug fixes
+
+* Added version number to the native library, preventing ReLinker from accidentally loading old code (#3775).
+* `Realm.getLocalInstanceCount(config)` throwing NullPointerException if called after all Realms have been closed (#3791).
+
 ## 2.2.0
 
 ### Object Server API Changes (In Beta)
