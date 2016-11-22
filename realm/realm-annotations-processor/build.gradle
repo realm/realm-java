@@ -40,6 +40,11 @@ sourceSets {
 compileJava.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assemble'
 
+task ojoUpload() {
+    dependsOn "artifactoryPublish"
+    group = 'Publishing'
+}
+
 def commonPom = {
     licenses {
         license {
@@ -61,13 +66,13 @@ def commonPom = {
 
 publishing {
     publications {
-        realmPublication(MavenPublication) {
+        basePublication(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-annotations-processor'
             from components.java
             pom.withXml {
                 Node root = asNode()
-                root.appendNode('name', 'realm-gradle-plugin')
+                root.appendNode('name', 'realm-annotations-processor')
                 root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
                 root.children().last() + commonPom
@@ -96,7 +101,7 @@ bintray {
     dryRun = false
     publish = false
 
-    publications = ['realmPublication']
+    publications = ['basePublication']
     pkg {
         repo = 'maven'
         name = 'realm-annotations-processor'
@@ -119,7 +124,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications ('realmPublication')
+            publications ('basePublication')
         }
     }
 }

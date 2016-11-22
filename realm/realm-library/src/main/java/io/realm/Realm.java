@@ -21,12 +21,12 @@ import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -54,9 +53,9 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.log.AndroidLogger;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
@@ -186,10 +185,10 @@ public final class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             RealmCore.loadLibrary(context);
-            RealmLog.add(io.realm.BuildConfig.DEBUG ? new AndroidLogger(Log.DEBUG) : new AndroidLogger(Log.WARN));
             defaultConfiguration = new RealmConfiguration.Builder(context).build();
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             BaseRealm.applicationContext = context.getApplicationContext();
+            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
 
@@ -995,7 +994,7 @@ public final class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insert(this, object, cache);
     }
 
@@ -1064,7 +1063,7 @@ public final class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insertOrUpdate(this, object, cache);
     }
 

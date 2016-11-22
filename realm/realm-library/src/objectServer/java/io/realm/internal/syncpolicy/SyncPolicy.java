@@ -17,24 +17,24 @@
 package io.realm.internal.syncpolicy;
 
 import io.realm.ObjectServerError;
-import io.realm.Session;
+import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
-import io.realm.internal.objectserver.SyncSession;
+import io.realm.internal.objectserver.ObjectServerSession;
 
 /**
  * Interface describing a given synchronization policy with the Realm Object Server.
  * <p>
- * The sole purpose of classes implementing this interface is to call {@link SyncSession#bind()} and
- * {@link SyncSession#unbind()} as needed, which will control when changes are synchronized between a local and
+ * The sole purpose of classes implementing this interface is to call {@link ObjectServerSession#bind()} and
+ * {@link ObjectServerSession#unbind()} as needed, which will control when changes are synchronized between a local and
  * remote Realm.
  *
- * The SyncPolicy is not responsible for managing the lifecycle of the {@link SyncSession} in general. So any
- * implementation of this class should avoid calling {@link SyncSession#stop()} and
- * {@link SyncSession#start()}.
+ * The SyncPolicy is not responsible for managing the lifecycle of the {@link ObjectServerSession} in general. So any
+ * implementation of this class should avoid calling {@link ObjectServerSession#stop()} and
+ * {@link ObjectServerSession#start()}.
  *
- * If a session is stopped, {@link SyncSession#unbind()} is automatically called and any further calls to
- * {@link SyncSession#bind()} and {@link SyncSession#unbind()} are ignored.
- * {@link #onSessionStopped(SyncSession)} ()} will then be called so the sync policy have a chance to clean up
+ * If a session is stopped, {@link ObjectServerSession#unbind()} is automatically called and any further calls to
+ * {@link ObjectServerSession#bind()} and {@link ObjectServerSession#unbind()} are ignored.
+ * {@link #onSessionStopped(ObjectServerSession)} ()} will then be called so the sync policy have a chance to clean up
  * any resources it might be using.
  */
 // Internal until we are sure this is the API we want
@@ -44,34 +44,34 @@ public interface SyncPolicy {
      * Called when the session object is created. At this point it is possible to register any relevant error and event
      * listeners in either the Android framework or for the session itself.
      *
-     * {@link SyncSession#start()} will be automatically called after this method.
+     * {@link ObjectServerSession#start()} will be automatically called after this method.
      *
-     * @param session the {@link Session} just created. It has not yet been started.
+     * @param session the {@link SyncSession} just created. It has not yet been started.
      */
-    void onSessionCreated(SyncSession session);
+    void onSessionCreated(ObjectServerSession session);
 
     /**
-     * The {@link SyncSession} has been stopped and will ignore any further calls to
-     * {@link SyncSession#bind()} and {@link SyncSession#unbind()}. All external resources should be
+     * The {@link ObjectServerSession} has been stopped and will ignore any further calls to
+     * {@link ObjectServerSession#bind()} and {@link ObjectServerSession#unbind()}. All external resources should be
      * cleaned up.
      *
-     * @param session {@link SyncSession} that has been stopped.
+     * @param session {@link ObjectServerSession} that has been stopped.
      */
-    void onSessionStopped(SyncSession session);
+    void onSessionStopped(ObjectServerSession session);
 
     /**
      * Called the first time a Realm is opened on any thread.
      *
-     * @param session {@link SyncSession} associated with this Realm.
+     * @param session {@link ObjectServerSession} associated with this Realm.
      */
-    void onRealmOpened(SyncSession session);
+    void onRealmOpened(ObjectServerSession session);
 
     /**
      * Called when the last Realm instance across all threads have been closed.
      *
-     * @param session {@link SyncSession} associated with this Realm.
+     * @param session {@link ObjectServerSession} associated with this Realm.
      */
-    void onRealmClosed(SyncSession session);
+    void onRealmClosed(ObjectServerSession session);
 
     /**
      * Called if an error occurred in the underlying session. In many cases this has caused the session to become
@@ -83,7 +83,7 @@ public interface SyncPolicy {
      *
      * This method is always called from a background thread, never the UI thread.
      *
-     * @see SyncConfiguration.Builder#errorHandler(Session.ErrorHandler)
+     * @see SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)
      */
-    boolean onError(SyncSession session, ObjectServerError error);
+    boolean onError(ObjectServerSession session, ObjectServerError error);
 }

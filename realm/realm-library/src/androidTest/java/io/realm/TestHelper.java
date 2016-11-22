@@ -18,6 +18,7 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Build;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.util.Log;
@@ -38,6 +39,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -57,9 +59,8 @@ import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.log.AndroidLogger;
 import io.realm.log.LogLevel;
-import io.realm.log.Logger;
+import io.realm.log.RealmLogger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
@@ -168,50 +169,23 @@ public class TestHelper {
     }
 
     /**
-     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     * Returns a RealmLogger that will fail if it is asked to log a message above a certain level.
      *
      * @param failureLevel {@link Log} level from which the unit test will fail.
-     * @return Logger implementation
+     * @return RealmLogger implementation
      */
-    public static Logger getFailureLogger(final int failureLevel) {
-        return new AndroidLogger(Log.VERBOSE) {
-
-            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+    public static RealmLogger getFailureLogger(final int failureLevel) {
+        return new RealmLogger() {
+            private void failIfEqualOrAbove(int logLevel) {
                 if (logLevel >= failureLevel) {
                     fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
                 }
             }
 
             @Override
-            public void trace(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            public void log(int level, String tag, Throwable throwable, String message) {
+                failIfEqualOrAbove(level);
             }
-
-            @Override
-            public void debug(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.DEBUG, failureLevel);
-            }
-
-            @Override
-            public void info(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.INFO, failureLevel);
-            }
-
-            @Override
-            public void warn(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.WARN, failureLevel);
-            }
-
-            @Override
-            public void error(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
-            @Override
-            public void fatal(Throwable t, String message, Object... args) {
-                failIfEqualOrAbove(Log.ERROR, failureLevel);
-            }
-
         };
     }
 
@@ -227,7 +201,7 @@ public class TestHelper {
     /**
      * Returns a naive logger that can be used to test the values that are sent to the logger.
      */
-    public static class TestLogger implements Logger {
+    public static class TestLogger implements RealmLogger {
 
         private final int minimumLevel;
         public String message;
@@ -242,53 +216,10 @@ public class TestHelper {
         }
 
         @Override
-        public int getMinimumNativeDebugLevel() {
-            return minimumLevel;
-        }
-
-        @Override
-        public void trace(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.TRACE) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void debug(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.DEBUG) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void info(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.INFO) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void warn(Throwable t, String message, Object... args) {
-            this.message = (message != null) ? String.format(message, args) : null;
-            this.throwable = t;
-        }
-
-        @Override
-        public void error(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.ERROR) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
-            }
-        }
-
-        @Override
-        public void fatal(Throwable t, String message, Object... args) {
-            if (minimumLevel <= LogLevel.FATAL) {
-                this.message = (message != null) ? String.format(message, args) : null;
-                this.throwable = t;
+        public void log(int level, String tag, Throwable throwable, String message) {
+            if (minimumLevel <= level) {
+                this.message = message;
+                this.throwable = throwable;
             }
         }
     }
@@ -1084,6 +1015,52 @@ public class TestHelper {
         final Throwable throwable = thrown.get();
         if (throwable != null) {
             throw throwable;
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void deleteRecursively(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                deleteRecursively(f);
+            }
+        }
+
+        if (!file.delete()) {
+            throw new AssertionError("failed to delete " + file.getAbsolutePath());
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static boolean isSelinuxEnforcing() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // SELinux is not enabled for these versions.
+            return false;
+        }
+        try {
+            final Process process = new ProcessBuilder("/system/bin/getenforce").start();
+            try {
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                //noinspection TryFinallyCanBeTryWithResources
+                try {
+                    return reader.readLine().toLowerCase(Locale.ENGLISH).equals("enforcing");
+                } finally {
+                    try {
+                        reader.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            } finally {
+                try {
+                    process.waitFor();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        } catch (IOException e) {
+            return false;
         }
     }
 }

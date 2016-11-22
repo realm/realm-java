@@ -24,7 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
@@ -37,7 +36,6 @@ public class IntroExampleActivity extends Activity {
     private LinearLayout rootLayout = null;
 
     private Realm realm;
-    private RealmConfiguration realmConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,9 +144,9 @@ public class IntroExampleActivity extends Activity {
     private String complexReadWrite() {
         String status = "\nPerforming complex Read/Write operation...";
 
-        // Open the default realm. All threads must use it's own reference to the realm.
+        // Open the default realm. All threads must use its own reference to the realm.
         // Those can not be transferred across threads.
-        Realm realm = Realm.getInstance(realmConfig);
+        Realm realm = Realm.getDefaultInstance();
 
         // Add ten persons in one transaction
         realm.executeTransaction(new Realm.Transaction() {
@@ -204,7 +202,7 @@ public class IntroExampleActivity extends Activity {
     private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.getInstance(realmConfig);
+        Realm realm = Realm.getDefaultInstance();
         status += "\nNumber of persons: " + realm.where(Person.class).count();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".

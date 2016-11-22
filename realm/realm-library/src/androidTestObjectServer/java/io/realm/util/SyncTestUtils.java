@@ -24,24 +24,33 @@ import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.objectserver.SyncUser;
+import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 
 public class SyncTestUtils {
 
     public static String USER_TOKEN = UUID.randomUUID().toString();
     public static String REALM_TOKEN = UUID.randomUUID().toString();
+    public static String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
 
-    public static User createTestUser() {
-        return createTestUser(Long.MAX_VALUE);
+    public static SyncUser createTestUser() {
+        return createTestUser(DEFAULT_AUTH_URL, Long.MAX_VALUE);
     }
 
-    public static User createTestUser(long expires) {
+    public static SyncUser createTestUser(long expires) {
+        return createTestUser(DEFAULT_AUTH_URL, expires);
+    }
+
+    public static SyncUser createTestUser(String authUrl) {
+        return createTestUser(authUrl, Long.MAX_VALUE);
+    }
+
+    public static SyncUser createTestUser(String authUrl, long expires) {
         Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
         Token accessToken = new Token(REALM_TOKEN, "JohnDoe", "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
-        SyncUser.AccessDescription desc = new SyncUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
+        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
         JSONObject obj = new JSONObject();
         try {
@@ -51,10 +60,10 @@ public class SyncTestUtils {
             realmDesc.put("description", desc.toJson());
             realmList.put(realmDesc);
 
-            obj.put("authUrl", "http://objectserver.realm.io/auth");
+            obj.put("authUrl", authUrl);
             obj.put("userToken", userToken.toJson());
             obj.put("realms", realmList);
-            return User.fromJson(obj.toString());
+            return SyncUser.fromJson(obj.toString());
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }

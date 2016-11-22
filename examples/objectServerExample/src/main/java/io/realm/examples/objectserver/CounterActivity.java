@@ -31,7 +31,7 @@ import butterknife.OnClick;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.SyncConfiguration;
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.examples.objectserver.model.CRDTCounter;
 
 public class CounterActivity extends AppCompatActivity {
@@ -40,7 +40,7 @@ public class CounterActivity extends AppCompatActivity {
 
     private Realm realm;
     private CRDTCounter counter;
-    private User user;
+    private SyncUser user;
 
     @BindView(R.id.text_counter) TextView counterView;
 
@@ -51,7 +51,7 @@ public class CounterActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         // Check if we have a valid user, otherwise redirect to login
-        if (User.currentUser() == null) {
+        if (SyncUser.currentUser() == null) {
             gotoLoginActivity();
         }
     }
@@ -59,7 +59,7 @@ public class CounterActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        user = User.currentUser();
+        user = SyncUser.currentUser();
         if (user != null) {
             // Create a RealmConfiguration for our user
             SyncConfiguration config = new SyncConfiguration.Builder(user, REALM_URL)

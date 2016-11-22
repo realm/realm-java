@@ -322,10 +322,12 @@ public class RealmObservableFactory implements RxObservableFactory {
             Integer count = references.get(object);
             if (count == null) {
                 throw new IllegalStateException("Object does not have any references: " + object);
-            } else if (count > 0) {
+            } else if (count > 1) {
                 references.put(object, count - 1);
-            } else {
+            } else if (count == 1) {
                 references.remove(object);
+            } else {
+                throw new IllegalStateException("Invalid reference count: " + count);
             }
         }
     }

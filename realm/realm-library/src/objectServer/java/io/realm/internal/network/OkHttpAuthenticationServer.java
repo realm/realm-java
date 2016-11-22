@@ -20,10 +20,10 @@ import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.Credentials;
+import io.realm.SyncCredentials;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
-import io.realm.User;
+import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -46,7 +46,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
      * Authenticate the given credentials on the specified Realm Authentication Server.
      */
     @Override
-    public AuthenticateResponse loginUser(Credentials credentials, URL authenticationUrl) {
+    public AuthenticateResponse loginUser(SyncCredentials credentials, URL authenticationUrl) {
         try {
             String requestBody = AuthenticateRequest.userLogin(credentials).toJson();
             return authenticate(authenticationUrl, requestBody);
@@ -76,7 +76,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     }
 
     @Override
-    public LogoutResponse logout(User user, URL authenticationUrl) {
+    public LogoutResponse logout(SyncUser user, URL authenticationUrl) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 

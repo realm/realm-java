@@ -1,7 +1,6 @@
 import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -40,8 +39,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 24
+        versionName version
         project.archivesBaseName = "realm-android-library"
-        consumerProguardFiles 'proguard-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -54,7 +53,7 @@ android {
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
-                if (!project.hasProperty('android.injected.build.abi') && project.hasProperty('buildTargetABIs')) {
+                if (project.hasProperty('buildTargetABIs')) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // armeabi is not supported anymore.
@@ -80,6 +79,9 @@ android {
         androidTest {
             java.srcDirs += 'src/benchmarks/java'
         }
+        androidTestObjectServer {
+            java.srcDirs += 'src/syncIntegrationTest/java'
+        }
     }
 
     packagingOptions {
@@ -98,6 +100,7 @@ android {
                     arguments "-DREALM_FLAVOR=base"
                 }
             }
+            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
         }
         objectServer {
             externalNativeBuild {
@@ -105,10 +108,10 @@ android {
                     arguments "-DREALM_FLAVOR=objectServer"
                 }
             }
+            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
         }
     }
 }
-
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
@@ -121,6 +124,7 @@ repositories {
 }
 
 dependencies {
+    objectServerAnnotationProcessor project(':realm-annotations-processor')
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.2'
@@ -133,7 +137,7 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-    androidTestApt project(':realm-annotations-processor')
+    androidTestAnnotationProcessor project(':realm-annotations-processor')
 }
 
 task sourcesJar(type: Jar) {
@@ -361,10 +365,9 @@ artifactory {
             repoKey = 'oss-snapshot-local'
             username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-            maven = true
         }
         defaults {
-            publishConfigs('basePublication', 'objectServerPublication')
+            publications('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }
@@ -417,12 +420,10 @@ task downloadCore() {
 
     doLast {
         if (shouldDownloadCore()) {
-            // CI artifacts are only available if on the internal network or VPN
-            def downloadUrl = "s3://realm-ci-artifacts/sync/${project.coreVersion}/android/realm-sync-android-${project.coreVersion}.tar.gz"
-
-            println "Downloading ${downloadUrl}"
-            exec {
-                commandLine 's3cmd', '-c', project.s3cfg, '-f', 'get', "${downloadUrl}", "${project.coreArchiveFile}"
+            download {
+                src "http://static.realm.io/downloads/sync/realm-sync-android-${project.coreVersion}.tar.gz"
+                dest project.coreArchiveFile
+                onlyIfNewer false
             }
             coreDownloaded = true
 
@@ -554,6 +555,8 @@ android.productFlavors.all { flavor ->
     def userName = project.findProperty('bintrayUser') ?: 'noUser'
     def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
 
+    // BINTRAY
+
     task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
         dependsOn "assemble${flavor.name.capitalize()}"
         group = 'Publishing'
@@ -564,7 +567,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-{project.version}.aar?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
     }
 
     task("bintraySources${flavor.name.capitalize()}", type: Exec) {
@@ -577,7 +580,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-sources-{project.version}.jar?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
     }
 
     task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
@@ -590,7 +593,7 @@ android.productFlavors.all { flavor ->
             "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-javadoc-{project.version}.jar?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
     }
 
     task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
@@ -603,7 +606,61 @@ android.productFlavors.all { flavor ->
             "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
             '-u',
             "${userName}:${accessKey}",
-            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-{project.version}.pom?publish=0"
+            "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
+    }
+
+    // OJO
+
+    task("ojoAar${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "assemble${flavor.name.capitalize()}"
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
+    }
+
+    task("ojoSources${flavor.name.capitalize()}", type: Exec) {
+        dependsOn sourcesJar
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
+    }
+
+    task("ojoJavadoc${flavor.name.capitalize()}", type: Exec) {
+        dependsOn javadocJar
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+    }
+
+    task("ojoPom${flavor.name.capitalize()}", type: Exec) {
+        dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
+        group = 'Publishing'
+        commandLine 'curl',
+                '-X',
+                'PUT',
+                '-T',
+                "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
+                '-u',
+                "${userName}:${accessKey}",
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
     }
 
     task("bintray${flavor.name.capitalize()}") {
@@ -613,11 +670,26 @@ android.productFlavors.all { flavor ->
         dependsOn "bintrayPom${flavor.name.capitalize()}"
         group = 'Publishing'
     }
+
+    task("ojo${flavor.name.capitalize()}") {
+        dependsOn "ojoAar${flavor.name.capitalize()}"
+        dependsOn "ojoSources${flavor.name.capitalize()}"
+        dependsOn "ojoJavadoc${flavor.name.capitalize()}"
+        dependsOn "ojoPom${flavor.name.capitalize()}"
+        group = 'Publishing'
+    }
 }
 
 task bintrayUpload() {
     android.productFlavors.all { flavor ->
         dependsOn "bintray${flavor.name.capitalize()}"
+    }
+    group = 'Publishing'
+}
+
+task ojoUpload() {
+    android.productFlavors.all { flavor ->
+        dependsOn "ojo${flavor.name.capitalize()}"
     }
     group = 'Publishing'
 }

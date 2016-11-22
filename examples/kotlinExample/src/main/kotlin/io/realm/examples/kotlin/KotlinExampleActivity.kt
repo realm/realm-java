@@ -23,7 +23,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import io.realm.Realm
 import io.realm.Sort
-import io.realm.RealmConfiguration
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
@@ -31,16 +30,14 @@ import org.jetbrains.anko.async
 import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
 
-
 class KotlinExampleActivity : Activity() {
 
     companion object {
-        val TAG: String = KotlinExampleActivity::class.qualifiedName as String
+        val TAG: String = KotlinExampleActivity::class.java.simpleName
     }
 
     private var rootLayout: LinearLayout by Delegates.notNull()
     private var realm: Realm by Delegates.notNull()
-    private var realmConfig: RealmConfiguration by Delegates.notNull()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +49,7 @@ class KotlinExampleActivity : Activity() {
         // we can generally safely run them on the UI thread.
 
         // Open the realm for the UI thread.
-        realm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance()
 
         basicCRUD(realm)
         basicQuery(realm)
@@ -96,14 +93,13 @@ class KotlinExampleActivity : Activity() {
         // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.executeTransaction {
             // Add a person
-            var person = realm.createObject(Person::class.java)
-            person.id = 1
+            val person = realm.createObject(Person::class.java, 1)
             person.name = "Young Person"
             person.age = 14
         }
 
         // Find the first person (no query conditions) and read a field
-        var person = realm.where(Person::class.java).findFirst()
+        val person = realm.where(Person::class.java).findFirst()
         showStatus(person.name + ": " + person.age)
 
         // Update person in a transaction
@@ -135,9 +131,9 @@ class KotlinExampleActivity : Activity() {
     private fun complexReadWrite(): String {
         var status = "\nPerforming complex Read/Write operation..."
 
-        // Open the default realm. All threads must use it's own reference to the realm.
+        // Open the default realm. All threads must use its own reference to the realm.
         // Those can not be transferred across threads.
-        val realm = Realm.getInstance(realmConfig)
+        val realm = Realm.getDefaultInstance()
 
         // Add ten persons in one transaction
         realm.executeTransaction {
@@ -180,7 +176,7 @@ class KotlinExampleActivity : Activity() {
         }
 
         // Sorting
-        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING);
+        val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
         check(realm.where(Person::class.java).findAll().last().name == sortedPersons.first().name)
         status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
 
@@ -193,7 +189,7 @@ class KotlinExampleActivity : Activity() {
 
         // Realm implements the Closable interface, therefore we can make use of Kotlin's built-in
         // extension method 'use' (pun intended).
-        Realm.getInstance(realmConfig).use {
+        Realm.getDefaultInstance().use {
             // 'it' is the implicit lambda parameter of type Realm
             status += "\nNumber of persons: ${it.where(Person::class.java).count()}"
 
