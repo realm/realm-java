@@ -29,8 +29,6 @@
 
 #include "io_realm_SyncManager.h"
 
-#include "jni_util/log.hpp"
-
 using namespace realm;
 using namespace realm::sync;
 using namespace realm::jni_util;
@@ -48,8 +46,17 @@ static void error_handler(int error_code, std::string message)
     }
 
     env->CallStaticVoidMethod(sync_manager,
-                              sync_manager_notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
+                              sync_manager_notify_error_handler,
+                              error_code,
+                              env->NewStringUTF(message.c_str()));
 }
+
+struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
+    std::unique_ptr<realm::util::Logger> make_logger(realm::util::Logger::Level level) {
+        std::unique_ptr<Logger> log_ptr;
+        log_ptr.reset(&CoreLoggerBridge::shared());
+    }
+} s_logger_factory;
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
     (JNIEnv *env, jclass sync_manager_class)
@@ -58,15 +65,25 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
     if (sync_client) return;
 
     try {
-        sync::Client::Config config;
-        config.logger = &CoreLoggerBridge::shared();
-        sync_client = std::make_unique<Client>(std::move(config)); // Throws
-
+        // Register Java callback function for error handling
         // This function should only be called once, so below is safe.
         sync_manager = reinterpret_cast<jclass>(env->NewGlobalRef(sync_manager_class));
         sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
                                                                    "notifyErrorHandler", "(ILjava/lang/String;)V");
-        sync_client->set_error_handler(error_handler);
+
+        // Setup SyncManager
+        SyncManager::shared().set_logger_factory(s_logger_factory);
+        SyncManager::shared().set_error_handler(error_handler);
+//        bool should_encrypt = !getenv("REALM_DISABLE_METADATA_ENCRYPTION");
+//        auto mode = should_encrypt ? SyncManager::MetadataMode::Encryption : SyncManager::MetadataMode::NoEncryption;
+//        rootDirectory = rootDirectory ?: [NSURL fileURLWithPath:RLMDefaultDirectoryForBundleIdentifier(nil)];
+//        SyncManager::shared().configure_file_system(rootDirectory.path.UTF8String, mode);
+//        sync::Client::Config
+//        sync::Client::Config config;
+//        config.logger = &CoreLoggerBridge::shared();
+//        sync_client = std::make_unique<Client>(std::move(config)); // Throws
+//
+//        sync_client->set_error_handler(error_handler);
     } CATCH_STD()
 }
 
@@ -75,6 +92,6 @@ JNIEXPORT void JNICALL
 Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
 {
     try {
-        sync_client->run();
+        SyncManager::shared().start_sync_client();
     } CATCH_STD()
 }

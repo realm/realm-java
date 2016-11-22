@@ -38,13 +38,44 @@ using namespace sync;
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeCreateSession
-  (JNIEnv *env, jobject obj, jstring localRealmPath)
+  (JNIEnv *env, jobject obj, jstring localRealmPath, jstring userIdentity)
 {
     TR_ENTER()
     try {
         JStringAccessor local_path(env, localRealmPath);
-        JniSession* jni_session = new JniSession(env, local_path, obj);
-        return reinterpret_cast<jlong>(jni_session);
+        JStringAccessor user_identity(env, userIdentity);
+
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
+        if (!user)
+        {
+            ThrowException(env, IllegalArgument, "User wasn't logged in: " + std::string(user_identity));
+            return realm::not_found;
+        }
+
+//        std::shared_ptr<SyncUser> user;
+//        std::string realm_url;
+//        SyncSessionStopPolicy stop_policy;
+//        std::function<SyncBindSessionHandler> bind_session_handler;
+//        std::function<SyncSessionErrorHandler> error_handler;
+//        // Some bindings may want to handle the session in binding level.
+//        bool create_session = true;
+
+        auto config = SyncConfig(
+                user,
+                user.get()->server_url(),
+                SyncSessionStopPolicy ::Immediately,
+                nullptr,
+                nullptr
+        );
+
+        SyncManager::shared().get_session(localRealmPath, config);
+
+//
+//
+//        SyncManager::shared().get_session(local_path,
+//        SyncManager::shared().get_session(
+//        JniSession* jni_session = new JniSession(env, local_path, obj);
+//        return reinterpret_cast<jlong>(jni_session);
     } CATCH_STD()
     return 0;
 }

@@ -17,7 +17,6 @@
 #include <algorithm>
 
 #include "jni_util/log.hpp"
-#include "util/format.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;

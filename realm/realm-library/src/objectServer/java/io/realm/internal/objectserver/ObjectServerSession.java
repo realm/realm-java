@@ -230,7 +230,7 @@ public final class ObjectServerSession {
     // Create a native session. The session abstraction in Realm Core doesn't support multiple calls to bind()/unbind()
     // yet, so the Java SyncSession must manually create/and close the native sessions as needed.
     void createNativeSession() {
-        nativeSessionPointer = nativeCreateSession(configuration.getPath());
+        nativeSessionPointer = nativeCreateSession(configuration.getPath(), user.getIdentity());
     }
 
     void stopNativeSession() {
@@ -340,7 +340,7 @@ public final class ObjectServerSession {
      */
     public void notifyCommit(long version) {
         if (isBound()) {
-            nativeNotifyCommitHappened(nativeSessionPointer, version);
+//            nativeNotifyCommitHappened(nativeSessionPointer, version);
         }
     }
 
@@ -356,7 +356,7 @@ public final class ObjectServerSession {
         this.userSession = userSession;
     }
 
-    private native long nativeCreateSession(String localRealmPath);
+    private native long nativeCreateSession(String localRealmPath, String userIdentity);
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
