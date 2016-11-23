@@ -1650,7 +1650,8 @@ public final class RealmQuery<E extends RealmModel> {
         if (isDynamicQuery()) {
             realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
-            realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
+            //realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
+            realmResults = RealmResults.createFromQuery(realm, query, clazz, null, null);
         }
         return realmResults;
     }

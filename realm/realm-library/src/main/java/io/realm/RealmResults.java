@@ -129,15 +129,19 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.classSpec = clazz;
         this.query = query;
 
-        if (sortOrder.length != fieldNames.length) {
-            throw new IllegalArgumentException("Number of field names and sort orders does not match");
-        }
+        boolean[] order = null;
+        long[] indices = null;
 
-        boolean[] order = new boolean[sortOrder.length];
-        long[] indices = new long[sortOrder.length];
-        for (int i = 0; i < sortOrder.length; i++) {
-            order[i] = sortOrder[i] == Sort.ASCENDING;
-            indices[i] = getColumnIndexForSort(fieldNames[i]);
+        if (fieldNames != null && sortOrder != null) {
+            order = new boolean[sortOrder.length];
+            indices = new long[sortOrder.length];
+            if (sortOrder.length != fieldNames.length) {
+                throw new IllegalArgumentException("Number of field names and sort orders does not match");
+            }
+            for (int i = 0; i < sortOrder.length; i++) {
+                order[i] = sortOrder[i] == Sort.ASCENDING;
+                indices[i] = getColumnIndexForSort(fieldNames[i]);
+            }
         }
 
         this.nativePtr = nativeCreateResults(realm.sharedRealm.getNativePtr(), query.getNativePtr(), indices, order);
