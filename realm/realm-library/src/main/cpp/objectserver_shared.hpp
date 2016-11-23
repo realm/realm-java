@@ -50,7 +50,7 @@ public:
             auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(
                     realm::StringData(local_realm_path));
             if (coordinator) {
-                coordinator->notify_others();
+                coordinator->wake_up_notifier_worker();
             }
         };
         auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
