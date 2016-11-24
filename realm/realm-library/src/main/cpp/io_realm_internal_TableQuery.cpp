@@ -31,6 +31,8 @@ using namespace realm;
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
 
+static void finalize_table_query(jlong ptr);
+
 inline bool query_valid(JNIEnv* env, Query* pQuery)
 {
     return TABLE_VALID(env, pQuery->get_table().get());
@@ -45,11 +47,6 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
 const char* ERR_IMPORT_CLOSED_REALM = "Can not import results from a closed Realm";
 const char* ERR_SORT_NOT_SUPPORTED = "Sort is not supported on binary data, object references and RealmList";
 //-------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv* env, jclass, jlong nativeQueryPtr) {
-    TR_ENTER_PTR(nativeQueryPtr)
-    delete Q(nativeQueryPtr);
-}
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
 (JNIEnv *env, jobject, jlong nativeQueryPtr)
@@ -1912,3 +1909,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
         }
     } CATCH_STD()
 }
+
+static void finalize_table_query(jlong ptr)
+{
+    TR_ENTER_PTR(ptr)
+    delete Q(ptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr
+  (JNIEnv *, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_table_query);
+}
+

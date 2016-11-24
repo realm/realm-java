@@ -19,12 +19,7 @@
 
 using namespace realm;
 
-JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClose
-  (JNIEnv*, jclass, jlong nativeLinkViewPtr)
-{
-    LangBindHelper::unbind_linklist_ptr(*LV(nativeLinkViewPtr));
-}
-
+static void finalize_link_view(jlong ptr);
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetRow
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
@@ -247,4 +242,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveTargetRow
         LinkViewRef lvr = *lv;
         return lvr->remove_target_row( S(pos) );
     } CATCH_STD()
+}
+
+static void finalize_link_view(jlong ptr)
+{
+    TR_ENTER_PTR(ptr)
+    LangBindHelper::unbind_linklist_ptr(*LV(ptr));
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetFinalizerPtr
+  (JNIEnv *, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_link_view);
 }
