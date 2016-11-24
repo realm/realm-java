@@ -254,5 +254,5 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetFinalizerPtr
   (JNIEnv *, jclass)
 {
     TR_ENTER()
-    return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_link_view));
+    return reinterpret_cast<jlong>(&finalize_link_view);
 }

@@ -989,5 +989,5 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetFinalizerPtr
   (JNIEnv *, jclass)
 {
     TR_ENTER()
-    return static_cast<jlong>(reinterpret_cast<uintptr_t>(&finalize_table_view));
+    return reinterpret_cast<jlong>(&finalize_table_view);
 }
