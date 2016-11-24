@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -224,5 +225,35 @@ public class RealmChangeListenerTests {
         DynamicRealmObject allTypes = dynamicRealm.createObject(AllTypes.CLASS_NAME);
         allTypes.setString(AllTypes.FIELD_STRING, "test data 1");
         dynamicRealm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    // FIXME: Used for DEV. Remove before merge
+    public void myTest() {
+        Realm realm = looperThread.realm;
+        final RealmResults<Cat> cats = realm.where(Cat.class).findAll();
+        final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        looperThread.keepStrongReference.add(cats);
+        looperThread.keepStrongReference.add(dogs);
+        cats.addChangeListener(new RealmChangeListener<RealmResults<Cat>>() {
+            @Override
+            public void onChange(RealmResults<Cat> result) {
+                assertEquals("cat1", result.first().getName());
+                assertEquals("dog1", dogs.first().getName());
+                looperThread.testComplete();
+            }
+        });
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Cat cat = realm.createObject(Cat.class);
+                cat.setName("cat1");
+
+                Dog dog = realm.createObject(Dog.class);
+                dog.setName("dog1");
+            }
+        });
     }
 }

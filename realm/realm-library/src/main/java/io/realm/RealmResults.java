@@ -1082,8 +1082,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (!realm.handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread. ");
+        if (listeners.isEmpty()) {
+            nativeAddListener(nativePtr);
         }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
@@ -1173,6 +1173,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
     }
 
+    void notifyChangeListeners() {
+        if (!listeners.isEmpty()) {
+            for (RealmChangeListener listener : listeners) {
+                listener.onChange(this);
+            }
+        }
+    }
+
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long[] columnIndices, boolean[] orders);
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
@@ -1181,4 +1189,5 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
     private static native long nativeSort(long nativePtr, long[] columnIndices, boolean[] orders);
+    private native long nativeAddListener(long nativePtr);
 }

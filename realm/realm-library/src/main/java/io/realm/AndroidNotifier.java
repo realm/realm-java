@@ -76,6 +76,7 @@ class AndroidNotifier implements RealmNotifier {
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
     @Override
     public void notifyCommitByOtherThread() {
+        /*
         if (handler == null) {
             return;
         }
@@ -92,6 +93,7 @@ class AndroidNotifier implements RealmNotifier {
             RealmLog.warn("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                     "to prevent this.");
         }
+        */
     }
 
     @Override

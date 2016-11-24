@@ -174,3 +174,29 @@ Java_io_realm_RealmResults_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlo
     } CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_RealmResults_nativeAddListener(JNIEnv* env, jobject instance, jlong native_ptr) {
+    TR_ENTER_PTR(native_ptr)
+
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+
+        // FIXME: Those need to be freed for all the corner cases!
+        jobject weak_results = env->NewWeakGlobalRef(instance);
+
+        auto cb = [=](realm::CollectionChangeSet const& changes,
+                                   std::exception_ptr err) {
+            jclass results_class = env->GetObjectClass(weak_results);
+            jmethodID notify_method = env->GetMethodID(results_class, "notifyChangeListeners", "()V");
+            env->CallVoidMethod(weak_results, notify_method);
+        };
+
+        NotificationToken token =  results->add_notification_callback(cb);
+        // FIXME: Let's leak them ALL for now!!
+        return reinterpret_cast<jlong>(
+                new std::unique_ptr<NotificationToken>(new NotificationToken(std::move(token))));
+    } CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
