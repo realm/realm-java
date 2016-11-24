@@ -78,16 +78,18 @@ try {
             }
 
             stage('Run instrumented tests') {
-              boolean archiveLog = true
-              String backgroundPid
-              try {
-                backgroundPid = startLogCatCollector()
-                forwardAdbPorts()
-                gradle('realm', 'connectedUnitTests')
-                archiveLog = false;
-              } finally {
-                stopLogCatCollector(backgroundPid, archiveLog)
-                storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+              lock("${env.NODE_NAME}-android") {
+                boolean archiveLog = true
+                String backgroundPid
+                try {
+                  backgroundPid = startLogCatCollector()
+                  forwardAdbPorts()
+                  gradle('realm', 'connectedUnitTests')
+                  archiveLog = false;
+                } finally {
+                  stopLogCatCollector(backgroundPid, archiveLog)
+                  storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                }
               }
             }
 
