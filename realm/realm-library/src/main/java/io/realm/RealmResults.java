@@ -268,14 +268,16 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public E get(int location) {
         E obj;
         realm.checkIfValid();
+        /*
         TableOrView table = getTableOrView();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
         } else {
             obj = realm.get(classSpec, className, location);
         }
-
-        return obj;
+        */
+        long rowPtr = nativeGetRow(nativePtr, location);
+        return realm.get(classSpec, rowPtr);
     }
 
     /**

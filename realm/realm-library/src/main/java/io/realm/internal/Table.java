@@ -44,7 +44,7 @@ public class Table implements TableOrView, TableSchema {
     private static final long NO_PRIMARY_KEY = -2;
 
     long nativePtr;
-    private final Context context;
+    final Context context;
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 

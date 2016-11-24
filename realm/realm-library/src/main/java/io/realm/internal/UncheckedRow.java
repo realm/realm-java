@@ -71,6 +71,13 @@ public class UncheckedRow extends NativeObject implements Row {
         return row;
     }
 
+    // FIXME: Testing code
+    public static UncheckedRow getByRowPointer(Table table, long nativeRowPointer) {
+        UncheckedRow row = new UncheckedRow(table.context, table, nativeRowPointer);
+        table.context.addReference(NativeObjectReference.TYPE_ROW, row);
+        return row;
+    }
+
     /**
      * Gets the row object associated to an index in a LinkView.
      *
