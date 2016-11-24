@@ -19,18 +19,16 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
+import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Collection;
 
-import io.realm.android.SharedPrefsUserStore;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
@@ -46,10 +44,15 @@ public class SyncUserTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Before
-    public void setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext());
-        SyncManager.getUserStore().clear();
+    @BeforeClass
+    public static void initUserStore() {
+        UserStore userStore = new ObjectStoreUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().toString(), null);
+        SyncManager.setUserStore(userStore);
+    }
+
+    @After
+    public void tearDown() {
+        ObjectStoreUserStore.reset_for_testing();
     }
 
     @Test
@@ -63,9 +66,8 @@ public class SyncUserTests {
     @Test
     public void currentUser_returnsNullIfUserExpired() {
         // Add an expired user to the user store
-        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
-        SyncManager.setUserStore(userStore);
-        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        UserStore userStore = SyncManager.getUserStore();
+        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
         assertNull(SyncUser.currentUser());
@@ -74,11 +76,10 @@ public class SyncUserTests {
     // Test that current user is cleared if it is logged out
     @Test
     public void currentUser_clearedOnLogout() {
-        // Add an expired user to the user store
+        // Add 1 valid user to the user store
         SyncUser user = SyncTestUtils.createTestUser(Long.MAX_VALUE);
-        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
-        SyncManager.setUserStore(userStore);
-        userStore.put(UserStore.CURRENT_USER_KEY, user);
+        UserStore userStore = SyncManager.getUserStore();
+        userStore.put(user);
 
         SyncUser savedUser = SyncUser.currentUser();
         assertEquals(user, savedUser);
@@ -97,10 +98,9 @@ public class SyncUserTests {
     @Test
     public void all_validUsers() {
         // Add 1 expired user and 1 valid user to the user store
-        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
-        SyncManager.setUserStore(userStore);
-        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
-        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MAX_VALUE));
+        UserStore userStore = SyncManager.getUserStore();
+        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        userStore.put(SyncTestUtils.createTestUser(Long.MAX_VALUE));
 
         Collection<SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());

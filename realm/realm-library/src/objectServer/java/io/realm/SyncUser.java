@@ -265,9 +265,7 @@ public class SyncUser {
             // FIXME We still need to cache the user token so it can be revoked.
             syncUser.clearTokens();
 
-            if (SyncUser.this.equals(SyncUser.currentUser())) {
-                SyncManager.getUserStore().remove();
-            }
+            SyncManager.getUserStore().remove();
 
             // Delete all Realms if needed.
             for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
