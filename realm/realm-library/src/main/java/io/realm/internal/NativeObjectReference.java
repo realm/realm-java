@@ -22,44 +22,75 @@ import java.lang.ref.ReferenceQueue;
 /**
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
+ * The phantom references will be stored in a double linked list to avoid the reference itself gets GCed. When the
+ * referent get GCed, the reference will be added to the ReferenceQueue. Loop in the daemon thread will retrieve the
+ * phantom reference from the ReferenceQueue then dealloc the referent and remove the reference from the double linked
+ * list. See {@link FinalizerRunnable} for more implementation details.
  */
-public final class NativeObjectReference extends PhantomReference<NativeObject> {
+final class NativeObjectReference extends PhantomReference<NativeObject> {
 
-    // Using int here instead of enum to make it faster since the cleanup needs to be called
-    // in a loop to dealloc every native reference.
-    public static final int TYPE_LINK_VIEW = 0;
-    public static final int TYPE_ROW = 1;
+    // Linked list to keep the reference of the PhantomReference
+    private static class ReferencePool {
+        NativeObjectReference head;
+
+        synchronized void add(NativeObjectReference ref) {
+            ref.prev = null;
+            ref.next = head;
+            if (head != null) {
+                head.prev = ref;
+            }
+            head = ref;
+        }
+
+        synchronized void remove(NativeObjectReference ref) {
+            NativeObjectReference next = ref.next;
+            NativeObjectReference prev = ref.prev;
+            ref.next = null;
+            ref.prev = null;
+            if (prev != null) {
+                prev.next = next;
+            } else {
+                head = next;
+            }
+            if (next != null) {
+                next.prev = prev;
+            }
+        }
+    }
 
     // The pointer to the native object to be handled
-    final long nativePointer;
-    final int type;
-    // Use boxed type to avoid box/un-box when access the freeIndexList
-    final Integer refIndex;
+    private final long nativePtr;
+    // The pointer to the native finalize function
+    private final long nativeFinalizerPtr;
+    private final Context context;
+    private NativeObjectReference prev;
+    private NativeObjectReference next;
 
-    NativeObjectReference(int type,
+    private static ReferencePool referencePool = new ReferencePool();
+
+    NativeObjectReference(Context context,
                           NativeObject referent,
-                          ReferenceQueue<? super NativeObject> referenceQueue,
-                          Integer index) {
+                          ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
-        this.type = type;
-        this.nativePointer = referent.nativePointer;
-        refIndex = index;
+        this.nativePtr = referent.getNativePtr();
+        this.nativeFinalizerPtr = referent.getNativeFinalizerPtr();
+        this.context = context;
+        referencePool.add(this);
     }
 
     /**
      * To dealloc native resources.
      */
     void cleanup() {
-        switch (type) {
-            case TYPE_LINK_VIEW:
-                LinkView.nativeClose(nativePointer);
-                break;
-            case TYPE_ROW:
-                UncheckedRow.nativeClose(nativePointer);
-                break;
-            default:
-                // Cannot get here.
-                throw new IllegalStateException("Unknown native reference type " + type + ".");
+        synchronized (context) {
+            nativeCleanUp(nativeFinalizerPtr, nativePtr);
         }
+        // Remove the PhantomReference from the pool to free it.
+        referencePool.remove(this);
     }
+
+    /**
+     *  Calls the native finalizer function to free the given native pointer.
+     */
+    private static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
 }
