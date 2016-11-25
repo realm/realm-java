@@ -129,30 +129,30 @@ public final class ObjectServerSession {
     }
 
     private void setupStateMachine() {
-        FSM.put(SessionState.INITIAL, new InitialState());
-        FSM.put(SessionState.UNBOUND, new UnboundState());
-        FSM.put(SessionState.BINDING, new BindingState());
-        FSM.put(SessionState.AUTHENTICATING, new AuthenticatingState());
-        FSM.put(SessionState.BOUND, new BoundState());
-        FSM.put(SessionState.STOPPED, new StoppedState());
-        RealmLog.debug("Session started: " + configuration.getServerUrl());
-        currentState = FSM.get(SessionState.INITIAL);
-        currentState.entry(this);
+//        FSM.put(SessionState.INITIAL, new InitialState());
+//        FSM.put(SessionState.UNBOUND, new UnboundState());
+//        FSM.put(SessionState.BINDING, new BindingState());
+//        FSM.put(SessionState.AUTHENTICATING, new AuthenticatingState());
+//        FSM.put(SessionState.BOUND, new BoundState());
+//        FSM.put(SessionState.STOPPED, new StoppedState());
+//        RealmLog.debug("Session started: " + configuration.getServerUrl());
+//        currentState = FSM.get(SessionState.INITIAL);
+//        currentState.entry(this);
     }
 
-    // Goto the next state. The FsmState classes are responsible for calling this method as a reaction to a FsmAction
-    // being called or an internal action triggering a state transition.
-    void nextState(SessionState nextStateDescription) {
-        currentState.exit();
-        FsmState nextState = FSM.get(nextStateDescription);
-        if (nextState == null) {
-            throw new IllegalStateException("No state was configured to handle: " + nextStateDescription);
-        }
-        RealmLog.debug("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription);
-        currentStateDescription = nextStateDescription;
-        currentState = nextState;
-        nextState.entry(this);
-    }
+//    // Goto the next state. The FsmState classes are responsible for calling this method as a reaction to a FsmAction
+//    // being called or an internal action triggering a state transition.
+//    void nextState(SessionState nextStateDescription) {
+//        currentState.exit();
+//        FsmState nextState = FSM.get(nextStateDescription);
+//        if (nextState == null) {
+//            throw new IllegalStateException("No state was configured to handle: " + nextStateDescription);
+//        }
+//        RealmLog.debug("Session[%s]: %s -> %s", configuration.getServerUrl(), currentStateDescription, nextStateDescription);
+//        currentStateDescription = nextStateDescription;
+//        currentState = nextState;
+//        nextState.entry(this);
+//    }
 
     /**
      * Starts the session. This will cause the session to come <b>UNBOUND</b>. {@link #bind()} must be called to
@@ -198,6 +198,7 @@ public final class ObjectServerSession {
      * @param error the kind of err
      */
     public synchronized void onError(ObjectServerError error) {
+        // TODO Call into JNI
         currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
         if (errorHandler != null) {
             errorHandler.onError(getUserSession(), error);

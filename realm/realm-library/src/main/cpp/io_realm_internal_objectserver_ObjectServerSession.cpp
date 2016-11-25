@@ -18,6 +18,8 @@
 
 #include "io_realm_internal_objectserver_ObjectServerSession.h"
 #include "objectserver_shared.hpp"
+#include <object-store/src/sync/sync_user.hpp>
+
 #include "util.hpp"
 #include <realm/group_shared.hpp>
 #include <realm/replication.hpp>
@@ -38,7 +40,7 @@ using namespace sync;
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_nativeCreateSession
-  (JNIEnv *env, jobject obj, jstring localRealmPath, jstring userIdentity)
+  (JNIEnv *env, jobject sessionObject, jstring localRealmPath, jstring userIdentity)
 {
     TR_ENTER()
     try {
@@ -52,30 +54,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_
             return realm::not_found;
         }
 
-//        std::shared_ptr<SyncUser> user;
-//        std::string realm_url;
-//        SyncSessionStopPolicy stop_policy;
-//        std::function<SyncBindSessionHandler> bind_session_handler;
-//        std::function<SyncSessionErrorHandler> error_handler;
-//        // Some bindings may want to handle the session in binding level.
-//        bool create_session = true;
-
-        auto config = SyncConfig(
-                user,
-                user.get()->server_url(),
-                SyncSessionStopPolicy ::Immediately,
-                nullptr,
-                nullptr
-        );
-
-        SyncManager::shared().get_session(localRealmPath, config);
-
-//
-//
-//        SyncManager::shared().get_session(local_path,
-//        SyncManager::shared().get_session(
-//        JniSession* jni_session = new JniSession(env, local_path, obj);
-//        return reinterpret_cast<jlong>(jni_session);
+        JniSession* jni_session = new JniSession(env, local_path, user, sessionObject);
+        return reinterpret_cast<jlong>(jni_session);
     } CATCH_STD()
     return 0;
 }
