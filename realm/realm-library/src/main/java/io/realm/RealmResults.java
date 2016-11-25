@@ -18,9 +18,9 @@ package io.realm;
 
 
 import android.app.IntentService;
+import android.os.Looper;
 
 import java.util.AbstractList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
@@ -31,24 +31,21 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.internal.CheckedRow;
-import io.realm.internal.InvalidRow;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
-import io.realm.internal.UncheckedRow;
+import io.realm.internal.Collection;
 import io.realm.internal.async.BadVersionException;
 import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
- * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects are not copied from
+ * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
  * the Realm to the RealmResults list, but are just referenced from the RealmResult instead. This saves memory and
  * increases speed.
  * <p>
- * RealmResults are live views, which means that if it is on an {@link android.os.Looper} thread, it will automatically
+ * RealmResults are live views, which means that if it is on an {@link Looper} thread, it will automatically
  * update its query results after a transaction has been committed. If on a non-looper thread, {@link Realm#waitForChange()}
  * must be called to update the results.
  * <p>
@@ -68,7 +65,7 @@ import rx.Observable;
  *
  * @param <E> The class of objects in this list.
  * @see RealmQuery#findAll()
- * @see io.realm.Realm#executeTransaction(Realm.Transaction)
+ * @see Realm#executeTransaction(Realm.Transaction)
  */
 public final class RealmResults<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
@@ -84,14 +81,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
     private final TableQuery query;
+    private final io.realm.internal.Collection collection;
     private final List<RealmChangeListener<RealmResults<E>>> listeners = new CopyOnWriteArrayList<RealmChangeListener<RealmResults<E>>>();
     private Future<Long> pendingQuery;
     private boolean asyncQueryCompleted = false;
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
-
-    private final long nativePtr;
 
     // Public for static checking in JNI
     public static final byte AGGREGATE_FUNCTION_MINIMUM = 1;
@@ -124,6 +120,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         return realmResults;
     }
 
+    RealmResults(BaseRealm realm, io.realm.internal.Collection collection, Class<E> clazz) {
+        this.realm = realm;
+        this.query = null;
+        this.classSpec = clazz;
+        this.collection = collection;
+    }
+
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz, String fieldNames[], Sort[] sortOrder) {
         this.realm = realm;
         this.classSpec = clazz;
@@ -144,21 +147,21 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             }
         }
 
-        this.nativePtr = nativeCreateResults(realm.sharedRealm.getNativePtr(), query.getNativePtr(), indices, order);
+        collection = null;
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
         this.realm = realm;
         this.classSpec = clazz;
         this.query = query;
-        this.nativePtr = 0;
+        collection = null;
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, String className) {
         this.realm = realm;
         this.query = query;
         this.className = className;
-        this.nativePtr = 0;
+        collection = null;
     }
 
     private RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
@@ -169,7 +172,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.pendingQuery = null;
         this.query = null;
         this.currentTableViewVersion = table.syncIfNeeded();
-        this.nativePtr = 0;
+        collection = null;
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -178,7 +181,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
         pendingQuery = null;
         query = null;
-        this.nativePtr = 0;
+        collection = null;
     }
 
     private RealmResults(BaseRealm realm, TableOrView table, String className) {
@@ -190,8 +193,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     private RealmResults(BaseRealm realm, String className, long nativePtr) {
         this.realm = realm;
         this.className = className;
-        this.nativePtr = nativePtr;
         this.query = null;
+        collection = null;
     }
 
     TableOrView getTableOrView() {
@@ -237,6 +240,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public boolean contains(Object object) {
+        /*
         boolean contains = false;
         if (isLoaded() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
@@ -255,6 +259,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             }
         }
         return contains;
+        */
+        return false;
     }
 
     /**
@@ -266,18 +272,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public E get(int location) {
-        E obj;
         realm.checkIfValid();
-        /*
-        TableOrView table = getTableOrView();
-        if (table instanceof TableView) {
-            obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
-        } else {
-            obj = realm.get(classSpec, className, location);
-        }
-        */
-        long rowPtr = nativeGetRow(nativePtr, location);
-        return realm.get(classSpec, rowPtr);
+        return realm.get(classSpec, collection.getUncheckedRow(location));
     }
 
     /**
@@ -354,21 +350,14 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteAllFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            if (nativePtr == 0) {
-                TableOrView table = getTableOrView();
-                table.clear();
-            } else {
-                nativeClear(nativePtr);
-            }
-            return true;
-        } else {
-            return false;
+            collection.clear();
         }
+        return false;
     }
 
     /**
      * Returns an iterator for the results of a query. Any change to Realm while iterating will cause this iterator to
-     * throw a {@link java.util.ConcurrentModificationException} if accessed.
+     * throw a {@link ConcurrentModificationException} if accessed.
      *
      * @return an iterator on the elements of this list.
      * @see Iterator
@@ -384,7 +373,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * Returns a list iterator for the results of a query. Any change to Realm while iterating will cause the iterator
-     * to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     * to throw a {@link ConcurrentModificationException} if accessed.
      *
      * @return a ListIterator on the elements of this list.
      * @see ListIterator
@@ -400,7 +389,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     /**
      * Returns a list iterator on the results of a query. Any change to Realm while iterating will cause the iterator to
-     * throw a {@link java.util.ConcurrentModificationException} if accessed.
+     * throw a {@link ConcurrentModificationException} if accessed.
      *
      * @param location the index at which to start the iteration.
      * @return a ListIterator on the elements of this list.
@@ -438,12 +427,15 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
+        /*
         if (nativePtr == 0) {
             return this.sort(fieldName, Sort.ASCENDING);
         } else {
             long ptr = nativeSort(nativePtr, new long[]{getColumnIndexForSort(fieldName)}, new boolean[]{Sort.ASCENDING.getValue()});
             return new RealmResults<E>(realm, className, ptr);
         }
+        */
+        return null;
     }
 
     /**
@@ -451,12 +443,15 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
+        /*
         if (nativePtr == 0) {
             return where().findAllSorted(fieldName, sortOrder);
         } else {
             long ptr = nativeSort(nativePtr, new long[]{getColumnIndexForSort(fieldName)}, new boolean[]{sortOrder == Sort.ASCENDING});
             return new RealmResults<E>(realm, className, ptr);
         }
+        */
+        return null;
     }
 
     /**
@@ -464,6 +459,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
+        /*
         if (nativePtr == 0) {
             return where().findAllSorted(fieldNames, sortOrders);
         } else {
@@ -480,6 +476,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             long ptr = nativeSort(nativePtr, columnIndices, orders);
             return new RealmResults<E>(realm, className, ptr);
         }
+        */
+        return null;
     }
 
     /**
@@ -501,15 +499,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public int size() {
         if (!isLoaded()) {
             return 0;
-        } else {
-            long size;
-            if (nativePtr == 0) {
-                size = getTableOrView().size();
-            } else {
-                size = nativeSize(nativePtr);
-            }
-            return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
+
+        return collection.size();
     }
 
     /**
@@ -518,20 +510,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number min(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (nativePtr == 0) {
-            switch (table.getColumnType(columnIndex)) {
-                case INTEGER:
-                    return table.minimumLong(columnIndex);
-                case FLOAT:
-                    return table.minimumFloat(columnIndex);
-                case DOUBLE:
-                    return table.minimumDouble(columnIndex);
-                default:
-                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-            }
-        } else {
-            return (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MINIMUM);
-        }
+        return (Number)collection.aggregate(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -540,15 +519,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Date minDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (nativePtr == 0) {
-            if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
-                return table.minimumDate(columnIndex);
-            } else {
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
-            }
-        } else {
-            return (Date) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MINIMUM);
-        }
+        return (Date) collection.aggregate(Collection.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -557,20 +528,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number max(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (nativePtr == 0) {
-            switch (table.getColumnType(columnIndex)) {
-                case INTEGER:
-                    return table.maximumLong(columnIndex);
-                case FLOAT:
-                    return table.maximumFloat(columnIndex);
-                case DOUBLE:
-                    return table.maximumDouble(columnIndex);
-                default:
-                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-            }
-        } else {
-            return (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MAXIMUM);
-        }
+        return (Number) collection.aggregate(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
     /**
@@ -581,20 +539,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
-     * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
+     * @throws IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (nativePtr == 0) {
-            if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
-                return table.maximumDate(columnIndex);
-            } else {
-                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
-            }
-        } else {
-            return (Date) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_MAXIMUM);
-        }
+        return (Date) collection.aggregate(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
 
@@ -604,20 +554,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number sum(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (nativePtr == 0) {
-            switch (table.getColumnType(columnIndex)) {
-                case INTEGER:
-                    return table.sumLong(columnIndex);
-                case FLOAT:
-                    return table.sumFloat(columnIndex);
-                case DOUBLE:
-                    return table.sumDouble(columnIndex);
-                default:
-                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-            }
-        } else {
-            return (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_SUM);
-        }
+        return (Number) collection.aggregate(Collection.Aggregate.SUM, columnIndex);
     }
 
     /**
@@ -626,22 +563,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public double average(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        if (nativePtr == 0) {
-            switch (table.getColumnType(columnIndex)) {
-                case INTEGER:
-                    return table.averageLong(columnIndex);
-                case DOUBLE:
-                    return table.averageDouble(columnIndex);
-                case FLOAT:
-                    return table.averageFloat(columnIndex);
-                default:
-                    throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
-            }
-        } else {
-            // FIXME: Should we change return type to Double?
-            Number sum = (Number) nativeAggregate(nativePtr, columnIndex, AGGREGATE_FUNCTION_AVERAGE);
-            return sum.doubleValue();
-        }
+
+        // FIXME: Should we change return type to Double?
+        Number sum = (Number) collection.aggregate(Collection.Aggregate.AVERAGE, columnIndex);
+        return sum.doubleValue();
     }
 
     /**
@@ -674,7 +599,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      *
      * @param fieldName the field name.
      * @return immediately a {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * {@link RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
      * query completes.
      * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
      * is not indexed, or points to linked fields.
@@ -730,7 +655,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Deprecated
     @Override
-    public boolean removeAll(Collection<?> collection) {
+    public boolean removeAll(java.util.Collection<?> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -754,7 +679,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Deprecated
     @Override
-    public boolean retainAll(Collection<?> collection) {
+    public boolean retainAll(java.util.Collection<?> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -845,7 +770,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     @Deprecated
-    public boolean addAll(int location, Collection<? extends E> collection) {
+    public boolean addAll(int location, java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -856,7 +781,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Deprecated
     @Override
-    public boolean addAll(Collection<? extends E> collection) {
+    public boolean addAll(java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -1085,7 +1010,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
         realm.checkIfValid();
         if (listeners.isEmpty()) {
-            nativeAddListener(nativePtr);
+            //nativeAddListener(nativePtr);
         }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
@@ -1174,22 +1099,4 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             }
         }
     }
-
-    void notifyChangeListeners() {
-        if (!listeners.isEmpty()) {
-            for (RealmChangeListener listener : listeners) {
-                listener.onChange(this);
-            }
-        }
-    }
-
-    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long[] columnIndices, boolean[] orders);
-    private static native long nativeCreateSnapshot(long nativePtr);
-    private static native long nativeGetRow(long nativePtr, int index);
-    private static native boolean nativeContains(long nativePtr, long nativeRowPtr);
-    private static native void nativeClear(long nativePtr);
-    private static native long nativeSize(long nativePtr);
-    private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
-    private static native long nativeSort(long nativePtr, long[] columnIndices, boolean[] orders);
-    private native long nativeAddListener(long nativePtr);
 }

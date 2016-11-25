@@ -506,9 +506,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     // FIXME: Testing code
-    <E extends RealmModel> E get(Class<E> clazz, long rowPtr) {
-        Table table = schema.getTable(clazz);
-        UncheckedRow row = UncheckedRow.getByRowPointer(table, rowPtr);
+    <E extends RealmModel> E get(Class<E> clazz, Row row) {
 
         E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
                 false, Collections.<String> emptyList());

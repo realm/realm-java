@@ -16,7 +16,13 @@
 
 package io.realm.internal;
 
+import io.realm.RealmChangeListener;
+
 public class Collection implements NativeObject {
+
+    public interface Listener {
+        void onChange();
+    }
     
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
@@ -28,6 +34,23 @@ public class Collection implements NativeObject {
     public static final byte AGGREGATE_FUNCTION_MAXIMUM = 2;
     public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
     public static final byte AGGREGATE_FUNCTION_SUM     = 4;
+
+    public enum Aggregate {
+        MINIMUM(AGGREGATE_FUNCTION_MINIMUM),
+        MAXIMUM(AGGREGATE_FUNCTION_MAXIMUM),
+        AVERAGE(AGGREGATE_FUNCTION_AVERAGE),
+        SUM(AGGREGATE_FUNCTION_SUM);
+
+        private final byte value;
+
+        Aggregate(byte value) {
+            this.value = value;
+        }
+
+        public byte getValue() {
+            return value;
+        }
+    }
 
     protected Collection(SharedRealm sharedRealm, TableQuery query, long indices[], boolean[] orders) {
         this.context = sharedRealm.context;
@@ -44,6 +67,23 @@ public class Collection implements NativeObject {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
+    }
+
+    public UncheckedRow getUncheckedRow(int index) {
+        return UncheckedRow.getByRowPointer(query.table, nativeGetRow(nativePtr, index));
+    }
+
+    public Object aggregate(Aggregate aggregateMethod, long columnIndex) {
+        return nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+    }
+
+    public int size() {
+        long size = nativeSize(nativePtr);
+        return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
+    }
+
+    public void clear() {
+        nativeClear(nativePtr);
     }
 
     private static native long nativeGetFinalizerPtr();
