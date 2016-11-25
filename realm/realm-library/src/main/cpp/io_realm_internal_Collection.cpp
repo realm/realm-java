@@ -15,7 +15,7 @@
  */
 
 #include <jni.h>
-#include "io_realm_RealmResults.h"
+#include "io_realm_internal_Collection.h"
 
 #include <vector>
 
@@ -27,7 +27,9 @@
 using namespace realm;
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeCreateResults(JNIEnv* env, jclass, jlong shared_realm_ptr, jlong query_ptr, jlongArray colunm_indices, jbooleanArray jsort_orders) {
+Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong shared_realm_ptr, jlong query_ptr,
+        jlongArray colunm_indices, jbooleanArray jsort_orders)
+{
     TR_ENTER()
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
@@ -51,7 +53,8 @@ Java_io_realm_RealmResults_nativeCreateResults(JNIEnv* env, jclass, jlong shared
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr) {
+Java_io_realm_internal_Collection_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -62,7 +65,8 @@ Java_io_realm_RealmResults_nativeCreateSnapshot(JNIEnv* env, jclass, jlong nativ
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_RealmResults_nativeContains(JNIEnv *env, jclass, jlong native_ptr, jlong native_row_ptr) {
+Java_io_realm_internal_Collection_nativeContains(JNIEnv *env, jclass, jlong native_ptr, jlong native_row_ptr)
+{
     TR_ENTER_PTR(native_ptr);
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -75,7 +79,8 @@ Java_io_realm_RealmResults_nativeContains(JNIEnv *env, jclass, jlong native_ptr,
 
 // FIXME: we don't use it at the moment
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeGetRow(JNIEnv *env, jclass, jlong native_ptr, jint index) {
+Java_io_realm_internal_Collection_nativeGetRow(JNIEnv *env, jclass, jlong native_ptr, jint index)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -86,7 +91,8 @@ Java_io_realm_RealmResults_nativeGetRow(JNIEnv *env, jclass, jlong native_ptr, j
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_RealmResults_nativeClear(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_Collection_nativeClear(JNIEnv *env, jclass, jlong native_ptr)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -95,7 +101,8 @@ Java_io_realm_RealmResults_nativeClear(JNIEnv *env, jclass, jlong native_ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeSize(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_Collection_nativeSize(JNIEnv *env, jclass, jlong native_ptr)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -105,7 +112,9 @@ Java_io_realm_RealmResults_nativeSize(JNIEnv *env, jclass, jlong native_ptr) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_io_realm_RealmResults_nativeAggregate(JNIEnv *env, jclass, jlong native_ptr, jlong column_index, jbyte agg_func) {
+Java_io_realm_internal_Collection_nativeAggregate(JNIEnv *env, jclass, jlong native_ptr, jlong column_index,
+        jbyte agg_func)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results *>(native_ptr);
@@ -113,16 +122,16 @@ Java_io_realm_RealmResults_nativeAggregate(JNIEnv *env, jclass, jlong native_ptr
         size_t index = S(column_index);
         Optional<Mixed> value;
         switch (agg_func) {
-            case io_realm_RealmResults_AGGREGATE_FUNCTION_MINIMUM:
+            case io_realm_internal_Collection_AGGREGATE_FUNCTION_MINIMUM:
                 value = results->min(index);
                 break;
-            case io_realm_RealmResults_AGGREGATE_FUNCTION_MAXIMUM:
+            case io_realm_internal_Collection_AGGREGATE_FUNCTION_MAXIMUM:
                 value = results->max(index);
                 break;
-            case io_realm_RealmResults_AGGREGATE_FUNCTION_AVERAGE:
+            case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE:
                 value = results->average(index);
                 break;
-            case io_realm_RealmResults_AGGREGATE_FUNCTION_SUM:
+            case io_realm_internal_Collection_AGGREGATE_FUNCTION_SUM:
                 value = results->sum(index);
                 break;
         }
@@ -149,7 +158,9 @@ Java_io_realm_RealmResults_nativeAggregate(JNIEnv *env, jclass, jlong native_ptr
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlongArray colunm_indices, jbooleanArray jsort_orders) {
+Java_io_realm_internal_Collection_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlongArray colunm_indices,
+        jbooleanArray jsort_orders)
+{
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
@@ -176,7 +187,8 @@ Java_io_realm_RealmResults_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlo
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_RealmResults_nativeAddListener(JNIEnv* env, jobject instance, jlong native_ptr) {
+Java_io_realm_internal_Collection_nativeAddListener(JNIEnv* env, jobject instance, jlong native_ptr)
+{
     TR_ENTER_PTR(native_ptr)
 
     try {
