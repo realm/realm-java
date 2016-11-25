@@ -10,7 +10,7 @@
 
     <uses-sdk tools:overrideLibrary="dk.ilios.spanner"/>
     <uses-sdk
-        android:minSdkVersion="16"
+        android:minSdkVersion="9"
         android:targetSdkVersion="22"/>
 
     <application>

@@ -247,10 +247,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             } else {
                 if (realm instanceof DynamicRealm) {
                     UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
-                    contains = nativeContains(nativePtr, row.nativePointer);
+                    contains = nativeContains(nativePtr, row.getNativePtr());
                 } else {
                     CheckedRow row = (CheckedRow) proxy.realmGet$proxyState().getRow$realm();
-                    contains = nativeContains(nativePtr, row.nativePointer);
+                    contains = nativeContains(nativePtr, row.getNativePtr());
                 }
             }
         }

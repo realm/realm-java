@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -35,6 +37,10 @@ import static junit.framework.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class JNITableViewTest {
+    static {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
+    }
+
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 

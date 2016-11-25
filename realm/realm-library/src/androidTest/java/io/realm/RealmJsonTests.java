@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.text.TextUtils;
@@ -55,11 +56,13 @@ import io.realm.exceptions.RealmException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeThat;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmJsonTests {
@@ -693,12 +696,16 @@ public class RealmJsonTests {
 
     @Test
     public void createAllFromJson_streamNull() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, realm.where(AllTypes.class).count());
     }
 
     @Test
     public void createObjectFromJson_streamAllSimpleTypes() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "all_simple_types.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -717,6 +724,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamDateAsLong() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "date_as_long.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -730,6 +739,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamDateAsString() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "date_as_string.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -743,6 +754,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamDateAsISO8601String() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "date_as_iso8601_string.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -761,6 +774,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamChildObject() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "single_child_object.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -773,6 +788,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamEmptyChildObjectList() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "realmlist_empty.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -785,6 +802,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamChildObjectList() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "realmlist.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -797,6 +816,8 @@ public class RealmJsonTests {
 
     @Test
     public void createAllFromJson_streamArray() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "array.json");
         realm.beginTransaction();
         realm.createAllFromJson(Dog.class, in);
@@ -810,6 +831,8 @@ public class RealmJsonTests {
     // Test if Json object doesn't have the field, then the field should have default value. Stream version.
     @Test
     public void createObjectFromJson_streamNoValues() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "other_json_object.json");
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -831,6 +854,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamNullClass() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "array.json");
         realm.beginTransaction();
         assertNull(realm.createObjectFromJson(null, in));
@@ -840,6 +865,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamNullJson() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "all_types_invalid.json");
         realm.beginTransaction();
         try {
@@ -854,6 +881,8 @@ public class RealmJsonTests {
 
     @Test
     public void createObjectFromJson_streamNullInputStream() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
         assertNull(realm.createObjectFromJson(AnnotationTypes.class, (InputStream) null));
         realm.commitTransaction();
@@ -865,6 +894,8 @@ public class RealmJsonTests {
      */
     @Test
     public void createOrUpdateObjectFromJson_streamNullValues() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
         Date date = new Date(0);
         obj.setColumnLong(1); // ID
@@ -900,6 +931,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateObjectFromJson_streamNullClass() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream in = TestHelper.loadJsonFromAssets(context, "all_types_primary_key_field_only.json");
         realm.beginTransaction();
         assertNull(realm.createOrUpdateObjectFromJson(null, in));
@@ -909,6 +942,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateObjectFromJson_streamInvalidJson() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
         obj.setColumnLong(1);
         realm.beginTransaction();
@@ -929,6 +964,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateObjectFromJson_streamNoPrimaryKeyThrows() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         try {
             realm.createOrUpdateObjectFromJson(AllTypes.class, new TestHelper.StubInputStream());
             fail();
@@ -938,6 +975,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateAllFromJson_streamInvalidJSonCurlyBracketThrows() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         try {
             realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.stringToStream("{"));
             fail();
@@ -947,6 +986,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateObjectFromJson_streamIgnoreUnsetProperties() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
         realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
         realm.commitTransaction();
@@ -961,6 +1002,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateObjectFromJson_inputStream() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
 
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
@@ -982,6 +1025,8 @@ public class RealmJsonTests {
      */
     @Test
     public void createOrUpdateObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
         realm.createObject(OwnerPrimaryKey.class, 0); // id = 0
@@ -1215,6 +1260,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateAllFromJson_streamNoPrimaryKeyThrows() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         try {
             realm.createOrUpdateAllFromJson(AllTypes.class, new TestHelper.StubInputStream());
             fail();
@@ -1224,6 +1271,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateAllFromJson_streamInvalidJSonBracketThrows() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         try {
             realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.stringToStream("["));
             fail();
@@ -1289,6 +1338,8 @@ public class RealmJsonTests {
 
     @Test
     public void createOrUpdateAllFromJson_inputStream() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
         realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.loadJsonFromAssets(context, "list_alltypes_primarykey.json"));
         realm.commitTransaction();
@@ -1328,6 +1379,8 @@ public class RealmJsonTests {
     // Test creating objects form JSON stream, all nullable fields with null values or non-null values
     @Test
     public void createAllFromJson_nullTypesStreamJSONWithNulls() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
         realm.createAllFromJson(NullTypes.class, TestHelper.loadJsonFromAssets(context, "nulltypes.json"));
         realm.commitTransaction();
@@ -1485,6 +1538,8 @@ public class RealmJsonTests {
      */
     @Test
     public void createObjectFromJson_nullTypesJSONStreamToNotNullFields() throws IOException, JSONException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(context, "nulltypes_invalid.json"));
         JSONArray array = new JSONArray(json);
 
@@ -1612,6 +1667,8 @@ public class RealmJsonTests {
      */
     @Test
     public void createObjectFromJson_objectWithPrimaryKeySetValueDirectlyFromStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
         realm.beginTransaction();
         realm.createObject(OwnerPrimaryKey.class, 0); // id = 0
