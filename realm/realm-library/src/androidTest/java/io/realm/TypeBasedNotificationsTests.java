@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
@@ -48,12 +49,14 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.RealmBackgroundTask;
 
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeThat;
 
 @RunWith(AndroidJUnit4.class)
 public class TypeBasedNotificationsTests {
@@ -250,6 +253,8 @@ public class TypeBasedNotificationsTests {
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObjectFromJson() {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         final Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
@@ -356,6 +361,8 @@ public class TypeBasedNotificationsTests {
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createOrUpdateObjectFromJson() {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         final Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override

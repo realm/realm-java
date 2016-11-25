@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -2017,79 +2018,26 @@ public class RealmTests {
 
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (IllegalStateException expected) {}
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (IllegalStateException expected) {}
-        try { realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, jsonObjStream);       fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, jsonObjStream);   fail(); } catch (IllegalStateException expected) {}
+        }
         try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); } catch (IllegalStateException expected) {}
         try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); } catch (IllegalStateException expected) {}
-        try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+        }
 
         try { realm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); } catch (IllegalStateException expected) {}
         try { realm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); } catch (IllegalStateException expected) {}
-        try { realm.createAllFromJson(NoPrimaryKeyNullTypes.class, jsonArrStream);          fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createAllFromJson(NoPrimaryKeyNullTypes.class, jsonArrStream);      fail(); } catch (IllegalStateException expected) {}
+        }
         try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (IllegalStateException expected) {}
         try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (IllegalStateException expected) {}
-        try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            try { realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);fail(); } catch (IllegalStateException expected) {}
+        }
     }
-
-    // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
-/*    // Check that FinalizerRunnable can free native resources (phantom refs)
-    public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
-        testRealm.close();
-
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).name("myown").build();
-        Realm.deleteRealm(config);
-        testRealm = Realm.getInstance(config);
-
-        // Manipulate field accessibility to facilitate testing
-        Field realmFileReference = BaseRealm.class.getDeclaredField("sharedGroupManager");
-        realmFileReference.setAccessible(true);
-        Field contextField = SharedGroup.class.getDeclaredField("context");
-        contextField.setAccessible(true);
-        Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
-        rowReferencesField.setAccessible(true);
-
-        SharedGroupManager realmFile = (SharedGroupManager) realmFileReference.get(testRealm);
-        assertNotNull(realmFile);
-
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.getSharedGroup());
-        assertNotNull(context);
-
-        Map<Reference<?>, Integer> rowReferences = (Map<Reference<?>, Integer>) rowReferencesField.get(context);
-        assertNotNull(rowReferences);
-
-        // insert some rows, then give the thread some time to cleanup
-        // we have 8 reference so far let's add more
-        final int numberOfPopulateTest = 1000;
-        final int numberOfObjects = 20;
-        final int totalNumberOfReferences = 8 + numberOfObjects * 2 * numberOfPopulateTest;
-
-        long tic = System.currentTimeMillis();
-        for (int i = 0; i < numberOfPopulateTest; i++) {
-            populateTestRealm(testRealm, numberOfObjects);
-        }
-        long toc = System.currentTimeMillis();
-        Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
-
-        final int MAX_GC_RETRIES = 5;
-        int numberOfRetries = 0;
-        Log.i("GCing", "Hoping for the best");
-        while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
-            SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
-            TestHelper.allocGarbage(0);
-            numberOfRetries++;
-            System.gc();
-        }
-        context.cleanNativeReferences();
-
-        // we can't guarantee that all references have been GC'ed but we should detect a decrease
-        boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
-        if (!isDecreasing) {
-            fail("Native resources are not being closed");
-
-        } else {
-            android.util.Log.d(RealmTest.class.getName(), "References freed : "
-                    + (totalNumberOfReferences - rowReferences.size()) + " out of " + totalNumberOfReferences);
-        }
-    }*/
 
     @Test
     public void createObject_cannotCreateDynamicRealmObject() {
