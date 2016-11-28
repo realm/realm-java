@@ -342,6 +342,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         realm.checkIfValid();
         if (size() > 0) {
             collection.clear();
+            return true;
         }
         return false;
     }
@@ -406,7 +407,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = collection.getTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
         }
