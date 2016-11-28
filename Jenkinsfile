@@ -13,13 +13,12 @@ try {
           $class: 'GitSCM',
           branches: scm.branches,
           gitTool: 'native git',
-          extensions: scm.extensions + [[$class: 'CleanCheckout']],
+          extensions: scm.extensions + [
+            [$class: 'CleanCheckout'],
+            [$class: 'SubmoduleOption', recursiveSubmodules: true]
+          ],
           userRemoteConfigs: scm.userRemoteConfigs
         ])
-        sh 'git submodule sync'
-        sh 'git submodule update --init --recursive'
-        // Make sure not to delete the folder that Jenkins allocates to store scripts
-        sh 'git clean -ffdx -e .????????'
       }
 
       def buildEnv
