@@ -72,6 +72,11 @@ public class TableQuery implements NativeObject {
         return nativeFinalizerPtr;
     }
 
+    // FIXME: Hide this?
+    public Table getTable() {
+        return table;
+    }
+
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.
      */

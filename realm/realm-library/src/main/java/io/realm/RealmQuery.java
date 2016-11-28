@@ -27,11 +27,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.Required;
+import io.realm.internal.Collection;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
+import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
@@ -1647,11 +1649,11 @@ public final class RealmQuery<E extends RealmModel> {
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
         RealmResults<E> realmResults;
+        Collection collection = new Collection(realm.sharedRealm, query, null);
         if (isDynamicQuery()) {
-            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
+            realmResults = new RealmResults<E>(realm, collection, className);
         } else {
-            //realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
-            realmResults = RealmResults.createFromQuery(realm, query, clazz, null, null);
+            realmResults = new RealmResults<E>(realm, collection, clazz);
         }
         return realmResults;
     }
@@ -1755,15 +1757,14 @@ public final class RealmQuery<E extends RealmModel> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         checkQueryIsNotReused();
-        TableView tableView = query.findAll();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        tableView.sort(columnIndex, sortOrder);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
 
+        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            realmResults = new RealmResults<E>(realm, collection, className);
         } else {
-            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+            realmResults = new RealmResults<E>(realm, collection, clazz);
         }
         return realmResults;
     }

@@ -103,11 +103,16 @@ public class Collection implements NativeObject {
         }
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, long indices[], boolean[] orders) {
+    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
         this.context = sharedRealm.context;
         this.query = query;
 
-        this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), indices, orders);
+        if (sortDescriptor == null) {
+            this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), 0);
+        } else {
+            this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
+                    sortDescriptor.getNativePtr());
+        }
         this.context.addReference(this);
     }
 
@@ -180,8 +185,8 @@ public class Collection implements NativeObject {
     }
 
     private static native long nativeGetFinalizerPtr();
-    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long[] columnIndices,
-                                                   boolean[] orders);
+    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
+                                                   long sortDescNativePtr);
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
     private static native boolean nativeContains(long nativePtr, long nativeRowPtr);

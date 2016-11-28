@@ -95,12 +95,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
     public static final byte AGGREGATE_FUNCTION_SUM     = 4;
 
-    static <E extends RealmModel> RealmResults<E> createFromQuery(BaseRealm realm, TableQuery query, Class<E> clazz,
-                                                                  String fieldNames[], Sort[] sortOrder) {
-        Collection collection = new Collection(realm.sharedRealm, query, null, null);
-        return new RealmResults<E>(realm, collection, clazz);
-    }
-
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
     }
@@ -125,6 +119,13 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.realm = realm;
         this.query = null;
         this.classSpec = clazz;
+        this.collection = collection;
+    }
+
+    RealmResults(BaseRealm realm, io.realm.internal.Collection collection, String className) {
+        this.realm = realm;
+        this.query = null;
+        this.className = className;
         this.collection = collection;
     }
 
@@ -807,7 +808,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
          */
         public E next() {
             realm.checkIfValid();
-            checkRealmIsStable();
+            // FIXME: Enable this
+            //checkRealmIsStable();
             pos++;
             if (pos >= size()) {
                 throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");

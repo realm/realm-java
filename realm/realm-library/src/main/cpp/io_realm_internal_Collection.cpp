@@ -46,26 +46,17 @@ static void finalize_notification_token(jlong ptr)
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong shared_realm_ptr, jlong query_ptr,
-        jlongArray colunm_indices, jbooleanArray jsort_orders)
+        jlong sort_desc_native_ptr)
 {
     TR_ENTER()
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto query = reinterpret_cast<Query*>(query_ptr);
+        Results* results = sort_desc_native_ptr ?
+                           new Results(shared_realm, *query, *reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr)) :
+                           new Results(shared_realm, *query, {}) ;
 
-        JniBooleanArray order(env, jsort_orders);
-        JniLongArray indices(env, colunm_indices);
-
-        std::vector<bool> sort_order;
-        std::vector<std::vector<size_t>> sort_indices;
-        for(jsize i = 0; i < order.len(); ++i) {
-            sort_order.push_back(to_bool(order[i]));
-            sort_indices.push_back(std::vector<size_t> { S(indices[i]) });
-        }
-
-        SortDescriptor sort_descriptor(*(query->get_table().get()), sort_indices, sort_order);
-        Results results(shared_realm, *query, sort_descriptor);
-        return reinterpret_cast<jlong>(new Results(std::move(results)));
+        return reinterpret_cast<jlong>(results);
     } CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
