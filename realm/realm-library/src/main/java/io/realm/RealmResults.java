@@ -198,13 +198,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.currentTableViewVersion = table.syncIfNeeded();
     }
 
-    private RealmResults(BaseRealm realm, String className, long nativePtr) {
-        this.realm = realm;
-        this.className = className;
-        this.query = null;
-        collection = null;
-    }
-
     TableOrView getTableOrView() {
         if (table == null) {
             return realm.schema.getTable(classSpec);
@@ -444,15 +437,18 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        /*
-        if (nativePtr == 0) {
-            return where().findAllSorted(fieldName, sortOrder);
-        } else {
-            long ptr = nativeSort(nativePtr, new long[]{getColumnIndexForSort(fieldName)}, new boolean[]{sortOrder == Sort.ASCENDING});
-            return new RealmResults<E>(realm, className, ptr);
+        SortDescriptor sortDescriptor =
+                SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, sortOrder);
+        try {
+            Collection sortedCollection = collection.sort(sortDescriptor);
+            if (className != null) {
+                return new RealmResults<E>(realm, sortedCollection, className);
+            } else {
+                return new RealmResults<E>(realm, sortedCollection, classSpec);
+            }
+        } finally {
+            sortDescriptor.close();
         }
-        */
-        return null;
     }
 
     /**
@@ -460,25 +456,18 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
-        /*
-        if (nativePtr == 0) {
-            return where().findAllSorted(fieldNames, sortOrders);
-        } else {
-            long columnIndices[] = new long[fieldNames.length];
-            for(int i = 0; i < fieldNames.length; i++) {
-                columnIndices[i] = getColumnIndexForSort(fieldNames[i]);
+        SortDescriptor sortDescriptor =
+                SortDescriptor.getInstanceForSort(collection.getTable(), fieldNames, sortOrders);
+        try {
+            Collection sortedCollection = collection.sort(sortDescriptor);
+            if (className != null) {
+                return new RealmResults<E>(realm, sortedCollection, className);
+            } else {
+                return new RealmResults<E>(realm, sortedCollection, classSpec);
             }
-
-            boolean orders[] = new boolean[sortOrders.length];
-            for(int i = 0; i < sortOrders.length; i++) {
-                orders[i] = sortOrders[i].getValue();
-            }
-
-            long ptr = nativeSort(nativePtr, columnIndices, orders);
-            return new RealmResults<E>(realm, className, ptr);
+        } finally {
+            sortDescriptor.close();
         }
-        */
-        return null;
     }
 
     /**
