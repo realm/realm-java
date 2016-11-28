@@ -31,7 +31,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.internal.CheckedRow;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -95,12 +94,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // clear it.
     private boolean viewUpdated = false;
 
-    // Public for static checking in JNI
-    public static final byte AGGREGATE_FUNCTION_MINIMUM = 1;
-    public static final byte AGGREGATE_FUNCTION_MAXIMUM = 2;
-    public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
-    public static final byte AGGREGATE_FUNCTION_SUM     = 4;
-
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
     }
@@ -133,29 +126,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.query = null;
         this.className = className;
         this.collection = collection;
-    }
-
-    private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz, String fieldNames[], Sort[] sortOrder) {
-        this.realm = realm;
-        this.classSpec = clazz;
-        this.query = query;
-
-        boolean[] order = null;
-        long[] indices = null;
-
-        if (fieldNames != null && sortOrder != null) {
-            order = new boolean[sortOrder.length];
-            indices = new long[sortOrder.length];
-            if (sortOrder.length != fieldNames.length) {
-                throw new IllegalArgumentException("Number of field names and sort orders does not match");
-            }
-            for (int i = 0; i < sortOrder.length; i++) {
-                order[i] = sortOrder[i] == Sort.ASCENDING;
-                indices[i] = getColumnIndexForSort(fieldNames[i]);
-            }
-        }
-
-        collection = null;
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
