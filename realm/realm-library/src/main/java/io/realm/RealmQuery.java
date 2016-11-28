@@ -1659,86 +1659,10 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
+     * @deprecated use {@link #findAll()} instead.
      */
     public RealmResults<E> findAllAsync() {
-        checkQueryIsNotReused();
-        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
-
-        // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
-
-        // save query arguments (for future update)
-        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL);
-
-        // we need to use the same configuration to open a background SharedRealm (i.e Realm)
-        // to perform the query
-        final RealmConfiguration realmConfiguration = realm.getConfiguration();
-
-        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
-        // then update it once the query completes in the background.
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            //noinspection unchecked
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
-        } else {
-            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
-        }
-
-        final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
-
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                if (!Thread.currentThread().isInterrupted()) {
-                    SharedRealm sharedRealm = null;
-
-                    try {
-                        sharedRealm = SharedRealm.getInstance(realmConfiguration);
-
-                        // Run the query & handover the table view for the caller thread
-                        // Note: the handoverQueryPointer contains the versionID needed by the SG in order
-                        // to import it.
-                        long handoverTableViewPointer = TableQuery.findAllWithHandover(sharedRealm,
-                                handoverQueryPointer);
-
-                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
-                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
-                        result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
-
-                        return handoverTableViewPointer;
-
-                    } catch (BadVersionException e) {
-                        // In some rare race conditions, this can happen. In that case, just ignore the error.
-                        RealmLog.debug("findAllAsync handover could not complete due to a BadVersionException. " +
-                                "Retry is scheduled by a REALM_CHANGED event.");
-
-                    } catch (Throwable e) {
-                        RealmLog.error(e);
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-                    } finally {
-                        if (sharedRealm != null && !sharedRealm.isClosed()) {
-                            sharedRealm.close();
-                        }
-                    }
-                } else {
-                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                }
-
-                return INVALID_NATIVE_POINTER;
-            }
-        });
-
-        realmResults.setPendingQuery(pendingQuery);
-        return realmResults;
+        return findAll();
     }
 
     /**
@@ -1770,88 +1694,10 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort)} but runs asynchronously on a worker thread
-     * (Need a Realm opened from a looper thread to work).
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @deprecated use {@link #findAllSorted(String, Sort) instead.}
      */
     public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
-        checkQueryIsNotReused();
-        long columnIndex = getColumnIndexForSort(fieldName);
-
-        // capture the query arguments for future retries & update
-        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
-        argumentsHolder.sortOrder = sortOrder;
-        argumentsHolder.columnIndex = columnIndex;
-
-        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
-
-        // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
-
-        // we need to use the same configuration to open a background SharedRealm to perform the query
-        final RealmConfiguration realmConfiguration = realm.getConfiguration();
-
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            //noinspection unchecked
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
-        } else {
-            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
-        }
-
-        final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults =
-                realm.handlerController.addToAsyncRealmResults(realmResults, this);
-
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                if (!Thread.currentThread().isInterrupted()) {
-                    SharedRealm sharedRealm = null;
-
-                    try {
-                        sharedRealm = SharedRealm.getInstance(realmConfiguration);
-
-                        long columnIndex = getColumnIndexForSort(fieldName);
-
-                        // run the query & handover the table view for the caller thread
-                        long handoverTableViewPointer = TableQuery.findAllSortedWithHandover(sharedRealm,
-                                 handoverQueryPointer, columnIndex, sortOrder);
-
-                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
-                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
-                        result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
-
-                        return handoverTableViewPointer;
-                    } catch (BadVersionException e) {
-                        // In some rare race conditions, this can happen. In that case, just ignore the error.
-                        RealmLog.debug("findAllSortedAsync handover could not complete due to a BadVersionException. " +
-                                "Retry is scheduled by a REALM_CHANGED event.");
-
-                    } catch (Throwable e) {
-                        RealmLog.error(e);
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-
-                    } finally {
-                        if (sharedRealm!= null && !sharedRealm.isClosed()) {
-                            sharedRealm.close();
-                        }
-                    }
-                } else {
-                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                }
-
-                return INVALID_NATIVE_POINTER;
-            }
-        });
-        realmResults.setPendingQuery(pendingQuery);
-        return realmResults;
+        return findAllSorted(fieldName, sortOrder);
     }
 
 
@@ -1872,13 +1718,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @deprecated use {@link #findAllSorted(String)} instead.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName) {
         return findAllSortedAsync(fieldName, Sort.ASCENDING);
@@ -1892,7 +1732,7 @@ public final class RealmQuery<E extends RealmModel> {
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero 
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      *         objects is returned.
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
@@ -1929,100 +1769,10 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously
-     * from a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @deprecated use {@link #findAllSorted(String[], Sort[])} instead.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
-        checkQueryIsNotReused();
-        checkSortParameters(fieldNames, sortOrders);
-
-        if (fieldNames.length == 1 && sortOrders.length == 1) {
-            return findAllSortedAsync(fieldNames[0], sortOrders[0]);
-
-        } else {
-            final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
-
-            // Handover the query (to be used by a worker thread)
-            final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
-
-            // We need to use the same configuration to open a background SharedRealm to perform the query
-            final RealmConfiguration realmConfiguration = realm.getConfiguration();
-
-            final long indices[] = new long[fieldNames.length];
-            for (int i = 0; i < fieldNames.length; i++) {
-                String fieldName = fieldNames[i];
-                long columnIndex = getColumnIndexForSort(fieldName);
-                indices[i] = columnIndex;
-            }
-
-            // capture the query arguments for future retries & update
-            argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED);
-            argumentsHolder.sortOrders = sortOrders;
-            argumentsHolder.columnIndices = indices;
-
-            // prepare the promise result
-            RealmResults<E> realmResults;
-            if (isDynamicQuery()) {
-                //noinspection unchecked
-                realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
-            } else {
-                realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
-            }
-
-            final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
-
-            final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
-                @Override
-                public Long call() throws Exception {
-                    if (!Thread.currentThread().isInterrupted()) {
-                        SharedRealm sharedRealm = null;
-
-                        try {
-                            sharedRealm = SharedRealm.getInstance(realmConfiguration);
-
-                            // run the query & handover the table view for the caller thread
-                            long handoverTableViewPointer = TableQuery.findAllMultiSortedWithHandover(sharedRealm,
-                                    handoverQueryPointer, indices, sortOrders);
-
-                            QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
-                            result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
-                            result.versionID = sharedRealm.getVersionID();
-                            closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                    weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
-
-                            return handoverTableViewPointer;
-                        } catch (BadVersionException e) {
-                            // In some rare race conditions, this can happen. In that case, just ignore the error.
-                            RealmLog.debug("findAllSortedAsync handover could not complete due to a BadVersionException. " +
-                                    "Retry is scheduled by a REALM_CHANGED event.");
-
-                        } catch (Throwable e) {
-                            RealmLog.error(e);
-                            closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                    weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-                        } finally {
-                            if (sharedRealm != null && !sharedRealm.isClosed()) {
-                                sharedRealm.close();
-                            }
-                        }
-                    } else {
-                        TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                    }
-
-                    return INVALID_NATIVE_POINTER;
-                }
-            });
-
-            realmResults.setPendingQuery(pendingQuery);
-            return realmResults;
-        }
+        return findAllSorted(fieldNames, sortOrders);
     }
 
     /**
@@ -2046,13 +1796,7 @@ public final class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort, String, Sort)} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @deprecated use {@link #findAllSorted(String, Sort, String, Sort)} instead.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
                                               String fieldName2, Sort sortOrder2) {
