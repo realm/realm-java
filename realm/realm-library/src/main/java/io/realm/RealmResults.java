@@ -31,6 +31,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
@@ -429,15 +430,18 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        /*
-        if (nativePtr == 0) {
-            return this.sort(fieldName, Sort.ASCENDING);
-        } else {
-            long ptr = nativeSort(nativePtr, new long[]{getColumnIndexForSort(fieldName)}, new boolean[]{Sort.ASCENDING.getValue()});
-            return new RealmResults<E>(realm, className, ptr);
+        SortDescriptor sortDescriptor =
+                SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, Sort.ASCENDING);
+        try {
+            Collection sortedCollection = collection.sort(sortDescriptor);
+            if (className != null) {
+                return new RealmResults<E>(realm, sortedCollection, className);
+            } else {
+                return new RealmResults<E>(realm, sortedCollection, classSpec);
+            }
+        } finally {
+            sortDescriptor.close();
         }
-        */
-        return null;
     }
 
     /**

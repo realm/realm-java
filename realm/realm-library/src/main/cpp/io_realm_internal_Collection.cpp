@@ -52,9 +52,9 @@ Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto query = reinterpret_cast<Query*>(query_ptr);
-        Results* results = sort_desc_native_ptr ?
-                           new Results(shared_realm, *query, *reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr)) :
-                           new Results(shared_realm, *query, {}) ;
+        auto results = sort_desc_native_ptr ?
+                        new Results(shared_realm, *query, *reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr)) :
+                        new Results(shared_realm, *query, {}) ;
 
         return reinterpret_cast<jlong>(results);
     } CATCH_STD()
@@ -167,28 +167,12 @@ Java_io_realm_internal_Collection_nativeAggregate(JNIEnv *env, jclass, jlong nat
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_Collection_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlongArray colunm_indices,
-        jbooleanArray jsort_orders)
+Java_io_realm_internal_Collection_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlong sort_desc_native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto results = reinterpret_cast<Results*>(native_ptr);
-
-        JniBooleanArray order(env, jsort_orders);
-        JniLongArray indices(env, colunm_indices);
-
-        if (order.len() != indices.len()) {
-            throw std::invalid_argument("Number of columns and sorting orders do not match.");
-        }
-
-        std::vector<bool> sort_orders;
-        std::vector<std::vector<size_t>> sort_indices;
-        for(jsize i = 0; i < order.len(); ++i) {
-            sort_orders.push_back(to_bool(order[i]));
-            sort_indices.push_back(std::vector<size_t> { S(indices[i]) });
-        }
-
-        SortDescriptor sort_descriptor(*(results->get_query().get_table().get()), sort_indices, sort_orders);
+        auto sort_descriptor = *reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr);
         auto sorted_result = results->sort(std::move(sort_descriptor));
         return reinterpret_cast<jlong>(new Results(std::move(sorted_result)));
     } CATCH_STD()

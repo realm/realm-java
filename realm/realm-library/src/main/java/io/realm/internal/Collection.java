@@ -75,6 +75,7 @@ public class Collection implements NativeObject {
 
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
+    private final SharedRealm sharedRealm;
     private final Context context;
     private final TableQuery query;
     private final List<Listener> listeners = new CopyOnWriteArrayList<Listener>();
@@ -104,6 +105,7 @@ public class Collection implements NativeObject {
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+        this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.query = query;
 
@@ -113,6 +115,15 @@ public class Collection implements NativeObject {
             this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
                     sortDescriptor.getNativePtr());
         }
+        this.context.addReference(this);
+    }
+
+    public Collection(SharedRealm sharedRealm, TableQuery query, long nativePtr) {
+        this.sharedRealm = sharedRealm;
+        this.context = sharedRealm.context;
+        this.query = query;
+        this.nativePtr = nativePtr;
+
         this.context.addReference(this);
     }
 
@@ -130,6 +141,10 @@ public class Collection implements NativeObject {
         return UncheckedRow.getByRowPointer(query.table, nativeGetRow(nativePtr, index));
     }
 
+    public Table getTable() {
+        return query.getTable();
+    }
+
     public Object aggregate(Aggregate aggregateMethod, long columnIndex) {
         return nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
     }
@@ -141,6 +156,10 @@ public class Collection implements NativeObject {
 
     public void clear() {
         nativeClear(nativePtr);
+    }
+
+    public Collection sort(SortDescriptor sortDescriptor) {
+        return new Collection(sharedRealm, query, nativeSort(nativePtr, sortDescriptor.getNativePtr()));
     }
 
     public void addListener(Listener listener) {
@@ -193,7 +212,7 @@ public class Collection implements NativeObject {
     private static native void nativeClear(long nativePtr);
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
-    private static native long nativeSort(long nativePtr, long[] columnIndices, boolean[] orders);
+    private static native long nativeSort(long nativePtr, long sortDescNativePtr);
     private native long nativeAddListener(long nativePtr);
     private static native long nativeNotificationTokenGetFinalizerPtr();
     private static native long nativeNotificationTokenClose(long nativePtr);
