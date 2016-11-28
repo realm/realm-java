@@ -97,7 +97,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
 
     static <E extends RealmModel> RealmResults<E> createFromQuery(BaseRealm realm, TableQuery query, Class<E> clazz,
                                                                   String fieldNames[], Sort[] sortOrder) {
-        return new RealmResults<E>(realm, query, clazz, fieldNames, sortOrder);
+        Collection collection = new Collection(realm.sharedRealm, query, null, null);
+        return new RealmResults<E>(realm, collection, clazz);
     }
 
     static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
@@ -1009,12 +1010,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        if (listeners.isEmpty()) {
-            //nativeAddListener(nativePtr);
-        }
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
+        collection.addListener(new Collection.Listener(listener, this));
     }
 
     /**
@@ -1029,7 +1025,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        listeners.remove(listener);
+        collection.removeListener(new Collection.Listener(listener, this));
     }
 
     /**
@@ -1037,7 +1033,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     public void removeChangeListeners() {
         realm.checkIfValid();
-        listeners.clear();
+        collection.removeAllListeners();
     }
 
     /**

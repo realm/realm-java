@@ -26,6 +26,24 @@
 
 using namespace realm;
 
+static void finalize_results(jlong ptr);
+static void finalize_notification_token(jlong ptr);
+
+static void finalize_results(jlong ptr)
+{
+    TR_ENTER_PTR(ptr);
+    delete reinterpret_cast<Results*>(ptr);
+}
+
+static void finalize_notification_token(jlong ptr)
+{
+    TR_ENTER_PTR(ptr);
+    // NotificationToken can be closed by NotificationToken.close(). Then ptr will be reset in that case.
+    if (ptr) {
+        delete reinterpret_cast<NotificationToken*>(ptr);
+    }
+}
+
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong shared_realm_ptr, jlong query_ptr,
         jlongArray colunm_indices, jbooleanArray jsort_orders)
@@ -205,10 +223,29 @@ Java_io_realm_internal_Collection_nativeAddListener(JNIEnv* env, jobject instanc
         };
 
         NotificationToken token =  results->add_notification_callback(cb);
-        // FIXME: Let's leak them ALL for now!!
-        return reinterpret_cast<jlong>(
-                new std::unique_ptr<NotificationToken>(new NotificationToken(std::move(token))));
+        return reinterpret_cast<jlong>(new NotificationToken(std::move(token)));
     } CATCH_STD()
 
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeGetFinalizerPtr(JNIEnv *, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_results);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeNotificationTokenGetFinalizerPtr(JNIEnv *, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_notification_token);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeNotificationTokenClose(JNIEnv *, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    delete reinterpret_cast<NotificationToken*>(native_ptr);
 }
