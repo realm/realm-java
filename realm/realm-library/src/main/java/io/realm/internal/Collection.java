@@ -162,6 +162,10 @@ public class Collection implements NativeObject {
         return new Collection(sharedRealm, query, nativeSort(nativePtr, sortDescriptor.getNativePtr()));
     }
 
+    public boolean contains(UncheckedRow row) {
+        return nativeContains(nativePtr, row.getNativePtr());
+    }
+
     public void addListener(Listener listener) {
         if (!listeners.contains(listener)) {
             listeners.add(listener);

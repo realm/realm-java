@@ -31,12 +31,17 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.CheckedRow;
+import io.realm.internal.InvalidRow;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.Collection;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.async.BadVersionException;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -243,27 +248,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public boolean contains(Object object) {
-        /*
         boolean contains = false;
         if (isLoaded() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            if (nativePtr == 0) {
-                if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                    contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
-                }
+            Row row = proxy.realmGet$proxyState().getRow$realm();
+            if (row instanceof InvalidRow) {
+                contains = false;
             } else {
-                if (realm instanceof DynamicRealm) {
-                    UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
-                    contains = nativeContains(nativePtr, row.getNativePtr());
-                } else {
-                    CheckedRow row = (CheckedRow) proxy.realmGet$proxyState().getRow$realm();
-                    contains = nativeContains(nativePtr, row.getNativePtr());
-                }
+                contains = collection.contains((UncheckedRow) row);
             }
         }
         return contains;
-        */
-        return false;
     }
 
     /**
