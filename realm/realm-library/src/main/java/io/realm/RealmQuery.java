@@ -32,7 +32,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.SortDescriptor;
-import io.realm.internal.TableOrView;
+import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.QueryUpdateTask;
@@ -61,7 +61,7 @@ public final class RealmQuery<E extends RealmModel> {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-    private TableOrView table;
+    private Table table;
     private RealmObjectSchema schema;
     private LinkView linkView;
     private TableQuery query;

@@ -26,8 +26,6 @@ import io.realm.RealmFieldType;
  */
 public interface TableOrView {
 
-    int NO_MATCH = -1;
-
     void clear();
 
     /**
@@ -257,7 +255,7 @@ public interface TableOrView {
      *
      * @param columnIndex the column to search in.
      * @param value the value to search for.
-     * @return the row index for the first match found or {@link #NO_MATCH}.
+     * @return the row index for the first match found or {@link Table#NO_MATCH}.
      */
     long findFirstLong(long columnIndex, long value);
 
@@ -266,7 +264,7 @@ public interface TableOrView {
      *
      * @param columnIndex the column to search in.
      * @param value the alue to search for.
-     * @return the row index for the first match found or {@link #NO_MATCH}.
+     * @return the row index for the first match found or {@link Table#NO_MATCH}.
      */
     long findFirstBoolean(long columnIndex, boolean value);
 
@@ -275,7 +273,7 @@ public interface TableOrView {
      *
      * @param columnIndex the column to search in.
      * @param value the value to search for.
-     * @return the row index for the first match found or {@link #NO_MATCH}.
+     * @return the row index for the first match found or {@link Table#NO_MATCH}.
      */
     long findFirstFloat(long columnIndex, float value);
 
@@ -284,7 +282,7 @@ public interface TableOrView {
      *
      * @param columnIndex the column to search in.
      * @param value the value to search for.
-     * @return the row index for the first match found or {@link #NO_MATCH}.
+     * @return the row index for the first match found or {@link Table#NO_MATCH}.
      */
     long findFirstDouble(long columnIndex, double value);
 
@@ -293,7 +291,7 @@ public interface TableOrView {
      *
      * @param columnIndex the column to search in.
      * @param value the value to search for.
-     * @return the row index for the first match found or {@link #NO_MATCH}.
+     * @return the row index for the first match found or {@link Table#NO_MATCH}.
      */
     long findFirstDate(long columnIndex, Date value);
 
@@ -302,7 +300,7 @@ public interface TableOrView {
      *
      * @param columnIndex the column to search in.
      * @param value the value to search for.
-     * @return the row index for the first match found or {@link #NO_MATCH}.
+     * @return the row index for the first match found or {@link Table#NO_MATCH}.
      */
     long findFirstString(long columnIndex, String value);
 

@@ -450,7 +450,7 @@ public class TableView implements TableOrView, NativeObject {
     @Override
     public long findFirstDate(long columnIndex, Date date) {
         // FIXME: waiting for implementation
-        return NO_MATCH;
+        return Table.NO_MATCH;
         // return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
     }
 

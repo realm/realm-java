@@ -35,6 +35,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     public static final long INFINITE = -1;
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
+    public static final int NO_MATCH = -1;
 
     private static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
@@ -621,7 +622,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     void checkStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
         if (isPrimaryKey(columnIndex)) {
             long rowIndex = findFirstString(columnIndex, value);
-            if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+            if (rowIndex != rowToUpdate && rowIndex != NO_MATCH) {
                 throwDuplicatePrimaryKeyException(value);
             }
         }
@@ -630,7 +631,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     void checkIntValueIsLegal(long columnIndex, long rowToUpdate, long value) {
         if (isPrimaryKeyColumn(columnIndex)) {
             long rowIndex = findFirstLong(columnIndex, value);
-            if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+            if (rowIndex != rowToUpdate && rowIndex != NO_MATCH) {
                 throwDuplicatePrimaryKeyException(value);
             }
         }
@@ -644,7 +645,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
                 case STRING:
                 case INTEGER:
                     long rowIndex = findFirstNull(columnIndex);
-                    if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+                    if (rowIndex != rowToUpdate && rowIndex != NO_MATCH) {
                         throwDuplicatePrimaryKeyException("null");
                     }
                     break;

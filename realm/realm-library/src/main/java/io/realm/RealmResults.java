@@ -31,7 +31,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
-import io.realm.internal.TableOrView;
+import io.realm.internal.Table;
 import io.realm.internal.Collection;
 import io.realm.internal.UncheckedRow;
 import rx.Observable;
@@ -88,7 +88,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.collection = collection;
     }
 
-    TableOrView getTable() {
+    Table getTable() {
         return collection.getTable();
     }
 
