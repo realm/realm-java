@@ -56,8 +56,8 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.internal.Collection;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLogger;
@@ -778,7 +778,7 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 7);
+        awaitOrFail(latch, 700000);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
@@ -848,14 +848,14 @@ public class TestHelper {
      * @return a created {@link RealmResults} instance.
      */
     public static <T extends RealmObject> RealmResults<T> newRealmResults(
-            BaseRealm realm, TableOrView table, Class<T> tableClass) {
+            BaseRealm realm, Collection collection, Class<T> tableClass) {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, TableOrView.class, Class.class);
+                    BaseRealm.class, Collection.class, Class.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, table, tableClass);
+            return c.newInstance(realm, collection, tableClass);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {

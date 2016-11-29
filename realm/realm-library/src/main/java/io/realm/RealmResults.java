@@ -364,7 +364,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public int size() {
-        return collection.size();
+        long size = collection.size();
+        return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
     }
 
     /**

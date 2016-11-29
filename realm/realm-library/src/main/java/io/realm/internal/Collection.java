@@ -165,9 +165,8 @@ public class Collection implements NativeObject {
         return nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
     }
 
-    public int size() {
-        long size = nativeSize(nativePtr);
-        return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
+    public long size() {
+        return nativeSize(nativePtr);
     }
 
     public void clear() {
