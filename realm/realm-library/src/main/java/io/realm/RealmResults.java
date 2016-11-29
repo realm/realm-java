@@ -71,9 +71,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
 
-    private static final long TABLE_VIEW_VERSION_NONE = -1;
+    //private static final long TABLE_VIEW_VERSION_NONE = -1;
 
-    private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
+    //private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
     private final Collection collection;
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
@@ -92,7 +92,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         return collection.getTable();
     }
 
-    public Collection getCollection() {
+    Collection getCollection() {
         return collection;
     }
 
@@ -132,14 +132,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
+        if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             Row row = proxy.realmGet$proxyState().getRow$realm();
-            if (row instanceof InvalidRow) {
-                contains = false;
-            } else {
-                contains = collection.contains((UncheckedRow) row);
-            }
+            contains = !(row instanceof InvalidRow) && collection.contains((UncheckedRow) row);
         }
         return contains;
     }
@@ -244,6 +240,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @return an iterator on the elements of this list.
      * @see Iterator
      */
+    @SuppressWarnings("NullableProblems")
     @Override
     public Iterator<E> iterator() {
         return new RealmResultsIterator();
@@ -270,6 +267,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}.
      * @see ListIterator
      */
+    @SuppressWarnings("NullableProblems")
     @Override
     public ListIterator<E> listIterator(int location) {
         return new RealmResultsListIterator(location);
@@ -452,7 +450,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * @deprecated use {@link #distinct(String)} instead.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
-        return where().distinctAsync(fieldName);
+        return distinct(fieldName);
     }
 
     /**
@@ -502,7 +500,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Deprecated
     @Override
-    public boolean removeAll(java.util.Collection<?> collection) {
+    public boolean removeAll(@SuppressWarnings("NullableProblems") java.util.Collection<?> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -526,7 +524,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Deprecated
     @Override
-    public boolean retainAll(java.util.Collection<?> collection) {
+    public boolean retainAll(@SuppressWarnings("NullableProblems") java.util.Collection<?> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -603,7 +601,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     @Deprecated
-    public boolean addAll(int location, java.util.Collection<? extends E> collection) {
+    public boolean addAll(int location,
+                          @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -614,17 +613,17 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Deprecated
     @Override
-    public boolean addAll(java.util.Collection<? extends E> collection) {
+    public boolean addAll(@SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmResultsIterator implements Iterator<E> {
-        long tableViewVersion = 0;
+        //long tableViewVersion = 0;
         int pos = -1;
 
         RealmResultsIterator() {
-            tableViewVersion = currentTableViewVersion;
+            //tableViewVersion = currentTableViewVersion;
         }
 
         /**
