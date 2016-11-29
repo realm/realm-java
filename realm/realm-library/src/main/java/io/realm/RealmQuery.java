@@ -1597,31 +1597,13 @@ public final class RealmQuery<E extends RealmModel> {
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
-    @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
-        checkSortParameters(fieldNames, sortOrders);
+        checkQueryIsNotReused();
 
-        if (fieldNames.length == 1 && sortOrders.length == 1) {
-            return findAllSorted(fieldNames[0], sortOrders[0]);
-        } else {
-            TableView tableView = query.findAll();
-            List<Long> columnIndices = new ArrayList<Long>();
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < fieldNames.length; i++) {
-                String fieldName = fieldNames[i];
-                long columnIndex = getColumnIndexForSort(fieldName);
-                columnIndices.add(columnIndex);
-            }
-            tableView.sort(columnIndices, sortOrders);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
 
-            RealmResults<E> realmResults;
-            if (isDynamicQuery()) {
-                realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
-            } else {
-                realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-            }
-            return realmResults;
-        }
+        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
+        return createRealmResults(collection);
     }
 
     private boolean isDynamicQuery() {

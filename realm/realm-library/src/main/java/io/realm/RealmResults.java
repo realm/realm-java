@@ -35,10 +35,8 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
-import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
-import io.realm.internal.TableView;
 import io.realm.internal.Collection;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.async.BadVersionException;
@@ -81,7 +79,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
 
-    private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final long TABLE_VIEW_VERSION_NONE = -1;
 
     private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
@@ -93,26 +90,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
-
-    static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
-        return new RealmResults<E>(realm, query, clazz);
-    }
-
-    static <E extends RealmModel> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
-        RealmResults<E> realmResults = new RealmResults<E>(realm, table, clazz);
-        realm.handlerController.addToRealmResults(realmResults);
-        return realmResults;
-    }
-
-    static RealmResults<DynamicRealmObject> createFromDynamicClass(BaseRealm realm, TableQuery query, String className) {
-        return new RealmResults<DynamicRealmObject>(realm, query, className);
-    }
-
-    static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
-        RealmResults<DynamicRealmObject> realmResults = new RealmResults<DynamicRealmObject>(realm, table, className);
-        realm.handlerController.addToRealmResults(realmResults);
-        return realmResults;
-    }
 
     RealmResults(BaseRealm realm, io.realm.internal.Collection collection, Class<E> clazz) {
         this.realm = realm;
@@ -128,31 +105,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.collection = collection;
     }
 
-    private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
-        this.realm = realm;
-        this.classSpec = clazz;
-        this.query = query;
-        collection = null;
-    }
-
-    private RealmResults(BaseRealm realm, TableQuery query, String className) {
-        this.realm = realm;
-        this.query = query;
-        this.className = className;
-        collection = null;
-    }
-
-    private RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
-        this.realm = realm;
-        this.classSpec = classSpec;
-        this.table = table;
-
-        this.pendingQuery = null;
-        this.query = null;
-        this.currentTableViewVersion = table.syncIfNeeded();
-        collection = null;
-    }
-
     private RealmResults(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
@@ -160,12 +112,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         pendingQuery = null;
         query = null;
         collection = null;
-    }
-
-    private RealmResults(BaseRealm realm, TableOrView table, String className) {
-        this(realm, className);
-        this.table = table;
-        this.currentTableViewVersion = table.syncIfNeeded();
     }
 
     TableOrView getTableOrView() {
