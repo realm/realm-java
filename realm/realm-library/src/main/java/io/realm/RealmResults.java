@@ -541,29 +541,11 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
-
-        TableOrView tableOrView = getTableOrView();
-        if (tableOrView instanceof Table) {
-            this.table = ((Table) tableOrView).getDistinctView(columnIndex);
-        } else {
-            ((TableView) tableOrView).distinct(columnIndex);
-        }
-        return this;
+        return where().distinct(fieldName);
     }
 
     /**
-     * Asynchronously returns a distinct set of objects of a specific class. If the result is
-     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
-     * undefined which object is returned.
-     *
-     * @param fieldName the field name.
-     * @return immediately a {@link RealmResults}. Users need to register a listener
-     * {@link RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     * query completes.
-     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * @deprecated use {@link #distinct(String)} instead.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
         return where().distinctAsync(fieldName);

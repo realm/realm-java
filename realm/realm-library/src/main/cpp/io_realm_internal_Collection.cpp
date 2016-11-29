@@ -46,15 +46,17 @@ static void finalize_notification_token(jlong ptr)
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong shared_realm_ptr, jlong query_ptr,
-        jlong sort_desc_native_ptr)
+        jlong sort_desc_native_ptr, jlong distinct_desc_native_ptr)
 {
     TR_ENTER()
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto query = reinterpret_cast<Query*>(query_ptr);
-        auto results = sort_desc_native_ptr ?
-                        new Results(shared_realm, *query, *reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr)) :
-                        new Results(shared_realm, *query, {}) ;
+        auto sort_desc_ptr = reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr);
+        auto distinct_desc_ptr = reinterpret_cast<SortDescriptor*>(distinct_desc_native_ptr);
+        auto results = new Results(shared_realm, *query,
+                                   sort_desc_ptr ? *sort_desc_ptr : SortDescriptor(),
+                                   distinct_desc_ptr ? *distinct_desc_ptr : SortDescriptor());
 
         return reinterpret_cast<jlong>(results);
     } CATCH_STD()

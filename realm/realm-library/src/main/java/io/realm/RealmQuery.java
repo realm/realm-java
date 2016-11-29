@@ -39,7 +39,6 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
-import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.log.RealmLog;
 
@@ -1334,122 +1333,16 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmResults<E> distinct(String fieldName) {
         checkQueryIsNotReused();
-        long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
-        TableView tableView = this.query.findAll();
-        tableView.distinct(columnIndex);
-
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            //noinspection unchecked
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
-        } else {
-            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-        }
-        return realmResults;
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
+        Collection collection = new Collection(realm.sharedRealm, query, null, distinctDescriptor);
+        return createRealmResults(collection);
     }
 
     /**
-     * Asynchronously returns a distinct set of objects of a specific class. If the result is
-     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
-     * undefined which object is returned.
-     *
-     * @param fieldName the field name.
-     * @return immediately a {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     * query completes.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
-     * is not indexed, or points to linked fields.
+     * @deprecated use {@link #distinct(String)} instead.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
-        checkQueryIsNotReused();
-        final long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
-        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
-
-        // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
-
-        // save query arguments (for future update)
-        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
-        argumentsHolder.columnIndex = columnIndex;
-
-        // we need to use the same configuration to open a background SharedRealm (i.e Realm)
-        // to perform the query
-        final RealmConfiguration realmConfiguration = realm.getConfiguration();
-
-        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
-        // then update it once the query completes in the background.
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            //noinspection unchecked
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
-        } else {
-            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
-        }
-
-        final WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
-
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                if (!Thread.currentThread().isInterrupted()) {
-                    SharedRealm sharedRealm = null;
-
-                    try {
-                        sharedRealm = SharedRealm.getInstance(realmConfiguration);
-
-                        long handoverTableViewPointer = TableQuery.
-                                findDistinctWithHandover(sharedRealm,
-                                        handoverQueryPointer,
-                                        columnIndex);
-
-                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
-                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
-                        result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_RESULTS, result);
-
-                        return handoverTableViewPointer;
-                    } catch (Throwable e) {
-                        RealmLog.error(e);
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-                    } finally {
-                        if (sharedRealm != null && !sharedRealm.isClosed()) {
-                            sharedRealm.close();
-                        }
-                    }
-                } else {
-                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                }
-
-                return INVALID_NATIVE_POINTER;
-            }
-        });
-
-        realmResults.setPendingQuery(pendingQuery);
-        return realmResults;
-    }
-
-    // Find and validate the column index for the field name used to create a distinctive TableView.
-    static long getAndValidateDistinctColumnIndex(String fieldName, Table table) {
-        // Check empty field name
-        if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Non-empty field name must be provided.");
-        }
-        long columnIndex = table.getColumnIndex(fieldName);
-        // Check if field exists
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-        // Check linked fields
-        if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Distinct operation on linked properties is not supported: " + fieldName);
-        }
-        // check if the field is indexed
-        if (!table.hasSearchIndex(columnIndex)) {
-            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
-        }
-        return columnIndex;
+        return distinct(fieldName);
     }
 
     /**
@@ -1466,34 +1359,13 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
         checkQueryIsNotReused();
-        List<Long> columnIndexes = getValidatedColumIndexes(this.table.getTable(), firstFieldName, remainingFieldNames);
-        TableView tableView = this.query.findAll();
-        tableView.distinct(columnIndexes);
+        String[] fieldNames = new String[1 + remainingFieldNames.length];
 
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            //noinspection unchecked
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
-        } else {
-            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-        }
-        return realmResults;
-    }
-
-    // find and validate the column indices of fields for building a distinctive TableView with multi-args
-    static List<Long> getValidatedColumIndexes(Table table, String firstFieldName, String... remainingFieldNames) {
-        List<Long> columnIndexes = new ArrayList<Long>();
-        // find the first index
-        long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
-        columnIndexes.add(firstIndex);
-        // add remaining of indexes
-        if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
-            for (String field : remainingFieldNames) {
-                long index = getAndValidateDistinctColumnIndex(field, table);
-                columnIndexes.add(index);
-            }
-        }
-        return columnIndexes;
+        fieldNames[0] = firstFieldName;
+        System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table.getTable(), fieldNames);
+        Collection collection = new Collection(realm.sharedRealm, query, null, distinctDescriptor);
+        return createRealmResults(collection);
     }
 
     // Aggregates
@@ -1648,14 +1520,8 @@ public final class RealmQuery<E extends RealmModel> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
-        RealmResults<E> realmResults;
-        Collection collection = new Collection(realm.sharedRealm, query, null);
-        if (isDynamicQuery()) {
-            realmResults = new RealmResults<E>(realm, collection, className);
-        } else {
-            realmResults = new RealmResults<E>(realm, collection, clazz);
-        }
-        return realmResults;
+        Collection collection = new Collection(realm.sharedRealm, query);
+        return createRealmResults(collection);
     }
 
     /**
@@ -1684,13 +1550,7 @@ public final class RealmQuery<E extends RealmModel> {
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
 
         Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            realmResults = new RealmResults<E>(realm, collection, className);
-        } else {
-            realmResults = new RealmResults<E>(realm, collection, clazz);
-        }
-        return realmResults;
+        return createRealmResults(collection);
     }
 
     /**
@@ -1983,6 +1843,14 @@ public final class RealmQuery<E extends RealmModel> {
         }
 
         return columnIndex;
+    }
+
+    private RealmResults<E> createRealmResults(Collection collection) {
+        if (isDynamicQuery()) {
+            return new RealmResults<E>(realm, collection, className);
+        } else {
+            return new RealmResults<E>(realm, collection, clazz);
+        }
     }
 
     public ArgumentsHolder getArgument() {

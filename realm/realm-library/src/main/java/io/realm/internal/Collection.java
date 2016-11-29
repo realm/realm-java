@@ -82,9 +82,13 @@ public class Collection implements NativeObject {
     private NotificationToken notificationToken = null;
 
     // Public for static checking in JNI
+    @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_MINIMUM = 1;
+    @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_MAXIMUM = 2;
+    @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
+    @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_SUM     = 4;
 
     public enum Aggregate {
@@ -104,21 +108,28 @@ public class Collection implements NativeObject {
         }
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, TableQuery query,
+                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.query = query;
 
-        if (sortDescriptor == null) {
-            this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), 0);
-        } else {
-            this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
-                    sortDescriptor.getNativePtr());
-        }
+        this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
+                sortDescriptor == null ? 0 : sortDescriptor.getNativePtr(),
+                distinctDescriptor == null ? 0 : distinctDescriptor.getNativePtr());
         this.context.addReference(this);
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, long nativePtr) {
+    public Collection(SharedRealm sharedRealm, TableQuery query,
+                      SortDescriptor sortDescriptor) {
+        this(sharedRealm, query, sortDescriptor, null);
+    }
+
+    public Collection(SharedRealm sharedRealm, TableQuery query) {
+        this(sharedRealm, query, null, null);
+    }
+
+    private Collection(SharedRealm sharedRealm, TableQuery query, long nativePtr) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.query = query;
@@ -209,7 +220,7 @@ public class Collection implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-                                                   long sortDescNativePtr);
+                                                   long sortDescNativePtr, long distinctDescNativePtr);
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
     private static native boolean nativeContains(long nativePtr, long nativeRowPtr);
