@@ -614,56 +614,6 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(new long[]{7}, true);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
     }
 
-
-    public void testQueryOnView() {
-        Table table = new Table();
-
-        // Specify the column types and names
-        table.addColumn(RealmFieldType.STRING, "firstName");
-        table.addColumn(RealmFieldType.STRING, "lastName");
-        table.addColumn(RealmFieldType.INTEGER, "salary");
-
-        // Add data to the table
-        table.add("John", "Lee", 10000);
-        table.add("Jane", "Lee", 15000);
-        table.add("John", "Anderson", 20000);
-        table.add("Erik", "Lee", 30000);
-        table.add("Henry", "Anderson", 10000);
-
-        TableView view = table.where().findAll();
-
-        TableView view2 = view.where().equalTo(new long[]{0}, "John").findAll();
-
-        assertEquals(2, view2.size());
-
-        TableView view3 = view2.where().equalTo(new long[]{1}, "Anderson").findAll();
-
-        assertEquals(1, view3.size());
-    }
-
-
-    public void testQueryOnViewWithAlreadyQueriedTable() {
-        Table table = new Table();
-
-        // Specify the column types and names
-        table.addColumn(RealmFieldType.STRING, "firstName");
-        table.addColumn(RealmFieldType.STRING, "lastName");
-        table.addColumn(RealmFieldType.INTEGER, "salary");
-
-        // Add data to the table
-        table.add("John", "Lee", 10000);
-        table.add("Jane", "Lee", 15000);
-        table.add("John", "Anderson", 20000);
-        table.add("Erik", "Lee", 30000);
-        table.add("Henry", "Anderson", 10000);
-
-        TableView view = table.where().equalTo(new long[]{0}, "John").findAll();
-
-        TableView view2 = view.where().equalTo(new long[]{1}, "Anderson").findAll();
-
-        assertEquals(1, view2.size());
-    }
-
     public void testMaximumDate() {
 
         Table table = new Table();
