@@ -18,10 +18,8 @@ package io.realm;
 
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -34,10 +32,8 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.SortDescriptor;
-import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
-import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.log.RealmLog;
@@ -146,7 +142,7 @@ public final class RealmQuery<E extends RealmModel> {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = queryResults.getTableOrView();
+        this.table = queryResults.getTable();
         this.linkView = null;
         this.query = queryResults.getCollection().where();
     }

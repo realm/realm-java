@@ -70,7 +70,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     final BaseRealm realm;
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
-    private TableOrView table = null;
 
     private static final long TABLE_VIEW_VERSION_NONE = -1;
 
@@ -89,12 +88,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         this.collection = collection;
     }
 
-    TableOrView getTableOrView() {
-        if (table == null) {
-            return realm.schema.getTable(classSpec);
-        } else {
-            return table;
-        }
+    TableOrView getTable() {
+        return collection.getTable();
     }
 
     public Collection getCollection() {
