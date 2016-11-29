@@ -302,7 +302,7 @@ final class HandlerController implements Handler.Callback {
         // Notify all RealmResults (async and synchronous).
         for (Iterator<RealmResults<? extends RealmModel>> it = realmResultsToBeNotified.iterator(); !realm.isClosed() && it.hasNext(); ) {
             RealmResults<? extends RealmModel> realmResults = it.next();
-            realmResults.notifyChangeListeners(false);
+            //realmResults.notifyChangeListeners(false);
         }
 
         // Notify all loaded RealmObjects
@@ -345,7 +345,7 @@ final class HandlerController implements Handler.Callback {
                 // Local commits can accidentially cause async RealmResults to be notified, so we only want to
                 // include those that are actually done loading.
                 if (realmResults.isLoaded()) {
-                    realmResults.syncIfNeeded();
+                    //realmResults.syncIfNeeded();
                     resultsToBeNotified.add(realmResults);
                 }
             }
@@ -476,10 +476,10 @@ final class HandlerController implements Handler.Callback {
                         RealmLog.trace("[COMPLETED_ASYNC_REALM_RESULTS %s] , realm: %s same versions, using results (RealmResults is not loaded)",
                                 weakRealmResults, HandlerController.this);
                         // swap pointer
-                        realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
+                        //realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
                         // notify callbacks
-                        realmResults.syncIfNeeded();
-                        realmResults.notifyChangeListeners(false);
+                        //realmResults.syncIfNeeded();
+                        //realmResults.notifyChangeListeners(false);
                     } else {
                         RealmLog.trace("[COMPLETED_ASYNC_REALM_RESULTS %s] , realm: %s ignoring result the RealmResults (is already loaded)",
                                 weakRealmResults, HandlerController.this);
@@ -571,8 +571,8 @@ final class HandlerController implements Handler.Callback {
 
                 } else {
                     // update the instance with the new pointer
-                    realmResults.swapTableViewPointer(query.getValue());
-                    realmResults.syncIfNeeded();
+                    //realmResults.swapTableViewPointer(query.getValue());
+                    //realmResults.syncIfNeeded();
                     resultsToBeNotified.add(realmResults);
 
                     RealmLog.trace("COMPLETED_UPDATE_ASYNC_QUERIES updating RealmResults %s", HandlerController.this, weakRealmResults);
@@ -778,7 +778,7 @@ final class HandlerController implements Handler.Callback {
             if (realmResults == null) {
                 iterator.remove();
             } else {
-                realmResults.syncIfNeeded();
+                //realmResults.syncIfNeeded();
             }
         }
     }

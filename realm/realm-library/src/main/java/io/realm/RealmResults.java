@@ -21,26 +21,19 @@ import android.app.IntentService;
 import android.os.Looper;
 
 import java.util.AbstractList;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.TableOrView;
-import io.realm.internal.TableQuery;
 import io.realm.internal.Collection;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.async.BadVersionException;
-import io.realm.log.RealmLog;
 import rx.Observable;
 
 /**
@@ -82,36 +75,18 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     private static final long TABLE_VIEW_VERSION_NONE = -1;
 
     private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
-    private final TableQuery query;
     private final io.realm.internal.Collection collection;
-    private final List<RealmChangeListener<RealmResults<E>>> listeners = new CopyOnWriteArrayList<RealmChangeListener<RealmResults<E>>>();
-    private Future<Long> pendingQuery;
-    private boolean asyncQueryCompleted = false;
-    // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
-    // clear it.
-    private boolean viewUpdated = false;
 
     RealmResults(BaseRealm realm, io.realm.internal.Collection collection, Class<E> clazz) {
         this.realm = realm;
-        this.query = null;
         this.classSpec = clazz;
         this.collection = collection;
     }
 
     RealmResults(BaseRealm realm, io.realm.internal.Collection collection, String className) {
         this.realm = realm;
-        this.query = null;
         this.className = className;
         this.collection = collection;
-    }
-
-    private RealmResults(BaseRealm realm, String className) {
-        this.realm = realm;
-        this.className = className;
-
-        pendingQuery = null;
-        query = null;
-        collection = null;
     }
 
     TableOrView getTableOrView() {
@@ -246,8 +221,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValid();
-        TableOrView table = getTableOrView();
-        table.remove(location);
+        // FIXME: Implement this!
+        throw new RuntimeException("FIXME: Implement this!");
     }
 
     /**
@@ -272,10 +247,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public Iterator<E> iterator() {
-        if (!isLoaded()) {
-            // Collections.emptyIterator(); is only available since API 19
-            return Collections.<E>emptyList().iterator();
-        }
         return new RealmResultsIterator();
     }
 
@@ -288,10 +259,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public ListIterator<E> listIterator() {
-        if (!isLoaded()) {
-            // Collections.emptyListIterator() is only available since API 19
-            return Collections.<E>emptyList().listIterator();
-        }
         return new RealmResultsListIterator(0);
     }
 
@@ -306,10 +273,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public ListIterator<E> listIterator(int location) {
-        if (!isLoaded()) {
-            // Collections.emptyListIterator() is only available since API 19
-            return Collections.<E>emptyList().listIterator(location);
-        }
         return new RealmResultsListIterator(location);
     }
 
@@ -404,10 +367,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public int size() {
-        if (!isLoaded()) {
-            return 0;
-        }
-
         return collection.size();
     }
 
@@ -581,26 +540,12 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public boolean deleteLastFromRealm() {
         realm.checkIfValid();
         if (size() > 0) {
-            TableOrView table = getTableOrView();
-            table.removeLast();
-            return true;
+            // FIXME: Implement this!
+            throw new RuntimeException("FIXME: Implement this!");
+            //return true;
         } else {
             return false;
         }
-    }
-
-    /**
-     * Syncs this RealmResults, so it is up to date after `advance_read` has been called.
-     * Not doing so can leave detached accessors in the table view.
-     *
-     * By design, we should only call this on looper events.
-     *
-     * NOTE: Calling this is a prerequisite to calling {@link #notifyChangeListeners(boolean)}.
-     */
-    void syncIfNeeded() {
-        long newVersion = table.syncIfNeeded();
-        viewUpdated = newVersion != currentTableViewVersion;
-        currentTableViewVersion = newVersion;
     }
 
     /**
@@ -611,9 +556,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public boolean deleteFirstFromRealm() {
         if (size() > 0) {
-            TableOrView table = getTableOrView();
-            table.removeFirst();
-            return true;
+            // FIXME: Implement this!
+            throw new RuntimeException("FIXME: Implement this!");
+            //return true;
         } else {
             return false;
         }
@@ -715,6 +660,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         }
 
         protected void checkRealmIsStable() {
+            // FIXME: Check this!
+            /*
             long version = table.getVersion();
             // Any change within a write transaction will immediately update the table version. This means that we
             // cannot depend on the tableVersion heuristic in that case.
@@ -725,6 +672,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
                 throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
             }
             tableViewVersion = version;
+            */
         }
     }
 
@@ -803,87 +751,16 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     /**
-     * Swaps the table_view pointer used by this RealmResults mostly called when updating the RealmResults from a worker
-     * thread.
-     *
-     * @param handoverTableViewPointer handover pointer to the new table_view.
-     * @throws IllegalStateException if caller and worker are not at the same version.
-     */
-    void swapTableViewPointer(long handoverTableViewPointer) {
-        try {
-            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedRealm);
-            asyncQueryCompleted = true;
-        } catch (BadVersionException e) {
-            throw new IllegalStateException("Caller and Worker Realm should have been at the same version");
-        }
-    }
-
-    /**
-     * Sets the Future instance returned by the worker thread, we need this instance to force {@link #load()} an async
-     * query, we use it to determine if the current RealmResults is a sync or async one.
-     *
-     * @param pendingQuery pending query.
-     */
-    void setPendingQuery(Future<Long> pendingQuery) {
-        this.pendingQuery = pendingQuery;
-        if (isLoaded()) {
-            // the query completed before RealmQuery
-            // had a chance to call setPendingQuery to register the pendingQuery (used
-            // to determine isLoaded behaviour)
-            onAsyncQueryCompleted();
-        } // else, it will be handled by the {@link BaseRealm#handlerController#handleMessage}
-    }
-
-    /**
-     * Returns {@code false} if the results are not yet loaded, {@code true} if they are loaded. Synchronous
-     * query methods like findAll() will always return {@code true}, while asynchronous query methods like
-     * findAllAsync() will return {@code false} until the results are available.
-     *
-     * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
-     * running.
+     * @deprecated
      */
     public boolean isLoaded() {
-        realm.checkIfValid();
-        return pendingQuery == null || asyncQueryCompleted;
+        return true;
     }
 
     /**
-     * Makes an asynchronous query blocking. This will also trigger any registered {@link RealmChangeListener} when
-     * the query completes.
-     *
-     * @return {@code true} if it successfully completed the query, {@code false} otherwise. {@code true} will always
-     *         be returned for unmanaged objects.
+     * @deprecated
      */
     public boolean load() {
-        //noinspection SimplifiableIfStatement
-        if (isLoaded()) {
-            return true;
-        } else {
-            // doesn't guarantee to correctly import the result (because the user may have advanced)
-            // in this case the Realm#handler will be responsible of retrying
-            return onAsyncQueryCompleted();
-        }
-    }
-
-    /**
-     * Called to import the handover table_view pointer & notify listeners.
-     * This should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}.
-     *
-     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
-     */
-    private boolean onAsyncQueryCompleted() {
-        try {
-            long tvHandover = pendingQuery.get();// make the query blocking
-            // this may fail with BadVersionException if the caller and/or the worker thread
-            // are not in sync. COMPLETED_ASYNC_REALM_RESULTS will be fired by the worker thread
-            // this should handle more complex use cases like retry, ignore etc
-            table = query.importHandoverTableView(tvHandover, realm.sharedRealm);
-            asyncQueryCompleted = true;
-            notifyChangeListeners(true);
-        } catch (Exception e) {
-            RealmLog.debug(e.getMessage());
-            return false;
-        }
         return true;
     }
 
@@ -964,24 +841,6 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             return results;
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
-        }
-    }
-
-    /**
-     * Notifies all registered listeners.
-     *
-     * NOTE: Remember to call `syncIfNeeded` before calling this method.
-     */
-    void notifyChangeListeners(boolean forceNotify) {
-        if (!listeners.isEmpty()) {
-            // table might be null (if the async query didn't complete
-            // but we have already registered listeners for it)
-            if (pendingQuery != null && !asyncQueryCompleted) return;
-            if (!viewUpdated && !forceNotify) return;
-            viewUpdated = false;
-            for (RealmChangeListener listener : listeners) {
-                listener.onChange(this);
-            }
         }
     }
 }
