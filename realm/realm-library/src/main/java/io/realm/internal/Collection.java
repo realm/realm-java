@@ -156,6 +156,11 @@ public class Collection implements NativeObject {
         return query.getTable();
     }
 
+    public TableQuery where() {
+        long nativeQueryPtr = nativeWhere(nativePtr);
+        return new TableQuery(this.context, this.getTable(), nativeQueryPtr);
+    }
+
     public Object aggregate(Aggregate aggregateMethod, long columnIndex) {
         return nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
     }
@@ -231,4 +236,5 @@ public class Collection implements NativeObject {
     private native long nativeAddListener(long nativePtr);
     private static native long nativeNotificationTokenGetFinalizerPtr();
     private static native long nativeNotificationTokenClose(long nativePtr);
+    private static native long nativeWhere(long nativePtr);
 }

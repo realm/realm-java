@@ -21,6 +21,7 @@
 
 #include <object-store/src/shared_realm.hpp>
 #include <object-store/src/results.hpp>
+#include <realm/table_view.hpp>
 
 #include "util.hpp"
 
@@ -225,4 +226,17 @@ Java_io_realm_internal_Collection_nativeNotificationTokenClose(JNIEnv *, jclass,
 {
     TR_ENTER_PTR(native_ptr)
     delete reinterpret_cast<NotificationToken*>(native_ptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeWhere(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+
+        Query *query = new Query(results->get_query());
+        return reinterpret_cast<jlong>(query);
+    } CATCH_STD()
+    return 0;
 }

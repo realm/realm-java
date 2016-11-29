@@ -75,15 +75,15 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     private static final long TABLE_VIEW_VERSION_NONE = -1;
 
     private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
-    private final io.realm.internal.Collection collection;
+    private final Collection collection;
 
-    RealmResults(BaseRealm realm, io.realm.internal.Collection collection, Class<E> clazz) {
+    RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         this.realm = realm;
         this.classSpec = clazz;
         this.collection = collection;
     }
 
-    RealmResults(BaseRealm realm, io.realm.internal.Collection collection, String className) {
+    RealmResults(BaseRealm realm, Collection collection, String className) {
         this.realm = realm;
         this.className = className;
         this.collection = collection;
@@ -95,6 +95,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         } else {
             return table;
         }
+    }
+
+    public Collection getCollection() {
+        return collection;
     }
 
     /**

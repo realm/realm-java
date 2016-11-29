@@ -148,7 +148,7 @@ public final class RealmQuery<E extends RealmModel> {
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = queryResults.getTableOrView();
         this.linkView = null;
-        this.query = this.table.where();
+        this.query = queryResults.getCollection().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
@@ -173,7 +173,7 @@ public final class RealmQuery<E extends RealmModel> {
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
-        this.query = queryResults.getTableOrView().where();
+        this.query = queryResults.getCollection().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
