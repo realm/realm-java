@@ -31,9 +31,9 @@ static const std::shared_ptr<SyncUser>& currentUserOrThrow(JNIEnv *env) //throws
 {
     std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_users();
     if (all_users.size() > 1) {
-        ThrowException(env, RuntimeError, ERR_MULTIPLE_LOGGED_IN_USERS);
+        throw std::runtime_error(ERR_MULTIPLE_LOGGED_IN_USERS);
     } else if (all_users.size() < 1) {
-        ThrowException(env, RuntimeError, ERR_NO_LOGGED_IN_USER);
+        throw std::runtime_error(ERR_NO_LOGGED_IN_USER);
     } else {
         return all_users.front();
     }
