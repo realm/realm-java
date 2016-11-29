@@ -57,10 +57,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 ### Prerequisites
 
- * Make sure `make` is available in your `$PATH`.
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install s3cmd (`brew install s3cmd` on Mac, `sudo apt-get install s3cmd` on Ubuntu).
- * Get `.s3cfg` file and put it in your home directory. If you'd like to put it other location, add `s3cfg=<path to .s3cfg>` in `~/.gradle/gradle.properties`.
  * Download & install the Android SDK **Build-Tools 24.0.0**, **Android N (API 24)** (for example through Android Studio’s **Android SDK Manager**).
  * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
