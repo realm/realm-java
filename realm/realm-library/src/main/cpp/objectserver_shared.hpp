@@ -56,13 +56,11 @@ public:
                                       notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
         };
 
-        auto bind_handler = [](const std::string&, const SyncConfig&, std::shared_ptr<SyncSession> session) {
+        auto bind_handler = [](const std::string&, const SyncConfig&, std::shared_ptr<SyncSession>) {
             // Callback to Java requesting token
 
 
             // Do something
-
-            session.get()->bind
         };
 
         SyncConfig config = SyncConfig(

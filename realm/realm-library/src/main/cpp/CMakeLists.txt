@@ -159,7 +159,8 @@ file(GLOB objectstore_SRC
 # Sync needed Object Store files
 if (build_SYNC)
     file(GLOB objectstore_sync_SRC
-        "object-store/src/sync/*.cpp")
+        "object-store/src/sync/*.cpp"
+        "object-store/src/sync/impl/*.cpp")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})

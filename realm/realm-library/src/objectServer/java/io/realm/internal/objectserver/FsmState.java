@@ -53,9 +53,9 @@ abstract class FsmState implements FsmAction {
     }
 
     public void gotoNextState(SessionState state) {
-        if (!exiting) {
-            session.nextState(state);
-        }
+//        if (!exiting) {
+//            session.nextState(state);
+//        }
     }
 
     protected abstract void onEnterState();

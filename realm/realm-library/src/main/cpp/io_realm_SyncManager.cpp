@@ -53,8 +53,7 @@ static void error_handler(int error_code, std::string message)
 
 struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
     std::unique_ptr<realm::util::Logger> make_logger(realm::util::Logger::Level level) {
-        std::unique_ptr<Logger> log_ptr;
-        log_ptr.reset(&CoreLoggerBridge::shared());
+        std::unique_ptr<Logger> log_ptr(new CoreLoggerBridge());
     }
 } s_logger_factory;
 

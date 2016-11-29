@@ -29,6 +29,7 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.internal.KeepMember;
+import io.realm.internal.NativeObject;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
@@ -36,6 +37,8 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.syncpolicy.SyncPolicy;
 import io.realm.log.RealmLog;
+
+import static android.os.Build.VERSION_CODES.N;
 
 /**
  * Internal class describing a Realm Object Server Session.
@@ -88,25 +91,21 @@ import io.realm.log.RealmLog;
  * This object is thread safe.
  */
 @KeepMember
-public final class ObjectServerSession {
+public final class ObjectServerSession implements NativeObject {
 
-    private final HashMap<SessionState, FsmState> FSM = new HashMap<SessionState, FsmState>();
+    private long nativeSessionPointer;
 
     // Variables used by the FSM
     final SyncConfiguration configuration;
     private final AuthenticationServer authServer;
     private final SyncSession.ErrorHandler errorHandler;
-    private long nativeSessionPointer;
     private final ObjectServerUser user;
     RealmAsyncTask networkRequest;
     NetworkStateReceiver.ConnectionListener networkListener;
     private SyncPolicy syncPolicy;
 
     // Keeping track of current FSM state
-    private SessionState currentStateDescription;
-    private FsmState currentState;
     private SyncSession userSession;
-    private SyncSession publicSession;
 
     /**
      * Creates a new Object Server Session.
@@ -125,7 +124,7 @@ public final class ObjectServerSession {
         this.authServer = authServer;
         this.errorHandler = errorHandler;
         this.syncPolicy = policy;
-        setupStateMachine();
+        nativeSessionPointer = nativeCreateSession(configuration.getPath(), user.getIdentity());
     }
 
     private void setupStateMachine() {
@@ -159,38 +158,38 @@ public final class ObjectServerSession {
      * actually start synchronizing data.
      */
     public synchronized void start() {
-        currentState.onStart();
+        nativeStartSession(nativeSessionPointer);
     }
 
     /**
      * Stops the session. The session can no longer be used.
      */
     public synchronized void stop() {
-        currentState.onStop();
+        nativeStopSession(nativeSessionPointer);
     }
 
-    /**
-     * Binds the local Realm to the remote Realm. Once bound, changes to either the local or Remote Realm will be
-     * synchronized immediately.
-     * <p>
-     * While this method will return immediately, binding a Realm is not guaranteed to succeed. Possible reasons for
-     * failure could be if the device is offline or credentials have expired. Binding is an asynchronous
-     * operation and all errors will be sent first to {@code SyncPolicy#onError(Session, ObjectServerError)} and if the
-     * SyncPolicy doesn't handle it, to the {@link SyncSession.ErrorHandler} defined by
-     * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)}.
-     */
-    public synchronized void bind() {
-        currentState.onBind();
-    }
-
-    /**
-     * Stops a local Realm from synchronizing changes with the remote Realm.
-     * <p>
-     * It is possible to call {@link #bind()} again after a Realm has been unbound.
-     */
-    public synchronized void unbind() {
-        currentState.onUnbind();
-    }
+//    /**
+//     * Binds the local Realm to the remote Realm. Once bound, changes to either the local or Remote Realm will be
+//     * synchronized immediately.
+//     * <p>
+//     * While this method will return immediately, binding a Realm is not guaranteed to succeed. Possible reasons for
+//     * failure could be if the device is offline or credentials have expired. Binding is an asynchronous
+//     * operation and all errors will be sent first to {@code SyncPolicy#onError(Session, ObjectServerError)} and if the
+//     * SyncPolicy doesn't handle it, to the {@link SyncSession.ErrorHandler} defined by
+//     * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)}.
+//     */
+//    public synchronized void bind() {
+//        currentState.onBind();
+//    }
+//
+//    /**
+//     * Stops a local Realm from synchronizing changes with the remote Realm.
+//     * <p>
+//     * It is possible to call {@link #bind()} again after a Realm has been unbound.
+//     */
+//    public synchronized void unbind() {
+//        currentState.onUnbind();
+//    }
 
     /**
      * Notify the session that an error has occurred.
@@ -198,8 +197,8 @@ public final class ObjectServerSession {
      * @param error the kind of err
      */
     public synchronized void onError(ObjectServerError error) {
-        // TODO Call into JNI
-        currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
+        // FIXME Call into JNI
+//        currentState.onError(error); // FSM needs to respond to the error first, before notifying the User
         if (errorHandler != null) {
             errorHandler.onError(getUserSession(), error);
         }
@@ -221,7 +220,9 @@ public final class ObjectServerSession {
      * @return {@code true} if the local Realm is bound to the remote Realm, {@code false} otherwise.
      */
     boolean isBound() {
-        return currentStateDescription == SessionState.BOUND;
+        // TODO
+        return false;
+//        return currentStateDescription == SessionState.BOUND;
     }
 
     //
@@ -331,7 +332,9 @@ public final class ObjectServerSession {
      * @return The current {@link SessionState} for this session.
      */
     public SessionState getState() {
-        return currentStateDescription;
+        // TODO
+//        return currentStateDescription;
+        return SessionState.INITIAL;
     }
 
     /**
@@ -341,6 +344,7 @@ public final class ObjectServerSession {
      */
     public void notifyCommit(long version) {
         if (isBound()) {
+            // FIXME VERY MUCH THIS
 //            nativeNotifyCommitHappened(nativeSessionPointer, version);
         }
     }
@@ -357,8 +361,20 @@ public final class ObjectServerSession {
         this.userSession = userSession;
     }
 
+    @Override
+    public long getNativePtr() {
+        return nativeSessionPointer;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return 0;
+    }
+
     private native long nativeCreateSession(String localRealmPath, String userIdentity);
     private native void nativeBind(long nativeSessionPointer, String remoteRealmUrl, String userToken);
+    private native void nativeStartSession(long nativeSessionPointer);
+    private native void nativeStopSession(long nativeSessionPointer);
     private native void nativeUnbind(long nativeSessionPointer);
     private native void nativeRefresh(long nativeSessionPointer, String userToken);
     private native void nativeNotifyCommitHappened(long sessionPointer, long version);

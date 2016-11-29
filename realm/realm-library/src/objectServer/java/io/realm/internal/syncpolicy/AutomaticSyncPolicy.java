@@ -29,7 +29,7 @@ public class AutomaticSyncPolicy implements SyncPolicy {
 
     @Override
     public void onRealmOpened(ObjectServerSession session) {
-        session.bind(); // Bind Realm first time it is opened.
+        session.start(); // Bind Realm first time it is opened.
     }
 
     @Override
@@ -82,7 +82,7 @@ public class AutomaticSyncPolicy implements SyncPolicy {
             session.stop(); // Abort session, some error that should be temporary keeps happening.
             return false;
         } else {
-            session.bind();
+            session.start();
             return true;
         }
     }
