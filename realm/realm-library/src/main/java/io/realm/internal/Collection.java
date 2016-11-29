@@ -182,6 +182,16 @@ public class Collection implements NativeObject {
         return nativeContains(nativePtr, row.getNativePtr());
     }
 
+    public int indexOf(UncheckedRow row) {
+        long index = nativeIndexOf(nativePtr, row.getNativePtr());
+        return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
+    }
+
+    public int indexOf(long sourceRowIndex) {
+        long index = nativeIndexOfBySourceRowIndex(nativePtr, sourceRowIndex);
+        return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
+    }
+
     public void addListener(Listener listener) {
         if (!listeners.contains(listener)) {
             listeners.add(listener);
@@ -235,6 +245,8 @@ public class Collection implements NativeObject {
     private static native long nativeSort(long nativePtr, long sortDescNativePtr);
     private native long nativeAddListener(long nativePtr);
     private static native long nativeNotificationTokenGetFinalizerPtr();
-    private static native long nativeNotificationTokenClose(long nativePtr);
+    private static native void nativeNotificationTokenClose(long nativePtr);
     private static native long nativeWhere(long nativePtr);
+    private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
+    private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
 }

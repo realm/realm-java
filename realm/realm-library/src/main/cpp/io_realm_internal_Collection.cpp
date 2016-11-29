@@ -221,7 +221,7 @@ Java_io_realm_internal_Collection_nativeNotificationTokenGetFinalizerPtr(JNIEnv 
     return reinterpret_cast<jlong>(&finalize_notification_token);
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 Java_io_realm_internal_Collection_nativeNotificationTokenClose(JNIEnv *, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
@@ -239,4 +239,32 @@ Java_io_realm_internal_Collection_nativeWhere(JNIEnv *env, jclass, jlong native_
         return reinterpret_cast<jlong>(query);
     } CATCH_STD()
     return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeIndexOf(JNIEnv *env, jclass, jlong native_ptr, jlong row_native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+        auto row = reinterpret_cast<Row*>(row_native_ptr);
+
+        return static_cast<jlong>(results->index_of(*row));
+    } CATCH_STD()
+    return npos;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeIndexOfBySourceRowIndex(JNIEnv *env, jclass, jlong native_ptr,
+                                                                jlong source_row_index)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+        auto index = static_cast<size_t>(source_row_index);
+
+        return static_cast<jlong>(results->index_of(index));
+    } CATCH_STD()
+    return npos;
+
 }

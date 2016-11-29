@@ -153,19 +153,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(2));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(3));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(1));
     }
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
@@ -179,19 +179,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(2));
 
         assertEquals("Brian", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(3));
     }
 
     private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
@@ -205,19 +205,19 @@ public class SortTest {
 
         assertEquals("Brian", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(1));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(2));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(3));
     }
 
     private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
@@ -231,19 +231,19 @@ public class SortTest {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(5, results.get(0).getColumnLong());
-        assertEquals(0, ((TableView) results.getTableOrView()).getSourceRowIndex(0));
+        assertEquals(0, results.getCollection().indexOf(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(3, ((TableView) results.getTableOrView()).getSourceRowIndex(1));
+        assertEquals(1, results.getCollection().indexOf(3));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(4, results.get(2).getColumnLong());
-        assertEquals(2, ((TableView) results.getTableOrView()).getSourceRowIndex(2));
+        assertEquals(2, results.getCollection().indexOf(2));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView) results.getTableOrView()).getSourceRowIndex(3));
+        assertEquals(3, results.getCollection().indexOf(1));
     }
 
     @Test
