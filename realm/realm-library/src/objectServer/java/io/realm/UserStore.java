@@ -37,10 +37,8 @@ public interface UserStore {
      * Saves a {@link SyncUser} object under the given key. If another user already exists, it will be replaced.
      *
      * @param user {@link SyncUser} object to store.
-     * @return The previous user saved with this key or {@code null} if no user was replaced.
-     *
      */
-    SyncUser put(SyncUser user);
+    void put(SyncUser user);
 
     /**
      * Retrieves the current {@link SyncUser}.

@@ -46,7 +46,7 @@ public class SyncUserTests {
 
     @BeforeClass
     public static void initUserStore() {
-        UserStore userStore = new ObjectStoreUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().toString(), null);
+        UserStore userStore = new ObjectStoreUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
         SyncManager.setUserStore(userStore);
     }
 

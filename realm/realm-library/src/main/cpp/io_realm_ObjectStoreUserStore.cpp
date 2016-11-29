@@ -23,26 +23,38 @@
 
 using namespace realm;
 
-static const std::shared_ptr<SyncUser>& currentUserOrThrow() { //throws
+const char* ERR_MULTIPLE_LOGGED_IN_USERS = "Cannot be called if more that one valid, logged-in user exists.";
+const char* ERR_NO_LOGGED_IN_USER = "No user logged-in yet.";
+const char* ERR_COULD_NOT_ALLOCATE_MEMORY = "Could not allocate memory to return all users.";
+
+static const std::shared_ptr<SyncUser>& currentUserOrThrow(JNIEnv *env) //throws
+{
     std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_users();
     if (all_users.size() > 1) {
-        std::runtime_error("cannot be called if more that one valid, logged-in user exists.");//TODO user appropriate exception
+        ThrowException(env, RuntimeError, ERR_MULTIPLE_LOGGED_IN_USERS);
     } else if (all_users.size() < 1) {
-        std::runtime_error("no user logged-in yet.");//TODO user appropriate exception
+        ThrowException(env, RuntimeError, ERR_NO_LOGGED_IN_USER);
     } else {
         return all_users.front();
     }
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_ObjectStoreUserStore_getCurrentUser
-        (JNIEnv *env, jclass) {
+/*
+ * Class:     io_realm_ObjectStoreUserStore
+ * Method:    getCurrentUser
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_realm_ObjectStoreUserStore_getCurrentUser (JNIEnv *env, jclass)
+{
     TR_ENTER()
-    const std::shared_ptr<SyncUser>& user = currentUserOrThrow();
-    if (user->state() == SyncUser::State::Active) {
-        return env->NewStringUTF(user->refresh_token().c_str());
-    } else {
-        return NULL;
-    }
+    try {
+        const std::shared_ptr<SyncUser> &user = currentUserOrThrow(env);
+        if (user->state() == SyncUser::State::Active) {
+            return to_jstring(env, user->refresh_token().data());
+        } else {
+            return NULL;
+        }
+    } CATCH_STD()
 }
 
 /*
@@ -50,8 +62,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_ObjectStoreUserStore_getCurrentUser
  * Method:    updateOrCreateUser
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_updateOrCreateUser
-        (JNIEnv *env, jclass, jstring identity, jstring jsonToken, jstring url) {
+JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_updateOrCreateUser (JNIEnv *env, jclass, jstring identity, jstring jsonToken, jstring url)
+{
     TR_ENTER()
     try {
         JStringAccessor user_identity(env, identity); // throws
@@ -67,11 +79,13 @@ JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_updateOrCreateUser
  * Method:    logoutCurrentUser
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_logoutCurrentUser
-        (JNIEnv *, jclass) {
+JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_logoutCurrentUser (JNIEnv *env, jclass)
+{
     TR_ENTER()
-    const std::shared_ptr<SyncUser>& user = currentUserOrThrow();
-    user->log_out();
+    try {
+        const std::shared_ptr<SyncUser>& user = currentUserOrThrow(env);
+        user->log_out();
+    } CATCH_STD()
 }
 
 
@@ -80,16 +94,13 @@ JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_logoutCurrentUser
  * Method:    configureMetaDataSystem
  * Signature: (Ljava/lang/String;[B)V
  */
-JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_configureMetaDataSystem
-        (JNIEnv *env, jclass, jstring baseFile, jbyteArray aesKey) {
+JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_configureMetaDataSystem (JNIEnv *env, jclass, jstring baseFile)
+{
     TR_ENTER()
     try {
         JStringAccessor base_file_path(env, baseFile); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
-        //TODO use encryption mode with the provided key
-        //     JniByteArray key_array(env, aesKey);
     } CATCH_STD()
-
 }
 
 /*
@@ -97,29 +108,30 @@ JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_configureMetaDataSyste
  * Method:    getAllUsers
  * Signature: ()[Ljava/lang/String;
  */
-JNIEXPORT jobjectArray JNICALL Java_io_realm_ObjectStoreUserStore_getAllUsers
-        (JNIEnv *env, jclass) {
+JNIEXPORT jobjectArray JNICALL Java_io_realm_ObjectStoreUserStore_getAllUsers (JNIEnv *env, jclass)
+{
     TR_ENTER()
     std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_users();
     if (!all_users.empty()) {
-        std::vector<jobject> valid_users;
-        for (auto& user : all_users) {
-            if ((*user).state() == SyncUser::State::Active) {
-                valid_users.push_back(env->NewStringUTF((*user).refresh_token().c_str()));
-            }
-        }
+        jsize array_length = 0;
+        std::vector<std::shared_ptr<SyncUser>>::iterator valid_users = std::find_if(all_users.begin(),all_users.end(),
+                        [&](const std::shared_ptr<SyncUser>& user) {
+                            if (user->state() == SyncUser::State::Active) {
+                                array_length++;
+                                return true;
+                            }
+                            return false;
+                        });
 
-        std::vector<jobject>::size_type size_valid_users = valid_users.size();
-        jclass stringClass = env->FindClass("java/lang/String");
-        jobjectArray users_token = env->NewObjectArray(size_valid_users, stringClass, 0);
+        jobjectArray users_token = env->NewObjectArray(array_length, java_lang_string, 0);
         if (users_token == NULL) {
-            ThrowException(env, OutOfMemory, "Could not allocate memory to return all users.");
+            ThrowException(env, OutOfMemory, ERR_COULD_NOT_ALLOCATE_MEMORY);
             return NULL;
         }
 
-        for (std::vector<jobject>::size_type i = 0; i != size_valid_users; ++i) {
-            env->SetObjectArrayElement(users_token, i, valid_users[i]);
-        }
+        std::for_each(valid_users, all_users.end(), [&](const std::shared_ptr<SyncUser>& user) {
+           env->SetObjectArrayElement(users_token, --array_length, to_jstring(env, user->refresh_token().data()));
+        });
 
         return users_token;
     }
@@ -131,8 +143,8 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_ObjectStoreUserStore_getAllUsers
  * Method:    reset_for_testing
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_reset_1for_1testing
-        (JNIEnv *, jclass) {
+JNIEXPORT void JNICALL Java_io_realm_ObjectStoreUserStore_reset_1for_1testing (JNIEnv *, jclass)
+{
     TR_ENTER();
     SyncManager::shared().reset_for_testing();
 }

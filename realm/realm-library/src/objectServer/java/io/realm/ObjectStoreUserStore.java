@@ -23,20 +23,19 @@ import java.util.Collections;
 /**
  * A User Store backed by the ObjectStore metadata Realm to store user.
  */
-class ObjectStoreUserStore implements UserStore {
-    ObjectStoreUserStore (String path, byte[] aesKey) {
-        configureMetaDataSystem(path, aesKey);
+public class ObjectStoreUserStore implements UserStore {
+    protected ObjectStoreUserStore (String path) {
+        configureMetaDataSystem(path);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public SyncUser put(SyncUser user) {
+    public void put(SyncUser user) {
         String userJson = user.toJson();
         // create or update token (userJson) using identity
         updateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
-        return user;
     }
 
     /**
@@ -76,16 +75,16 @@ class ObjectStoreUserStore implements UserStore {
     }
 
     // init and load the Metadata Realm containing SyncUsers
-    private static native void configureMetaDataSystem(String baseFile, byte[] aesKey);
+    protected static native void configureMetaDataSystem(String baseFile);
 
     // return json data (token) of the current logged in user
-    private static native String getCurrentUser ();
+    protected static native String getCurrentUser ();
 
-    private static native String[] getAllUsers();
+    protected static native String[] getAllUsers();
 
-    private static native void updateOrCreateUser(String identity, String jsonToken, String url);
+    protected static native void updateOrCreateUser(String identity, String jsonToken, String url);
 
-    private static native void logoutCurrentUser ();
+    protected static native void logoutCurrentUser ();
 
     // Should only be called for tests
     static native void reset_for_testing();
