@@ -21,22 +21,19 @@ import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 import io.realm.annotations.Required;
 import io.realm.internal.Collection;
 import io.realm.internal.LinkView;
+import io.realm.internal.PendingRow;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.QueryUpdateTask;
-import io.realm.log.RealmLog;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
@@ -1649,96 +1646,34 @@ public final class RealmQuery<E extends RealmModel> {
      */
     public E findFirst() {
         checkQueryIsNotReused();
-        long tableRowIndex = getSourceRowIndexForFirstObject();
-        if (tableRowIndex >= 0) {
-            E realmObject = realm.get(clazz, className, tableRowIndex);
-            return realmObject;
-        } else {
-            return null;
-        }
-    }
 
-    /**
-     * Similar to {@link #findFirst()} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
-     * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
-     * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
-     * to be notified when the query completes. If no RealmObject was found after the query completed, the returned
-     * RealmObject will have {@link RealmObject#isLoaded()} set to {@code true} and {@link RealmObject#isValid()} set to
-     * {@code false}.
-     */
-    public E findFirstAsync() {
-        checkQueryIsNotReused();
-        final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
-
-        // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
-
-        // save query arguments (for future update)
-        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_FIRST);
-
-        final RealmConfiguration realmConfiguration = realm.getConfiguration();
-
+        // TODO: The performance by the pending query will be a little bit worse than directly calling core's
+        // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this can
+        // be optimized by adding support of limit in OS's Results which is supported by core already.
+        PendingRow pendingRow = new PendingRow(realm.sharedRealm, query, null);
         // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
         // then update it once the query complete in the background.
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
-            result = (E) new DynamicRealmObject(className, realm, Row.EMPTY_ROW);
+            result = (E) new DynamicRealmObject(className, realm, pendingRow);
         } else {
             result = realm.getConfiguration().getSchemaMediator().newInstance(
-                    clazz, realm, Row.EMPTY_ROW, realm.getSchema().getColumnInfo(clazz),
+                    clazz, realm, pendingRow, realm.getSchema().getColumnInfo(clazz),
                     false, Collections.<String>emptyList());
         }
 
         final RealmObjectProxy proxy = (RealmObjectProxy) result;
-        final WeakReference<RealmObjectProxy> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(proxy, this);
-
-        final Future<Long> pendingQuery = Realm.asyncTaskExecutor.submitQuery(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                if (!Thread.currentThread().isInterrupted()) {
-                    SharedRealm sharedRealm = null;
-
-                    try {
-                        sharedRealm = SharedRealm.getInstance(realmConfiguration);
-
-                        long handoverRowPointer = TableQuery.findWithHandover(sharedRealm, handoverQueryPointer);
-                        if (handoverRowPointer == 0) { // empty row
-                            realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
-                            realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
-                        }
-
-                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObjectResponse();
-                        result.updatedRow.put(realmObjectWeakReference, handoverRowPointer);
-                        result.versionID = sharedRealm.getVersionID();
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.COMPLETE_ASYNC_OBJECT, result);
-
-                        return handoverRowPointer;
-
-                    } catch (Throwable e) {
-                        RealmLog.error(e);
-                        // handler can't throw a checked exception need to wrap it into unchecked Exception
-                        closeSharedRealmAndSendEventToNotifier(sharedRealm,
-                                weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
-                    } finally {
-                        if (sharedRealm != null && !sharedRealm.isClosed()) {
-                            sharedRealm.close();
-                        }
-                    }
-                } else {
-                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                }
-
-                return INVALID_NATIVE_POINTER;
-            }
-        });
-        proxy.realmGet$proxyState().setPendingQuery$realm(pendingQuery);
+        pendingRow.setFrontEnd(proxy.realmGet$proxyState());
 
         return result;
+    }
+
+    /**
+     * @deprecated use {@link #findFirst()} instead.
+     */
+    public E findFirstAsync() {
+        return findFirst();
     }
 
     private void checkSortParameters(String fieldNames[], final Sort[] sortOrders) {

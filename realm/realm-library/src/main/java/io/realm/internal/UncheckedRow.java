@@ -89,8 +89,10 @@ public class UncheckedRow implements NativeObject, Row {
 
     // FIXME: Testing code
     public static UncheckedRow getByRowPointer(Table table, long nativeRowPointer) {
-        UncheckedRow row = new UncheckedRow(table.context, table, nativeRowPointer);
-        return row;
+        if (nativeRowPointer != 0) {
+            return new UncheckedRow(table.context, table, nativeRowPointer);
+        }
+        return null;
     }
 
     /**

@@ -298,7 +298,7 @@ final class HandlerController implements Handler.Callback {
      * @param realmResultsToBeNotified list of all RealmResults listeners that can be notified.
      */
     void notifyAllListeners(List<RealmResults<? extends RealmModel>> realmResultsToBeNotified) {
-
+/*
         // Notify all RealmResults (async and synchronous).
         for (Iterator<RealmResults<? extends RealmModel>> it = realmResultsToBeNotified.iterator(); !realm.isClosed() && it.hasNext(); ) {
             RealmResults<? extends RealmModel> realmResults = it.next();
@@ -320,6 +320,7 @@ final class HandlerController implements Handler.Callback {
         // Trigger global listeners last.
         // Note that NotificationTest.callingOrdersOfListeners will fail if orders change.
         notifyGlobalListeners();
+        */
     }
 
     private void collectAsyncRealmResultsCallbacks(List<RealmResults<? extends RealmModel>> resultsToBeNotified) {

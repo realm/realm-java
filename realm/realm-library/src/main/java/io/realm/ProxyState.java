@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
+import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -29,7 +30,7 @@ import io.realm.log.RealmLog;
  * This implements {@code RealmObjectProxy} interface, to eliminate copying logic between
  * {@link RealmObject} and {@link DynamicRealmObject}.
  */
-public final class ProxyState<E extends RealmModel> {
+public final class ProxyState<E extends RealmModel> implements PendingRow.FrontEnd {
     private E model;
     private String className;
     private Class<? extends RealmModel> clazzName;
@@ -163,27 +164,8 @@ public final class ProxyState<E extends RealmModel> {
      */
     void notifyChangeListeners$realm() {
         if (!listeners.isEmpty()) {
-            boolean notify = false;
-
-            Table table = row.getTable();
-            if (table == null) {
-                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
-                // We still want to trigger change notifications for these cases.
-                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
-                // should trigger a RealmChangeListener.
-                notify = true;
-            } else {
-                long version = table.getVersion();
-                if (currentTableVersion != version) {
-                    currentTableVersion = version;
-                    notify = true;
-                }
-            }
-
-            if (notify) {
-                for (RealmChangeListener listener : listeners) {
-                    listener.onChange(model);
-                }
+            for (RealmChangeListener listener : listeners) {
+                listener.onChange(model);
             }
         }
     }
@@ -218,5 +200,13 @@ public final class ProxyState<E extends RealmModel> {
     private boolean isLoaded() {
         realm.checkIfValid();
         return getPendingQuery$realm() == null || isCompleted$realm();
+    }
+
+    @Override
+    public void onQueryFinished(Row row, boolean asyncQuery) {
+        this.row = row;
+        if (asyncQuery) {
+            notifyChangeListeners$realm();
+        }
     }
 }
