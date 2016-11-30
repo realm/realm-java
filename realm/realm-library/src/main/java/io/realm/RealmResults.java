@@ -170,8 +170,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     private E firstImpl(boolean shouldThrow, E defaultValue) {
-        if (!isEmpty()) {
-            return get(0);
+        Row row = collection.firstUncheckedRow();
+
+        if (row != null) {
+            return realm.get(classSpec, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -199,8 +201,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     private E lastImpl(boolean shouldThrow, E defaultValue) {
-        if (!isEmpty()) {
-            return get(size() - 1);
+        Row row = collection.lastUncheckedRow();
+
+        if (row != null) {
+            return realm.get(classSpec, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");

@@ -152,6 +152,14 @@ public class Collection implements NativeObject {
         return UncheckedRow.getByRowPointer(query.table, nativeGetRow(nativePtr, index));
     }
 
+    public UncheckedRow firstUncheckedRow() {
+        return UncheckedRow.getByRowPointer(query.table, nativeFirstRow(nativePtr));
+    }
+
+    public UncheckedRow lastUncheckedRow() {
+        return UncheckedRow.getByRowPointer(query.table, nativeLastRow(nativePtr));
+    }
+
     public Table getTable() {
         return query.getTable();
     }
@@ -237,6 +245,8 @@ public class Collection implements NativeObject {
                                                    long sortDescNativePtr, long distinctDescNativePtr);
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
+    private static native long nativeFirstRow(long nativePtr);
+    private static native long nativeLastRow(long nativePtr);
     private static native boolean nativeContains(long nativePtr, long nativeRowPtr);
     private static native void nativeClear(long nativePtr);
     private static native long nativeSize(long nativePtr);

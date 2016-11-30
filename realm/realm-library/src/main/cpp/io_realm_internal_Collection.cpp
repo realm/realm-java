@@ -102,6 +102,35 @@ Java_io_realm_internal_Collection_nativeGetRow(JNIEnv *env, jclass, jlong native
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeFirstRow(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+        auto optional_row = results->first();
+        if (optional_row) {
+            return reinterpret_cast<jlong>(new Row(std::move(optional_row.value())));
+        }
+    } CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeLastRow(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto results = reinterpret_cast<Results*>(native_ptr);
+        auto optional_row = results->last();
+        if (optional_row) {
+            return reinterpret_cast<jlong>(new Row(std::move(optional_row.value())));
+        }
+    } CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_Collection_nativeClear(JNIEnv *env, jclass, jlong native_ptr)
 {
