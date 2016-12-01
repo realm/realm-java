@@ -100,7 +100,7 @@ Java_io_realm_DefaultUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
             return nullptr;
         }
 
-        for (auto user : all_users) {
+        for (auto user : valid_users) {
             env->SetObjectArrayElement(users_token, --array_length, to_jstring(env, user->refresh_token().data()));
         }
 
