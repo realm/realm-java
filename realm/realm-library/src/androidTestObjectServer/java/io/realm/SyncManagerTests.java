@@ -16,11 +16,8 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +36,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(AndroidJUnit4.class)
 public class SyncManagerTests {
 
-    private Context context;
     private UserStore userStore;
 
     @Rule
@@ -50,41 +46,29 @@ public class SyncManagerTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getContext();
         userStore = new UserStore() {
             @Override
-            public SyncUser put(String key, SyncUser user) {
+            public void put(SyncUser user) {}
+
+            @Override
+            public SyncUser get() {
                 return null;
             }
 
             @Override
-            public SyncUser get(String key) {
-                return null;
-            }
-
-            @Override
-            public SyncUser remove(String key) {
-                return null;
-            }
+            public void remove() {}
 
             @Override
             public Collection<SyncUser> allUsers() {
                 return null;
             }
 
-            @Override
-            public void clear() {
-            }
         };
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test
     public void init() {
-        // Realm.init() calls SyncManager.init() wihich will start a thread for the sync client
+        // Realm.init() calls SyncManager.init() which will start a thread for the sync client
         boolean found = false;
         Set<Thread> threads = Thread.getAllStackTraces().keySet();
         for (Thread thread : threads) {

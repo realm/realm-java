@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 
-import io.realm.android.SharedPrefsUserStore;
 import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 
@@ -43,7 +42,7 @@ class ObjectServer {
         }
 
         // Configure default UserStore
-        UserStore userStore = new SharedPrefsUserStore(context);
+        UserStore userStore = new RealmFileUserStore(context.getFilesDir().getPath());
 
         SyncManager.init(appId, userStore);
     }
