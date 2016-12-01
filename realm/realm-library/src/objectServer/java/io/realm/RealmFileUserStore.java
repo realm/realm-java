@@ -21,10 +21,10 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * A User Store backed by the ObjectStore metadata Realm to store user.
+ * A User Store backed by a Realm file to store user.
  */
-public class DefaultUserStore implements UserStore {
-    protected DefaultUserStore(String path) {
+public class RealmFileUserStore implements UserStore {
+    protected RealmFileUserStore(String path) {
         nativeConfigureMetaDataSystem(path);
     }
 

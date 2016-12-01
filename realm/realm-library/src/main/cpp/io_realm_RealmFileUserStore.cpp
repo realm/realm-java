@@ -16,21 +16,21 @@
 
 #include <jni.h>
 #include <jni_util/log.hpp>
-#include "io_realm_DefaultUserStore.h"
+#include "io_realm_RealmFileUserStore.h"
 #include "sync/sync_manager.hpp"
 #include "sync/sync_user.hpp"
 #include "util.hpp"
 
 using namespace realm;
 
-static const char* ERR_MULTIPLE_LOGGED_IN_USERS = "Cannot be called if more that one valid, logged-in user exists.";
-static const char* ERR_NO_LOGGED_IN_USER = "No user logged-in yet.";
+static const char* ERR_MULTIPLE_LOGGED_IN_USERS = "Cannot be called if more that one valid, logged in user exists.";
+static const char* ERR_NO_LOGGED_IN_USER = "No user logged in yet.";
 static const char* ERR_COULD_NOT_ALLOCATE_MEMORY = "Could not allocate memory to return all users.";
 
 static const std::shared_ptr<SyncUser>& currentUserOrThrow();
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_DefaultUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
+Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
@@ -45,7 +45,7 @@ Java_io_realm_DefaultUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_DefaultUserStore_nativeUpdateOrCreateUser (JNIEnv *env, jclass, jstring identity, jstring jsonToken, jstring url)
+Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser (JNIEnv *env, jclass, jstring identity, jstring jsonToken, jstring url)
 {
     TR_ENTER()
     try {
@@ -58,7 +58,7 @@ Java_io_realm_DefaultUserStore_nativeUpdateOrCreateUser (JNIEnv *env, jclass, js
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_DefaultUserStore_nativeLogoutCurrentUser (JNIEnv *env, jclass)
+Java_io_realm_RealmFileUserStore_nativeLogoutCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
@@ -69,7 +69,7 @@ Java_io_realm_DefaultUserStore_nativeLogoutCurrentUser (JNIEnv *env, jclass)
 
 
 JNIEXPORT void JNICALL
-Java_io_realm_DefaultUserStore_nativeConfigureMetaDataSystem (JNIEnv *env, jclass, jstring baseFile)
+Java_io_realm_RealmFileUserStore_nativeConfigureMetaDataSystem (JNIEnv *env, jclass, jstring baseFile)
 {
     TR_ENTER()
     try {
@@ -79,7 +79,7 @@ Java_io_realm_DefaultUserStore_nativeConfigureMetaDataSystem (JNIEnv *env, jclas
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_io_realm_DefaultUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
+Java_io_realm_RealmFileUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
 {
     TR_ENTER()
     std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_users();
@@ -110,7 +110,7 @@ Java_io_realm_DefaultUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_DefaultUserStore_nativeResetForTesting (JNIEnv *, jclass)
+Java_io_realm_RealmFileUserStore_nativeResetForTesting (JNIEnv *, jclass)
 {
     TR_ENTER();
     SyncManager::shared().reset_for_testing();
