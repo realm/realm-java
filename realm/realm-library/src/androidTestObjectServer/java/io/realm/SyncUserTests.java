@@ -46,13 +46,13 @@ public class SyncUserTests {
 
     @BeforeClass
     public static void initUserStore() {
-        UserStore userStore = new ObjectStoreUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
+        UserStore userStore = new DefaultUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
         SyncManager.setUserStore(userStore);
     }
 
     @After
     public void tearDown() {
-        ObjectStoreUserStore.reset_for_testing();
+        DefaultUserStore.nativeResetForTesting();
     }
 
     @Test

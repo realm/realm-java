@@ -42,7 +42,7 @@ class ObjectServer {
         }
 
         // Configure default UserStore
-        UserStore userStore = new ObjectStoreUserStore(context.getFilesDir().getPath());
+        UserStore userStore = new DefaultUserStore(context.getFilesDir().getPath());
 
         SyncManager.init(appId, userStore);
     }

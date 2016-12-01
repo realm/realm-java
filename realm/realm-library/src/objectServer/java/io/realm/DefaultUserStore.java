@@ -23,9 +23,9 @@ import java.util.Collections;
 /**
  * A User Store backed by the ObjectStore metadata Realm to store user.
  */
-public class ObjectStoreUserStore implements UserStore {
-    protected ObjectStoreUserStore (String path) {
-        configureMetaDataSystem(path);
+public class DefaultUserStore implements UserStore {
+    protected DefaultUserStore(String path) {
+        nativeConfigureMetaDataSystem(path);
     }
 
     /**
@@ -35,7 +35,7 @@ public class ObjectStoreUserStore implements UserStore {
     public void put(SyncUser user) {
         String userJson = user.toJson();
         // create or update token (userJson) using identity
-        updateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
+        nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
     }
 
     /**
@@ -43,7 +43,7 @@ public class ObjectStoreUserStore implements UserStore {
      */
     @Override
     public SyncUser get() {
-        String userJson = getCurrentUser();
+        String userJson = nativeGetCurrentUser();
         if (userJson != null) {
             return SyncUser.fromJson(userJson);
         }
@@ -55,7 +55,7 @@ public class ObjectStoreUserStore implements UserStore {
      */
     @Override
     public void remove() {
-        logoutCurrentUser();
+        nativeLogoutCurrentUser();
     }
 
     /**
@@ -63,7 +63,7 @@ public class ObjectStoreUserStore implements UserStore {
      */
     @Override
     public Collection<SyncUser> allUsers() {
-        String[] allUsers = getAllUsers();
+        String[] allUsers = nativeGetAllUsers();
         if (allUsers != null && allUsers.length > 0) {
             ArrayList<SyncUser> users = new ArrayList<SyncUser>(allUsers.length);
             for (String userJson : allUsers) {
@@ -75,18 +75,18 @@ public class ObjectStoreUserStore implements UserStore {
     }
 
     // init and load the Metadata Realm containing SyncUsers
-    protected static native void configureMetaDataSystem(String baseFile);
+    protected static native void nativeConfigureMetaDataSystem(String baseFile);
 
     // return json data (token) of the current logged in user
-    protected static native String getCurrentUser ();
+    protected static native String nativeGetCurrentUser();
 
-    protected static native String[] getAllUsers();
+    protected static native String[] nativeGetAllUsers();
 
-    protected static native void updateOrCreateUser(String identity, String jsonToken, String url);
+    protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
 
-    protected static native void logoutCurrentUser ();
+    protected static native void nativeLogoutCurrentUser();
 
     // Should only be called for tests
-    static native void reset_for_testing();
+    static native void nativeResetForTesting();
 
 }

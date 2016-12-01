@@ -28,7 +28,7 @@ import io.realm.annotations.Beta;
  * be called on the Main Thread. All implementations of this interface should be thread safe.
  *
  * @see SyncManager#setUserStore(UserStore)
- * @see ObjectStoreUserStore
+ * @see DefaultUserStore
  */
 @Beta
 public interface UserStore {
