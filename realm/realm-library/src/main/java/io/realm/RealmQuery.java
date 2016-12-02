@@ -28,6 +28,7 @@ import io.realm.internal.LinkView;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
@@ -1647,24 +1648,34 @@ public final class RealmQuery<E extends RealmModel> {
     public E findFirst() {
         checkQueryIsNotReused();
 
-        // TODO: The performance by the pending query will be a little bit worse than directly calling core's
-        // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this can
-        // be optimized by adding support of limit in OS's Results which is supported by core already.
-        PendingRow pendingRow = new PendingRow(realm.sharedRealm, query, null);
-        // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
-        // then update it once the query complete in the background.
+        Row row;
+        if (realm.isInTransaction()) {
+            // It is not possible to create async query inside a transaction. So immediately query the first object.
+            // See OS Results::prepare_async()
+            row = new Collection(realm.sharedRealm, query).firstUncheckedRow();
+        } else {
+            // prepare an empty reference of the RealmObject which is backed by a pending query,
+            // then update it once the query complete in the background.
+
+            // TODO: The performance by the pending query will be a little bit worse than directly calling core's
+            // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
+            // can be optimized by adding support of limit in OS's Results which is supported by core already.
+            row = new PendingRow(realm.sharedRealm, query, null);
+        }
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
-            result = (E) new DynamicRealmObject(className, realm, pendingRow);
+            result = (E) new DynamicRealmObject(className, realm, row);
         } else {
             result = realm.getConfiguration().getSchemaMediator().newInstance(
-                    clazz, realm, pendingRow, realm.getSchema().getColumnInfo(clazz),
+                    clazz, realm, row, realm.getSchema().getColumnInfo(clazz),
                     false, Collections.<String>emptyList());
         }
 
-        final RealmObjectProxy proxy = (RealmObjectProxy) result;
-        pendingRow.setFrontEnd(proxy.realmGet$proxyState());
+        if (row instanceof PendingRow) {
+            final RealmObjectProxy proxy = (RealmObjectProxy) result;
+            ((PendingRow) row).setFrontEnd(proxy.realmGet$proxyState());
+        }
 
         return result;
     }

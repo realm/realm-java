@@ -355,16 +355,8 @@ public abstract class RealmObject implements RealmModel {
             if (!realm.handlerController.isAutoRefreshEnabled()) {
                 throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread.");
             }
-            List<RealmChangeListener> listeners = proxy.realmGet$proxyState().getListeners$realm();
-            if (!listeners.contains(listener)) {
-                listeners.add(listener);
-            }
-            if (isLoaded(proxy)) {
-                // Try to add this object to the realmObjects if it has already been loaded.
-                // For newly created async objects, it will be handled in RealmQuery.findFirstAsync &
-                // HandlerController.completedAsyncRealmObject.
-                realm.handlerController.addToRealmObjects(proxy);
-            }
+            //noinspection unchecked
+            proxy.realmGet$proxyState().addChangeListener(listener);
         } else {
             throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
         }

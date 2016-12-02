@@ -31,9 +31,8 @@ class JavaBindingContext final : public BindingContext {
 private:
     struct ConcreteJavaBindContext {
         JNIEnv* jni_env;
-        jobject java_notifier;
-        explicit ConcreteJavaBindContext(JNIEnv* env, jobject notifier)
-            :jni_env(env), java_notifier(notifier) { }
+        jobject realm_notifier;
+        jobject row_notifier;
     };
 
     // The JNIEnv for the thread which creates the Realm. This should only be used on the current thread.
@@ -43,13 +42,27 @@ private:
     JavaVM* m_jvm;
     // A weak global ref to the implementation of RealmNotifier
     // Java should hold a strong ref to it as long as the SharedRealm lives
-    jobject m_java_notifier;
+    jobject m_realm_notifier;
     // Method IDs from RealmNotifier implementation. Cache them as member vars.
     jmethodID m_notify_by_other_method;
+    // A weak global ref to the RowNotifier object. Java should hold a strong ref to it.
+    jobject m_row_notifier;
+    // RowNotifier.getObservers()
+    jmethodID m_get_observers_method;
+    // RowNotifier.getObservedRowPtrs(Observer[])
+    jmethodID m_get_observed_row_ptrs_method;
+    // RowNotifier.clearRowRefs()
+    jmethodID m_clear_row_refs;
+    jmethodID m_observer_notify_listener;
 
 public:
     virtual ~JavaBindingContext();
     virtual void changes_available();
+    virtual std::vector<ObserverState> get_observed_rows();
+    virtual void did_change(std::vector<ObserverState> const& observers,
+                            std::vector<void*> const& invalidated,
+                            bool version_changed=true);
+
 
     explicit JavaBindingContext(const ConcreteJavaBindContext&);
     JavaBindingContext(const JavaBindingContext&) = delete;
@@ -57,9 +70,9 @@ public:
     JavaBindingContext(JavaBindingContext&&) = delete;
     JavaBindingContext& operator=(JavaBindingContext&&) = delete;
 
-    static inline std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier)
+    static inline std::unique_ptr<JavaBindingContext> create(JNIEnv* env, jobject notifier, jobject row_notifier)
     {
-        return std::make_unique<JavaBindingContext>(ConcreteJavaBindContext{env, notifier});
+        return std::make_unique<JavaBindingContext>(ConcreteJavaBindContext{env, notifier, row_notifier});
     };
 };
 

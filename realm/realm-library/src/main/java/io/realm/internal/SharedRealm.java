@@ -102,6 +102,7 @@ public final class SharedRealm implements Closeable {
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
+    public final RowNotifier rowNotifier;
     public final ObjectServerFacade objectServerFacade;
 
     public static class VersionID implements Comparable<VersionID> {
@@ -168,10 +169,11 @@ public final class SharedRealm implements Closeable {
     private final SchemaVersionListener schemaChangeListener;
 
     private SharedRealm(long nativePtr, RealmConfiguration configuration, RealmNotifier notifier,
-                        SchemaVersionListener schemaVersionListener) {
+                        RowNotifier rowNotifier, SchemaVersionListener schemaVersionListener) {
         this.nativePtr = nativePtr;
         this.configuration = configuration;
         this.realmNotifier = notifier;
+        this.rowNotifier = rowNotifier;
         this.schemaChangeListener = schemaVersionListener;
         context = new Context();
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
@@ -200,11 +202,13 @@ public final class SharedRealm implements Closeable {
                 autoChangeNotifications,
                 rosServerUrl,
                 rosUserToken);
+        RowNotifier rowNotifier = new RowNotifier();
         try {
             return new SharedRealm(
-                    nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
+                    nativeGetSharedRealm(nativeConfigPtr, realmNotifier, rowNotifier),
                     config,
                     realmNotifier,
+                    rowNotifier,
                     schemaVersionListener);
         } finally {
             nativeCloseConfig(nativeConfigPtr);
@@ -374,7 +378,8 @@ public final class SharedRealm implements Closeable {
                                                   boolean autoChangeNotification,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
-    private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
+    private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier,
+                                                    RowNotifier rowNotifier);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
     private static native boolean nativeIsClosed(long nativeSharedRealmPtr);
     private static native void nativeBeginTransaction(long nativeSharedRealmPtr);

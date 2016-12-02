@@ -164,7 +164,7 @@ final class HandlerController implements Handler.Callback {
             if (onSuccess != null) {
                 pendingOnSuccessAsyncTransactionCallbacks.add(onSuccess);
             }
-            realmChanged(false);
+            //realmChanged(false);
         }
     }
 

@@ -22,8 +22,10 @@ import java.util.concurrent.Future;
 
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
+import io.realm.internal.RowNotifier;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.UncheckedRow;
 import io.realm.log.RealmLog;
 
 /**
@@ -170,6 +172,21 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
     }
 
+    public void addChangeListener(RealmChangeListener<E> listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+        if (row instanceof UncheckedRow) {
+            RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
+            rowNotifier.registerListener((UncheckedRow) row, new RealmChangeListener<ProxyState<E>>() {
+                @Override
+                public void onChange(ProxyState<E> proxyState) {
+                    proxyState.notifyChangeListeners$realm();
+                }
+            }, this);
+        }
+    }
+
     public void setTableVersion$realm() {
         if (row.getTable() != null) {
             currentTableVersion = row.getTable().getVersion();
@@ -208,5 +225,16 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         if (asyncQuery) {
             notifyChangeListeners$realm();
         }
+        // FIXME: Figure out why this can be null.
+        if (realm.sharedRealm == null) {
+            return;
+        }
+        RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
+        rowNotifier.registerListener((UncheckedRow) row, new RealmChangeListener<ProxyState<E>>() {
+            @Override
+            public void onChange(ProxyState<E> proxyState) {
+                proxyState.notifyChangeListeners$realm();
+            }
+        }, this);
     }
 }

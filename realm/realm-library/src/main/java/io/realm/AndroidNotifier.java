@@ -55,12 +55,14 @@ class AndroidNotifier implements RealmNotifier {
         // event starved as it only starts handling Realm events instead. This is an acceptable risk as
         // that behaviour indicate a user bug. Previously this would be hidden as the UI would still
         // be responsive.
+        /*
         Message msg = Message.obtain();
         msg.what = HandlerControllerConstants.LOCAL_COMMIT;
         if (!handler.hasMessages(HandlerControllerConstants.LOCAL_COMMIT)) {
             handler.removeMessages(HandlerControllerConstants.REALM_CHANGED);
             handler.sendMessageAtFrontOfQueue(msg);
         }
+        */
     }
 
     // This is called by OS when other thread/process changes the Realm.
