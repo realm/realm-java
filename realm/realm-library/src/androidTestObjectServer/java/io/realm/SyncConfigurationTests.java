@@ -241,7 +241,7 @@ public class SyncConfigurationTests {
         SyncConfiguration config1 = new SyncConfiguration.Builder(user, url).build();
         SyncConfiguration config2 = new SyncConfiguration.Builder(user, url).build();
 
-        assertFalse(config1.equals(config2));
+        assertTrue(config1.equals(config2));
     }
 
     @Test
