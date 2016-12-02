@@ -38,6 +38,7 @@ jmethodID java_lang_long_init;
 jclass java_lang_float;
 jmethodID java_lang_float_init;
 jclass java_lang_double;
+jclass java_lang_string;
 jmethodID java_lang_double_init;
 jclass session_class_ref;
 jmethodID session_error_handler;

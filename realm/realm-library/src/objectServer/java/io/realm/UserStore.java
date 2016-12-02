@@ -28,24 +28,23 @@ import io.realm.annotations.Beta;
  * be called on the Main Thread. All implementations of this interface should be thread safe.
  *
  * @see SyncManager#setUserStore(UserStore)
- * @see ObjectStoreUserStore
+ * @see RealmFileUserStore
  */
 @Beta
 public interface UserStore {
 
     /**
-     * Saves a {@link SyncUser} object under the given key. If another user already exists, it will be replaced.
+     * Saves a {@link SyncUser} object. If another user already exists, it will be replaced.
+     *  {@link SyncUser#getIdentity()} is used as a unique identifier of a given {@link SyncUser}.
      *
      * @param user {@link SyncUser} object to store.
-     * @return The previous user saved with this key or {@code null} if no user was replaced.
-     *
      */
-    SyncUser put(SyncUser user);
+    void put(SyncUser user);
 
     /**
      * Retrieves the current {@link SyncUser}.
      *
-     * For now, current User cannot be called if more that one valid, logged-in user
+     * For now, current User cannot be called if more that one valid, logged in user
      * exists, it will throw an exception.
      */
     //TODO when ObjectStore integration of SyncManager is completed & multiple

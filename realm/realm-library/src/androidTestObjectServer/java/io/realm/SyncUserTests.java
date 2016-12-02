@@ -46,13 +46,13 @@ public class SyncUserTests {
 
     @BeforeClass
     public static void initUserStore() {
-        UserStore userStore = new ObjectStoreUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().toString(), null);
+        UserStore userStore = new RealmFileUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
         SyncManager.setUserStore(userStore);
     }
 
     @After
     public void tearDown() {
-        ObjectStoreUserStore.reset_for_testing();
+        RealmFileUserStore.nativeResetForTesting();
     }
 
     @Test

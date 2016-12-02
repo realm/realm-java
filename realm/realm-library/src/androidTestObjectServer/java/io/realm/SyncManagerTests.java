@@ -48,9 +48,7 @@ public class SyncManagerTests {
     public void setUp() {
         userStore = new UserStore() {
             @Override
-            public SyncUser put(SyncUser user) {
-                return null;
-            }
+            public void put(SyncUser user) {}
 
             @Override
             public SyncUser get() {

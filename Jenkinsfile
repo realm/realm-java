@@ -13,13 +13,12 @@ try {
           $class: 'GitSCM',
           branches: scm.branches,
           gitTool: 'native git',
-          extensions: scm.extensions + [[$class: 'CleanCheckout']],
+          extensions: scm.extensions + [
+            [$class: 'CleanCheckout'],
+            [$class: 'SubmoduleOption', recursiveSubmodules: true]
+          ],
           userRemoteConfigs: scm.userRemoteConfigs
         ])
-        sh 'git submodule sync'
-        sh 'git submodule update --init --recursive'
-        // Make sure not to delete the folder that Jenkins allocates to store scripts
-        sh 'git clean -ffdx -e .????????'
       }
 
       def buildEnv
@@ -78,16 +77,18 @@ try {
             }
 
             stage('Run instrumented tests') {
-              boolean archiveLog = true
-              String backgroundPid
-              try {
-                backgroundPid = startLogCatCollector()
-                forwardAdbPorts()
-                gradle('realm', 'connectedUnitTests')
-                archiveLog = false;
-              } finally {
-                stopLogCatCollector(backgroundPid, archiveLog)
-                storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+              lock("${env.NODE_NAME}-android") {
+                boolean archiveLog = true
+                String backgroundPid
+                try {
+                  backgroundPid = startLogCatCollector()
+                  forwardAdbPorts()
+                  gradle('realm', 'connectedUnitTests')
+                  archiveLog = false;
+                } finally {
+                  stopLogCatCollector(backgroundPid, archiveLog)
+                  storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                }
               }
             }
 

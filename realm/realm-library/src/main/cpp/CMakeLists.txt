@@ -37,14 +37,14 @@ set(classes_LIST
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
-    io.realm.RealmObjectSchema
+    io.realm.RealmObjectSchema io.realm.internal.NativeObjectReference
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession io.realm.ObjectStoreUserStore)
+        io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession io.realm.RealmFileUserStore)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
@@ -147,7 +147,7 @@ if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_ObjectServerSession.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ObjectStoreUserStore.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp)
 endif()
 
 # Object Store source files
