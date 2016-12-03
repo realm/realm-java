@@ -14,6 +14,13 @@
 
 ## Software Testability and Reviews <a name="testability"></a>
 
+Realm is an application integrated within other applications, so all the API functionalities have to be deeply tested to achieve a good degree of reliability. 
+
+Therefore, the developers decided to:
+* Build unit and instrumental testing so that they could test functionalites in a specific case, whithout dependencies and in the context of a app that has Android dependencies.
+* Create example projects that show how Realm is used, and run Monkey Tests on those examples.
+* Test Realm Object Server mechanisms (Authentication and Authorization)
+
 ### Controllability <a name="controllability"></a>
 
 Os caso de testes existentes foram desenvolvidos com vista a avaliar funcionalidades específicas e como tal as situações geradas são limitadas.
