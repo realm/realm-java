@@ -23,16 +23,13 @@ Therefore, the developers decided to:
 
 ### Controllability <a name="controllability"></a>
 
-Since the existing test cases were developed to evaluate very specific features and outputs, the inputs are limited.
+Since the unit test cases were developed to evaluate very specific features, it is easy to provide the program with new inputs and affect the software behaviour. So, the state of the component under test is easily modified by the inputs given.
 
-<!---Os caso de testes existentes foram desenvolvidos com vista a avaliar funcionalidades específicas e como tal as situações geradas são limitadas.--->
-
-It is also possible to run monkey tests - a program that runs on the emulator or device and generates pseudo-random streams of user events such as clicks, touches, or gestures, as well as a number of system-level events - on the various examples projects. However, with this is hard to control the state of the components under test.   
+Regarding the monkey tests - a program that runs on the emulator or device and generates pseudo-random streams of user events such as clicks, touches, or gestures, as well as a number of system-level events - on the various examples projects, the controllability is very low because it's hard to control the inputs given by the program and therefore the software behaviour is unknown and hard to replicate (unknown state of components). 
 
 ### Observability <a name="observability"></a>
 
 In this project, there is no tool that allows running unit tests automatically and analysing the statistics. Thus, it has to be run manually, taking more time and effort.
-<!--Neste projeto, não existe uma ferramente que permita correr automaticamente os testes unitários e analisar as estatísticas desses testes, daí que a análise tenha de ser manual e portanto mais exaustiva.-->
 
 ### Isolateability <a name="isolateability"></a>
 
