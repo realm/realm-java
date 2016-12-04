@@ -33,7 +33,7 @@ Realm uses android instrumented tests for the purpose of testing on a mobile dev
 With this it is possible to observe the tests that have failed or passed, as well as the code that was executed in each test. 
 Monkey tests are also used, which basically generates pseudo-random streams of user events such as clicks, touches, or gestures. With this it is possible to observe possible internal errors of the application in situations of stress.
 
-![instrumentedTests]()
+![instrumentedTests](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/test-types_2x.png)
 
 ### Isolateability <a name="isolateability"></a>
 
@@ -62,7 +62,14 @@ As such, it uses both android and monkey tests to assure the reliabity of the re
 
 ## Test Statistics and Analytics <a name="statistics"></a>
 
+We were unable to run the tests in the project. First we tried build the project in Windows and found that no one in the community had done it successfully. Then, we tried in Ubuntu, and we were able to compile successfully, although it took a long time due to the delays of the administrators' responses. 
+Currently we are trying to run the project's tests without success, because more configuration is needed.
+
+We created an [issue](https://github.com/realm/realm-java/issues/3845) to get help from the administrators of the project. 
+
 ## Bug Identification <a name="bugs"></a>
+
+For the reasons stated above, we were unable to find and solve a bug.
 
 ## Contribuition <a name="contribuition"></a>
 
