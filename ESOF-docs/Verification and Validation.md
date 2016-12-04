@@ -29,7 +29,11 @@ Regarding the monkey tests - a program that runs on the emulator or device and g
 
 ### Observability <a name="observability"></a>
 
-In this project, there is no tool that allows running unit tests automatically and analysing the statistics. Thus, it has to be run manually, taking more time and effort.
+Realm uses android instrumented tests for the purpose of testing on a mobile device. To this is added the use of the framework JUnit. 
+With this it is possible to observe the tests that have failed or passed, as well as the code that was executed in each test. 
+Monkey tests are also used, which basically generates pseudo-random streams of user events such as clicks, touches, or gestures. With this it is possible to observe possible internal errors of the application in situations of stress.
+
+![instrumentedTests]()
 
 ### Isolateability <a name="isolateability"></a>
 
