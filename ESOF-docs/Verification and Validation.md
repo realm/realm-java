@@ -17,25 +17,30 @@
 Realm is an application integrated within other applications, so all the API functionalities have to be deeply tested to achieve a good degree of reliability. 
 
 Therefore, the developers decided to:
-* Build unit and instrumental testing so that they could test functionalites in a specific case, whithout dependencies and in the context of a app that has Android dependencies.
+* Build unit and instrumental testing so that they could test functionalites in a specific case, whithout dependencies and in the context of an app that has Android dependencies.
 * Create example projects that show how Realm is used, and run Monkey Tests on those examples.
 * Test Realm Object Server mechanisms (Authentication and Authorization)
 
 ### Controllability <a name="controllability"></a>
 
-Os caso de testes existentes foram desenvolvidos com vista a avaliar funcionalidades específicas e como tal as situações geradas são limitadas.
+Since the existing test cases were developed to evaluate very specific features and outputs, the inputs are limited.
+
+<!---Os caso de testes existentes foram desenvolvidos com vista a avaliar funcionalidades específicas e como tal as situações geradas são limitadas.--->
 
 It is also possible to run monkey tests - a program that runs on the emulator or device and generates pseudo-random streams of user events such as clicks, touches, or gestures, as well as a number of system-level events - on the various examples projects. However, with this is hard to control the state of the components under test.   
 
 ### Observability <a name="observability"></a>
 
-Neste projeto, não existe uma ferramente que permita correr automaticamente os testes unitários e analisar as estatísticas desses testes, daí que a análise tenha de ser manual e portanto mais exaustiva.
+In this project, there is no tool that allows running unit tests automatically and analysing the statistics. Thus, it has to be run manually, taking more time and effort.
+<!--Neste projeto, não existe uma ferramente que permita correr automaticamente os testes unitários e analisar as estatísticas desses testes, daí que a análise tenha de ser manual e portanto mais exaustiva.-->
 
 ### Isolateability <a name="isolateability"></a>
 
-Em cada classe de teste é desenvolvida uma situação especifica que permita testar uma ou várias funcionalidades. Deste modo apenas são utilizadas e testadas as funções necessárias da API, permitindo assim que haja uma certa isolabilidade entre os casos de teste, isto é, um teste falhar não implica a falha de outros. 
+In each class of test, a specific situation is developed that allows one to test at least one feature. Therefore, only API needed functions are used and tested. This makes isolateability possible among test cases, because the failure of one test does not imply the failure of another.
 
-Contudo, também há interdependencias entre os casos de teste existentes, o que implica que o teste de uma funcionalidade mais complexa necessite de funções mais simples. 
+<!--Em cada classe de teste é desenvolvida uma situação especifica que permita testar uma ou várias funcionalidades. Deste modo apenas são utilizadas e testadas as funções necessárias da API, permitindo assim que haja uma certa isolabilidade entre os casos de teste, isto é, um teste falhar não implica a falha de outros. 
+
+Contudo, também há interdependencias entre os casos de teste existentes, o que implica que o teste de uma funcionalidade mais complexa necessite de funções mais simples. -->
 
 De um modo geral, a isolabilidade do projeto é 
 
