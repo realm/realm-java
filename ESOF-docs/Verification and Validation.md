@@ -46,9 +46,9 @@ So there is a need to properly separate the responsability of all the test class
 
 ### Understandability <a name="understandability"></a>
 
-Relativamente à própria [API](https://realm.io/docs/java/2.2.1/api/), as classes principais do Realm são explicadas em grande detalhe. Dado que o projeto é bastante complexo, esta preocupação em documentar extensivamente o código é muito importante para novos contribuidores assimilarem rapidamente as funcionalidades de cada classe. 
+Regarding the [API](https://realm.io/docs/java/2.2.1/api/) itself, the core classes of Realm are explained in great detail. Since the project is fairly complex, extensively documenting the code is very important for new contributors to quickly understand the functionalities of each class.
 
-Em relação ao módulo de testes, a existência de documentação varia conforme o teste. Analisando este módulo, concluimos que, no geral, a documentação existente de cada teste é insuficiente para compreender rapidamente o objetivo de cada um. Para um projeto open source desta dimensão e principalmente da complexidade inerente ao Realm, a compreensibilidade é baixa.
+In relation to the test module, the existence of documentation varies per the test. After analyzing this module, we conclude that, in general, the existing documentation for each test is insufficient to quickly realize the purpose of each one. For an open source project of this size and, more importantly, with the complexity inherent to Realm, the understandability is low.
 
 ### Heterogeneity <a name="heterogeneity"></a>
 
