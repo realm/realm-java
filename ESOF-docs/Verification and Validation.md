@@ -57,6 +57,12 @@ In relation to the test module, the existence of documentation varies per the te
 
 ### Heterogeneity <a name="heterogeneity"></a>
 
+Heterogeneity is the degree to which the use of diverse technologies requires to use diverse test methods and tools in parallel.
+
+Realm does not use many technologies. In fact, the only external libraries used are Android SDK to let this application run on Android, Android NDK and CMake to compile C++ code. On contrary, it aims to be adaptable enough to be used by other applications. 
+
+As such, it uses both android and monkey tests to assure the reliabity of the realm code, it's integration in example applications and server funcionalities (Authentication and Authorization). In addition, Jenkins is used to run and store the results of unit tests, run intrumented tests, analyse static code and collect metrics.
+
 ## Test Statistics and Analytics <a name="statistics"></a>
 
 ## Bug Identification <a name="bugs"></a>
