@@ -36,13 +36,9 @@ In this project, there is no tool that allows running unit tests automatically a
 
 ### Isolateability <a name="isolateability"></a>
 
-In each class of test, a specific situation is developed that allows one to test at least one feature. Therefore, only API needed functions are used and tested. This makes isolateability possible among test cases, because the failure of one test does not imply the failure of another.
+In each class of android tests, a specific situation is developed allowing to test at least one feature. Therefore, only API functions are used and tested. This makes isolateability higher among test cases, because the failure of one test does not imply the failure of another. So, in general, a component (class) under test can be sucessful tested in isolation.
 
-<!--Em cada classe de teste é desenvolvida uma situação especifica que permita testar uma ou várias funcionalidades. Deste modo apenas são utilizadas e testadas as funções necessárias da API, permitindo assim que haja uma certa isolabilidade entre os casos de teste, isto é, um teste falhar não implica a falha de outros. 
-
-Contudo, também há interdependencias entre os casos de teste existentes, o que implica que o teste de uma funcionalidade mais complexa necessite de funções mais simples. -->
-
-De um modo geral, a isolabilidade do projeto é 
+However, in the example projects where it shown how to use Realm, all the API functions (or mostly of them) are used and consequently tested, so we can assume that in those cases the isolateability is always comparatively lower to the unit tests.
 
 ### Separation of Concerns <a name="concerns"></a>
 
