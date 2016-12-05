@@ -178,6 +178,18 @@ public class FilterableMediator extends RealmProxyMediator {
         return originalMediator.transformerApplied();
     }
 
+    @Override
+    public boolean hasAutoIncrementPrimaryKey(Class<? extends RealmModel> clazz) {
+        checkSchemaHasClass(clazz);
+        return originalMediator.hasAutoIncrementPrimaryKey(clazz);
+    }
+
+    @Override
+    public Object getNextPrimaryKey(Realm realm, Class<? extends RealmModel> clazz) {
+        checkSchemaHasClass(clazz);
+        return originalMediator.getNextPrimaryKey(realm, clazz);
+    }
+
     // Validate if a model class (not RealmProxy) is part of this Schema.
     private void checkSchemaHasClass(Class<? extends RealmModel> clazz) {
         if (!allowedClasses.contains(clazz)) {

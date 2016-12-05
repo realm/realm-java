@@ -41,6 +41,7 @@ public class FieldMetaData {
     private boolean indexed;
     private boolean nullable;
     private boolean primaryKey;
+    private boolean autoIncrement;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
 
@@ -104,7 +105,8 @@ public class FieldMetaData {
             }
         }
 
-        if (variableElement.getAnnotation(PrimaryKey.class) != null) {
+        PrimaryKey primaryKeyAnnotation = variableElement.getAnnotation(PrimaryKey.class);
+        if (primaryKeyAnnotation != null) {
             // The field has the @PrimaryKey annotation. It is only valid for
             // String, short, int, long and must only be present one time
 
@@ -115,6 +117,10 @@ public class FieldMetaData {
             }
 
             primaryKey = true;
+            autoIncrement = primaryKeyAnnotation.autoIncrement();
+            if(autoIncrement && isString()) {
+                throw new InvalidFieldException("autoIncrement is not allowed for field " + variableElement + " with the type String");
+            }
 
             // Also add as index. All types of primary key can be indexed.
             indexed = true;

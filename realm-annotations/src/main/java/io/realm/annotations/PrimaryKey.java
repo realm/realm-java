@@ -37,5 +37,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
-
+    /**
+     * Not supported for String primary keys
+     */
+    boolean autoIncrement() default false;
 }

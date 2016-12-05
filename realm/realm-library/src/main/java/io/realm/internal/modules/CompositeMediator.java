@@ -165,6 +165,16 @@ public class CompositeMediator extends RealmProxyMediator {
         return true;
     }
 
+    @Override
+    public boolean hasAutoIncrementPrimaryKey(Class<? extends RealmModel> clazz) {
+        return getMediator(clazz).hasAutoIncrementPrimaryKey(clazz);
+    }
+
+    @Override
+    public Object getNextPrimaryKey(Realm realm, Class<? extends RealmModel> clazz) {
+        return getMediator(clazz).getNextPrimaryKey(realm, clazz);
+    }
+
     // Returns the mediator for a given model class (not RealmProxy) or throws exception
     private RealmProxyMediator getMediator(Class<? extends RealmModel> clazz) {
         RealmProxyMediator mediator = mediators.get(clazz);

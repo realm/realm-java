@@ -183,15 +183,11 @@ public class RealmJsonTypeHelper {
     }
 
 
-    public static void emitFillJavaTypeFromStream(String interfaceName, ClassMetaData metaData, String fieldName, String
-            fieldType, JavaWriter writer) throws IOException {
-        String setter = metaData.getSetter(fieldName);
-        boolean isPrimaryKey = false;
-        if (metaData.hasPrimaryKey() && metaData.getPrimaryKey().getSimpleName().toString().equals(fieldName)) {
-            isPrimaryKey = true;
-        }
-        if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
-            JAVA_TO_JSON_TYPES.get(fieldType).emitStreamTypeConversion(interfaceName, setter, fieldName, fieldType,
+    public static void emitFillJavaTypeFromStream(String interfaceName, ClassMetaData metaData, FieldMetaData field, JavaWriter writer) throws IOException {
+        String setter = field.getSetter();
+        boolean isPrimaryKey = field.isPrimaryKey();
+        if (JAVA_TO_JSON_TYPES.containsKey(field.getFieldTypeQualifiedName())) {
+            JAVA_TO_JSON_TYPES.get(field.getFieldTypeQualifiedName()).emitStreamTypeConversion(interfaceName, setter, field.getName(), field.getFieldTypeQualifiedName(),
                     writer, isPrimaryKey);
         }
     }

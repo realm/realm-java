@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -68,6 +69,7 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.RealmObjectSchema");
         imports.add("io.realm.RealmSchema");
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
+        imports.add("io.realm.exceptions.RealmException");
         imports.add("io.realm.internal.ColumnInfo");
         imports.add("io.realm.internal.RealmObjectProxy");
         imports.add("io.realm.internal.Row");
@@ -128,10 +130,67 @@ public class RealmProxyClassGenerator {
         emitRealmObjectProxyImplementation(writer);
         emitHashcodeMethod(writer);
         emitEqualsMethod(writer);
+        emitAutoIncrementPrimaryKey(writer);
 
         // End the class definition
         writer.endType();
         writer.close();
+    }
+
+    private void emitAutoIncrementPrimaryKey(JavaWriter writer) throws IOException {
+        FieldMetaData primaryKey = metadata.getPrimaryKey();
+        boolean hasAutoIncrementPrimaryKey = primaryKey != null && primaryKey.isAutoIncrement();
+
+        writer.beginMethod("boolean", "hasAutoIncrementPrimaryKey", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        writer.emitStatement("return %s", Boolean.toString(hasAutoIncrementPrimaryKey));
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        String pkType = null;
+        String atomicName = null;
+        if(hasAutoIncrementPrimaryKey) {
+            pkType = primaryKey.getFieldTypeSimpleName().toLowerCase();
+            if(pkType.equals("long")) {
+                atomicName = "Long";
+            } else if(pkType.startsWith("int") || pkType.equals("short") || pkType.equals("byte") ) {
+                atomicName = "Integer";
+            }
+            writer.emitField("java.util.concurrent.atomic.Atomic" + atomicName, "primaryKeyCounter", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+            writer.emitEmptyLine();
+        }
+        writer.beginMethod(
+                primaryKey.getFieldTypeQualifiedName(),
+                "getNextPrimaryKey",
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
+                "Realm", "realm"
+        );
+        if(hasAutoIncrementPrimaryKey) {
+            writer.beginControlFlow("if (primaryKeyCounter == null)");
+            writer.emitStatement("Number primaryKey = realm.where(%s.class).max(\"%s\")", qualifiedClassName, primaryKey.getName());
+
+            String getMethodName = "";
+            String typeCast = "";
+
+            if (pkType.equals("long")) {
+                getMethodName = "long";
+            } else if(pkType.startsWith("int")) {
+                getMethodName = "int";
+            } else if(pkType.equals("short")) {
+                getMethodName = "short";
+                typeCast = "(short)";
+            } else if(pkType.equals("byte")) {
+                getMethodName = "byte";
+                typeCast = "(byte)";
+            }
+
+            writer.emitStatement("primaryKeyCounter = new java.util.concurrent.atomic.Atomic%s(primaryKey == null ? 0 : primaryKey.%sValue())", atomicName, getMethodName);
+
+            writer.endControlFlow();
+            writer.emitStatement("return %sprimaryKeyCounter.getAndIncrement()", typeCast);
+        } else {
+            writer.emitStatement("throw new RealmException(\"This class has no autoIncrement primary key.\")");
+        }
+        writer.endMethod();
     }
 
     private void emitColumnIndicesClass(JavaWriter writer) throws IOException {
@@ -1878,8 +1937,7 @@ public class RealmProxyClassGenerator {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
                         interfaceName,
                         metadata,
-                        fieldName,
-                        qualifiedFieldType,
+                        field,
                         writer
                 );
             }
