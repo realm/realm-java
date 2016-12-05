@@ -26,6 +26,16 @@ public class AndroidCapabilities implements Capabilities {
         return (Looper.myLooper() != null && !isIntentServiceThread());
     }
 
+    @Override
+    public void checkCanDeliverNotification() {
+        if (Looper.myLooper() == null) {
+            throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
+        }
+        if (isIntentServiceThread()) {
+            throw new IllegalStateException("Cannot set auto-refresh in an IntentService thread.");
+        }
+    }
+
     private static boolean isIntentServiceThread() {
         // Tries to determine if a thread is an IntentService thread. No public API can detect this,
         // so use the thread name as a heuristic:

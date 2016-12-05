@@ -21,6 +21,7 @@ import java.io.File;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmSchema;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
@@ -32,6 +33,8 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 3;
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
+
+    public static final Capabilities capabilities = new AndroidCapabilities();
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
@@ -178,6 +181,7 @@ public final class SharedRealm implements Closeable {
         context = new Context();
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
         objectServerFacade = null;
+        nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
@@ -332,6 +336,15 @@ public final class SharedRealm implements Closeable {
         nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
     }
 
+    public void setAutoRefresh(boolean enabled) {
+        capabilities.checkCanDeliverNotification();
+        nativeSetAutoRefresh(nativePtr, enabled);
+    }
+
+    public boolean isAutoRefresh() {
+        return nativeIsAutoRefresh(nativePtr);
+    }
+
     @Override
     public void close() {
         if (realmNotifier != null) {
@@ -405,4 +418,6 @@ public final class SharedRealm implements Closeable {
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
     private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+    private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
+    private static native boolean nativeIsAutoRefresh(long nativePtr);
 }

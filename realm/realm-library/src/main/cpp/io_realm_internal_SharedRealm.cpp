@@ -436,11 +436,11 @@ Java_io_realm_internal_SharedRealm_nativeCompact(JNIEnv *env, jclass, jlong shar
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass, jlong sharedRealmPtr)
+Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass, jlong shared_realm_ptr)
 {
-    TR_ENTER_PTR(sharedRealmPtr)
+    TR_ENTER_PTR(shared_realm_ptr)
 
-    auto shared_realm = *(reinterpret_cast<SharedRealm*>(sharedRealmPtr));
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         using rf = realm::_impl::RealmFriend;
         auto& shared_group = rf::get_shared_group(*shared_realm);
@@ -450,15 +450,34 @@ Java_io_realm_internal_SharedRealm_nativeGetSnapshotVersion(JNIEnv *env, jclass,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong nativePtr,
-                                                      jlong nativeSchemaPtr, jlong version) {
-    TR_ENTER()
+Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong shared_realm_ptr,
+                                                      jlong schema_ptr, jlong version) {
+    TR_ENTER_PTR(shared_realm_ptr)
     try {
-        auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
-        auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        auto *schema = reinterpret_cast<Schema*>(schema_ptr);
         shared_realm->update_schema(*schema, static_cast<uint64_t>(version));
-    }
-    CATCH_STD()
+    } CATCH_STD()
 }
 
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_SharedRealm_nativeSetAutoRefresh(JNIEnv *env, jclass, jlong shared_realm_ptr, jboolean enabled)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        shared_realm->set_auto_refresh(enabled);
+    } CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeIsAutoRefresh(JNIEnv *env, jclass, jlong shared_realm_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        return static_cast<jboolean>(shared_realm->auto_refresh());
+    } CATCH_STD()
+    return JNI_FALSE;
+}

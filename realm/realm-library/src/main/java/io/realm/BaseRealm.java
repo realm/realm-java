@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.Handler;
 import android.os.Looper;
 
 import java.io.Closeable;
@@ -89,10 +88,6 @@ abstract class BaseRealm implements Closeable {
                     }
                 });
         this.schema = new RealmSchema(this);
-
-        if (handlerController.isAutoRefreshAvailable()) {
-            setAutoRefresh(true);
-        }
     }
 
     /**
@@ -108,8 +103,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
-        handlerController.checkCanBeAutoRefreshed();
-        handlerController.setAutoRefresh(autoRefresh);
+        sharedRealm.setAutoRefresh(autoRefresh);
     }
 
     /**
@@ -118,7 +112,7 @@ abstract class BaseRealm implements Closeable {
      * @return the auto-refresh status.
      */
     public boolean isAutoRefresh() {
-        return handlerController.isAutoRefreshEnabled();
+        return sharedRealm.isAutoRefresh();
     }
 
     /**

@@ -88,7 +88,7 @@ public class NotificationsTest {
     }
 
     @Test
-    public void failingSetAutoRefreshOnNonLooperThread() throws ExecutionException, InterruptedException {
+    public void setAutoRefresh_failsOnNonLooperThread() throws ExecutionException, InterruptedException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
