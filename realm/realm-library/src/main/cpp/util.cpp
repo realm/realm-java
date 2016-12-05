@@ -39,6 +39,7 @@ jmethodID java_lang_long_init;
 jclass java_lang_float;
 jmethodID java_lang_float_init;
 jclass java_lang_double;
+jclass java_lang_string;
 jmethodID java_lang_double_init;
 jclass java_util_date;
 jmethodID java_util_date_init;

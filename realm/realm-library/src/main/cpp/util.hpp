@@ -716,6 +716,7 @@ extern jmethodID java_lang_long_init;
 extern jclass java_lang_float;
 extern jmethodID java_lang_float_init;
 extern jclass java_lang_double;
+extern jclass java_lang_string;
 extern jmethodID java_lang_double_init;
 extern jclass java_util_date;
 extern jmethodID java_util_date_init;
