@@ -1327,10 +1327,13 @@ public final class Realm extends BaseRealm {
 
         // If the user provided a Callback then we make sure, the current Realm has a Handler
         // we can use to deliver the result
+        // FIXME: Implement checking here.
+        /*
         if ((onSuccess != null || onError != null)  && !hasValidNotifier()) {
             throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
                     " and you provided a callback, we need a Handler to invoke your callback");
         }
+        */
 
         // We need to use the same configuration to open a background SharedRealm (i.e Realm)
         // to perform the transaction
@@ -1370,12 +1373,14 @@ public final class Realm extends BaseRealm {
                         bgRealm.close();
                     }
 
+                    // This will be treated like a special REALM_CHANGED event
+                    // FIXME: Find a way to deliver the callback with current architecture
+                            /*
                     final Throwable backgroundException = exception[0];
                     // Send response as the final step to ensure the bg thread quit before others get the response!
                     if (hasValidNotifier() && !Thread.currentThread().isInterrupted()) {
 
                         if (transactionCommitted) {
-                            // This will be treated like a special REALM_CHANGED event
                             sharedRealm.realmNotifier.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1429,6 +1434,7 @@ public final class Realm extends BaseRealm {
                             }
                         }
                     }
+                        */
                 }
             }
         });

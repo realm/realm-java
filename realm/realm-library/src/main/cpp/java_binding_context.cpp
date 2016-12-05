@@ -65,11 +65,13 @@ JavaBindingContext::~JavaBindingContext()
 
 void JavaBindingContext::changes_available()
 {
+    /*
     jobject notifier = m_local_jni_env->NewLocalRef(m_realm_notifier);
     if (notifier) {
         m_local_jni_env->CallVoidMethod(m_realm_notifier, m_notify_by_other_method);
         m_local_jni_env->DeleteLocalRef(notifier);
     }
+     */
 }
 
 std::vector<BindingContext::ObserverState> JavaBindingContext::get_observed_rows()
@@ -113,5 +115,10 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
         m_local_jni_env->CallVoidMethod(observer, m_observer_notify_listener);
     }
     m_local_jni_env->CallVoidMethod(m_row_notifier, m_clear_row_refs);
+    jobject notifier = m_local_jni_env->NewLocalRef(m_realm_notifier);
+    if (notifier) {
+        m_local_jni_env->CallVoidMethod(m_realm_notifier, m_notify_by_other_method);
+        m_local_jni_env->DeleteLocalRef(notifier);
+    }
 }
 

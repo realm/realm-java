@@ -16,50 +16,82 @@
 
 package io.realm.internal;
 
-import io.realm.internal.async.QueryUpdateTask;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import io.realm.RealmChangeListener;
 
 /**
  * This interface needs to be implemented by Java and pass to Realm Object Store in order to get notifications when
  * other thread/process changes the Realm file.
  */
 @Keep
-public interface RealmNotifier {
-    /**
-     * This is called from Java when the changes have been made on the same thread.
-     */
-    void notifyCommitByLocalThread();
+public class RealmNotifier {
 
+    private static class RealmObserverPair extends ObserverPair<RealmChangeListener> {
+
+        public RealmObserverPair(Object observer, RealmChangeListener listener) {
+            super(listener, observer);
+        }
+
+        private void onChange() {
+            Object observer = observerRef.get();
+            if (observer != null) {
+                listener.onChange(observer);
+            }
+        }
+    }
+
+    private List<RealmObserverPair> realmObserverPairs = new CopyOnWriteArrayList<RealmObserverPair>();
+
+    // This is called by OS when other thread/process changes the Realm.
+    // This is getting called on the same thread which created the Realm.
+    // |---------------------------------------------------------------+--------------+------------------------------------------------|
+    // | Thread A                                                      | Thread B     | Daemon Thread                                  |
+    // |---------------------------------------------------------------+--------------+------------------------------------------------|
+    // |                                                               | Make changes |                                                |
+    // |                                                               |              | Detect and notify thread A through JNI ALooper |
+    // | Call OS's Realm::notify() from OS's ALooper callback          |              |                                                |
+    // | Realm::notify() calls JavaBindingContext:change_available()   |              |                                                |
+    // | change_available calls into this method to send REALM_CHANGED |              |                                                |
+    // |---------------------------------------------------------------+--------------+------------------------------------------------|
     /**
      * This is called in Realm Object Store's JavaBindingContext::changes_available.
      * This is getting called on the same thread which created this Realm when the same Realm file has been changed by
      * other thread. The changes on the same thread should not trigger this call.
      */
     @SuppressWarnings("unused") // called from java_binding_context.cpp
-    void notifyCommitByOtherThread();
-
-    /**
-     * Post a runnable to be run in the next event loop on the thread which creates the corresponding Realm.
-     *
-     * @param runnable to be posted.
-     */
-    void post(Runnable runnable);
-
-    /**
-     * Is the current notifier valid? eg. Notifier created on non-looper thread cannot be notified.
-     *
-     * @return {@code true} if the thread which owns this notifier can be notified. Otherwise {@code false}
-     */
-    boolean isValid();
+    void notifyCommitByOtherThread() {
+        for (RealmObserverPair observerPair : realmObserverPairs) {
+            Object observer = observerPair.observerRef.get();
+            if (observer == null) {
+                realmObserverPairs.remove(observerPair);
+            } else {
+                observerPair.onChange();
+            }
+        }
+    }
 
     /**
      * Called when close SharedRealm to clean up any event left in to queue.
      */
-    void close();
+    public void close() {
+        removeAllChangeListeners();
+    }
 
-    // FIXME: These are for decoupling handler from async query. Async query needs refactor to either adapt the OS or
-    //        abstract the logic from Android handlers.
-    void completeAsyncResults(QueryUpdateTask.Result result);
-    void completeAsyncObject(QueryUpdateTask.Result result);
-    void throwBackgroundException(Throwable throwable);
-    void completeUpdateAsyncQueries(QueryUpdateTask.Result result);
+    public void addChangeListener(Object observer, RealmChangeListener realmChangeListener) {
+        RealmObserverPair observerPair = new RealmObserverPair(observer, realmChangeListener);
+        if (!realmObserverPairs.contains(observerPair)) {
+            realmObserverPairs.add(observerPair);
+        }
+    }
+
+    public void removeChangeListener(Object observer, RealmChangeListener realmChangeListener) {
+        RealmObserverPair observerPair = new RealmObserverPair(observer, realmChangeListener);
+        realmObserverPairs.remove(observerPair);
+    }
+
+    public void removeAllChangeListeners() {
+        realmObserverPairs.clear();
+    }
 }

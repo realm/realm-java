@@ -66,10 +66,6 @@ public final class RealmQuery<E extends RealmModel> {
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
 
-
-    private final static Long INVALID_NATIVE_POINTER = 0L;
-    private ArgumentsHolder argumentsHolder;
-
     /**
      * Creates a query for objects of a given class from a {@link Realm}.
      *
@@ -1326,7 +1322,6 @@ public final class RealmQuery<E extends RealmModel> {
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
-        checkQueryIsNotReused();
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
         Collection collection = new Collection(realm.sharedRealm, query, null, distinctDescriptor);
         return createRealmResults(collection);
@@ -1352,7 +1347,6 @@ public final class RealmQuery<E extends RealmModel> {
      * is an unsupported type, or points to a linked field.
      */
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
-        checkQueryIsNotReused();
         String[] fieldNames = new String[1 + remainingFieldNames.length];
 
         fieldNames[0] = firstFieldName;
@@ -1513,7 +1507,6 @@ public final class RealmQuery<E extends RealmModel> {
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
-        checkQueryIsNotReused();
         Collection collection = new Collection(realm.sharedRealm, query);
         return createRealmResults(collection);
     }
@@ -1540,7 +1533,6 @@ public final class RealmQuery<E extends RealmModel> {
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
-        checkQueryIsNotReused();
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
 
         Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
@@ -1592,8 +1584,6 @@ public final class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
-        checkQueryIsNotReused();
-
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
 
         Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
@@ -1646,8 +1636,6 @@ public final class RealmQuery<E extends RealmModel> {
      * @see io.realm.RealmObject
      */
     public E findFirst() {
-        checkQueryIsNotReused();
-
         Row row;
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
@@ -1701,92 +1689,11 @@ public final class RealmQuery<E extends RealmModel> {
         }
     }
 
-    private WeakReference<RealmNotifier> getWeakReferenceNotifier() {
-        if (realm.sharedRealm.realmNotifier == null || !realm.sharedRealm.realmNotifier.isValid()) {
-            throw new IllegalStateException("Your Realm is opened from a thread without a Looper." +
-                    " Async queries need a Handler to send results of your query");
-        }
-        return new WeakReference<RealmNotifier>(realm.sharedRealm.realmNotifier); // use caller Realm's Looper
-    }
-
-    // The shared group needs to be closed before sending the message to other threads to avoid timing problems.
-    // eg.: The other thread wants to delete Realm when getting notified.
-    private void closeSharedRealmAndSendEventToNotifier(SharedRealm sharedRealm,
-                                                         WeakReference<RealmNotifier> weakNotifier,
-                                                        QueryUpdateTask.NotifyEvent event, Object obj) {
-        if (sharedRealm != null) {
-            sharedRealm.close();
-        }
-
-        RealmNotifier notifier = weakNotifier.get();
-        if (notifier!= null) {
-            switch (event) {
-                case COMPLETE_ASYNC_RESULTS:
-                    notifier.completeAsyncResults((QueryUpdateTask.Result)obj);
-                    break;
-                case COMPLETE_ASYNC_OBJECT:
-                    notifier.completeAsyncObject((QueryUpdateTask.Result)obj);
-                    break;
-                case THROW_BACKGROUND_EXCEPTION:
-                    notifier.throwBackgroundException((Throwable)obj);
-                    break;
-                default:
-                    // Should not get here.
-                    throw new IllegalStateException(String.format("%s is not handled here.", event));
-            }
-        }
-    }
-
-    // We need to prevent the user from using the query again (mostly for async)
-    // Ex: if the first query fail with findFirstAsync, if the user reuse the same RealmQuery
-    //     with findAllSorted, argumentsHolder of the first query will be overridden,
-    //     which cause any retry to use the findAllSorted argumentsHolder.
-    private void checkQueryIsNotReused() {
-        if (argumentsHolder != null) {
-            throw new IllegalStateException("This RealmQuery is already used by a find* query, please create a new query");
-        }
-    }
-
-    private long getSourceRowIndexForFirstObject() {
-        long tableRowIndex = this.query.find();
-        return tableRowIndex;
-    }
-    // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
-    // or it belongs to the child object.
-    private long getColumnIndexForSort(String fieldName) {
-        if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Non-empty fieldname required.");
-        }
-        if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
-        }
-
-        Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-
-        return columnIndex;
-    }
-
     private RealmResults<E> createRealmResults(Collection collection) {
         if (isDynamicQuery()) {
             return new RealmResults<E>(realm, collection, className);
         } else {
             return new RealmResults<E>(realm, collection, clazz);
         }
-    }
-
-    public ArgumentsHolder getArgument() {
-        return argumentsHolder;
-    }
-
-    /**
-     * Exports & handovers the query to be used by a worker thread.
-     *
-     * @return the exported handover pointer for this RealmQuery.
-     */
-    long handoverQueryPointer() {
-        return query.handoverQuery(realm.sharedRealm);
     }
 }

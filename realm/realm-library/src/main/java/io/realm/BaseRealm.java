@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.ColumnInfo;
@@ -79,7 +80,7 @@ abstract class BaseRealm implements Closeable {
         this.configuration = configuration;
 
         this.handlerController = new HandlerController(this);
-        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidNotifier(this.handlerController),
+        this.sharedRealm = SharedRealm.getInstance(configuration, new RealmNotifier(),
                 !(this instanceof Realm) ? null :
                 new SharedRealm.SchemaVersionListener() {
                     @Override
@@ -138,7 +139,7 @@ abstract class BaseRealm implements Closeable {
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't register a listener from a non-Looper or IntentService thread.");
         }
-        handlerController.addChangeListener(listener);
+        sharedRealm.realmNotifier.addChangeListener(this, listener);
     }
 
     /**
@@ -157,7 +158,7 @@ abstract class BaseRealm implements Closeable {
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
         }
-        handlerController.removeChangeListener(listener);
+        sharedRealm.realmNotifier.removeChangeListener(this, listener);
     }
 
     /**
@@ -191,15 +192,8 @@ abstract class BaseRealm implements Closeable {
         if (!handlerController.isAutoRefreshEnabled()) {
             throw new IllegalStateException("You can't remove listeners from a non-Looper thread ");
         }
-        handlerController.removeAllChangeListeners();
+        sharedRealm.realmNotifier.removeAllChangeListeners();
     }
-
-    // WARNING: If this method is used after calling any async method, the old handler will still be used.
-    //          package private, for test purpose only
-    void setHandler(Handler handler) {
-        ((AndroidNotifier)sharedRealm.realmNotifier).setHandler(handler);
-    }
-
 
     /**
      * Writes a compacted copy of the Realm to the given destination File.
@@ -350,11 +344,14 @@ abstract class BaseRealm implements Closeable {
         ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
                 .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
 
+        // FIXME: Check if this is still needed.
         // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
         // file will make a commit in order to create the schema. Users should not be notified about that.
+        /*
         if (notifyLocalThread) {
             sharedRealm.realmNotifier.notifyCommitByLocalThread();
         }
+        */
     }
 
     /**
@@ -661,11 +658,6 @@ abstract class BaseRealm implements Closeable {
             throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
                     + configuration.getPath());
         }
-    }
-
-    // Return true if this Realm can receive notifications.
-    boolean hasValidNotifier() {
-        return sharedRealm.realmNotifier != null && sharedRealm.realmNotifier.isValid();
     }
 
     @Override

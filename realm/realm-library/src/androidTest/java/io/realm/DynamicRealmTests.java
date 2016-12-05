@@ -563,7 +563,7 @@ public class DynamicRealmTests {
             }
         };
 
-        dynamicRealm.setHandler(handler);
+        //dynamicRealm.setHandler(handler);
         dynamicRealmObject[0] = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();

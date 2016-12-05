@@ -16,14 +16,15 @@
 
 package io.realm.internal;
 
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmChangeListener;
 
+@Keep
 public class RowNotifier {
 
+    @Keep
     private static class Observer {
         final RealmChangeListener listener;
         final Object object;
@@ -33,6 +34,9 @@ public class RowNotifier {
             this.object = object;
             this.row = null;
         }
+
+        // Called by JNI
+        @SuppressWarnings("unused")
         public void notifyListener() {
             listener.onChange(object);
         }

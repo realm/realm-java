@@ -45,6 +45,8 @@ private:
     jobject m_realm_notifier;
     // Method IDs from RealmNotifier implementation. Cache them as member vars.
     jmethodID m_notify_by_other_method;
+    jmethodID m_realm_notifier_on_change;
+
     // A weak global ref to the RowNotifier object. Java should hold a strong ref to it.
     jobject m_row_notifier;
     // RowNotifier.getObservers()

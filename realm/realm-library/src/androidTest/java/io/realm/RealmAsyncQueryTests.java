@@ -505,7 +505,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // 3. Create a async query
         final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
@@ -573,7 +573,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // 2. Create 2 async queries and check they are not loaded
         final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class).findAllAsync();
@@ -674,7 +674,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // Create async query and verify it has not been loaded.
         final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
@@ -743,7 +743,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
         Realm.asyncTaskExecutor.pause();
 
         // Create async queries and check they haven't completed
@@ -977,7 +977,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // Create a async query and verify it is not still loaded.
         final AllTypes realmResults = realm.where(AllTypes.class)
@@ -1074,7 +1074,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // 3. This will add a task to the paused asyncTaskExecutor
         final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
@@ -1151,7 +1151,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // 3. Create 2 async queries
         final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
@@ -1290,7 +1290,7 @@ public class RealmAsyncQueryTests {
                 return false;
             }
         };
-        realm.setHandler(handler);
+        //realm.setHandler(handler);
 
         // 3. Create 2 async queries
         final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)

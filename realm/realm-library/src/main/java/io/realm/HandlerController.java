@@ -267,6 +267,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void updateAsyncEmptyRealmObject() {
+        /*
         Iterator<Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<?>>> iterator = emptyAsyncRealmObject.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<WeakReference<RealmObjectProxy>, RealmQuery<?>> next = iterator.next();
@@ -285,6 +286,7 @@ final class HandlerController implements Handler.Callback {
                 iterator.remove();
             }
         }
+        */
     }
 
     /**
@@ -382,6 +384,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void updateAsyncQueries() {
+        /*
         if (updateAsyncQueriesTask != null && !updateAsyncQueriesTask.isDone()) {
             // try to cancel any pending update since we're submitting a new one anyway
             updateAsyncQueriesTask.cancel(true);
@@ -425,6 +428,7 @@ final class HandlerController implements Handler.Callback {
                     .build();
             updateAsyncQueriesTask = Realm.asyncTaskExecutor.submitQueryUpdate(queryUpdateTask);
         }
+        */
     }
 
     private void realmChanged(boolean localCommit) {
@@ -458,6 +462,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void completedAsyncRealmResults(QueryUpdateTask.Result result) {
+        /*
         Set<WeakReference<RealmResults<? extends RealmModel>>> updatedTableViewsKeys = result.updatedTableViews.keySet();
         if (updatedTableViewsKeys.size() > 0) {
             WeakReference<RealmResults<? extends RealmModel>> weakRealmResults = updatedTableViewsKeys.iterator().next();
@@ -526,6 +531,7 @@ final class HandlerController implements Handler.Callback {
                 }
             }
         }
+        */
     }
 
     private void completedAsyncQueriesUpdate(QueryUpdateTask.Result result) {
@@ -604,6 +610,7 @@ final class HandlerController implements Handler.Callback {
     }
 
     private void completedAsyncRealmObject(QueryUpdateTask.Result result) {
+        /*
         Set<WeakReference<RealmObjectProxy>> updatedRowKey = result.updatedRow.keySet();
         if (updatedRowKey.size() > 0) {
             WeakReference<RealmObjectProxy> realmObjectWeakReference = updatedRowKey.iterator().next();
@@ -664,6 +671,7 @@ final class HandlerController implements Handler.Callback {
                 }
             } // else: element GC'd in the meanwhile
         }
+        */
     }
 
     /**

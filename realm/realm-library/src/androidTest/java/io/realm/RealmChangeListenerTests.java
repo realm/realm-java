@@ -29,6 +29,8 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.pojo.AllTypesRealmModel;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -146,11 +148,21 @@ public class RealmChangeListenerTests {
         cat.addChangeListener(new RealmChangeListener<Cat>() {
             @Override
             public void onChange(Cat object) {
-                assertEquals("cat1", object.getName());
-                looperThread.testComplete();
+                //assertEquals("cat1", object.getName());
+                //looperThread.testComplete();
+                Cat cat = object;
             }
         });
+        cat.getAge();
 
+        /*
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Cat.class).findFirst().setName("cat1");
+            }
+        });
+        */
         realm.beginTransaction();
         cat.setName("cat1");
         realm.commitTransaction();
@@ -232,13 +244,23 @@ public class RealmChangeListenerTests {
     // FIXME: Used for DEV. Remove before merge
     public void myTest() {
         Realm realm = looperThread.realm;
+        RealmLog.setLevel(LogLevel.ALL);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        });
         final RealmResults<Cat> cats = realm.where(Cat.class).findAll();
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        final RealmResults<AllTypes> allTypes = realm.where(AllTypes.class).findAll();
+        double avg = allTypes.average(AllTypes.FIELD_DOUBLE);
         looperThread.keepStrongReference.add(cats);
         looperThread.keepStrongReference.add(dogs);
         cats.addChangeListener(new RealmChangeListener<RealmResults<Cat>>() {
             @Override
             public void onChange(RealmResults<Cat> result) {
+                Cat cat = result.first();
                 assertEquals("cat1", result.first().getName());
                 assertEquals("dog1", dogs.first().getName());
                 looperThread.testComplete();
