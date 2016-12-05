@@ -223,7 +223,7 @@ public class ClassMetaData {
 
                     if(field.isPrimaryKey()) {
                         if (primaryKey != null) {
-                            throw new InvalidFieldException(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
+                            throw new FieldMetaData.InvalidFieldException(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
                                     primaryKey.getName(),
                                     variableElement.getSimpleName().toString()));
                         }
@@ -231,7 +231,7 @@ public class ClassMetaData {
                         primaryKey = field;
                     }
 
-                } catch (InvalidFieldException e) {
+                } catch (FieldMetaData.InvalidFieldException e) {
                     Utils.error(e.getMessage());
                     return false;
                 }

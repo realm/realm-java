@@ -200,4 +200,11 @@ public class FieldMetaData {
     public String getFieldTypeQualifiedName() {
         return Utils.getFieldTypeQualifiedName(variableElement);
     }
+
+    public static class InvalidFieldException extends Exception {
+
+        public InvalidFieldException(String s) {
+            super(s);
+        }
+    }
 }
