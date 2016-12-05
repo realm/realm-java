@@ -16,10 +16,13 @@
 
 package io.realm.internal;
 
+import android.support.test.InstrumentationRegistry;
+
 import junit.framework.TestCase;
 
+import io.realm.Realm;
 import io.realm.RealmFieldType;
-import io.realm.internal.TableOrView.PivotType;
+import io.realm.internal.Table.PivotType;
 
 public class PivotTest extends TestCase {
 
@@ -30,6 +33,7 @@ public class PivotTest extends TestCase {
 
     @Override
     public void setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         t = new Table();
         colIndexSex = t.addColumn(RealmFieldType.STRING, "sex");
         colIndexAge = t.addColumn(RealmFieldType.INTEGER, "age");

@@ -110,6 +110,7 @@ public class Collection implements NativeObject {
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
                       SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+        query.validateQuery();
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.query = query;

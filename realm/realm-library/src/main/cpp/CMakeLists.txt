@@ -33,7 +33,7 @@ endif()
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type_FOLDER)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REALM_FLAVOR}/${build_type_FOLDER}/)
 set(classes_LIST
-    io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
+    io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema

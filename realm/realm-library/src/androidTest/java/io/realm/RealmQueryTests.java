@@ -263,6 +263,21 @@ public class RealmQueryTests {
         assertEquals(22, resultList.size());
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilters() {
+        realm.where(AllTypes.class).or().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterBefore() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterAfter() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
+    }
+
     @Test
     public void not() {
         populateTestRealm(); // create TEST_DATA_SIZE objects
@@ -3122,5 +3137,15 @@ public class RealmQueryTests {
             query.distinct(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT);
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void beginGroup_missingEndGroup() {
+        realm.where(AllTypes.class).beginGroup().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void endGroup_missingBeginGroup() {
+        realm.where(AllTypes.class).endGroup().findAll();
     }
 }

@@ -75,64 +75,6 @@ public class QueryUpdateTask implements Runnable {
 
     @Override
     public void run() {
-        SharedRealm sharedRealm = null;
-        try {
-            sharedRealm = SharedRealm.getInstance(realmConfiguration);
-
-            Result result;
-            boolean updateSuccessful;
-            if (updateMode == MODE_UPDATE_REALM_RESULTS) {
-                result = Result.newRealmResultsResponse();
-                AlignedQueriesParameters alignedParameters = prepareQueriesParameters();
-                long[] handoverTableViewPointer = TableQuery.batchUpdateQueries(sharedRealm,
-                        alignedParameters.handoverQueries,
-                        alignedParameters.queriesParameters,
-                        alignedParameters.multiSortColumnIndices,
-                        alignedParameters.multiSortOrder);
-                swapPointers(result, handoverTableViewPointer);
-                updateSuccessful = true;
-                result.versionID = sharedRealm.getVersionID();
-
-            } else {
-                result = Result.newRealmObjectResponse();
-                updateSuccessful = updateRealmObjectQuery(sharedRealm, result);
-                result.versionID = sharedRealm.getVersionID();
-            }
-
-            RealmNotifier notifier = callerNotifier.get();
-            if (updateSuccessful && !isTaskCancelled() && notifier != null) {
-                switch (event) {
-                    case COMPLETE_ASYNC_RESULTS:
-                        notifier.completeAsyncResults(result);
-                        break;
-                    case COMPLETE_ASYNC_OBJECT:
-                        notifier.completeAsyncObject(result);
-                        break;
-                    case COMPLETE_UPDATE_ASYNC_QUERIES:
-                        notifier.completeUpdateAsyncQueries(result);
-                        break;
-                    default:
-                        throw new IllegalStateException(String.format("%s is not handled here.", event));
-                }
-            }
-
-        } catch (BadVersionException e) {
-            // In some rare race conditions, this can happen. In that case, just ignore the error.
-            RealmLog.debug("Query update task could not complete due to a BadVersionException. " +
-                    "Retry is scheduled by a REALM_CHANGED event.");
-
-        } catch (Throwable e) {
-            RealmLog.error(e);
-            RealmNotifier notifier = callerNotifier.get();
-            if (notifier!= null) {
-                notifier.throwBackgroundException(e);
-            }
-
-        } finally {
-            if (sharedRealm != null) {
-                sharedRealm.close();
-            }
-        }
     }
 
     private AlignedQueriesParameters prepareQueriesParameters() {
@@ -197,25 +139,6 @@ public class QueryUpdateTask implements Runnable {
         for (Builder.QueryEntry  queryEntry : realmResultsEntries) {
             result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer[i++]);
         }
-    }
-
-    private boolean updateRealmObjectQuery(SharedRealm sharedRealm, Result result) {
-        if (!isTaskCancelled()) {
-            switch (realmObjectEntry.queryArguments.type) {
-                case ArgumentsHolder.TYPE_FIND_FIRST: {
-                    long handoverRowPointer = TableQuery.findWithHandover(sharedRealm,
-                                    realmObjectEntry.handoverQueryPointer);
-                    result.updatedRow.put(realmObjectEntry.element, handoverRowPointer);
-                    break;
-                }
-                default:
-                    throw new IllegalArgumentException("Query mode " + realmObjectEntry.queryArguments.type + " not supported");
-            }
-        } else {
-            TableQuery.nativeCloseQueryHandover(realmObjectEntry.handoverQueryPointer);
-            return false;
-        }
-        return true;
     }
 
     private boolean isTaskCancelled() {

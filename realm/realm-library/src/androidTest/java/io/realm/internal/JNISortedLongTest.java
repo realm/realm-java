@@ -16,15 +16,18 @@
 
 package io.realm.internal;
 
+import android.support.test.InstrumentationRegistry;
+
 import junit.framework.TestCase;
 
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 
 public class JNISortedLongTest extends TestCase {
     Table table;
-    TableView view;
 
     void init() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         table = new Table();
         table.addColumn(RealmFieldType.INTEGER, "number");
         table.addColumn(RealmFieldType.STRING, "name");
@@ -39,11 +42,6 @@ public class JNISortedLongTest extends TestCase {
         table.add(60, "D");
 
         assertEquals(8, table.size());
-
-        view = table.where().findAll();
-
-        assertEquals(view.size(), table.size());
-
     }
 
     public void testShouldTestSortedIntTable() {

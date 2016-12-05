@@ -84,6 +84,12 @@ public class CollectionTests {
         table.setLong(2, row, 1, false);
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void constructor_queryIsValidated() {
+        // Collection's constructor should call TableQuery.validateQuery()
+        new Collection(sharedRealm, table.where().or());
+    }
+
     @Test
     public void size() {
         Collection collection = new Collection(sharedRealm, table.where());
@@ -160,5 +166,16 @@ public class CollectionTests {
         } finally {
             sortDescriptor.close();
         }
+    }
+
+    @Test
+    public void distinct() {
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, "firstName");
+        Collection collection = new Collection(sharedRealm, table.where(), null, distinctDescriptor);
+
+        assertEquals(collection.size(), 3);
+        assertEquals(collection.getUncheckedRow(0).getString(0), "John");
+        assertEquals(collection.getUncheckedRow(1).getString(0), "Erik");
+        assertEquals(collection.getUncheckedRow(2).getString(0), "Henry");
     }
 }

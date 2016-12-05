@@ -843,7 +843,7 @@ public class TestHelper {
      * This helper method is useful to create a mocked {@link RealmResults}.
      *
      * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
-     * @param table a {@link Table} or a {@link io.realm.internal.TableView} instance.
+     * @param collection a {@link Collection} instance.
      * @param tableClass a Class of Table.
      * @return a created {@link RealmResults} instance.
      */
