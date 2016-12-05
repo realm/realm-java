@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 def buildSuccess = false
 def rosContainer
 try {
-  node('android') {
+  node('ematest') {
     // Allocate a custom workspace to avoid having % in the path (it breaks ld)
     ws('/tmp/realm-java') {
       stage('SCM') {
