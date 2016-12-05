@@ -26,15 +26,11 @@ import io.realm.annotations.Required;
 import io.realm.internal.Collection;
 import io.realm.internal.LinkView;
 import io.realm.internal.PendingRow;
-import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.async.ArgumentsHolder;
-import io.realm.internal.async.QueryUpdateTask;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder

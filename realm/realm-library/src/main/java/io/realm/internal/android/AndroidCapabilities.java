@@ -27,12 +27,14 @@ public class AndroidCapabilities implements Capabilities {
     }
 
     @Override
-    public void checkCanDeliverNotification() {
+    public void checkCanDeliverNotification(String exceptionMessage) {
         if (Looper.myLooper() == null) {
-            throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
+            throw new IllegalStateException( exceptionMessage == null ? "" : (exceptionMessage + " ") +
+                    "Realm cannot be automatically updated on a thread without a looper.");
         }
         if (isIntentServiceThread()) {
-            throw new IllegalStateException("Cannot set auto-refresh in an IntentService thread.");
+            throw new IllegalStateException( exceptionMessage == null ? "" : (exceptionMessage + " ") +
+                    "Realm cannot be automatically updated on a IntentService thread.");
         }
     }
 

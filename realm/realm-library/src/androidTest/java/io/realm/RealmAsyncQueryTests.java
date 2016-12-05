@@ -42,7 +42,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
-import io.realm.internal.HandlerControllerConstants;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -61,7 +60,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmAsyncQueryTests {
-
+/*
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
@@ -1125,7 +1124,7 @@ public class RealmAsyncQueryTests {
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS: {
-                        if (numberOfIntercept.incrementAndGet() == 2 /* 2 queries are both completed */) {
+                        if (numberOfIntercept.incrementAndGet() == 2 *//* 2 queries are both completed *//*) {
                             // 6. The first time the async queries complete we start an update from
                             // another background thread. This will cause queries to rerun when the
                             // background thread notifies this thread.
@@ -2231,5 +2230,5 @@ public class RealmAsyncQueryTests {
             }
         }
         realm.commitTransaction();
-    }
+    }*/
 }

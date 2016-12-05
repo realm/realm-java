@@ -71,14 +71,11 @@ abstract class BaseRealm implements Closeable {
     protected SharedRealm sharedRealm;
 
     RealmSchema schema;
-    HandlerController handlerController;
-
 
     protected BaseRealm(RealmConfiguration configuration) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
 
-        this.handlerController = new HandlerController(this);
         this.sharedRealm = SharedRealm.getInstance(configuration, new RealmNotifier(),
                 !(this instanceof Realm) ? null :
                 new SharedRealm.SchemaVersionListener() {
@@ -130,9 +127,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper or IntentService thread.");
-        }
+        sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be registered.");
         sharedRealm.realmNotifier.addChangeListener(this, listener);
     }
 
@@ -149,9 +144,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
-        }
+        sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be removed.");
         sharedRealm.realmNotifier.removeChangeListener(this, listener);
     }
 
@@ -183,9 +176,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void removeAllChangeListeners() {
         checkIfValid();
-        if (!handlerController.isAutoRefreshEnabled()) {
-            throw new IllegalStateException("You can't remove listeners from a non-Looper thread ");
-        }
+        sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be removed.");
         sharedRealm.realmNotifier.removeAllChangeListeners();
     }
 
@@ -251,7 +242,8 @@ abstract class BaseRealm implements Closeable {
         if (hasChanged) {
             // Since this Realm instance has been waiting for change, advance realm & refresh realm.
             sharedRealm.refresh();
-            handlerController.refreshSynchronousTableViews();
+            // FIXME: CHECK THIS!!! Maybe call OS SharedRealm.refresh()?
+            //handlerController.refreshSynchronousTableViews();
         }
         return hasChanged;
     }

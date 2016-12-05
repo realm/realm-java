@@ -61,11 +61,6 @@
         <Bug pattern="DM_GC"/>
     </Match>
     <Match>
-        <Class name="io.realm.HandlerController" />
-        <Method name="completedAsyncRealmObject" />
-        <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
-    </Match>
-    <Match>
         <Class name="io.realm.permissions.PermissionChange" />
         <Method name="mayManage" />
         <Bug pattern="NP_BOOLEAN_RETURN_NULL" />

@@ -352,9 +352,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            if (!realm.handlerController.isAutoRefreshEnabled()) {
-                throw new IllegalStateException("You can't register a listener from a non-Looper thread or IntentService thread.");
-            }
+            realm.sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be added.");
             //noinspection unchecked
             proxy.realmGet$proxyState().addChangeListener(listener);
         } else {

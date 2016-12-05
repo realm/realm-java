@@ -34,7 +34,7 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
 
-    public static final Capabilities capabilities = new AndroidCapabilities();
+    private static final Capabilities capabilities = new AndroidCapabilities();
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
@@ -337,12 +337,16 @@ public final class SharedRealm implements Closeable {
     }
 
     public void setAutoRefresh(boolean enabled) {
-        capabilities.checkCanDeliverNotification();
+        capabilities.checkCanDeliverNotification(null);
         nativeSetAutoRefresh(nativePtr, enabled);
     }
 
     public boolean isAutoRefresh() {
         return nativeIsAutoRefresh(nativePtr);
+    }
+
+    public Capabilities getCapabilities() {
+        return capabilities;
     }
 
     @Override
