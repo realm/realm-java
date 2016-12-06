@@ -312,29 +312,10 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(true);
-    }
-
-    /**
-     * Commits transaction and sends notifications to local thread.
-     *
-     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change
-     *                          listeners.
-     */
-    void commitTransaction(boolean notifyLocalThread) {
         checkIfValid();
         sharedRealm.commitTransaction();
         ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
                 .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
-
-        // FIXME: Check if this is still needed.
-        // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
-        // file will make a commit in order to create the schema. Users should not be notified about that.
-        /*
-        if (notifyLocalThread) {
-            sharedRealm.realmNotifier.notifyCommitByLocalThread();
-        }
-        */
     }
 
     /**

@@ -374,7 +374,7 @@ public final class Realm extends BaseRealm {
         } finally {
             if (!syncAvailable) {
                 if (commitNeeded) {
-                    realm.commitTransaction(false);
+                    realm.commitTransaction();
                 } else {
                     realm.cancelTransaction();
                 }
@@ -1347,6 +1347,7 @@ public final class Realm extends BaseRealm {
 
                 boolean transactionCommitted = false;
                 final Throwable[] exception = new Throwable[1];
+                // FIXME: Disable notifier in SharedRealm
                 final Realm bgRealm = Realm.getInstance(realmConfiguration);
                 bgRealm.beginTransaction();
                 try {
@@ -1354,7 +1355,7 @@ public final class Realm extends BaseRealm {
 
                     if (!Thread.currentThread().isInterrupted()) {
                         // No need to send change notification to the work thread.
-                        bgRealm.commitTransaction(false);
+                        bgRealm.commitTransaction();
                         // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
                         // problem. This is currently guaranteed by posting handleAsyncTransactionCompleted below.
                         bgRealm.close();
