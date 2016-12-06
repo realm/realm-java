@@ -126,7 +126,7 @@ public class LinkView implements NativeObject {
 
     public TableQuery where() {
         long nativeQueryPtr = nativeWhere(nativePtr);
-        return new TableQuery(this.context, this.parent, nativeQueryPtr);
+        return new TableQuery(this.context, this.getTargetTable(), nativeQueryPtr);
     }
 
     public boolean isAttached() {
