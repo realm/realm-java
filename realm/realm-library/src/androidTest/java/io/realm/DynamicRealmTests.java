@@ -537,49 +537,6 @@ public class DynamicRealmTests {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void accessingDynamicRealmObjectBeforeAsyncQueryCompleted() {
-        /*
-        final DynamicRealm dynamicRealm = initializeDynamicRealm();
-        final DynamicRealmObject[] dynamicRealmObject = new DynamicRealmObject[1];
-
-        // Intercept completion of the async DynamicRealmObject query
-        Handler handler = new HandlerProxy(dynamicRealm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT: {
-                        post(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertFalse(dynamicRealmObject[0].isLoaded());
-                                assertFalse(dynamicRealmObject[0].isValid());
-                                try {
-                                    dynamicRealmObject[0].getObject(AllTypes.FIELD_BINARY);
-                                    fail("trying to access a DynamicRealmObject property should throw");
-                                } catch (IllegalStateException ignored) {
-
-                                } finally {
-                                    dynamicRealm.close();
-                                    looperThread.testComplete();
-                                }
-                            }
-                        });
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-
-        //dynamicRealm.setHandler(handler);
-        dynamicRealmObject[0] = dynamicRealm.where(AllTypes.CLASS_NAME)
-                .between(AllTypes.FIELD_LONG, 4, 9)
-                .findFirstAsync();
-                */
-    }
-
-    @Test
     public void deleteAll() {
         realm.beginTransaction();
         realm.createObject(AllTypes.CLASS_NAME);
