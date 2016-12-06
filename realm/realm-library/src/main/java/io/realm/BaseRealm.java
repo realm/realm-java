@@ -127,7 +127,6 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be registered.");
         sharedRealm.realmNotifier.addChangeListener(this, listener);
     }
 
@@ -144,7 +143,6 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be removed.");
         sharedRealm.realmNotifier.removeChangeListener(this, listener);
     }
 
@@ -176,7 +174,6 @@ abstract class BaseRealm implements Closeable {
      */
     public void removeAllChangeListeners() {
         checkIfValid();
-        sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be removed.");
         sharedRealm.realmNotifier.removeAllChangeListeners();
     }
 

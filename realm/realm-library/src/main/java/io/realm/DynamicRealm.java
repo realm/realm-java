@@ -123,8 +123,7 @@ public final class DynamicRealm extends BaseRealm {
     /**
      * Adds a change listener to the Realm.
      * <p>
-     * The listeners will be executed on every loop of a Handler thread if changes are committed by
-     * this or another thread.
+     * The listeners will be executed when changes are committed by this or another thread.
      * <p>
      * Realm instances are cached per thread. For that reason it is important to
      * remember to remove listeners again either using {@link #removeChangeListener(RealmChangeListener)}
@@ -132,10 +131,10 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
+     * @see #waitForChange()
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         super.addListener(listener);

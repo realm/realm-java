@@ -319,7 +319,25 @@ public class NotificationsTest {
 
     @Test
     @RunTestInLooperThread
-    public void commitTransaction_delayChangeListenerOnSameThread() {
+    public void globalListener_looperThread_triggeredByLocalCommit() {
+        final AtomicInteger success = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm object) {
+                assertEquals(0, success.getAndIncrement());
+                looperThread.testComplete();
+            }
+        });
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        assertEquals(1, success.get());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void globalListener_looperThread_triggeredByRemoteCommit() {
         final AtomicInteger success = new AtomicInteger(0);
         Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener<Realm>() {
@@ -329,9 +347,12 @@ public class NotificationsTest {
                 looperThread.testComplete();
             }
         });
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        });
         assertEquals(0, success.getAndIncrement());
     }
 
@@ -1360,4 +1381,43 @@ public class NotificationsTest {
         } catch (IllegalStateException ignored) {
         }
     }
+
+
+    @Test
+    public void globalListener_nonLooperThread_triggeredByWaitForChange() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                latch.countDown();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        });
+        realm.waitForChange();
+        TestHelper.awaitOrFail(latch);
+    }
+
+    @Test
+    public void globalListener_nonLooperThread_triggeredByLocalCommit() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        realm.addChangeListener(new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm element) {
+                latch.countDown();
+            }
+        });
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        });
+        TestHelper.awaitOrFail(latch);
+    }
+
 }

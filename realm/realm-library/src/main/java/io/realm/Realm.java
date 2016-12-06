@@ -1216,8 +1216,7 @@ public final class Realm extends BaseRealm {
     /**
      * Adds a change listener to the Realm.
      * <p>
-     * The listeners will be executed on every loop of a Handler thread if
-     * the current thread or other threads committed changes to the Realm.
+     * The listeners will be executed when changes are committed by this or another thread.
      * <p>
      * Realm instances are per thread singletons and cached, so listeners should be
      * removed manually even if calling {@link #close()}. Otherwise there is a
@@ -1225,10 +1224,10 @@ public final class Realm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
-     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
+     * @see #waitForChange()
      */
     public void addChangeListener(RealmChangeListener<Realm> listener) {
         super.addListener(listener);

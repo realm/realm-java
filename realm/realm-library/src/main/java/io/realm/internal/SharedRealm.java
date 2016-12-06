@@ -291,15 +291,6 @@ public final class SharedRealm implements Closeable {
         invokeSchemaChangeListenerIfSchemaChanged();
     }
 
-    public void refresh(SharedRealm.VersionID version) throws BadVersionException {
-        // FIXME: This will have a different behaviour compared to refresh to the latest version.
-        // In the JNI this will just advance read the corresponding SharedGroup to the specific version without notifier
-        // or transact log observer involved. Before we use notification & fine grained notification from OS, it is not
-        // a problem.
-        nativeRefresh(nativePtr, version.version, version.index);
-        invokeSchemaChangeListenerIfSchemaChanged();
-    }
-
     public SharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID (nativePtr);
         return new SharedRealm.VersionID(versionId[0], versionId[1]);
