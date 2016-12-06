@@ -92,7 +92,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.Booleans.class, this);
+        this.proxyState = new ProxyState(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());

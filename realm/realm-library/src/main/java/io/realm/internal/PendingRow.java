@@ -32,8 +32,10 @@ public class PendingRow implements Row {
     private Collection pendingCollection;
     private Collection.Listener listener;
     private WeakReference<FrontEnd> frontEnd;
+    private boolean returnCheckedRow;
 
-    public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
+    public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
+                      final boolean returnCheckedRow) {
         pendingCollection = new Collection(sharedRealm, query, sortDescriptor);
         listener = new Collection.Listener(new RealmChangeListener<PendingRow>() {
             @Override
@@ -42,14 +44,15 @@ public class PendingRow implements Row {
                     throw new IllegalStateException(PROXY_NOT_SET_MESSAGE);
                 }
                 // TODO: PendingRow will always get the first Row of the query since we only support findFirst.
-                Row row = pendingCollection.firstUncheckedRow();
                 if (frontEnd.get() == null) {
                     // The front end is GCed.
                     clearPendingCollection();
                     return;
                 }
+                UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
                 // If no rows returned by the query, just wait for the query updates until it returns a valid row.
-                if (row != null) {
+                if (uncheckedRow != null) {
+                    Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
                     // Ask the front end to reset the row and stop async query.
                     frontEnd.get().onQueryFinished(row, true);
                     clearPendingCollection();
@@ -57,6 +60,7 @@ public class PendingRow implements Row {
             }
         }, this);
         pendingCollection.addListener(listener);
+        this.returnCheckedRow = returnCheckedRow;
     }
 
     // To set the front end of this PendingRow.
@@ -222,12 +226,13 @@ public class PendingRow implements Row {
         if (frontEnd == null) {
             throw new IllegalStateException(PROXY_NOT_SET_MESSAGE);
         }
-        Row row = pendingCollection.getUncheckedRow(0);
-        if (row == null) {
+        UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
+        if (uncheckedRow == null) {
             throw new IllegalStateException(EMPTY_ROW_MESSAGE);
         }
+        Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
         if (frontEnd.get() != null) {
-            frontEnd.get().onQueryFinished(pendingCollection.firstUncheckedRow(), false);
+            frontEnd.get().onQueryFinished(row, false);
         }
         clearPendingCollection();
         return row;

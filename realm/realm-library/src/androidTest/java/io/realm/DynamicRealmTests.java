@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.os.Handler;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -41,6 +40,7 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.PendingRow;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -341,13 +341,22 @@ public class DynamicRealmTests {
     }
 
     @Test
+    public void findFirst() {
+        final DynamicRealmObject allTypes = realm.where(AllTypes.CLASS_NAME)
+                .between(AllTypes.FIELD_LONG, 4, 9)
+                .findFirst();
+        populateTestRealm(realm, 10);
+        assertEquals("test data 4", allTypes.getString(AllTypes.FIELD_STRING));
+    }
+
+    @Test
     @RunTestInLooperThread
-    public void findFirstAsync() {
+    public void findFirst_async() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final DynamicRealmObject allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
-                .findFirstAsync();
-        assertFalse(allTypes.isLoaded());
+                .findFirst();
+        assertTrue(allTypes.realmGet$proxyState().getRow$realm() instanceof PendingRow);
         looperThread.keepStrongReference.add(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override

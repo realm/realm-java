@@ -82,7 +82,7 @@ public class SimpleRealmProxy extends some.test.Simple
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (SimpleColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.Simple.class, this);
+        this.proxyState = new ProxyState(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());

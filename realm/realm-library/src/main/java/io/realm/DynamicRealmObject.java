@@ -75,14 +75,6 @@ public final class DynamicRealmObject extends RealmObject implements RealmObject
         proxyState.setConstructionFinished();
     }
 
-    // row must not be an instance of UncheckedRow
-    DynamicRealmObject(String className, BaseRealm realm, Row row) {
-        proxyState.setClassName(className);
-        proxyState.setRealm$realm(realm);
-        proxyState.setRow$realm(row);
-        proxyState.setConstructionFinished();
-    }
-
     /**
      * Returns the value for the given field.
      *

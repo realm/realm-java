@@ -1644,12 +1644,12 @@ public final class RealmQuery<E extends RealmModel> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, null);
+            row = new PendingRow(realm.sharedRealm, query, null, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
-            result = (E) new DynamicRealmObject(className, realm, row);
+            result = (E) new DynamicRealmObject(realm, row);
         } else {
             result = realm.getConfiguration().getSchemaMediator().newInstance(
                     clazz, realm, row, realm.getSchema().getColumnInfo(clazz),

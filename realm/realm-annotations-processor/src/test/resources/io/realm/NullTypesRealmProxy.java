@@ -177,7 +177,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.NullTypes.class, this);
+        this.proxyState = new ProxyState(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
