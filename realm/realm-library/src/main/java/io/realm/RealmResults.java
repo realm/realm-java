@@ -150,7 +150,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     @Override
     public E get(int location) {
         realm.checkIfValid();
-        return realm.get(classSpec, collection.getUncheckedRow(location));
+        return realm.get(classSpec, className, collection.getUncheckedRow(location));
     }
 
     /**
@@ -170,10 +170,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     private E firstImpl(boolean shouldThrow, E defaultValue) {
-        Row row = collection.firstUncheckedRow();
+        UncheckedRow row = collection.firstUncheckedRow();
 
         if (row != null) {
-            return realm.get(classSpec, row);
+            return realm.get(classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -201,10 +201,10 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     }
 
     private E lastImpl(boolean shouldThrow, E defaultValue) {
-        Row row = collection.lastUncheckedRow();
+        UncheckedRow row = collection.lastUncheckedRow();
 
         if (row != null) {
-            return realm.get(classSpec, row);
+            return realm.get(classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");

@@ -72,7 +72,7 @@ public class CheckedRow extends UncheckedRow {
      *
      * @return an checked instance of {@link Row}.
      */
-    static CheckedRow getFromRow(UncheckedRow row) {
+    public static CheckedRow getFromRow(UncheckedRow row) {
         return new CheckedRow(row);
     }
 

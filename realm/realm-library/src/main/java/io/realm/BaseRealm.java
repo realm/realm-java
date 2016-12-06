@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.CheckedRow;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
@@ -468,11 +469,19 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    // FIXME: Testing code
-    <E extends RealmModel> E get(Class<E> clazz, Row row) {
+    // Used by RealmList/RealmResults, to create RealmObject from a Collection.
+    // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, UncheckedRow row) {
+        final boolean isDynamicRealmObject = dynamicClassName != null;
 
-        E result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
-                false, Collections.<String> emptyList());
+        E result;
+        if (isDynamicRealmObject) {
+            //noinspection unchecked
+            result = (E) new DynamicRealmObject(this, CheckedRow.getFromRow(row));
+        } else {
+            result = configuration.getSchemaMediator().newInstance(clazz, this, row, schema.getColumnInfo(clazz),
+                    false, Collections.<String> emptyList());
+        }
         RealmObjectProxy proxy = (RealmObjectProxy) result;
         proxy.realmGet$proxyState().setTableVersion$realm();
         return result;
@@ -490,6 +499,7 @@ abstract class BaseRealm implements Closeable {
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    // TODO: Remove this after RealmList is backed by OS Results.
     <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
         final Table table = isDynamicRealmObject ? schema.getTable(dynamicClassName) : schema.getTable(clazz);
