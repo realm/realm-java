@@ -17,7 +17,6 @@
 package io.realm;
 
 import android.annotation.TargetApi;
-import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
@@ -621,8 +620,7 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         checkHasPrimaryKey(clazz);
         try {
-            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
-            return realmObject;
+            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
         } catch (JSONException e) {
             throw new RealmException("Could not map JSON", e);
         }

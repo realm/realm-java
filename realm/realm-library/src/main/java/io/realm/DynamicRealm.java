@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.app.IntentService;
-
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Table;
