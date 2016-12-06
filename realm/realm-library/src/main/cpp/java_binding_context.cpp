@@ -113,16 +113,23 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
                         bool /*version_changed*/)
 {
     for (auto state : observer_state_list) {
+        if (m_local_jni_env->ExceptionCheck()) return;
+
         jobject observer = reinterpret_cast<jobject>(state.info);
         //if (!state.changes.empty()) {
             m_local_jni_env->CallVoidMethod(observer, m_row_observer_pair_on_change_method);
         //}
     }
     for (auto deleted_row_observer : invalidated) {
+        if (m_local_jni_env->ExceptionCheck()) return;
+
         jobject observer = reinterpret_cast<jobject>(deleted_row_observer);
         m_local_jni_env->CallVoidMethod(observer, m_row_observer_pair_on_change_method);
     }
+
     m_local_jni_env->CallVoidMethod(m_row_notifier, m_clear_row_refs_method);
+
+    if (m_local_jni_env->ExceptionCheck()) return;
     jobject notifier = m_local_jni_env->NewLocalRef(m_realm_notifier);
     if (notifier) {
         m_local_jni_env->CallVoidMethod(m_realm_notifier, m_realm_notifier_on_change_method);

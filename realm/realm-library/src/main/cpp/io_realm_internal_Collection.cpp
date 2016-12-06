@@ -229,6 +229,9 @@ Java_io_realm_internal_Collection_nativeAddListener(JNIEnv* env, jobject instanc
 
         auto cb = [=](realm::CollectionChangeSet const& changes,
                                    std::exception_ptr err) {
+            // OS will call all notifiers' callback in one run, so check the Java excpetion first!!
+            if (env->ExceptionCheck()) return;
+
             jclass results_class = env->GetObjectClass(weak_results);
             jmethodID notify_method = env->GetMethodID(results_class, "notifyChangeListeners", "()V");
             env->CallVoidMethod(weak_results, notify_method);
