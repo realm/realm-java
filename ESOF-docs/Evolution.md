@@ -10,6 +10,8 @@
 
 ## Software Maintability <a name="maintability"></a>
 
+[![BCH compliance](https://bettercodehub.com/edge/badge/renatoabreu11/realm-java)](https://bettercodehub.com)
+
 ## Evolution Process <a name="evolution"></a>
 
 ## Pull Request <a name="pull"></a>
