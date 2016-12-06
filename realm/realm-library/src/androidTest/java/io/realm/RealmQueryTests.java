@@ -108,6 +108,11 @@ public class RealmQueryTests {
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
+
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setAge(i);
+            dog.setName("test data " + i);
+            allTypes.setColumnRealmObject(dog);
         }
         testRealm.commitTransaction();
     }
@@ -2586,40 +2591,73 @@ public class RealmQueryTests {
     }
 
     @Test
-    public void findAllSorted_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    public void findAllSorted_onSubObjectField() {
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
-    public void findAllSortedAsync_onSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        realm.where(AllTypes.class).findAllSortedAsync(
-                AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    @RunTestInLooperThread
+    public void findAllSorted_async_onSubObjectField() {
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+        looperThread.keepStrongReference.add(results);
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
+                looperThread.testComplete();
+            }
+        });
     }
 
     @Test
-    public void findAllSorted_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+    public void findAllSorted_listOnSubObjectField() {
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(fieldNames, sorts);
+        assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+        assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
-    public void findAllSortedAsync_listOnSubObjectFieldThrows() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Sorting using child object fields is not supported: ");
-        String[] fieldNames = new String[1];
-        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
-        Sort[] sorts = new Sort[1];
+    @RunTestInLooperThread
+    public void findAllSorted_async_listOnSubObjectField() {
+        Realm realm = looperThread.realm;
+        String[] fieldNames = new String[2];
+        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
+
+        Sort[] sorts = new Sort[2];
         sorts[0] = Sort.ASCENDING;
-        realm.where(AllTypes.class).findAllSortedAsync(fieldNames, sorts);
+        sorts[1] = Sort.ASCENDING;
+
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .findAllSorted(fieldNames, sorts);
+        looperThread.keepStrongReference.add(results);
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
+                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string
