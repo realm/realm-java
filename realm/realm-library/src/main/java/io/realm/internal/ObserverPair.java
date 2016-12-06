@@ -2,13 +2,13 @@ package io.realm.internal;
 
 import java.lang.ref.WeakReference;
 
-public abstract class ObserverPair<T> {
-    public final T listener;
-    public final WeakReference<Object> observerRef;
+public abstract class ObserverPair<T, S> {
+    public final WeakReference<T> observerRef;
+    public final S listener;
 
-    public ObserverPair(T listener, Object objectRef) {
+    public ObserverPair(T observer, S listener) {
         this.listener = listener;
-        this.observerRef = new WeakReference<Object>(objectRef);
+        this.observerRef = new WeakReference<T>(observer);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -26,16 +27,15 @@ import io.realm.RealmChangeListener;
  * other thread/process changes the Realm file.
  */
 @Keep
-public class RealmNotifier {
+public class RealmNotifier implements Closeable {
 
-    private static class RealmObserverPair extends ObserverPair<RealmChangeListener> {
-
-        public RealmObserverPair(Object observer, RealmChangeListener listener) {
-            super(listener, observer);
+    private static class RealmObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>> {
+        public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
+            super(observer, listener);
         }
 
         private void onChange() {
-            Object observer = observerRef.get();
+            T observer = observerRef.get();
             if (observer != null) {
                 listener.onChange(observer);
             }
@@ -61,7 +61,7 @@ public class RealmNotifier {
      * other thread. The changes on the same thread should not trigger this call.
      */
     @SuppressWarnings("unused") // called from java_binding_context.cpp
-    void notifyCommitByOtherThread() {
+    void onChange() {
         for (RealmObserverPair observerPair : realmObserverPairs) {
             Object observer = observerPair.observerRef.get();
             if (observer == null) {
@@ -75,19 +75,20 @@ public class RealmNotifier {
     /**
      * Called when close SharedRealm to clean up any event left in to queue.
      */
+    @Override
     public void close() {
         removeAllChangeListeners();
     }
 
-    public void addChangeListener(Object observer, RealmChangeListener realmChangeListener) {
-        RealmObserverPair observerPair = new RealmObserverPair(observer, realmChangeListener);
+    public <T> void addChangeListener(T observer, RealmChangeListener<T> realmChangeListener) {
+        RealmObserverPair observerPair = new RealmObserverPair<T>(observer, realmChangeListener);
         if (!realmObserverPairs.contains(observerPair)) {
             realmObserverPairs.add(observerPair);
         }
     }
 
-    public void removeChangeListener(Object observer, RealmChangeListener realmChangeListener) {
-        RealmObserverPair observerPair = new RealmObserverPair(observer, realmChangeListener);
+    public <E> void removeChangeListener(E observer, RealmChangeListener<E> realmChangeListener) {
+        RealmObserverPair observerPair = new RealmObserverPair<E>(observer, realmChangeListener);
         realmObserverPairs.remove(observerPair);
     }
 

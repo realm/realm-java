@@ -122,12 +122,13 @@ abstract class BaseRealm implements Closeable {
         return sharedRealm.isInTransaction();
     }
 
-    protected void addListener(RealmChangeListener<? extends BaseRealm> listener) {
+    protected <T extends BaseRealm> void addListener(RealmChangeListener<T> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        sharedRealm.realmNotifier.addChangeListener(this, listener);
+        //noinspection unchecked
+        sharedRealm.realmNotifier.addChangeListener((T) this, listener);
     }
 
     /**
@@ -138,12 +139,13 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
-    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+    public <T extends BaseRealm> void removeChangeListener(RealmChangeListener<T> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
-        sharedRealm.realmNotifier.removeChangeListener(this, listener);
+        //noinspection unchecked
+        sharedRealm.realmNotifier.removeChangeListener((T) this, listener);
     }
 
     /**

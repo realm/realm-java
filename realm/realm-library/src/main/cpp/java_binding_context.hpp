@@ -22,6 +22,8 @@
 
 #include "binding_context.hpp"
 
+#include "jni_util/method.hpp"
+
 namespace realm {
 
 namespace _impl {
@@ -43,28 +45,28 @@ private:
     // A weak global ref to the implementation of RealmNotifier
     // Java should hold a strong ref to it as long as the SharedRealm lives
     jobject m_realm_notifier;
-    // Method IDs from RealmNotifier implementation. Cache them as member vars.
-    jmethodID m_notify_by_other_method;
-    jmethodID m_realm_notifier_on_change;
 
     // A weak global ref to the RowNotifier object. Java should hold a strong ref to it.
     jobject m_row_notifier;
+
+    // Cache the method IDs
+    // RealmNotifier.onChange()
+    static realm::jni_util::JniMethod m_realm_notifier_on_change_method;
     // RowNotifier.getObservers()
-    jmethodID m_get_observers_method;
+    static realm::jni_util::JniMethod m_get_observers_method;
     // RowNotifier.getObservedRowPtrs(Observer[])
-    jmethodID m_get_observed_row_ptrs_method;
+    static realm::jni_util::JniMethod m_get_observed_row_ptrs_method;
     // RowNotifier.clearRowRefs()
-    jmethodID m_clear_row_refs;
-    jmethodID m_observer_notify_listener;
+    static realm::jni_util::JniMethod m_clear_row_refs_method;
+    // RowNotifier.RowObserverPair.onChange()
+    static realm::jni_util::JniMethod m_row_observer_pair_on_change_method;
 
 public:
     virtual ~JavaBindingContext();
-    virtual void changes_available();
     virtual std::vector<ObserverState> get_observed_rows();
     virtual void did_change(std::vector<ObserverState> const& observers,
                             std::vector<void*> const& invalidated,
                             bool version_changed=true);
-
 
     explicit JavaBindingContext(const ConcreteJavaBindContext&);
     JavaBindingContext(const JavaBindingContext&) = delete;

@@ -101,12 +101,12 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
         if (row instanceof UncheckedRow) {
             RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
-            rowNotifier.registerListener((UncheckedRow) row, new RealmChangeListener<ProxyState<E>>() {
+            rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
                 @Override
                 public void onChange(ProxyState<E> proxyState) {
                     proxyState.notifyChangeListeners$realm();
                 }
-            }, this);
+            });
         }
     }
 
@@ -137,11 +137,11 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
             return;
         }
         RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
-        rowNotifier.registerListener((UncheckedRow) row, new RealmChangeListener<ProxyState<E>>() {
+        rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
             @Override
             public void onChange(ProxyState<E> proxyState) {
                 proxyState.notifyChangeListeners$realm();
             }
-        }, this);
+        });
     }
 }

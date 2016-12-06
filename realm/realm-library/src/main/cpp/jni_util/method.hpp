@@ -25,15 +25,24 @@ namespace jni_util {
 
 class JniMethod {
 public:
-    JniMethod(JNIEnv *env, jobject obj, const char* method_name, const char* signature) {
+    JniMethod() : m_method_id(nullptr) {}
+
+    JniMethod(JNIEnv *env, jclass cls, const char* method_name, const char* signature)
+    {
+        m_method_id = env->GetMethodID(cls, method_name, signature);
+    }
+
+    JniMethod(JNIEnv *env, jobject obj, const char* method_name, const char* signature)
+    {
         jclass cls = env->GetObjectClass(obj);
         m_method_id = env->GetMethodID(cls, method_name, signature);
         env->DeleteLocalRef(cls);
     }
 
-    JniMethod(JNIEnv *env, const char* class_name, const char* method_name, const char* signature) {
+    JniMethod(JNIEnv *env, const char* class_name, const char* method_name, const char* signature)
+    {
         jclass cls = env->FindClass(class_name);
-        if (cls == NULL) {
+        if (cls == nullptr) {
             // TODO: Throw a cpp exception instead.
             ThrowException(env, ClassNotFound, class_name);
             m_method_id = nullptr;
@@ -44,7 +53,12 @@ public:
 
     ~JniMethod() { }
 
-    inline operator jmethodID&() const { return m_method_id; }
+    operator bool() const noexcept
+    {
+        return m_method_id != nullptr;
+    }
+
+    inline operator const jmethodID&() const { return m_method_id; }
 
 private:
     jmethodID m_method_id;
