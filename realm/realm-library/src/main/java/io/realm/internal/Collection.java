@@ -22,7 +22,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.RealmChangeListener;
 
-public class Collection implements NativeObject {
+/**
+ * Java wrapper of OS Results class.
+ * It is supposed to be the backend of binding's query results, link list and back links.
+ */
+@KeepMember
+public final class Collection implements NativeObject {
 
     public static class Listener {
         private final RealmChangeListener realmChangeListener;
@@ -48,38 +53,12 @@ public class Collection implements NativeObject {
         }
     }
 
-    private static class NotificationToken implements NativeObject {
-        private long nativePtr;
-        private static final long nativeFinalizerPtr = nativeNotificationTokenGetFinalizerPtr();
-
-        NotificationToken(long nativePtr) {
-            this.nativePtr = nativePtr;
-            Context.sharedContext.addReference(this);
-        }
-
-        @Override
-        public long getNativePtr() {
-            return nativePtr;
-        }
-
-        @Override
-        public long getNativeFinalizerPtr() {
-            return nativeFinalizerPtr;
-        }
-
-        public void close() {
-            nativeNotificationTokenClose(nativePtr);
-            nativePtr = 0;
-        }
-    }
-
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
     private final Context context;
     private final TableQuery query;
     private final List<Listener> listeners = new CopyOnWriteArrayList<Listener>();
-    private NotificationToken notificationToken = null;
 
     // Public for static checking in JNI
     @SuppressWarnings("WeakerAccess")
@@ -201,31 +180,28 @@ public class Collection implements NativeObject {
     }
 
     public void addListener(Listener listener) {
+        if (listeners.isEmpty()) {
+            nativeStartListening(nativePtr);
+        }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
-        }
-        if (notificationToken == null) {
-            notificationToken = new NotificationToken(nativeAddListener(nativePtr));
         }
     }
 
     public void removeListener(Listener listener) {
         listeners.remove(listener);
-        if (listeners.isEmpty() && notificationToken != null) {
-            notificationToken.close();
-            notificationToken = null;
+        if (listeners.isEmpty()) {
+            nativeStopListening(nativePtr);
         }
     }
 
     public void removeAllListeners() {
         listeners.clear();
-        if (notificationToken != null) {
-            notificationToken.close();
-            notificationToken = null;
-        }
+        nativeStopListening(nativePtr);
     }
 
     // Called by JNI
+    @KeepMember
     @SuppressWarnings("unused")
     private void notifyChangeListeners() {
         if (!listeners.isEmpty()) {
@@ -244,6 +220,7 @@ public class Collection implements NativeObject {
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
                                                    long sortDescNativePtr, long distinctDescNativePtr);
+    @SuppressWarnings("unused") // Not used for now
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
     private static native long nativeFirstRow(long nativePtr);
@@ -253,9 +230,9 @@ public class Collection implements NativeObject {
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
     private static native long nativeSort(long nativePtr, long sortDescNativePtr);
-    private native long nativeAddListener(long nativePtr);
-    private static native long nativeNotificationTokenGetFinalizerPtr();
-    private static native void nativeNotificationTokenClose(long nativePtr);
+    // Non-static, we need this Collection object in JNI.
+    private native void nativeStartListening(long nativePtr);
+    private native void nativeStopListening(long nativePtr);
     private static native long nativeWhere(long nativePtr);
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
