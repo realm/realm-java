@@ -89,7 +89,7 @@ public class PermissionChange extends RealmObject {
     /**
      * Returns the status code for this change.
      *
-     * @return {@code null} if not yet processed. {@code 0} if successfull, {@code >0} if an error happened. See {@link #getStatusMessage()}.
+     * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened. See {@link #getStatusMessage()}.
      */
     public Integer getStatusCode() {
         return statusCode;
