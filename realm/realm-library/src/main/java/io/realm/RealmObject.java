@@ -22,6 +22,7 @@ import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.internal.SharedRealm;
 import rx.Observable;
 
 /**
@@ -270,7 +271,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            realm.sharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be added.");
+            SharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be added.");
             //noinspection unchecked
             proxy.realmGet$proxyState().addChangeListener(listener);
         } else {

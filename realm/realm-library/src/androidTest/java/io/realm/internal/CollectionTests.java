@@ -32,6 +32,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
+import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -56,13 +57,17 @@ public class CollectionTests {
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = getSharedRealm();
         populateData();
     }
 
     @After
     public void tearDown() {
         sharedRealm.close();
+    }
+
+    private SharedRealm getSharedRealm() {
+        return SharedRealm.getInstance(config, new AndroidRealmNotifier(), null);
     }
 
     private void populateData() {
@@ -101,7 +106,7 @@ public class CollectionTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = SharedRealm.getInstance(config);
+                SharedRealm sharedRealm = getSharedRealm();
                 addRow(sharedRealm);
                 sharedRealm.close();
                 latch.countDown();
@@ -274,7 +279,7 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryNotReturned() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -295,7 +300,7 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryReturned() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -319,7 +324,7 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryNotReturnedLocalAndRemoteCommit() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -342,7 +347,7 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryNotReturnedLocalCommitOnly() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -364,7 +369,7 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryReturnedLocalCommitOnly() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -383,11 +388,35 @@ public class CollectionTests {
     }
 
     @Test
-    public void size_doesNotChangeAfterLocalCommit() {
+    public void switchSnapshot_nonLooperThread() {
         final Collection collection = new Collection(sharedRealm, table.where());
         assertEquals(collection.size(), 4);
         addRow(sharedRealm);
+        // The results is backed by snapshot now.
         assertEquals(collection.size(), 4);
         sharedRealm.refresh();
+        // The results is switched back to the original Results.
+        assertEquals(collection.size(), 5);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void switchSnapshot_looperThread() {
+        final SharedRealm sharedRealm = getSharedRealm();
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        assertEquals(collection.size(), 4);
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                // The results is switched back to the original Results.
+                assertEquals(collection.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        addRow(sharedRealm);
+        // The results is backed by snapshot now.
+        assertEquals(collection.size(), 4);
     }
 }

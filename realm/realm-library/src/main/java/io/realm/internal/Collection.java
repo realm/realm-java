@@ -88,6 +88,7 @@ public final class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.query = query;
         this.context.addReference(this);
+        sharedRealm.addCollection(this);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
@@ -107,6 +108,7 @@ public final class Collection implements NativeObject {
         this.nativePtr = nativePtr;
 
         this.context.addReference(this);
+        sharedRealm.addCollection(this);
     }
 
     @Override
@@ -207,6 +209,14 @@ public final class Collection implements NativeObject {
         }
     }
 
+    void enableSnapshot() {
+        nativeEnableSnapshot(nativePtr);
+    }
+
+    void disableSnapshot() {
+        nativeDisableSnapshot(nativePtr);
+    }
+
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
                                                    long sortDescNativePtr, long distinctDescNativePtr);
@@ -226,4 +236,6 @@ public final class Collection implements NativeObject {
     private static native long nativeWhere(long nativePtr);
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
+    private static native void nativeEnableSnapshot(long nativePtr);
+    private static native void nativeDisableSnapshot(long nativePtr);
 }

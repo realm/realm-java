@@ -18,11 +18,13 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.File;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmSchema;
 import io.realm.internal.android.AndroidCapabilities;
-import io.realm.internal.async.BadVersionException;
 
 public final class SharedRealm implements Closeable {
 
@@ -107,6 +109,7 @@ public final class SharedRealm implements Closeable {
     public final RealmNotifier realmNotifier;
     public final RowNotifier rowNotifier;
     public final ObjectServerFacade objectServerFacade;
+    public final List<WeakReference<Collection>> collections = new ArrayList<WeakReference<Collection>>();
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -227,14 +230,24 @@ public final class SharedRealm implements Closeable {
     public void beginTransaction() {
         nativeBeginTransaction(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
+        enableCollectionSnapshot();
     }
 
     public void commitTransaction() {
         nativeCommitTransaction(nativePtr);
+        if (realmNotifier != null && !collections.isEmpty()) {
+            realmNotifier.postAtFrontOfQueue(new Runnable() {
+                @Override
+                public void run() {
+                    disableCollectionSnapshot();
+                }
+            });
+        }
     }
 
     public void cancelTransaction() {
         nativeCancelTransaction(nativePtr);
+        disableCollectionSnapshot();
     }
 
     public boolean isInTransaction() {
@@ -289,6 +302,7 @@ public final class SharedRealm implements Closeable {
     public void refresh() {
         nativeRefresh(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
+        disableCollectionSnapshot();
     }
 
     public SharedRealm.VersionID getVersionID() {
@@ -336,7 +350,7 @@ public final class SharedRealm implements Closeable {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    public Capabilities getCapabilities() {
+    public static Capabilities getCapabilities() {
         return capabilities;
     }
 
@@ -377,6 +391,33 @@ public final class SharedRealm implements Closeable {
         if (current != before) {
             lastSchemaVersion = current;
             schemaChangeListener.onSchemaVersionChanged(current);
+        }
+    }
+
+    // Should only be called by Collection's constructor
+    void addCollection(Collection collection) {
+        collections.add(new WeakReference<Collection>(collection));
+    }
+
+    private void enableCollectionSnapshot() {
+        for (WeakReference<Collection> collectionRef : collections) {
+            Collection collection = collectionRef.get();
+            if (collection == null) {
+                collections.remove(collectionRef);
+            } else {
+                collection.enableSnapshot();
+            }
+        }
+    }
+
+    void disableCollectionSnapshot() {
+        for (WeakReference<Collection> collectionRef : collections) {
+            Collection collection = collectionRef.get();
+            if (collection == null) {
+                collections.remove(collectionRef);
+            } else {
+                collection.disableSnapshot();
+            }
         }
     }
 

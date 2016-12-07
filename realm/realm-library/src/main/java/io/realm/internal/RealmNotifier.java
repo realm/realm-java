@@ -27,7 +27,7 @@ import io.realm.RealmChangeListener;
  * other thread/process changes the Realm file.
  */
 @Keep
-public class RealmNotifier implements Closeable {
+public abstract class RealmNotifier implements Closeable {
 
     private static class RealmObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>> {
         public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
@@ -95,4 +95,6 @@ public class RealmNotifier implements Closeable {
     public void removeAllChangeListeners() {
         realmObserverPairs.clear();
     }
+
+    public abstract void postAtFrontOfQueue(Runnable runnable);
 }
