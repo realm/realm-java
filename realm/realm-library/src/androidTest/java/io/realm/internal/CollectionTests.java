@@ -26,8 +26,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.CountDownLatch;
+
+import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.TestHelper;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
@@ -40,26 +46,28 @@ public class CollectionTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
+    RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
-        RealmConfiguration config = configFactory.createConfiguration();
+        config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
-        sharedRealm.beginTransaction();
-        table = sharedRealm.getTable("test_table");
-        populateData(table);
+        populateData();
     }
 
     @After
     public void tearDown() {
-        sharedRealm.cancelTransaction();
         sharedRealm.close();
     }
 
-    private void populateData(Table table) {
+    private void populateData() {
+        sharedRealm.beginTransaction();
+        table = sharedRealm.getTable("test_table");
         // Specify the column types and names
         table.addColumn(RealmFieldType.STRING, "firstName");
         table.addColumn(RealmFieldType.STRING, "lastName");
@@ -85,6 +93,35 @@ public class CollectionTests {
         table.setString(0, row, "Henry", false);
         table.setString(1, row, "Anderson", false);
         table.setLong(2, row, 1, false);
+        sharedRealm.commitTransaction();
+    }
+
+    private void addRowAsync() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SharedRealm sharedRealm = SharedRealm.getInstance(config);
+                addRow(sharedRealm);
+                sharedRealm.close();
+                latch.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(latch);
+    }
+
+    private void addRow(SharedRealm sharedRealm) {
+        sharedRealm.beginTransaction();
+        table = sharedRealm.getTable("test_table");
+        table.addEmptyRow();
+        sharedRealm.commitTransaction();
+    }
+
+    private void removeRow(SharedRealm sharedRealm) {
+        sharedRealm.beginTransaction();
+        table = sharedRealm.getTable("test_table");
+        table.remove(0);
+        sharedRealm.commitTransaction();
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -96,7 +133,9 @@ public class CollectionTests {
     @Test
     public void constructor_queryOnDeletedTable() {
         TableQuery query = table.where();
+        sharedRealm.beginTransaction();
         sharedRealm.removeTable(table.getName());
+        sharedRealm.commitTransaction();
         // Query should be checked before creating OS Results.
         thrown.expect(IllegalStateException.class);
         new Collection(sharedRealm, query);
@@ -105,7 +144,7 @@ public class CollectionTests {
     @Test
     public void size() {
         Collection collection = new Collection(sharedRealm, table.where());
-        assertEquals(3, collection.size());
+        assertEquals(4, collection.size());
     }
 
     @Test
@@ -146,7 +185,9 @@ public class CollectionTests {
     public void clear() {
         assertEquals(table.size(), 4);
         Collection collection = new Collection(sharedRealm, table.where());
+        sharedRealm.beginTransaction();
         collection.clear();
+        sharedRealm.commitTransaction();
         assertEquals(table.size(), 0);
     }
 
@@ -189,5 +230,164 @@ public class CollectionTests {
         assertEquals(collection.getUncheckedRow(0).getString(0), "John");
         assertEquals(collection.getUncheckedRow(1).getString(0), "Erik");
         assertEquals(collection.getUncheckedRow(2).getString(0), "Henry");
+    }
+
+    @Test
+    public void addListener_shouldBeCalledWhenRefreshAfterLocalCommit() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        Collection collection = new Collection(sharedRealm, table.where());
+        collection.size();
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection element) {
+                assertEquals(latch.getCount(), 1);
+                latch.countDown();
+            }
+        });
+        sharedRealm.beginTransaction();
+        table.addEmptyRow();
+        sharedRealm.commitTransaction();
+        sharedRealm.refresh();
+        TestHelper.awaitOrFail(latch);
+    }
+
+    @Test
+    public void addListener_shouldBeCalledByWaitForChangeThenRefresh() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        Collection collection = new Collection(sharedRealm, table.where());
+        collection.size();
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection element) {
+                assertEquals(latch.getCount(), 1);
+                latch.countDown();
+            }
+        });
+
+        addRowAsync();
+
+        sharedRealm.waitForChange();
+        sharedRealm.refresh();
+        TestHelper.awaitOrFail(latch);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addListener_queryNotReturned() {
+        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        addRowAsync();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addListener_queryReturned() {
+        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        assertEquals(collection.size(), 4); // Trigger the query to run.
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        addRowAsync();
+    }
+
+    // The query has not been executed.
+    // Local commit won't trigger the listener immediately. Instead, the notification comes after the background commit.
+    @Test
+    @RunTestInLooperThread
+    public void addListener_queryNotReturnedLocalAndRemoteCommit() {
+        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 6);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        addRow(sharedRealm);
+        addRowAsync();
+    }
+
+    // The query has not been executed.
+    // Local commit will trigger the listener in following event loops.
+    @Test
+    @RunTestInLooperThread
+    public void addListener_queryNotReturnedLocalCommitOnly() {
+        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        addRow(sharedRealm);
+    }
+
+    // The query has been executed.
+    // Local commit will trigger the listener in following event loops.
+    @Test
+    @RunTestInLooperThread
+    public void addListener_queryReturnedLocalCommitOnly() {
+        final SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        assertEquals(collection.size(), 4); // Trigger the query to run.
+        looperThread.keepStrongReference.add(collection);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        addRow(sharedRealm);
+    }
+
+    @Test
+    public void size_doesNotChangeAfterLocalCommit() {
+        final Collection collection = new Collection(sharedRealm, table.where());
+        assertEquals(collection.size(), 4);
+        addRow(sharedRealm);
+        assertEquals(collection.size(), 4);
+        sharedRealm.refresh();
     }
 }

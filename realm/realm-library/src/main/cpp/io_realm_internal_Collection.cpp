@@ -251,6 +251,8 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
                                    std::exception_ptr err) {
             // OS will call all notifiers' callback in one run, so check the Java exception first!!
             if (env->ExceptionCheck()) return;
+            // No changes.
+            if (changes.empty()) return;
 
             env->CallVoidMethod(wrapper->m_collection_weak_ref, notify_change_listeners);
         };
