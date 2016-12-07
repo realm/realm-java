@@ -779,7 +779,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        collection.addListener(new Collection.Listener(listener, this));
+        collection.addListener(this, listener);
     }
 
     /**
@@ -794,7 +794,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        collection.removeListener(new Collection.Listener(listener, this));
+        collection.removeListener(this, listener);
     }
 
     /**

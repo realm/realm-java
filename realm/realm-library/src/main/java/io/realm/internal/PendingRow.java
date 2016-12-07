@@ -30,14 +30,15 @@ public class PendingRow implements Row {
             "The query has been executed. This 'PendingRow' is not valid anymore.";
 
     private Collection pendingCollection;
-    private Collection.Listener listener;
+    private RealmChangeListener<PendingRow> listener;
     private WeakReference<FrontEnd> frontEnd;
     private boolean returnCheckedRow;
 
     public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
                       final boolean returnCheckedRow) {
         pendingCollection = new Collection(sharedRealm, query, sortDescriptor);
-        listener = new Collection.Listener(new RealmChangeListener<PendingRow>() {
+
+        listener = new RealmChangeListener<PendingRow>() {
             @Override
             public void onChange(PendingRow pendingRow) {
                 if (frontEnd == null) {
@@ -58,8 +59,8 @@ public class PendingRow implements Row {
                     clearPendingCollection();
                 }
             }
-        }, this);
-        pendingCollection.addListener(listener);
+        };
+        pendingCollection.addListener(this, listener);
         this.returnCheckedRow = returnCheckedRow;
     }
 
@@ -214,7 +215,7 @@ public class PendingRow implements Row {
     }
 
     private void clearPendingCollection() {
-        pendingCollection.removeListener(listener);
+        pendingCollection.removeListener(this, listener);
         pendingCollection = null;
         listener = null;
     }

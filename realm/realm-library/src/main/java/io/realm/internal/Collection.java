@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -29,27 +28,17 @@ import io.realm.RealmChangeListener;
 @KeepMember
 public final class Collection implements NativeObject {
 
-    public static class Listener {
-        private final RealmChangeListener realmChangeListener;
-        private final WeakReference<Object> objectRef;
-
-        public Listener(RealmChangeListener realmChangeListener, Object objectRef) {
-            this.realmChangeListener = realmChangeListener;
-            this.objectRef = new WeakReference<Object>(objectRef);
+    private static class CollectionObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>>{
+        public CollectionObserverPair(T observer, RealmChangeListener<T> listener) {
+            super(observer, listener);
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
+        public void onChange() {
+            T observer = observerRef.get();
+            if (observer != null) {
 
-            if (obj instanceof Listener) {
-                Listener anotherListener = (Listener) obj;
-                return realmChangeListener.equals(anotherListener.realmChangeListener) &&
-                        objectRef.equals(anotherListener.objectRef);
+                listener.onChange(observerRef.get());
             }
-            return false;
         }
     }
 
@@ -58,7 +47,7 @@ public final class Collection implements NativeObject {
     private final SharedRealm sharedRealm;
     private final Context context;
     private final TableQuery query;
-    private final List<Listener> listeners = new CopyOnWriteArrayList<Listener>();
+    private final List<CollectionObserverPair> observerPairs = new CopyOnWriteArrayList<CollectionObserverPair>();
 
     // Public for static checking in JNI
     @SuppressWarnings("WeakerAccess")
@@ -90,13 +79,14 @@ public final class Collection implements NativeObject {
     public Collection(SharedRealm sharedRealm, TableQuery query,
                       SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
         query.validateQuery();
-        this.sharedRealm = sharedRealm;
-        this.context = sharedRealm.context;
-        this.query = query;
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
                 sortDescriptor == null ? 0 : sortDescriptor.getNativePtr(),
                 distinctDescriptor == null ? 0 : distinctDescriptor.getNativePtr());
+
+        this.sharedRealm = sharedRealm;
+        this.context = sharedRealm.context;
+        this.query = query;
         this.context.addReference(this);
     }
 
@@ -110,6 +100,7 @@ public final class Collection implements NativeObject {
     }
 
     private Collection(SharedRealm sharedRealm, TableQuery query, long nativePtr) {
+        query.validateQuery();
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.query = query;
@@ -179,24 +170,26 @@ public final class Collection implements NativeObject {
         return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
     }
 
-    public void addListener(Listener listener) {
-        if (listeners.isEmpty()) {
+    public <T> void addListener(T observer, RealmChangeListener<T> listener) {
+        if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
         }
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
+        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
+        if (!observerPairs.contains(collectionObserverPair)) {
+            observerPairs.add(collectionObserverPair);
         }
     }
 
-    public void removeListener(Listener listener) {
-        listeners.remove(listener);
-        if (listeners.isEmpty()) {
+    public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
+        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
+        observerPairs.remove(collectionObserverPair);
+        if (observerPairs.isEmpty()) {
             nativeStopListening(nativePtr);
         }
     }
 
     public void removeAllListeners() {
-        listeners.clear();
+        observerPairs.clear();
         nativeStopListening(nativePtr);
     }
 
@@ -204,15 +197,12 @@ public final class Collection implements NativeObject {
     @KeepMember
     @SuppressWarnings("unused")
     private void notifyChangeListeners() {
-        if (!listeners.isEmpty()) {
-            for (Listener listener : listeners) {
-                Object obj = listener.objectRef.get();
-                if (obj == null) {
-                    listeners.remove(listener);
-                    continue;
-                }
-                //noinspection unchecked
-                listener.realmChangeListener.onChange(obj);
+        for (CollectionObserverPair pair: observerPairs) {
+            Object object = pair.observerRef.get();
+            if (object != null) {
+                pair.onChange();
+            } else {
+                observerPairs.remove(pair);
             }
         }
     }
