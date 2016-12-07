@@ -69,10 +69,9 @@ Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong
     TR_ENTER()
     try {
         auto query = reinterpret_cast<Query*>(query_ptr);
-        /* FIXME: Add check here
-        if (!query_va(env, query) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit))
-            return nullptr;
-            */
+        if (!QUERY_VALID(env, query)) {
+            return reinterpret_cast<jlong>(nullptr);
+        }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto sort_desc_ptr = reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr);

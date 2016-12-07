@@ -29,18 +29,11 @@ using namespace realm;
 
 #if 1
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
-#define QUERY_VALID(env, pQuery)                    query_valid(env, pQuery)
 #else
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  (true)
-#define QUERY_VALID(env, pQuery)                    (true)
 #endif
 
 static void finalize_table_query(jlong ptr);
-
-inline bool query_valid(JNIEnv* env, Query* pQuery)
-{
-    return TABLE_VALID(env, pQuery->get_table().get());
-}
 
 inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colIndex, DataType type)
 {

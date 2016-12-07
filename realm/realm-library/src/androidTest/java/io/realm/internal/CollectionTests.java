@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import io.realm.RealmConfiguration;
@@ -37,6 +38,8 @@ import static junit.framework.Assert.assertTrue;
 public class CollectionTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private SharedRealm sharedRealm;
     private Table table;
@@ -88,6 +91,15 @@ public class CollectionTests {
     public void constructor_queryIsValidated() {
         // Collection's constructor should call TableQuery.validateQuery()
         new Collection(sharedRealm, table.where().or());
+    }
+
+    @Test
+    public void constructor_queryOnDeletedTable() {
+        TableQuery query = table.where();
+        sharedRealm.removeTable(table.getName());
+        // Query should be checked before creating OS Results.
+        thrown.expect(IllegalStateException.class);
+        new Collection(sharedRealm, query);
     }
 
     @Test

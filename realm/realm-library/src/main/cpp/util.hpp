@@ -120,6 +120,7 @@ jclass GetClass(JNIEnv* env, const char* classStr);
 
 #define TABLE_VALID(env,ptr)    TableIsValid(env, ptr)
 #define ROW_VALID(env,ptr)      RowIsValid(env, ptr)
+#define QUERY_VALID(env, ptr)   QueryIsValid(env, ptr)
 
 #if CHECK_PARAMETERS
 
@@ -202,6 +203,12 @@ inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
     }
     return valid;
 }
+
+inline bool QueryIsValid(JNIEnv* env, realm::Query* query)
+{
+    return TableIsValid(env, query->get_table().get());
+}
+
 
 // Requires an attached Table
 template <class T>
