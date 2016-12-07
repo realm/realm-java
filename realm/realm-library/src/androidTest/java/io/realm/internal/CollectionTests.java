@@ -403,6 +403,7 @@ public class CollectionTests {
     @RunTestInLooperThread
     public void switchSnapshot_looperThread() {
         final SharedRealm sharedRealm = getSharedRealm();
+        Table table = sharedRealm.getTable("test_table");
         final Collection collection = new Collection(sharedRealm, table.where());
         looperThread.keepStrongReference.add(collection);
         assertEquals(collection.size(), 4);
