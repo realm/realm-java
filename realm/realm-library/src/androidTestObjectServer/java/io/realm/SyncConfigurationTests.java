@@ -235,7 +235,7 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void not_equals_same() {
+    public void equals_same() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config1 = new SyncConfiguration.Builder(user, url).build();
