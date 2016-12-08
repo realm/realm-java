@@ -219,9 +219,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public void deleteFromRealm(int location) {
-        realm.checkIfValid();
-        // FIXME: Implement this!
-        throw new RuntimeException("FIXME: Implement this!");
+        // TODO: Implement the deleteLast in OS level and do check there!
+        realm.checkIfValidAndInTransaction();
+        collection.delete(location);
     }
 
     /**
@@ -540,14 +540,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public boolean deleteLastFromRealm() {
-        realm.checkIfValid();
-        if (size() > 0) {
-            // FIXME: Implement this!
-            throw new RuntimeException("FIXME: Implement this!");
-            //return true;
-        } else {
-            return false;
-        }
+        // TODO: Implement the deleteLast in OS level and do check there!
+        realm.checkIfValidAndInTransaction();
+        return collection.deleteLast();
     }
 
     /**
@@ -557,13 +552,9 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
      */
     @Override
     public boolean deleteFirstFromRealm() {
-        if (size() > 0) {
-            // FIXME: Implement this!
-            throw new RuntimeException("FIXME: Implement this!");
-            //return true;
-        } else {
-            return false;
-        }
+        // TODO: Implement the deleteLast in OS level and do check there!
+        realm.checkIfValidAndInTransaction();
+        return collection.deleteFirst();
     }
 
     /**

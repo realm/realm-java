@@ -171,6 +171,18 @@ public final class Collection implements NativeObject {
         return (index > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) index;
     }
 
+    public void delete(long index) {
+        nativeDelete(nativePtr, index);
+    }
+
+    public boolean deleteFirst() {
+        return nativeDeleteFirst(nativePtr);
+    }
+
+    public boolean deleteLast() {
+        return nativeDeleteLast(nativePtr);
+    }
+
     public <T> void addListener(T observer, RealmChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
@@ -234,6 +246,9 @@ public final class Collection implements NativeObject {
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
     private static native long nativeSort(long nativePtr, long sortDescNativePtr);
+    private static native boolean nativeDeleteFirst(long nativePtr);
+    private static native boolean nativeDeleteLast(long nativePtr);
+    private static native void nativeDelete(long nativePtr, long index);
     // Non-static, we need this Collection object in JNI.
     private native void nativeStartListening(long nativePtr);
     private native void nativeStopListening(long nativePtr);

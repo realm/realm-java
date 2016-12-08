@@ -24,7 +24,6 @@
 
 #include "util.hpp"
 #include "jni_util/method.hpp"
-#include "jni_util/log.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -61,10 +60,8 @@ struct ResultsWrapper {
     inline Results& get_results()
     {
         if (m_snapshot.get_mode() == Results::Mode::Empty) {
-            Log::e("Using origin.");
             return m_results;
         } else {
-            Log::e("Using snapshot.");
             return m_snapshot;
         }
     }
@@ -372,5 +369,58 @@ Java_io_realm_internal_Collection_nativeDisableSnapshot(JNIEnv *env, jclass, jlo
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->switch_to_origin();
+    } CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_Collection_nativeDeleteLast(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        if (wrapper->get_results().size() > 0) {
+            wrapper->get_results().get_tableview().remove_last();
+            // Refresh snapshot
+            wrapper->switch_to_snapshot();
+            return JNI_TRUE;
+        }
+    } CATCH_STD()
+
+    return JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_Collection_nativeDeleteFirst(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        if (wrapper->get_results().size() > 0) {
+            wrapper->get_results().get_tableview().remove(0);
+            // Refresh snapshot
+            wrapper->switch_to_snapshot();
+            return JNI_TRUE;
+        }
+    } CATCH_STD()
+
+    return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_Collection_nativeDelete(JNIEnv *env, jclass, jlong native_ptr, jlong index)
+{
+    TR_ENTER_PTR(native_ptr)
+
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        auto view = wrapper->get_results().get_tableview();
+        size_t size = view.size();
+        if (index < 0 || index >= size) {
+            throw Results::OutOfBoundsIndexException{static_cast<size_t>(index), size};
+        }
+        view.remove(static_cast<size_t>(index));
+        // Refresh snapshot
+        wrapper->switch_to_snapshot();
     } CATCH_STD()
 }
