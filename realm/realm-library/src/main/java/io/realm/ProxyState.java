@@ -57,6 +57,10 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     public Row getRow$realm() {
+        if (row instanceof PendingRow) {
+            row = ((PendingRow) row).executeQuery();
+            registerToRowNotifier();
+        }
         return row;
     }
 
@@ -87,9 +91,9 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     /**
      * Notifies all registered listeners.
      */
-    void notifyChangeListeners$realm() {
+    private void notifyChangeListeners() {
         if (!listeners.isEmpty()) {
-            for (RealmChangeListener listener : listeners) {
+            for (RealmChangeListener<E> listener : listeners) {
                 listener.onChange(model);
             }
         }
@@ -99,12 +103,14 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
+        // this might be called after query returns. So it is still necessary to register.
         if (row instanceof UncheckedRow) {
             RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
+            // RowNotifier will take care of the duplicated ObserverPairs
             rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
                 @Override
                 public void onChange(ProxyState<E> proxyState) {
-                    proxyState.notifyChangeListeners$realm();
+                    proxyState.notifyChangeListeners();
                 }
             });
         }
@@ -126,22 +132,26 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         excludeFields = null;
     }
 
-    @Override
-    public void onQueryFinished(Row row, boolean asyncQuery) {
-        this.row = row;
-        if (asyncQuery) {
-            notifyChangeListeners$realm();
+    private void registerToRowNotifier() {
+        RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
+        if (row.isAttached()) {
+            rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
+                @Override
+                public void onChange(ProxyState<E> proxyState) {
+                    proxyState.notifyChangeListeners();
+                }
+            });
         }
-        // FIXME: Figure out why this can be null.
-        if (realm.sharedRealm == null) {
+    }
+
+    @Override
+    public void onQueryFinished(Row row) {
+        if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
             return;
         }
-        RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
-        rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
-            @Override
-            public void onChange(ProxyState<E> proxyState) {
-                proxyState.notifyChangeListeners$realm();
-            }
-        });
+
+        this.row = row;
+        notifyChangeListeners();
+        registerToRowNotifier();
     }
 }

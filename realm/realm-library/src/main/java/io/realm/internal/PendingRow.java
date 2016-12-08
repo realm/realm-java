@@ -8,23 +8,22 @@ import io.realm.RealmFieldType;
 
 /**
  * A PendingRow is a row relies on a pending async query.
- * Before the query returns, calling any accessors will immediately execute the query and call the corresponding
- * accessor on the query result. If the query results is empty, an {@link IllegalStateException} will be thrown.
- * After the query returns, {@link FrontEnd#onQueryFinished(Row, boolean)} will be called to give the front end a
- * chance to reset the row. If the async query returns an empty result, the query will be executed again later until a
- * valid row is contained by the query results.
+ * Before the query returns, calling any accessors will immediately throw. In this case run {@link #executeQuery()} to
+ * get the queried row immediately. If the query results is empty, an {@link InvalidRow} will be returned.
+ * After the query returns, {@link FrontEnd#onQueryFinished(Row)} will be called to give the front end a chance to reset
+ * the row. If the async query returns an empty result, the query will be executed again later until a valid row is
+ * contained by the query results.
  */
 public class PendingRow implements Row {
 
     // Implement this interface to reset the PendingRow to a Row backed by real data when query returned.
     public interface FrontEnd {
-        // When asyncQuery is true, the pending query is executed asynchronously. Otherwise the query is triggered by
-        // calling any accessors before the async query returns.
-        void onQueryFinished(Row row, boolean asyncQuery);
+        // When asyncQuery is true, the pending query is executed asynchronously.
+        void onQueryFinished(Row row);
     }
 
-    private static final String EMPTY_ROW_MESSAGE =
-            "This RealmObject is empty. There isn't any objects match the query.";
+    private static final String QUERY_NOT_RETURNED_MESSAGE =
+            "The pending query has not been executed.";
     private static final String PROXY_NOT_SET_MESSAGE = "The 'frontEnd' has not been set.";
     private static final String QUERY_EXECUTED_MESSAGE =
             "The query has been executed. This 'PendingRow' is not valid anymore.";
@@ -44,18 +43,19 @@ public class PendingRow implements Row {
                 if (frontEnd == null) {
                     throw new IllegalStateException(PROXY_NOT_SET_MESSAGE);
                 }
-                // TODO: PendingRow will always get the first Row of the query since we only support findFirst.
                 if (frontEnd.get() == null) {
                     // The front end is GCed.
                     clearPendingCollection();
                     return;
                 }
+
+                // PendingRow will always get the first Row of the query since we only support findFirst.
                 UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
                 // If no rows returned by the query, just wait for the query updates until it returns a valid row.
                 if (uncheckedRow != null) {
                     Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
                     // Ask the front end to reset the row and stop async query.
-                    frontEnd.get().onQueryFinished(row, true);
+                    frontEnd.get().onQueryFinished(row);
                     clearPendingCollection();
                 }
             }
@@ -71,147 +71,147 @@ public class PendingRow implements Row {
 
     @Override
     public long getColumnCount() {
-        return executeQuery().getColumnCount();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public String getColumnName(long columnIndex) {
-        return executeQuery().getColumnName(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getColumnIndex(String columnName) {
-        return executeQuery().getColumnIndex(columnName);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public RealmFieldType getColumnType(long columnIndex) {
-        return executeQuery().getColumnType(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public Table getTable() {
-        return executeQuery().getTable();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getIndex() {
-        return executeQuery().getIndex();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getLong(long columnIndex) {
-        return executeQuery().getLong(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean getBoolean(long columnIndex) {
-        return executeQuery().getBoolean(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public float getFloat(long columnIndex) {
-        return executeQuery().getFloat(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public double getDouble(long columnIndex) {
-        return executeQuery().getDouble(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public Date getDate(long columnIndex) {
-        return executeQuery().getDate(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public String getString(long columnIndex) {
-        return executeQuery().getString(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public byte[] getBinaryByteArray(long columnIndex) {
-        return executeQuery().getBinaryByteArray(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getLink(long columnIndex) {
-        return executeQuery().getLink(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean isNullLink(long columnIndex) {
-        return executeQuery().isNullLink(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public LinkView getLinkList(long columnIndex) {
-        return executeQuery().getLinkList(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setLong(long columnIndex, long value) {
-        executeQuery().setLong(columnIndex, value);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setBoolean(long columnIndex, boolean value) {
-        executeQuery().setBoolean(columnIndex, value);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setFloat(long columnIndex, float value) {
-        executeQuery().setFloat(columnIndex, value);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setDouble(long columnIndex, double value) {
-        executeQuery().setDouble(columnIndex, value);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setDate(long columnIndex, Date date) {
-        executeQuery().setDate(columnIndex, date);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setString(long columnIndex, String value) {
-        executeQuery().setString(columnIndex, value);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setBinaryByteArray(long columnIndex, byte[] data) {
-        executeQuery().setBinaryByteArray(columnIndex, data);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setLink(long columnIndex, long value) {
-        executeQuery().setLink(columnIndex, value);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void nullifyLink(long columnIndex) {
-        executeQuery().nullifyLink(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean isNull(long columnIndex) {
-        return executeQuery().isNull(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setNull(long columnIndex) {
-        executeQuery().setNull(columnIndex);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean isAttached() {
-        return executeQuery().isAttached();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean hasColumn(String fieldName) {
-        return executeQuery().hasColumn(fieldName);
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     private void clearPendingCollection() {
@@ -220,22 +220,20 @@ public class PendingRow implements Row {
         listener = null;
     }
 
-    private Row executeQuery() {
+    public Row executeQuery() {
         if (pendingCollection == null) {
             throw new IllegalStateException(QUERY_EXECUTED_MESSAGE);
         }
         if (frontEnd == null) {
             throw new IllegalStateException(PROXY_NOT_SET_MESSAGE);
         }
+
         UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
-        if (uncheckedRow == null) {
-            throw new IllegalStateException(EMPTY_ROW_MESSAGE);
-        }
-        Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
-        if (frontEnd.get() != null) {
-            frontEnd.get().onQueryFinished(row, false);
-        }
         clearPendingCollection();
-        return row;
+
+        if (uncheckedRow == null) {
+            return InvalidRow.INSTANCE;
+        }
+        return returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
     }
 }
