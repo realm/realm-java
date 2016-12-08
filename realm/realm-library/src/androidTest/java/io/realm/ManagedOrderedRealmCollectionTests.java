@@ -448,22 +448,20 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void sort_usingChildObject() {
-        realm.beginTransaction();
-        Owner owner = realm.createObject(Owner.class);
-        owner.setName("owner");
-        Cat cat = realm.createObject(Cat.class);
-        cat.setName("cat");
-        owner.setCat(cat);
-        realm.commitTransaction();
+        OrderedRealmCollection<AllJavaTypes> resultList = collection;
+        OrderedRealmCollection<AllJavaTypes> sortedList = createCollection(collectionClass);
+        sortedList = sortedList.sort(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_SIZE, sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getFieldLong(), sortedList.last().getFieldLong());
 
-        RealmQuery<Owner> query = realm.where(Owner.class);
-        RealmResults<Owner> owners = query.findAll();
+        sortedList = sortedList.sort(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+        assertEquals(TEST_SIZE, sortedList.size());
+        assertEquals("First excepted to be first", resultList.first().getFieldLong(), sortedList.first().getFieldLong());
+        assertEquals("Last excepted to be last", resultList.last().getFieldLong(), sortedList.last().getFieldLong());
 
-        try {
-            owners.sort("cat.name");
-            fail("Sorting by child object properties should result in a IllegalArgumentException");
-        } catch (IllegalArgumentException ignore) {
-        }
+        sortedList = sortedList.sort(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
+        assertEquals(TEST_SIZE, sortedList.size());
     }
 
     @Test
