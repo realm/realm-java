@@ -97,6 +97,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
            << "(field name: " << e.column_name << ")";
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch (IncorrectThreadException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalState, ss.str());
+    }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
