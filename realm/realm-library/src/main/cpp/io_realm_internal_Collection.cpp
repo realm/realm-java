@@ -76,7 +76,9 @@ struct ResultsWrapper {
 
     inline void switch_to_origin()
     {
-        m_snapshot = Results();
+        if (m_snapshot.get_mode() != Results::Mode::Empty) {
+            m_snapshot = Results();
+        }
     }
 
 private:

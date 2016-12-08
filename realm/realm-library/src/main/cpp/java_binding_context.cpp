@@ -20,7 +20,8 @@ using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 
-JniMethod JavaBindingContext::m_realm_notifier_on_change_method;
+JniMethod JavaBindingContext::m_realm_notifier_did_change_method;
+JniMethod JavaBindingContext::m_realm_notifier_changes_available_method;
 JniMethod JavaBindingContext::m_get_observers_method;
 JniMethod JavaBindingContext::m_get_observed_row_ptrs_method;
 JniMethod JavaBindingContext::m_clear_row_refs_method;
@@ -36,9 +37,12 @@ JavaBindingContext::JavaBindingContext(const ConcreteJavaBindContext& concrete_c
 
     if (concrete_context.realm_notifier) {
         m_realm_notifier = m_local_jni_env->NewWeakGlobalRef(concrete_context.realm_notifier);
-        if (!m_realm_notifier_on_change_method) {
-            m_realm_notifier_on_change_method = JniMethod(m_local_jni_env, m_realm_notifier,
-                                                 "onChange", "()V");
+        jclass cls = m_local_jni_env->GetObjectClass(m_realm_notifier);
+        if (!m_realm_notifier_did_change_method || ! m_realm_notifier_changes_available_method) {
+            m_realm_notifier_did_change_method = JniMethod(m_local_jni_env, cls,
+                                                 "didChange", "()V");
+            m_realm_notifier_changes_available_method = JniMethod(m_local_jni_env, cls,
+                                                                  "changesAvailable", "()V");
         }
     } else {
         m_realm_notifier = nullptr;
@@ -108,6 +112,17 @@ std::vector<BindingContext::ObserverState> JavaBindingContext::get_observed_rows
     return state_list;
 }
 
+void JavaBindingContext::changes_available()
+{
+    if (m_local_jni_env->ExceptionCheck()) return;
+
+    jobject notifier = m_local_jni_env->NewLocalRef(m_realm_notifier);
+    if (notifier) {
+        m_local_jni_env->CallVoidMethod(notifier, m_realm_notifier_changes_available_method);
+        m_local_jni_env->DeleteLocalRef(notifier);
+    }
+}
+
 void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> const& observer_state_list,
                         std::vector<void*> const& invalidated,
                         bool /*version_changed*/)
@@ -132,7 +147,7 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
     if (m_local_jni_env->ExceptionCheck()) return;
     jobject notifier = m_local_jni_env->NewLocalRef(m_realm_notifier);
     if (notifier) {
-        m_local_jni_env->CallVoidMethod(m_realm_notifier, m_realm_notifier_on_change_method);
+        m_local_jni_env->CallVoidMethod(notifier, m_realm_notifier_did_change_method);
         m_local_jni_env->DeleteLocalRef(notifier);
     }
 }

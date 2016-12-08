@@ -50,8 +50,10 @@ private:
     jobject m_row_notifier;
 
     // Cache the method IDs
-    // RealmNotifier.onChange()
-    static realm::jni_util::JniMethod m_realm_notifier_on_change_method;
+    // RealmNotifier.didChange()
+    static realm::jni_util::JniMethod m_realm_notifier_did_change_method;
+    // RealmNotifier.changesAvailable()
+    static realm::jni_util::JniMethod m_realm_notifier_changes_available_method;
     // RowNotifier.getObservers()
     static realm::jni_util::JniMethod m_get_observers_method;
     // RowNotifier.getObservedRowPtrs(Observer[])
@@ -64,6 +66,7 @@ private:
 public:
     virtual ~JavaBindingContext();
     virtual std::vector<ObserverState> get_observed_rows();
+    virtual void changes_available();
     virtual void did_change(std::vector<ObserverState> const& observers,
                             std::vector<void*> const& invalidated,
                             bool version_changed=true);

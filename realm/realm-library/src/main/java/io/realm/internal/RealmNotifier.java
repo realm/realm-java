@@ -29,6 +29,8 @@ import io.realm.RealmChangeListener;
 @Keep
 public abstract class RealmNotifier implements Closeable {
 
+    private SharedRealm sharedRealm;
+
     private static class RealmObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>> {
         public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
             super(observer, listener);
@@ -61,7 +63,7 @@ public abstract class RealmNotifier implements Closeable {
      * other thread. The changes on the same thread should not trigger this call.
      */
     @SuppressWarnings("unused") // called from java_binding_context.cpp
-    void onChange() {
+    protected void didChange() {
         for (RealmObserverPair observerPair : realmObserverPairs) {
             Object observer = observerPair.observerRef.get();
             if (observer == null) {
@@ -70,6 +72,15 @@ public abstract class RealmNotifier implements Closeable {
                 observerPair.onChange();
             }
         }
+    }
+
+    @SuppressWarnings("unused") // called from java_binding_context.cpp
+    protected void changesAvailable() {
+        sharedRealm.disableCollectionSnapshot();
+    }
+
+    void setSharedRealm(SharedRealm sharedRealm) {
+        this.sharedRealm = sharedRealm;
     }
 
     /**

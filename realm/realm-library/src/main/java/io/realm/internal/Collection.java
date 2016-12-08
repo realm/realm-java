@@ -28,7 +28,7 @@ import io.realm.RealmChangeListener;
 @KeepMember
 public final class Collection implements NativeObject {
 
-    private static class CollectionObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>>{
+    private class CollectionObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>>{
         public CollectionObserverPair(T observer, RealmChangeListener<T> listener) {
             super(observer, listener);
         }
@@ -36,7 +36,6 @@ public final class Collection implements NativeObject {
         public void onChange() {
             T observer = observerRef.get();
             if (observer != null) {
-
                 listener.onChange(observerRef.get());
             }
         }
@@ -199,6 +198,11 @@ public final class Collection implements NativeObject {
     @KeepMember
     @SuppressWarnings("unused")
     private void notifyChangeListeners() {
+        // For the stable iteration.
+        // It is needed when the local commit triggered async query updates. And this is called in the next event loop
+        // by OS Realm::notify().
+        this.disableSnapshot();
+
         for (CollectionObserverPair pair: observerPairs) {
             Object object = pair.observerRef.get();
             if (object != null) {

@@ -178,7 +178,12 @@ public final class SharedRealm implements Closeable {
                         RowNotifier rowNotifier, SchemaVersionListener schemaVersionListener) {
         this.nativePtr = nativePtr;
         this.configuration = configuration;
+
+        if (notifier != null) {
+            notifier.setSharedRealm(this);
+        }
         this.realmNotifier = notifier;
+
         this.rowNotifier = rowNotifier;
         this.schemaChangeListener = schemaVersionListener;
         context = new Context();
@@ -396,7 +401,9 @@ public final class SharedRealm implements Closeable {
 
     // Should only be called by Collection's constructor
     void addCollection(Collection collection) {
-        collections.add(new WeakReference<Collection>(collection));
+        if (realmNotifier != null) {
+            collections.add(new WeakReference<Collection>(collection));
+        }
     }
 
     private void enableCollectionSnapshot() {

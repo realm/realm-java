@@ -385,6 +385,7 @@ public class CollectionTests {
             }
         });
         addRow(sharedRealm);
+        assertEquals(collection.size(), 4);
     }
 
     @Test
