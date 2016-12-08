@@ -96,7 +96,6 @@ public class AutomaticSyncPolicy implements SyncPolicy {
 
         if (recurringErrors != that.recurringErrors) return false;
         return lastError != null ? lastError.equals(that.lastError) : that.lastError == null;
-
     }
 
     @Override
