@@ -614,6 +614,9 @@ public class DynamicRealmObjectTests {
     @Test
     public void setObject_objectBelongToDiffThreadRealmThrows() {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
+        // To run the query of the PendingRow first.
+        assertTrue(dObjDynamic.isValid());
+
         new Thread(new Runnable() {
             @Override
             public void run() {
