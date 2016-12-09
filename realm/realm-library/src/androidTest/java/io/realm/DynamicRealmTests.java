@@ -342,21 +342,20 @@ public class DynamicRealmTests {
 
     @Test
     public void findFirst() {
+        populateTestRealm(realm, 10);
         final DynamicRealmObject allTypes = realm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirst();
-        populateTestRealm(realm, 10);
         assertEquals("test data 4", allTypes.getString(AllTypes.FIELD_STRING));
     }
 
     @Test
     @RunTestInLooperThread
-    public void findFirst_async() {
+    public void findFirstAsync() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final DynamicRealmObject allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
-                .findFirst();
-        assertTrue(allTypes.realmGet$proxyState().getRow$realm() instanceof PendingRow);
+                .findFirstAsync();
         looperThread.keepStrongReference.add(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
@@ -370,14 +369,11 @@ public class DynamicRealmTests {
 
     @Test
     @RunTestInLooperThread
-    public void findAllAsync() {
+    public void findAll_async() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
-                .findAllAsync();
-
-        assertFalse(allTypes.isLoaded());
-        assertEquals(0, allTypes.size());
+                .findAll();
 
         allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
@@ -395,13 +391,11 @@ public class DynamicRealmTests {
 
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync() {
+    public void findAllSorted_async() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 4)
-                .findAllSortedAsync(AllTypes.FIELD_STRING, Sort.DESCENDING);
-        assertFalse(allTypes.isLoaded());
-        assertEquals(0, allTypes.size());
+                .findAllSorted(AllTypes.FIELD_STRING, Sort.DESCENDING);
 
         allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
