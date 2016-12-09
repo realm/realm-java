@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -141,8 +142,14 @@ public final class Collection implements NativeObject {
         return new TableQuery(this.context, this.getTable(), nativeQueryPtr);
     }
 
-    public Object aggregate(Aggregate aggregateMethod, long columnIndex) {
-        return nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+    public Number aggregateNumber(Aggregate aggregateMethod, long columnIndex) {
+        Number results = (Number) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+        return results;
+    }
+
+    public Date aggregateDate(Aggregate aggregateMethod, long columnIndex) {
+        Date date = (Date) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+        return date;
     }
 
     public long size() {

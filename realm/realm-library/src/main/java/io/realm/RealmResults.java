@@ -378,7 +378,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number min(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return (Number)collection.aggregate(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
+        return collection.aggregateNumber(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -387,7 +387,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Date minDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return (Date) collection.aggregate(Collection.Aggregate.MINIMUM, columnIndex);
+        return collection.aggregateDate(Collection.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -396,7 +396,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number max(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return (Number) collection.aggregate(Collection.Aggregate.MAXIMUM, columnIndex);
+        return collection.aggregateNumber(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
     /**
@@ -412,7 +412,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return (Date) collection.aggregate(Collection.Aggregate.MAXIMUM, columnIndex);
+        return collection.aggregateDate(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
 
@@ -422,7 +422,7 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
     public Number sum(String fieldName) {
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
-        return (Number) collection.aggregate(Collection.Aggregate.SUM, columnIndex);
+        return collection.aggregateNumber(Collection.Aggregate.SUM, columnIndex);
     }
 
     /**
@@ -432,9 +432,8 @@ public final class RealmResults<E extends RealmModel> extends AbstractList<E> im
         realm.checkIfValid();
         long columnIndex = getColumnIndexForSort(fieldName);
 
-        // FIXME: Should we change return type to Double?
-        Number sum = (Number) collection.aggregate(Collection.Aggregate.AVERAGE, columnIndex);
-        return sum.doubleValue();
+        Number avg = collection.aggregateNumber(Collection.Aggregate.AVERAGE, columnIndex);
+        return avg.doubleValue();
     }
 
     /**
