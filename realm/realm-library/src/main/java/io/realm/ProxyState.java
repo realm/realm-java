@@ -94,6 +94,9 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     private void notifyChangeListeners() {
         if (!listeners.isEmpty()) {
             for (RealmChangeListener<E> listener : listeners) {
+                if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
+                    return;
+                }
                 listener.onChange(model);
             }
         }
@@ -133,6 +136,10 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     private void registerToRowNotifier() {
+        if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
+            return;
+        }
+
         RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
         if (row.isAttached()) {
             rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
@@ -146,10 +153,6 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
     @Override
     public void onQueryFinished(Row row) {
-        if (realm.sharedRealm == null || realm.sharedRealm.isClosed()) {
-            return;
-        }
-
         this.row = row;
         notifyChangeListeners();
         registerToRowNotifier();
