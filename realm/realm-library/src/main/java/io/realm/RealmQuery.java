@@ -17,7 +17,6 @@
 package io.realm;
 
 
-import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
@@ -1632,6 +1631,27 @@ public final class RealmQuery<E extends RealmModel> {
      * @see io.realm.RealmObject
      */
     public E findFirst() {
+        long tableRowIndex = getSourceRowIndexForFirstObject();
+        if (tableRowIndex >= 0) {
+            E realmObject = realm.get(clazz, className, tableRowIndex);
+            return realmObject;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Similar to {@link #findFirst()} but runs asynchronously on a worker thread
+     * This method is only available from a Looper thread.
+     *
+     * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
+     * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
+     * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
+     * to be notified when the query completes. If no RealmObject was found after the query completed, the returned
+     * RealmObject will have {@link RealmObject#isLoaded()} set to {@code true} and {@link RealmObject#isValid()} set to
+     * {@code false}.
+     */
+    public E findFirstAsync() {
         Row row;
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
@@ -1664,13 +1684,6 @@ public final class RealmQuery<E extends RealmModel> {
         return result;
     }
 
-    /**
-     * @deprecated use {@link #findFirst()} instead.
-     */
-    public E findFirstAsync() {
-        return findFirst();
-    }
-
     private void checkSortParameters(String fieldNames[], final Sort[] sortOrders) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames cannot be 'null'.");
@@ -1691,5 +1704,9 @@ public final class RealmQuery<E extends RealmModel> {
         } else {
             return new RealmResults<E>(realm, collection, clazz);
         }
+    }
+
+    private long getSourceRowIndexForFirstObject() {
+        return this.query.find();
     }
 }
