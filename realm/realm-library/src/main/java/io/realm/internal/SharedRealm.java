@@ -110,6 +110,8 @@ public final class SharedRealm implements Closeable {
     public final RowNotifier rowNotifier;
     public final ObjectServerFacade objectServerFacade;
     public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
+    // To prevent overflow the message queue.
+    public boolean disableSnapshotPosted = false;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -240,10 +242,12 @@ public final class SharedRealm implements Closeable {
 
     public void commitTransaction() {
         nativeCommitTransaction(nativePtr);
-        if (realmNotifier != null && !collections.isEmpty()) {
+        if (realmNotifier != null && !collections.isEmpty() && !disableSnapshotPosted) {
+            disableSnapshotPosted = true;
             realmNotifier.postAtFrontOfQueue(new Runnable() {
                 @Override
                 public void run() {
+                    disableSnapshotPosted = false;
                     disableCollectionSnapshot();
                 }
             });
