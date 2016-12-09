@@ -699,15 +699,19 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
     @Test
     public void methodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
+        realm.beginTransaction();
+        AllJavaTypes allJavaTypes = realm.createObject(AllJavaTypes.class, 42);
+        realm.commitTransaction();
         for (RealmCollectionMethod method : RealmCollectionMethod.values()) {
             assertTrue(method + " failed", runMethodOnWrongThread(method));
         }
         for (CollectionMethod method : CollectionMethod.values()) {
-            assertTrue(method + " failed", runMethodOnWrongThread(method));
+            assertTrue(method + " failed", runMethodOnWrongThread(method, allJavaTypes));
         }
     }
 
-    private boolean runMethodOnWrongThread(final RealmCollectionMethod method) throws ExecutionException, InterruptedException {
+    private boolean runMethodOnWrongThread(final RealmCollectionMethod method)
+            throws ExecutionException, InterruptedException {
         realm.beginTransaction();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -737,7 +741,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         return result;
     }
 
-    private boolean runMethodOnWrongThread(final CollectionMethod method) throws ExecutionException, InterruptedException {
+    private boolean runMethodOnWrongThread(final CollectionMethod method, final AllJavaTypes tempObject)
+            throws ExecutionException, InterruptedException {
         realm.beginTransaction();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -762,8 +767,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     switch (method) {
                         case ADD_OBJECT: collection.add(new AllJavaTypes()); break;
                         case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
-                        case CLEAR: collection.clear(); case CONTAINS:
-                        case CONTAINS_ALL: collection.containsAll(Collections.singletonList(new AllJavaTypes())); break;
+                        case CLEAR: collection.clear();
+                        case CONTAINS:
+                        case CONTAINS_ALL: collection.containsAll(Collections.singletonList(tempObject)); break;
                         case EQUALS: collection.equals(createCollection(collectionClass)); break;
                         case HASHCODE:
                             //noinspection ResultOfMethodCallIgnored
