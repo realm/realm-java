@@ -191,6 +191,8 @@ Java_io_realm_internal_Collection_nativeClear(JNIEnv *env, jclass, jlong native_
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->get_results().clear();
+        // Refresh snapshot
+        wrapper->switch_to_snapshot();
     } CATCH_STD()
 }
 
