@@ -30,7 +30,6 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.ColumnInfo;
@@ -41,7 +40,6 @@ import io.realm.internal.Util;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
 import rx.Observable;
 
 /**
@@ -318,8 +316,6 @@ abstract class BaseRealm implements Closeable {
     public void commitTransaction() {
         checkIfValid();
         sharedRealm.commitTransaction();
-        ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
-                .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
     }
 
     /**

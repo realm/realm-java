@@ -142,6 +142,7 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
         m_local_jni_env->CallVoidMethod(observer, m_row_observer_pair_on_change_method);
     }
 
+    if (m_local_jni_env->ExceptionCheck()) return;
     m_local_jni_env->CallVoidMethod(m_row_notifier, m_clear_row_refs_method);
 
     if (m_local_jni_env->ExceptionCheck()) return;
