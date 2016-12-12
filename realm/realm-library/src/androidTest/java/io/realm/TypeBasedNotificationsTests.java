@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -1425,45 +1424,6 @@ public class TypeBasedNotificationsTests {
             }
         }.start();
         TestHelper.awaitOrFail(signalTestFinished);
-    }
-
-    // Test modifying syncRealmResults in RealmResults's change listener
-    @Test
-    @RunTestInLooperThread
-    public void change_realm_results_map_in_listener() throws InterruptedException {
-/*        final CountDownLatch finishedLatch = new CountDownLatch(2);
-
-        final Realm realm = looperThread.realm;
-        // Two results needed to make sure list modification happen while iterating
-        RealmResults<Owner> results1 = realm.where(Owner.class).findAll();
-        RealmResults<Cat> results2 = realm.where(Cat.class).findAll();
-        RealmChangeListener listener = new RealmChangeListener() {
-            @Override
-            public void onChange(Object object) {
-                RealmResults<Owner> results = realm.where(Owner.class).findAll();
-                boolean foundKey = false;
-                // Check if the results has been added to the syncRealmResults in case of the behaviour of
-                // allObjects changes
-                for (WeakReference<RealmResults<? extends RealmModel>> weakReference :
-                        realm.handlerController.syncRealmResults.keySet()) {
-                    if (weakReference.get() == results) {
-                        foundKey = true;
-                        break;
-                    }
-                }
-                assertTrue(foundKey);
-                looperThread.testComplete();
-                finishedLatch.countDown();
-            }
-        };
-        looperThread.keepStrongReference.add(results1);
-        looperThread.keepStrongReference.add(results2);
-        results1.addChangeListener(listener);
-        results2.addChangeListener(listener);
-
-        realm.beginTransaction();
-        realm.createObject(Owner.class);
-        realm.commitTransaction();*/
     }
 
     // Build a RealmResults from a RealmList, and delete the RealmList. Test the behavior of ChangeListener on the

@@ -19,7 +19,6 @@ package io.realm.internal;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.RealmChangeListener;
 
@@ -31,7 +30,7 @@ import io.realm.RealmChangeListener;
 @Keep
 public class RowNotifier {
     @Keep
-    private static class RowObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>> {
+    private static class RowObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
         final WeakReference<UncheckedRow> rowRef;
         // Keep a strong ref to row when getRowRefs called and set it to null in clearRowRefs.
         // This is to avoid the row gets GCed in between.
@@ -56,7 +55,7 @@ public class RowNotifier {
                 return true;
             }
 
-            if (obj instanceof ObserverPair) {
+            if (obj instanceof ObserverPairList.ObserverPair) {
                 RowObserverPair anotherPair = (RowObserverPair) obj;
                 return listener.equals(anotherPair.listener) &&
                         observerRef.get() == anotherPair.observerRef.get() &&
@@ -70,7 +69,15 @@ public class RowNotifier {
     // Row objects point to the same row in the same table. The duplicated rows will all get notifications but there are
     // overheads when duplicated rows added since they all need to be processed to compute the differences for the row
     // level fine grained notifications in the object store.
-    private CopyOnWriteArrayList<RowObserverPair> rowObserverPairs = new CopyOnWriteArrayList<RowObserverPair>();
+    //private CopyOnWriteArrayList<RowObserverPair> rowObserverPairs = new CopyOnWriteArrayList<RowObserverPair>();
+    private ObserverPairList<RowObserverPair> rowObserverPairs  = new ObserverPairList<RowObserverPair>();
+    private static final ObserverPairList.Callback<RowObserverPair> toClearRowCallback =
+            new ObserverPairList.Callback<RowObserverPair>() {
+                @Override
+                public void onCalled(RowObserverPair pair, Object observer) {
+                    pair.row = null;
+                }
+            };
 
     /**
      * Register a listener on a row.
@@ -82,9 +89,7 @@ public class RowNotifier {
      */
     public <T> void registerListener(UncheckedRow row, T observer, RealmChangeListener<T> listener) {
         RowObserverPair rowObserverPair = new RowObserverPair<T>(row, observer, listener);
-        if (!rowObserverPairs.contains(rowObserverPair)) {
-            rowObserverPairs.add(rowObserverPair);
-        }
+        rowObserverPairs.add(rowObserverPair);
     }
 
 
@@ -98,19 +103,16 @@ public class RowNotifier {
     // Called by JNI
     @SuppressWarnings("unused")
     private RowObserverPair[] getObservers() {
-        List<RowObserverPair> pairList = new ArrayList<RowObserverPair>(rowObserverPairs.size());
-        for (RowObserverPair pair : rowObserverPairs) {
-            // FIXME: Anyone could tell me why wo we have to cast it here?
-            UncheckedRow uncheckedRow = (UncheckedRow) pair.rowRef.get();
-            if (pair.observerRef.get() == null || uncheckedRow == null || !uncheckedRow.isAttached()) {
-                // The observer object or the row get GCed. Remove it.
-                rowObserverPairs.remove(pair);
-            } else {
+        final List<RowObserverPair> pairList = new ArrayList<RowObserverPair>(rowObserverPairs.size());
+        rowObserverPairs.foreach(new ObserverPairList.Callback<RowObserverPair>() {
+            @Override
+            public void onCalled(RowObserverPair pair, Object observer) {
+                // TODO: Anyone knows why do we need to cast it here?
                 // Keep a strong ref of the row! in case it gets GCed before clearRowRefs!
-                pair.row = uncheckedRow;
+                pair.row = (UncheckedRow) pair.rowRef.get();
                 pairList.add(pair);
             }
-        }
+        });
         return pairList.toArray(new RowObserverPair[pairList.size()]);
     }
 
@@ -127,8 +129,6 @@ public class RowNotifier {
     // Called by JNI
     @SuppressWarnings("unused")
     private void clearRowRefs() {
-        for (RowObserverPair observerPair: rowObserverPairs) {
-            observerPair.row = null;
-        }
+        rowObserverPairs.foreach(toClearRowCallback);
     }
 }

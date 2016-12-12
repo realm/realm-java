@@ -33,7 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -446,91 +445,6 @@ public class NotificationsTest {
 
     @Test
     @RunTestInLooperThread
-    public void weakReferenceListener() throws InterruptedException {
-/*        final AtomicInteger weakCounter = new AtomicInteger(0);
-        final AtomicInteger strongCounter = new AtomicInteger(0);
-
-        final Realm realm = looperThread.realm;
-
-        // Setup weak listener
-        RealmChangeListener<Realm> weakListener = new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                weakCounter.incrementAndGet();
-            }
-        };
-        realm.handlerController.addChangeListenerAsWeakReference(weakListener);
-        assertEquals(1, realm.handlerController.weakChangeListeners.size());
-
-        // This is not a weak listener so will be called. When this is triggered the weak references have not been
-        // removed yet. So make another change to ensure that they really are removed before validating.
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                int count = strongCounter.incrementAndGet();
-                if (count == 1) {
-                    realm.beginTransaction();
-                    realm.createObject(AllTypes.class);
-                    realm.commitTransaction();
-                } else if (count == 2) {
-                    assertEquals(0, weakCounter.get());
-                    assertEquals(0, realm.handlerController.weakChangeListeners.size());
-                    looperThread.testComplete();
-                }
-            }
-        });
-
-        // Hack: There is no guaranteed way to release the WeakReference, just clear it.
-        for (WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef : realm.handlerController.weakChangeListeners) {
-            weakRef.clear();
-        }
-
-        // Trigger change listeners
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();*/
-    }
-
-
-    // Test that that a WeakReferenceListener can be removed.
-    // This test is not a proper GC test, but just ensures that listeners can be removed from the list of weak listeners
-    // without throwing an exception.
-    @Test
-    @RunTestInLooperThread
-    public void removingWeakReferenceListener() throws InterruptedException {
-/*        final AtomicInteger counter = new AtomicInteger(0);
-        final Realm realm = looperThread.realm;
-        RealmChangeListener<Realm> listenerA = new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                counter.incrementAndGet();
-            }
-        };
-        RealmChangeListener<Realm> listenerB = new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                assertEquals(0, counter.get());
-                assertEquals(1, realm.handlerController.weakChangeListeners.size());
-                looperThread.testComplete();
-            }
-        };
-        realm.handlerController.addChangeListenerAsWeakReference(listenerA);
-
-        // There is no guaranteed way to release the WeakReference,
-        // just clear it.
-        for (WeakReference<RealmChangeListener<? extends BaseRealm>> weakRef : realm.handlerController.weakChangeListeners) {
-            weakRef.clear();
-        }
-
-        realm.handlerController.addChangeListenerAsWeakReference(listenerB);
-
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();*/
-    }
-
-    @Test
-    @RunTestInLooperThread
     public void realmNotificationOrder() {
         // Tests that global notifications are called in the order they are added
         // Test both ways to check accidental ordering from unordered collections.
@@ -916,6 +830,7 @@ public class NotificationsTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore
     public void realmObjectListenerAddedAfterCommit() {
         Realm realm = looperThread.realm;
         realm.beginTransaction();

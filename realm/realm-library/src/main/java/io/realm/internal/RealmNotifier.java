@@ -17,8 +17,6 @@
 package io.realm.internal;
 
 import java.io.Closeable;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.RealmChangeListener;
 
@@ -31,20 +29,27 @@ public abstract class RealmNotifier implements Closeable {
 
     private SharedRealm sharedRealm;
 
-    private static class RealmObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>> {
+    private static class RealmObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
         public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
             super(observer, listener);
         }
 
-        private void onChange() {
-            T observer = observerRef.get();
+        private void onChange(T observer) {
             if (observer != null) {
                 listener.onChange(observer);
             }
         }
     }
 
-    private List<RealmObserverPair> realmObserverPairs = new CopyOnWriteArrayList<RealmObserverPair>();
+    private ObserverPairList<RealmObserverPair> realmObserverPairs = new ObserverPairList<RealmObserverPair>();
+    private final static ObserverPairList.Callback<RealmObserverPair> onChangeCallBack =
+            new ObserverPairList.Callback<RealmObserverPair>() {
+                @Override
+                public void onCalled(RealmObserverPair pair, Object observer) {
+                    //noinspection unchecked
+                    pair.onChange(observer);
+                }
+            };
 
     // This is called by OS when other thread/process changes the Realm.
     // This is getting called on the same thread which created the Realm.
@@ -64,14 +69,7 @@ public abstract class RealmNotifier implements Closeable {
      */
     @SuppressWarnings("unused") // called from java_binding_context.cpp
     protected void didChange() {
-        for (RealmObserverPair observerPair : realmObserverPairs) {
-            Object observer = observerPair.observerRef.get();
-            if (observer == null) {
-                realmObserverPairs.remove(observerPair);
-            } else {
-                observerPair.onChange();
-            }
-        }
+        realmObserverPairs.foreach(onChangeCallBack);
     }
 
     @SuppressWarnings("unused") // called from java_binding_context.cpp
@@ -93,9 +91,7 @@ public abstract class RealmNotifier implements Closeable {
 
     public <T> void addChangeListener(T observer, RealmChangeListener<T> realmChangeListener) {
         RealmObserverPair observerPair = new RealmObserverPair<T>(observer, realmChangeListener);
-        if (!realmObserverPairs.contains(observerPair)) {
-            realmObserverPairs.add(observerPair);
-        }
+        realmObserverPairs.add(observerPair);
     }
 
     public <E> void removeChangeListener(E observer, RealmChangeListener<E> realmChangeListener) {

@@ -17,8 +17,6 @@
 package io.realm.internal;
 
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.RealmChangeListener;
 
@@ -29,16 +27,13 @@ import io.realm.RealmChangeListener;
 @KeepMember
 public final class Collection implements NativeObject {
 
-    private class CollectionObserverPair<T> extends ObserverPair<T, RealmChangeListener<T>>{
+    private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
         public CollectionObserverPair(T observer, RealmChangeListener<T> listener) {
             super(observer, listener);
         }
 
-        public void onChange() {
-            T observer = observerRef.get();
-            if (observer != null) {
-                listener.onChange(observerRef.get());
-            }
+        public void onChange(T observer) {
+            listener.onChange(observer);
         }
     }
 
@@ -47,7 +42,16 @@ public final class Collection implements NativeObject {
     private final SharedRealm sharedRealm;
     private final Context context;
     private final TableQuery query;
-    private final List<CollectionObserverPair> observerPairs = new CopyOnWriteArrayList<CollectionObserverPair>();
+    private final ObserverPairList<CollectionObserverPair> observerPairs =
+            new ObserverPairList<CollectionObserverPair>();
+    private static final ObserverPairList.Callback<CollectionObserverPair> onChangeCallback =
+            new ObserverPairList.Callback<CollectionObserverPair>() {
+                @Override
+                public void onCalled(CollectionObserverPair pair, Object observer) {
+                    //noinspection unchecked
+                    pair.onChange(observer);
+                }
+            };
 
     // Public for static checking in JNI
     @SuppressWarnings("WeakerAccess")
@@ -143,13 +147,11 @@ public final class Collection implements NativeObject {
     }
 
     public Number aggregateNumber(Aggregate aggregateMethod, long columnIndex) {
-        Number results = (Number) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
-        return results;
+        return (Number) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
     }
 
     public Date aggregateDate(Aggregate aggregateMethod, long columnIndex) {
-        Date date = (Date) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
-        return date;
+        return (Date) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
     }
 
     public long size() {
@@ -195,9 +197,7 @@ public final class Collection implements NativeObject {
             nativeStartListening(nativePtr);
         }
         CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
-        if (!observerPairs.contains(collectionObserverPair)) {
-            observerPairs.add(collectionObserverPair);
-        }
+        observerPairs.add(collectionObserverPair);
     }
 
     public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
@@ -222,14 +222,7 @@ public final class Collection implements NativeObject {
         // by OS Realm::notify().
         this.disableSnapshot();
 
-        for (CollectionObserverPair pair: observerPairs) {
-            Object object = pair.observerRef.get();
-            if (object != null) {
-                pair.onChange();
-            } else {
-                observerPairs.remove(pair);
-            }
-        }
+        observerPairs.foreach(onChangeCallback);
     }
 
     void enableSnapshot() {

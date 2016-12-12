@@ -1428,40 +1428,6 @@ public class RealmAsyncQueryTests {
         });
     }
 
-    // make sure the notification listener does not leak the enclosing class
-    // if unregistered properly.
-    @Test
-    @RunTestInLooperThread
-    public void listenerShouldNotLeak() {
-        populateTestRealm(looperThread.realm, 10);
-
-        // simulate the ActivityManager by creating 1 instance responsible
-        // of attaching an onChange listener, then simulate a configuration
-        // change (ex: screen rotation), this change will create a new instance.
-        // we make sure that the GC enqueue the reference of the destroyed instance
-        // which indicate no memory leak
-        MockActivityManager mockActivityManager =
-                MockActivityManager.newInstance(looperThread.realm.getConfiguration());
-
-        mockActivityManager.sendConfigurationChange();
-
-        assertEquals(1, mockActivityManager.numberOfInstances());
-        // remove GC'd reference & assert that one instance should remain
-        Iterator<Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>>> iterator =
-                looperThread.realm.handlerController.asyncRealmResults.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>> entry = iterator.next();
-            RealmResults<?> weakReference = entry.getKey().get();
-            if (weakReference == null) {
-                iterator.remove();
-            }
-        }
-
-        assertEquals(1, looperThread.realm.handlerController.asyncRealmResults.size());
-        mockActivityManager.onStop();// to close the Realm
-        looperThread.testComplete();
-    }
-
     @Test
     @RunTestInLooperThread
     public void combiningAsyncAndSync() {

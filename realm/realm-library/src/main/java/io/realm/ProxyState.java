@@ -108,14 +108,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         }
         // this might be called after query returns. So it is still necessary to register.
         if (row instanceof UncheckedRow) {
-            RowNotifier rowNotifier = realm.sharedRealm.rowNotifier;
-            // RowNotifier will take care of the duplicated ObserverPairs
-            rowNotifier.registerListener((UncheckedRow) row, this, new RealmChangeListener<ProxyState<E>>() {
-                @Override
-                public void onChange(ProxyState<E> proxyState) {
-                    proxyState.notifyChangeListeners();
-                }
-            });
+            registerToRowNotifier();
         }
     }
 

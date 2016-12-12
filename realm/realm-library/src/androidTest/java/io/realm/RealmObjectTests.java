@@ -28,7 +28,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
-import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -1750,62 +1749,6 @@ public class RealmObjectTests {
                 looperThread.testComplete();
             }
         });
-    }
-
-    // The object should be added to HandlerController.realmObjects only when the first time addListener called.
-    @Test
-    @UiThreadTest
-    public void addChangeListener_shouldAddTheObjectToHandlerRealmObjects() {
-/*        realm.beginTransaction();
-        AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
-        realm.commitTransaction();
-        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
-                realm.handlerController.realmObjects;
-
-        assertTrue(realmObjects.isEmpty());
-
-        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-            @Override
-            public void onChange(AllTypesPrimaryKey element) {
-            }
-        });
-
-        assertEquals(1, realmObjects.size());
-        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
-            assertTrue(ref.get() == allTypesPrimaryKey);
-        }*/
-    }
-
-    // The object should be added to HandlerController.realmObjects only once.
-    @Test
-    @UiThreadTest
-    public void addChangeListener_shouldNotAddDupEntriesToHandlerRealmObjects() {
-/*        realm.beginTransaction();
-        AllTypesPrimaryKey allTypesPrimaryKey = realm.createObject(AllTypesPrimaryKey.class, 1);
-        realm.commitTransaction();
-        final ConcurrentHashMap<WeakReference<RealmObjectProxy>, Object> realmObjects =
-                realm.handlerController.realmObjects;
-
-        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
-            assertFalse(ref.get() == allTypesPrimaryKey);
-        }
-
-        // Add different listeners twice
-        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-            @Override
-            public void onChange(AllTypesPrimaryKey element) {
-            }
-        });
-        allTypesPrimaryKey.addChangeListener(new RealmChangeListener<AllTypesPrimaryKey>() {
-            @Override
-            public void onChange(AllTypesPrimaryKey element) {
-            }
-        });
-
-        assertEquals(1, realmObjects.size());
-        for (WeakReference<RealmObjectProxy> ref : realmObjects.keySet()) {
-            assertTrue(ref.get() == allTypesPrimaryKey);
-        }*/
     }
 
     // The object should not be added to HandlerController again after the async query loaded.
