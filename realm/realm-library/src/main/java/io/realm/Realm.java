@@ -1555,10 +1555,13 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
-     * @throws IllegalArgumentException if the realm file is encrypted. Compacting an encrypted Realm file is not
-     *                                  supported yet.
+     * @throws IllegalArgumentException if Realm is synchronized.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
+        // FIXME: remove this restriction when https://github.com/realm/realm-core/issues/2345 is resolved
+        if (configuration.isSyncConfiguration()) {
+            throw new IllegalArgumentException("You cannot compact a sync'ed Realm.");
+        }
         return BaseRealm.compactRealm(configuration);
     }
 

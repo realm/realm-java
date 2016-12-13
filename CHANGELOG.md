@@ -1,3 +1,9 @@
+## 2.2.2
+
+### Object Server API Changes (In Beta)
+
+* Disabled `Realm.compactRealm()` when sync is enabled as it might corrupt the Realm (https://github.com/realm/realm-core/issues/2345).
+
 ## 2.2.1
 
 ### Object Server API Changes (In Beta)
