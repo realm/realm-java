@@ -24,6 +24,7 @@
 #include <realm/group_shared.hpp>
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
+#include <object-store/src/sync/impl/sync_client.hpp>
 
 #include "objectserver_shared.hpp"
 
@@ -37,8 +38,6 @@ std::unique_ptr<Client> sync_client;
 
 static jclass sync_manager = nullptr;
 static jmethodID sync_manager_notify_error_handler = nullptr;
-static jmethodID sync_manager_on_session_created = nullptr;
-static jmethodID sync_manager_on_session_destroyed = nullptr;
 
 static void error_handler(int error_code, std::string message)
 {
@@ -53,14 +52,21 @@ static void error_handler(int error_code, std::string message)
                               env->NewStringUTF(message.c_str()));
 }
 
-static void client_thread_ready(sync::Client*)
-{
-    // Attach the sync client thread to the JVM so errors can be returned properly
-    JNIEnv *env;
-    if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        g_vm->AttachCurrentThread(&env, nullptr); // Should never fail
+struct AndroidClientListener : public realm::ClientThreadListener {
+
+    void on_client_thread_ready(sync::Client *client) override {
+        // Attach the sync client thread to the JVM so errors can be returned properly
+        JNIEnv *env;
+        if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+            g_vm->AttachCurrentThread(&env, nullptr); // Should never fail
+        }
     }
-}
+
+    void on_client_thread_closing(sync::Client *client) override {
+        // Failing to detach the JVM before closing the thread will crash on ART
+        g_vm->DetachCurrentThread();
+    }
+} s_client_thread_listener;
 
 struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
     std::unique_ptr<realm::util::Logger> make_logger(realm::util::Logger::Level level) {
@@ -81,28 +87,11 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
         sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
                                                                    "notifyErrorHandler",
                                                                    "(ILjava/lang/String;Ljava/lang/String;)V");
-//        sync_manager_on_session_created  = env->GetStaticMethodID(sync_manager,
-//                                                                  "onObjectStoreSessionCreated",
-//                                                                  "(Ljava/lang/String;)V");
-//        sync_manager_on_session_destroyed  = env->GetStaticMethodID(sync_manager,
-//                                                                    "onObjectStoreSessionDestroyed",
-//                                                                    "(Ljava/lang/String;)V");
-//
+
         // Setup SyncManager
         SyncManager::shared().set_logger_factory(s_logger_factory);
         SyncManager::shared().set_error_handler(error_handler);
-        SyncManager::shared().set_client_thread_ready_callback(client_thread_ready);
-        SyncManager::shared().reset_for_testing();
-//        bool should_encrypt = !getenv("REALM_DISABLE_METADATA_ENCRYPTION");
-//        auto mode = should_encrypt ? SyncManager::MetadataMode::Encryption : SyncManager::MetadataMode::NoEncryption;
-//        rootDirectory = rootDirectory ?: [NSURL fileURLWithPath:RLMDefaultDirectoryForBundleIdentifier(nil)];
-//        SyncManager::shared().configure_file_system(rootDirectory.path.UTF8String, mode);
-//        sync::Client::Config
-//        sync::Client::Config config;
-//        config.logger = &CoreLoggerBridge::shared();
-//        sync_client = std::make_unique<Client>(std::move(config)); // Throws
-//
-//        sync_client->set_error_handler(error_handler);
+        SyncManager::shared().set_client_thread_listener(s_client_thread_listener);
     } CATCH_STD()
 }
 
