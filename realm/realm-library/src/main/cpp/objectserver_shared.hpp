@@ -27,84 +27,89 @@
 #include <object-store/src/sync/sync_manager.hpp>
 #include <object-store/src/sync/sync_user.hpp>
 #include <object-store/src/sync/sync_config.hpp>
+#include <object-store/src/sync/sync_session.hpp>
 
 #include "util.hpp"
 
 using namespace realm;
 
-// Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
-class JniSession {
+// Wrapper class for SyncConfig. This is required as we need to keep track of both the Java session
+// object as part of the configuration.
+// NOTICE: It is an requirement that the Java `SyncSession` object is created before this and
+// is only GC'ed after this object has been destroyed.
+class JniConfigWrapper {
 
 public:
-    JniSession(const JniSession&) = delete;
-    JniSession& operator=(const JniSession&) = delete;
-    JniSession(JniSession&&) = delete;
-    JniSession& operator=(JniSession&&) = delete;
+    JniConfigWrapper(const JniConfigWrapper&) = delete;
 
-    JniSession(JNIEnv* env, std::string local_realm_path, std::shared_ptr<SyncUser> user, jobject java_session_obj)
+    JniConfigWrapper& operator=(const JniConfigWrapper&) = delete;
+    JniConfigWrapper(JniConfigWrapper&&) = delete;
+    JniConfigWrapper& operator=(JniConfigWrapper&&) = delete;
+
+    // Non-sync constructor
+    JniConfigWrapper(JNIEnv* env, Realm::Config* config) {
+        m_config = config;
+    }
+
+    // Sync constructor
+    JniConfigWrapper(JNIEnv* env, Realm::Config* config, jstring sync_realm_url, jstring sync_user_identity)
     {
-        m_java_session_ref = env->NewGlobalRef(java_session_obj);
-        jobject global_obj_ref_tmp(m_java_session_ref);
+#ifdef REALM_ENABLE_SYNC
+        m_config = config;
+        jclass java_syncmanager = GetClass(env, "io/realm/SyncManager");
+        jmethodID java_error_callback = env->GetStaticMethodID(java_syncmanager, "notifyErrorHandler", "(ILjava/lang/String;Ljava/lang/String;)V");
 
-        auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message, realm::SyncSessionError) {
+        auto error_handler = [&, java_error_callback](std::shared_ptr<SyncSession> session, int error_code, std::string message, realm::SyncSessionError) {
             JNIEnv *local_env;
             g_vm->AttachCurrentThread(&local_env, nullptr);
-            jclass java_session_class = local_env->GetObjectClass(global_obj_ref_tmp);
-            jmethodID notify_error_handler = local_env->GetMethodID(java_session_class,
-                                                                    "notifySessionError", "(ILjava/lang/String;)V");
-            local_env->CallVoidMethod(global_obj_ref_tmp,
-                                      notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
+
+            local_env->CallVoidMethod(java_syncmanager,
+                                      java_error_callback,
+                                      error_code,
+                                      env->NewStringUTF(message.c_str()),
+                                      env->NewStringUTF(session.get()->path().c_str()));
         };
 
         auto bind_handler = [](const std::string&, const SyncConfig&, std::shared_ptr<SyncSession>) {
             // Callback to Java requesting token
-
-
             // Do something
         };
 
-        SyncConfig config = SyncConfig(
-                user,
-                std::string(),
-                SyncSessionStopPolicy::Immediately,
-                bind_handler,
-                error_handler
-        );
-
-        m_sync_session = SyncManager::shared().get_session(local_realm_path, config);
-//
-//        extern std::unique_ptr<realm::sync::Client> sync_client;
-//        // Get the coordinator for the given path, or null if there is none
-//        m_sync_session = new realm::sync::Session(*sync_client, local_realm_path);
-//        auto sync_transact_callback = [local_realm_path](realm::VersionID, realm::VersionID) {
-//            auto coordinator = realm::_impl::RealmCoordinator::get_existing_coordinator(
-//                    realm::StringData(local_realm_path));
-//            if (coordinator) {
-//                coordinator->wake_up_notifier_worker();
-//            }
-//        };
-//        m_sync_session->set_sync_transact_callback(sync_transact_callback);
-//        m_sync_session->set_error_handler(std::move(error_handler));
+        // Get logged in user
+        JStringAccessor user_identity(env, sync_user_identity);
+        JStringAccessor realm_url(env, sync_realm_url);
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identity);
+        if (!user)
+        {
+//            ThrowException(env, IllegalArgument, "User wasn't logged in: " + std::string(user_identity));
+//            return realm::not_found;
+            // FIXME work-around until user migration complete
+            user = SyncManager::shared().get_user(user_identity, "foo", realm::util::Optional<std::string>("http://auth.realm.io/auth"));
+        }
+        config->sync_config = std::make_shared<SyncConfig>(user,
+                                                           realm_url,
+                                                           SyncSessionStopPolicy::Immediately,
+                                                           bind_handler,
+                                                           error_handler);
+#endif
     }
 
-    inline std::shared_ptr<SyncSession> get_session() const noexcept
-    {
-        return m_sync_session;
+    inline Realm::Config* get_config() {
+        return m_config;
     }
+
 
     // Call this just before destroying the object to release JNI resources.
     inline void close(JNIEnv* env)
     {
-        env->DeleteGlobalRef(m_java_session_ref);
     }
 
-    ~JniSession()
+    ~JniConfigWrapper()
     {
     }
 
 private:
-    std::shared_ptr<SyncSession> m_sync_session;
-    jobject m_java_session_ref;
+    Realm::Config* m_config;
 };
 
 #endif // REALM_OBJECTSERVER_SHARED_HPP

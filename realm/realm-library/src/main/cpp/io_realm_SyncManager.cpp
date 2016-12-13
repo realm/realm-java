@@ -37,6 +37,8 @@ std::unique_ptr<Client> sync_client;
 
 static jclass sync_manager = nullptr;
 static jmethodID sync_manager_notify_error_handler = nullptr;
+static jmethodID sync_manager_on_session_created = nullptr;
+static jmethodID sync_manager_on_session_destroyed = nullptr;
 
 static void error_handler(int error_code, std::string message)
 {
@@ -49,6 +51,15 @@ static void error_handler(int error_code, std::string message)
                               sync_manager_notify_error_handler,
                               error_code,
                               env->NewStringUTF(message.c_str()));
+}
+
+static void client_thread_ready(sync::Client*)
+{
+    // Attach the sync client thread to the JVM so errors can be returned properly
+    JNIEnv *env;
+    if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        g_vm->AttachCurrentThread(&env, nullptr); // Should never fail
+    }
 }
 
 struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
@@ -65,14 +76,23 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
 
     try {
         // Register Java callback function for error handling
-        // This function should only be called once, so below is safe.
+        // This function should only be called once, so doing it here should be fine.
         sync_manager = reinterpret_cast<jclass>(env->NewGlobalRef(sync_manager_class));
         sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
-                                                                   "notifyErrorHandler", "(ILjava/lang/String;)V");
-
+                                                                   "notifyErrorHandler",
+                                                                   "(ILjava/lang/String;Ljava/lang/String;)V");
+//        sync_manager_on_session_created  = env->GetStaticMethodID(sync_manager,
+//                                                                  "onObjectStoreSessionCreated",
+//                                                                  "(Ljava/lang/String;)V");
+//        sync_manager_on_session_destroyed  = env->GetStaticMethodID(sync_manager,
+//                                                                    "onObjectStoreSessionDestroyed",
+//                                                                    "(Ljava/lang/String;)V");
+//
         // Setup SyncManager
         SyncManager::shared().set_logger_factory(s_logger_factory);
         SyncManager::shared().set_error_handler(error_handler);
+        SyncManager::shared().set_client_thread_ready_callback(client_thread_ready);
+        SyncManager::shared().reset_for_testing();
 //        bool should_encrypt = !getenv("REALM_DISABLE_METADATA_ENCRYPTION");
 //        auto mode = should_encrypt ? SyncManager::MetadataMode::Encryption : SyncManager::MetadataMode::NoEncryption;
 //        rootDirectory = rootDirectory ?: [NSURL fileURLWithPath:RLMDefaultDirectoryForBundleIdentifier(nil)];
@@ -86,11 +106,11 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
     } CATCH_STD()
 }
 
-// Create the thread from java side to avoid some strange errors when native throws.
 JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
-{
+Java_io_realm_SyncManager_nativeReset(JNIEnv *env, jclass type) {
+
+    TR_ENTER()
     try {
-        SyncManager::shared().start_sync_client();
+        SyncManager::shared().reset_for_testing();
     } CATCH_STD()
 }

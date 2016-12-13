@@ -39,8 +39,9 @@ jclass java_lang_float;
 jmethodID java_lang_float_init;
 jclass java_lang_double;
 jmethodID java_lang_double_init;
-jclass session_class_ref;
-jmethodID session_error_handler;
+
+// Caching other class references
+jclass java_session_manager;
 
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
 

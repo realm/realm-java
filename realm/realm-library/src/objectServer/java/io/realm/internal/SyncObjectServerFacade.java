@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.objectserver;
+package io.realm.internal;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -25,12 +25,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.realm.RealmConfiguration;
-import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.Keep;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.network.NetworkStateReceiver;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
@@ -72,20 +70,21 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     @Override
     public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
-            session.notifyCommit(lastSnapshotVersion);
-        } else {
-            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
-        }
+        // FIXME This should happen automatically now?
+//        if (configuration instanceof SyncConfiguration) {
+//            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
+//            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
+//            session.notifyCommit(lastSnapshotVersion);
+//        } else {
+//            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
+//        }
     }
 
     @Override
     public void realmClosed(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
-            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            SyncSession session = SyncManager.getSession(syncConfig);
             session.getSyncPolicy().onRealmClosed(session);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
@@ -95,8 +94,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void realmOpened(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
-            SyncSession publicSession = SyncManager.getSession((SyncConfiguration) configuration);
-            ObjectServerSession session = SessionStore.getPrivateSession(publicSession);
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            SyncSession session = SyncManager.getSession(syncConfig);
             session.getSyncPolicy().onRealmOpened(session);
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
@@ -108,14 +107,31 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserToken = syncConfig.getUser().getAccessToken();
-            return new String[]{rosServerUrl, rosUserToken};
+            String rosUserIdentity = syncConfig.getUser().getIdentity();
+            return new String[]{rosUserIdentity, rosServerUrl};
         } else {
             return new String[2];
         }
     }
 
-    static Context getApplicationContext() {
+    // Returns the associated Java SyncSession (if any) for this configuration.
+    @Override
+    public Object getSyncSession(RealmConfiguration config) {
+        if (config instanceof SyncConfiguration) {
+            return SyncManager.getSession((SyncConfiguration) config);
+        } else {
+            return null;
+        }
+    }
+
+    public static Context getApplicationContext() {
         return applicationContext;
+    }
+
+    @Override
+    public void createSessionIfRequired(RealmConfiguration config) {
+        if (config instanceof SyncConfiguration) {
+            SyncManager.getSession((SyncConfiguration) config);
+        }
     }
 }

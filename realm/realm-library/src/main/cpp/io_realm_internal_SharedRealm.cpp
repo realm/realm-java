@@ -9,6 +9,7 @@
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
+#include "objectserver_shared.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
@@ -38,7 +39,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
-        jboolean auto_change_notification, jstring sync_server_url, jstring sync_user_token)
+        jboolean auto_change_notification, jstring sync_server_url, jstring sync_user_identity)
 {
     TR_ENTER()
 
@@ -53,22 +54,14 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
-#ifdef REALM_ENABLE_SYNC
         if (sync_server_url) {
-            JStringAccessor url(env, sync_server_url);
-            JStringAccessor token(env, sync_user_token);
-            // FIXME: Ignore User token for now. Will be fixed when moving to OS
-            // For now the Java session takes care of users
-            config->sync_config = std::make_shared<SyncConfig>(nullptr,
-                                                               url,
-                                                               SyncSessionStopPolicy::Immediately,
-                                                               nullptr,
-                                                               nullptr);
-            // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
-            config->sync_config->create_session = false;
+            return reinterpret_cast<jlong>(new JniConfigWrapper(env,
+                                                                config,
+                                                                sync_server_url,
+                                                                sync_user_identity));
+        } else {
+            return reinterpret_cast<jlong>(new JniConfigWrapper(env, config));
         }
-#endif
-        return reinterpret_cast<jlong>(config);
     } CATCH_STD()
 
     return static_cast<jlong>(NULL);
@@ -79,7 +72,7 @@ Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv*, jclass, jlong conf
 {
     TR_ENTER_PTR(config_ptr)
 
-    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    auto config = reinterpret_cast<JniConfigWrapper*>(config_ptr);
     delete config;
 }
 
@@ -88,9 +81,9 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlo
 {
     TR_ENTER_PTR(config_ptr)
 
-    auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
+    auto config = reinterpret_cast<JniConfigWrapper*>(config_ptr);
     try {
-        auto shared_realm = Realm::get_shared_realm(*config);
+        auto shared_realm = Realm::get_shared_realm(*config->get_config());
         shared_realm->m_binding_context = JavaBindingContext::create(env, notifier);
         // advance_read needs to be handled by Java because of async query.
         shared_realm->set_auto_refresh(false);
