@@ -50,7 +50,7 @@ public class CollectionTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    RealmConfiguration config;
+    private RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;
 
