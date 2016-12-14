@@ -70,7 +70,7 @@ struct AndroidClientListener : public realm::ClientThreadListener {
 
 struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
     std::unique_ptr<realm::util::Logger> make_logger(realm::util::Logger::Level level) {
-        std::unique_ptr<Logger> log_ptr(new CoreLoggerBridge());
+        return std::unique_ptr<Logger>(new CoreLoggerBridge());
     }
 } s_logger_factory;
 

@@ -243,6 +243,9 @@ public final class SyncManager {
      * Only call this method when testing
      */
     static synchronized void reset() {
+        for (SyncSession syncSession : sessions.values()) {
+            syncSession.stop();
+        }
         nativeReset();
         sessions.clear();
     }
