@@ -1,3 +1,12 @@
+## 2.2.2
+
+* Fixed "operation not permitted" issue when create Realm file on some devices' external storage (#3629).
+
+### Internal
+
+* Upgraded Realm Core to 2.1.0.
+* Upgraded Realm Sync to 1.0.0-BETA-5.0.
+
 ## 2.2.1
 
 ### Object Server API Changes (In Beta)
