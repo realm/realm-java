@@ -405,8 +405,8 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         size_t error_code;
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
-    char* c = new char[buf_size]; // throws
-    m_data.reset(c);
+    char* tmp_char_array = new char[buf_size]; // throws
+    m_data.reset(tmp_char_array);
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end   = in_begin + chars.size();
@@ -421,7 +421,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         }
         m_size = out_begin - m_data.get();
         // FIXME: Does this help on string issues? Or does it only help lldb?
-        std::memset(c + m_size, 0, buf_size - m_size);
+        std::memset(tmp_char_array + m_size, 0, buf_size - m_size);
     }
 }
 
