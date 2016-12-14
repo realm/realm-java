@@ -6,7 +6,6 @@
 #include "java_binding_context.hpp"
 #include "util.hpp"
 #if REALM_ENABLE_SYNC
-#include "sync/sync_config.hpp"
 #include "sync/sync_manager.hpp"
 #endif
 
