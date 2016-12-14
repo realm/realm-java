@@ -1555,12 +1555,12 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
-     * @throws IllegalArgumentException if Realm is synchronized.
+     * @throws UnsupportedOperationException if Realm is synchronized.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         // FIXME: remove this restriction when https://github.com/realm/realm-core/issues/2345 is resolved
         if (configuration.isSyncConfiguration()) {
-            throw new IllegalArgumentException("You cannot compact a sync'ed Realm.");
+            throw new UnsupportedOperationException("Compacting is not supported yet on synced Realms. See https://github.com/realm/realm-core/issues/2345");
         }
         return BaseRealm.compactRealm(configuration);
     }

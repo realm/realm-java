@@ -403,7 +403,7 @@ public class SyncConfigurationTests {
     }
 
     // FIXME: This test can be removed when https://github.com/realm/realm-core/issues/2345 is resolved
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void compact_NotAllowed() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
