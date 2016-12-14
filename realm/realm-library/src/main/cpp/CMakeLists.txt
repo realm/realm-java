@@ -120,7 +120,7 @@ set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macr
 -Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
 set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
-    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC")
+    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
 # There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
 # And this issue doesn't seem to impact the core compiling.
@@ -167,9 +167,7 @@ file(GLOB objectstore_SRC
     "object-store/src/util/android/*.cpp")
 # Sync needed Object Store files
 if (build_SYNC)
-    file(GLOB objectstore_sync_SRC
-        "object-store/src/sync_manager.cpp"
-        "object-store/src/sync_session.cpp")
+    file(GLOB objectstore_sync_SRC "object-store/src/sync/*")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
