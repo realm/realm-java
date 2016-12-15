@@ -34,7 +34,7 @@ import io.realm.internal.TableOrView;
  *
  * @see io.realm.RealmMigration
  */
-public final class RealmObjectSchema {
+public class RealmObjectSchema {
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
     static {
