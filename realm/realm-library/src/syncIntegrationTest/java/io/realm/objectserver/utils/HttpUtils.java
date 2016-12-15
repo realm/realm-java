@@ -18,6 +18,7 @@ package io.realm.objectserver.utils;
 
 import java.io.IOException;
 
+import io.realm.log.RealmLog;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -58,7 +59,7 @@ public class HttpUtils {
 
     // Checking the server
     private static boolean waitAuthServerReady() throws InterruptedException {
-        int retryTimes = 20;
+        int retryTimes = 50;
         Request request = new Request.Builder()
                 .url(Constants.AUTH_SERVER_URL)
                 .build();
@@ -69,9 +70,10 @@ public class HttpUtils {
                 if (response.isSuccessful()) {
                     return true;
                 }
+                RealmLog.error("Error response from auth server: %s", response.toString());
             } catch (IOException e) {
-                e.printStackTrace();
-                Thread.sleep(50);
+                RealmLog.error(e);
+                Thread.sleep(100);
             }
             retryTimes--;
         }
