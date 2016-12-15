@@ -45,10 +45,10 @@ public class HttpUtils {
 
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            RealmLog.debug(responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
 
-        System.out.println(response.body().string());
+        RealmLog.debug(response.body().string());
 
         // FIXME: Server ready checking should be done in the control server side!
         if (!waitAuthServerReady()) {
@@ -91,9 +91,9 @@ public class HttpUtils {
 
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            RealmLog.debug(responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
 
-        System.out.println(response.body().string());
+        RealmLog.debug(response.body().string());
     }
 }
