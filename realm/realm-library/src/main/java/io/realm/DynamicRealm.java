@@ -44,7 +44,7 @@ import rx.Observable;
  * @see Realm
  * @see RealmSchema
  */
-public final class DynamicRealm extends BaseRealm {
+public class DynamicRealm extends BaseRealm {
 
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
