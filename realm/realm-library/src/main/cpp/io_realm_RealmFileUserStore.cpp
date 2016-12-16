@@ -118,7 +118,7 @@ Java_io_realm_RealmFileUserStore_nativeResetForTesting (JNIEnv *, jclass)
 
 static const std::shared_ptr<SyncUser>& currentUserOrThrow() //throws
 {
-    std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_users();
+    std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_logged_in_users();
     if (all_users.size() > 1) {
         throw std::runtime_error(ERR_MULTIPLE_LOGGED_IN_USERS);
     } else if (all_users.size() < 1) {
