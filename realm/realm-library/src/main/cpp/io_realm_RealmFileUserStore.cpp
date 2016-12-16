@@ -82,7 +82,7 @@ JNIEXPORT jobjectArray JNICALL
 Java_io_realm_RealmFileUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
 {
     TR_ENTER()
-    std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_users();
+    std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_logged_in_users();
     if (!all_users.empty()) {
         std::vector<std::shared_ptr<SyncUser>> valid_users;
         jsize array_length = std::count_if(all_users.begin(),all_users.end(),
