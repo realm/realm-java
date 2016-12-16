@@ -17,6 +17,8 @@
 package io.realm.internal;
 
 import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.RealmChangeListener;
 
@@ -51,6 +53,8 @@ public abstract class RealmNotifier implements Closeable {
                 }
             };
 
+    private List<Runnable> transactionCallbacks = new ArrayList<Runnable>();
+
     // This is called by OS when other thread/process changes the Realm.
     // This is getting called on the same thread which created the Realm.
     // |---------------------------------------------------------------+--------------+------------------------------------------------|
@@ -70,6 +74,10 @@ public abstract class RealmNotifier implements Closeable {
     @SuppressWarnings("unused") // called from java_binding_context.cpp
     protected void didChange() {
         realmObserverPairs.foreach(onChangeCallBack);
+        for (Runnable runnable : transactionCallbacks) {
+            runnable.run();
+        }
+        transactionCallbacks.clear();
     }
 
     @SuppressWarnings("unused") // called from java_binding_context.cpp
@@ -103,5 +111,11 @@ public abstract class RealmNotifier implements Closeable {
         realmObserverPairs.clear();
     }
 
+    public void addTransactionCallback(Runnable runnable) {
+        transactionCallbacks.add(runnable);
+    }
+
     public abstract void postAtFrontOfQueue(Runnable runnable);
+
+    public abstract void post(Runnable runnable);
 }

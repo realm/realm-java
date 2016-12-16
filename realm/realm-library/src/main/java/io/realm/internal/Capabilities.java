@@ -16,7 +16,23 @@
 
 package io.realm.internal;
 
+/**
+ * To describe what does the Realm instance can do associated with the thread it is created on.
+ * The capabilities are determined when the Realm gets created. This interface could be called from another thread which
+ * is different from where the Realm is created on.
+ */
 public interface Capabilities {
+    /**
+     * Return true if this Realm can be notified by another thread.
+     *
+     * @return true if this Realm can be notified from an other thread.
+     */
     boolean canDeliverNotification();
+
+    /**
+     * Throw if this Realm cannot receive notifications.
+     *
+     * @param exceptionMessage message which is contained in the exception.
+     */
     void checkCanDeliverNotification(String exceptionMessage);
 }

@@ -3,14 +3,14 @@ package io.realm.internal.android;
 import android.os.Handler;
 import android.os.Looper;
 
+import io.realm.internal.Capabilities;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.SharedRealm;
 
 public class AndroidRealmNotifier extends RealmNotifier {
-    private final Handler handler;
+    private Handler handler;
 
-    public AndroidRealmNotifier() {
-        if (SharedRealm.getCapabilities().canDeliverNotification()) {
+    public AndroidRealmNotifier(Capabilities capabilities) {
+        if (capabilities.canDeliverNotification()) {
             handler = new Handler(Looper.myLooper());
         } else {
             handler = null;
@@ -21,6 +21,13 @@ public class AndroidRealmNotifier extends RealmNotifier {
     public void postAtFrontOfQueue(Runnable runnable) {
         if (handler != null) {
             handler.postAtFrontOfQueue(runnable);
+        }
+    }
+
+    @Override
+    public void post(Runnable runnable) {
+        if (handler != null) {
+            handler.post(runnable);
         }
     }
 }

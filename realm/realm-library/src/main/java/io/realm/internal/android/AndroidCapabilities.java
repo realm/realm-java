@@ -19,20 +19,31 @@ import android.os.Looper;
 
 import io.realm.internal.Capabilities;
 
+/**
+ * Realm capabilities for Android.
+ */
 public class AndroidCapabilities implements Capabilities {
+
+    private final boolean hasLooper;
+    private final boolean isIntentServiceThread;
+
+    public AndroidCapabilities() {
+        hasLooper = Looper.myLooper() != null;
+        isIntentServiceThread = isIntentServiceThread();
+    }
 
     @Override
     public boolean canDeliverNotification() {
-        return (Looper.myLooper() != null && !isIntentServiceThread());
+        return hasLooper && !isIntentServiceThread;
     }
 
     @Override
     public void checkCanDeliverNotification(String exceptionMessage) {
-        if (Looper.myLooper() == null) {
+        if (!hasLooper) {
             throw new IllegalStateException( exceptionMessage == null ? "" : (exceptionMessage + " ") +
                     "Realm cannot be automatically updated on a thread without a looper.");
         }
-        if (isIntentServiceThread()) {
+        if (isIntentServiceThread) {
             throw new IllegalStateException( exceptionMessage == null ? "" : (exceptionMessage + " ") +
                     "Realm cannot be automatically updated on a IntentService thread.");
         }

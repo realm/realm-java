@@ -37,7 +37,6 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
-import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 import rx.Observable;
@@ -76,7 +75,7 @@ abstract class BaseRealm implements Closeable {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
 
-        this.sharedRealm = SharedRealm.getInstance(configuration, new AndroidRealmNotifier(),
+        this.sharedRealm = SharedRealm.getInstance(configuration,
                 !(this instanceof Realm) ? null :
                 new SharedRealm.SchemaVersionListener() {
                     @Override

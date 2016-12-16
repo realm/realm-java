@@ -271,7 +271,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            SharedRealm.getCapabilities().checkCanDeliverNotification("Listener cannot be added.");
+            realm.sharedRealm.capabilities.checkCanDeliverNotification("Listener cannot be added.");
             //noinspection unchecked
             proxy.realmGet$proxyState().addChangeListener(listener);
         } else {

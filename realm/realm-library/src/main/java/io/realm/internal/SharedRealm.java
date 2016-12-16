@@ -25,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.realm.RealmConfiguration;
 import io.realm.RealmSchema;
 import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
 
 public final class SharedRealm implements Closeable {
 
@@ -35,8 +36,6 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 3;
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 4;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
-
-    private static final Capabilities capabilities = new AndroidCapabilities();
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
@@ -110,6 +109,8 @@ public final class SharedRealm implements Closeable {
     public final RowNotifier rowNotifier;
     public final ObjectServerFacade objectServerFacade;
     public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<WeakReference<Collection>>();
+    public final Capabilities capabilities;
+
     // To prevent overflow the message queue.
     public boolean disableSnapshotPosted = false;
 
@@ -176,29 +177,30 @@ public final class SharedRealm implements Closeable {
     private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
 
-    private SharedRealm(long nativePtr, RealmConfiguration configuration, RealmNotifier notifier,
-                        RowNotifier rowNotifier, SchemaVersionListener schemaVersionListener) {
+    private SharedRealm(long nativePtr, RealmConfiguration configuration, Capabilities capabilities,
+                        RealmNotifier notifier, RowNotifier rowNotifier, SchemaVersionListener schemaVersionListener) {
+        context = new Context();
+
         this.nativePtr = nativePtr;
         this.configuration = configuration;
 
-        if (notifier != null) {
-            notifier.setSharedRealm(this);
-        }
+        this.capabilities = capabilities;
         this.realmNotifier = notifier;
-
+        if (this.realmNotifier != null) {
+            this.realmNotifier.setSharedRealm(this);
+        }
         this.rowNotifier = rowNotifier;
         this.schemaChangeListener = schemaVersionListener;
-        context = new Context();
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
         objectServerFacade = null;
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
     }
 
     public static SharedRealm getInstance(RealmConfiguration config) {
-        return getInstance(config, null, null);
+        return getInstance(config, null);
     }
 
-    public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
+    public static SharedRealm getInstance(RealmConfiguration config,
                                           SchemaVersionListener schemaVersionListener) {
         String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
         String rosServerUrl = userAndServer[0];
@@ -206,6 +208,7 @@ public final class SharedRealm implements Closeable {
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
         boolean autoChangeNotifications = true;
+
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
@@ -216,11 +219,15 @@ public final class SharedRealm implements Closeable {
                 autoChangeNotifications,
                 rosServerUrl,
                 rosUserToken);
+
+        Capabilities capabilities = new AndroidCapabilities();
+        RealmNotifier realmNotifier = new AndroidRealmNotifier(capabilities);
         RowNotifier rowNotifier = new RowNotifier();
         try {
             return new SharedRealm(
                     nativeGetSharedRealm(nativeConfigPtr, realmNotifier, rowNotifier),
                     config,
+                    capabilities,
                     realmNotifier,
                     rowNotifier,
                     schemaVersionListener);
@@ -229,8 +236,7 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    // FIXME: can it be protected?
-    public long getNativePtr() {
+    long getNativePtr() {
         return nativePtr;
     }
 
@@ -357,10 +363,6 @@ public final class SharedRealm implements Closeable {
 
     public boolean isAutoRefresh() {
         return nativeIsAutoRefresh(nativePtr);
-    }
-
-    public static Capabilities getCapabilities() {
-        return capabilities;
     }
 
     @Override

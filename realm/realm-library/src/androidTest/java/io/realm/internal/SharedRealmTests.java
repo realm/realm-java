@@ -163,7 +163,7 @@ public class SharedRealmTests {
         final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
         sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, null, new SharedRealm.SchemaVersionListener() {
+        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
             @Override
             public void onSchemaVersionChanged(long currentVersion) {
                 listenerCalled.set(true);
@@ -202,7 +202,7 @@ public class SharedRealmTests {
         final AtomicLong schemaVersionFromListener = new AtomicLong(-1L);
 
         sharedRealm.close();
-        sharedRealm = SharedRealm.getInstance(config, null, new SharedRealm.SchemaVersionListener() {
+        sharedRealm = SharedRealm.getInstance(config, new SharedRealm.SchemaVersionListener() {
             @Override
             public void onSchemaVersionChanged(long currentVersion) {
                 listenerCalled.set(true);

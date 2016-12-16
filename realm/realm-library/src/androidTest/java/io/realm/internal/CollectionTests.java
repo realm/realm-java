@@ -32,7 +32,6 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
-import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -67,7 +66,7 @@ public class CollectionTests {
     }
 
     private SharedRealm getSharedRealm() {
-        return SharedRealm.getInstance(config, new AndroidRealmNotifier(), null);
+        return SharedRealm.getInstance(config, null);
     }
 
     private void populateData() {
