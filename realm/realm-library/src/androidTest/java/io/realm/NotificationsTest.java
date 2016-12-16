@@ -797,21 +797,6 @@ public class NotificationsTest {
 
     @Test
     @RunTestInLooperThread
-    public void realmListenerAddedAfterCommit() {
-        Realm realm = looperThread.realm;
-        realm.beginTransaction();
-        realm.commitTransaction();
-
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                looperThread.testComplete();
-            }
-        });
-    }
-
-    @Test
-    @RunTestInLooperThread
     public void realmResultsListenerAddedAfterCommit() {
         Realm realm = looperThread.realm;
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
