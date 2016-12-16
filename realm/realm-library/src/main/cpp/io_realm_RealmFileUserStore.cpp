@@ -35,7 +35,9 @@ Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
     TR_ENTER()
     try {
         const std::shared_ptr<SyncUser> &user = currentUserOrThrow();
-        if (user->state() == SyncUser::State::Active) {
+        if (user == NULL) {
+            return nullptr;
+        } else if (user->state() == SyncUser::State::Active) {
             return to_jstring(env, user->refresh_token().data());
         } else {
             return nullptr;
@@ -63,6 +65,9 @@ Java_io_realm_RealmFileUserStore_nativeLogoutCurrentUser (JNIEnv *env, jclass)
     TR_ENTER()
     try {
         const std::shared_ptr<SyncUser>& user = currentUserOrThrow();
+        if (user == NULL) {
+            throw std::runtime_error(ERR_NO_LOGGED_IN_USER);
+        }
         user->log_out();
     } CATCH_STD()
 }
@@ -122,7 +127,7 @@ static const std::shared_ptr<SyncUser>& currentUserOrThrow() //throws
     if (all_users.size() > 1) {
         throw std::runtime_error(ERR_MULTIPLE_LOGGED_IN_USERS);
     } else if (all_users.size() < 1) {
-        throw std::runtime_error(ERR_NO_LOGGED_IN_USER);
+        return NULL;
     } else {
         return all_users.front();
     }
