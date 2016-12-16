@@ -53,6 +53,13 @@ public abstract class RealmNotifier implements Closeable {
                 }
             };
 
+    // TODO: The only reason we have this is that async transactions is not supported by OS yet. And OS is using ALopper
+    // which will be using a different message queue from which java is using to deliver remote Realm changes message.
+    // We need a way to deliver the async transaction onSuccess callback to the caller thread after the caller Realm
+    // advanced. This is implemented by posting the callback by RealmNotifier.post() first, and check the realm version
+    // in the posted Runnable. If the Realm version there is still behind the async transaction we committed, the
+    // onSuccess callback will be added to this list and be executed later when we get the change event from OS.
+    // This list is NOT supposed to be thread safe!
     private List<Runnable> transactionCallbacks = new ArrayList<Runnable>();
 
     // This is called by OS when other thread/process changes the Realm.
@@ -117,5 +124,10 @@ public abstract class RealmNotifier implements Closeable {
 
     public abstract void postAtFrontOfQueue(Runnable runnable);
 
+    /**
+     * For current implementation of async transaction only. See comments for {@link #transactionCallbacks}.
+     *
+     * @param runnable to be executed in the following event loop.
+     */
     public abstract void post(Runnable runnable);
 }
