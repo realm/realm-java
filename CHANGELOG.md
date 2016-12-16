@@ -6,7 +6,7 @@
 
 ### Bug fixes
 
-* Fixed "operation not permitted" issue when create Realm file on some devices' external storage (#3629).
+* "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
 
 ### Enhancements
 
