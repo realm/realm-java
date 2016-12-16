@@ -1,6 +1,16 @@
 ## 2.2.2
 
+### Object Server API Changes (In Beta)
+
+* Disabled `Realm.compactRealm()` when sync is enabled as it might corrupt the Realm (https://github.com/realm/realm-core/issues/2345).
+
+### Bug fixes
+
 * Fixed "operation not permitted" issue when create Realm file on some devices' external storage (#3629).
+
+### Enhancements
+
+* All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
 
 ### Internal
 
