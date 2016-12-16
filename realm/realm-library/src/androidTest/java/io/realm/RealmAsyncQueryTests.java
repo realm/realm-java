@@ -60,7 +60,6 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmAsyncQueryTests {
-/*
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
@@ -128,18 +127,20 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransactionAsync_onError() throws Throwable {
         final Realm realm = looperThread.realm;
+        final RuntimeException runtimeException = new RuntimeException("Oh! What a Terrible Failure");
         assertEquals(0, realm.where(Owner.class).count());
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                throw new RuntimeException("Oh! What a Terrible Failure");
+                throw runtimeException;
             }
         }, new Realm.Transaction.OnError() {
             @Override
             public void onError(Throwable error) {
                 assertEquals(0, realm.where(Owner.class).count());
                 assertNull(realm.where(Owner.class).findFirst());
+                assertEquals(runtimeException, error);
                 looperThread.testComplete();
             }
         });
@@ -167,10 +168,10 @@ public class RealmAsyncQueryTests {
         });
     }
 
-    // Test that an async transaction that throws an exception propagate it properly to the user.
+    // Test that an async transaction that throws when call cancelTransaction manually.
     @Test
     @RunTestInLooperThread
-    public void executeTransactionAsync_exceptionHandling() throws Throwable {
+    public void executeTransactionAsync_cancelTransactionInside() throws Throwable {
         final TestHelper.TestLogger testLogger = new TestHelper.TestLogger(LogLevel.DEBUG);
         RealmLog.add(testLogger);
 
@@ -183,8 +184,7 @@ public class RealmAsyncQueryTests {
             public void execute(Realm realm) {
                 Owner owner = realm.createObject(Owner.class);
                 owner.setName("Owner");
-                realm.cancelTransaction(); // Cancel the transaction then throw
-                throw new RuntimeException("Boom");
+                realm.cancelTransaction();
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -195,7 +195,9 @@ public class RealmAsyncQueryTests {
             @Override
             public void onError(Throwable error) {
                 // Ensure we are giving developers quality messages in the logs.
-                assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
+                assertTrue(testLogger.message.contains(
+                        "Exception has been throw: Can't commit a non-existing write transaction"));
+                assertTrue(error instanceof IllegalStateException);
                 RealmLog.remove(testLogger);
                 looperThread.testComplete();
             }
@@ -311,6 +313,7 @@ public class RealmAsyncQueryTests {
         });
     }
 
+/*
     // ************************************
     // *** promises based async queries ***
     // ************************************
