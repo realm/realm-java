@@ -1,3 +1,9 @@
+## 2.3.0
+
+### Object Server API Changes (In Beta)
+
+* Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+
 ## 2.2.2
 
 ### Object Server API Changes (In Beta)
@@ -15,7 +21,6 @@
 ### Object Server API Changes (In Beta)
 
 * Fixed `SyncConfiguration.toString()` so it now outputs a correct description instead of an empty string (#3787).
-* Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 
 ### Bug fixes
 
