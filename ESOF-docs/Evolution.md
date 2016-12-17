@@ -10,6 +10,8 @@
 
 ## Software Maintability <a name="maintability"></a>
 
+![SIG Metrics](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/Metrics.png)
+
 [![BCH compliance](https://bettercodehub.com/edge/badge/renatoabreu11/realm-java)](https://bettercodehub.com)
 
 ## Evolution Process <a name="evolution"></a>
