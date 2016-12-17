@@ -235,13 +235,13 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void not_equals_same() {
+    public void equals_same() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config1 = new SyncConfiguration.Builder(user, url).build();
         SyncConfiguration config2 = new SyncConfiguration.Builder(user, url).build();
 
-        assertFalse(config1.equals(config2));
+        assertTrue(config1.equals(config2));
     }
 
     @Test
@@ -400,5 +400,15 @@ public class SyncConfigurationTests {
 
         String configStr = config.toString();
         assertTrue(configStr != null && !configStr.isEmpty());
+    }
+
+    // FIXME: This test can be removed when https://github.com/realm/realm-core/issues/2345 is resolved
+    @Test(expected = UnsupportedOperationException.class)
+    public void compact_NotAllowed() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+
+        Realm.compactRealm(config);
     }
 }

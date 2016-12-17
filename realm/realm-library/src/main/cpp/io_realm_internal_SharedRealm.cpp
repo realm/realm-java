@@ -25,6 +25,9 @@
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
+#if REALM_ENABLE_SYNC
+#include "sync/sync_manager.hpp"
+#endif
 
 using namespace realm;
 using namespace realm::_impl;
@@ -69,16 +72,9 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
-#ifdef REALM_ENABLE_SYNC
+#if REALM_ENABLE_SYNC
         if (sync_server_url) {
-            JStringAccessor url(env, sync_server_url);
-            JStringAccessor token(env, sync_user_token);
-            // FIXME: Ignore User token for now. Will be fixed when moving to OS
-            // For now the Java session takes care of users
-            config->sync_config = std::make_shared<SyncConfig>(nullptr, url, SyncSessionStopPolicy::Immediately,
-                                                               nullptr, nullptr);
-            // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
-            config->sync_config->create_session = false;
+            config->force_sync_history = true;
         }
 #endif
         return reinterpret_cast<jlong>(config);

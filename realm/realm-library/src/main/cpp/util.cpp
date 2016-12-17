@@ -427,7 +427,8 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         size_t error_code;
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
-    m_data.reset(new char[buf_size]);  // throws
+    char* tmp_char_array = new char[buf_size]; // throws
+    m_data.reset(tmp_char_array);
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end   = in_begin + chars.size();
@@ -441,6 +442,8 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
             throw invalid_argument(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();
+        // FIXME: Does this help on string issues? Or does it only help lldb?
+        std::memset(tmp_char_array + m_size, 0, buf_size - m_size);
     }
 }
 

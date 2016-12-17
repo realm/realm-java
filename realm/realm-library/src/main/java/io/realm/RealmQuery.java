@@ -49,7 +49,7 @@ import io.realm.internal.TableQuery;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public final class RealmQuery<E extends RealmModel> {
+public class RealmQuery<E extends RealmModel> {
 
     private BaseRealm realm;
     private Class<E> clazz;
