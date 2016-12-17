@@ -993,7 +993,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
                 LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
-            LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
         }
 
         return rowIndex;
@@ -1057,7 +1056,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         }
                         LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
-                    LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
                 }
 
             }
@@ -1123,7 +1121,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
         }
-        LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
 
         return rowIndex;
     }
@@ -1192,7 +1189,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
                 }
-                LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
 
             }
         }

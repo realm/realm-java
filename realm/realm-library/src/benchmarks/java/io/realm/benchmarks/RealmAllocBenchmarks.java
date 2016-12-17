@@ -16,6 +16,8 @@
 
 package io.realm.benchmarks;
 
+import android.support.test.InstrumentationRegistry;
+
 import org.junit.runner.RunWith;
 
 import dk.ilios.spanner.AfterExperiment;
@@ -26,65 +28,63 @@ import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 import io.realm.benchmarks.config.BenchmarkConfig;
 import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 
 @RunWith(SpannerRunner.class)
-public class RealmObjectWriteBenchmarks {
-
+public class RealmAllocBenchmarks {
     @BenchmarkConfiguration
     public SpannerConfig configuration = BenchmarkConfig.getConfiguration(this.getClass().getCanonicalName());
 
     private Realm realm;
-    private AllTypes writeObject;
 
     @BeforeExperiment
     public void before() {
+        Realm.init(InstrumentationRegistry.getTargetContext());
         RealmConfiguration config = new RealmConfiguration.Builder().build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
-        writeObject = realm.createObject(AllTypes.class);
+        realm.createObject(AllTypes.class).getColumnRealmList().add(realm.createObject(Dog.class));
+        realm.commitTransaction();
     }
 
     @AfterExperiment
     public void after() {
-        realm.cancelTransaction();
         realm.close();
     }
 
     @Benchmark
-    public void writeShortString(long reps) {
+    public void createObjects(long reps) {
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         for (long i = 0; i < reps; i++) {
-            writeObject.setColumnString("Foo");
+            results.first();
         }
     }
 
     @Benchmark
-    public void writeMediumString(long reps) {
+    public void createQueries(long reps) {
         for (long i = 0; i < reps; i++) {
-            writeObject.setColumnString("ABCDEFHIJKLMNOPQ");
+            realm.where(AllTypes.class);
+        }
+    }
+    @Benchmark
+    public void createRealmResults(long reps) {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        for (long i = 0; i < reps; i++) {
+            query.findAll();
         }
     }
 
     @Benchmark
-    public void writeLongString(long reps) {
+    public void createRealmLists(long reps) {
+        AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         for (long i = 0; i < reps; i++) {
-            writeObject.setColumnString("ABCDEFHIJKLMNOPQABCDEFHIJKLMNOPQABCDEFHIJKLMNOPQABCDEFHIJKLMNOPQ");
-        }
-    }
-
-    @Benchmark
-    public void writeLong(long reps) {
-        for (long i = 0; i < reps; i++) {
-            writeObject.setColumnLong(42);
-        }
-    }
-
-    @Benchmark
-    public void writeDouble(long reps) {
-        for (long i = 0; i < reps; i++) {
-            writeObject.setColumnDouble(1.234D);
+            //noinspection ConstantConditions
+            allTypes.getColumnRealmList();
         }
     }
 }

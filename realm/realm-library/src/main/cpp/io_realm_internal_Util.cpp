@@ -46,6 +46,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         java_lang_float       = GetClass(env, "java/lang/Float");
         java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
         java_lang_double      = GetClass(env, "java/lang/Double");
+        java_lang_string      = GetClass(env, "java/lang/String");
         java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
     }
 
@@ -62,6 +63,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
         env->DeleteGlobalRef(java_lang_long);
         env->DeleteGlobalRef(java_lang_float);
         env->DeleteGlobalRef(java_lang_double);
+        env->DeleteGlobalRef(java_lang_string);
     }
 }
 

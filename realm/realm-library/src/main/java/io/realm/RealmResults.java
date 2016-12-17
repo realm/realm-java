@@ -68,7 +68,7 @@ import rx.Observable;
  * @see RealmQuery#findAll()
  * @see io.realm.Realm#executeTransaction(Realm.Transaction)
  */
-public final class RealmResults<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
+public class RealmResults<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
 
