@@ -46,6 +46,7 @@ public class SyncUserTests {
 
     @BeforeClass
     public static void initUserStore() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         UserStore userStore = new RealmFileUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
         SyncManager.setUserStore(userStore);
     }
@@ -83,6 +84,7 @@ public class SyncUserTests {
 
         SyncUser savedUser = SyncUser.currentUser();
         assertEquals(user, savedUser);
+        assertNotNull(savedUser);
         savedUser.logout();
         assertNull(SyncUser.currentUser());
     }
