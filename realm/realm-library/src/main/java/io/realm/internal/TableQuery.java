@@ -338,16 +338,16 @@ public class TableQuery implements NativeObject {
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
     
     public TableQuery like(long[] columnIndexes, String value, Case caseSensitive) {
-		nativeLike(nativePtr, columnIndexes, value, caseSensitive.getValue());
-		queryValidated = false;
-		return this;
-	}
+	nativeLike(nativePtr, columnIndexes, value, caseSensitive.getValue());
+	queryValidated = false;
+	return this;
+    }
 
-public TableQuery like(long[] columnIndexes, String value) {
-		nativeLike(nativePtr, columnIndexes, value, true);
-		queryValidated = false;
-		return this;
-	}
+    public TableQuery like(long[] columnIndexes, String value) {
+	nativeLike(nativePtr, columnIndexes, value, true);
+	queryValidated = false;
+	return this;
+    }
 
     // Equal
     public TableQuery equalTo(long[] columnIndexes, String value, Case caseSensitive) {
