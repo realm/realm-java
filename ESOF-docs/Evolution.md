@@ -12,7 +12,7 @@
 
 ![SIG Metrics](https://github.com/renatoabreu11/realm-java/blob/master/ESOF-docs/Resources/Metrics.png)
 
-As we can see from Realm Metrics, it fails on "Write Short Units of Code" but passes on "Write Simples Units of Code" and this is due to
+As we can see from Realm Metrics, it fails on "Write Short Units of Code" but passes on "Write Simples Units of Code". In fact, some functions are very large. Still, realm uses many interfaces to take advantage of polymorphism, and therefore, avoiding conditional logic.
 
 Relatively to the third metric, Realm fails but looking at the refactoring candidates we conclude that is understandable since Realm
 needs to have methods (getters and setters) and value definitions for each type of data (Bool, Byte, Long, String, Short), and as such
@@ -25,8 +25,12 @@ table vary significantly and as such it isn't rewarding to group those parameter
 Regarding "Separate Concerns in Modules", after working closely with this project we definitely agree that Realm modules could be better
 organized. Each Realm module is extensive and has a lot of functionalities which consequently affects the maintability. 
 
+The "Couple Architecture Components Loosely" metric is successful. In fact, realm hides implementation details on many interfaces, reducing dependencies between components.
+
 The seven metric, in this project, isn't reliable at all because Realm architecture components are inside "realm" folder. This metric
 analysed the root folder, so we cannot conclude anything relatively to the result.
+
+Although the realm is a complex project bringing many functionality to those who use it, they can comply with the "Keeping Your Codebase Small" parameter. This has certainly been achieved by several refactoring sessions over time.
 
 In terms of clean code, we can see that the main developers try and encourage all the contributors to use the best practices. So, the
 contribution guidelines are well explained and strictly followed by all users.
