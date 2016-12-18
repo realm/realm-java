@@ -72,6 +72,8 @@ As requested in the issue and to test our implementation, we had to create test 
 
 ## Pull Request <a name="pull"></a>
 
+The link to pull request is [here](https://github.com/realm/realm-java/pull/3922#pullrequestreview-13474336).
+
 ## Contribuition <a name="contribuition"></a>
 
 Carolina Centeio: 25%
