@@ -829,9 +829,9 @@ enum StringPredicate {
     StringNotEqual,
     StringContains,
     StringBeginsWith,
-    StringEndsWith
+    StringEndsWith,
+    StringLike
 };
-
 
 static void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
     JniLongArray arr(env, columnIndexes);
@@ -864,6 +864,9 @@ static void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             case StringEndsWith:
                 Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, is_case_sensitive);
                 break;
+            case StringLike:
+            	 Q(nativeQueryPtr)->like(S(arr[0]), value2, is_case_sensitive);
+            	 break;
             }
         }
         else {
@@ -884,9 +887,19 @@ static void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongA
             case StringEndsWith:
                 Q(nativeQueryPtr)->and_query(table_ref->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), is_case_sensitive));
                 break;
+            case StringLike:
+            	 Q(nativeQueryPtr)->and_query(table_ref->column<String>(size_t(arr[arr_len-1])).like(StringData(value2), is_case_sensitive));
+                break;
             }
         }
     } CATCH_STD()
+}
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLike__J_3JLjava_lang_String_2Z(
+    JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
+{
+    TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringLike);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_lang_String_2Z(

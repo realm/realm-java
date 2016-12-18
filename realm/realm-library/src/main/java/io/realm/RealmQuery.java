@@ -236,6 +236,17 @@ public class RealmQuery<E extends RealmModel> {
         this.query.isNotNull(columnIndices);
         return this;
     }
+    
+    // Like
+    public RealmQuery<E> like(String fieldName, String value) {
+        return this.like(fieldName, value, Case.SENSITIVE);
+    }
+
+public RealmQuery<E> like(String fieldName, String value, Case casing) {
+		long columnIndices[] = schema.getColumnIndices(fieldName,     RealmFieldType.STRING);
+		this.query.like(columnIndices, value, casing);
+		return this;
+	}
 
     // Equal
 
