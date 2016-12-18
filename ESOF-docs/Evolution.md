@@ -60,22 +60,15 @@ that replaces databases like SQLite & ORMs, so it makes sense that the queries b
 functionalites. The LIKE query, in our perspective, is pretty important and since wildcard matches was merged to Realm Core, meaning
 that we could abstain from undestanding all the core details, it allowed us to add the required support to RealmQuery, as suggested in
 the issue. The feature that we decided to implement lets the user query a realm using the RealmQuery "like" function -
-RealmQuery.like(String field, String value) -, which is used to match a field against a value using wildcards ( * and ? ) and if the
-field expression is matched with the expression, it returns true.
+RealmQuery.like(String field, String value) -, which is used to match a field against a value using wildcards (* and ?).
 
-The feature will be part of a group of conditions that RealmQuery already supports (between, contains, lessThan, etc) and as such the best way to implement this feature is to check where those supported conditions are implemented: 
-
-* [RealmQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/RealmQuery.java)
+The feature will be part of a group of conditions that RealmQuery already supports (between, contains, lessThan, etc) and as such the best way to implement this feature is to check where those supported conditions are implemented. The file identified was [RealmQuery.java](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/RealmQuery.java).
 
 Looking at this file, we first tried to find out if there were some functions that operate on Strings that are similar to the function that was going to be implemented. The most similar function found was the function equalTo(). 
-We try to see how this function was implemented, more concretely, the functions called. The last function called was a native function implemented in C ++, TableQuery_StringPredicate(). 
+We try to see how this function was implemented, more concretely, the functions called in [TableQuery.java](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/internal/TableQuery.java). The last function called was a native function implemented in C ++, TableQuery_StringPredicate(), present in file [io_realm_internal_TableQuery.java](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/cpp/io_realm_internal_TableQuery.cpp). 
 This function is not only called for the function equalTo(), but for all querys that operate on strings. We just had to add a case to the switch there, and then call a newly deployed function in the realm core.
 
-* [TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/internal/TableQuery.java)
-
-* [io_realm_internal_TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/cpp/io_realm_internal_TableQuery.cpp)
-
-As requested in the issue and to test our implementation, we had to create test cases to check if our feature was working properly, so a new test was created in [RealmQueryTests](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java), since all queries and conditions are tested there.
+As requested in the issue and to test our implementation, we had to create test cases to check if our feature was working properly, so a new test was created in [RealmQueryTests.java](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java), since all queries and conditions are tested there.
 
 ## Pull Request <a name="pull"></a>
 
