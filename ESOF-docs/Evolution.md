@@ -75,9 +75,7 @@ This function is not only called for the function equalTo(), but for all querys 
 
 * [io_realm_internal_TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/cpp/io_realm_internal_TableQuery.cpp)
 
-As requested in the issue and to test our implementation, we had to create test cases to check if our feature was working properly. 
-
-* [RealmQueryTests](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java)
+As requested in the issue and to test our implementation, we had to create test cases to check if our feature was working properly, so a new test was created in [RealmQueryTests](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java), since all queries and conditions are tested there.
 
 ## Pull Request <a name="pull"></a>
 
