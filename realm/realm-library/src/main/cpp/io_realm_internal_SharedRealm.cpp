@@ -57,7 +57,6 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
-#if REALM_ENABLE_SYNC
         if (sync_server_url) {
             return reinterpret_cast<jlong>(new JniConfigWrapper(env,
                                                                 config,
