@@ -20,23 +20,33 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
+import java.util.UUID;
 
+import io.realm.internal.network.AuthenticateResponse;
+import io.realm.internal.network.AuthenticationServer;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
+import static io.realm.util.SyncTestUtils.createRandomTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncUserTests {
@@ -46,6 +56,7 @@ public class SyncUserTests {
 
     @BeforeClass
     public static void initUserStore() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         UserStore userStore = new RealmFileUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
         SyncManager.setUserStore(userStore);
     }
@@ -73,6 +84,29 @@ public class SyncUserTests {
         assertNull(SyncUser.currentUser());
     }
 
+    @Test
+    public void currentUser_throwsIfMultipleUsersLoggedIn() {
+        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        SyncManager.setAuthServerImpl(authServer);
+
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(getNewRandomUser());
+        SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+        SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+
+        try {
+            SyncUser.currentUser();
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            SyncManager.setAuthServerImpl(originalAuthServer);
+        }
+    }
+
+    private AuthenticateResponse getNewRandomUser() {
+        return SyncTestUtils.createLoginResponse(UUID.randomUUID().toString(), Long.MAX_VALUE);
+    }
+
     // Test that current user is cleared if it is logged out
     @Test
     public void currentUser_clearedOnLogout() {
@@ -83,6 +117,7 @@ public class SyncUserTests {
 
         SyncUser savedUser = SyncUser.currentUser();
         assertEquals(user, savedUser);
+        assertNotNull(savedUser);
         savedUser.logout();
         assertNull(SyncUser.currentUser());
     }

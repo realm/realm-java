@@ -5,4 +5,4 @@ REALM_SYNC_SHA256=7bbaa9cdef722d85489feb1b70da11d5640869540d9a0fc40621de7352dd9f
 
 # Object Server Release used by Integration tests
 # https://packagecloud.io/realm/realm?filter=debs
-REALM_OBJECT_SERVER_DE_VERSION=1.0.0-BETA-2.3-310
+REALM_OBJECT_SERVER_DE_VERSION=1.0.0-BETA-4.11-449

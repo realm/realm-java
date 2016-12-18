@@ -406,4 +406,14 @@ public class SyncConfigurationTests {
         String configStr = config.toString();
         assertTrue(configStr != null && !configStr.isEmpty());
     }
+
+    // FIXME: This test can be removed when https://github.com/realm/realm-core/issues/2345 is resolved
+    @Test(expected = UnsupportedOperationException.class)
+    public void compact_NotAllowed() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+
+        Realm.compactRealm(config);
+    }
 }

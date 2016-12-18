@@ -43,7 +43,7 @@ import io.realm.log.RealmLog;
  */
 @Keep
 @Beta
-public final class SyncManager {
+public class SyncManager {
 
     /**
      * APP ID sent to the Realm Object Server. Is automatically initialized to the package name for the app.

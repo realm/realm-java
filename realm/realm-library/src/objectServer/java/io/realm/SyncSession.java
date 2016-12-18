@@ -41,7 +41,7 @@ import io.realm.log.RealmLog;
  */
 @Keep
 @Beta
-public final class SyncSession {
+public class SyncSession {
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;

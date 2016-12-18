@@ -71,7 +71,7 @@ import io.realm.rx.RxObservableFactory;
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  */
 @Beta
-public final class SyncConfiguration extends RealmConfiguration {
+public class SyncConfiguration extends RealmConfiguration {
 
     public static final int PORT_REALM = 80;
     public static final int PORT_REALMS = 443;
