@@ -67,15 +67,17 @@ The feature will be part of a group of conditions that RealmQuery already suppor
 
 * [RealmQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/RealmQuery.java)
 
-Contains the declaration and definition of all queries and conditions. Regarding the conditions, those functions are responsible to get the fieldName value and call the respective TableQuery method.  
+Looking at this file, we first tried to find out if there were some functions that operate on Strings that are similar to the function that was going to be implemented. The most similar function found was the function equalTo(). 
+We try to see how this function was implemented, more concretely, the functions called. The last function called was a native function implemented in C ++, TableQuery_StringPredicate(). 
+This function is not only called for the function equalTo(), but for all querys that operate on strings. We just had to add a case to the switch there, and then call a newly deployed function in the realm core.
 
 * [TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/internal/TableQuery.java)
 
 * [io_realm_internal_TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/cpp/io_realm_internal_TableQuery.cpp)
 
-* [RealmQueryTests](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java)
-
 As requested in the issue and to test our implementation, we had to create test cases to check if our feature was working properly. 
+
+* [RealmQueryTests](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java)
 
 ## Pull Request <a name="pull"></a>
 
