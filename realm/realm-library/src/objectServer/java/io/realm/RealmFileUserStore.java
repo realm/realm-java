@@ -85,8 +85,4 @@ public class RealmFileUserStore implements UserStore {
     protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
 
     protected static native void nativeLogoutCurrentUser();
-
-    // Should only be called for tests
-    static native void nativeResetForTesting();
-
 }

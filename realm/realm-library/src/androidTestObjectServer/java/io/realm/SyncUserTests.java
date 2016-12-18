@@ -63,7 +63,7 @@ public class SyncUserTests {
 
     @After
     public void tearDown() {
-        RealmFileUserStore.nativeResetForTesting();
+        SyncManager.reset();
     }
 
     @Test
