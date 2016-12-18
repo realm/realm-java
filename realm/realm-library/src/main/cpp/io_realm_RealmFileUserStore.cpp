@@ -34,6 +34,7 @@ Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
+        // FIXME Latest version of master has a `SyncManager::get_current_user`. Switch to that when we upgrade
         const std::shared_ptr<SyncUser> &user = currentUserOrThrow();
         if (user->state() == SyncUser::State::Active) {
             return to_jstring(env, user->refresh_token().data());
@@ -122,7 +123,7 @@ static const std::shared_ptr<SyncUser>& currentUserOrThrow() //throws
     if (all_users.size() > 1) {
         throw std::runtime_error(ERR_MULTIPLE_LOGGED_IN_USERS);
     } else if (all_users.size() < 1) {
-        throw std::runtime_error(ERR_NO_LOGGED_IN_USER);
+        return nullptr;
     } else {
         return all_users.front();
     }
