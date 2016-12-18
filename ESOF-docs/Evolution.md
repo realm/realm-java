@@ -67,11 +67,15 @@ The feature will be part of a group of conditions that RealmQuery already suppor
 
 * [RealmQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/RealmQuery.java)
 
+Contains the declaration and definition of all queries and conditions. Regarding the conditions, those functions are responsible to get the fieldName value and call the respective TableQuery method.  
+
 * [TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/java/io/realm/internal/TableQuery.java)
 
 * [io_realm_internal_TableQuery](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/main/cpp/io_realm_internal_TableQuery.cpp)
 
 * [RealmQueryTests](https://github.com/realm/realm-java/blob/master/realm/realm-library/src/androidTest/java/io/realm/RealmQueryTests.java)
+
+As requested in the issue and to test our implementation, we had to create test cases to check if our feature was working properly. 
 
 ## Pull Request <a name="pull"></a>
 
