@@ -104,7 +104,9 @@ public class SyncUserTests {
     }
 
     private AuthenticateResponse getNewRandomUser() {
-        return SyncTestUtils.createLoginResponse(UUID.randomUUID().toString(), Long.MAX_VALUE);
+        String identity = UUID.randomUUID().toString();
+        String userTokenValue = UUID.randomUUID().toString();
+        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE);
     }
 
     // Test that current user is cleared if it is logged out
