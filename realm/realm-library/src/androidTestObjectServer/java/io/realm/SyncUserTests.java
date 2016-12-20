@@ -20,7 +20,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +39,6 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
-import static io.realm.util.SyncTestUtils.createRandomTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
