@@ -26,6 +26,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -90,7 +92,12 @@ public class SyncUserTests {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         SyncManager.setAuthServerImpl(authServer);
 
-        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(getNewRandomUser());
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
+            @Override
+            public AuthenticateResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
+                return getNewRandomUser();
+            }
+        });
         SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
         SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
 
