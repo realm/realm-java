@@ -74,12 +74,12 @@ public class SyncTestUtils {
     }
 
     public static AuthenticateResponse createLoginResponse(long expires) {
-        return createLoginResponse(USER_TOKEN, expires);
+        return createLoginResponse(USER_TOKEN, "JohnDoe", expires);
     }
 
-    public static AuthenticateResponse createLoginResponse(String userTokenValue, long expires) {
+    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires) {
         try {
-            Token userToken = new Token(userTokenValue, "JohnDoe", null, expires, null);
+            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null);
             JSONObject response = new JSONObject();
             response.put("refresh_token", userToken.toJson());
             return AuthenticateResponse.from(response.toString());

@@ -20,12 +20,13 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,7 +39,6 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
-import static io.realm.util.SyncTestUtils.createRandomTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -90,7 +90,12 @@ public class SyncUserTests {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         SyncManager.setAuthServerImpl(authServer);
 
-        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(getNewRandomUser());
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
+            @Override
+            public AuthenticateResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
+                return getNewRandomUser();
+            }
+        });
         SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
         SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
 
@@ -104,7 +109,9 @@ public class SyncUserTests {
     }
 
     private AuthenticateResponse getNewRandomUser() {
-        return SyncTestUtils.createLoginResponse(UUID.randomUUID().toString(), Long.MAX_VALUE);
+        String identity = UUID.randomUUID().toString();
+        String userTokenValue = UUID.randomUUID().toString();
+        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE);
     }
 
     // Test that current user is cleared if it is logged out
