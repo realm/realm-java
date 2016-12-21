@@ -31,7 +31,6 @@ Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
-
         const std::shared_ptr<SyncUser> &user = SyncManager::shared().get_current_user();
         if (user) {
             return to_jstring(env, user->refresh_token().data());

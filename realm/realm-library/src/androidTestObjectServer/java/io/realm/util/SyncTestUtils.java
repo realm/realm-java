@@ -35,21 +35,25 @@ public class SyncTestUtils {
     public static String REALM_TOKEN = UUID.randomUUID().toString();
     public static String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
 
+    public static SyncUser createRandomTestUser() {
+        return createTestUser(UUID.randomUUID().toString(), UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE);
+    }
+
     public static SyncUser createTestUser() {
-        return createTestUser(DEFAULT_AUTH_URL, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_AUTH_URL, Long.MAX_VALUE);
     }
 
     public static SyncUser createTestUser(long expires) {
-        return createTestUser(DEFAULT_AUTH_URL, expires);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_AUTH_URL, expires);
     }
 
     public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(authUrl, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, authUrl, Long.MAX_VALUE);
     }
 
-    public static SyncUser createTestUser(String authUrl, long expires) {
-        Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
-        Token accessToken = new Token(REALM_TOKEN, "JohnDoe", "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
+    public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String authUrl, long expires) {
+        Token userToken = new Token(userTokenValue, "JohnDoe", null, expires, null);
+        Token accessToken = new Token(realmTokenValue, "JohnDoe", "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
         ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
         JSONObject obj = new JSONObject();
@@ -70,8 +74,12 @@ public class SyncTestUtils {
     }
 
     public static AuthenticateResponse createLoginResponse(long expires) {
+        return createLoginResponse(USER_TOKEN, "JohnDoe", expires);
+    }
+
+    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires) {
         try {
-            Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
+            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null);
             JSONObject response = new JSONObject();
             response.put("refresh_token", userToken.toJson());
             return AuthenticateResponse.from(response.toString());
