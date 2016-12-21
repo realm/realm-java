@@ -31,15 +31,10 @@ Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
-        try {
-            const std::shared_ptr<SyncUser> &user = SyncManager::shared().get_current_user();
-            if (user) {
-                return to_jstring(env, user->refresh_token().data());
-            } else {
-                return nullptr;
-            }
-        } catch (std::logic_error e) {
-            ThrowException(env, IllegalState, "Multiple users have been logged in. `currentUser` is only valid if one single user is logged in.");
+        const std::shared_ptr<SyncUser> &user = SyncManager::shared().get_current_user();
+        if (user) {
+            return to_jstring(env, user->refresh_token().data());
+        } else {
             return nullptr;
         }
     } CATCH_STD()
