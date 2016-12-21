@@ -91,6 +91,8 @@ public abstract class CollectionTests {
                 NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
                 nonLatinFieldNames.set델타(i);
                 nonLatinFieldNames.setΔέλτα(i);
+                // Set the linked object to itself.
+                obj.setFieldObject(obj);
             }
 
             // Add all items to the RealmList on the first object
