@@ -116,6 +116,7 @@ Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv*, jclass, jlong
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto ptr = reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+    (*ptr)->close();
     delete ptr;
 }
 
