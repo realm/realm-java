@@ -170,18 +170,18 @@ public class CollectionTests {
 
     @Test
     public void sort() {
-        Collection collection = new Collection(sharedRealm, table.where());
+        Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[]{2}, 1));
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
 
         Collection collection2 =collection.sort(sortDescriptor);
 
         // A new native Results should be created.
         assertTrue(collection.getNativePtr() != collection2.getNativePtr());
-        assertEquals(4, collection.size());
-        assertEquals(4, collection2.size());
+        assertEquals(2, collection.size());
+        assertEquals(2, collection2.size());
 
-        assertEquals(collection2.getUncheckedRow(0).getLong(2), 1);
-        assertEquals(collection2.getUncheckedRow(3).getLong(2), 4);
+        assertEquals(collection2.getUncheckedRow(0).getLong(2), 3);
+        assertEquals(collection2.getUncheckedRow(1).getLong(2), 4);
     }
 
     @Test

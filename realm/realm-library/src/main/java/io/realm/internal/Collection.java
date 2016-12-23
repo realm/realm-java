@@ -41,7 +41,7 @@ public final class Collection implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
     private final Context context;
-    private final TableQuery query;
+    private final Table table;
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
     private static final ObserverPairList.Callback<CollectionObserverPair> onChangeCallback =
@@ -90,7 +90,7 @@ public final class Collection implements NativeObject {
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.query = query;
+        this.table = query.getTable();
         this.context.addReference(this);
         sharedRealm.addCollection(this);
     }
@@ -103,11 +103,10 @@ public final class Collection implements NativeObject {
         this(sharedRealm, query, null, null);
     }
 
-    private Collection(SharedRealm sharedRealm, TableQuery query, long nativePtr) {
-        query.validateQuery();
+    private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
-        this.query = query;
+        this.table = table;
         this.nativePtr = nativePtr;
 
         this.context.addReference(this);
@@ -125,24 +124,24 @@ public final class Collection implements NativeObject {
     }
 
     public UncheckedRow getUncheckedRow(int index) {
-        return UncheckedRow.getByRowPointer(query.table, nativeGetRow(nativePtr, index));
+        return UncheckedRow.getByRowPointer(table, nativeGetRow(nativePtr, index));
     }
 
     public UncheckedRow firstUncheckedRow() {
-        return UncheckedRow.getByRowPointer(query.table, nativeFirstRow(nativePtr));
+        return UncheckedRow.getByRowPointer(table, nativeFirstRow(nativePtr));
     }
 
     public UncheckedRow lastUncheckedRow() {
-        return UncheckedRow.getByRowPointer(query.table, nativeLastRow(nativePtr));
+        return UncheckedRow.getByRowPointer(table, nativeLastRow(nativePtr));
     }
 
     public Table getTable() {
-        return query.getTable();
+        return table;
     }
 
     public TableQuery where() {
         long nativeQueryPtr = nativeWhere(nativePtr);
-        return new TableQuery(this.context, this.getTable(), nativeQueryPtr);
+        return new TableQuery(this.context, this.table, nativeQueryPtr);
     }
 
     public Number aggregateNumber(Aggregate aggregateMethod, long columnIndex) {
@@ -162,7 +161,7 @@ public final class Collection implements NativeObject {
     }
 
     public Collection sort(SortDescriptor sortDescriptor) {
-        return new Collection(sharedRealm, query, nativeSort(nativePtr, sortDescriptor));
+        return new Collection(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
     }
 
     public boolean contains(UncheckedRow row) {
