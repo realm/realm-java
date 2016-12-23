@@ -25,7 +25,7 @@ import io.realm.RealmChangeListener;
  * It is supposed to be the backend of binding's query results, link list and back links.
  */
 @KeepMember
-public final class Collection implements NativeObject {
+public class Collection implements NativeObject {
 
     private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
         public CollectionObserverPair(T observer, RealmChangeListener<T> listener) {
