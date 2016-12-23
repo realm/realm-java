@@ -24,7 +24,7 @@ public class FieldDescriptor {
     private String fieldName;
     private boolean searchIndex;
 
-    public FieldDescriptor(Table table, String fieldDescription, boolean allowList) {
+    public FieldDescriptor(Table table, String fieldDescription, boolean allowLink, boolean allowList) {
         if (fieldDescription == null || fieldDescription.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name must be provided");
         }
@@ -42,12 +42,15 @@ public class FieldDescriptor {
                             String.format("Invalid field name: '%s' does not refer to a class.", names[i]));
                 }
                 RealmFieldType type = table.getColumnType(index);
-                if (type == RealmFieldType.OBJECT || (allowList && type == RealmFieldType.LIST)) {
-                    table = table.getLinkTarget(index);
-                    columnIndices[i] = index;
+                if (!allowLink && type == RealmFieldType.OBJECT) {
+                    throw new IllegalArgumentException(
+                            String.format("'RealmObject' field '%s' is not a supported link field here.", names[i]));
                 } else if (!allowList && type == RealmFieldType.LIST) {
                     throw new IllegalArgumentException(
                             String.format("'RealmList' field '%s' is not a supported link field here.", names[i]));
+                } else if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
+                    table = table.getLinkTarget(index);
+                    columnIndices[i] = index;
                 } else {
                     throw new IllegalArgumentException(
                             String.format("Invalid field name: '%s' does not refer to a class.", names[i]));

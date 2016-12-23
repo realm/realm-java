@@ -80,24 +80,15 @@ public class SortDescriptorTests {
     }
 
     @Test
-    public void getInstanceForDistinct_linkField() {
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForDistinct) {
-            long column = table.addColumn(type, type.name());
-            table.addSearchIndex(column);
-        }
+    public void getInstanceForDistinct_shouldThrowOnLinkField() {
+        RealmFieldType type = RealmFieldType.STRING;
         RealmFieldType objectType = RealmFieldType.OBJECT;
-        long columnLink = table.addColumnLink(objectType, objectType.name(), table);
+        table.addColumn(type, type.name());
+        table.addColumnLink(objectType, objectType.name(), table);
 
-        long i = 0;
-        for (RealmFieldType type : SortDescriptor.validFieldTypesForDistinct) {
-            SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(table,
-                    String.format("%s.%s", objectType.name(), type.name()));
-            assertEquals(2, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(columnLink, sortDescriptor.getColumnIndices()[0][0]);
-            assertEquals(i, sortDescriptor.getColumnIndices()[0][1]);
-            assertNull(sortDescriptor.getAscendings());
-            i++;
-        }
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("is not a supported link field");
+        SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", objectType.name(), type.name()));
     }
 
     @Test
@@ -117,7 +108,6 @@ public class SortDescriptorTests {
         assertEquals(stringColumn, sortDescriptor.getColumnIndices()[0][0]);
         assertEquals(1, sortDescriptor.getColumnIndices()[1].length);
         assertEquals(intColumn, sortDescriptor.getColumnIndices()[1][0]);
-
     }
 
     @Test
