@@ -164,6 +164,10 @@ public final class Collection implements NativeObject {
         return new Collection(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
     }
 
+    public Collection distinct(SortDescriptor distinctDescriptor) {
+        return new Collection(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
+    }
+
     public boolean contains(UncheckedRow row) {
         return nativeContains(nativePtr, row.getNativePtr());
     }
@@ -251,6 +255,7 @@ public final class Collection implements NativeObject {
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
     private static native long nativeSort(long nativePtr, SortDescriptor sortDesc);
+    private static native long nativeDistinct(long nativePtr, SortDescriptor distinctDesc);
     private static native boolean nativeDeleteFirst(long nativePtr);
     private static native boolean nativeDeleteLast(long nativePtr);
     private static native void nativeDelete(long nativePtr, long index);

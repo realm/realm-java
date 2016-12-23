@@ -433,12 +433,18 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      * object is returned.
      *
      * @param fieldName the field name.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @return a new non-null {@link RealmResults} containing the distinct objects.
      * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
-        return where().distinct(fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
+        Collection distinctCollection = collection.distinct(distinctDescriptor);
+        if (className != null) {
+            return new RealmResults<E>(realm, distinctCollection, className);
+        } else {
+            return new RealmResults<E>(realm, distinctCollection, classSpec);
+        }
     }
 
     /**

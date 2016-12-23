@@ -285,6 +285,17 @@ Java_io_realm_internal_Collection_nativeSort(JNIEnv *env, jclass, jlong native_p
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_Collection_nativeDistinct(JNIEnv *env, jclass, jlong native_ptr, jobject distinct_desc) {
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        auto distinct_result = wrapper->get_results().distinct(JavaSortDescriptor(env, distinct_desc));
+        return reinterpret_cast<jlong>(new ResultsWrapper(std::move(distinct_result)));
+    } CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject instance, jlong native_ptr)
 {

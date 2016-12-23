@@ -130,6 +130,18 @@ public class CollectionTests {
         sharedRealm.commitTransaction();
     }
 
+    @Test
+    public void constructor_withDistinct() {
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, "firstName");
+        Collection collection = new Collection(sharedRealm, table.where(), null, distinctDescriptor);
+
+        assertEquals(collection.size(), 3);
+        assertEquals(collection.getUncheckedRow(0).getString(0), "John");
+        assertEquals(collection.getUncheckedRow(1).getString(0), "Erik");
+        assertEquals(collection.getUncheckedRow(2).getString(0), "Henry");
+    }
+
+
     @Test(expected = UnsupportedOperationException.class)
     public void constructor_queryIsValidated() {
         // Collection's constructor should call TableQuery.validateQuery()
@@ -220,13 +232,18 @@ public class CollectionTests {
 
     @Test
     public void distinct() {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, "firstName");
-        Collection collection = new Collection(sharedRealm, table.where(), null, distinctDescriptor);
+        Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[]{2}, 4));
 
-        assertEquals(collection.size(), 3);
-        assertEquals(collection.getUncheckedRow(0).getString(0), "John");
-        assertEquals(collection.getUncheckedRow(1).getString(0), "Erik");
-        assertEquals(collection.getUncheckedRow(2).getString(0), "Henry");
+        SortDescriptor distinctDescriptor = new SortDescriptor(table, new long[] {2});
+        Collection collection2 =collection.distinct(distinctDescriptor);
+
+        // A new native Results should be created.
+        assertTrue(collection.getNativePtr() != collection2.getNativePtr());
+        assertEquals(3, collection.size());
+        assertEquals(2, collection2.size());
+
+        assertEquals(collection2.getUncheckedRow(0).getLong(2), 3);
+        assertEquals(collection2.getUncheckedRow(1).getLong(2), 1);
     }
 
     // 1. Create a results and add listener.

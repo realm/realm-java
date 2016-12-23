@@ -244,9 +244,9 @@ public class RealmResultsTests extends CollectionTests {
         // distinctive Booleans
         RealmResults<AnnotationIndexTypes> distinctBooleans = distinctDates.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
         assertEquals("Distinctive Booleans", 2, distinctBooleans.size());
-        // all three results are the same object
-        assertTrue(allResults == distinctDates);
-        assertTrue(allResults == distinctBooleans);
+        // distinct results are not the same object
+        assertTrue(allResults != distinctDates);
+        assertTrue(allResults != distinctBooleans);
     }
 
     @Test
