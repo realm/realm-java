@@ -417,33 +417,21 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync() throws Throwable {
+    public void distinct_async() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
         final Realm realm = looperThread.realm;
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
-        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_LONG);
-        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
-        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
-
-        assertFalse(distinctBool.isLoaded());
-        assertTrue(distinctBool.isValid());
-        assertTrue(distinctBool.isEmpty());
-
-        assertFalse(distinctLong.isLoaded());
-        assertTrue(distinctLong.isValid());
-        assertTrue(distinctLong.isEmpty());
-
-        assertFalse(distinctDate.isLoaded());
-        assertTrue(distinctDate.isValid());
-        assertTrue(distinctDate.isEmpty());
-
-        assertFalse(distinctString.isLoaded());
-        assertTrue(distinctString.isValid());
-        assertTrue(distinctString.isEmpty());
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_LONG);
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_STRING);
 
         final Runnable endTest = new Runnable() {
             @Override
@@ -493,23 +481,17 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_withNullValues() throws Throwable {
+    public void distinct_async_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
         final Realm realm = looperThread.realm;
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
-        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
-        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
-
-        assertFalse(distinctDate.isLoaded());
-        assertTrue(distinctDate.isValid());
-        assertTrue(distinctDate.isEmpty());
-
-        assertFalse(distinctString.isLoaded());
-        assertTrue(distinctString.isValid());
-        assertTrue(distinctString.isEmpty());
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_DATE);
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).findAll()
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_STRING);
 
         final Runnable endTest = new Runnable() {
             @Override
