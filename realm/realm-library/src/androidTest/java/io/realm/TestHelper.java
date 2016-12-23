@@ -785,7 +785,7 @@ public class TestHelper {
         try {
             if (android.os.Debug.isDebuggerConnected()) {
                 // If we are debugging the tests, just wait without a timeout. In case we are stopping at a break point
-                // and timeout happnes.
+                // and timeout happens.
                 latch.await();
             } else if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
                 fail("Test took longer than " + numberOfSeconds + " seconds");
