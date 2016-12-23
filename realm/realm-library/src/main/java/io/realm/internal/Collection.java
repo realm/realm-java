@@ -85,8 +85,8 @@ public final class Collection implements NativeObject {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
-                sortDescriptor == null ? 0 : sortDescriptor.getNativePtr(),
-                distinctDescriptor == null ? 0 : distinctDescriptor.getNativePtr());
+                sortDescriptor,
+                distinctDescriptor);
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
@@ -162,7 +162,7 @@ public final class Collection implements NativeObject {
     }
 
     public Collection sort(SortDescriptor sortDescriptor) {
-        return new Collection(sharedRealm, query, nativeSort(nativePtr, sortDescriptor.getNativePtr()));
+        return new Collection(sharedRealm, query, nativeSort(nativePtr, sortDescriptor));
     }
 
     public boolean contains(UncheckedRow row) {
@@ -241,7 +241,7 @@ public final class Collection implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-                                                   long sortDescNativePtr, long distinctDescNativePtr);
+                                                   SortDescriptor sortDesc, SortDescriptor distinctDesc);
     @SuppressWarnings("unused") // Not used for now
     private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
@@ -251,7 +251,7 @@ public final class Collection implements NativeObject {
     private static native void nativeClear(long nativePtr);
     private static native long nativeSize(long nativePtr);
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
-    private static native long nativeSort(long nativePtr, long sortDescNativePtr);
+    private static native long nativeSort(long nativePtr, SortDescriptor sortDesc);
     private static native boolean nativeDeleteFirst(long nativePtr);
     private static native boolean nativeDeleteLast(long nativePtr);
     private static native void nativeDelete(long nativePtr, long index);

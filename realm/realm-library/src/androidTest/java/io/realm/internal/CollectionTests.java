@@ -172,19 +172,16 @@ public class CollectionTests {
     public void sort() {
         Collection collection = new Collection(sharedRealm, table.where());
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
-        try {
-            Collection collection2 =collection.sort(sortDescriptor);
 
-            // A new native Results should be created.
-            assertTrue(collection.getNativePtr() != collection2.getNativePtr());
-            assertEquals(4, collection.size());
-            assertEquals(4, collection2.size());
+        Collection collection2 =collection.sort(sortDescriptor);
 
-            assertEquals(collection2.getUncheckedRow(0).getLong(2), 1);
-            assertEquals(collection2.getUncheckedRow(3).getLong(2), 4);
-        } finally {
-            sortDescriptor.close();
-        }
+        // A new native Results should be created.
+        assertTrue(collection.getNativePtr() != collection2.getNativePtr());
+        assertEquals(4, collection.size());
+        assertEquals(4, collection2.size());
+
+        assertEquals(collection2.getUncheckedRow(0).getLong(2), 1);
+        assertEquals(collection2.getUncheckedRow(3).getLong(2), 4);
     }
 
     @Test
@@ -207,24 +204,18 @@ public class CollectionTests {
     @Test
     public void indexOf() {
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
-        try {
-            Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
-            UncheckedRow row = table.getUncheckedRow(0);
-            assertEquals(collection.indexOf(row), 3);
-        } finally {
-            sortDescriptor.close();
-        }
+
+        Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
+        UncheckedRow row = table.getUncheckedRow(0);
+        assertEquals(collection.indexOf(row), 3);
     }
 
     @Test
     public void indexOf_long() {
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
-        try {
-            Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
-            assertEquals(collection.indexOf(0), 3);
-        } finally {
-            sortDescriptor.close();
-        }
+
+        Collection collection = new Collection(sharedRealm, table.where(), sortDescriptor);
+        assertEquals(collection.indexOf(0), 3);
     }
 
     @Test

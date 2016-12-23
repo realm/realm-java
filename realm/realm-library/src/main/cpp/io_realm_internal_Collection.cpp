@@ -23,10 +23,12 @@
 #include <results.hpp>
 
 #include "util.hpp"
+#include "java_sort_descriptor.hpp"
 #include "jni_util/method.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 // We need to control the life cycle of Results, weak ref of Java Collection object and the NotificationToken.
 // Wrap all three together, so when the Java Collection object gets GCed, all three of them will be invalidated.
@@ -107,7 +109,7 @@ static void finalize_results(jlong ptr)
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong shared_realm_ptr, jlong query_ptr,
-        jlong sort_desc_native_ptr, jlong distinct_desc_native_ptr)
+        jobject sort_desc, jobject distinct_desc)
 {
     TR_ENTER()
     try {
@@ -117,11 +119,9 @@ Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong
         }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        auto sort_desc_ptr = reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr);
-        auto distinct_desc_ptr = reinterpret_cast<SortDescriptor*>(distinct_desc_native_ptr);
         Results results(shared_realm, *query,
-                        sort_desc_ptr ? *sort_desc_ptr : SortDescriptor(),
-                        distinct_desc_ptr ? *distinct_desc_ptr : SortDescriptor());
+                        SortDescriptor(JavaSortDescriptor(env, sort_desc)),
+                        SortDescriptor(JavaSortDescriptor(env, distinct_desc)));
         auto wrapper = new ResultsWrapper(std::move(results));
         if (shared_realm->is_in_transaction()) {
             wrapper->switch_to_snapshot();
@@ -274,13 +274,12 @@ Java_io_realm_internal_Collection_nativeAggregate(JNIEnv *env, jclass, jlong nat
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_Collection_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jlong sort_desc_native_ptr)
+Java_io_realm_internal_Collection_nativeSort(JNIEnv *env, jclass, jlong native_ptr, jobject sort_desc)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto sort_descriptor = *reinterpret_cast<SortDescriptor*>(sort_desc_native_ptr);
-        auto sorted_result = wrapper->get_results().sort(std::move(sort_descriptor));
+        auto sorted_result = wrapper->get_results().sort(JavaSortDescriptor(env, sort_desc));
         return reinterpret_cast<jlong>(new ResultsWrapper(std::move(sorted_result)));
     } CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

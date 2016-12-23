@@ -301,15 +301,12 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     public RealmResults<E> sort(String fieldName) {
         SortDescriptor sortDescriptor =
                 SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, Sort.ASCENDING);
-        try {
-            Collection sortedCollection = collection.sort(sortDescriptor);
-            if (className != null) {
-                return new RealmResults<E>(realm, sortedCollection, className);
-            } else {
-                return new RealmResults<E>(realm, sortedCollection, classSpec);
-            }
-        } finally {
-            sortDescriptor.close();
+
+        Collection sortedCollection = collection.sort(sortDescriptor);
+        if (className != null) {
+            return new RealmResults<E>(realm, sortedCollection, className);
+        } else {
+            return new RealmResults<E>(realm, sortedCollection, classSpec);
         }
     }
 
@@ -320,15 +317,12 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         SortDescriptor sortDescriptor =
                 SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, sortOrder);
-        try {
-            Collection sortedCollection = collection.sort(sortDescriptor);
-            if (className != null) {
-                return new RealmResults<E>(realm, sortedCollection, className);
-            } else {
-                return new RealmResults<E>(realm, sortedCollection, classSpec);
-            }
-        } finally {
-            sortDescriptor.close();
+
+        Collection sortedCollection = collection.sort(sortDescriptor);
+        if (className != null) {
+            return new RealmResults<E>(realm, sortedCollection, className);
+        } else {
+            return new RealmResults<E>(realm, sortedCollection, classSpec);
         }
     }
 
@@ -339,15 +333,12 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
         SortDescriptor sortDescriptor =
                 SortDescriptor.getInstanceForSort(collection.getTable(), fieldNames, sortOrders);
-        try {
-            Collection sortedCollection = collection.sort(sortDescriptor);
-            if (className != null) {
-                return new RealmResults<E>(realm, sortedCollection, className);
-            } else {
-                return new RealmResults<E>(realm, sortedCollection, classSpec);
-            }
-        } finally {
-            sortDescriptor.close();
+
+        Collection sortedCollection = collection.sort(sortDescriptor);
+        if (className != null) {
+            return new RealmResults<E>(realm, sortedCollection, className);
+        } else {
+            return new RealmResults<E>(realm, sortedCollection, classSpec);
         }
     }
 

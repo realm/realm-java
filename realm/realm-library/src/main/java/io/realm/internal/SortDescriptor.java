@@ -16,18 +16,27 @@
 
 package io.realm.internal;
 
-import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 
-public class SortDescriptor implements Closeable {
+/**
+ * Java class to present the same name core class in Java. This can be converted to a cpp realm::SortDescriptor object
+ * through realm::_impl::JavaSortDescriptor.
+ * <p>
+ * NOTE: Since the column indices are determined when constructing the object with the given table's status, the indices
+ * could be wrong when schema changes. Always create and consume the instance when needed, DON'T store a SortDescriptor
+ * and use it whenever the ShareGroup can be in different versions.
+ */
+@KeepMember
+public class SortDescriptor {
 
     private final long[][] columnIndices;
     private final boolean[] ascendings;
-    private long nativePtr = 0;
+    private final Table table;
+
     final static List<RealmFieldType> validFieldTypesForSort = Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
             RealmFieldType.STRING, RealmFieldType.DATE);
@@ -37,11 +46,6 @@ public class SortDescriptor implements Closeable {
     // Internal use only. For JNI testing.
     SortDescriptor(Table table, long[] columnIndices) {
         this(table, new long[][] {columnIndices}, null);
-    }
-
-    // Internal use only. For JNI testing.
-    SortDescriptor(Table table, long[] columnIndices, Sort sortOrder) {
-       this(table, new long[][] {columnIndices}, new Sort[] {sortOrder});
     }
 
     private SortDescriptor(Table table, long[][] columnIndices, Sort[] sortOrders) {
@@ -55,7 +59,7 @@ public class SortDescriptor implements Closeable {
         }
 
         this.columnIndices = columnIndices;
-        nativePtr = nativeCreate(table.getNativePtr(), columnIndices, ascendings);
+        this.table = table;
     }
 
     public static SortDescriptor getInstanceForSort(Table table, String fieldDescription, Sort sortOrder) {
@@ -102,10 +106,6 @@ public class SortDescriptor implements Closeable {
         return new SortDescriptor(table, columnIndices, null);
     }
 
-    public long getNativePtr() {
-        return nativePtr;
-    }
-
     private static void checkFieldTypeForSort(FieldDescriptor descriptor, String fieldDescriptions) {
         for (RealmFieldType aValidFieldTypesForSort : validFieldTypesForSort) {
             if (aValidFieldTypesForSort == descriptor.getFieldType()) {
@@ -130,20 +130,22 @@ public class SortDescriptor implements Closeable {
         }
     }
 
+    // Called by JNI.
+    @KeepMember
     long[][] getColumnIndices() {
         return columnIndices;
     }
 
+    // Called by JNI.
+    @KeepMember
     boolean[] getAscendings() {
         return ascendings;
     }
 
-    @Override
-    public void close() {
-        nativeClose(nativePtr);
-        nativePtr = 0;
+    // Called by JNI.
+    @KeepMember
+    @SuppressWarnings("unused")
+    private long getTablePtr() {
+       return table.getNativePtr();
     }
-
-    private static native long nativeCreate(long tablePtr, long[][] columnIndices, boolean[] ascending);
-    private static native void nativeClose(long ptr);
 }
