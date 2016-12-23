@@ -27,6 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
@@ -37,6 +38,7 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 
@@ -236,6 +238,49 @@ public class CollectionTests {
         assertEquals(collection.getUncheckedRow(2).getString(0), "Henry");
     }
 
+    // 1. Create a results and add listener.
+    // 2. Query results should be returned in the next loop.
+    @Test
+    @RunTestInLooperThread
+    public void addListener_shouldBeCalledToReturnTheQueryResults() {
+        final SharedRealm sharedRealm = getSharedRealm();
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 4);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    // 1. Create a results and add listener on a non-looper thread.
+    // 2. Query results should be returned when refresh() called.
+    @Test
+    public void addListener_shouldBeCalledWhenRefreshToReturnTheQueryResults() {
+        final AtomicBoolean onChangeCalled = new AtomicBoolean(false);
+        final SharedRealm sharedRealm = getSharedRealm();
+        Table table = sharedRealm.getTable("test_table");
+
+        final Collection collection = new Collection(sharedRealm, table.where());
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection collection1) {
+                assertEquals(collection1, collection);
+                assertEquals(collection1.size(), 4);
+                sharedRealm.close();
+                onChangeCalled.set(true);
+            }
+        });
+        sharedRealm.refresh();
+        assertTrue(onChangeCalled.get());
+    }
+
     @Test
     public void addListener_shouldBeCalledWhenRefreshAfterLocalCommit() {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -388,20 +433,111 @@ public class CollectionTests {
     }
 
     @Test
-    public void switchSnapshot_nonLooperThread() {
+    public void detach_byBeginTransaction() {
+        final Collection collection = new Collection(sharedRealm, table.where());
+        assertFalse(collection.isDetached());
+        assertEquals(collection.size(), 4);
+        addRowAsync();
+        // beginTransaction will do advance read, but the table view should stay without changes.
+        sharedRealm.beginTransaction();
+        assertTrue(collection.isDetached());
+        assertEquals(collection.size(), 4);
+    }
+
+    @Test
+    public void detach_newCollectionCreatedInTransaction() {
+        sharedRealm.beginTransaction();
+        final Collection collection = new Collection(sharedRealm, table.where());
+        assertTrue(collection.isDetached());
+    }
+
+    @Test
+    public void detach_commitTransactionWontReattach() {
+        final Collection collection = new Collection(sharedRealm, table.where());
+        sharedRealm.beginTransaction();
+        sharedRealm.commitTransaction();
+        assertTrue(collection.isDetached());
+        assertEquals(collection.size(), 4);
+    }
+
+    @Test
+    public void reattach_byCancelTransaction() {
+        final Collection collection = new Collection(sharedRealm, table.where());
+        sharedRealm.beginTransaction();
+        assertTrue(collection.isDetached());
+        sharedRealm.cancelTransaction();
+        assertFalse(collection.isDetached());
+        assertEquals(collection.size(), 4);
+    }
+
+    @Test
+    public void reattach_nonLooperThread_byRefresh() {
         final Collection collection = new Collection(sharedRealm, table.where());
         assertEquals(collection.size(), 4);
         addRow(sharedRealm);
         // The results is backed by snapshot now.
+        assertTrue(collection.isDetached());
         assertEquals(collection.size(), 4);
         sharedRealm.refresh();
         // The results is switched back to the original Results.
+        assertFalse(collection.isDetached());
         assertEquals(collection.size(), 5);
     }
 
     @Test
     @RunTestInLooperThread
-    public void switchSnapshot_looperThread() {
+    public void reattach_looperThread_byLocalTransaction() {
+        final SharedRealm sharedRealm = getSharedRealm();
+        Table table = sharedRealm.getTable("test_table");
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        assertFalse(collection.isDetached());
+        assertEquals(collection.size(), 4);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection element) {
+                assertFalse(collection.isDetached());
+                assertEquals(collection.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        addRow(sharedRealm);
+        // The results is backed by snapshot now.
+        assertTrue(collection.isDetached());
+        assertEquals(collection.size(), 4);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void reattach_looperThread_byRemoteTransaction() {
+        final SharedRealm sharedRealm = getSharedRealm();
+        Table table = sharedRealm.getTable("test_table");
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        assertFalse(collection.isDetached());
+        assertEquals(collection.size(), 4);
+        collection.addListener(collection, new RealmChangeListener<Collection>() {
+            @Override
+            public void onChange(Collection element) {
+                assertFalse(collection.isDetached());
+                assertEquals(collection.size(), 5);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        sharedRealm.beginTransaction();
+        sharedRealm.commitTransaction();
+        // The results is backed by snapshot now.
+        assertTrue(collection.isDetached());
+        assertEquals(collection.size(), 4);
+
+        addRowAsync();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void reattach_looperThread_shouldHappenBeforeAnyOtherLoopEventWithEmptyLocalTransaction() {
         final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -411,13 +547,41 @@ public class CollectionTests {
             @Override
             public void run() {
                 // The results is switched back to the original Results.
-                assertEquals(collection.size(), 5);
+                assertFalse(collection.isDetached());
+                assertEquals(collection.size(), 4);
                 sharedRealm.close();
                 looperThread.testComplete();
             }
         });
-        addRow(sharedRealm);
+        sharedRealm.beginTransaction();
+        sharedRealm.commitTransaction();
         // The results is backed by snapshot now.
+        assertTrue(collection.isDetached());
         assertEquals(collection.size(), 4);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void reattach_looperThread_shouldHappenBeforeAnyOtherLoopEventWithLocalTransactionCanceled() {
+        final SharedRealm sharedRealm = getSharedRealm();
+        Table table = sharedRealm.getTable("test_table");
+        final Collection collection = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collection);
+        assertEquals(collection.size(), 4);
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                // The results is switched back to the original Results.
+                assertFalse(collection.isDetached());
+                assertEquals(collection.size(), 4);
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+        sharedRealm.beginTransaction();
+        // The results is backed by snapshot now.
+        assertTrue(collection.isDetached());
+        assertEquals(collection.size(), 4);
+        sharedRealm.cancelTransaction();
     }
 }

@@ -95,8 +95,7 @@ public final class Collection implements NativeObject {
         sharedRealm.addCollection(this);
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query,
-                      SortDescriptor sortDescriptor) {
+    public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {
         this(sharedRealm, query, sortDescriptor, null);
     }
 
@@ -216,12 +215,15 @@ public final class Collection implements NativeObject {
     // Called by JNI
     @KeepMember
     @SuppressWarnings("unused")
-    private void notifyChangeListeners() {
+    private void notifyChangeListeners(boolean emptyChanges) {
         // For the stable iteration.
         // It is needed when the local commit triggered async query updates. And this is called in the next event loop
         // by OS Realm::notify().
-        this.disableSnapshot();
+        if (!emptyChanges) {
+            this.disableSnapshot();
+        }
 
+        if (emptyChanges && isDetached()) return;
         observerPairs.foreach(onChangeCallback);
     }
 
@@ -231,6 +233,10 @@ public final class Collection implements NativeObject {
 
     void disableSnapshot() {
         nativeDisableSnapshot(nativePtr);
+    }
+
+    boolean isDetached() {
+        return nativeIsDetached(nativePtr);
     }
 
     private static native long nativeGetFinalizerPtr();
@@ -257,4 +263,5 @@ public final class Collection implements NativeObject {
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
     private static native void nativeEnableSnapshot(long nativePtr);
     private static native void nativeDisableSnapshot(long nativePtr);
+    private static native boolean nativeIsDetached(long nativePtr);
 }

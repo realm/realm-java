@@ -19,8 +19,8 @@
 
 #include <vector>
 
-#include <object-store/src/shared_realm.hpp>
-#include <object-store/src/results.hpp>
+#include <shared_realm.hpp>
+#include <results.hpp>
 
 #include "util.hpp"
 #include "jni_util/method.hpp"
@@ -68,7 +68,9 @@ struct ResultsWrapper {
 
     inline void switch_to_snapshot()
     {
-        m_snapshot = m_results.snapshot();
+        if (m_snapshot.get_mode() == Results::Mode::Empty) {
+            m_snapshot = m_results.snapshot();
+        }
     }
 
     inline void switch_to_origin()
@@ -76,6 +78,11 @@ struct ResultsWrapper {
         if (m_snapshot.get_mode() != Results::Mode::Empty) {
             m_snapshot = Results();
         }
+    }
+
+    inline bool is_detached()
+    {
+        return m_snapshot.get_mode() != Results::Mode::Empty;
     }
 
 private:
@@ -277,7 +284,7 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
 {
     TR_ENTER_PTR(native_ptr)
 
-    static JniMethod notify_change_listeners(env, instance, "notifyChangeListeners", "()V");
+    static JniMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(Z)V");
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
@@ -290,7 +297,9 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
             // OS will call all notifiers' callback in one run, so check the Java exception first!!
             if (env->ExceptionCheck()) return;
 
-            env->CallVoidMethod(wrapper->m_collection_weak_ref, notify_change_listeners);
+            //if (!wrapper->is_detached()) {
+                env->CallVoidMethod(wrapper->m_collection_weak_ref, notify_change_listeners, changes.empty());
+            //}
         };
 
         wrapper->m_notification_token =  wrapper->get_original_results().add_notification_callback(cb);
@@ -377,6 +386,14 @@ Java_io_realm_internal_Collection_nativeDisableSnapshot(JNIEnv *env, jclass, jlo
 }
 
 JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_Collection_nativeIsDetached(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+    return wrapper->is_detached();
+}
+
+JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_Collection_nativeDeleteLast(JNIEnv *env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
@@ -428,3 +445,4 @@ Java_io_realm_internal_Collection_nativeDelete(JNIEnv *env, jclass, jlong native
         wrapper->switch_to_snapshot();
     } CATCH_STD()
 }
+
