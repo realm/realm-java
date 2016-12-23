@@ -17,6 +17,8 @@
 package io.realm.internal;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.Sort;
@@ -26,13 +28,11 @@ public class SortDescriptor implements Closeable {
     private final long[][] columnIndices;
     private final boolean[] ascendings;
     private long nativePtr = 0;
-    private final static RealmFieldType[] validFieldTypesForSort = new RealmFieldType[] {
+    final static List<RealmFieldType> validFieldTypesForSort = Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
-            RealmFieldType.STRING, RealmFieldType.DATE
-    };
-    private final static RealmFieldType[] validFieldTypesForDistinct = new RealmFieldType[] {
-            RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE
-    };
+            RealmFieldType.STRING, RealmFieldType.DATE);
+    final static List<RealmFieldType> validFieldTypesForDistinct = Arrays.asList(
+            RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE);
 
     // Internal use only. For JNI testing.
     SortDescriptor(Table table, long[] columnIndices) {
@@ -76,7 +76,7 @@ public class SortDescriptor implements Closeable {
         long[][] columnIndices = new long[fieldDescriptions.length][];
         for (int i = 0; i < fieldDescriptions.length; i++) {
             FieldDescriptor descriptor = new FieldDescriptor(table, fieldDescriptions[i], false);
-            checkFieldTypeForSort(descriptor.getLastFieldType(), descriptor.getLastFieldName(), fieldDescriptions[i]);
+            checkFieldTypeForSort(descriptor, fieldDescriptions[i]);
             columnIndices[i] = descriptor.getColumnIndices();
         }
 
@@ -95,8 +95,7 @@ public class SortDescriptor implements Closeable {
         long[][] columnIndices = new long[fieldDescriptions.length][];
         for (int i = 0; i < fieldDescriptions.length; i++) {
             FieldDescriptor descriptor = new FieldDescriptor(table, fieldDescriptions[i], false);
-            checkFieldTypeForDistinct(
-                    descriptor.getLastFieldType(), descriptor.getLastFieldName(), fieldDescriptions[i]);
+            checkFieldTypeForDistinct(descriptor, fieldDescriptions[i]);
             columnIndices[i] = descriptor.getColumnIndices();
         }
 
@@ -107,25 +106,36 @@ public class SortDescriptor implements Closeable {
         return nativePtr;
     }
 
-    private static void checkFieldTypeForSort(RealmFieldType type, String fieldName, String fieldDescriptions) {
+    private static void checkFieldTypeForSort(FieldDescriptor descriptor, String fieldDescriptions) {
         for (RealmFieldType aValidFieldTypesForSort : validFieldTypesForSort) {
-            if (aValidFieldTypesForSort == type) {
+            if (aValidFieldTypesForSort == descriptor.getFieldType()) {
                 return;
             }
         }
         throw new IllegalArgumentException(String.format(
-                "Sort is not supported on '%s' field '%s' in '%s'.", type.toString(), fieldName, fieldDescriptions));
+                "Sort is not supported on '%s' field '%s' in '%s'.", descriptor.toString(), descriptor.getFieldName(),
+                fieldDescriptions));
     }
 
-    private static void checkFieldTypeForDistinct(RealmFieldType type, String fieldName, String fieldDescriptions) {
-        for (RealmFieldType aValidFieldTypesForSort : validFieldTypesForDistinct) {
-            if (aValidFieldTypesForSort == type) {
-                return;
-            }
+    private static void checkFieldTypeForDistinct(FieldDescriptor descriptor, String fieldDescriptions) {
+        if (!validFieldTypesForDistinct.contains(descriptor.getFieldType())) {
+            throw new IllegalArgumentException(String.format(
+                    "Distinct is not supported on '%s' field '%s' in '%s'.",
+                    descriptor.getFieldType().toString(), descriptor.getFieldName(), fieldDescriptions));
         }
-        throw new IllegalArgumentException(String.format(
-                "Distinct is not supported on '%s' field '%s' in '%s'.",
-                type.toString(), fieldName, fieldDescriptions));
+        if (!descriptor.hasSearchIndex()) {
+            throw new IllegalArgumentException(String.format(
+                    "Field '%s' in '%s' must be indexed in order to use it for distinct queries.",
+                    descriptor.getFieldName(), fieldDescriptions));
+        }
+    }
+
+    long[][] getColumnIndices() {
+        return columnIndices;
+    }
+
+    boolean[] getAscendings() {
+        return ascendings;
     }
 
     @Override

@@ -20,8 +20,9 @@ import io.realm.RealmFieldType;
 public class FieldDescriptor {
 
     private long[] columnIndices;
-    private RealmFieldType lastFieldType;
-    private String lastFieldName;
+    private RealmFieldType fieldType;
+    private String fieldName;
+    private boolean searchIndex;
 
     public FieldDescriptor(Table table, String fieldDescription, boolean allowList) {
         if (fieldDescription == null || fieldDescription.isEmpty()) {
@@ -51,7 +52,6 @@ public class FieldDescriptor {
                     throw new IllegalArgumentException(
                             String.format("Invalid field name: '%s' does not refer to a class.", names[i]));
                 }
-                // TODO: Check search index for distinct?
             }
 
             // Check if last field name is a valid field
@@ -63,17 +63,19 @@ public class FieldDescriptor {
                         String.format("'%s' is not a field name in class '%s'.", columnName, table.getName()));
             }
 
-            this.lastFieldType = table.getColumnType(columnIndex);
-            this.lastFieldName = columnName;
+            this.fieldType = table.getColumnType(columnIndex);
+            this.fieldName = columnName;
             this.columnIndices = columnIndices;
+            this.searchIndex = table.hasSearchIndex(columnIndex);
         } else {
             long fieldIndex = table.getColumnIndex(fieldDescription);
             if (fieldIndex == Table.NO_MATCH) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldDescription));
             }
-            this.lastFieldType = table.getColumnType(fieldIndex);
-            this.lastFieldName = fieldDescription;
+            this.fieldType = table.getColumnType(fieldIndex);
+            this.fieldName = fieldDescription;
             this.columnIndices = new long[] {fieldIndex};
+            this.searchIndex = table.hasSearchIndex(fieldIndex);
         }
     }
 
@@ -81,11 +83,15 @@ public class FieldDescriptor {
         return columnIndices;
     }
 
-    public RealmFieldType getLastFieldType() {
-        return lastFieldType;
+    public RealmFieldType getFieldType() {
+        return fieldType;
     }
 
-    public String getLastFieldName() {
-        return lastFieldName;
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public boolean hasSearchIndex() {
+        return searchIndex;
     }
 }
