@@ -36,6 +36,9 @@ import static android.util.Log.getStackTraceString;
  *     <td>{@link LogLevel#OFF}</td><td>Not supported. Remove the logger instead.</td>
  * </tr>
  * </table>
+ *
+ * @deprecated The new {@link RealmLogger} for Android is implemented in native code. This class will be removed in a
+ * future release.
  */
 public class AndroidLogger implements Logger {
 

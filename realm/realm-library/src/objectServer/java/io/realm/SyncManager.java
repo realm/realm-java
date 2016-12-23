@@ -26,13 +26,13 @@ import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.OkHttpAuthenticationServer;
 import io.realm.internal.objectserver.SessionStore;
-import io.realm.internal.objectserver.SyncSession;
+import io.realm.internal.objectserver.ObjectServerSession;
 import io.realm.log.RealmLog;
 
 /**
  * @Beta
  * The SyncManager is the central controller for interacting with the Realm Object Server.
- * It handles the creation of {@link Session}s and it is possible to configure session defaults and the underlying
+ * It handles the creation of {@link SyncSession}s and it is possible to configure session defaults and the underlying
  * network client using this class.
  * <p>
  * Through the SyncManager, it is possible to add authentication listeners. An authentication listener will
@@ -43,7 +43,7 @@ import io.realm.log.RealmLog;
  */
 @Keep
 @Beta
-public final class SyncManager {
+public class SyncManager {
 
     /**
      * APP ID sent to the Realm Object Server. Is automatically initialized to the package name for the app.
@@ -55,9 +55,9 @@ public final class SyncManager {
     public static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
 
-    private static final Session.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new Session.ErrorHandler() {
+    private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
-        public void onError(Session session, ObjectServerError error) {
+        public void onError(SyncSession session, ObjectServerError error) {
             String errorMsg = String.format("Session Error[%s]: %s",
                     session.getConfiguration().getServerUrl(),
                     error.toString());
@@ -81,7 +81,7 @@ public final class SyncManager {
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     private static volatile UserStore userStore;
 
-    static volatile Session.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
+    static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
     @SuppressWarnings("FieldCanBeLocal")
     private static Thread clientThread;
 
@@ -107,7 +107,7 @@ public final class SyncManager {
 
     /**
      * Set the {@link UserStore} used by the Realm Object Server to save user information.
-     * If no Userstore is specified {@link User#currentUser()} will always return {@code null}.
+     * If no Userstore is specified {@link SyncUser#currentUser()} will always return {@code null}.
      *
      * @param userStore {@link UserStore} to use.
      * @throws IllegalArgumentException if {@code userStore} is {@code null}.
@@ -150,7 +150,7 @@ public final class SyncManager {
      *
      * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
      */
-    public static void setDefaultSessionErrorHandler(Session.ErrorHandler errorHandler) {
+    public static void setDefaultSessionErrorHandler(SyncSession.ErrorHandler errorHandler) {
         if (errorHandler == null) {
             defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
         } else {
@@ -159,14 +159,14 @@ public final class SyncManager {
     }
 
     /**
-     * Gets any cached {@link Session} for the given {@link SyncConfiguration} or create a new one if
+     * Gets any cached {@link SyncSession} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
-     * @return the {@link Session} for the specified Realm.
+     * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public static synchronized Session getSession(SyncConfiguration syncConfiguration) {
+    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) {
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
@@ -174,14 +174,14 @@ public final class SyncManager {
         if (SessionStore.hasSession(syncConfiguration)) {
             return SessionStore.getPublicSession(syncConfiguration);
         } else {
-            SyncSession internalSession = new SyncSession(
+            ObjectServerSession internalSession = new ObjectServerSession(
                     syncConfiguration,
                     authServer,
                     syncConfiguration.getUser().getSyncUser(),
                     syncConfiguration.getSyncPolicy(),
                     syncConfiguration.getErrorHandler()
             );
-            Session publicSession = new Session(internalSession);
+            SyncSession publicSession = new SyncSession(internalSession);
             SessionStore.addSession(publicSession, internalSession);
             syncConfiguration.getUser().getSyncUser().addSession(publicSession);
             syncConfiguration.getSyncPolicy().onSessionCreated(internalSession);
@@ -211,35 +211,26 @@ public final class SyncManager {
     @SuppressWarnings("unused")
     private static void notifyErrorHandler(int errorCode, String errorMessage) {
         ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for (SyncSession session : SessionStore.getAllSessions()) {
+        for (ObjectServerSession session : SessionStore.getAllSessions()) {
             session.onError(error);
         }
     }
 
     // Notify listeners that a user logged in
-    static void notifyUserLoggedIn(User user) {
+    static void notifyUserLoggedIn(SyncUser user) {
         for (AuthenticationListener authListener : authListeners) {
             authListener.loggedIn(user);
         }
     }
 
     // Notify listeners that a user logged out successfully
-    static void notifyUserLoggedOut(User user) {
+    static void notifyUserLoggedOut(SyncUser user) {
         for (AuthenticationListener authListener : authListeners) {
             authListener.loggedOut(user);
         }
     }
 
-    /**
-     * Sets the log level for the underlying.
-     * @param logLevel
-     */
-    public static void setLogLevel(int logLevel) {
-        nativeSetSyncClientLogLevel(logLevel);
-    }
-
     private static native void nativeInitializeSyncClient();
-    private static native void nativeSetSyncClientLogLevel(int logLevel);
     private static native void nativeRunClient();
 
 }

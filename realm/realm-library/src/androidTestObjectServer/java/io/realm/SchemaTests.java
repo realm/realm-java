@@ -17,7 +17,6 @@
 package io.realm;
 
 
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -44,7 +43,7 @@ public class SchemaTests {
 
     @Before
     public void setUp() {
-        User user = SyncTestUtils.createTestUser();
+        SyncUser user = SyncTestUtils.createTestUser();
         config = new SyncConfiguration.Builder(user, "realm://objectserver.realm.io/~/default").build();
     }
 

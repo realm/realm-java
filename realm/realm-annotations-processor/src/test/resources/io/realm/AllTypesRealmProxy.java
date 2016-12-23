@@ -375,7 +375,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                // Table#nullifyLink() does not support default value. Just use Row.
+                // Table#nullifyLink() does not support default value. Just using Row.
                 row.nullifyLink(columnInfo.columnObjectIndex);
                 return;
             }
@@ -527,7 +527,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < 9; i++) {
+            for (long i = 0; i < columnCount; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -993,7 +993,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
                 LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
-            LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
         }
 
         return rowIndex;
@@ -1057,7 +1056,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         }
                         LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
-                    LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
                 }
 
             }
@@ -1123,7 +1121,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
         }
-        LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
 
         return rowIndex;
     }
@@ -1192,7 +1189,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
                 }
-                LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
 
             }
         }

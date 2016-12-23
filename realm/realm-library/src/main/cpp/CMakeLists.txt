@@ -36,12 +36,15 @@ set(classes_LIST
     io.realm.internal.Table io.realm.internal.TableView io.realm.internal.CheckedRow
     io.realm.internal.LinkView io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
-    io.realm.log.LogLevel io.realm.Property io.realm.RealmSchema io.realm.RealmObjectSchema
+    io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
+    io.realm.RealmObjectSchema io.realm.internal.NativeObjectReference
 )
-set(jni_headers_PATH ${PROJECT_BINARY_DIR}/jni_include)
+# /./ is the workaround for the problem that AS cannot find the jni headers.
+# See https://github.com/googlesamples/android-ndk/issues/319
+set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.SyncManager io.realm.internal.objectserver.SyncSession)
+        io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
@@ -117,7 +120,7 @@ set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macr
 -Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
 set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
-    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_SYNC")
+    set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
 # There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
 # And this issue doesn't seem to impact the core compiling.
@@ -136,12 +139,14 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS
 # JNI source files
 file(GLOB jni_SRC
     "*.cpp"
+    "jni_util/*.cpp"
+    "jni_impl/android_logger.cpp"
 )
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_SyncSession.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_ObjectServerSession.cpp)
 endif()
 
 # Object Store source files
@@ -157,13 +162,12 @@ file(GLOB objectstore_SRC
     "object-store/src/impl/collection_change_builder.cpp"
     "object-store/src/impl/transact_log_handler.cpp"
     "object-store/src/impl/weak_realm_notifier.cpp"
-    "object-store/src/impl/android/*.cpp"
-    "object-store/src/util/*.cpp")
+    "object-store/src/util/*.cpp"
+    "object-store/src/impl/epoll/*.cpp"
+    "object-store/src/util/android/*.cpp")
 # Sync needed Object Store files
 if (build_SYNC)
-    file(GLOB objectstore_sync_SRC
-        "object-store/src/sync_manager.cpp"
-        "object-store/src/sync_session.cpp")
+    file(GLOB objectstore_sync_SRC "object-store/src/sync/*")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
@@ -178,7 +182,8 @@ endif()
 
 # Strip the release so files and backup the unstripped versions
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(unstripped_SO_DIR "${CMAKE_SOURCE_DIR}/../../../build/outputs/jniLibs-unstripped/${ANDROID_ABI}")
+    set(unstripped_SO_DIR
+        "${CMAKE_SOURCE_DIR}/../../../build/outputs/jniLibs-unstripped/${REALM_FLAVOR}/${ANDROID_ABI}")
     add_custom_command(TARGET realm-jni
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory ${unstripped_SO_DIR}

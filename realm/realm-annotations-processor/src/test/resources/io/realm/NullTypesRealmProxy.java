@@ -980,7 +980,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                // Table#nullifyLink() does not support default value. Just use Row.
+                // Table#nullifyLink() does not support default value. Just using Row.
                 row.nullifyLink(columnInfo.fieldObjectNullIndex);
                 return;
             }
@@ -1088,7 +1088,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < 21; i++) {
+            for (long i = 0; i < columnCount; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 

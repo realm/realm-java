@@ -659,7 +659,7 @@ public class RealmProxyClassGenerator {
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
-        writer.beginControlFlow("for (long i = 0; i < " + metadata.getFields().size() + "; i++)");
+        writer.beginControlFlow("for (long i = 0; i < columnCount; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();
         writer.emitEmptyLine();
@@ -1076,7 +1076,6 @@ public class RealmProxyClassGenerator {
                              .endControlFlow()
                              .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                             .endControlFlow()
-                            .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .endControlFlow()
                         .emitEmptyLine();
 
@@ -1154,7 +1153,6 @@ public class RealmProxyClassGenerator {
                              .endControlFlow()
                         .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                         .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .endControlFlow()
                         .emitEmptyLine();
 
@@ -1233,7 +1231,6 @@ public class RealmProxyClassGenerator {
                                 .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                             .endControlFlow()
                         .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .emitEmptyLine();
 
             } else {
@@ -1314,7 +1311,6 @@ public class RealmProxyClassGenerator {
                             .emitStatement("LinkView.nativeAdd(%1$sNativeLinkViewPtr, cacheItemIndex%1$s)", fieldName)
                             .endControlFlow()
                         .endControlFlow()
-                        .emitStatement("LinkView.nativeClose(%sNativeLinkViewPtr)", fieldName)
                         .emitEmptyLine();
 
             } else {

@@ -23,6 +23,8 @@
 using namespace std;
 using namespace realm;
 
+static void finalize_table(jlong ptr);
+
 inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
     if (!(column_type == type_String ||
                 column_type == type_Int ||
@@ -1402,19 +1404,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
     JNIEnv*, jobject, jlong nativeTablePtr)
 {
+    TR_ENTER_PTR(nativeTablePtr)
     return TBL(nativeTablePtr)->is_attached();  // noexcept
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
-    JNIEnv* env, jclass, jlong nativeTablePtr)
-{
-    TR_ENTER_PTR(env, nativeTablePtr)
-    LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, jobject)
 {
-    TR_ENTER(env)
+    TR_ENTER()
     try {
         return reinterpret_cast<jlong>(LangBindHelper::new_table());
     } CATCH_STD()
@@ -1647,3 +1643,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
     } CATCH_STD()
     return 0;
 }
+
+static void finalize_table(jlong ptr)
+{
+    TR_ENTER_PTR(ptr)
+    LangBindHelper::unbind_table_ptr(TBL(ptr));
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetFinalizerPtr
+  (JNIEnv *, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_table);
+}
+

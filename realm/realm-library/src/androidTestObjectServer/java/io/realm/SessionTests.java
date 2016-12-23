@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.OkHttpAuthenticationServer;
-import io.realm.internal.objectserver.SyncSession;
+import io.realm.internal.objectserver.ObjectServerSession;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -43,7 +43,7 @@ public class SessionTests {
     private Context context;
     private AuthenticationServer authServer;
     private SyncConfiguration configuration;
-    private User user;
+    private SyncUser user;
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -62,14 +62,14 @@ public class SessionTests {
 
     @Test
     public void get_syncValues() {
-        SyncSession internalSession = new SyncSession(
+        ObjectServerSession internalSession = new ObjectServerSession(
                 configuration,
                 authServer,
                 configuration.getUser().getSyncUser(),
                 configuration.getSyncPolicy(),
                 configuration.getErrorHandler()
         );
-        Session session = new Session(internalSession);
+        SyncSession session = new SyncSession(internalSession);
 
         assertEquals("realm://objectserver.realm.io/JohnDoe/default", session.getServerUrl().toString());
         assertEquals(user, session.getUser());

@@ -49,7 +49,7 @@ import io.realm.internal.RealmObjectProxy;
  * @param <E> the class of objects in list.
  */
 
-public final class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
+public class RealmList<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
@@ -456,30 +456,62 @@ public final class RealmList<E extends RealmModel> extends AbstractList<E> imple
      * {@inheritDoc}
      */
     public E first() {
+        return firstImpl(true, null);
+    }
+
+    /**
+    * {@inheritDoc}
+    */
+    public E first(E defaultValue) {
+        return firstImpl(false, defaultValue);
+    }
+
+    private E firstImpl(boolean shouldThrow, E defaultValue) {
         if (managedMode) {
             checkValidView();
             if (!view.isEmpty()) {
                 return get(0);
             }
-        } else if (unmanagedList != null && unmanagedList.size() > 0) {
+        } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(0);
         }
-        throw new IndexOutOfBoundsException("The list is empty.");
+        
+        if (shouldThrow) {
+            throw new IndexOutOfBoundsException("The list is empty.");
+        } else {
+            return defaultValue;
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     public E last() {
+        return lastImpl(true, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public E last(E defaultValue) {
+        return lastImpl(false, defaultValue);
+    }
+
+    private E lastImpl(boolean shouldThrow, E defaultValue) {
         if (managedMode) {
             checkValidView();
             if (!view.isEmpty()) {
                 return get((int) view.size() - 1);
             }
-        } else if (unmanagedList != null && unmanagedList.size() > 0) {
+        } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(unmanagedList.size() - 1);
         }
-        throw new IndexOutOfBoundsException("The list is empty.");
+
+        if (shouldThrow) {
+            throw new IndexOutOfBoundsException("The list is empty.");
+        } else {
+            return defaultValue;
+        }
     }
 
     /**

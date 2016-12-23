@@ -19,6 +19,7 @@ package io.realm.log;
 /**
  * Interface for custom loggers that can be registered at {@link RealmLog#add(Logger)}.
  * The different log levels are described in {@link LogLevel}.
+ * @deprecated Use {@link RealmLogger} instead.
  */
 public interface Logger {
 

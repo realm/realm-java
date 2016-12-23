@@ -11,9 +11,11 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
+ENV ANDROID_NDK /opt/android-ndk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
+ENV NDK_LCACHE /usr/bin/lcache
 
 # The 32 bit binaries because aapt requires it
 # `file` is need by the script that creates NDK toolchains
@@ -71,3 +73,7 @@ RUN mkdir /opt/cmake-tmp && \
 
 # Make the SDK universally readable
 RUN chmod -R a+rX ${ANDROID_HOME}
+
+# Install lcache
+RUN wget -q https://github.com/beeender/lcache/releases/download/v0.0.2/lcache-linux -O /usr/bin/lcache && \
+    chmod +x /usr/bin/lcache

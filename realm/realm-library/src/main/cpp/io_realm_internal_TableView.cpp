@@ -25,6 +25,8 @@ using namespace realm;
 // if you disable the validation, please remember to call sync_in_needed() 
 #define VIEW_VALID_AND_IN_SYNC(env, ptr) view_valid_and_in_sync(env, ptr)
 
+static void finalize_table_view(jlong ptr);
+
 inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
     bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
@@ -146,15 +148,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
         }
         dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
     } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClose(
-    JNIEnv*, jclass, jlong nativeViewPtr)
-{
-    if (nativeViewPtr == 0)
-        return;
-
-    delete TV(nativeViewPtr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSize(
@@ -945,7 +938,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
     JNIEnv *env, jobject, jlong nativeViewPtr)
 {
-    TR_ENTER_PTR(env, nativeViewPtr)
+    TR_ENTER_PTR(nativeViewPtr)
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
@@ -975,7 +968,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
         (JNIEnv *env, jobject, jlong nativeViewPtr, jlong sourceIndex)
 {
-    TR_ENTER_PTR(env, nativeViewPtr);
+    TR_ENTER_PTR(nativeViewPtr);
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !ROW_INDEX_VALID(env, &(TV(nativeViewPtr)->get_parent()), sourceIndex))
             return -1;
@@ -984,4 +977,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
         return to_jlong_or_not_found(ndx);
     } CATCH_STD()
     return -1;
+}
+
+static void finalize_table_view(jlong ptr)
+{
+    TR_ENTER_PTR(ptr)
+    delete TV(ptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetFinalizerPtr
+  (JNIEnv *, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_table_view);
 }
