@@ -80,6 +80,13 @@ struct ResultsWrapper {
         }
     }
 
+    // TODO: This is for deletion related APIs on the Collection. This is not efficient at all since it moves and
+    //       and creates TableView. Expose the reference of snapshot's TableView from Results and use that instead.
+    inline void refresh_snapshot()
+    {
+        m_snapshot = m_results.snapshot();
+    }
+
     inline bool is_detached()
     {
         return m_snapshot.get_mode() != Results::Mode::Empty;
@@ -199,7 +206,7 @@ Java_io_realm_internal_Collection_nativeClear(JNIEnv *env, jclass, jlong native_
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->get_results().clear();
         // Refresh snapshot
-        wrapper->switch_to_snapshot();
+        wrapper->refresh_snapshot();
     } CATCH_STD()
 }
 
@@ -402,7 +409,7 @@ Java_io_realm_internal_Collection_nativeDeleteLast(JNIEnv *env, jclass, jlong na
         if (wrapper->get_results().size() > 0) {
             wrapper->get_results().get_tableview().remove_last();
             // Refresh snapshot
-            wrapper->switch_to_snapshot();
+            wrapper->refresh_snapshot();
             return JNI_TRUE;
         }
     } CATCH_STD()
@@ -420,7 +427,7 @@ Java_io_realm_internal_Collection_nativeDeleteFirst(JNIEnv *env, jclass, jlong n
         if (wrapper->get_results().size() > 0) {
             wrapper->get_results().get_tableview().remove(0);
             // Refresh snapshot
-            wrapper->switch_to_snapshot();
+            wrapper->refresh_snapshot();
             return JNI_TRUE;
         }
     } CATCH_STD()
@@ -442,7 +449,7 @@ Java_io_realm_internal_Collection_nativeDelete(JNIEnv *env, jclass, jlong native
         }
         view.remove(static_cast<size_t>(index));
         // Refresh snapshot
-        wrapper->switch_to_snapshot();
+        wrapper->refresh_snapshot();
     } CATCH_STD()
 }
 
