@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
-import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
@@ -45,13 +44,11 @@ import io.realm.entities.Owner;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Collection;
-import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -685,97 +682,150 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
-    private RealmResults<Dog> populateRealmResultsOnDeletedLinkView() {
+    private RealmResults<Dog> populateRealmResultsOnLinkView(Realm realm) {
         realm.beginTransaction();
         Owner owner = realm.createObject(Owner.class);
         for (int i = 0; i < 10; i++) {
             Dog dog = new Dog();
             dog.setName("name_" + i);
             dog.setOwner(owner);
+            dog.setAge(i);
+            dog.setBirthday(new Date(i));
             owner.getDogs().add(dog);
         }
         realm.commitTransaction();
 
 
-        RealmResults<Dog> dogs = owner.getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
-
-        realm.beginTransaction();
-        owner.deleteFromRealm();
-        realm.commitTransaction();
-        return dogs;
+        return owner.getDogs().where().lessThan(Dog.FIELD_AGE, 5).findAll();
     }
 
-    // It will still be treated as valid table view in core, just always be empty.
+    // If a RealmResults is built on a link view, when the link view is deleted on the same thread, within the same
+    // event loop, the RealmResults stays without changes since it is detached until the next event loop. In the next
+    // event loop, the results will be empty because of the parent link view is deleted.
+    // 1. Create results from link view.
+    // 2. Delete the parent link view by a local transaction.
+    // 3. Within the same event loop, the results stays the same.
+    // 4. The results change listener called, the results becomes empty.
     @Test
-    public void isValid_resultsBuiltOnDeletedLinkView() {
-        assertEquals(true, populateRealmResultsOnDeletedLinkView().isValid());
+    @RunTestInLooperThread
+    public void accessors_resultsBuiltOnDeletedLinkView_deletionAsALocalCommit() {
+        Realm realm = looperThread.realm;
+        // Step 1
+        RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> dogs) {
+                // Step 4.
+                // The results is still valid, but empty.
+                assertEquals(true, dogs.isValid());
+                assertEquals(true, dogs.isEmpty());
+                assertEquals(0, dogs.size());
+                try {
+                    dogs.first();
+                    fail();
+                } catch (IndexOutOfBoundsException ignored) {
+                }
+
+                assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+                assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+                assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+                assertEquals(null, dogs.min(Dog.FIELD_AGE));
+                assertEquals(null, dogs.max(Dog.FIELD_AGE));
+                assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
+                assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
+
+                // FIXME: Enable this when https://github.com/realm/realm-core/issues/2378 fixed.
+                //assertEquals(0, dogs.where().findAll().size());
+
+                looperThread.testComplete();
+            }
+        });
+
+        // Step 2
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Owner.class).findAll().deleteAllFromRealm();
+            }
+        });
+
+        // Step 3
+        assertEquals(true, dogs.isValid());
+        assertEquals(5, dogs.size());
+        assertEquals("name_0", dogs.first().getName());
+        assertEquals("name_4", dogs.last().getName());
+        assertEquals(0, dogs.min(Dog.FIELD_AGE).intValue());
+        assertEquals(4, dogs.max(Dog.FIELD_AGE).intValue());
+        assertEquals(new Date(0), dogs.minDate(Dog.FIELD_BIRTHDAY));
+        assertEquals(new Date(4), dogs.maxDate(Dog.FIELD_BIRTHDAY));
+        // The link view has been deleted.
+        assertEquals(0, dogs.where().findAll().size());
     }
 
+    // If a RealmResults is built on a link view, when the link view is deleted on a remote thread, within the same
+    // event loop, the RealmResults stays without changes since the Realm version doesn't change. In the next
+    // event loop, the results will be empty because of the parent link view is deleted.
+    // 1. Create results from link view.
+    // 2. Delete the parent link view by a remote transaction.
+    // 3. Within the same event loop, the results stays the same.
+    // 4. The results change listener called, the results becomes empty.
     @Test
-    public void size_resultsBuiltOnDeletedLinkView() {
-        assertEquals(0, populateRealmResultsOnDeletedLinkView().size());
-    }
+    @RunTestInLooperThread
+    public void accessors_resultsBuiltOnDeletedLinkView_deletionAsARemoteCommit() {
+        // Step 1
+        Realm realm = looperThread.realm;
+        RealmResults<Dog> dogs = populateRealmResultsOnLinkView(realm);
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> dogs) {
+                // Step 4
+                // The results is still valid, but empty.
+                assertEquals(true, dogs.isValid());
+                assertEquals(true, dogs.isEmpty());
+                assertEquals(0, dogs.size());
+                try {
+                    dogs.first();
+                    fail();
+                } catch (IndexOutOfBoundsException ignored) {
+                }
 
-    @Test
-    public void first_resultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().first();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
+                assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+                assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+                assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+                assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+                assertEquals(null, dogs.min(Dog.FIELD_AGE));
+                assertEquals(null, dogs.max(Dog.FIELD_AGE));
+                assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
+                assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
 
-    @Test
-    public void last_resultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().last();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
+                // FIXME: Enable this when https://github.com/realm/realm-core/issues/2378 fixed.
+                // assertEquals(0, dogs.where().findAll().size());
 
-    @Test
-    public void sum_resultsBuiltOnDeletedLinkView() {
-        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
-        assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
-        assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
-        assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
-    }
+                looperThread.testComplete();
+            }
+        });
 
-    @Test
-    public void average_resultsBuiltOnDeletedLinkView() {
-        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
-        assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
-        assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
-        assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
-    }
 
-    @Test
-    public void where_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(0, results.where().findAll().size());
-    }
+        // Step 2
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Owner.class).findAll().deleteAllFromRealm();
+            }
+        });
 
-    @Test
-    public void min_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertNull(results.min(CyclicType.FIELD_ID));
-    }
-
-    @Test
-    public void min_dateResultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(null, results.minDate(CyclicType.FIELD_DATE));
-    }
-
-    @Test
-    public void max_dateResultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertEquals(null, results.maxDate(CyclicType.FIELD_DATE));
-    }
-
-    @Test
-    public void max_resultsBuiltOnDeletedLinkView() {
-        OrderedRealmCollection<CyclicType> results = populateCollectionOnDeletedLinkView(realm, ManagedCollection.REALMRESULTS);
-        assertNull(results.max(CyclicType.FIELD_ID));
+        // Step 3
+        assertEquals(true, dogs.isValid());
+        assertEquals(5, dogs.size());
+        // The link view still exists
+        assertEquals(5, dogs.where().findAll().size());
     }
 
     @Test
