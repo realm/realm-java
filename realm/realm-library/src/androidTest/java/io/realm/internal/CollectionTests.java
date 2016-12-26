@@ -75,7 +75,8 @@ public class CollectionTests {
         sharedRealm.beginTransaction();
         table = sharedRealm.getTable("test_table");
         // Specify the column types and names
-        table.addColumn(RealmFieldType.STRING, "firstName");
+        long columnIdx = table.addColumn(RealmFieldType.STRING, "firstName");
+        table.addSearchIndex(columnIdx);
         table.addColumn(RealmFieldType.STRING, "lastName");
         table.addColumn(RealmFieldType.INTEGER, "age");
 
