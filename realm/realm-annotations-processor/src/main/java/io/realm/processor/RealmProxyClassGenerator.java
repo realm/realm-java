@@ -205,7 +205,7 @@ public class RealmProxyClassGenerator {
 
     private void emitClassFields(JavaWriter writer) throws IOException {
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE));
-        writer.emitField("ProxyState", "proxyState", EnumSet.of(Modifier.PRIVATE));
+        writer.emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isRealmList(variableElement)) {
@@ -502,7 +502,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
         writer.emitStatement("this.columnInfo = (%1$s) context.getColumnInfo()", columnInfoClassName());
-        writer.emitStatement("this.proxyState = new ProxyState(%1$s.class, this)", qualifiedClassName);
+        writer.emitStatement("this.proxyState = new ProxyState<%1$s>(%1$s.class, this)", qualifiedClassName);
         writer.emitStatement("proxyState.setRealm$realm(context.getRealm())");
         writer.emitStatement("proxyState.setRow$realm(context.getRow())");
         writer.emitStatement("proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue())");
@@ -1490,7 +1490,7 @@ public class RealmProxyClassGenerator {
                 .endControlFlow()
             .nextControlFlow("else")
                 .emitStatement("unmanagedObject = new %s()", qualifiedClassName)
-                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject))")
+                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject))")
             .endControlFlow();
 
         for (VariableElement field : metadata.getFields()) {
