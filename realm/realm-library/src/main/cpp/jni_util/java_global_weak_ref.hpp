@@ -37,6 +37,12 @@ public:
         }
     }
 
+    // Implement those when needed.
+    JavaGlobalWeakRef(const JavaGlobalWeakRef&) = delete;
+    JavaGlobalWeakRef& operator=(const JavaGlobalWeakRef&) = delete;
+    JavaGlobalWeakRef(JavaGlobalWeakRef&& rhs) = delete;
+    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&& rhs) = delete;
+
     inline operator bool() const noexcept
     {
         return m_weak != nullptr;
