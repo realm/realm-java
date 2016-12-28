@@ -31,7 +31,6 @@ bool JavaGlobalWeakRef::call_with_local_ref(JNIEnv* env, std::function<Callback>
         return false;
     }
     callback(env, obj);
-    env->DeleteLocalRef(obj);
     return true;
 }
 
