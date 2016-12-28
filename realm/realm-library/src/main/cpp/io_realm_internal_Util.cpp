@@ -22,7 +22,10 @@
 #include "mem_usage.hpp"
 #include "util.hpp"
 
+#include "jni_util/jni_utils.hpp"
+
 using std::string;
+using namespace realm::jni_util;
 
 //#define USE_VLD
 #if defined(_MSC_VER) && defined(_DEBUG) && defined(USE_VLD)
@@ -39,7 +42,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
         return JNI_ERR;
     }
     else {
-        g_vm = vm;
+        JniUtils::initialize(vm, JNI_VERSION_1_6);
         // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
         java_lang_long        = GetClass(env, "java/lang/Long");
         java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");

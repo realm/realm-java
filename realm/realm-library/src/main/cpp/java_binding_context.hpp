@@ -22,6 +22,8 @@
 
 #include "binding_context.hpp"
 
+#include "jni_util/java_global_weak_ref.hpp"
+
 namespace realm {
 
 namespace _impl {
@@ -36,22 +38,16 @@ private:
             :jni_env(env), java_notifier(notifier) { }
     };
 
-    // The JNIEnv for the thread which creates the Realm. This should only be used on the current thread.
-    JNIEnv* m_local_jni_env;
-    // All methods should be called from the thread which creates the realm except the destructor which might be
-    // called from finalizer/phantom daemon. So we need a jvm pointer to create JNIEnv there if needed.
-    JavaVM* m_jvm;
     // A weak global ref to the implementation of RealmNotifier
     // Java should hold a strong ref to it as long as the SharedRealm lives
-    jobject m_java_notifier;
-    // Method IDs from RealmNotifier implementation. Cache them as member vars.
-    jmethodID m_notify_by_other_method;
+    jni_util::JavaGlobalWeakRef m_java_notifier;
 
 public:
-    virtual ~JavaBindingContext();
+    virtual ~JavaBindingContext() {};
     virtual void changes_available();
 
-    explicit JavaBindingContext(const ConcreteJavaBindContext&);
+    explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
+            : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier) {}
     JavaBindingContext(const JavaBindingContext&) = delete;
     JavaBindingContext& operator=(const JavaBindingContext&) = delete;
     JavaBindingContext(JavaBindingContext&&) = delete;
