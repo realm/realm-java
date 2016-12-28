@@ -32,7 +32,6 @@ using namespace realm::util;
 using namespace realm::jni_util;
 
 // Caching classes and constructors for boxed types.
-JavaVM* g_vm;
 jclass java_lang_long;
 jmethodID java_lang_long_init;
 jclass java_lang_float;
