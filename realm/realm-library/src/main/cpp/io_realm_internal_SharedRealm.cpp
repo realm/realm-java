@@ -56,6 +56,9 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         if (sync_server_url) {
             config->force_sync_history = true;
         }
+#else
+        (void)sync_server_url;
+        (void)sync_user_token;
 #endif
         return reinterpret_cast<jlong>(config);
     } CATCH_STD()
@@ -64,7 +67,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv* env, jclass, jlong config_ptr)
+Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv*, jclass, jlong config_ptr)
 {
     TR_ENTER_PTR(config_ptr)
 
@@ -89,7 +92,7 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlo
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv* env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -132,7 +135,7 @@ Java_io_realm_internal_SharedRealm_nativeCancelTransaction(JNIEnv *env, jclass, 
 
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_SharedRealm_nativeIsInTransaction(JNIEnv* env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeIsInTransaction(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -162,6 +165,8 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
     try {
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
+
+    return static_cast<jlong>(ObjectStore::NotVersioned);
 }
 
 JNIEXPORT void JNICALL
@@ -249,7 +254,7 @@ Java_io_realm_internal_SharedRealm_nativeGetVersionID(JNIEnv *env, jclass, jlong
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv* env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeIsClosed(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
