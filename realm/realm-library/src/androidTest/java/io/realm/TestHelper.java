@@ -783,7 +783,11 @@ public class TestHelper {
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
-            if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
+            if (android.os.Debug.isDebuggerConnected()) {
+                // If we are debugging the tests, just wait without a timeout. In case we are stopping at a break point
+                // and timeout happens.
+                latch.await();
+            } else if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
                 fail("Test took longer than " + numberOfSeconds + " seconds");
             }
         } catch (InterruptedException e) {
