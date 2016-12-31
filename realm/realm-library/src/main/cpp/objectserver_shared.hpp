@@ -54,14 +54,14 @@ public:
                 coordinator->wake_up_notifier_worker();
             }
         };
-        auto error_handler = [&, global_obj_ref_tmp](int error_code, std::string message) {
+        auto error_handler = [&, global_obj_ref_tmp](std::error_code error_code, bool /*is_fatal*/, const std::string message) {
             JNIEnv *local_env;
             g_vm->AttachCurrentThread(&local_env, nullptr);
             jclass java_session_class = local_env->GetObjectClass(global_obj_ref_tmp);
             jmethodID notify_error_handler = local_env->GetMethodID(java_session_class,
                                                                        "notifySessionError", "(ILjava/lang/String;)V");
             local_env->CallVoidMethod(global_obj_ref_tmp,
-                                      notify_error_handler, error_code, env->NewStringUTF(message.c_str()));
+                                      notify_error_handler, error_code.value(), env->NewStringUTF(message.c_str()));
         };
         m_sync_session->set_sync_transact_callback(sync_transact_callback);
         m_sync_session->set_error_handler(std::move(error_handler));
