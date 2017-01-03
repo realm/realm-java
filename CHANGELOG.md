@@ -16,8 +16,8 @@
 
 ### Internal
 
-* Upgraded Realm Core to 2.1.0.
-* Upgraded Realm Sync to 1.0.0-BETA-5.0.
+* Upgraded Realm Core to 2.3.0.
+* Upgraded Realm Sync to 1.0.0-BETA-6.5.
 
 ## 2.2.1
 

@@ -74,7 +74,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectserver_ObjectServerSession_n
 {
     TR_ENTER()
     JniSession* session = SS(sessionPointer);
-    session->close(env);
     delete session; // TODO Can we avoid killing the session here?
 }
 
