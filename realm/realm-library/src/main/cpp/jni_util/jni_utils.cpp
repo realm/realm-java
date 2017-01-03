@@ -39,7 +39,7 @@ JNIEnv* JniUtils::get_env(bool attach_if_needed) {
         jint ret = s_instance->m_vm->AttachCurrentThread(&env, nullptr);
         REALM_ASSERT_DEBUG(ret == JNI_OK);
     } else {
-        REALM_ASSERT_DEBUG(false);
+        REALM_ASSERT_RELEASE(false);
     }
 
     return env;
