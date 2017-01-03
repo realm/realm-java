@@ -23,12 +23,14 @@ using namespace realm::jni_util;
 JavaMethod::JavaMethod(JNIEnv *env, jclass cls, const char* method_name, const char* signature)
 {
     m_method_id = env->GetMethodID(cls, method_name, signature);
+    REALM_ASSERT_DEBUG(m_method_id != nullptr);
 }
 
 JavaMethod::JavaMethod(JNIEnv *env, jobject obj, const char* method_name, const char* signature)
 {
     jclass cls = env->GetObjectClass(obj);
     m_method_id = env->GetMethodID(cls, method_name, signature);
+    REALM_ASSERT_DEBUG(m_method_id != nullptr);
     env->DeleteLocalRef(cls);
 }
 
