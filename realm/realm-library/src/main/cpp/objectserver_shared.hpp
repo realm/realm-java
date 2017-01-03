@@ -23,6 +23,7 @@
 
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
+#include <realm/sync/protocol.hpp>
 #include <realm/util/logger.hpp>
 
 #include <impl/realm_coordinator.hpp>
@@ -60,7 +61,19 @@ public:
                 coordinator->wake_up_notifier_worker();
             }
         };
-        auto error_handler = [weak_session_ref](std::error_code error_code, bool /*is_fatal*/, const std::string message) {
+        auto error_handler = [weak_session_ref](std::error_code error_code, bool is_fatal, const std::string message) {
+            if (error_code.category() != realm::sync::protocol_error_category() ||
+                    error_code.category() != realm::sync::client_error_category()) {
+                // FIXME: Consider below when moving to the OS sync manager.
+                // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception there
+                // will trigger "called with pending exception" later since the thread is created by java, and the
+                // endless loop is in native code. The java exception will never be thrown because of the endless loop
+                // will never quit to java land.
+                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.",
+                                        error_code.value(), error_code.message(), is_fatal);
+                return;
+            }
+
             auto session_ref = weak_session_ref.lock();
             if (session_ref) {
                 session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
