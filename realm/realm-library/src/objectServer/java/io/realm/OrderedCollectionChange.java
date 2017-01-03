@@ -11,7 +11,7 @@ public class OrderedCollectionChange {
     public Range[] getDeletionRanges() { return null; }
     public Range[] getInsertionRanges() { return null; }
     public Range[] getChangeRanges() { return null; }
-    Move[] getMoves() { return null; }
+    public Move[] getMoves() { return null; }
 
     public static class Range {
         public final long startIndex;

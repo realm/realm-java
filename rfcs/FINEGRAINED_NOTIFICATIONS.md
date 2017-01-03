@@ -10,9 +10,9 @@ Realm wants to promote a reactive pattern to working with your data. It should b
 
 This is interesting for a number of use cases:
 
-1) I want to animate or refresh a RecyclerView when elements are added, moved, modified or deleted in a `RealmResults`.
-2) I want to be notified about the result of an query changing so I can refresh my UI.
-3) I want my changelisteners to _only_ trigger when there is a relevant change.
+1. I want to animate or refresh a RecyclerView when elements are added, moved, modified or deleted in a `RealmResults`.
+2. I want to be notified about the result of an query changing so I can refresh my UI.
+3. I want my changelisteners to _only_ trigger when there is a relevant change.
 
 While you in some use cases probably want to compare old and new data, we have not yet found a compelling enough use case to support this for collections.
 Single object notifications will have this functionality.
@@ -61,12 +61,12 @@ public interface OrderedRealmCollectionChangeListener<T> {
 // RecyclerView uses the `get*Ranges()` methods.
 public class OrderedCollectionChange {
     public long[] getDeletions() { return null; }
-    public long[] getInsertertions() { return null; }
+    public long[] getInsertions() { return null; }
     public long[] getChanges()  { return null; }
     public Range[] getDeletionRanges() { return null; }
     public Range[] getInsertionRanges() { return null; }
     public Range[] getChangeRanges() { return null; }
-    Move[] getMoves() { return null; }
+    public Move[] getMoves() { return null; }
 
     public static class Range {
         public final long startIndex;
