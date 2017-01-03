@@ -34,12 +34,13 @@ JNIEnv* JniUtils::get_env(bool attach_if_needed) {
     REALM_ASSERT_DEBUG(s_instance);
 
     JNIEnv* env;
-    if (s_instance->m_vm->GetEnv(reinterpret_cast<void**>(&env), s_instance->m_vm_version) != JNI_OK &&
-            attach_if_needed) {
-        jint ret = s_instance->m_vm->AttachCurrentThread(&env, nullptr);
-        REALM_ASSERT_DEBUG(ret == JNI_OK);
-    } else {
-        REALM_ASSERT_RELEASE(false);
+    if (s_instance->m_vm->GetEnv(reinterpret_cast<void**>(&env), s_instance->m_vm_version) != JNI_OK)
+        if (attach_if_needed) {
+            jint ret = s_instance->m_vm->AttachCurrentThread(&env, nullptr);
+            REALM_ASSERT_RELEASE(ret == JNI_OK);
+        } else {
+            REALM_ASSERT_RELEASE(false);
+        }
     }
 
     return env;

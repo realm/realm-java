@@ -33,7 +33,7 @@ template <typename T>
 class JavaLocalRef {
 public:
     // need_to_create is useful when acquire a local ref from a global weak ref.
-    inline JavaLocalRef(JNIEnv* env, T obj) noexcept : m_jobject( obj), m_env(env) {};
+    inline JavaLocalRef(JNIEnv* env, T obj) noexcept : m_jobject(obj), m_env(env) {};
     inline JavaLocalRef(JNIEnv* env, T obj, NeedToCreateLocalRef) noexcept
             : m_jobject(env->NewLocalRef(obj)), m_env(env) {};
     inline ~JavaLocalRef() { m_env->DeleteLocalRef(m_jobject); }
