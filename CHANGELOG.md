@@ -7,6 +7,7 @@
 ### Bug fixes
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
+* Crash on API 10 devices (#3726).
 * Realm migration is triggered, when the primary key definition is altered (#3966).
 
 ### Enhancements
@@ -16,8 +17,8 @@
 
 ### Internal
 
-* Upgraded Realm Core to 2.1.0.
-* Upgraded Realm Sync to 1.0.0-BETA-5.0.
+* Upgraded Realm Core to 2.3.0.
+* Upgraded Realm Sync to 1.0.0-BETA-6.5.
 
 ## 2.2.1
 
