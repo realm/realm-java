@@ -336,6 +336,18 @@ public class TableQuery implements NativeObject {
     // Query for String values.
 
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
+    
+    public TableQuery like(long[] columnIndexes, String value, Case caseSensitive) {
+	nativeLike(nativePtr, columnIndexes, value, caseSensitive.getValue());
+	queryValidated = false;
+	return this;
+    }
+
+    public TableQuery like(long[] columnIndexes, String value) {
+	nativeLike(nativePtr, columnIndexes, value, true);
+	queryValidated = false;
+	return this;
+    }
 
     // Equal
     public TableQuery equalTo(long[] columnIndexes, String value, Case caseSensitive) {
@@ -746,6 +758,7 @@ public class TableQuery implements NativeObject {
     private native void nativeLessTimestamp(long nativeQueryPtr, long columnIndex[], long value);
     private native void nativeLessEqualTimestamp(long nativeQueryPtr, long columnIndex[], long value);
     private native void nativeBetweenTimestamp(long nativeQueryPtr, long columnIndex[], long value1, long value2);
+    private native void nativeLike(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
     private native void nativeEqual(long nativeQueryPtr, long[] columnIndices, byte[] value);
     private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndices, byte[] value);
     private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
