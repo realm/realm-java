@@ -8,7 +8,7 @@
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
 * Crash on API 10 devices (#3726).
-* Realm migration is triggered, when the primary key definition is altered (#3966).
+* Realm migration wasn't triggered when the primary key definition was altered (#3966).
 
 ### Enhancements
 
