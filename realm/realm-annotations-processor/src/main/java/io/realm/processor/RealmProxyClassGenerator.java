@@ -671,12 +671,11 @@ public class RealmProxyClassGenerator {
         // verify primary key definition was not altered
         if (metadata.hasPrimaryKey()) {
             // the current model defines a PK, make sure it's defined in the Realm schema
-            String fieldType = metadata.getPrimaryKey().getSimpleName().toString();
+            String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
             writer.beginControlFlow("if (!table.hasPrimaryKey())")
                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation @PrimaryKey was added.\")")
                    .nextControlFlow("else")
-                        .emitStatement("long idxPrimaryKey = table.getPrimaryKey()")
-                        .beginControlFlow("if (idxPrimaryKey != columnInfo.%sIndex)", fieldType)
+                        .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName)
                             .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed.\")")
                         .endControlFlow()
                     .endControlFlow();

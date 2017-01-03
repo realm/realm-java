@@ -954,29 +954,4 @@ public class BulkInsertTests {
     public void insertOrUpdate_object_notInTransaction() {
         realm.insert(new AllTypes());
     }
-
-
-    @Test
-    public void insertOrUpdate_fromOtherRealm() {
-        RealmConfiguration config1 = configFactory.createConfiguration("realm1");
-        RealmConfiguration config2 = configFactory.createConfiguration("realm2");
-
-        Realm realm1 = Realm.getInstance(config1);
-        Realm realm2 = Realm.getInstance(config2);
-
-        realm1.beginTransaction();
-        Owner owner = realm1.createObject(Owner.class);
-        Dog dog = realm1.createObject(Dog.class);
-        owner.getDogs().add(dog);
-        dog.setOwner(owner);
-        realm1.commitTransaction();
-
-        //Copy object with relations from realm1 to realm2
-        realm2.beginTransaction();
-        realm2.insertOrUpdate(owner);
-        realm2.commitTransaction();
-
-        realm1.close();
-        realm2.close();
-    }
 }
