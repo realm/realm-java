@@ -536,8 +536,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!table.hasPrimaryKey()) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation @PrimaryKey was added.");
             } else {
-                long idxPrimaryKey = table.getPrimaryKey();
-                if (idxPrimaryKey != columnInfo.columnStringIndex) {
+                if (table.getPrimaryKey() != columnInfo.columnStringIndex) {
                     throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed.");
                 }
             }
