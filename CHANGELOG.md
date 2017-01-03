@@ -7,10 +7,12 @@
 ### Bug fixes
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
+* Crash on API 10 devices (#3726).
 
 ### Enhancements
 
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
+* Fixed Java lint warnings with generated proxy classes (#2929).
 
 ### Internal
 

@@ -30,6 +30,7 @@
 #include "io_realm_SyncManager.h"
 
 #include "jni_util/log.hpp"
+#include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace realm::sync;

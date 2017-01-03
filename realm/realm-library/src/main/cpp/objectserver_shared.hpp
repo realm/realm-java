@@ -28,6 +28,9 @@
 #include <sync/sync_manager.hpp>
 
 #include "util.hpp"
+#include "jni_util/jni_utils.hpp"
+
+using namespace realm::jni_util;
 
 
 // Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
@@ -55,8 +58,7 @@ public:
             }
         };
         auto error_handler = [&, global_obj_ref_tmp](std::error_code error_code, bool /*is_fatal*/, const std::string message) {
-            JNIEnv *local_env;
-            g_vm->AttachCurrentThread(&local_env, nullptr);
+            JNIEnv *local_env = JniUtils::get_env(true);
             jclass java_session_class = local_env->GetObjectClass(global_obj_ref_tmp);
             jmethodID notify_error_handler = local_env->GetMethodID(java_session_class,
                                                                        "notifySessionError", "(ILjava/lang/String;)V");
