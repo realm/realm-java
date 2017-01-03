@@ -24,6 +24,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
 
 import io.realm.android.SharedPrefsUserStore;
@@ -31,12 +35,13 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-public class UserTests {
+public class SyncUserTests {
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -113,4 +118,37 @@ public class UserTests {
         assertEquals(user, User.currentUser());
     }
     */
+
+    @Test
+    public void getManagementRealm() {
+        SyncUser user = SyncTestUtils.createTestUser();
+        Realm managementRealm = user.getManagementRealm();
+        assertNotNull(managementRealm);
+        managementRealm.close();
+    }
+
+    @Test
+    public void getManagementRealm_enforceTLS() throws URISyntaxException {
+        // Non TLS
+        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
+        Realm managementRealm = user.getManagementRealm();
+        SyncConfiguration config = (SyncConfiguration) managementRealm.getConfiguration();
+        assertEquals(new URI("realm://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
+        managementRealm.close();
+
+        // TLS
+        user = SyncTestUtils.createTestUser("https://objectserver.realm.io/auth");
+        managementRealm = user.getManagementRealm();
+        config = (SyncConfiguration) managementRealm.getConfiguration();
+        assertEquals(new URI("realms://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
+        managementRealm.close();
+    }
+
+    @Test
+    public void toString_returnDescription() {
+        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
+        String str = user.toString();
+        assertTrue(str != null && !str.isEmpty());
+    }
+
 }

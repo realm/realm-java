@@ -18,6 +18,7 @@ package io.realm.objectserver.utils;
 
 import java.io.IOException;
 
+import io.realm.log.RealmLog;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -44,10 +45,10 @@ public class HttpUtils {
 
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            RealmLog.debug(responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
 
-        System.out.println(response.body().string());
+        RealmLog.debug(response.body().string());
 
         // FIXME: Server ready checking should be done in the control server side!
         if (!waitAuthServerReady()) {
@@ -58,7 +59,7 @@ public class HttpUtils {
 
     // Checking the server
     private static boolean waitAuthServerReady() throws InterruptedException {
-        int retryTimes = 20;
+        int retryTimes = 50;
         Request request = new Request.Builder()
                 .url(Constants.AUTH_SERVER_URL)
                 .build();
@@ -69,9 +70,10 @@ public class HttpUtils {
                 if (response.isSuccessful()) {
                     return true;
                 }
+                RealmLog.error("Error response from auth server: %s", response.toString());
             } catch (IOException e) {
-                e.printStackTrace();
-                Thread.sleep(50);
+                RealmLog.error(e);
+                Thread.sleep(100);
             }
             retryTimes--;
         }
@@ -89,9 +91,9 @@ public class HttpUtils {
 
         Headers responseHeaders = response.headers();
         for (int i = 0; i < responseHeaders.size(); i++) {
-            System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+            RealmLog.debug(responseHeaders.name(i) + ": " + responseHeaders.value(i));
         }
 
-        System.out.println(response.body().string());
+        RealmLog.debug(response.body().string());
     }
 }

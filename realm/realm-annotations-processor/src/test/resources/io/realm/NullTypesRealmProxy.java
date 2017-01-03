@@ -140,7 +140,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     }
     private NullTypesColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.NullTypes> proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -178,7 +178,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.NullTypes.class, this);
+        this.proxyState = new ProxyState<some.test.NullTypes>(some.test.NullTypes.class, this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -980,7 +980,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                // Table#nullifyLink() does not support default value. Just use Row.
+                // Table#nullifyLink() does not support default value. Just using Row.
                 row.nullifyLink(columnInfo.fieldObjectNullIndex);
                 return;
             }
@@ -1088,7 +1088,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < 21; i++) {
+            for (long i = 0; i < columnCount; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -2221,7 +2221,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
         } else {
             unmanagedObject = new some.test.NullTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
         ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());

@@ -1,4 +1,3 @@
-#include <object-store/src/sync_manager.hpp>
 #include "io_realm_internal_SharedRealm.h"
 
 #include "object_store.hpp"
@@ -6,8 +5,8 @@
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
-#ifdef REALM_SYNC
-#include "sync_config.hpp"
+#if REALM_ENABLE_SYNC
+#include "sync/sync_manager.hpp"
 #endif
 
 using namespace realm;
@@ -53,13 +52,9 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
-#ifdef REALM_SYNC
+#if REALM_ENABLE_SYNC
         if (sync_server_url) {
-            JStringAccessor url(env, sync_server_url);
-            JStringAccessor token(env, sync_user_token);
-            config->sync_config = std::make_shared<SyncConfig>(token, url, nullptr, SyncSessionStopPolicy::Immediately);
-            // FIXME: Sync session is handled by java now. Remove this when adapt to OS sync implementation.
-            config->sync_config->create_session = false;
+            config->force_sync_history = true;
         }
 #endif
         return reinterpret_cast<jlong>(config);

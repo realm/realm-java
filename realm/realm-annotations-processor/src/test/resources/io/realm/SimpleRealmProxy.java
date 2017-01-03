@@ -64,7 +64,7 @@ public class SimpleRealmProxy extends some.test.Simple
 
     }
     private SimpleColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.Simple> proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -83,7 +83,7 @@ public class SimpleRealmProxy extends some.test.Simple
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (SimpleColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.Simple.class, this);
+        this.proxyState = new ProxyState<some.test.Simple>(some.test.Simple.class, this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -194,7 +194,7 @@ public class SimpleRealmProxy extends some.test.Simple
                 }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < 2; i++) {
+            for (long i = 0; i < columnCount; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -415,7 +415,7 @@ public class SimpleRealmProxy extends some.test.Simple
             }
         } else {
             unmanagedObject = new some.test.Simple();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((SimpleRealmProxyInterface) unmanagedObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
         ((SimpleRealmProxyInterface) unmanagedObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());

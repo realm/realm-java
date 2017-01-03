@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.internal.android.crypto.misc;
+package io.realm.permissions;
 
-/**
- * Base64 helper methods.
- */
-public class Base64 {
-    public static String to(byte[] bytes) {
-        return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
-    }
+import io.realm.annotations.RealmModule;
 
-    public static byte[] from(String base64) {
-        return android.util.Base64.decode(base64, android.util.Base64.NO_WRAP);
-    }
-
+@RealmModule(library = true, classes = { PermissionChange.class })
+public class PermissionModule {
 }

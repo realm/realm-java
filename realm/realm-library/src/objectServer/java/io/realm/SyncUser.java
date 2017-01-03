@@ -44,6 +44,8 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
+import io.realm.permissions.PermissionChange;
+import io.realm.permissions.PermissionModule;
 
 /**
  * @Beta
@@ -60,6 +62,7 @@ import io.realm.log.RealmLog;
 @Beta
 public class SyncUser {
 
+    private SyncConfiguration managementRealmConfig;
     private final ObjectServerUser syncUser;
 
     private SyncUser(ObjectServerUser user) {
@@ -354,6 +357,41 @@ public class SyncUser {
         return (userToken != null) ? userToken.value() : null;
     }
 
+    /**
+     * Returns an instance of the Management Realm owned by the user.
+     * <p>
+     * This Realm can be used to control access and permissions for Realms owned by the user. This includes
+     * giving other users access to Realms.
+     *
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
+     */
+    public Realm getManagementRealm() {
+        synchronized (this) {
+            if (managementRealmConfig == null) {
+                String managementUrl = getManagementRealmUrl(syncUser.getAuthenticationUrl());
+                managementRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
+                        .modules(new PermissionModule())
+                        .build();
+            }
+        }
+
+        return Realm.getInstance(managementRealmConfig);
+    }
+
+    // Creates the URL to the permission Realm based on the authentication URL.
+    private static String getManagementRealmUrl(URL authUrl) {
+        String scheme = "realm";
+        if (authUrl.getProtocol().equalsIgnoreCase("https")) {
+            scheme = "realms";
+        }
+        try {
+            return new URI(scheme, authUrl.getUserInfo(), authUrl.getHost(), authUrl.getPort(),
+                    "/~/__management", null, null).toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Could not create URL to the management Realm", e);
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -368,6 +406,17 @@ public class SyncUser {
     @Override
     public int hashCode() {
         return syncUser.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("UserId: ").append(syncUser.getIdentity());
+        sb.append(", AuthUrl: ").append(syncUser.getAuthenticationUrl());
+        sb.append(", IsValid: ").append(isValid());
+        sb.append(", Sessions: ").append(syncUser.getSessions().size());
+        sb.append("}");
+        return sb.toString();
     }
 
     // Expose internal representation for other package protected classes

@@ -28,7 +28,7 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException;
  * (define/insert/delete/update) a table has. All the native communications to the Realm C++ library are also handled by
  * this class.
  */
-public class Table implements TableOrView, TableSchema {
+public class Table implements TableOrView, TableSchema, NativeObject {
 
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final String TABLE_PREFIX = Util.getTablePrefix();
@@ -43,7 +43,8 @@ public class Table implements TableOrView, TableSchema {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
-    long nativePtr;
+    protected long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final Context context;
     private final SharedRealm sharedRealm;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -61,7 +62,8 @@ public class Table implements TableOrView, TableSchema {
         if (nativePtr == 0) {
             throw new java.lang.OutOfMemoryError("Out of native memory.");
         }
-        sharedRealm = null;
+        this.sharedRealm = null;
+        context.addReference(this);
     }
 
     Table(Table parent, long nativePointer) {
@@ -72,6 +74,17 @@ public class Table implements TableOrView, TableSchema {
         this.context = sharedRealm.context;
         this.sharedRealm = sharedRealm;
         this.nativePtr = nativePointer;
+        context.addReference(this);
+    }
+
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     @Override
@@ -81,18 +94,6 @@ public class Table implements TableOrView, TableSchema {
 
     public long getNativeTablePointer() {
         return nativePtr;
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                // Don't dispose the table immediately if it is created from a SharedRealm to avoid long run finalizer.
-                context.asyncDisposeTable(nativePtr, sharedRealm == null);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
-        super.finalize();
     }
 
     /*
@@ -716,17 +717,10 @@ public class Table implements TableOrView, TableSchema {
     }
 
     public Table getLinkTarget(long columnIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
-        try {
-            // Copy context reference from parent
-            return new Table(this.sharedRealm, nativeTablePointer);
-        }
-        catch (RuntimeException e) {
-            Table.nativeClose(nativeTablePointer);
-            throw e;
-        }
+        // Copy context reference from parent
+        Table table = new Table(this.sharedRealm, nativeTablePointer);
+        return table;
     }
 
     @Override
@@ -1060,16 +1054,9 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableQuery where() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
-        try {
-            // Copy context reference from parent
-            return new TableQuery(this.context, this, nativeQueryPtr);
-        } catch (RuntimeException e) {
-            TableQuery.nativeClose(nativeQueryPtr);
-            throw e;
-        }
+        // Copy context reference from parent
+        return new TableQuery(this.context, this, nativeQueryPtr);
     }
 
     /**
@@ -1133,66 +1120,32 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableView findAllLong(long columnIndex, long value) {
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     @Override
     public TableView findAllString(long columnIndex, String value) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     // Experimental feature
@@ -1219,15 +1172,8 @@ public class Table implements TableOrView, TableSchema {
     //
 
     public TableView getDistinctView(long columnIndex) {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetDistinctView(nativePtr, columnIndex);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     /**
@@ -1324,8 +1270,6 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long createNative();
-    // Free the underlying table ref. It is important that the nativeTablePtr become a invalid pointer after return.
-    static native void nativeClose(long nativeTablePtr);
     private native boolean nativeIsValid(long nativeTablePtr);
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
     private native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
@@ -1419,4 +1363,5 @@ public class Table implements TableOrView, TableSchema {
     private native String nativeToJson(long nativeTablePtr);
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
+    private static native long nativeGetFinalizerPtr();
 }

@@ -402,7 +402,8 @@ final class RealmCache {
         } else {
             int totalRefCount = 0;
             for (RealmCacheType type : RealmCacheType.values()) {
-                totalRefCount += cache.refAndCountMap.get(type).localCount.get();
+                Integer localCount = cache.refAndCountMap.get(type).localCount.get();
+                totalRefCount += (localCount != null) ? localCount : 0;
             }
             return totalRefCount;
         }

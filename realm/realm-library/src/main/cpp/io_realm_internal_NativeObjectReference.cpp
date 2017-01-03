@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.internal.android.crypto.ciper;
+#include "io_realm_internal_NativeObjectReference.h"
 
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+typedef void (*FinalizeFunc)(jlong);
 
-import javax.crypto.NoSuchPaddingException;
-
-/**
- * Return a {@link javax.crypto.Cipher} that works for the API 18.
- */
-public class CipherJB {
-    public static javax.crypto.Cipher get() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
-        return javax.crypto.Cipher.getInstance("RSA/ECB/PKCS1Padding", "AndroidOpenSSL");
-    }
+JNIEXPORT void JNICALL Java_io_realm_internal_NativeObjectReference_nativeCleanUp
+(JNIEnv *, jclass, jlong finalizer_ptr, jlong native_ptr) {
+    FinalizeFunc finalize_func = reinterpret_cast<FinalizeFunc>(finalizer_ptr);
+    finalize_func(native_ptr);
 }

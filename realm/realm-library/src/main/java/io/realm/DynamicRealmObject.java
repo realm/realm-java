@@ -33,7 +33,7 @@ import io.realm.internal.android.JsonUtils;
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 @SuppressWarnings("WeakerAccess")
-public final class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
+public class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
 
     private final ProxyState proxyState = new ProxyState(this);
 

@@ -21,20 +21,32 @@ import io.realm.RealmFieldType;
 /**
  * The LinkView class represents a core {@link RealmFieldType#LIST}.
  */
-public class LinkView extends NativeObject {
+public class LinkView implements NativeObject {
 
     private final Context context;
     final Table parent;
     final long columnIndexInParent;
+    private final long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
         this.parent = parent;
         this.columnIndexInParent = columnIndexInParent;
-        this.nativePointer = nativeLinkViewPtr;
+        this.nativePtr = nativeLinkViewPtr;
 
-        context.executeDelayedDisposal();
-        context.addReference(NativeObjectReference.TYPE_LINK_VIEW, this);
+        context.addReference(this);
+    }
+
+
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     /**
@@ -66,66 +78,59 @@ public class LinkView extends NativeObject {
      * Returns the row index in the underlying table.
      */
     public long getTargetRowIndex(long linkViewIndex) {
-        return nativeGetTargetRowIndex(nativePointer, linkViewIndex);
+        return nativeGetTargetRowIndex(nativePtr, linkViewIndex);
     }
 
     public void add(long rowIndex) {
         checkImmutable();
-        nativeAdd(nativePointer, rowIndex);
+        nativeAdd(nativePtr, rowIndex);
     }
 
     public void insert(long pos, long rowIndex) {
         checkImmutable();
-        nativeInsert(nativePointer, pos, rowIndex);
+        nativeInsert(nativePtr, pos, rowIndex);
     }
 
     public void set(long pos, long rowIndex) {
         checkImmutable();
-        nativeSet(nativePointer, pos, rowIndex);
+        nativeSet(nativePtr, pos, rowIndex);
     }
 
     public void move(long oldPos, long newPos) {
         checkImmutable();
-        nativeMove(nativePointer, oldPos, newPos);
+        nativeMove(nativePtr, oldPos, newPos);
     }
 
     public void remove(long pos) {
         checkImmutable();
-        nativeRemove(nativePointer, pos);
+        nativeRemove(nativePtr, pos);
     }
 
     public void clear() {
         checkImmutable();
-        nativeClear(nativePointer);
+        nativeClear(nativePtr);
     }
 
     public boolean contains(long tableRowIndex) {
-        long index = nativeFind(nativePointer, tableRowIndex);
+        long index = nativeFind(nativePtr, tableRowIndex);
         return (index != TableOrView.NO_MATCH);
     }
 
     public long size() {
-        return nativeSize(nativePointer);
+        return nativeSize(nativePtr);
     }
 
     public boolean isEmpty() {
-        return nativeIsEmpty(nativePointer);
+        return nativeIsEmpty(nativePtr);
     }
 
     public TableQuery where() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        this.context.executeDelayedDisposal();
-        long nativeQueryPtr = nativeWhere(nativePointer);
-        try {
-            return new TableQuery(this.context, this.parent, nativeQueryPtr);
-        } catch (RuntimeException e) {
-            TableQuery.nativeClose(nativeQueryPtr);
-            throw e;
-        }
+        long nativeQueryPtr = nativeWhere(nativePtr);
+        return new TableQuery(this.context, this.parent, nativeQueryPtr);
     }
 
     public boolean isAttached() {
-        return nativeIsAttached(nativePointer);
+        return nativeIsAttached(nativePtr);
     }
 
     /**
@@ -140,7 +145,7 @@ public class LinkView extends NativeObject {
      */
     public void removeAllTargetRows() {
         checkImmutable();
-        nativeRemoveAllTargetRows(nativePointer);
+        nativeRemoveAllTargetRows(nativePtr);
     }
 
     /**
@@ -148,20 +153,13 @@ public class LinkView extends NativeObject {
      */
     public void removeTargetRow(int index) {
         checkImmutable();
-        nativeRemoveTargetRow(nativePointer, index);
+        nativeRemoveTargetRow(nativePtr, index);
     }
 
     public Table getTargetTable() {
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        long nativeTablePointer = nativeGetTargetTable(nativePointer);
-        try {
-            // Copy context reference from parent
-            return new Table(this.parent, nativeTablePointer);
-        } catch (RuntimeException e) {
-            Table.nativeClose(nativeTablePointer);
-            throw e;
-        }
+        long nativeTablePointer = nativeGetTargetTable(nativePtr);
+        Table table = new Table(this.parent, nativeTablePointer);
+        return table;
     }
 
     private void checkImmutable() {
@@ -170,7 +168,6 @@ public class LinkView extends NativeObject {
         }
     }
 
-    public static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long linkViewIndex);
     public static native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
@@ -187,4 +184,5 @@ public class LinkView extends NativeObject {
     private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
     private native long nativeGetTargetTable(long nativeLinkViewPtr);
+    private static native long nativeGetFinalizerPtr();
 }

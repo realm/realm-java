@@ -37,6 +37,13 @@
         <Field name="APP_ID" />
         <Bug pattern="MS_CANNOT_BE_FINAL" />
     </Match>
+    <Match>
+        <Class name="io.realm.SyncUser" />
+        <Field name="managementRealmConfig" />
+        <Bug pattern="IS2_INCONSISTENT_SYNC" />
+    </Match>
+
+
 
     <!-- Unit tests -->
     <Match>
@@ -58,5 +65,48 @@
         <Method name="completedAsyncRealmObject" />
         <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
     </Match>
-
+    <Match>
+        <Class name="io.realm.permissions.PermissionChange" />
+        <Method name="mayManage" />
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+    </Match>
+    <Match>
+        <Class name="io.realm.permissions.PermissionChange" />
+        <Method name="mayRead" />
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+    </Match>
+    <Match>
+        <Class name="io.realm.permissions.PermissionChange" />
+        <Method name="mayWrite" />
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+    </Match>
+    <Match>
+        <Class name="io.realm.PermissionChangeRealmProxy" />
+        <Method name="realmGet$mayManage" />
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+    </Match>
+    <Match>
+        <Class name="io.realm.PermissionChangeRealmProxy" />
+        <Method name="realmGet$mayRead" />
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+    </Match>
+    <Match>
+        <Class name="io.realm.PermissionChangeRealmProxy" />
+        <Method name="realmGet$mayWrite" />
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
+    </Match>
+    <Match>
+        <Class name="io.realm.permissions.PermissionChange" />
+        <Method name="getCreatedAt" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.realm.permissions.PermissionChange" />
+        <Method name="getUpdatedAt" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.realm.PermissionChangeRealmProxy" />
+        <Bug pattern="BC_IMPOSSIBLE_CAST" />
+    </Match>
 </FindBugsFilter>

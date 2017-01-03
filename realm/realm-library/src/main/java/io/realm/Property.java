@@ -21,10 +21,10 @@ package io.realm;
  * Class for handling properties/fields.
  */
 
-public class Property {
-    public static boolean PRIMARY_KEY = true;
-    public static boolean REQUIRED    = true;
-    public static boolean INDEXED     = true;
+class Property {
+    public static final boolean PRIMARY_KEY = true;
+    public static final boolean REQUIRED    = true;
+    public static final boolean INDEXED     = true;
 
     private final long nativePtr;
 

@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.os.Build;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +38,9 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.rule.TestRealmConfigurationFactory;
+
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.junit.Assume.assumeThat;
 
 @RunWith(Parameterized.class)
 public class RealmJsonAbsentPrimaryKeyTests {
@@ -122,6 +127,8 @@ public class RealmJsonAbsentPrimaryKeyTests {
     // Testing absent primary key value for createObjectFromJson() stream version
     @Test
     public void createObjectFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
         realm.createObjectFromJson(clazz, TestHelper.stringToStream(jsonString));
@@ -140,6 +147,8 @@ public class RealmJsonAbsentPrimaryKeyTests {
     // Testing absent primary key value for createAllFromJson() stream version
     @Test
     public void createAllFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();
@@ -151,6 +160,8 @@ public class RealmJsonAbsentPrimaryKeyTests {
     // Testing absent primary key value for createOrUpdateAllFromJson() stream version
     @Test
     public void createOrUpdateAllFromJson_primaryKey_isAbsent_fromJsonStream() throws JSONException, IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(new JSONObject(jsonString));
         realm.beginTransaction();

@@ -16,17 +16,17 @@
 
 package io.realm.internal;
 
-import java.io.Closeable;
 import java.util.Date;
 
 import io.realm.Case;
 import io.realm.Sort;
 import io.realm.internal.async.BadVersionException;
 
-public class TableQuery implements Closeable {
+public class TableQuery implements NativeObject {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     protected final Table table;
     // Don't convert this into local variable and don't remove this.
     // Core requests Query to hold the TableView reference which it is built from.
@@ -48,6 +48,7 @@ public class TableQuery implements Closeable {
         this.table = table;
         this.nativePtr = nativeQueryPtr;
         this.origin = null;
+        context.addReference(this);
     }
 
     public TableQuery(Context context, Table table, long nativeQueryPtr, TableOrView origin) {
@@ -58,28 +59,17 @@ public class TableQuery implements Closeable {
         this.table = table;
         this.nativePtr = nativeQueryPtr;
         this.origin = origin;
+        context.addReference(this);
     }
 
-    public void close() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-
-                if (DEBUG)
-                    System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
-
-                nativePtr = 0;
-            }
-        }
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
     }
 
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                context.asyncDisposeQuery(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
+    @Override
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     /**
@@ -449,29 +439,15 @@ public class TableQuery implements Closeable {
     public TableView findAll(long start, long end, long limit) {
         validateQuery();
 
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
-        try {
-            return new TableView(this.context, this.table, nativeViewPtr, this);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.table, nativeViewPtr, this);
     }
 
     public TableView findAll() {
         validateQuery();
 
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
-        try {
-            return new TableView(this.context, this.table, nativeViewPtr, this);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this.table, nativeViewPtr, this);
     }
 
     // handover find* methods
@@ -510,14 +486,7 @@ public class TableQuery implements Closeable {
      */
     public TableView importHandoverTableView(long handoverPtr, SharedRealm sharedRealm) throws BadVersionException {
         long nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, sharedRealm.getNativePtr());
-        try {
-            return new TableView(this.context, this.table, nativeTvPtr);
-        } catch (RuntimeException e) {
-            if (nativeTvPtr != 0) {
-                TableView.nativeClose(nativeTvPtr);
-            }
-            throw e;
-        }
+        return new TableView(this.context, this.table, nativeTvPtr);
     }
 
     /**
@@ -742,7 +711,6 @@ public class TableQuery implements Closeable {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
-    protected static native void nativeClose(long nativeQueryPtr);
     private native String nativeValidateQuery(long nativeQueryPtr);
     private native void nativeTableview(long nativeQueryPtr, long nativeTableViewPtr);
     private native void nativeGroup(long nativeQueryPtr);
@@ -816,4 +784,5 @@ public class TableQuery implements Closeable {
     private static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedRealmPtr);
     public static native void nativeCloseQueryHandover(long nativePtr);
     private static native long[] nativeBatchUpdateQueries(long bgSharedRealmPtr, long[] handoverQueries, long[][] parameters, long[][] queriesParameters, boolean[][] multiSortOrder) throws BadVersionException;
+    private static native long nativeGetFinalizerPtr();
 }

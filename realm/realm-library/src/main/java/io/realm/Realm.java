@@ -21,7 +21,6 @@ import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -124,7 +122,7 @@ import rx.Observable;
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
-public final class Realm extends BaseRealm {
+public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
@@ -996,7 +994,7 @@ public final class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insert(this, object, cache);
     }
 
@@ -1065,7 +1063,7 @@ public final class Realm extends BaseRealm {
         if (object == null) {
             throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
         }
-        Map<RealmModel, Long> cache = new IdentityHashMap<RealmModel, Long>();
+        Map<RealmModel, Long> cache = new HashMap<RealmModel, Long>();
         configuration.getSchemaMediator().insertOrUpdate(this, object, cache);
     }
 
@@ -1557,10 +1555,13 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
-     * @throws IllegalArgumentException if the realm file is encrypted. Compacting an encrypted Realm file is not
-     *                                  supported yet.
+     * @throws UnsupportedOperationException if Realm is synchronized.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
+        // FIXME: remove this restriction when https://github.com/realm/realm-core/issues/2345 is resolved
+        if (configuration.isSyncConfiguration()) {
+            throw new UnsupportedOperationException("Compacting is not supported yet on synced Realms. See https://github.com/realm/realm-core/issues/2345");
+        }
         return BaseRealm.compactRealm(configuration);
     }
 

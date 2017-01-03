@@ -92,7 +92,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     }
     private AllTypesColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.AllTypes> proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
     private static final List<String> FIELD_NAMES;
     static {
@@ -119,7 +119,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (AllTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.AllTypes.class, this);
+        this.proxyState = new ProxyState<some.test.AllTypes>(some.test.AllTypes.class, this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -375,7 +375,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                // Table#nullifyLink() does not support default value. Just use Row.
+                // Table#nullifyLink() does not support default value. Just using Row.
                 row.nullifyLink(columnInfo.columnObjectIndex);
                 return;
             }
@@ -527,7 +527,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
-            for (long i = 0; i < 9; i++) {
+            for (long i = 0; i < columnCount; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -993,7 +993,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
                 LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
-            LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
         }
 
         return rowIndex;
@@ -1057,7 +1056,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         }
                         LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
-                    LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
                 }
 
             }
@@ -1123,7 +1121,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
             }
         }
-        LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
 
         return rowIndex;
     }
@@ -1192,7 +1189,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                         LinkView.nativeAdd(columnRealmListNativeLinkViewPtr, cacheItemIndexcolumnRealmList);
                     }
                 }
-                LinkView.nativeClose(columnRealmListNativeLinkViewPtr);
 
             }
         }
@@ -1214,7 +1210,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
         } else {
             unmanagedObject = new some.test.AllTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnString(((AllTypesRealmProxyInterface) realmObject).realmGet$columnString());
         ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnLong(((AllTypesRealmProxyInterface) realmObject).realmGet$columnLong());

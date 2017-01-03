@@ -144,7 +144,7 @@ public class IntroExampleActivity extends Activity {
     private String complexReadWrite() {
         String status = "\nPerforming complex Read/Write operation...";
 
-        // Open the default realm. All threads must use it's own reference to the realm.
+        // Open the default realm. All threads must use its own reference to the realm.
         // Those can not be transferred across threads.
         Realm realm = Realm.getDefaultInstance();
 

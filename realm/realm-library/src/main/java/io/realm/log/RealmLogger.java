@@ -16,13 +16,13 @@
 
 package io.realm.log;
 
-import io.realm.internal.KeepMember;
+import io.realm.internal.Keep;
 
 /**
  * Interface for custom loggers that can be registered at {@link RealmLog#add(RealmLogger)}.
  * The different log levels are described in {@link LogLevel}.
  */
-@KeepMember
+@Keep // This interface is used as a parameter type of a native method in SharedRealm.java
 public interface RealmLogger {
 
     /**
@@ -34,6 +34,5 @@ public interface RealmLogger {
      * @param throwable optional exception to log.
      * @param message optional additional message.
      */
-    @KeepMember
     void log(int level, String tag, Throwable throwable, String message);
 }

@@ -40,7 +40,7 @@ import io.realm.internal.objectserver.ObjectServerSession;
  */
 @Keep
 @Beta
-public final class SyncSession {
+public class SyncSession {
 
     private final ObjectServerSession osSession;
 

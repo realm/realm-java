@@ -1,4 +1,55 @@
+## 2.2.2
+
+### Object Server API Changes (In Beta)
+
+* Disabled `Realm.compactRealm()` when sync is enabled as it might corrupt the Realm (https://github.com/realm/realm-core/issues/2345).
+
+### Bug fixes
+
+* "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
+
+### Enhancements
+
+* All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
+* Fixed Java lint warnings with generated proxy classes (#2929).
+
+### Internal
+
+* Upgraded Realm Core to 2.1.0.
+* Upgraded Realm Sync to 1.0.0-BETA-5.0.
+
+## 2.2.1
+
+### Object Server API Changes (In Beta)
+
+* Fixed `SyncConfiguration.toString()` so it now outputs a correct description instead of an empty string (#3787).
+
+### Bug fixes
+
+* Added version number to the native library, preventing ReLinker from accidentally loading old code (#3775).
+* `Realm.getLocalInstanceCount(config)` throwing NullPointerException if called after all Realms have been closed (#3791).
+
+## 2.2.0
+
+### Object Server API Changes (In Beta)
+
+* Added support for `SyncUser.getManagementRealm()` and permission changes.
+
+### Bug fixes
+
+* Kotlin projects no longer create the `RealmDefaultModule` if no Realm model classes are present (#3746).
+* Remove `includedescriptorclasses` option from ProGuard rule file in order to support built-in shrinker of Android Gradle Plugin (#3714).
+* Unexpected `RealmMigrationNeededException` was thrown when a field was added to synced Realm.
+
+### Enhancements
+
+* Added support for the `annotationProcessor` configuration provided by Android Gradle Plugin 2.2.0 or later. Realm plugin adds its annotation processor to the `annotationProcessor` configuration instead of `apt` configuration if it is available and the `com.neenbedankt.android-apt` plugin is not used. In Kotlin projects, `kapt` is used instead of the `annotationProcessor` configuration (#3026).
+
 ## 2.1.1
+
+### Bug fixes
+
+* Fixed a bug in `Realm.insert` and `Realm.insertOrUpdate` methods causing a `StackOverFlow` when you try to insert a cyclic graph of objects between Realms (#3732).
 
 ### Object Server API Changes (In Beta)
 
@@ -9,6 +60,12 @@
 * ProGuard configuration introduced in 2.1.0 unexpectedly kept classes that did not have the @KeepMember annotation (#3689).
 
 ## 2.1.0
+
+### Breaking changes
+
+* * `SecureUserStore` has been moved to its own GitHub repository: https://github.com/realm/realm-android-user-store
+  See https://github.com/realm/realm-android-user-store/blob/master/README.md for further info on how to include it.
+
 
 ### Object Server API Changes (In Beta)
 
@@ -31,7 +88,7 @@
 * Permission error when a database file was located on external storage (#3140).
 * Memory leak when unsubscribing from a RealmResults/RealmObject RxJava Observable (#3552).
 
-### Enhancement
+### Enhancements
 
 * `Realm.compactRealm()` now works for encrypted Realms.
 * Added `first(E defaultValue)` and `last(E defaultValue)` methods to `RealmList` and `RealmResult`. These methods will return the provided object instead of throwing an `IndexOutOfBoundsException` if the list is empty.
@@ -57,7 +114,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 ### Internal
 
 * Upgraded Realm Core to 2.1.0
-* Upgraded Realm Sync to 1.0.0-BETA-2.0. 
+* Upgraded Realm Sync to 1.0.0-BETA-2.0.
 
 ## 2.0.1
 
@@ -74,7 +131,7 @@ This release is not protocol-compatible with previous versions of the Realm Mobi
 
 ## 2.0.0
 
-This release introduces support for the Realm Mobile Platform! 
+This release introduces support for the Realm Mobile Platform!
 See <https://realm.io/news/introducing-realm-mobile-platform/> for an overview of these great new features.
 
 ### Breaking Changes
@@ -280,7 +337,7 @@ No changes since 0.91.1.
 * Removed `HandlerController` from the public API.
 * Removed constructor of `RealmAsyncTask` from the public API (#1594).
 * `RealmBaseAdapter` has been moved to its own GitHub repository: https://github.com/realm/realm-android-adapters
-  See https://github.com/realm/realm-android-adapters/README.md for further info on how to include it.
+  See https://github.com/realm/realm-android-adapters/blob/master/README.md for further info on how to include it.
 * File format of Realm files is changed. Files will be automatically upgraded but opening a Realm file with older
   versions of Realm is not possible.
 

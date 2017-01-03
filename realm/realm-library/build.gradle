@@ -1,7 +1,6 @@
 import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -40,6 +39,7 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 24
+        versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
@@ -124,6 +124,7 @@ repositories {
 }
 
 dependencies {
+    objectServerAnnotationProcessor project(':realm-annotations-processor')
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.2'
@@ -134,9 +135,10 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     androidTestCompile 'com.opencsv:opencsv:3.4'
     androidTestCompile 'dk.ilios:spanner:0.6.0'
-    androidTestApt project(':realm-annotations-processor')
+    androidTestAnnotationProcessor project(':realm-annotations-processor')
 }
 
 task sourcesJar(type: Jar) {
@@ -364,10 +366,9 @@ artifactory {
             repoKey = 'oss-snapshot-local'
             username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-            maven = true
         }
         defaults {
-            publishConfigs('basePublication', 'objectServerPublication')
+            publications('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }

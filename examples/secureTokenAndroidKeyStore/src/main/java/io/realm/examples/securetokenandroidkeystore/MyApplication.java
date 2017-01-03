@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.internal.android.crypto.ciper;
+package io.realm.examples.securetokenandroidkeystore;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import android.app.Application;
 
-import javax.crypto.NoSuchPaddingException;
+import io.realm.Realm;
 
-/**
- * Return a {@link javax.crypto.Cipher} that works for API > 23.
- */
-public class CipherMM {
-    public static javax.crypto.Cipher get() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
-        return javax.crypto.Cipher.getInstance("RSA/ECB/PKCS1Padding");
+public class MyApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // Initialize Realm. Should only be done once when the application starts.
+        Realm.init(this);
     }
 }

@@ -71,7 +71,7 @@ import io.realm.rx.RxObservableFactory;
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  */
 @Beta
-public final class SyncConfiguration extends RealmConfiguration {
+public class SyncConfiguration extends RealmConfiguration {
 
     public static final int PORT_REALM = 80;
     public static final int PORT_REALMS = 443;
@@ -177,8 +177,17 @@ public final class SyncConfiguration extends RealmConfiguration {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        // TODO
+        StringBuilder stringBuilder = new StringBuilder(super.toString());
+        stringBuilder.append("\n");
+        stringBuilder.append("serverUrl: " + serverUrl);
+        stringBuilder.append("\n");
+        stringBuilder.append("user: " + user);
+        stringBuilder.append("\n");
+        stringBuilder.append("syncPolicy: " + syncPolicy);
+        stringBuilder.append("\n");
+        stringBuilder.append("errorHandler: " + errorHandler);
+        stringBuilder.append("\n");
+        stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
         return stringBuilder.toString();
     }
 

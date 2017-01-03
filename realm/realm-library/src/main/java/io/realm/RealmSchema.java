@@ -35,7 +35,7 @@ import io.realm.internal.Util;
  *
  * @see io.realm.RealmMigration
  */
-public final class RealmSchema {
+public class RealmSchema {
 
     private static final String TABLE_PREFIX = Table.TABLE_PREFIX;
     private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
