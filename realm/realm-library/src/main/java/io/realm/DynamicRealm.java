@@ -44,7 +44,7 @@ import rx.Observable;
  * @see Realm
  * @see RealmSchema
  */
-public class DynamicRealm extends BaseRealm {
+public class DynamicRealm extends BaseRealm implements io.realm.Observable<DynamicRealm> {
 
     private DynamicRealm(RealmConfiguration configuration) {
         super(configuration);
@@ -137,8 +137,14 @@ public class DynamicRealm extends BaseRealm {
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
      */
+    @Override
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         super.addListener(listener);
+    }
+
+    @Override
+    public void removeChangeListener(RealmChangeListener<DynamicRealm> listener) {
+        super.removeChangeListener(listener);
     }
 
     /**

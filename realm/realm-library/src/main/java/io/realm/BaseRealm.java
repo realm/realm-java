@@ -149,7 +149,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      */
-    public void removeChangeListener(RealmChangeListener<? extends BaseRealm> listener) {
+    protected void removeListener(RealmChangeListener<? extends BaseRealm> listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
