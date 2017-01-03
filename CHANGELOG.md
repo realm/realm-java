@@ -8,6 +8,8 @@
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
 * Crash on API 10 devices (#3726).
+* `UnsatisfiedLinkError` caused by `pipe2` (#3945).
+* Unrecoverable error with message "Try again" when the notification fifo is full (#3964).
 
 ### Enhancements
 
