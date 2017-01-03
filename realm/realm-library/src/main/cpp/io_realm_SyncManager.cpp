@@ -30,6 +30,7 @@
 #include "io_realm_SyncManager.h"
 
 #include "jni_util/log.hpp"
+#include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace realm::sync;
@@ -42,10 +43,7 @@ static jmethodID sync_manager_notify_error_handler = nullptr;
 
 static void error_handler(int error_code, std::string message)
 {
-    JNIEnv* env;
-    if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        throw std::runtime_error("JVM is not attached to this thread. Called in error_handler.");
-    }
+    JNIEnv* env = JniUtils::get_env();
 
     env->CallStaticVoidMethod(sync_manager,
                               sync_manager_notify_error_handler, error_code, env->NewStringUTF(message.c_str()));

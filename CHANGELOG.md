@@ -13,6 +13,7 @@
 ### Bug fixes
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
+* Crash on API 10 devices (#3726).
 
 ### Enhancements
 
