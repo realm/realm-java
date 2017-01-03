@@ -45,9 +45,9 @@ public interface Observable<T> {
 }
 
 // New interface for collections. Add another changelistener for fine-grained notifications
-public interface ObservableCollection<T, L> extends Observable<T> {
-    void addChangeListener(L listener);
-    void removeChangeListener(L listener);
+public interface ObservableCollection<T, S> extends Observable<T> {
+    void addChangeListener(S listener);
+    void removeChangeListener(S listener);
 }
 
 // New listener interface for fine-grained callback. Changes are encapsulated in the OrderedCollectionChange object
