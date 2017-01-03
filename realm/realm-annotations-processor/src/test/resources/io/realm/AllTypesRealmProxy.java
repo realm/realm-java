@@ -533,6 +533,15 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
             final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm.getPath(), table);
 
+            if (!table.hasPrimaryKey()) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation @PrimaryKey was added.");
+            } else {
+                long idxPrimaryKey = table.getPrimaryKey();
+                if (idxPrimaryKey != columnInfo.columnStringIndex) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed.");
+                }
+            }
+
             if (!columnTypes.containsKey("columnString")) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnString' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }

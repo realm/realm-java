@@ -668,6 +668,26 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("final %1$s columnInfo = new %1$s(sharedRealm.getPath(), table)", columnInfoClassName());
         writer.emitEmptyLine();
 
+        // verify primary key definition was not altered
+        if (metadata.hasPrimaryKey()) {
+            // the current model defines a PK, make sure it's defined in the Realm schema
+            String fieldType = metadata.getPrimaryKey().getSimpleName().toString();
+            writer.beginControlFlow("if (!table.hasPrimaryKey())")
+                   .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation @PrimaryKey was added.\")")
+                   .nextControlFlow("else")
+                        .emitStatement("long idxPrimaryKey = table.getPrimaryKey()")
+                        .beginControlFlow("if (idxPrimaryKey != columnInfo.%sIndex)", fieldType)
+                            .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed.\")")
+                        .endControlFlow()
+                    .endControlFlow();
+        } else {
+            // the current model doesn't defines a PK, make sure it's not defined in the Realm schema
+            writer.beginControlFlow("if (table.hasPrimaryKey())")
+                  .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key @PrimaryKey was removed.\")")
+                  .endControlFlow();
+        }
+        writer.emitEmptyLine();
+
         // For each field verify there is a corresponding
         long fieldIndex = 0;
         for (VariableElement field : metadata.getFields()) {

@@ -7,6 +7,7 @@
 ### Bug fixes
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
+* Realm migration is triggered, when the primary key definition is altered (#3966).
 
 ### Enhancements
 
