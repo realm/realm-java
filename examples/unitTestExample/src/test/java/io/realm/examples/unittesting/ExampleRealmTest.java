@@ -107,7 +107,7 @@ public class ExampleRealmTest {
         dogRepo.createDog("Spot");
 
         // Attempting to verify that a method was called (executeTransaction) on a partial
-        // mock will return unexpected resultes due to the partial mock. For example,
+        // mock will return unexpected results due to the partial mock. For example,
         // verifying that `executeTransaction` was called only once will fail as Powermock
         // actually calls the method 3 times for some reason. I cannot determine why at this
         // point.
