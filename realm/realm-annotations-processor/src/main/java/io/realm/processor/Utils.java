@@ -64,17 +64,6 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a field is of type "java.lang.String", {@code false} otherwise.
-     * @throws IllegalArgumentException if the field is {@code null}.
-     */
-    public static boolean isString(VariableElement field) {
-        if (field == null) {
-            throw new IllegalArgumentException("Argument 'field' cannot be null.");
-        }
-        return getFieldTypeSimpleName(field).equals("String");
-    }
-
-    /**
      * @return {@code true} if a field is a primitive type, {@code false} otherwise.
      * @throws IllegalArgumentException if the typeString is {@code null}.
      */
@@ -99,28 +88,6 @@ public class Utils {
                 typeString.equals(Integer.class.getName()) || typeString.equals(Long.class.getName()) ||
                 typeString.equals(Float.class.getName()) || typeString.equals(Double.class.getName()) ||
                 typeString.equals(Boolean.class.getName());
-    }
-
-    /**
-     * @return {@code true} if a field is a type of primitive types, {@code false} otherwise.
-     * @throws IllegalArgumentException if the field is {@code null}.
-     */
-    public static boolean isPrimitiveType(VariableElement field) {
-        if (field == null) {
-            throw new IllegalArgumentException("Argument 'field' cannot be null.");
-        }
-        return field.asType().getKind().isPrimitive();
-    }
-
-    /**
-     * @return {@code true} if a field is of type "byte[]", {@code false} otherwise.
-     * @throws IllegalArgumentException if the field is {@code null}.
-     */
-    public static boolean isByteArray(VariableElement field) {
-        if (field == null) {
-            throw new IllegalArgumentException("Argument 'field' cannot be null.");
-        }
-        return getFieldTypeSimpleName(field).equals("byte[]");
     }
 
     /**

@@ -817,6 +817,11 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
+            if(configuration.getSchemaMediator().hasAutoIncrementPrimaryKey(clazz)){
+                Object pkValue = configuration.getSchemaMediator().getNextPrimaryKey(this, clazz);
+                return createObjectInternal(clazz, pkValue, acceptDefaultValue, excludeFields);
+            }
+
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
         }

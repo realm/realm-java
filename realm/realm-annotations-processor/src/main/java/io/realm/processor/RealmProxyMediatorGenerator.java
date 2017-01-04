@@ -110,6 +110,8 @@ public class RealmProxyMediatorGenerator {
         emitCreteOrUpdateUsingJsonObject(writer);
         emitCreateUsingJsonStream(writer);
         emitCreateDetachedCopyMethod(writer);
+        emitHasAutoIncrementPrimaryKey(writer);
+        emitGetNextPrimaryKey(writer);
         writer.endType();
         writer.close();
     }
@@ -459,6 +461,46 @@ public class RealmProxyMediatorGenerator {
                         qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
             }
         }, writer, false);
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitHasAutoIncrementPrimaryKey(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "boolean",
+                "hasAutoIncrementPrimaryKey",
+                EnumSet.of(Modifier.PUBLIC),
+                "Class<? extends RealmModel>", "clazz"
+        );
+
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.hasAutoIncrementPrimaryKey()", qualifiedProxyClasses.get(i));
+            }
+        }, writer);
+
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitGetNextPrimaryKey(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "Object",
+                "getNextPrimaryKey",
+                EnumSet.of(Modifier.PUBLIC),
+                "Realm", "realm", "Class<? extends RealmModel>", "clazz"
+        );
+
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.getNextPrimaryKey(realm)", qualifiedProxyClasses.get(i));
+            }
+        }, writer);
+
         writer.endMethod();
         writer.emitEmptyLine();
     }

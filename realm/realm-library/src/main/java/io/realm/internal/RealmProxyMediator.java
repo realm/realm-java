@@ -240,4 +240,8 @@ public abstract class RealmProxyMediator {
     protected static RealmException getMissingProxyClassException(Class<? extends RealmModel> clazz) {
         return new RealmException(clazz + " is not part of the schema for this Realm.");
     }
+
+    public abstract boolean hasAutoIncrementPrimaryKey(Class<? extends RealmModel> clazz);
+
+    public abstract Object getNextPrimaryKey(Realm realm, Class<? extends RealmModel> clazz);
 }

@@ -10,6 +10,7 @@ targetCompatibility = '1.6'
 dependencies {
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
     compile "io.realm:realm-annotations:${version}"
+    compileOnly "org.projectlombok:lombok:1.16.10"
 
     testCompile files('../realm-library/build/intermediates/bundles/base/release/classes.jar') // Java projects cannot depend on AAR files
     testCompile files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it
