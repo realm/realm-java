@@ -43,7 +43,7 @@ Java_io_realm_RealmSchema_nativeCreateFromList(JNIEnv *env, jclass, jlongArray o
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_RealmSchema_nativeClose(JNIEnv *env, jclass, jlong nativePtr) {
+Java_io_realm_RealmSchema_nativeClose(JNIEnv*, jclass, jlong nativePtr) {
     TR_ENTER_PTR(nativePtr)
     Schema* schema = reinterpret_cast<Schema*>(nativePtr);
     delete schema;

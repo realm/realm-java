@@ -77,7 +77,6 @@ public:
             auto session_ref = weak_session_ref.lock();
             if (session_ref) {
                 session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
-                    jclass java_session_class = local_env->GetObjectClass(obj);
                     static realm::jni_util::JavaMethod notify_error_handler(
                             local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
                     local_env->CallVoidMethod(

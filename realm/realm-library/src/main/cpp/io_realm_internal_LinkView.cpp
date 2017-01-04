@@ -218,7 +218,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveAllTargetRows
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetTable
-  (JNIEnv* env, jobject, jlong nativeLinkViewPtr)
+  (JNIEnv*, jobject, jlong nativeLinkViewPtr)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
 
