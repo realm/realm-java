@@ -550,9 +550,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (!table.isColumnNullable(columnInfo.columnStringIndex)) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(),"@PrimaryKey field 'columnString' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.");
             }
-            if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. Add @PrimaryKey.");
-            }
             if (!table.hasSearchIndex(table.getColumnIndex("columnString"))) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Index not defined for field 'columnString' in existing Realm file. Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().");
             }
