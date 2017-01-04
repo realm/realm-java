@@ -91,7 +91,7 @@ Java_io_realm_RealmFileUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
             ThrowException(env, OutOfMemory, ERR_COULD_NOT_ALLOCATE_MEMORY);
             return nullptr;
         }
-        for (unsigned int i = 0; i < len; ++i) {
+        for (size_t i = 0; i < len; ++i) {
             env->SetObjectArrayElement(users_token, i, to_jstring(env, all_users[i]->refresh_token().data()));
         }
 

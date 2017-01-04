@@ -33,6 +33,10 @@ public class RealmFileException extends RuntimeException {
          */
         ACCESS_ERROR,
         /**
+         *  Thrown if the history type of the on-disk Realm is unexpected or incompatible.
+         */
+        BAD_HISTORY,
+        /**
          * Thrown if the user does not have permission to open or create the specified file in the specified access
          * mode when the Realm is opened.
          */
@@ -70,6 +74,8 @@ public class RealmFileException extends RuntimeException {
                     return INCOMPATIBLE_LOCK_FILE;
                 case SharedRealm.FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED:
                     return FORMAT_UPGRADE_REQUIRED;
+                case SharedRealm.FILE_EXCEPTION_KIND_BAD_HISTORY:
+                    return BAD_HISTORY;
                 default:
                     throw new RuntimeException("Unknown value for RealmFileException kind.");
             }
