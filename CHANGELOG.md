@@ -11,6 +11,7 @@
 ### Enhancements
 
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
+* All Realm instances share a single notification daemon thread.
 
 ### Internal
 
