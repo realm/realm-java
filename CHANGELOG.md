@@ -7,15 +7,19 @@
 ### Bug fixes
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
+* Crash on API 10 devices (#3726).
+* `UnsatisfiedLinkError` caused by `pipe2` (#3945).
+* Unrecoverable error with message "Try again" when the notification fifo is full (#3964).
 
 ### Enhancements
 
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
+* Fixed Java lint warnings with generated proxy classes (#2929).
 
 ### Internal
 
-* Upgraded Realm Core to 2.1.0.
-* Upgraded Realm Sync to 1.0.0-BETA-5.0.
+* Upgraded Realm Core to 2.3.0.
+* Upgraded Realm Sync to 1.0.0-BETA-6.5.
 
 ## 2.2.1
 

@@ -72,7 +72,7 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     }
     private BooleansColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.Booleans> proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -93,7 +93,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (BooleansColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.Booleans.class, this);
+        this.proxyState = new ProxyState<some.test.Booleans>(some.test.Booleans.class, this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -521,7 +521,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             }
         } else {
             unmanagedObject = new some.test.Booleans();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((BooleansRealmProxyInterface) unmanagedObject).realmSet$done(((BooleansRealmProxyInterface) realmObject).realmGet$done());
         ((BooleansRealmProxyInterface) unmanagedObject).realmSet$isReady(((BooleansRealmProxyInterface) realmObject).realmGet$isReady());
