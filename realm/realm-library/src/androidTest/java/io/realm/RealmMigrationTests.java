@@ -225,7 +225,7 @@ public class RealmMigrationTests {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary Key annotation @PrimaryKey was added.")) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. @PrimaryKey was added.")) {
                 fail(e.toString());
             }
         } finally {
@@ -256,14 +256,14 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(StringOnly.class)
+                .schema(AllTypes.class, StringOnly.class)
                 .migration(migration)
                 .build();
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary Key @PrimaryKey was removed.")) {
+            if (!e.getMessage().equals("Primary Key defined for field chars was removed.")) {
                 fail(e.toString());
             }
         } finally {
@@ -295,14 +295,14 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(PrimaryKeyAsString.class)
+                .schema(AllTypes.class, PrimaryKeyAsString.class)
                 .migration(migration)
                 .build();
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary Key annotation definition was changed.")) {
+            if (!e.getMessage().equals("Primary Key annotation definition was changed, from field id to field name.")) {
                 fail(e.toString());
             }
         } finally {
@@ -311,7 +311,6 @@ public class RealmMigrationTests {
             }
         }
     }
-
 
     /**
      * Builds a temporary schema to be modified later in a migration. {@link MigrationPrimaryKey} is

@@ -201,7 +201,7 @@ public class SimpleRealmProxy extends some.test.Simple
             final SimpleColumnInfo columnInfo = new SimpleColumnInfo(sharedRealm.getPath(), table);
 
             if (table.hasPrimaryKey()) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key @PrimaryKey was removed.");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
             }
 
             if (!columnTypes.containsKey("name")) {

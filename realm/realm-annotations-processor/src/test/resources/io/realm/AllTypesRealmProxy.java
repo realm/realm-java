@@ -534,10 +534,10 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm.getPath(), table);
 
             if (!table.hasPrimaryKey()) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation @PrimaryKey was added.");
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. @PrimaryKey was added.");
             } else {
                 if (table.getPrimaryKey() != columnInfo.columnStringIndex) {
-                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed.");
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed, from field " + table.getColumnName(table.getPrimaryKey()) + " to field columnString");
                 }
             }
 

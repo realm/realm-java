@@ -673,16 +673,16 @@ public class RealmProxyClassGenerator {
             // the current model defines a PK, make sure it's defined in the Realm schema
             String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
             writer.beginControlFlow("if (!table.hasPrimaryKey())")
-                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation @PrimaryKey was added.\")")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. @PrimaryKey was added.\")", metadata.getPrimaryKey().getSimpleName().toString())
                     .nextControlFlow("else")
                     .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName)
-                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed.\")")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed, from field \" + table.getColumnName(table.getPrimaryKey()) + \" to field %s\")" ,metadata.getPrimaryKey().getSimpleName().toString())
                     .endControlFlow()
                     .endControlFlow();
         } else {
-            // the current model doesn't defines a PK, make sure it's not defined in the Realm schema
+            // the current model doesn't define a PK, make sure it's not defined in the Realm schema
             writer.beginControlFlow("if (table.hasPrimaryKey())")
-                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key @PrimaryKey was removed.\")")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key defined for field \" + table.getColumnName(table.getPrimaryKey()) + \" was removed.\")")
                     .endControlFlow();
         }
         writer.emitEmptyLine();
