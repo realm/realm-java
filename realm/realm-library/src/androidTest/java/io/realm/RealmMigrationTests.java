@@ -47,6 +47,7 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.Thread;
 import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationFieldRenamed;
 import io.realm.entities.migration.MigrationFieldTypeToInt;
@@ -200,7 +201,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(Thread.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -218,7 +219,7 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(Thread.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
@@ -240,7 +241,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(Thread.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -256,7 +257,7 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, StringOnly.class)
+                .schema(Thread.class, StringOnly.class)
                 .migration(migration)
                 .build();
         try {
@@ -278,7 +279,7 @@ public class RealmMigrationTests {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(Thread.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -295,14 +296,14 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, PrimaryKeyAsString.class)
+                .schema(Thread.class, PrimaryKeyAsString.class)
                 .migration(migration)
                 .build();
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary Key annotation definition was changed, from field id to field name.")) {
+            if (!e.getMessage().equals("Primary Key annotation definition was changed, from field id to field name")) {
                 fail(e.toString());
             }
         } finally {
