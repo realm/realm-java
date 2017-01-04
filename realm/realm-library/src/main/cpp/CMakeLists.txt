@@ -112,12 +112,14 @@ elseif (ARMEABI_V7A)
     set(ABI_CXX_FLAGS "-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16")
 endif()
 
+#FIXME uninitialized is reported by query_expression.hpp:1070
+#      d.init(ValueBase::m_from_link_list, ValueBase::m_values, D{});
 #FIXME maybe-uninitialized is reported by table_view.cpp:272:15:
 #     'best.m_nanoseconds' was declared here
 #     -Wno-missing-field-initializers disable in object store as well.
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
-     -Wno-missing-field-initializers  -Wno-maybe-uninitialized")
+    -Wno-missing-field-initializers  -Wno-maybe-uninitialized -Wno-uninitialized")
 set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
