@@ -1,4 +1,8 @@
 #include "io_realm_internal_SharedRealm.h"
+#ifdef REALM_ENABLE_SYNC
+#include "object-store/src/sync/sync_manager.hpp"
+#include "object-store/src/sync/sync_config.hpp"
+#endif
 
 #include <realm/util/features.h>
 

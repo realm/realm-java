@@ -86,4 +86,22 @@ public class AutomaticSyncPolicy implements SyncPolicy {
             return true;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AutomaticSyncPolicy that = (AutomaticSyncPolicy) o;
+
+        if (recurringErrors != that.recurringErrors) return false;
+        return lastError != null ? lastError.equals(that.lastError) : that.lastError == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = lastError != null ? lastError.hashCode() : 0;
+        result = 31 * result + recurringErrors;
+        return result;
+    }
 }
