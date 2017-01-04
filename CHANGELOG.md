@@ -8,11 +8,14 @@
 
 * "operation not permitted" issue when creating Realm file on some devices' external storage (#3629).
 * Crash on API 10 devices (#3726).
+* `UnsatisfiedLinkError` caused by `pipe2` (#3945).
+* Unrecoverable error with message "Try again" when the notification fifo is full (#3964).
 * Realm migration wasn't triggered when the primary key definition was altered (#3966).
 
 ### Enhancements
 
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
+* All Realm instances share a single notification daemon thread.
 * Fixed Java lint warnings with generated proxy classes (#2929).
 
 ### Internal

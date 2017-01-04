@@ -22,7 +22,7 @@ using namespace realm;
 static void finalize_unchecked_row(jlong ptr);
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnCount
-  (JNIEnv *env, jobject, jlong nativeRowPtr)
+  (JNIEnv*, jobject, jlong nativeRowPtr)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW(nativeRowPtr)->is_attached())
@@ -59,7 +59,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+  (JNIEnv*, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
     return static_cast<jint>( ROW(nativeRowPtr)->get_column_type( S(columnIndex)) ); // noexcept
@@ -331,7 +331,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeNullifyLink
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
-  (JNIEnv* env, jobject, jlong nativeRowPtr)
+  (JNIEnv*, jobject, jlong nativeRowPtr)
 {
     TR_ENTER_PTR(nativeRowPtr)
     return ROW(nativeRowPtr)->is_attached();
@@ -345,7 +345,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex) {
+  (JNIEnv*, jobject, jlong nativeRowPtr, jlong columnIndex) {
     TR_ENTER_PTR(nativeRowPtr)
     return ROW(nativeRowPtr)->is_null(columnIndex);
 }

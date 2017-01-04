@@ -164,10 +164,13 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
 
     jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
-    jbyte kind_code;
+    jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
         case realm::RealmFileException::Kind::AccessError:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
+            break;
+        case realm::RealmFileException::Kind::BadHistoryError:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
         case realm::RealmFileException::Kind::PermissionDenied:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
