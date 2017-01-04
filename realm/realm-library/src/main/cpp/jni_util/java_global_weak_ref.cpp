@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-#include "java_binding_context.hpp"
-#include "jni_util/java_method.hpp"
+#include "java_global_weak_ref.hpp"
+#include "java_local_ref.hpp"
 
-using namespace realm;
-using namespace realm::_impl;
 using namespace realm::jni_util;
 
-void JavaBindingContext::changes_available()
+bool JavaGlobalWeakRef::call_with_local_ref(JNIEnv* env, std::function<Callback> callback)
 {
-    if (m_java_notifier) {
-        m_java_notifier.call_with_local_ref([&] (JNIEnv* env, jobject notifier_obj) {
-            // Method IDs from RealmNotifier implementation. Cache them as member vars.
-            static JavaMethod notify_by_other_method(env, notifier_obj, "notifyCommitByOtherThread", "()V");
-            env->CallVoidMethod(notifier_obj, notify_by_other_method);
-        });
+    if (!m_weak) {
+        return false;
     }
+
+    JavaLocalRef<jobject> obj(env, m_weak, need_to_create_local_ref);
+
+    if (!obj) {
+        return false;
+    }
+    callback(env, obj);
+    return true;
+}
+
+bool JavaGlobalWeakRef::call_with_local_ref(std::function<Callback> callback)
+{
+    return call_with_local_ref(JniUtils::get_env(), callback);
 }
 

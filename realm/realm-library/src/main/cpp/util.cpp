@@ -32,7 +32,6 @@ using namespace realm::util;
 using namespace realm::jni_util;
 
 // Caching classes and constructors for boxed types.
-JavaVM* g_vm;
 jclass java_lang_long;
 jmethodID java_lang_long_init;
 jclass java_lang_float;
@@ -67,7 +66,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (RealmFileException& e) {
-        ss << e.what() << " in " << file << " line " << line;
+        ss << e.what() << " (" <<  e.underlying() <<  ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind());
     }
     catch (InvalidTransactionException& e) {

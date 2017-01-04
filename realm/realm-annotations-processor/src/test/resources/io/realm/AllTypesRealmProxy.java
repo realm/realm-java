@@ -92,7 +92,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     }
     private AllTypesColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.AllTypes> proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
     private static final List<String> FIELD_NAMES;
     static {
@@ -119,7 +119,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (AllTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(some.test.AllTypes.class, this);
+        this.proxyState = new ProxyState<some.test.AllTypes>(some.test.AllTypes.class, this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -1210,7 +1210,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
         } else {
             unmanagedObject = new some.test.AllTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnString(((AllTypesRealmProxyInterface) realmObject).realmGet$columnString());
         ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnLong(((AllTypesRealmProxyInterface) realmObject).realmGet$columnLong());

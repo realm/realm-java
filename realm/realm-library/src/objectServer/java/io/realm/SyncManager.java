@@ -205,17 +205,6 @@ public class SyncManager {
         return userStore;
     }
 
-    // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
-    // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
-    // from here. This can be removed once better error propagation is implemented in Sync Core.
-    @SuppressWarnings("unused")
-    private static void notifyErrorHandler(int errorCode, String errorMessage) {
-        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
-        for (ObjectServerSession session : SessionStore.getAllSessions()) {
-            session.onError(error);
-        }
-    }
-
     // Notify listeners that a user logged in
     static void notifyUserLoggedIn(SyncUser user) {
         for (AuthenticationListener authListener : authListeners) {

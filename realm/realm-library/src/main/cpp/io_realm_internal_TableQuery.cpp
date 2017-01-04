@@ -19,9 +19,11 @@
 #include <shared_realm.hpp>
 #include <object_store.hpp>
 #include "util.hpp"
+#include "jni_util/java_local_ref.hpp"
 #include "io_realm_internal_TableQuery.h"
 
 using namespace realm;
+using namespace realm::jni_util;
 
 #if 1
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
@@ -1210,7 +1212,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         // Step3: Run & export the queries against the latest shared group
         for (size_t i = 0; i < number_of_queries; ++i) {
             // Delete the local ref since we might have a long loop
-            JniLocalRef<jlongArray> local_ref(env, (jlongArray) env->GetObjectArrayElement(query_param_matrix, i));
+            JavaLocalRef<jlongArray> local_ref(env, (jlongArray) env->GetObjectArrayElement(query_param_matrix, i));
             JniLongArray query_param_array(env, local_ref);
 
             switch (query_param_array[0]) { // 0, index of the type of query, the next indicies are parameters
