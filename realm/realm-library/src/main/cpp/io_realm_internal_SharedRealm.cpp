@@ -4,6 +4,8 @@
 #include "object-store/src/sync/sync_config.hpp"
 #endif
 
+#include <realm/util/features.h>
+
 #include "object_store.hpp"
 #include "shared_realm.hpp"
 
@@ -41,7 +43,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
-        jboolean auto_change_notification, jstring sync_server_url, jstring sync_user_token)
+        jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
 {
     TR_ENTER()
 
@@ -56,11 +58,9 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         config->cache = cache;
         config->disable_format_upgrade = disable_format_upgrade;
         config->automatic_change_notifications = auto_change_notification;
-#if REALM_ENABLE_SYNC
         if (sync_server_url) {
             config->force_sync_history = true;
         }
-#endif
         return reinterpret_cast<jlong>(config);
     } CATCH_STD()
 
@@ -166,6 +166,8 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
     try {
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
+
+    return static_cast<jlong>(ObjectStore::NotVersioned);
 }
 
 JNIEXPORT void JNICALL

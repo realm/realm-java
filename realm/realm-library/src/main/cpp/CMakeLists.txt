@@ -116,9 +116,11 @@ endif()
 #      d.init(ValueBase::m_from_link_list, ValueBase::m_values, D{});
 #FIXME maybe-uninitialized is reported by table_view.cpp:272:15:
 #     'best.m_nanoseconds' was declared here
-set(WARNING_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long -Wno-variadic-macros \
--Wno-missing-field-initializers -Wmissing-declarations -Wno-error=uninitialized -Wno-error=maybe-uninitialized")
-set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DREALM_HAVE_EPOLL -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
+#     -Wno-missing-field-initializers disable in object store as well.
+set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
+    -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
+    -Wno-missing-field-initializers  -Wno-maybe-uninitialized -Wno-uninitialized")
+set(REALM_COMMON_CXX_FLAGS "-DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()

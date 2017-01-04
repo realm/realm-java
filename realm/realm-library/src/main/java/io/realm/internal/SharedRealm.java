@@ -27,11 +27,12 @@ public final class SharedRealm implements Closeable {
 
     // Const value for RealmFileException conversion
     public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
-    public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 1;
-    public static final byte FILE_EXCEPTION_KIND_EXISTS = 2;
-    public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 3;
-    public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 4;
-    public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 5;
+    public static final byte FILE_EXCEPTION_KIND_BAD_HISTORY = 1;
+    public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 2;
+    public static final byte FILE_EXCEPTION_KIND_EXISTS = 3;
+    public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
+    public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
+    public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {

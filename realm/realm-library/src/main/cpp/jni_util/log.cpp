@@ -168,7 +168,7 @@ void Log::log(Level level, const char* tag, jthrowable throwable, const char* me
 void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
 {
     // Ignore the level threshold from the root logger.
-    Log::Level jni_level;
+    Log::Level jni_level = Log::all; // Initial value to suppress the false positive compile warning.
     switch (level) {
         case Level::trace: jni_level = Log::trace; break;
         case Level::debug: // Fall through. Map to same level debug.
