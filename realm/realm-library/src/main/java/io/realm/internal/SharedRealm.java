@@ -179,18 +179,20 @@ public final class SharedRealm implements Closeable {
         objectServerFacade = null;
     }
 
+    // This will create a SharedRealm where autoChangeNotifications is false,
+    // If autoChangeNotifications is true, an additional SharedGroup might be created in the OS's external commit helper.
+    // That is not needed for some cases: eg.: An extra opened SharedGroup will cause a compact failure.
     public static SharedRealm getInstance(RealmConfiguration config) {
-        return getInstance(config, null, null);
+        return getInstance(config, null, null, false);
     }
 
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
-                                          SchemaVersionListener schemaVersionListener) {
+                                          SchemaVersionListener schemaVersionListener, boolean autoChangeNotifications) {
         String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
         String rosServerUrl = userAndServer[0];
         String rosUserToken = userAndServer[1];
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
-        boolean autoChangeNotifications = true;
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
