@@ -5,14 +5,10 @@
 #endif
 
 #include "object_store.hpp"
-#include "shared_realm.hpp"
 
 #include "java_binding_context.hpp"
 #include "util.hpp"
 #include "objectserver_shared.hpp"
-#if REALM_ENABLE_SYNC
-#include "sync/sync_manager.hpp"
-#endif
 
 using namespace realm;
 using namespace realm::_impl;
@@ -169,6 +165,7 @@ Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv *env, jclass, jlong s
     try {
         return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
     } CATCH_STD()
+    return -1;
 }
 
 JNIEXPORT void JNICALL

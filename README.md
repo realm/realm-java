@@ -42,9 +42,11 @@ buildscript {
     }
 }
 
-repositories {
-    maven {
-        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+allprojects {
+    repositories {
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
     }
 }
 ```

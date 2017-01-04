@@ -90,22 +90,27 @@ public class SyncUserTests {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         SyncManager.setAuthServerImpl(authServer);
 
-        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
-            @Override
-            public AuthenticateResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return getNewRandomUser();
-            }
-        });
-        SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
-        SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
-
         try {
-            SyncUser.currentUser();
-            fail();
-        } catch (IllegalStateException ignore) {
+            // 1. Login two random users
+            when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
+                @Override
+                public AuthenticateResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
+                    return getNewRandomUser();
+                }
+            });
+            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+
+            // 2. Verify currentUser() now throws
+            try {
+                SyncUser.currentUser();
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
         } finally {
             SyncManager.setAuthServerImpl(originalAuthServer);
         }
+
     }
 
     private AuthenticateResponse getNewRandomUser() {

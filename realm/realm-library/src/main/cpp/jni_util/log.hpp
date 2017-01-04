@@ -185,7 +185,7 @@ public:
     // CoreLoggerBridge::shared()
     CoreLoggerBridge() {}
 
-private:;
+private:
     // Log tag for Realm core & sync.
     static const char* TAG;
 };

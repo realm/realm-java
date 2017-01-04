@@ -25,18 +25,17 @@ using namespace std;
 using namespace realm;
 using namespace sync;
 
+/*
 JNIEXPORT jlong JNICALL
-Java_io_realm_SyncSession_nativeGetSession(JNIEnv *env,
-                                                                         jobject instance,
-                                                                         jstring localRealmPath,
-                                                                         jlong nativeConfigWrapperPointer) {
+Java_io_realm_SyncSession_nativeGetSession(JNIEnv *env, jobject, jstring localRealmPath, jlong nativeConfigWrapperPointer) {
     JStringAccessor local_realm_path(env, localRealmPath);
     auto config_wrapper = reinterpret_cast<JniConfigWrapper*>(nativeConfigWrapperPointer);
     std::shared_ptr<SyncSession> session = SyncManager::shared().get_session(local_realm_path, *config_wrapper->get_config()->sync_config.get());
     return reinterpret_cast<jlong>(session.get());
 }
+*/
 
-
+/*
 JNIEXPORT jlong JNICALL
 Java_io_realm_SyncSession_nativeCreateSession
   (JNIEnv *env, jobject sessionObject, jstring localRealmPath, jstring userIdentity)
@@ -65,6 +64,7 @@ Java_io_realm_SyncSession_nativeCreateSession
 //    } CATCH_STD()
     return 0;
 }
+*/
 
 JNIEXPORT void JNICALL
 Java_io_realm_SyncSession_nativeStartSession

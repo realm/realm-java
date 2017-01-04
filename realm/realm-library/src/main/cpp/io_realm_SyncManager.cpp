@@ -30,73 +30,47 @@
 
 #include "io_realm_SyncManager.h"
 
+#include "jni_util/log.hpp"
+#include "jni_util/jni_utils.hpp"
+
 using namespace realm;
 using namespace realm::sync;
 using namespace realm::jni_util;
 
 std::unique_ptr<Client> sync_client;
 
-static jclass sync_manager = nullptr;
-static jmethodID sync_manager_notify_error_handler = nullptr;
-
-static void error_handler(int error_code, std::string message)
-{
-    JNIEnv* env;
-    if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        throw std::runtime_error("JVM is not attached to this thread. Called in error_handler.");
-    }
-
-    env->CallStaticVoidMethod(sync_manager,
-                              sync_manager_notify_error_handler,
-                              error_code,
-                              env->NewStringUTF(message.c_str()));
-}
-
 struct AndroidClientListener : public realm::ClientThreadListener {
 
-    void on_client_thread_ready(sync::Client *client) override {
+    void on_client_thread_ready(sync::Client*) override {
         // Attach the sync client thread to the JVM so errors can be returned properly
-        JNIEnv *env;
-        if (g_vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-            g_vm->AttachCurrentThread(&env, nullptr); // Should never fail
-        }
+        realm::jni_util::JniUtils::get_env(true);
     }
 
-    void on_client_thread_closing(sync::Client *client) override {
+    void on_client_thread_closing(sync::Client*) override {
         // Failing to detach the JVM before closing the thread will crash on ART
-        g_vm->DetachCurrentThread();
+        realm::jni_util::JniUtils::detach_current_thread();
     }
 } s_client_thread_listener;
 
-struct AndroidLoggerFactory : public realm::SyncLoggerFactory {
-    std::unique_ptr<realm::util::Logger> make_logger(realm::util::Logger::Level level) {
-        return std::unique_ptr<Logger>(new CoreLoggerBridge());
-    }
-} s_logger_factory;
-
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv *env, jclass sync_manager_class)
+    (JNIEnv* env, jclass)
 {
     TR_ENTER()
     if (sync_client) return;
 
     try {
-        // Register Java callback function for error handling
-        // This function should only be called once, so doing it here should be fine.
-        sync_manager = reinterpret_cast<jclass>(env->NewGlobalRef(sync_manager_class));
-        sync_manager_notify_error_handler = env->GetStaticMethodID(sync_manager,
-                                                                   "notifyErrorHandler",
-                                                                   "(ILjava/lang/String;Ljava/lang/String;)V");
-
         // Setup SyncManager
-        SyncManager::shared().set_logger_factory(s_logger_factory);
-        SyncManager::shared().set_error_handler(error_handler);
         SyncManager::shared().set_client_thread_listener(s_client_thread_listener);
+
+        // Create SyncClient
+        sync::Client::Config config;
+        config.logger = &CoreLoggerBridge::shared();
+        sync_client = std::make_unique<Client>(std::move(config)); // Throws
     } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeReset(JNIEnv *env, jclass type) {
+Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass) {
 
     TR_ENTER()
     try {
