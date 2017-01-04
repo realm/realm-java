@@ -178,8 +178,8 @@ public final class SharedRealm implements Closeable {
         objectServerFacade = null;
     }
 
-    // This will create a SharedRealm with autoChangeNotifications is false,
-    // If autoChangeNotifications is true, a additional SharedGroup might be created in the OS's external commit helper.
+    // This will create a SharedRealm where autoChangeNotifications is false,
+    // If autoChangeNotifications is true, an additional SharedGroup might be created in the OS's external commit helper.
     // That is not needed for some cases: eg.: An extra opened SharedGroup will cause a compact failure.
     public static SharedRealm getInstance(RealmConfiguration config) {
         return getInstance(config, null, null, false);

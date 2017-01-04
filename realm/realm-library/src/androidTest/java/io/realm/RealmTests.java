@@ -3788,7 +3788,7 @@ public class RealmTests {
         Assume.assumeTrue("SELinux is not enforced on this device.", TestHelper.isSelinuxEnforcing());
 
         // Only check the fifo file created by call, since all Realm instances share the same fifo created by
-        // external_commit_helper which might not be created in the newly created dir if there are Realm instances are
+        // external_commit_helper which might not be created in the newly created dir if there are Realm instances
         // are not deleted when TestHelper.deleteRecursively(namedPipeDir) called.
         File[] files = namedPipeDir.listFiles(new FilenameFilter() {
             @Override
