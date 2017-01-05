@@ -450,7 +450,7 @@ Java_io_realm_internal_Collection_nativeDelete(JNIEnv *env, jclass, jlong native
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto view = wrapper->get_results().get_tableview();
         size_t size = view.size();
-        if (index < 0 || index >= size) {
+        if (index < 0 || index >= static_cast<jlong>(size)) {
             throw Results::OutOfBoundsIndexException{static_cast<size_t>(index), size};
         }
         view.remove(static_cast<size_t>(index));
