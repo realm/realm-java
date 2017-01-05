@@ -40,7 +40,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
         jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
-        jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
+        jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, REALM_UNUSED jstring sync_user_identity)
 {
     TR_ENTER()
 
