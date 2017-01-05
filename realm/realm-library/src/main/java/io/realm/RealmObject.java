@@ -67,6 +67,7 @@ import rx.Observable;
 
 @RealmClass
 public abstract class RealmObject implements RealmModel {
+    private static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -271,7 +272,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification("Listener cannot be added.");
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
             //noinspection unchecked
             proxy.realmGet$proxyState().addChangeListener(listener);
         } else {
@@ -309,7 +310,10 @@ public abstract class RealmObject implements RealmModel {
         }
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            realm.checkIfValid();
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+            // FIXME: Below doesn't seem to be correct?
             proxy.realmGet$proxyState().getListeners$realm().remove(listener);
         } else {
             throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
@@ -332,7 +336,9 @@ public abstract class RealmObject implements RealmModel {
     public static <E extends RealmModel> void removeChangeListeners(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            realm.checkIfValid();
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
             proxy.realmGet$proxyState().getListeners$realm().clear();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
