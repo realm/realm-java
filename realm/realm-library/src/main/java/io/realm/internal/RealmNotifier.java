@@ -78,8 +78,9 @@ public abstract class RealmNotifier implements Closeable {
      * This is getting called on the same thread which created this Realm when the same Realm file has been changed by
      * other thread. The changes on the same thread should not trigger this call.
      */
+    // Package protected to avoid finding class by name in JNI.
     @SuppressWarnings("unused") // called from java_binding_context.cpp
-    protected void didChange() {
+    void didChange() {
         realmObserverPairs.foreach(onChangeCallBack);
         for (Runnable runnable : transactionCallbacks) {
             runnable.run();
@@ -88,7 +89,8 @@ public abstract class RealmNotifier implements Closeable {
     }
 
     @SuppressWarnings("unused") // called from java_binding_context.cpp
-    protected void changesAvailable() {
+    // Package protected to avoid finding class by name in JNI.
+    void changesAvailable() {
         sharedRealm.disableCollectionSnapshot();
     }
 

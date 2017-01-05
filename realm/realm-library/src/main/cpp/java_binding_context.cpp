@@ -55,12 +55,15 @@ std::vector<BindingContext::ObserverState> JavaBindingContext::get_observed_rows
 
     return state_list;
 }
+
 void JavaBindingContext::changes_available()
 {
     if (m_java_notifier) {
         m_java_notifier.call_with_local_ref([&] (JNIEnv* env, jobject notifier_obj) {
             // Method IDs from RealmNotifier implementation. Cache them as member vars.
-            static JavaMethod notify_by_other_method(env, notifier_obj, "changesAvailable", "()V");
+            static JavaMethod notify_by_other_method(env,
+                                                     notifier_obj,
+                                                     "changesAvailable", "()V");
             env->CallVoidMethod(notifier_obj, notify_by_other_method);
         });
     }
@@ -73,8 +76,7 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
     auto env = JniUtils::get_env();
     static JavaMethod row_observer_pair_on_change_method(env,
                                                          "io/realm/internal/RowNotifier$RowObserverPair",
-                                                         "onChange",
-                                                         "()V");
+                                                         "onChange", "()V");
 
     for (auto state : observer_state_list) {
         if (env->ExceptionCheck()) return;
@@ -99,8 +101,9 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
 
     if (env->ExceptionCheck()) return;
     m_java_notifier.call_with_local_ref(env, [&] (JNIEnv*, jobject notifier_obj) {
-        static JavaMethod realm_notifier_did_change_method(env, notifier_obj,
-                                                       "didChange", "()V");
+        static JavaMethod realm_notifier_did_change_method(env,
+                                                           notifier_obj,
+                                                           "didChange", "()V");
 
         env->CallVoidMethod(notifier_obj, realm_notifier_did_change_method);
     });
