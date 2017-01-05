@@ -17,6 +17,7 @@
 * `UnsatisfiedLinkError` caused by `pipe2` (#3945).
 * Unrecoverable error with message "Try again" when the notification fifo is full (#3964).
 * Realm migration wasn't triggered when the primary key definition was altered (#3966).
+* Use phantom reference to solve the finalize time out issue (#2496).
 
 ### Enhancements
 
