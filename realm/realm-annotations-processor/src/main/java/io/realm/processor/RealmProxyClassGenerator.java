@@ -668,6 +668,25 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("final %1$s columnInfo = new %1$s(sharedRealm.getPath(), table)", columnInfoClassName());
         writer.emitEmptyLine();
 
+        // verify primary key definition was not altered
+        if (metadata.hasPrimaryKey()) {
+            // the current model defines a PK, make sure it's defined in the Realm schema
+            String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
+            writer.beginControlFlow("if (!table.hasPrimaryKey())")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. @PrimaryKey was added.\")", metadata.getPrimaryKey().getSimpleName().toString())
+                    .nextControlFlow("else")
+                    .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName)
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed, from field \" + table.getColumnName(table.getPrimaryKey()) + \" to field %s\")" ,metadata.getPrimaryKey().getSimpleName().toString())
+                    .endControlFlow()
+                    .endControlFlow();
+        } else {
+            // the current model doesn't define a PK, make sure it's not defined in the Realm schema
+            writer.beginControlFlow("if (table.hasPrimaryKey())")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key defined for field \" + table.getColumnName(table.getPrimaryKey()) + \" was removed.\")")
+                    .endControlFlow();
+        }
+        writer.emitEmptyLine();
+
         // For each field verify there is a corresponding
         long fieldIndex = 0;
         for (VariableElement field : metadata.getFields()) {
@@ -736,13 +755,6 @@ public class RealmProxyClassGenerator {
                         }
                         writer.endControlFlow();
                     }
-                }
-
-                // Validate @PrimaryKey
-                if (metadata.isPrimaryKey(field)) {
-                    writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
-                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. Add @PrimaryKey.\")", fieldName);
-                    writer.endControlFlow();
                 }
 
                 // Validate @Index

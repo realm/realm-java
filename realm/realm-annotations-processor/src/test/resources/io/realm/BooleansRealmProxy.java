@@ -266,6 +266,10 @@ public class BooleansRealmProxy extends some.test.Booleans
 
             final BooleansColumnInfo columnInfo = new BooleansColumnInfo(sharedRealm.getPath(), table);
 
+            if (table.hasPrimaryKey()) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
+            }
+
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'done' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
