@@ -459,3 +459,13 @@ Java_io_realm_internal_Collection_nativeDelete(JNIEnv *env, jclass, jlong native
     } CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_Collection_nativeIsValid(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        return wrapper->get_results().is_valid();
+    } CATCH_STD()
+    return JNI_FALSE;
+}

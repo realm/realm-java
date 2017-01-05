@@ -215,6 +215,10 @@ public class Collection implements NativeObject {
         nativeStopListening(nativePtr);
     }
 
+    public boolean isValid() {
+        return nativeIsValid(nativePtr);
+    }
+
     // Called by JNI
     @KeepMember
     @SuppressWarnings("unused")
@@ -268,4 +272,5 @@ public class Collection implements NativeObject {
     private static native void nativeEnableSnapshot(long nativePtr);
     private static native void nativeDisableSnapshot(long nativePtr);
     private static native boolean nativeIsDetached(long nativePtr);
+    private static native boolean nativeIsValid(long nativePtr);
 }

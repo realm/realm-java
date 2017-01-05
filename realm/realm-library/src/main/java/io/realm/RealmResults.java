@@ -100,7 +100,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      * {@inheritDoc}
      */
     public boolean isValid() {
-        return !realm.isClosed();
+        return collection.isValid();
     }
 
     /**

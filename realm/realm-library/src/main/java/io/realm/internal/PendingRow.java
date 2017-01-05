@@ -49,13 +49,18 @@ public class PendingRow implements Row {
                     return;
                 }
 
-                // PendingRow will always get the first Row of the query since we only support findFirst.
-                UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
-                // If no rows returned by the query, just wait for the query updates until it returns a valid row.
-                if (uncheckedRow != null) {
-                    Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
-                    // Ask the front end to reset the row and stop async query.
-                    frontEnd.get().onQueryFinished(row);
+                if (pendingCollection.isValid()) {
+                    // PendingRow will always get the first Row of the query since we only support findFirst.
+                    UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
+                    // If no rows returned by the query, just wait for the query updates until it returns a valid row.
+                    if (uncheckedRow != null) {
+                        Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
+                        // Ask the front end to reset the row and stop async query.
+                        frontEnd.get().onQueryFinished(row);
+                        clearPendingCollection();
+                    }
+                } else {
+                    // The Realm is closed. Do nothing then.
                     clearPendingCollection();
                 }
             }
