@@ -63,7 +63,7 @@ public class SimpleRealmProxy extends some.test.Simple
 
     }
     private SimpleColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.Simple> proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -82,7 +82,7 @@ public class SimpleRealmProxy extends some.test.Simple
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (SimpleColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(this);
+        this.proxyState = new ProxyState<some.test.Simple>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -198,6 +198,10 @@ public class SimpleRealmProxy extends some.test.Simple
             }
 
             final SimpleColumnInfo columnInfo = new SimpleColumnInfo(sharedRealm.getPath(), table);
+
+            if (table.hasPrimaryKey()) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
+            }
 
             if (!columnTypes.containsKey("name")) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
@@ -414,7 +418,7 @@ public class SimpleRealmProxy extends some.test.Simple
             }
         } else {
             unmanagedObject = new some.test.Simple();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((SimpleRealmProxyInterface) unmanagedObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
         ((SimpleRealmProxyInterface) unmanagedObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());

@@ -31,7 +31,6 @@ Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
-
         const std::shared_ptr<SyncUser> &user = SyncManager::shared().get_current_user();
         if (user) {
             return to_jstring(env, user->refresh_token().data());
@@ -86,24 +85,14 @@ Java_io_realm_RealmFileUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
     TR_ENTER()
     std::vector<std::shared_ptr<SyncUser>> all_users = SyncManager::shared().all_logged_in_users();
     if (!all_users.empty()) {
-        std::vector<std::shared_ptr<SyncUser>> valid_users;
-        jsize array_length = std::count_if(all_users.begin(),all_users.end(),
-                        [&](const std::shared_ptr<SyncUser>& user) {
-                            if (user->state() == SyncUser::State::Active) {
-                                valid_users.emplace_back(std::move(user));
-                                return true;
-                            }
-                            return false;
-                        });
-
-        jobjectArray users_token = env->NewObjectArray(array_length, java_lang_string, 0);
-        if (users_token == NULL) {
+        size_t len = all_users.size();
+        jobjectArray users_token = env->NewObjectArray(len, java_lang_string, 0);
+        if (users_token == nullptr) {
             ThrowException(env, OutOfMemory, ERR_COULD_NOT_ALLOCATE_MEMORY);
             return nullptr;
         }
-
-        for (auto user : valid_users) {
-            env->SetObjectArrayElement(users_token, --array_length, to_jstring(env, user->refresh_token().data()));
+        for (size_t i = 0; i < len; ++i) {
+            env->SetObjectArrayElement(users_token, i, to_jstring(env, all_users[i]->refresh_token().data()));
         }
 
         return users_token;

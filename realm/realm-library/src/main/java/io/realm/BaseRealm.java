@@ -82,7 +82,7 @@ abstract class BaseRealm implements Closeable {
                     public void onSchemaVersionChanged(long currentVersion) {
                         RealmCache.updateSchemaCache((Realm) BaseRealm.this);
                     }
-                });
+                }, true);
         this.schema = new RealmSchema(this);
     }
 
@@ -558,7 +558,6 @@ abstract class BaseRealm implements Closeable {
      * Compacts the Realm file defined by the given configuration.
      *
      * @param configuration configuration for the Realm to compact.
-     * @throws IllegalArgumentException if Realm is encrypted.
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {

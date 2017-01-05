@@ -70,11 +70,12 @@ public class SyncUser {
     }
 
     /**
-     * Returns the last user that has logged in and who is still valid.
-     * A user is invalidated when he/she logs out or the user's access token expire.
+     * Returns the current user that is logged in and still valid.
+     * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return last {@link SyncUser} that has logged in and who is still valid. {@code null} if no current user or user has
-     *         been invalidated.
+     * @return current {@link SyncUser} that has logged in and is still valid. {@code null} if no user is logged in or the user has
+     *         expired.
+     * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser currentUser() {
         SyncUser user = SyncManager.getUserStore().get();

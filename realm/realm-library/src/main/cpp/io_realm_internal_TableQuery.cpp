@@ -26,6 +26,7 @@
 #include "util.hpp"
 
 using namespace realm;
+using namespace realm::jni_util;
 
 #if 1
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)

@@ -24,7 +24,8 @@
 
 #include "util.hpp"
 #include "java_sort_descriptor.hpp"
-#include "jni_util/method.hpp"
+#include "jni_util/java_method.hpp"
+#include "jni_util/java_global_weak_ref.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -33,11 +34,11 @@ using namespace realm::_impl;
 // We need to control the life cycle of Results, weak ref of Java Collection object and the NotificationToken.
 // Wrap all three together, so when the Java Collection object gets GCed, all three of them will be invalidated.
 struct ResultsWrapper {
-    jobject m_collection_weak_ref;
+    JavaGlobalWeakRef m_collection_weak_ref;
     NotificationToken m_notification_token;
 
     ResultsWrapper(Results&& results)
-    : m_collection_weak_ref(nullptr), m_results(results), m_notification_token() {}
+    : m_collection_weak_ref(), m_notification_token(), m_results(results), m_snapshot() {}
 
     ResultsWrapper(ResultsWrapper&&) = delete;
     ResultsWrapper& operator=(ResultsWrapper&&) = delete;
@@ -45,14 +46,7 @@ struct ResultsWrapper {
     ResultsWrapper(ResultsWrapper const&) = delete;
     ResultsWrapper& operator=(ResultsWrapper const&) = delete;
 
-    ~ResultsWrapper()
-    {
-        if (m_collection_weak_ref) {
-            JNIEnv *env;
-            g_vm->AttachCurrentThread(&env, nullptr);
-            env->DeleteWeakGlobalRef(m_collection_weak_ref);
-        }
-    }
+    ~ResultsWrapper() {}
 
     inline Results& get_original_results()
     {
@@ -301,21 +295,23 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
 {
     TR_ENTER_PTR(native_ptr)
 
-    static JniMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(Z)V");
+    static JavaMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(Z)V");
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        if (wrapper->m_collection_weak_ref == nullptr) {
-            wrapper->m_collection_weak_ref = env->NewWeakGlobalRef(instance);
+        if (!wrapper->m_collection_weak_ref) {
+            wrapper->m_collection_weak_ref = JavaGlobalWeakRef(env, instance);
         }
 
         auto cb = [=](realm::CollectionChangeSet const& changes,
-                                   std::exception_ptr err) {
+                                   std::exception_ptr /*err*/) {
             // OS will call all notifiers' callback in one run, so check the Java exception first!!
             if (env->ExceptionCheck()) return;
 
             //if (!wrapper->is_detached()) {
-                env->CallVoidMethod(wrapper->m_collection_weak_ref, notify_change_listeners, changes.empty());
+            wrapper->m_collection_weak_ref.call_with_local_ref(env, [&] (JNIEnv* local_env, jobject collection_obj) {
+                local_env->CallVoidMethod(collection_obj, notify_change_listeners, changes.empty());
+            });
             //}
         };
 
@@ -403,7 +399,7 @@ Java_io_realm_internal_Collection_nativeDisableSnapshot(JNIEnv *env, jclass, jlo
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_Collection_nativeIsDetached(JNIEnv *env, jclass, jlong native_ptr)
+Java_io_realm_internal_Collection_nativeIsDetached(JNIEnv *, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);

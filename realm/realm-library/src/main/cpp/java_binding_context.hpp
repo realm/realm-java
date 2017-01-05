@@ -22,7 +22,7 @@
 
 #include "binding_context.hpp"
 
-#include "jni_util/method.hpp"
+#include "jni_util/java_global_weak_ref.hpp"
 
 namespace realm {
 
@@ -33,45 +33,27 @@ class JavaBindingContext final : public BindingContext {
 private:
     struct ConcreteJavaBindContext {
         JNIEnv* jni_env;
-        jobject realm_notifier;
+        jobject java_notifier;
         jobject row_notifier;
     };
 
-    // The JNIEnv for the thread which creates the Realm. This should only be used on the current thread.
-    JNIEnv* m_local_jni_env;
-    // All methods should be called from the thread which creates the realm except the destructor which might be
-    // called from finalizer/phantom daemon. So we need a jvm pointer to create JNIEnv there if needed.
-    JavaVM* m_jvm;
     // A weak global ref to the implementation of RealmNotifier
     // Java should hold a strong ref to it as long as the SharedRealm lives
-    jobject m_realm_notifier;
-
+    jni_util::JavaGlobalWeakRef m_java_notifier;
     // A weak global ref to the RowNotifier object. Java should hold a strong ref to it.
-    jobject m_row_notifier;
-
-    // Cache the method IDs
-    // RealmNotifier.didChange()
-    static realm::jni_util::JniMethod m_realm_notifier_did_change_method;
-    // RealmNotifier.changesAvailable()
-    static realm::jni_util::JniMethod m_realm_notifier_changes_available_method;
-    // RowNotifier.getObservers()
-    static realm::jni_util::JniMethod m_get_observers_method;
-    // RowNotifier.getObservedRowPtrs(Observer[])
-    static realm::jni_util::JniMethod m_get_observed_row_ptrs_method;
-    // RowNotifier.clearRowRefs()
-    static realm::jni_util::JniMethod m_clear_row_refs_method;
-    // RowNotifier.RowObserverPair.onChange()
-    static realm::jni_util::JniMethod m_row_observer_pair_on_change_method;
+    jni_util::JavaGlobalWeakRef m_row_notifier;
 
 public:
-    virtual ~JavaBindingContext();
+    virtual ~JavaBindingContext() {};
     virtual std::vector<ObserverState> get_observed_rows();
     virtual void changes_available();
     virtual void did_change(std::vector<ObserverState> const& observers,
                             std::vector<void*> const& invalidated,
                             bool version_changed=true);
 
-    explicit JavaBindingContext(const ConcreteJavaBindContext&);
+    explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
+            : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier),
+              m_row_notifier(concrete_context.jni_env, concrete_context.row_notifier) {}
     JavaBindingContext(const JavaBindingContext&) = delete;
     JavaBindingContext& operator=(const JavaBindingContext&) = delete;
     JavaBindingContext(JavaBindingContext&&) = delete;

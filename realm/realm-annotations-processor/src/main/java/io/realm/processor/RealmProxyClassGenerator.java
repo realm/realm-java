@@ -204,7 +204,7 @@ public class RealmProxyClassGenerator {
 
     private void emitClassFields(JavaWriter writer) throws IOException {
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE));
-        writer.emitField("ProxyState", "proxyState", EnumSet.of(Modifier.PRIVATE));
+        writer.emitField("ProxyState<" + qualifiedClassName + ">", "proxyState", EnumSet.of(Modifier.PRIVATE));
 
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isRealmList(variableElement)) {
@@ -501,7 +501,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitStatement("final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get()");
         writer.emitStatement("this.columnInfo = (%1$s) context.getColumnInfo()", columnInfoClassName());
-        writer.emitStatement("this.proxyState = new ProxyState(this)");
+        writer.emitStatement("this.proxyState = new ProxyState<%1$s>(this)", qualifiedClassName);
         writer.emitStatement("proxyState.setRealm$realm(context.getRealm())");
         writer.emitStatement("proxyState.setRow$realm(context.getRow())");
         writer.emitStatement("proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue())");
@@ -667,6 +667,25 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("final %1$s columnInfo = new %1$s(sharedRealm.getPath(), table)", columnInfoClassName());
         writer.emitEmptyLine();
 
+        // verify primary key definition was not altered
+        if (metadata.hasPrimaryKey()) {
+            // the current model defines a PK, make sure it's defined in the Realm schema
+            String fieldName = metadata.getPrimaryKey().getSimpleName().toString();
+            writer.beginControlFlow("if (!table.hasPrimaryKey())")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. @PrimaryKey was added.\")", metadata.getPrimaryKey().getSimpleName().toString())
+                    .nextControlFlow("else")
+                    .beginControlFlow("if (table.getPrimaryKey() != columnInfo.%sIndex)", fieldName)
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key annotation definition was changed, from field \" + table.getColumnName(table.getPrimaryKey()) + \" to field %s\")" ,metadata.getPrimaryKey().getSimpleName().toString())
+                    .endControlFlow()
+                    .endControlFlow();
+        } else {
+            // the current model doesn't define a PK, make sure it's not defined in the Realm schema
+            writer.beginControlFlow("if (table.hasPrimaryKey())")
+                    .emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary Key defined for field \" + table.getColumnName(table.getPrimaryKey()) + \" was removed.\")")
+                    .endControlFlow();
+        }
+        writer.emitEmptyLine();
+
         // For each field verify there is a corresponding
         long fieldIndex = 0;
         for (VariableElement field : metadata.getFields()) {
@@ -735,13 +754,6 @@ public class RealmProxyClassGenerator {
                         }
                         writer.endControlFlow();
                     }
-                }
-
-                // Validate @PrimaryKey
-                if (metadata.isPrimaryKey(field)) {
-                    writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
-                    writer.emitStatement("throw new RealmMigrationNeededException(sharedRealm.getPath(), \"Primary key not defined for field '%s' in existing Realm file. Add @PrimaryKey.\")", fieldName);
-                    writer.endControlFlow();
                 }
 
                 // Validate @Index
@@ -1489,7 +1501,7 @@ public class RealmProxyClassGenerator {
                 .endControlFlow()
             .nextControlFlow("else")
                 .emitStatement("unmanagedObject = new %s()", qualifiedClassName)
-                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject))")
+                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject))")
             .endControlFlow();
 
         for (VariableElement field : metadata.getFields()) {

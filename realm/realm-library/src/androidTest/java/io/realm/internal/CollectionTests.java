@@ -68,7 +68,7 @@ public class CollectionTests {
     }
 
     private SharedRealm getSharedRealm() {
-        return SharedRealm.getInstance(config, null);
+        return SharedRealm.getInstance(config, null, true);
     }
 
     private void populateData() {

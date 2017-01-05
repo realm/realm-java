@@ -1528,6 +1528,7 @@ public class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration}.
      * @return {@code false} if a file could not be deleted. The failing file will be logged.
+     * @throws IllegalStateException if not all realm instances are closed.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         return BaseRealm.deleteRealm(configuration);

@@ -24,11 +24,18 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
+import java.util.UUID;
 
+import io.realm.internal.network.AuthenticateResponse;
+import io.realm.internal.network.AuthenticationServer;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
@@ -37,6 +44,9 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncUserTests {
@@ -72,6 +82,40 @@ public class SyncUserTests {
 
         // Invalid users should not be returned when asking the for the current user
         assertNull(SyncUser.currentUser());
+    }
+
+    @Test
+    public void currentUser_throwsIfMultipleUsersLoggedIn() {
+        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        SyncManager.setAuthServerImpl(authServer);
+        try {
+            // 1. Login two random users
+            when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
+                @Override
+                public AuthenticateResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
+                    return getNewRandomUser();
+                }
+            });
+            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+
+            // 2. Verify currentUser() now throws
+            try {
+                SyncUser.currentUser();
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            SyncManager.setAuthServerImpl(originalAuthServer);
+        }
+
+    }
+
+    private AuthenticateResponse getNewRandomUser() {
+        String identity = UUID.randomUUID().toString();
+        String userTokenValue = UUID.randomUUID().toString();
+        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE);
     }
 
     // Test that current user is cleared if it is logged out

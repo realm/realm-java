@@ -91,7 +91,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     }
     private AllTypesColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.AllTypes> proxyState;
     private RealmList<some.test.AllTypes> columnRealmListRealmList;
     private static final List<String> FIELD_NAMES;
     static {
@@ -118,7 +118,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (AllTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(this);
+        this.proxyState = new ProxyState<some.test.AllTypes>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -532,6 +532,14 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
             final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(sharedRealm.getPath(), table);
 
+            if (!table.hasPrimaryKey()) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. @PrimaryKey was added.");
+            } else {
+                if (table.getPrimaryKey() != columnInfo.columnStringIndex) {
+                    throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key annotation definition was changed, from field " + table.getColumnName(table.getPrimaryKey()) + " to field columnString");
+                }
+            }
+
             if (!columnTypes.containsKey("columnString")) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'columnString' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
@@ -540,9 +548,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
             if (!table.isColumnNullable(columnInfo.columnStringIndex)) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(),"@PrimaryKey field 'columnString' does not support null values in the existing Realm file. Migrate using RealmObjectSchema.setNullable(), or mark the field as @Required.");
-            }
-            if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
-                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary key not defined for field 'columnString' in existing Realm file. Add @PrimaryKey.");
             }
             if (!table.hasSearchIndex(table.getColumnIndex("columnString"))) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Index not defined for field 'columnString' in existing Realm file. Either set @Index or migrate using io.realm.internal.Table.removeSearchIndex().");
@@ -1209,7 +1214,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             }
         } else {
             unmanagedObject = new some.test.AllTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnString(((AllTypesRealmProxyInterface) realmObject).realmGet$columnString());
         ((AllTypesRealmProxyInterface) unmanagedObject).realmSet$columnLong(((AllTypesRealmProxyInterface) realmObject).realmGet$columnLong());

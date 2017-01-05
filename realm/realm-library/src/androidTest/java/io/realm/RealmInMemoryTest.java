@@ -16,33 +16,46 @@
 
 package io.realm;
 
-import android.os.StrictMode;
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.AssertionFailedError;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmFileException;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class RealmInMemoryTest extends AndroidTestCase {
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class RealmInMemoryTest {
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     private final static String IDENTIFIER = "InMemRealmTest";
 
     private Realm testRealm;
     private RealmConfiguration inMemConf;
 
-    @Override
-    protected void setUp() throws Exception {
-        RealmConfiguration onDiskConf = new RealmConfiguration.Builder(getContext())
+    @Before
+    public void setUp() {
+        RealmConfiguration onDiskConf = configFactory.createConfigurationBuilder()
                 .name(IDENTIFIER)
                 .build();
-        inMemConf = new RealmConfiguration.Builder(getContext())
+        inMemConf = configFactory.createConfigurationBuilder()
                 .name(IDENTIFIER)
                 .inMemory()
                 .build();
@@ -52,8 +65,8 @@ public class RealmInMemoryTest extends AndroidTestCase {
         testRealm = Realm.getInstance(inMemConf);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         if (testRealm != null) {
             testRealm.close();
         }
@@ -61,14 +74,8 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
     // Testing the in-memory Realm by Creating one instance, adding a record, then close the instance.
     // By the next time in-memory Realm instance with the same name created, it should be empty.
-    // Use StrictMode to check no disk IO would happen in VM to this thread.
-    public void testInMemoryRealm() {
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .penaltyDeath()
-                .build());
-
+    @Test
+    public void inMemoryRealm() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");
@@ -82,19 +89,18 @@ public class RealmInMemoryTest extends AndroidTestCase {
         // in-mem-realm with same identifier should create a fresh new instance.
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.where(Dog.class).count(), 0);
-
-        StrictMode.enableDefaults();
     }
 
     // Two in-memory Realms with different names should not affect each other.
-    public void testInMemoryRealmWithDifferentNames() {
+    @Test
+    public void inMemoryRealmWithDifferentNames() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");
         testRealm.commitTransaction();
 
         // Create the 2nd in-memory Realm with a different name. To make sure they are not affecting each other.
-        RealmConfiguration inMemConf2 = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration inMemConf2 = configFactory.createConfigurationBuilder()
                 .name(IDENTIFIER + "2")
                 .inMemory()
                 .build();
@@ -105,15 +111,18 @@ public class RealmInMemoryTest extends AndroidTestCase {
         testRealm2.commitTransaction();
 
         assertEquals(testRealm.where(Dog.class).count(), 1);
+        //noinspection ConstantConditions
         assertEquals(testRealm.where(Dog.class).findFirst().getName(), "DinoDog");
         assertEquals(testRealm2.where(Dog.class).count(), 1);
+        //noinspection ConstantConditions
         assertEquals(testRealm2.where(Dog.class).findFirst().getName(), "UFODog");
 
         testRealm2.close();
     }
 
     // Test deleteRealm called on a in-memory Realm instance
-    public void testDelete() {
+    @Test
+    public void delete() {
         RealmConfiguration configuration = testRealm.getConfiguration();
         try {
             Realm.deleteRealm(configuration);
@@ -128,14 +137,15 @@ public class RealmInMemoryTest extends AndroidTestCase {
     }
 
     // Test if an in-memory Realm can be written to disk with/without encryption
-    public void testWriteCopyTo() {
+    @Test
+    public void writeCopyTo() {
         byte[] key = TestHelper.getRandomKey();
         String fileName = IDENTIFIER + ".realm";
         String encFileName = IDENTIFIER + ".enc.realm";
-        RealmConfiguration conf = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration conf = configFactory.createConfigurationBuilder()
                 .name(fileName)
                 .build();
-        RealmConfiguration encConf = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration encConf = configFactory.createConfigurationBuilder()
                 .name(encFileName)
                 .encryptionKey(key)
                 .build();
@@ -149,19 +159,19 @@ public class RealmInMemoryTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         // Test a normal Realm file
-        testRealm.writeCopyTo(new File(getContext().getFilesDir(), fileName));
+        testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
         Realm onDiskRealm = Realm.getInstance(conf);
         assertEquals(onDiskRealm.where(Dog.class).count(), 1);
         onDiskRealm.close();
 
         // Test a encrypted Realm file
-        testRealm.writeEncryptedCopyTo(new File(getContext().getFilesDir(), encFileName), key);
+        testRealm.writeEncryptedCopyTo(new File(configFactory.getRoot(), encFileName), key);
         onDiskRealm = Realm.getInstance(encConf);
         assertEquals(onDiskRealm.where(Dog.class).count(), 1);
         onDiskRealm.close();
         // Test with a wrong key to see if it fails as expected.
         try {
-            RealmConfiguration wrongKeyConf = new RealmConfiguration.Builder(getContext())
+            RealmConfiguration wrongKeyConf = configFactory.createConfigurationBuilder()
                     .name(encFileName)
                     .encryptionKey(TestHelper.getRandomKey(42))
                     .build();
@@ -179,7 +189,8 @@ public class RealmInMemoryTest extends AndroidTestCase {
     //    another instance is still held by the other thread.
     // 4. Close the in-memory Realm instance and the Realm data should be released since no more instance with the
     //    specific name exists.
-    public void testMultiThread() throws InterruptedException, ExecutionException {
+    @Test
+    public void multiThread() throws InterruptedException, ExecutionException {
         final CountDownLatch workerCommittedLatch = new CountDownLatch(1);
         final CountDownLatch workerClosedLatch = new CountDownLatch(1);
         final CountDownLatch realmInMainClosedLatch = new CountDownLatch(1);

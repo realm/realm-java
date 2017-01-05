@@ -16,7 +16,8 @@
 
 
 #include "java_sort_descriptor.hpp"
-#include "jni_util/method.hpp"
+#include "util.hpp"
+#include "jni_util/java_method.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
@@ -29,9 +30,9 @@ JavaSortDescriptor::operator realm::SortDescriptor() const noexcept
     }
 
     // Cache the method IDs.
-    static JniMethod getColumnIndices = JniMethod(m_env, m_sort_desc_obj, "getColumnIndices", "()[[J");
-    static JniMethod getAscendings = JniMethod(m_env, m_sort_desc_obj, "getAscendings", "()[Z");
-    static JniMethod getTablePtr = JniMethod(m_env, m_sort_desc_obj, "getTablePtr", "()J");
+    static JavaMethod getColumnIndices(m_env, m_sort_desc_obj, "getColumnIndices", "()[[J");
+    static JavaMethod getAscendings(m_env, m_sort_desc_obj, "getAscendings", "()[Z");
+    static JavaMethod getTablePtr(m_env, m_sort_desc_obj, "getTablePtr", "()J");
 
     jobjectArray column_indices =
             static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, getColumnIndices));

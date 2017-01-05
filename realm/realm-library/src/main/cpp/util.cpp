@@ -33,7 +33,6 @@ using namespace realm::util;
 using namespace realm::jni_util;
 
 // Caching classes and constructors for boxed types.
-JavaVM* g_vm;
 jclass java_lang_long;
 jmethodID java_lang_long_init;
 jclass java_lang_float;
@@ -71,7 +70,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (RealmFileException& e) {
-        ss << e.what() << " in " << file << " line " << line;
+        ss << e.what() << " (" <<  e.underlying() <<  ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind());
     }
     catch (InvalidTransactionException& e) {
@@ -104,6 +103,9 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (IncorrectThreadException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
+    }
+    catch (std::logic_error e) {
+        ThrowException(env, IllegalState, e.what());
     }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -192,10 +194,13 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
 
     jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
-    jbyte kind_code;
+    jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
         case realm::RealmFileException::Kind::AccessError:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
+            break;
+        case realm::RealmFileException::Kind::BadHistoryError:
+            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
         case realm::RealmFileException::Kind::PermissionDenied:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;

@@ -47,6 +47,7 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.Thread;
 import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationFieldRenamed;
 import io.realm.entities.migration.MigrationFieldTypeToInt;
@@ -196,11 +197,11 @@ public class RealmMigrationTests {
     }
 
     @Test
-    public void notSettingPrimaryKeyThrows() {
+    public void addingPrimaryKeyThrows() {
 
         // Create v0 of the Realm
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(AllTypes.class)
+                .schema(Thread.class)
                 .build();
         Realm.getInstance(originalConfig).close();
 
@@ -218,14 +219,91 @@ public class RealmMigrationTests {
         // Create v1 of the Realm
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
+                .schema(Thread.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. Add @PrimaryKey.")) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. @PrimaryKey was added.")) {
+                fail(e.toString());
+            }
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void removingPrimaryKeyThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(Thread.class)
+                .build();
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("StringOnly")
+                        .addField("chars", String.class, FieldAttribute.PRIMARY_KEY);
+            }
+        };
+
+        // Create v1 of the Realm
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(Thread.class, StringOnly.class)
+                .migration(migration)
+                .build();
+        try {
+            realm = Realm.getInstance(realmConfig);
+            fail();
+        } catch (RealmMigrationNeededException e) {
+            if (!e.getMessage().equals("Primary Key defined for field chars was removed.")) {
+                fail(e.toString());
+            }
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void changingPrimaryKeyThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(Thread.class)
+                .build();
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("PrimaryKeyAsString")
+                        .addField("id", long.class, FieldAttribute.PRIMARY_KEY) // initial @PrimaryKey is on the int
+                        .addField("name", String.class);
+            }
+        };
+
+        // Create v1 of the Realm
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(Thread.class, PrimaryKeyAsString.class)
+                .migration(migration)
+                .build();
+        try {
+            realm = Realm.getInstance(realmConfig);
+            fail();
+        } catch (RealmMigrationNeededException e) {
+            if (!e.getMessage().equals("Primary Key annotation definition was changed, from field id to field name")) {
                 fail(e.toString());
             }
         } finally {

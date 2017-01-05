@@ -139,7 +139,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     }
     private NullTypesColumnInfo columnInfo;
-    private ProxyState proxyState;
+    private ProxyState<some.test.NullTypes> proxyState;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -177,7 +177,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     private void injectObjectContext() {
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
         this.columnInfo = (NullTypesColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState(this);
+        this.proxyState = new ProxyState<some.test.NullTypes>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -1092,6 +1092,10 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
 
             final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(sharedRealm.getPath(), table);
+
+            if (table.hasPrimaryKey()) {
+                throw new RealmMigrationNeededException(sharedRealm.getPath(), "Primary Key defined for field " + table.getColumnName(table.getPrimaryKey()) + " was removed.");
+            }
 
             if (!columnTypes.containsKey("fieldStringNotNull")) {
                 throw new RealmMigrationNeededException(sharedRealm.getPath(), "Missing field 'fieldStringNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
@@ -2220,7 +2224,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             }
         } else {
             unmanagedObject = new some.test.NullTypes();
-            cache.put(realmObject, new RealmObjectProxy.CacheData(currentDepth, unmanagedObject));
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         }
         ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
         ((NullTypesRealmProxyInterface) unmanagedObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());
