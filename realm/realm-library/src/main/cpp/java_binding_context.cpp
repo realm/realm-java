@@ -71,7 +71,7 @@ void JavaBindingContext::changes_available()
 
 void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> const& observer_state_list,
                         std::vector<void*> const& invalidated,
-                        bool /*version_changed*/)
+                        bool version_changed)
 {
     auto env = JniUtils::get_env();
     static JavaMethod row_observer_pair_on_change_method(env,
@@ -100,12 +100,11 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
     });
 
     if (env->ExceptionCheck()) return;
-    m_java_notifier.call_with_local_ref(env, [&] (JNIEnv*, jobject notifier_obj) {
-        static JavaMethod realm_notifier_did_change_method(env,
-                                                           notifier_obj,
-                                                           "didChange", "()V");
-
-        env->CallVoidMethod(notifier_obj, realm_notifier_did_change_method);
-    });
+    if (version_changed) {
+        m_java_notifier.call_with_local_ref(env, [&] (JNIEnv*, jobject notifier_obj) {
+            static JavaMethod realm_notifier_did_change_method(env, notifier_obj, "didChange", "()V");
+            env->CallVoidMethod(notifier_obj, realm_notifier_did_change_method);
+        });
+    }
 }
 
