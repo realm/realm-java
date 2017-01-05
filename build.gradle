@@ -266,13 +266,21 @@ task clean {
     dependsOn cleanLocalMavenRepos
 }
 
-task uploadDistributionPackage(type: Exec) {
+task uploadDistributionPackage {
     group = 'Release'
     description = 'Upload the distribution package to S3'
     dependsOn distributionPackage
     dependsOn distributionJniUnstrippedPackage
-    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
-    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+    doLast {
+        exec {
+            workingDir "${buildDir}/outputs/distribution/"
+            commandLine 's3cmd', 'put', "realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+        }
+        exec {
+            workingDir "${buildDir}/outputs/distribution/"
+            commandLine 's3cmd', 'put', "realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+        }
+    }
 }
 
 task createEmptyFile(type: Exec) {
