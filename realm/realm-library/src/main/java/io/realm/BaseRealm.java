@@ -58,6 +58,8 @@ abstract class BaseRealm implements Closeable {
             "This Realm instance has already been closed, making it unusable.";
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
+    private static final String LISTENER_NOT_ALLOWED_MESSAGE =
+            "Listeners cannot be used on current thread.";
 
     
     volatile static Context applicationContext;
@@ -126,6 +128,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
+        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
         //noinspection unchecked
         sharedRealm.realmNotifier.addChangeListener((T) this, listener);
     }
@@ -143,6 +146,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Listener should not be null");
         }
         checkIfValid();
+        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
         //noinspection unchecked
         sharedRealm.realmNotifier.removeChangeListener((T) this, listener);
     }
@@ -175,6 +179,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void removeAllChangeListeners() {
         checkIfValid();
+        sharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
         sharedRealm.realmNotifier.removeAllChangeListeners();
     }
 
