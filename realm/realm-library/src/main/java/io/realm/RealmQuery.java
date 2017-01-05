@@ -1248,6 +1248,36 @@ public class RealmQuery<E extends RealmModel> {
         return this;
     }
 
+    // Like
+
+    /**
+     * Condition that the value of field matches with the specified substring, with wildcards.
+     *
+     * @param fieldName the field to compare.
+     * @param value the wildcard string.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> like(String fieldName, String value) {
+        return like(fieldName, value, Case.SENSITIVE);
+    }
+
+    /**
+     * Condition that the value of field matches with the specified substring, with wildcards
+     *
+     * @param fieldName the field to compare.
+     * @param value the wildcard string.
+     * @param casing     how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> like(String fieldName, String value, Case casing) {
+        long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING);
+        this.query.like(columnIndices, value, casing);
+        return this;
+    }
+
+
     // Grouping
 
     /**

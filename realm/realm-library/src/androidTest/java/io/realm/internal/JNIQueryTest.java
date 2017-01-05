@@ -375,6 +375,8 @@ public class JNIQueryTest extends TestCase {
         try { t.where().beginsWith(new long[]{1}, nullString, Case.INSENSITIVE);    fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().endsWith(new long[]{1}, nullString);                        fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().endsWith(new long[]{1}, nullString, Case.INSENSITIVE);      fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().like(new long[]{1}, nullString);                            fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().like(new long[]{1}, nullString, Case.INSENSITIVE);          fail("String is null"); } catch (IllegalArgumentException e) { }
     }
 
 
@@ -448,9 +450,10 @@ public class JNIQueryTest extends TestCase {
         for (int i = 0; i <= 6; i++) {
             try { query.equalTo(new long[]{i}, "string");                 assert(false); } catch(IllegalArgumentException e) {}
             try { query.notEqualTo(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
-            try { query.beginsWith(new long[]{i}, "string");            assert(false); } catch(IllegalArgumentException e) {}
-            try { query.endsWith(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
-            try { query.contains(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
+            try { query.beginsWith(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
+            try { query.endsWith(new long[]{i}, "string");                assert(false); } catch(IllegalArgumentException e) {}
+            try { query.like(new long[]{i}, "string");                    assert(false); } catch(IllegalArgumentException e) {}
+            try { query.contains(new long[]{i}, "string");                assert(false); } catch(IllegalArgumentException e) {}
         }
 
         // Compare integer in non integer columns
@@ -575,9 +578,10 @@ public class JNIQueryTest extends TestCase {
         // Out of bounds for string
         try { query.equalTo(new long[]{7}, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(new long[]{7}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.beginsWith(new long[]{7}, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.endsWith(new long[]{7}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(new long[]{7}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.beginsWith(new long[]{7}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.endsWith(new long[]{7}, "string");                assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.like(new long[]{7}, "string");                    assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{7}, "string");                assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for integer

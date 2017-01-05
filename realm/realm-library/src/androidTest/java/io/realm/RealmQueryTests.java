@@ -881,6 +881,108 @@ public class RealmQueryTests {
     }
 
     @Test
+    public void like_caseSensitive() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(realm, TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
+                .like("columnString", "*DaTa*").findAll();
+        assertEquals(0, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*DaTa*", Case.INSENSITIVE).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*DaTa 2?").findAll();
+        assertEquals(0, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*DaTa 2?", Case.INSENSITIVE).findAll();
+        assertEquals(10, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "TEST*0").findAll();
+        assertEquals(0, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "TEST*0", Case.INSENSITIVE).findAll();
+        assertEquals(20, resultList.size());
+    }
+
+    @Test
+    public void like_caseSensitiveWithNonLatinCharacters() {
+        populateTestRealm();
+
+        String flagEmoji = new StringBuilder().append(Character.toChars(0x1F1E9)).toString();
+        String emojis = "ABC" + flagEmoji + "DEF";
+
+        realm.beginTransaction();
+        realm.delete(AllTypes.class);
+        AllTypes at1 = realm.createObject(AllTypes.class);
+        at1.setColumnString("Αλφα");
+        AllTypes at2 = realm.createObject(AllTypes.class);
+        at2.setColumnString("βήτα");
+        AllTypes at3 = realm.createObject(AllTypes.class);
+        at3.setColumnString("δέλτα");
+        AllTypes at4 = realm.createObject(AllTypes.class);
+        at4.setColumnString(emojis);
+        realm.commitTransaction();
+
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
+                .like("columnString", "*Α*").findAll();
+         assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*λ*").findAll();
+        assertEquals(2, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*Δ*").findAll();
+        assertEquals(0, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*Α*", Case.INSENSITIVE).findAll();
+        //without ASCII-only limitation A matches α
+        //assertEquals(3, resultList.size());
+        assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*λ*", Case.INSENSITIVE).findAll();
+        assertEquals(2, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*Δ*", Case.INSENSITIVE).findAll();
+        //without ASCII-only limitation Δ matches δ
+        //assertEquals(1, resultList.size());
+        assertEquals(0, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "?λ*").findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "??λ*").findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "?λ*").findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "??λ*").findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "ABC?DEF*").findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = realm.where(AllTypes.class)
+                .like("columnString", "*" + flagEmoji + "*").findAll();
+        assertEquals(1, resultList.size());
+    }
+
+    @Test
     public void equalTo_withNonExistingField() {
         try {
             realm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
@@ -1259,6 +1361,14 @@ public class RealmQueryTests {
     }
 
     @Test
+    public void like_nullStringPrimaryKey() {
+        final long SECONDARY_FIELD_NUMBER = 49992417L;
+        TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
+
+        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+    }
+
+    @Test
     public void between_nullPrimaryKeysIsNotZero() {
         // fill up a realm with one user PrimaryKey value and 9 numeric values, starting from -5
         TestHelper.populateTestRealmWithBytePrimaryKey(realm,    (Byte) null,    (String) null, 10, -5);
@@ -1504,7 +1614,7 @@ public class RealmQueryTests {
                 (String) null).findFirst().getFieldStringNotNull());
     }
 
-    // Querying nullable field with endsWith - all strings contain with null
+    // Querying nullable field with contains - all strings contain null
     @Test
     public void contains_nullForNullableStrings() {
         TestHelper.populateTestRealmForNullTests(realm);
@@ -1518,6 +1628,19 @@ public class RealmQueryTests {
         TestHelper.populateTestRealmForNullTests(realm);
         assertEquals("Fish", realm.where(NullTypes.class).endsWith(NullTypes.FIELD_STRING_NULL,
                 (String) null).findFirst().getFieldStringNotNull());
+    }
+
+    // Querying nullable field with like - nulls do not match either '?' or '*'
+    @Test
+    public void like_nullForNullableStrings() {
+        TestHelper.populateTestRealmForNullTests(realm);
+        RealmResults<NullTypes> resultList = realm.where(NullTypes.class)
+                .like(NullTypes.FIELD_STRING_NULL, "*").findAll();
+        assertEquals(2, resultList.size());
+
+        resultList = realm.where(NullTypes.class)
+                .like(NullTypes.FIELD_STRING_NULL, "?").findAll();
+        assertEquals(0, resultList.size());
     }
 
     // Querying with between and table has null values in row.

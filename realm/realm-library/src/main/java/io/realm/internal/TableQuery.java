@@ -386,6 +386,18 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    public TableQuery like(long columnIndices[], String value, Case caseSensitive) {
+        nativeLike(nativePtr, columnIndices, value, caseSensitive.getValue());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery like(long columnIndices[], String value) {
+        nativeLike(nativePtr, columnIndices, value, true);
+        queryValidated = false;
+        return this;
+    }
+
     public TableQuery contains(long columnIndices[], String value, Case caseSensitive) {
         nativeContains(nativePtr, columnIndices, value, caseSensitive.getValue());
         queryValidated = false;
@@ -752,6 +764,7 @@ public class TableQuery implements NativeObject {
     private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
     private native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
+    private native void nativeLike(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeContains(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices);
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
