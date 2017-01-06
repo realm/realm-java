@@ -4,6 +4,12 @@
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 
+## 2.2.3
+
+### Bug fixes
+
+* Fixed native memory leak setting the value of a primary key (#3993).
+
 ## 2.2.2
 
 ### Object Server API Changes (In Beta)
