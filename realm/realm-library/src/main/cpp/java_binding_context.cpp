@@ -56,7 +56,7 @@ std::vector<BindingContext::ObserverState> JavaBindingContext::get_observed_rows
     return state_list;
 }
 
-void JavaBindingContext::changes_available()
+void JavaBindingContext::before_notify()
 {
     if (m_java_notifier) {
         m_java_notifier.call_with_local_ref([&] (JNIEnv* env, jobject notifier_obj) {

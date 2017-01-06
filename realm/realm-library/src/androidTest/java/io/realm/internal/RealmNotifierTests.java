@@ -31,7 +31,6 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -107,6 +106,7 @@ public class RealmNotifierTests {
                 // Need a flag in java.
                 //assertTrue(sharedRealm.isInTransaction());
                 looperThread.testComplete();
+                sharedRealm.close();
             }
         });
         sharedRealm.beginTransaction();
@@ -121,6 +121,7 @@ public class RealmNotifierTests {
             @Override
             public void onChange(SharedRealm sharedRealm) {
                 looperThread.testComplete();
+                sharedRealm.close();
             }
         });
         new Thread(new Runnable() {

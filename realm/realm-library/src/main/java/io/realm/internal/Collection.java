@@ -223,13 +223,6 @@ public class Collection implements NativeObject {
     @KeepMember
     @SuppressWarnings("unused")
     private void notifyChangeListeners(boolean emptyChanges) {
-        // For the stable iteration.
-        // It is needed when the local commit triggered async query updates. And this is called in the next event loop
-        // by OS Realm::notify().
-        if (!emptyChanges) {
-            this.disableSnapshot();
-        }
-
         if (emptyChanges && isDetached()) return;
         observerPairs.foreach(onChangeCallback);
     }

@@ -91,6 +91,7 @@ public abstract class RealmNotifier implements Closeable {
     @SuppressWarnings("unused") // called from java_binding_context.cpp
     // Package protected to avoid finding class by name in JNI.
     void changesAvailable() {
+        // For the stable iteration.
         sharedRealm.disableCollectionSnapshot();
     }
 

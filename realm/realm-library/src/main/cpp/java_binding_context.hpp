@@ -46,7 +46,7 @@ private:
 public:
     virtual ~JavaBindingContext() {};
     virtual std::vector<ObserverState> get_observed_rows();
-    virtual void changes_available();
+    virtual void before_notify();
     virtual void did_change(std::vector<ObserverState> const& observers,
                             std::vector<void*> const& invalidated,
                             bool version_changed=true);
