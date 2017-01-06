@@ -135,8 +135,11 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
         boolean contains = false;
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
-            Row row = proxy.realmGet$proxyState().getRow$realm();
-            contains = !(row instanceof InvalidRow) && collection.contains((UncheckedRow) row);
+            // TODO: Maybe we should just let OS throw?
+            if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+                Row row = proxy.realmGet$proxyState().getRow$realm();
+                contains = !(row instanceof InvalidRow) && collection.contains((UncheckedRow) row);
+            }
         }
         return contains;
     }
