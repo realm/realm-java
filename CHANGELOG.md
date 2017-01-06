@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-* Fixed memory leak in `Java_io_realm_internal_Table_nativeSetPrimaryKey` (#3993).
+* Fixed native memory leak setting the value of a primary key (#3993).
 
 ## 2.2.2
 
