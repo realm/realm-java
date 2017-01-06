@@ -1097,38 +1097,6 @@ public class NotificationsTest {
 
     @Test
     @RunTestInLooperThread
-    public void warnIfMixingSyncWritesAndAsyncQueries() {
-        final Realm realm = looperThread.realm;
-        final AtomicBoolean warningLogged = new AtomicBoolean(false);
-        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger() {
-            @Override
-            public void log(int level, String tag, Throwable throwable, String message) {
-                assertTrue(message.contains("Mixing asynchronous queries with local writes should be avoided."));
-                if (level == LogLevel.WARN) {
-                    warningLogged.set(true);
-                }
-            }
-        };
-        RealmLog.add(testLogger);
-
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
-        looperThread.keepStrongReference.add(results);
-        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
-            @Override
-            public void onChange(RealmResults<AllTypes> element) {
-                RealmLog.remove(testLogger);
-                assertTrue(warningLogged.get());
-                looperThread.testComplete();
-            }
-        });
-    }
-
-    @Test
-    @RunTestInLooperThread
     public void accessingSyncRealmResultInsideAsyncResultListener() {
         final Realm realm = looperThread.realm;
         final AtomicInteger asyncResultCallback = new AtomicInteger(0);
