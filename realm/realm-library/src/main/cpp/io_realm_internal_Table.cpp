@@ -1505,8 +1505,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
             else {
                 // Primary key already exists
                 // We only wish to check for duplicate values if a column isn't already a primary key
-                Row* row = new Row((*pk_table)[row_index]);
-                StringData current_primary_key = row->get_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                StringData current_primary_key = pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index);
                 if (new_primary_key_column_name != current_primary_key) {
                     if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
                         pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, new_primary_key_column_name);
