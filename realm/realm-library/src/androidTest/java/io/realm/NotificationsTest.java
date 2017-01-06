@@ -1284,7 +1284,9 @@ public class NotificationsTest {
 
 
     @Test
+    @Ignore("Listeners for non-looper thread are not allowed for now")
     public void globalListener_nonLooperThread_triggeredByWaitForChange() {
+        realm = Realm.getInstance(realmConfig);
         final CountDownLatch latch = new CountDownLatch(1);
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
@@ -1303,7 +1305,9 @@ public class NotificationsTest {
     }
 
     @Test
+    @Ignore("Listeners for non-looper thread are not allowed for now")
     public void globalListener_nonLooperThread_triggeredByLocalCommit() {
+        realm = Realm.getInstance(realmConfig);
         final CountDownLatch latch = new CountDownLatch(1);
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
