@@ -1,3 +1,9 @@
+## 2.2.3
+
+### Bug fixes
+
+* Fixed memory leak in `Java_io_realm_internal_Table_nativeSetPrimaryKey` (#3993).
+
 ## 2.2.2
 
 ### Object Server API Changes (In Beta)
