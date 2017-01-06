@@ -59,12 +59,27 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         return new RealmThreadPoolExecutor(1, 1);
     }
 
+    /**
+     * Try using the number of files named 'cpuNN' in sysfs to figure out the number of
+     * processors on this device. `Runtime.getRuntime().availableProcessors()` may return
+     * a smaller number when the device is sleeping.
+     *
+     * @return the number of threads to be allocated for the executor pool
+     */
     @SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private static int calculateCorePoolSize() {
         int cpus = countFilesInDir(SYS_CPU_DIR, "cpu[0-9]+");
+        if (cpus <= 0) {
+            cpus = Runtime.getRuntime().availableProcessors();
+        }
         return (cpus <= 0) ? 1 : (cpus * 2) + 1;
     }
 
+    /**
+     * @param dirPath A directory path
+     * @param pattern A regex
+     * @return the number of files, in the `dirPath` directory, whose names match `pattern`
+     */
     private static int countFilesInDir(String dirPath, String pattern) {
         final Pattern filePattern = Pattern.compile(pattern);
         try {
@@ -75,7 +90,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
                 }
             });
             return (files == null) ? 0 : files.length;
-        } catch (Exception e) {
+        } catch (SecurityException ignore) {
         }
         return 0;
     }
