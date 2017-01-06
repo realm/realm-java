@@ -961,12 +961,12 @@ public class NotificationsTest {
     // Step 2: Post a runnable to caller thread.
     //         Event Queue: |Posted Runnable| <- TOP
     // Step 3: Delete object which will make the results contain an invalid object at this moment
-    //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
-    //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
+    //         Right Event Queue: |Reattach       |   Wrong Event Queue: |Posted Runnable       |  <- TOP
+    //                            |Posted Runnable|                      |REALM_CHANGED/Reattach|
     // Step 4: Posted runnable called.
     @Test
     @RunTestInLooperThread(/*step1*/ before = PopulateOneAllTypes.class)
-    public void realmListener_localChangeShouldBeSendAtFrontOfTheQueue() {
+    public void realmListener_reattachResultsShouldHappenFirst() {
         final Realm realm = looperThread.realm;
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         assertEquals(1, results.size());
@@ -1002,15 +1002,15 @@ public class NotificationsTest {
     // Step 3: Post a runnable to caller thread.
     //         Event Queue: |Posted Runnable| <- TOP
     // Step 4: Delete object which will make the results contain a invalid object at this moment
-    //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
-    //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
+    //         Right Event Queue: |Reattach       |   Wrong Event Queue: |Posted Runnable       |  <- TOP
+    //                            |Posted Runnable|                      |REALM_CHANGED/Reattach|
     // Step 5: Posted runnable called.
     @Test
     @RunTestInLooperThread(/*step1*/before = PopulateOneAllTypes.class)
-    public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithLoadedAsync() {
+    public void realmListener_reattachResultsShouldHappenFirstWithReturnedAsync() {
         final AtomicBoolean changedFirstTime = new AtomicBoolean(false);
         final Realm realm = looperThread.realm;
-        final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAllAsync();
+        final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
 
         assertEquals(1, results.size());
@@ -1051,38 +1051,38 @@ public class NotificationsTest {
 
     // See https://github.com/realm/realm-android-adapters/issues/48
     // Step 1: Populate the db
-    // Step 2: Create a async query, and pause it
-    // Step 3: Post a runnable to caller thread.
-    //         Event Queue: |Posted Runnable| <- TOP
+    // Step 2: Create a async query
+    // Step 3: Add listener to the async results
+    //         Event Queue: |async callback| <- TOP
     // Step 4: Delete object which will make the results contain a invalid object at this moment
-    //         Right Event Queue: |LOCAL_COMMIT   |   Wrong Event Queue: |Posted Runnable           |  <- TOP
-    //                            |Posted Runnable|                      |REALM_CHANGED/LOCAL_COMMIT|
+    //         Right calling order: |Reattach      |   Wrong order: |async callback|  <- TOP
+    //                              |async callback|                |Reattach      |
     // Step 5: Posted runnable called.
     //
     @Test
     @RunTestInLooperThread(/*step1*/before = PopulateOneAllTypes.class)
-    public void realmListener_localChangeShouldBeSendAtFrontOfTheQueueWithPausedAsync() {
+    public void realmListener_reattachResultsShouldHappenFirstNonReturnedAsync() {
         final Realm realm = looperThread.realm;
 
-        Realm.asyncTaskExecutor.pause();
-        final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAllAsync();
+        // Step 2
+        final RealmResults<AllTypes> asyncResults = realm.where(AllTypes.class).findAll();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
 
         assertEquals(1, results.size());
 
-        // Step 2
-        // The transaction later will trigger the results sync, and it should be run before this runnable.
-        looperThread.postRunnable(new Runnable() {
+        // Step 3
+        looperThread.keepStrongReference.add(asyncResults);
+        asyncResults.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
-            public void run() {
+            public void onChange(RealmResults<AllTypes> element) {
                 // Step 5
-                assertFalse(asyncResults.isLoaded());
+                assertEquals(0, asyncResults.size());
                 assertEquals(0, results.size());
                 looperThread.testComplete();
             }
         });
 
-        // Step 3
+        // Step 4
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -1103,7 +1103,7 @@ public class NotificationsTest {
 
         final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
 
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
