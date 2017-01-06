@@ -27,6 +27,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 /**
  * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
  * appropriate number of Threads & wrap submitted tasks to set the thread priority according to
@@ -36,7 +38,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     private static final String SYS_CPU_DIR = "/sys/devices/system/cpu/";
 
     // reduce context switching by using a number of thread proportionate to the number of cores
-    private static final int CORE_POOL_SIZE = countFilesInDir(SYS_CPU_DIR, "cpu[0-9]+") * 2 + 1;
+    private static final int CORE_POOL_SIZE = calculateCorePoolSize();
     private static final int QUEUE_SIZE = 100;
 
     private boolean isPaused;
@@ -57,6 +59,12 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         return new RealmThreadPoolExecutor(1, 1);
     }
 
+    @SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+    private static int calculateCorePoolSize() {
+        int cpus = countFilesInDir(SYS_CPU_DIR, "cpu[0-9]+");
+        return (cpus <= 0) ? 1 : (cpus * 2) + 1;
+    }
+
     private static int countFilesInDir(String dirPath, String pattern) {
         final Pattern filePattern = Pattern.compile(pattern);
         try {
@@ -66,7 +74,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
                     return filePattern.matcher(file.getName()).matches();
                 }
             });
-            return files.length;
+            return (files == null) ? 0 : files.length;
         } catch (Exception e) {
         }
         return 0;
