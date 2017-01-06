@@ -1,112 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
-    <Match>
-        <!-- ignore all issues in resource generation -->
-        <Class name="~.*\.R\$.*"/>
-    </Match>
-    <Match>
-        <Class name="~.*\.Manifest\$.*"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.Realm" />
-        <Method name="checkHasPrimaryKey" />
-        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
-    </Match>
-    <Match>
-        <Class name="io.realm.RealmBaseAdapter" />
-        <Field name="context" />
-        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="io.realm.RealmBaseAdapter" />
-        <Field name="inflater" />
-        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="io.realm.internal.RealmObjectProxy$CacheData" />
-        <Field name="minDepth" />
-        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-    </Match>
-    <Match>
-        <Class name="io.realm.SyncManager" />
-        <Field name="APP_ID" />
-        <Bug pattern="MS_SHOULD_BE_FINAL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.SyncManager" />
-        <Field name="APP_ID" />
-        <Bug pattern="MS_CANNOT_BE_FINAL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.SyncUser" />
-        <Field name="managementRealmConfig" />
-        <Bug pattern="IS2_INCONSISTENT_SYNC" />
-    </Match>
+    <!--
+    In code, please prefer annotations as a way of ignoring Findbugs issues
+    -->
 
+    <!-- Unit tests
+        As of Jan 6, 2017, there are ~1000 Findbugs issues in the unit tests.
+        This shall not pass.
+        Clean the build directory and build only the product code:
+            ./gradlew clean findbugs
+    -->
 
-
-    <!-- Unit tests -->
+    <!-- Generated code -->
     <Match>
-        <Class name="io.realm.RealmTests" />
-        <Method name="getInstance_writeProtectedDir" />
-        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME" />
-    </Match>
-    <Match>
-        <Class name="io.realm.RealmTests" />
-        <Class name="~.*Tests?$"/>
-        <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
-    </Match>
-    <Match>
-        <Class name="~.*Tests?$"/>
-        <Bug pattern="DM_GC"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.HandlerController" />
-        <Method name="completedAsyncRealmObject" />
-        <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
-    </Match>
-    <Match>
-        <Class name="io.realm.permissions.PermissionChange" />
-        <Method name="mayManage" />
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.permissions.PermissionChange" />
-        <Method name="mayRead" />
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.permissions.PermissionChange" />
-        <Method name="mayWrite" />
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.PermissionChangeRealmProxy" />
-        <Method name="realmGet$mayManage" />
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.PermissionChangeRealmProxy" />
-        <Method name="realmGet$mayRead" />
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.PermissionChangeRealmProxy" />
-        <Method name="realmGet$mayWrite" />
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL" />
-    </Match>
-    <Match>
-        <Class name="io.realm.permissions.PermissionChange" />
-        <Method name="getCreatedAt" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-    <Match>
-        <Class name="io.realm.permissions.PermissionChange" />
-        <Method name="getUpdatedAt" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-    <Match>
-        <Class name="io.realm.PermissionChangeRealmProxy" />
-        <Bug pattern="BC_IMPOSSIBLE_CAST" />
+        <Class name="io.realm.PermissionChangeRealmProxy"/>
     </Match>
 </FindBugsFilter>
