@@ -3007,6 +3007,17 @@ public class RealmTests {
         }
     }
 
+    @Test
+    public void copyFromRealm_useAfterClose() {
+        Realm realm = Realm.getInstance(configFactory.createConfiguration());
+        populateTestRealm(realm, 10);
+        AllTypes allTypes= realm.copyFromRealm(realm.where(AllTypes.class).findFirst());
+        realm.close();
+
+        assertEquals("test data 0", allTypes.getColumnString());
+
+    }
+
     // Test if close can be called from Realm change listener when there is no other listeners
     @Test
     public void closeRealmInChangeListener() {
