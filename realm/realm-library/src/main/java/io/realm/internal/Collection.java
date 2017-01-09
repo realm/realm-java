@@ -16,7 +16,11 @@
 
 package io.realm.internal;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.RealmChangeListener;
 
@@ -37,6 +41,30 @@ public class Collection implements NativeObject {
         }
     }
 
+    // Custom Collection iterator. It ensures that we only iterate on a Realm collection that hasn't changed.
+    // TODO: Consider to replace RealmResultsIterator implementation by this since it could be shared by the RealmList.
+    public static abstract class Iterator<T> implements java.util.Iterator<T> {
+        private final WeakReference<Collection> collectionWeakReference;
+        public Iterator(Collection collection) {
+            collectionWeakReference = new WeakReference<Collection>(collection);
+            collection.stableIterators.add(new WeakReference<Iterator>(this));
+        }
+
+        protected void checkRealmIsStable() {
+            Collection collection = collectionWeakReference.get();
+            if (collection != null) {
+                for (WeakReference<Iterator> it : collection.stableIterators) {
+                    if (it.get() == this) {
+                        return;
+                    }
+                }
+            }
+            throw new ConcurrentModificationException(
+                    "No outside changes to a Realm is allowed while iterating a RealmResults." +
+                            " Don't call Realm.refresh() while iterating.");
+        }
+    }
+
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final SharedRealm sharedRealm;
@@ -52,6 +80,8 @@ public class Collection implements NativeObject {
                     pair.onChange(observer);
                 }
             };
+    // Maintain a list of stable iterators. Iterator becomes invalid when the reattaching happens.
+    private final List<WeakReference<Iterator>> stableIterators = new ArrayList<WeakReference<Iterator>>();
 
     // Public for static checking in JNI
     @SuppressWarnings("WeakerAccess")
@@ -223,7 +253,7 @@ public class Collection implements NativeObject {
     @KeepMember
     @SuppressWarnings("unused")
     private void notifyChangeListeners(boolean emptyChanges) {
-        if (emptyChanges && isDetached()) return;
+        if (isDetached()) return;
         observerPairs.foreach(onChangeCallback);
     }
 
@@ -232,6 +262,8 @@ public class Collection implements NativeObject {
     }
 
     void disableSnapshot() {
+        // Invalidate all current iterators.
+        stableIterators.clear();
         nativeDisableSnapshot(nativePtr);
     }
 

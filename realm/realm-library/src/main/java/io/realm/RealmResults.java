@@ -72,9 +72,6 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     Class<E> classSpec;   // Return type
     String className;     // Class name used by DynamicRealmObjects
 
-    //private static final long TABLE_VIEW_VERSION_NONE = -1;
-
-    //private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
     private final Collection collection;
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
@@ -614,12 +611,11 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     }
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
-    private class RealmResultsIterator implements Iterator<E> {
-        //long tableViewVersion = 0;
+    private class RealmResultsIterator extends Collection.Iterator<E> {
         int pos = -1;
 
         RealmResultsIterator() {
-            //tableViewVersion = currentTableViewVersion;
+            super(collection);
         }
 
         /**
@@ -634,8 +630,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
          */
         public E next() {
             realm.checkIfValid();
-            // FIXME: Enable this
-            //checkRealmIsStable();
+            checkRealmIsStable();
             pos++;
             if (pos >= size()) {
                 throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
@@ -651,22 +646,6 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
         @Deprecated
         public void remove() {
             throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
-        }
-
-        protected void checkRealmIsStable() {
-            // FIXME: Check this!
-            /*
-            long version = table.getVersion();
-            // Any change within a write transaction will immediately update the table version. This means that we
-            // cannot depend on the tableVersion heuristic in that case.
-            // You could argue that in that case it is not really a "ConcurrentModification", but this interpretation
-            // is still more lax than what the standard Java Collection API gives.
-            // TODO: Try to come up with a better scheme
-            if (!realm.isInTransaction() && tableViewVersion > -1 && version != tableViewVersion) {
-                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
-            }
-            tableViewVersion = version;
-            */
         }
     }
 
