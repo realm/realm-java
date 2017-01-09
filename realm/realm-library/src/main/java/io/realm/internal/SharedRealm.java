@@ -252,21 +252,12 @@ public final class SharedRealm implements Closeable {
 
     public void commitTransaction() {
         nativeCommitTransaction(nativePtr);
-        if (realmNotifier != null && !collections.isEmpty() && !disableSnapshotPosted) {
-            disableSnapshotPosted = true;
-            realmNotifier.postAtFrontOfQueue(new Runnable() {
-                @Override
-                public void run() {
-                    disableSnapshotPosted = false;
-                    disableCollectionSnapshot();
-                }
-            });
-        }
+        postToReattachCollections();
     }
 
     public void cancelTransaction() {
         nativeCancelTransaction(nativePtr);
-        disableCollectionSnapshot();
+        postToReattachCollections();
     }
 
     public boolean isInTransaction() {
@@ -321,7 +312,6 @@ public final class SharedRealm implements Closeable {
     public void refresh() {
         nativeRefresh(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
-        disableCollectionSnapshot();
     }
 
     public SharedRealm.VersionID getVersionID() {
@@ -428,6 +418,11 @@ public final class SharedRealm implements Closeable {
     }
 
     void disableCollectionSnapshot() {
+        if (isInTransaction()) {
+            // This should never happen.
+            throw new IllegalStateException( "Collection cannot be reattached if the Realm is in transaction." +
+                    " Please remember to commit or cancel transaction before finishing the current event loop.");
+        }
         for (WeakReference<Collection> collectionRef : collections) {
             Collection collection = collectionRef.get();
             if (collection == null) {
@@ -435,6 +430,19 @@ public final class SharedRealm implements Closeable {
             } else {
                 collection.disableSnapshot();
             }
+        }
+    }
+
+    private void postToReattachCollections() {
+        if (realmNotifier != null && !collections.isEmpty() && !disableSnapshotPosted) {
+            disableSnapshotPosted = true;
+            realmNotifier.postAtFrontOfQueue(new Runnable() {
+                @Override
+                public void run() {
+                    disableSnapshotPosted = false;
+                    disableCollectionSnapshot();
+                }
+            });
         }
     }
 

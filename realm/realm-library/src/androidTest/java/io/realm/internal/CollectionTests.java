@@ -470,12 +470,11 @@ public class CollectionTests {
     }
 
     @Test
-    public void reattach_byCancelTransaction() {
+    public void detach_cancelTransactionWontReattach() {
         final Collection collection = new Collection(sharedRealm, table.where());
         sharedRealm.beginTransaction();
-        assertTrue(collection.isDetached());
         sharedRealm.cancelTransaction();
-        assertFalse(collection.isDetached());
+        assertTrue(collection.isDetached());
         assertEquals(collection.size(), 4);
     }
 
@@ -574,23 +573,40 @@ public class CollectionTests {
     public void reattach_looperThread_shouldHappenBeforeAnyOtherLoopEventWithLocalTransactionCanceled() {
         final SharedRealm sharedRealm = getSharedRealm();
         Table table = sharedRealm.getTable("test_table");
-        final Collection collection = new Collection(sharedRealm, table.where());
-        looperThread.keepStrongReference.add(collection);
-        assertEquals(collection.size(), 4);
+        final Collection[] collections = new Collection[2];
+        collections[0] = new Collection(sharedRealm, table.where());
+        looperThread.keepStrongReference.add(collections[0]);
+        assertEquals(collections[0].size(), 4);
         looperThread.postRunnable(new Runnable() {
             @Override
             public void run() {
                 // The results is switched back to the original Results.
-                assertFalse(collection.isDetached());
-                assertEquals(collection.size(), 4);
+                assertFalse(collections[0].isDetached());
+                assertEquals(collections[0].size(), 4);
+                assertFalse(collections[1].isDetached());
+                assertEquals(collections[1].size(), 4);
+
                 sharedRealm.close();
                 looperThread.testComplete();
             }
         });
         sharedRealm.beginTransaction();
         // The results is backed by snapshot now.
-        assertTrue(collection.isDetached());
-        assertEquals(collection.size(), 4);
+        assertTrue(collections[0].isDetached());
+        assertEquals(collections[0].size(), 4);
+
+        table.addEmptyRow();
+        collections[1] = new Collection(sharedRealm, table.where());
+        UncheckedRow row = collections[1].getUncheckedRow(4);
+        assertTrue(row.isAttached());
+        assertEquals(collections[1].size(), 5);
         sharedRealm.cancelTransaction();
+
+        // The results is still backed by snapshot.
+        assertTrue(collections[0].isDetached());
+        assertEquals(collections[0].size(), 4);
+        assertEquals(collections[1].size(), 5);
+        row = collections[1].getUncheckedRow(4);
+        assertFalse(row.isAttached());
     }
 }
