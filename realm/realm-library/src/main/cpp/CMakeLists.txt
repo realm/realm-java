@@ -44,7 +44,7 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.SyncManager io.realm.internal.objectserver.ObjectServerSession io.realm.RealmFileUserStore)
+        io.realm.SyncManager io.realm.SyncSession io.realm.RealmFileUserStore)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
@@ -148,7 +148,7 @@ file(GLOB jni_SRC
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectserver_ObjectServerSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp)
 endif()
 

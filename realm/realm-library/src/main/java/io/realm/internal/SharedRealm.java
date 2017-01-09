@@ -103,7 +103,6 @@ public final class SharedRealm implements Closeable {
 
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
-    public final ObjectServerFacade objectServerFacade;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -176,7 +175,6 @@ public final class SharedRealm implements Closeable {
         this.schemaChangeListener = schemaVersionListener;
         context = new Context();
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
-        objectServerFacade = null;
     }
 
     // This will create a SharedRealm where autoChangeNotifications is false,
@@ -189,26 +187,28 @@ public final class SharedRealm implements Closeable {
     public static SharedRealm getInstance(RealmConfiguration config, RealmNotifier realmNotifier,
                                           SchemaVersionListener schemaVersionListener, boolean autoChangeNotifications) {
         String[] userAndServer = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(config);
-        String rosServerUrl = userAndServer[0];
-        String rosUserToken = userAndServer[1];
+        String syncUserIdentifier = userAndServer[0];
+        String syncRealmUrl = userAndServer[1];
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
         long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
-                rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
+                syncRealmUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
                 enable_caching,
                 disableFormatUpgrade,
                 autoChangeNotifications,
-                rosServerUrl,
-                rosUserToken);
+                syncRealmUrl,
+                syncUserIdentifier);
         try {
-            return new SharedRealm(
+            SharedRealm realm = new SharedRealm(
                     nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
                     config,
                     realmNotifier,
                     schemaVersionListener);
+            ObjectServerFacade.getSyncFacadeIfPossible().createSessionIfRequired(config);
+            return realm;
         } finally {
             nativeCloseConfig(nativeConfigPtr);
         }
@@ -371,10 +371,11 @@ public final class SharedRealm implements Closeable {
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);
+    // Keep last session as an 'object' to avoid any reference to sync code
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
                                                   boolean cache, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,
-                                                  String syncServerURL, String syncUserToken);
+                                                  String syncServerURL, String syncUserIdentity);
     private static native void nativeCloseConfig(long nativeConfigPtr);
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);

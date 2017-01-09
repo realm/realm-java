@@ -63,7 +63,7 @@ public class SyncUserTests {
 
     @After
     public void tearDown() {
-        RealmFileUserStore.nativeResetForTesting();
+        SyncManager.reset();
     }
 
     @Test
@@ -89,6 +89,7 @@ public class SyncUserTests {
         AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         SyncManager.setAuthServerImpl(authServer);
+
         try {
             // 1. Login two random users
             when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {

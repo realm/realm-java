@@ -20,8 +20,9 @@ import java.net.URI;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
+import io.realm.internal.syncpolicy.SyncPolicy;
 import io.realm.log.RealmLog;
-import io.realm.internal.objectserver.ObjectServerSession;
 
 /**
  * @Beta
@@ -42,11 +43,14 @@ import io.realm.internal.objectserver.ObjectServerSession;
 @Beta
 public class SyncSession {
 
-    private final ObjectServerSession osSession;
+    private final SyncConfiguration configuration;
+    private final ErrorHandler errorHandler;
+    // If 'true', the OS SyncSession is available.
+    private volatile boolean osSessionAvailable = true;
 
-    SyncSession(ObjectServerSession osSession) {
-        this.osSession = osSession;
-        osSession.setUserSession(this);
+    SyncSession(SyncConfiguration configuration) {
+        this.configuration = configuration;
+        this.errorHandler = configuration.getErrorHandler();
     }
 
     /**
@@ -55,7 +59,7 @@ public class SyncSession {
      * @return SyncConfiguration that defines and controls this session.
      */
     public SyncConfiguration getConfiguration() {
-        return osSession.getConfiguration();
+        return configuration;
     }
 
     /**
@@ -65,7 +69,7 @@ public class SyncSession {
      * @return {@link SyncUser} used to authenticate the session on the Realm Object Server.
      */
     public SyncUser getUser() {
-        return osSession.getConfiguration().getUser();
+        return configuration.getUser();
     }
 
     /**
@@ -74,29 +78,64 @@ public class SyncSession {
      * @return {@link URI} describing the remote Realm.
      */
     public URI getServerUrl() {
-        return osSession.getConfiguration().getServerUrl();
+        return configuration.getServerUrl();
+    }
+
+    public synchronized void start() {
+        if (osSessionAvailable) {
+            nativeStartSession(configuration.getPath());
+        }
+
+    }
+
+    public synchronized void stop() {
+        if (osSessionAvailable) {
+            nativeStopSession(configuration.getPath());
+        }
     }
 
     /**
      * Returns the state of this session.
      *
-     * @return the current {@link SessionState} for this session.
+     * @return the current {@link SessionState} for this sessiOon.
      */
     public SessionState getState() {
-        return osSession.getState();
-    }
-
-    ObjectServerSession getOsSession() {
-        return osSession;
+        return SessionState.INITIAL;
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        if (osSession.getState() != SessionState.STOPPED) {
-            RealmLog.warn("Session was not closed before being finalized. This is a potential resource leak.");
-            osSession.stop();
+        if (getState() != SessionState.STOPPED) {
+            RealmLog.warn("JNI Session was not closed before Java Session being finalized.");
         }
+    }
+
+    /**
+     * Toggle if the underlying ObjectStore SyncSession object is still available.
+     * @param osSessionAvailable
+     */
+    synchronized void objectStoreSessionAvailable(boolean osSessionAvailable) {
+//        this.osSessionAvailable = osSessionAvailable;
+//        if (osSessionAvailable) {
+//            getSyncPolicy().onSessionCreated(this);
+//        } else {
+//            getSyncPolicy().onSessionDestroyed(this);
+//        }
+    }
+
+    // Called from native code.
+    // This callback will happen on the thread running the Sync Client.
+    @KeepMember
+    void notifySessionError(int errorCode, String errorMessage) {
+        ObjectServerError error = new ObjectServerError(ErrorCode.fromInt(errorCode), errorMessage);
+        if (errorHandler != null) {
+            errorHandler.onError(this, error);
+        }
+    }
+
+    public SyncPolicy getSyncPolicy() {
+        return configuration.getSyncPolicy();
     }
 
     /**
@@ -114,5 +153,8 @@ public class SyncSession {
          */
         void onError(SyncSession session, ObjectServerError error);
     }
+
+    private native void nativeStartSession(String path);
+    private native void nativeStopSession(String path);
 }
 

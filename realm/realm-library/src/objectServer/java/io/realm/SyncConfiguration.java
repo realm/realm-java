@@ -258,7 +258,6 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean deleteRealmOnLogout = false;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
 
-
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>

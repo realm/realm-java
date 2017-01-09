@@ -33,7 +33,7 @@ public class ObjectServerFacade {
     static {
         //noinspection TryWithIdenticalCatches
         try {
-            Class syncFacadeClass = Class.forName("io.realm.internal.objectserver.SyncObjectServerFacade");
+            Class syncFacadeClass = Class.forName("io.realm.internal.SyncObjectServerFacade");
             syncFacade = (ObjectServerFacade) syncFacadeClass.newInstance();
         } catch (ClassNotFoundException ignored) {
         } catch (InstantiationException e) {
@@ -85,5 +85,14 @@ public class ObjectServerFacade {
             return syncFacade;
         }
         return nonSyncFacade;
+    }
+
+    // Returns the associated Java SyncSession (if any) for this configuration.
+    public Object getSyncSession(RealmConfiguration config) {
+        return null;
+    }
+
+    // If no session yet exists for this path. Create it now.
+    public void createSessionIfRequired(RealmConfiguration config) {
     }
 }

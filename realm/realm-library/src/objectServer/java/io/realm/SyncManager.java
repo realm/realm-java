@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,8 +27,6 @@ import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.OkHttpAuthenticationServer;
-import io.realm.internal.objectserver.SessionStore;
-import io.realm.internal.objectserver.ObjectServerSession;
 import io.realm.log.RealmLog;
 
 /**
@@ -74,6 +74,7 @@ public class SyncManager {
         }
     };
 
+    private static Map<String, SyncSession> sessions = new HashMap<String, SyncSession>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
@@ -93,16 +94,6 @@ public class SyncManager {
 
         // Initialize underlying Sync Network Client
         nativeInitializeSyncClient();
-
-        // Create the client thread in java to avoid problems when exceptions are being thrown. We need to attach
-        // any thread to the JVM anyway in order to send back log events.
-        SyncManager.clientThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                nativeRunClient();
-            }
-        }, "RealmSyncClient");
-        SyncManager.clientThread.start();
     }
 
     /**
@@ -171,22 +162,21 @@ public class SyncManager {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
 
-        if (SessionStore.hasSession(syncConfiguration)) {
-            return SessionStore.getPublicSession(syncConfiguration);
-        } else {
-            ObjectServerSession internalSession = new ObjectServerSession(
-                    syncConfiguration,
-                    authServer,
-                    syncConfiguration.getUser().getSyncUser(),
-                    syncConfiguration.getSyncPolicy(),
-                    syncConfiguration.getErrorHandler()
-            );
-            SyncSession publicSession = new SyncSession(internalSession);
-            SessionStore.addSession(publicSession, internalSession);
-            syncConfiguration.getUser().getSyncUser().addSession(publicSession);
-            syncConfiguration.getSyncPolicy().onSessionCreated(internalSession);
-            return publicSession;
+        SyncSession session = sessions.get(syncConfiguration.getPath());
+        if (session == null) {
+            session = new SyncSession(syncConfiguration);
+            syncConfiguration.getSyncPolicy().onSessionCreated(session);
+            sessions.put(syncConfiguration.getPath(), session);
         }
+        return session;
+    }
+
+    private static synchronized SyncSession getSession(String path) {
+        SyncSession session = sessions.get(path);
+        if (session == null) {
+            throw new IllegalStateException("Matching Java SyncSession could not be found for: " + path);
+        }
+        return session;
     }
 
     public static AuthenticationServer getAuthServer() {
@@ -219,7 +209,47 @@ public class SyncManager {
         }
     }
 
-    private static native void nativeInitializeSyncClient();
-    private static native void nativeRunClient();
+    // This is called from SyncManager.cpp from the worker thread the Sync Client is running on
+    // Right now Core doesn't send these errors to the proper session, so instead we need to notify all sessions
+    // from here. This can be removed once better error propagation is implemented in Sync Core.
 
+    /**
+     * All errors from native Sync is reported to this method. From the path we can determine which
+     * session to contact. If {@code path == null} all sessions are effected.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, String path) {
+        for (SyncSession syncSession : sessions.values()) {
+            if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
+                syncSession.notifySessionError(errorCode, errorMessage);
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static void onObjectStoreSessionCreated(String path) {
+        getSession(path).objectStoreSessionAvailable(true);
+    }
+
+    @SuppressWarnings("unused")
+    private static void onObjectStoreSessionDestroyed(String path) {
+        getSession(path).objectStoreSessionAvailable(false);
+    }
+
+    /**
+     * Resets the SyncManger and clear all existing users.
+     * This will also terminate all sessions.
+     *
+     * Only call this method when testing
+     */
+    static synchronized void reset() {
+        for (SyncSession syncSession : sessions.values()) {
+            syncSession.stop();
+        }
+        nativeReset();
+        sessions.clear();
+    }
+
+    private static native void nativeInitializeSyncClient();
+    private static native void nativeReset();
 }

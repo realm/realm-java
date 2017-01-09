@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.entities.StringOnly;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -68,6 +70,7 @@ public class SyncConfigurationTests {
 
     @After
     public void tearDown() throws Exception {
+        SyncManager.reset();
     }
 
     @Test
@@ -355,6 +358,8 @@ public class SyncConfigurationTests {
 
     @Test
     public void initialData() {
+        RealmLog.clear();
+        RealmLog.setLevel(LogLevel.ALL);
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 

@@ -26,10 +26,10 @@ import java.util.Map;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
 
 /**
  * To cache {@link Realm}, {@link DynamicRealm} instances and related resources.

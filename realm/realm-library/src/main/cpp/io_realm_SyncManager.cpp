@@ -24,6 +24,7 @@
 #include <realm/group_shared.hpp>
 #include <realm/sync/history.hpp>
 #include <realm/sync/client.hpp>
+#include <object-store/src/sync/impl/sync_client.hpp>
 
 #include "objectserver_shared.hpp"
 
@@ -38,24 +39,41 @@ using namespace realm::jni_util;
 
 std::unique_ptr<Client> sync_client;
 
+struct AndroidClientListener : public realm::ClientThreadListener {
+
+    void on_client_thread_ready(sync::Client*) override {
+        // Attach the sync client thread to the JVM so errors can be returned properly
+        realm::jni_util::JniUtils::get_env(true);
+    }
+
+    void on_client_thread_closing(sync::Client*) override {
+        // Failing to detach the JVM before closing the thread will crash on ART
+        realm::jni_util::JniUtils::detach_current_thread();
+    }
+} s_client_thread_listener;
+
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncClient
-    (JNIEnv *env, jclass)
+    (JNIEnv* env, jclass)
 {
     TR_ENTER()
     if (sync_client) return;
 
     try {
+        // Setup SyncManager
+        SyncManager::shared().set_client_thread_listener(s_client_thread_listener);
+
+        // Create SyncClient
         sync::Client::Config config;
         config.logger = &CoreLoggerBridge::shared();
         sync_client = std::make_unique<Client>(std::move(config)); // Throws
     } CATCH_STD()
 }
 
-// Create the thread from java side to avoid some strange errors when native throws.
 JNIEXPORT void JNICALL
-Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
-{
+Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass) {
+
+    TR_ENTER()
     try {
-        sync_client->run();
+        SyncManager::shared().reset_for_testing();
     } CATCH_STD()
 }

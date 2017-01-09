@@ -17,7 +17,7 @@
 package io.realm.internal.syncpolicy;
 
 import io.realm.ObjectServerError;
-import io.realm.internal.objectserver.ObjectServerSession;
+import io.realm.SyncSession;
 
 /**
  * This SyncPolicy will automatically start synchronizing changes to a Realm as soon as it is opened.
@@ -28,28 +28,28 @@ public class AutomaticSyncPolicy implements SyncPolicy {
     private int recurringErrors = 0;
 
     @Override
-    public void onRealmOpened(ObjectServerSession session) {
-        session.bind(); // Bind Realm first time it is opened.
+    public void onRealmOpened(SyncSession session) {
+        session.start(); // Bind Realm first time it is opened.
     }
 
     @Override
-    public void onRealmClosed(ObjectServerSession session) {
+    public void onRealmClosed(SyncSession session) {
         // TODO In order to preserve resources we should ideally close the session as well, but first
         // we want to make sure that all local changes have been synchronized to the remote Realm.
     }
 
     @Override
-    public void onSessionCreated(ObjectServerSession session) {
+    public void onSessionCreated(SyncSession session) {
         session.start();
     }
 
     @Override
-    public void onSessionStopped(ObjectServerSession session) {
+    public void onSessionStopped(SyncSession session) {
         // Do nothing
     }
 
     @Override
-    public boolean onError(ObjectServerSession session, ObjectServerError error) {
+    public boolean onError(SyncSession session, ObjectServerError error) {
         switch(error.getCategory()) {
             case FATAL:
                 return false;   // Report all fatal errors to the user
@@ -60,10 +60,15 @@ public class AutomaticSyncPolicy implements SyncPolicy {
         }
     }
 
+    @Override
+    public void onSessionDestroyed(SyncSession session) {
+
+    }
+
     /**
      * Returns {@code true} if we decide to rebind, {@code false} if the error was determined to no longer be solvable.
      */
-    private boolean rebind(ObjectServerSession session) {
+    private boolean rebind(SyncSession session) {
         // Track all calls to rebind(). If some error reported as RECOVERABLE keeps happening, we need to abort to
         // prevent run-away sessions. Right now we treat an error as recurring if it happens within 3 seconds of each
         // other. After 5 of such errors we terminate the session.
@@ -79,10 +84,11 @@ public class AutomaticSyncPolicy implements SyncPolicy {
         lastError = now;
 
         if (recurringErrors == 5) {
+            // FIXME Need to find a way to completely kill the session.
             session.stop(); // Abort session, some error that should be temporary keeps happening.
             return false;
         } else {
-            session.bind();
+            session.start();
             return true;
         }
     }

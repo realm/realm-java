@@ -259,7 +259,7 @@ public class SyncUser {
             // there is a high chance errors would be reported from the Sync Client first which would
             // be confusing.
             for (SyncSession session : sessions) {
-                session.getOsSession().stop();
+                session.stop();
             }
 
             // Remove all local tokens, preventing further connections.
