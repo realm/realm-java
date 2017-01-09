@@ -48,9 +48,7 @@ public:
     JniConfigWrapper& operator=(JniConfigWrapper&&) = delete;
 
     // Non-sync constructor
-    JniConfigWrapper(JNIEnv*, Realm::Config* config) {
-        m_config = config;
-    }
+    JniConfigWrapper(JNIEnv*, Realm::Config* config) : m_config (config) {}
 
     // Sync constructor
     JniConfigWrapper(REALM_UNUSED JNIEnv* env,

@@ -34,8 +34,6 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
 
-    static long nativeConfigWrapperPointer;
-
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
             // already initialized
@@ -62,10 +60,6 @@ public final class SharedRealm implements Closeable {
     }
 
     private volatile static File temporaryDirectory;
-
-    public long getNativeConfigWrapperPointer() {
-        return nativeConfigWrapperPointer;
-    }
 
     public enum Durability {
         FULL(0),
@@ -197,7 +191,7 @@ public final class SharedRealm implements Closeable {
         String syncRealmUrl = userAndServer[1];
         boolean enable_caching = false; // Handled in Java currently
         boolean disableFormatUpgrade = false; // TODO Double negatives :/
-        nativeConfigWrapperPointer = nativeCreateConfig(
+        long nativeConfigPtr = nativeCreateConfig(
                 config.getPath(),
                 config.getEncryptionKey(),
                 syncRealmUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
@@ -209,14 +203,14 @@ public final class SharedRealm implements Closeable {
                 syncUserIdentifier);
         try {
             SharedRealm realm = new SharedRealm(
-                    nativeGetSharedRealm(nativeConfigWrapperPointer, realmNotifier),
+                    nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
                     config,
                     realmNotifier,
                     schemaVersionListener);
             ObjectServerFacade.getSyncFacadeIfPossible().createSessionIfRequired(config);
             return realm;
         } finally {
-            nativeCloseConfig(nativeConfigWrapperPointer);
+            nativeCloseConfig(nativeConfigPtr);
         }
     }
 
