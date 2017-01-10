@@ -577,6 +577,8 @@ public class TypeBasedNotificationsTests {
     // UC 1 Sync RealmResults
     @Test
     @RunTestInLooperThread
+    @Ignore("Flaky test because of Object Store always run Results query callbacks even " +
+            "if the query returned and nothing changes.")
     public void callback_with_relevant_commit_realmresults_sync() {
         final Realm realm = looperThread.realm;
 
