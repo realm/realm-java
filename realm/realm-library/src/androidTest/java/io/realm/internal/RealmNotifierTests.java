@@ -135,4 +135,38 @@ public class RealmNotifierTests {
             }
         }).start();
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeChangeListeners() {
+        SharedRealm sharedRealm = getSharedRealm();
+        Integer dummyObserver = 1;
+        looperThread.keepStrongReference.add(dummyObserver);
+        sharedRealm.realmNotifier.addChangeListener(dummyObserver, new RealmChangeListener<Integer>() {
+            @Override
+            public void onChange(Integer dummy) {
+                fail();
+            }
+        });
+        sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
+            @Override
+            public void onChange(SharedRealm sharedRealm) {
+                sharedRealm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        // This should only remove the listeners related with dummyObserver
+        sharedRealm.realmNotifier.removeChangeListeners(dummyObserver);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SharedRealm sharedRealm = getSharedRealm();
+                sharedRealm.beginTransaction();
+                sharedRealm.commitTransaction();
+                sharedRealm.close();
+            }
+        }).start();
+    }
 }

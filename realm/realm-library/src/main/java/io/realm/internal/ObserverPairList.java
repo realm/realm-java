@@ -122,6 +122,17 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
         pairs.remove(pair);
     }
 
+    public void removeByObserver(Object observer) {
+        for (T pair : pairs) {
+            Object object = pair.observerRef.get();
+            if (object == null) {
+                pairs.remove(pair);
+            } else if (object == observer) {
+                pairs.remove(pair);
+            }
+        }
+    }
+
     public int size() {
         return pairs.size();
     }

@@ -119,6 +119,27 @@ public class ObserverPairListTests {
     }
 
     @Test
+    public void removeByObserver() {
+        TestObserverPair pair = new TestObserverPair(ONE, testListener);
+        observerPairs.add(pair);
+        pair = new TestObserverPair(ONE, new TestListener());
+        observerPairs.add(pair);
+        assertEquals(2, observerPairs.size());
+
+        // An different observer
+        //noinspection UnnecessaryBoxing
+        pair = new TestObserverPair(TWO, testListener);
+        observerPairs.add(pair);
+        assertEquals(3, observerPairs.size());
+
+        observerPairs.removeByObserver(ONE);
+        assertEquals(1, observerPairs.size());
+
+        observerPairs.removeByObserver(TWO);
+        assertEquals(0, observerPairs.size());
+    }
+
+    @Test
     public void clear() {
         TestObserverPair pair = new TestObserverPair(ONE, new TestListener());
         observerPairs.add(pair);

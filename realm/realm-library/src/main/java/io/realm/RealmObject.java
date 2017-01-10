@@ -313,8 +313,8 @@ public abstract class RealmObject implements RealmModel {
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
             realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
-            // FIXME: Below doesn't seem to be correct?
-            proxy.realmGet$proxyState().getListeners$realm().remove(listener);
+            //noinspection unchecked
+            proxy.realmGet$proxyState().removeChangeListener(listener);
         } else {
             throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
         }
@@ -339,7 +339,7 @@ public abstract class RealmObject implements RealmModel {
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
             realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
-            proxy.realmGet$proxyState().getListeners$realm().clear();
+            proxy.realmGet$proxyState().removeAllChangeListeners();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
         }

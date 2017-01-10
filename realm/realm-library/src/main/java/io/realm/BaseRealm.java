@@ -179,7 +179,7 @@ abstract class BaseRealm implements Closeable {
     public void removeAllChangeListeners() {
         checkIfValid();
         sharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
-        sharedRealm.realmNotifier.removeAllChangeListeners();
+        sharedRealm.realmNotifier.removeChangeListeners(this);
     }
 
     /**
