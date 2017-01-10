@@ -461,7 +461,6 @@ public final class SharedRealm implements Closeable {
     private static native long nativeReadGroup(long nativeSharedRealmPtr);
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
     private static native void nativeRefresh(long nativeSharedRealmPtr);
-    private static native void nativeRefresh(long nativeSharedRealmPtr, long version, long index);
     private static native long[]  nativeGetVersionID(long nativeSharedRealmPtr);
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
     private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);

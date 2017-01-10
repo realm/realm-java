@@ -219,29 +219,13 @@ Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv *env, jclass, jlong shar
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeRefresh__J(JNIEnv *env, jclass, jlong shared_realm_ptr)
+Java_io_realm_internal_SharedRealm_nativeRefresh(JNIEnv *env, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         shared_realm->refresh();
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_SharedRealm_nativeRefresh__JJJ(JNIEnv *env, jclass, jlong shared_realm_ptr, jlong version,
-        jlong index)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    SharedGroup::VersionID version_id(static_cast<SharedGroup::version_type>(version),
-                                     static_cast<uint32_t>(index));
-    try {
-        using rf = realm::_impl::RealmFriend;
-        auto& shared_group = rf::get_shared_group(*shared_realm);
-        LangBindHelper::advance_read(shared_group, version_id);
     } CATCH_STD()
 }
 
