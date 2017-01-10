@@ -1,5 +1,9 @@
 ## 2.2.3
 
+### Enhancements
+
+* Exceptions thrown in error handler are not swallowed (#3559).
+
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).

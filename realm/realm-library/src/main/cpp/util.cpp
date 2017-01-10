@@ -53,7 +53,14 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (JniPendingException& e) {
         // We have a pending Java exception - probably from an error handler - and we really just want to get
         // back to Java.
-        return;
+        if (env->ExceptionCheck() == JNI_TRUE) {
+            return;
+        }
+
+        // If we don't have a pending exception, something went wrong. But at least we can throw a Java
+        // exception.
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, FatalError, ss.str());
     }
     catch (bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
