@@ -9,10 +9,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.SyncCredentials;
+import java.util.concurrent.CountDownLatch;
+
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
+import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
@@ -65,5 +67,40 @@ public class AuthTests {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void loginAsync_throwExceptionInErrorHandler() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                    fail();
+                }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                latch.countDown();
+                throw new IllegalArgumentException("Boom");
+            }
+        });
+
+        try {
+            latch.await();
+            Thread.sleep(5000);
+            fail();
+        }
+        catch (IllegalArgumentException e) {
+            assertEquals("Boom", e.getMessage());
+        }
+        catch (Exception ignored) {
+            fail();
+        }
+        finally {
+            looperThread.testComplete();
+        }
     }
 }

@@ -81,6 +81,10 @@ public:
                             local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
                     local_env->CallVoidMethod(
                             obj, notify_error_handler, error_code.value(), local_env->NewStringUTF(message.c_str()));
+                    if (local_env->ExceptionCheck() == JNI_TRUE) {
+                        local_env->ExceptionDescribe();
+                        throw std::runtime_error("Exception in error handler");
+                    }
                 });
             }
         };
