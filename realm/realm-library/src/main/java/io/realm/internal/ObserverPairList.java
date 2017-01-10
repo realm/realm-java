@@ -64,6 +64,16 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
             }
             return false;
         }
+
+        @Override
+        public int hashCode() {
+            T observer = observerRef.get();
+
+            int result = 17;
+            result = 31 * result + ((observer != null) ? observer.hashCode() : 0);
+            result = 31 * result + ((listener != null) ? listener.hashCode() : 0);
+            return result;
+        }
     }
 
     /**

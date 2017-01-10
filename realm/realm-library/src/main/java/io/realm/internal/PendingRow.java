@@ -49,6 +49,10 @@ public class PendingRow implements Row {
                     return;
                 }
 
+                if (pendingCollection == null) {
+                    // Should not happen, but make findbugs happy.
+                    return;
+                }
                 if (pendingCollection.isValid()) {
                     // PendingRow will always get the first Row of the query since we only support findFirst.
                     UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
