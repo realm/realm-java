@@ -65,8 +65,7 @@ public class SyncUser {
         private SyncConfiguration managementRealmConfig;
 
         synchronized SyncConfiguration initAndGetManagementRealmConfig(
-                ObjectServerUser syncUser, SyncUser user)
-        {
+                ObjectServerUser syncUser, SyncUser user) {
             if (managementRealmConfig == null) {
                 managementRealmConfig = new SyncConfiguration.Builder(
                         user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
@@ -385,8 +384,6 @@ public class SyncUser {
     public Realm getManagementRealm() {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
     }
-
-    // return the management config, initializing it if necessary
 
     // Creates the URL to the permission Realm based on the authentication URL.
     private static String getManagementRealmUrl(URL authUrl) {
