@@ -46,7 +46,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.log.LogLevel;
 import io.realm.log.RealmLogger;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
@@ -56,7 +55,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1174,47 +1172,4 @@ public class NotificationsTest {
         } catch (IllegalStateException ignored) {
         }
     }
-
-
-    @Test
-    @Ignore("Listeners for non-looper thread are not allowed for now")
-    public void globalListener_nonLooperThread_triggeredByWaitForChange() {
-        realm = Realm.getInstance(realmConfig);
-        final CountDownLatch latch = new CountDownLatch(1);
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm element) {
-                latch.countDown();
-            }
-        });
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObject(AllTypes.class);
-            }
-        });
-        realm.waitForChange();
-        TestHelper.awaitOrFail(latch);
-    }
-
-    @Test
-    @Ignore("Listeners for non-looper thread are not allowed for now")
-    public void globalListener_nonLooperThread_triggeredByLocalCommit() {
-        realm = Realm.getInstance(realmConfig);
-        final CountDownLatch latch = new CountDownLatch(1);
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm element) {
-                latch.countDown();
-            }
-        });
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObject(AllTypes.class);
-            }
-        });
-        TestHelper.awaitOrFail(latch);
-    }
-
 }
