@@ -26,6 +26,7 @@ import android.util.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1175,6 +1176,8 @@ public class TypeBasedNotificationsTests {
 // "invalid" RealmResults.
     @Test
     @RunTestInLooperThread
+    // FIXME: https://github.com/realm/realm-core/pull/2385
+    @Ignore("Enable this after core 2.3.1 released!!")
     public void changeListener_onResultsBuiltOnDeletedLinkView() {
         final Realm realm = looperThread.realm;
         realm.beginTransaction();
