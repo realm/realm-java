@@ -486,7 +486,7 @@ public class TypeBasedNotificationsTests {
     public void callback_with_relevant_commit_realmobject_sync() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Create object
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -501,38 +501,21 @@ public class TypeBasedNotificationsTests {
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals("Akamaru", dog.getName());
                 assertEquals(17, dog.getAge());
+                looperThread.testComplete();
             }
         });
 
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
+        // Step 2: Trigger non-related commit
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
-            public void onChange(Realm object) {
-                int commits = globalCommitInvocations.incrementAndGet();
-                switch (commits) {
-                    case 1:
-                        // Step 2: Trigger non-related commit
-                        realm.beginTransaction();
-                        realm.commitTransaction();
-                        break;
+            public void execute(Realm realm) {
+            }
+        });
 
-                    case 2:
-                        // Step 3: Trigger related commit
-                        realm.beginTransaction();
-                        akamaru.setAge(17);
-                        realm.commitTransaction();
-                        break;
-
-                    case 3:
-                        // Step 5: Complete test
-                        looperThread.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertEquals(1, typebasedCommitInvocations.get());
-                                looperThread.testComplete();
-                            }
-                        });
-
-                }
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Dog.class).findFirst().setAge(17);
             }
         });
     }
@@ -543,7 +526,7 @@ public class TypeBasedNotificationsTests {
     public void callback_with_relevant_commit_realmobject_async() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Create object
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -558,47 +541,33 @@ public class TypeBasedNotificationsTests {
             public void onChange(Dog object) {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
                     case 1:
+                        // Async query returns.
                         assertEquals("Akamaru", dog.getName());
                         assertEquals(0, dog.getAge());
+
+                        // Step 2: Trigger non-related commit
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                            }
+                        });
+
+                        // Step 3: Trigger related commit
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.where(Dog.class).findFirst().setAge(17);
+                            }
+                        });
                         break;
 
                     case 2:
                         // Step 4: Respond to relevant change
                         assertEquals(17, dog.getAge());
+                        looperThread.testComplete();
                         break;
-                }
-            }
-        });
-
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                int commits = globalCommitInvocations.incrementAndGet();
-                switch (commits) {
-                    case 1:
-                        // Step 2: Trigger non-related commit
-                        realm.beginTransaction();
-                        realm.commitTransaction();
-                        break;
-
-                    case 2:
-                        // Step 3: Trigger related commit
-                        realm.beginTransaction();
-                        akamaru.setAge(17);
-                        realm.commitTransaction();
-                        break;
-
-                    case 3:
-                        // Step 5: Complete test
-                        looperThread.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertEquals(3, globalCommitInvocations.get());
-                                assertEquals(2, typebasedCommitInvocations.get());
-                                looperThread.testComplete();
-                            }
-                        });
-
+                    default:
+                        fail();
                 }
             }
         });
@@ -809,7 +778,51 @@ public class TypeBasedNotificationsTests {
     public void callback_with_relevant_commit_realmresults_sync() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Create object
+        realm.beginTransaction();
+        final Dog akamaru = realm.createObject(Dog.class);
+        akamaru.setName("Akamaru");
+        realm.commitTransaction();
+
+        final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+        // Execute the query.
+        assertEquals(1, dogs.size());
+        looperThread.keepStrongReference.add(dogs);
+        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+            @Override
+            public void onChange(RealmResults<Dog> object) {
+                // Step 4: Respond to relevant change
+                typebasedCommitInvocations.incrementAndGet();
+                assertEquals(1, dogs.size());
+                assertEquals("Akamaru", dogs.get(0).getName());
+                assertEquals(17, dogs.get(0).getAge());
+                looperThread.testComplete();
+            }
+        });
+
+        // Step 2: Trigger non-related commit. If this triggered the results listener, assertion will happen there.
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+            }
+        });
+
+        // Step 3: Trigger related commit
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Dog.class).findFirst().setAge(17);
+            }
+        });
+    }
+
+    // UC 1 Async RealmResults
+    @Test
+    @RunTestInLooperThread
+    public void callback_with_relevant_commit_realmresults_async() {
+        final Realm realm = looperThread.realm;
+
+        // Step 1: Create object
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -821,103 +834,34 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(RealmResults<Dog> object) {
                 // Step 4: Respond to relevant change
-                typebasedCommitInvocations.incrementAndGet();
-                assertEquals(1, dogs.size());
-                assertEquals("Akamaru", dogs.get(0).getName());
-                assertEquals(17, dogs.get(0).getAge());
-            }
-        });
-
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                int commits = globalCommitInvocations.incrementAndGet();
-                switch (commits) {
-                    case 1:
-                        // Step 2: Trigger non-related commit
-                        realm.beginTransaction();
-                        realm.commitTransaction();
-                        break;
-
-                    case 2:
-                        // Step 3: Trigger related commit
-                        realm.beginTransaction();
-                        akamaru.setAge(17);
-                        realm.commitTransaction();
-                        break;
-
-                    case 3:
-                        // Step 5: Complete test
-                        looperThread.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                assertEquals(1, typebasedCommitInvocations.get());
-                                looperThread.testComplete();
-                            }
-                        });
-                }
-            }
-        });
-    }
-
-    // UC 1 Async RealmResults
-    @Test
-    @RunTestInLooperThread
-    public void callback_with_relevant_commit_realmresults_async() {
-        final Realm realm = looperThread.realm;
-
-        // Step 1: Trigger global Realm change listener
-        realm.beginTransaction();
-        final Dog akamaru = realm.createObject(Dog.class);
-        akamaru.setName("Akamaru");
-        realm.commitTransaction();
-
-        final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
-        assertTrue(dogs.load());
-        looperThread.keepStrongReference.add(dogs);
-        dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
-            @Override
-            public void onChange(RealmResults<Dog> object) {
-                // Step 4: Respond to relevant change
                 int commits = typebasedCommitInvocations.incrementAndGet();
                 switch (commits) {
-                    case 2:
-                        assertEquals(17, dogs.get(0).getAge());
                     case 1:
+                        // Async query returns.
                         assertEquals(1, dogs.size());
                         assertEquals("Akamaru", dogs.get(0).getName());
-
-                }
-            }
-        });
-
-        realm.addChangeListener(new RealmChangeListener<Realm>() {
-            @Override
-            public void onChange(Realm object) {
-                int commits = globalCommitInvocations.incrementAndGet();
-                switch (commits) {
-                    case 1:
-                        // Step 2: Trigger non-related commit
-                        realm.beginTransaction();
-                        realm.commitTransaction();
-                        break;
-
-                    case 2:
-                        // Step 3: Trigger related commit
-                        realm.beginTransaction();
-                        akamaru.setAge(17);
-                        realm.commitTransaction();
-                        break;
-
-                    case 3:
-                        // Step 5: Complete test
-                        looperThread.postRunnable(new Runnable() {
+                        // Step 2: Trigger non-related commit. If this triggered the results listener,
+                        // assertion will happen there.
+                        realm.executeTransactionAsync(new Realm.Transaction() {
                             @Override
-                            public void run() {
-                                assertEquals(2, typebasedCommitInvocations.get());
-                                looperThread.testComplete();
+                            public void execute(Realm realm) {
                             }
                         });
+
+                        // Step 3: Trigger related commit
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.where(Dog.class).findFirst().setAge(17);
+                            }
+                        });
+                        break;
+                    case 2:
+                        assertEquals(17, dogs.get(0).getAge());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
                 }
             }
         });
