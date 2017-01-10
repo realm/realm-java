@@ -472,9 +472,12 @@ public class NotificationsTest {
                     realm.removeAllChangeListeners();
                     realm.addChangeListener(this);
                     realm.addChangeListener(listenerA);
-                    realm.beginTransaction();
-                    realm.commitTransaction();
-
+                    // Async transaction to avoid endless recursion.
+                    realm.executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                        }
+                    });
                 }
             }
         };
