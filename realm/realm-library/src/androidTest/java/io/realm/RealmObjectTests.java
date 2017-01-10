@@ -1737,7 +1737,7 @@ public class RealmObjectTests {
 
         AllTypesPrimaryKey allTypesPrimaryKey = new AllTypesPrimaryKey();
         allTypesPrimaryKey.setColumnLong(1);
-        allTypesPrimaryKey.setColumnFloat(42f);
+        allTypesPrimaryKey.setColumnFloat(0f);
         allTypesPrimaryKey = realm.copyToRealmOrUpdate(allTypesPrimaryKey);
         realm.commitTransaction();
 
@@ -1749,6 +1749,11 @@ public class RealmObjectTests {
                 looperThread.testComplete();
             }
         });
+
+        // Change the object to trigger the listener.
+        realm.beginTransaction();
+        allTypesPrimaryKey.setColumnFloat(42f);
+        realm.commitTransaction();
     }
 
     // The object should not be added to HandlerController again after the async query loaded.
