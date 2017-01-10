@@ -90,7 +90,7 @@ public class AuthTests {
 
         try {
             latch.await();
-            Thread.sleep(2000);
+            Thread.sleep(1000);
             fail();
         }
         catch (IllegalArgumentException e) {
