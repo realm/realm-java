@@ -23,41 +23,9 @@ using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 
-std::vector<BindingContext::ObserverState> JavaBindingContext::get_observed_rows()
-{
-    std::vector<BindingContext::ObserverState> state_list;
-
-    if (m_row_notifier) {
-        m_row_notifier.call_with_local_ref([&] (auto env, auto row_notifier) {
-            static JavaMethod get_observers_method(env, row_notifier,
-                                                   "getObservers",
-                                                   "()[Lio/realm/internal/RowNotifier$RowObserverPair;");
-            static JavaMethod get_observed_row_ptrs_method(env, row_notifier,
-                                                           "getObservedRowPtrs",
-                                                           "([Lio/realm/internal/RowNotifier$RowObserverPair;)[J");
-
-            jobjectArray observers = static_cast<jobjectArray>(
-                    env->CallObjectMethod(row_notifier, get_observers_method));
-            jlongArray row_ptr_jarray = static_cast<jlongArray >(
-                    env->CallObjectMethod(row_notifier, get_observed_row_ptrs_method, observers));
-            JniLongArray row_ptrs(env, row_ptr_jarray);
-
-            for (jsize i = 0; i < row_ptrs.len(); ++i) {
-                BindingContext::ObserverState observer_state;
-                Row* row = reinterpret_cast<Row*>(row_ptrs[i]);
-                observer_state.table_ndx = row->get_table()->get_index_in_group();
-                observer_state.row_ndx = row->get_index();
-                observer_state.info = env->GetObjectArrayElement(observers, i);
-                state_list.push_back(std::move(observer_state));
-            }
-        });
-    }
-
-    return state_list;
-}
-
 void JavaBindingContext::before_notify()
 {
+    if (JniUtils::get_env()->ExceptionCheck()) return;
     if (m_java_notifier) {
         m_java_notifier.call_with_local_ref([&] (JNIEnv* env, jobject notifier_obj) {
             // Method IDs from RealmNotifier implementation. Cache them as member vars.
@@ -69,35 +37,11 @@ void JavaBindingContext::before_notify()
     }
 }
 
-void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> const& observer_state_list,
-                        std::vector<void*> const& invalidated,
+void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> const&,
+                        std::vector<void*> const&,
                         bool version_changed)
 {
     auto env = JniUtils::get_env();
-    static JavaMethod row_observer_pair_on_change_method(env,
-                                                         "io/realm/internal/RowNotifier$RowObserverPair",
-                                                         "onChange", "()V");
-
-    for (auto state : observer_state_list) {
-        if (env->ExceptionCheck()) return;
-
-        jobject observer = reinterpret_cast<jobject>(state.info);
-        //if (!state.changes.empty()) {
-            env->CallVoidMethod(observer, row_observer_pair_on_change_method);
-        //}
-    }
-    for (auto deleted_row_observer : invalidated) {
-        if (env->ExceptionCheck()) return;
-
-        jobject observer = reinterpret_cast<jobject>(deleted_row_observer);
-        env->CallVoidMethod(observer, row_observer_pair_on_change_method);
-    }
-
-    if (env->ExceptionCheck()) return;
-    m_row_notifier.call_with_local_ref(env, [&] (JNIEnv*, jobject row_notifier_obj) {
-        static JavaMethod clear_row_refs_method(env, row_notifier_obj, "clearRowRefs", "()V");
-        env->CallVoidMethod(row_notifier_obj, clear_row_refs_method);
-    });
 
     if (env->ExceptionCheck()) return;
     if (version_changed) {

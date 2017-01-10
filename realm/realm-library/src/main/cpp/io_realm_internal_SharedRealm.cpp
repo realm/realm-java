@@ -93,15 +93,14 @@ Java_io_realm_internal_SharedRealm_nativeCloseConfig(JNIEnv*, jclass, jlong conf
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlong config_ptr, jobject realm_notifier,
-                                                        jobject row_notifier)
+Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlong config_ptr, jobject realm_notifier)
 {
     TR_ENTER_PTR(config_ptr)
 
     auto config = reinterpret_cast<realm::Realm::Config*>(config_ptr);
     try {
         auto shared_realm = Realm::get_shared_realm(*config);
-        shared_realm->m_binding_context = JavaBindingContext::create(env, realm_notifier, row_notifier);
+        shared_realm->m_binding_context = JavaBindingContext::create(env, realm_notifier);
         // FIXME: Disabled for the collection notifications. There might be some places still need it.
         // advance_read needs to be handled by Java because of async query.
         //shared_realm->set_auto_refresh(false);
