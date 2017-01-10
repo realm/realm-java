@@ -61,7 +61,7 @@ public class RealmNotifierTests {
     public void tearDown() {
     }
 
-    private SharedRealm getSharedRealm() {
+    private SharedRealm getSharedRealm(RealmConfiguration config) {
         return SharedRealm.getInstance(config, null, true);
     }
 
@@ -99,7 +99,7 @@ public class RealmNotifierTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_byLocalChanges() {
-        SharedRealm sharedRealm = getSharedRealm();
+        SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
             public void onChange(SharedRealm sharedRealm) {
@@ -117,18 +117,19 @@ public class RealmNotifierTests {
     @Test
     @RunTestInLooperThread
     public void addChangeListener_byRemoteChanges() {
-        SharedRealm sharedRealm = getSharedRealm();
+        SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
             public void onChange(SharedRealm sharedRealm) {
+                // FIXME: Enable this after https://github.com/realm/realm-object-store/pull/318 fixed
+                //sharedRealm.close();
                 looperThread.testComplete();
-                sharedRealm.close();
             }
         });
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = getSharedRealm();
+                SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
                 sharedRealm.beginTransaction();
                 sharedRealm.commitTransaction();
                 sharedRealm.close();
@@ -139,7 +140,7 @@ public class RealmNotifierTests {
     @Test
     @RunTestInLooperThread
     public void removeChangeListeners() {
-        SharedRealm sharedRealm = getSharedRealm();
+        SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
         Integer dummyObserver = 1;
         looperThread.keepStrongReference.add(dummyObserver);
         sharedRealm.realmNotifier.addChangeListener(dummyObserver, new RealmChangeListener<Integer>() {
@@ -151,7 +152,8 @@ public class RealmNotifierTests {
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
             public void onChange(SharedRealm sharedRealm) {
-                sharedRealm.close();
+                // FIXME: Enable this after https://github.com/realm/realm-object-store/pull/318 fixed
+                //sharedRealm.close();
                 looperThread.testComplete();
             }
         });
@@ -162,7 +164,7 @@ public class RealmNotifierTests {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = getSharedRealm();
+                SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
                 sharedRealm.beginTransaction();
                 sharedRealm.commitTransaction();
                 sharedRealm.close();
