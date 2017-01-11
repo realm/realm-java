@@ -30,7 +30,7 @@ public class PendingRow implements Row {
 
     private Collection pendingCollection;
     private RealmChangeListener<PendingRow> listener;
-    private WeakReference<FrontEnd> frontEnd;
+    private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
     public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
@@ -40,19 +40,16 @@ public class PendingRow implements Row {
         listener = new RealmChangeListener<PendingRow>() {
             @Override
             public void onChange(PendingRow pendingRow) {
-                if (frontEnd == null) {
+                if (frontEndRef == null) {
                     throw new IllegalStateException(PROXY_NOT_SET_MESSAGE);
                 }
-                if (frontEnd.get() == null) {
+                FrontEnd frontEnd = frontEndRef.get();
+                if (frontEnd == null) {
                     // The front end is GCed.
                     clearPendingCollection();
                     return;
                 }
 
-                if (pendingCollection == null) {
-                    // Should not happen, but make findbugs happy.
-                    return;
-                }
                 if (pendingCollection.isValid()) {
                     // PendingRow will always get the first Row of the query since we only support findFirst.
                     UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
@@ -60,7 +57,7 @@ public class PendingRow implements Row {
                     if (uncheckedRow != null) {
                         Row row = returnCheckedRow ? CheckedRow.getFromRow(uncheckedRow) : uncheckedRow;
                         // Ask the front end to reset the row and stop async query.
-                        frontEnd.get().onQueryFinished(row);
+                        frontEnd.onQueryFinished(row);
                         clearPendingCollection();
                     }
                 } else {
@@ -75,7 +72,7 @@ public class PendingRow implements Row {
 
     // To set the front end of this PendingRow.
     public void setFrontEnd(FrontEnd frontEnd) {
-        this.frontEnd = new WeakReference<FrontEnd>(frontEnd);
+        this.frontEndRef = new WeakReference<FrontEnd>(frontEnd);
     }
 
     @Override
@@ -233,7 +230,7 @@ public class PendingRow implements Row {
         if (pendingCollection == null) {
             throw new IllegalStateException(QUERY_EXECUTED_MESSAGE);
         }
-        if (frontEnd == null) {
+        if (frontEndRef == null) {
             throw new IllegalStateException(PROXY_NOT_SET_MESSAGE);
         }
 

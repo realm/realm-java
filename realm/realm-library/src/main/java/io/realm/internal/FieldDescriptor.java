@@ -15,6 +15,8 @@
  */
 package io.realm.internal;
 
+import java.util.Arrays;
+
 import io.realm.RealmFieldType;
 
 public class FieldDescriptor {
@@ -83,7 +85,7 @@ public class FieldDescriptor {
     }
 
     public long[] getColumnIndices() {
-        return columnIndices;
+        return Arrays.copyOf(columnIndices, columnIndices.length);
     }
 
     public RealmFieldType getFieldType() {
