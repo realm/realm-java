@@ -257,16 +257,20 @@ public class Collection implements NativeObject {
         observerPairs.foreach(onChangeCallback);
     }
 
-    void enableSnapshot() {
-        nativeEnableSnapshot(nativePtr);
+    // Turns this collection to be backed by a snapshot results.
+    // A snapshot results will never be auto-updated.
+    void detach() {
+        nativeDetach(nativePtr);
     }
 
-    void disableSnapshot() {
+    // Turns this collection to be backed by the original results to enable the auto-updating again.
+    void reattach() {
         // Invalidate all current iterators.
         stableIterators.clear();
-        nativeDisableSnapshot(nativePtr);
+        nativeReattach(nativePtr);
     }
 
+    // Return true if this is backed by a snapshot results.
     boolean isDetached() {
         return nativeIsDetached(nativePtr);
     }
@@ -294,8 +298,8 @@ public class Collection implements NativeObject {
     private static native long nativeWhere(long nativePtr);
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
     private static native long nativeIndexOfBySourceRowIndex(long nativePtr, long sourceRowIndex);
-    private static native void nativeEnableSnapshot(long nativePtr);
-    private static native void nativeDisableSnapshot(long nativePtr);
+    private static native void nativeDetach(long nativePtr);
+    private static native void nativeReattach(long nativePtr);
     private static native boolean nativeIsDetached(long nativePtr);
     private static native boolean nativeIsValid(long nativePtr);
 }

@@ -92,7 +92,7 @@ public abstract class RealmNotifier implements Closeable {
     // Package protected to avoid finding class by name in JNI.
     void changesAvailable() {
         // For the stable iteration.
-        sharedRealm.disableCollectionSnapshot();
+        sharedRealm.reattachCollections();
     }
 
     void setSharedRealm(SharedRealm sharedRealm) {

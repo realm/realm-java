@@ -112,7 +112,7 @@ public final class SharedRealm implements Closeable {
     public final Capabilities capabilities;
 
     // To prevent overflow the message queue.
-    public boolean disableSnapshotPosted = false;
+    public boolean reattachCollectionsPosted = false;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -177,8 +177,11 @@ public final class SharedRealm implements Closeable {
     private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
 
-    private SharedRealm(long nativePtr, RealmConfiguration configuration, Capabilities capabilities,
-                        RealmNotifier notifier, SchemaVersionListener schemaVersionListener) {
+    private SharedRealm(long nativePtr,
+                        RealmConfiguration configuration,
+                        Capabilities capabilities,
+                        RealmNotifier notifier,
+                        SchemaVersionListener schemaVersionListener) {
         context = new Context();
 
         this.nativePtr = nativePtr;
@@ -241,7 +244,7 @@ public final class SharedRealm implements Closeable {
     }
 
     public void beginTransaction() {
-        enableCollectionSnapshot();
+        detachCollections();
         nativeBeginTransaction(nativePtr);
         invokeSchemaChangeListenerIfSchemaChanged();
     }
@@ -395,25 +398,35 @@ public final class SharedRealm implements Closeable {
         }
     }
 
-    // Should only be called by Collection's constructor
+    // addCollection(), detachCollections(), reattachCollections() and postToReattachCollections() are used to make
+    // RealmResults stable iterators work. When a Collection is detached from a living OS Results, it won't receive
+    // notifications and its elements won't be changed.
+    // See https://github.com/realm/realm-java/issues/3883 for more information.
+    // Should only be called by Collection's constructor.
     void addCollection(Collection collection) {
         if (realmNotifier != null) {
             collections.add(new WeakReference<Collection>(collection));
         }
     }
 
-    private void enableCollectionSnapshot() {
+    // The detaching should happen before transaction begins.
+    private void detachCollections() {
         for (WeakReference<Collection> collectionRef : collections) {
             Collection collection = collectionRef.get();
             if (collection == null) {
                 collections.remove(collectionRef);
             } else {
-                collection.enableSnapshot();
+                collection.detach();
             }
         }
     }
 
-    void disableCollectionSnapshot() {
+    // Ideally the reattaching should happen at the very end of the event loop, but it is impossible for most event
+    // framework. We need to ensure:
+    // 1) It happens before any other coming events get handled (eg: UI redraw event).
+    // 2) It happens before Object Store async callbacks since the Object Store event_loop_signal might use a different
+    //    event queue. This is guaranteed by call this function in the binding_context::before_notify callback.
+    void reattachCollections() {
         if (isInTransaction()) {
             // This should never happen.
             throw new IllegalStateException( "Collection cannot be reattached if the Realm is in transaction." +
@@ -424,19 +437,20 @@ public final class SharedRealm implements Closeable {
             if (collection == null) {
                 collections.remove(collectionRef);
             } else {
-                collection.disableSnapshot();
+                collection.reattach();
             }
         }
     }
 
+    // To handle the point 1) in the reattachCollections comments.
     private void postToReattachCollections() {
-        if (realmNotifier != null && !collections.isEmpty() && !disableSnapshotPosted) {
-            disableSnapshotPosted = true;
+        if (realmNotifier != null && !collections.isEmpty() && !reattachCollectionsPosted) {
+            reattachCollectionsPosted = true;
             realmNotifier.postAtFrontOfQueue(new Runnable() {
                 @Override
                 public void run() {
-                    disableSnapshotPosted = false;
-                    disableCollectionSnapshot();
+                    reattachCollectionsPosted = false;
+                    reattachCollections();
                 }
             });
         }

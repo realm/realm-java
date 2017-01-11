@@ -379,7 +379,7 @@ Java_io_realm_internal_Collection_nativeIndexOfBySourceRowIndex(JNIEnv *env, jcl
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_Collection_nativeEnableSnapshot(JNIEnv *env, jclass, jlong native_ptr)
+Java_io_realm_internal_Collection_nativeDetach(JNIEnv *env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
@@ -389,7 +389,7 @@ Java_io_realm_internal_Collection_nativeEnableSnapshot(JNIEnv *env, jclass, jlon
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_Collection_nativeDisableSnapshot(JNIEnv *env, jclass, jlong native_ptr)
+Java_io_realm_internal_Collection_nativeReattach(JNIEnv *env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
