@@ -53,6 +53,10 @@ public abstract class RealmNotifier implements Closeable {
                 }
             };
 
+    protected RealmNotifier(SharedRealm sharedRealm) {
+        this.sharedRealm = sharedRealm;
+    }
+
     // TODO: The only reason we have this is that async transactions is not supported by OS yet. And OS is using ALopper
     // which will be using a different message queue from which java is using to deliver remote Realm changes message.
     // We need a way to deliver the async transaction onSuccess callback to the caller thread after the caller Realm
@@ -93,10 +97,6 @@ public abstract class RealmNotifier implements Closeable {
     void changesAvailable() {
         // For the stable iteration.
         sharedRealm.reattachCollections();
-    }
-
-    void setSharedRealm(SharedRealm sharedRealm) {
-        this.sharedRealm = sharedRealm;
     }
 
     /**

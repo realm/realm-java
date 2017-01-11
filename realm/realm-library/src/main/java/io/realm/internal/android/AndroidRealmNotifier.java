@@ -5,11 +5,13 @@ import android.os.Looper;
 
 import io.realm.internal.Capabilities;
 import io.realm.internal.RealmNotifier;
+import io.realm.internal.SharedRealm;
 
 public class AndroidRealmNotifier extends RealmNotifier {
     private Handler handler;
 
-    public AndroidRealmNotifier(Capabilities capabilities) {
+    public AndroidRealmNotifier(SharedRealm sharedRealm, Capabilities capabilities) {
+        super(sharedRealm);
         if (capabilities.canDeliverNotification()) {
             handler = new Handler(Looper.myLooper());
         } else {

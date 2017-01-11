@@ -68,7 +68,7 @@ public class RealmNotifierTests {
     @Test
     @RunTestInLooperThread
     public void post() {
-        RealmNotifier notifier = new AndroidRealmNotifier(capabilitiesCanDeliver);
+        RealmNotifier notifier = new AndroidRealmNotifier(null, capabilitiesCanDeliver);
         notifier.post(new Runnable() {
             @Override
             public void run() {
@@ -80,7 +80,7 @@ public class RealmNotifierTests {
     @Test
     @RunTestInLooperThread
     public void postAtFrontOfQueue() {
-        final RealmNotifier notifier = new AndroidRealmNotifier(capabilitiesCanDeliver);
+        final RealmNotifier notifier = new AndroidRealmNotifier(null, capabilitiesCanDeliver);
         notifier.post(new Runnable() {
             @Override
             public void run() {

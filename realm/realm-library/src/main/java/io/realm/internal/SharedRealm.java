@@ -177,21 +177,19 @@ public final class SharedRealm implements Closeable {
     private long lastSchemaVersion;
     private final SchemaVersionListener schemaChangeListener;
 
-    private SharedRealm(long nativePtr,
+    private SharedRealm(long nativeConfigPtr,
                         RealmConfiguration configuration,
-                        Capabilities capabilities,
-                        RealmNotifier notifier,
                         SchemaVersionListener schemaVersionListener) {
         context = new Context();
 
-        this.nativePtr = nativePtr;
+        Capabilities capabilities = new AndroidCapabilities();
+        RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
+
+        this.nativePtr = nativeGetSharedRealm(nativeConfigPtr, realmNotifier);
         this.configuration = configuration;
 
         this.capabilities = capabilities;
-        this.realmNotifier = notifier;
-        if (this.realmNotifier != null) {
-            this.realmNotifier.setSharedRealm(this);
-        }
+        this.realmNotifier = realmNotifier;
         this.schemaChangeListener = schemaVersionListener;
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
         objectServerFacade = null;
@@ -225,15 +223,8 @@ public final class SharedRealm implements Closeable {
                 rosServerUrl,
                 rosUserToken);
 
-        Capabilities capabilities = new AndroidCapabilities();
-        RealmNotifier realmNotifier = new AndroidRealmNotifier(capabilities);
         try {
-            return new SharedRealm(
-                    nativeGetSharedRealm(nativeConfigPtr, realmNotifier),
-                    config,
-                    capabilities,
-                    realmNotifier,
-                    schemaVersionListener);
+            return new SharedRealm(nativeConfigPtr, config, schemaVersionListener);
         } finally {
             nativeCloseConfig(nativeConfigPtr);
         }
