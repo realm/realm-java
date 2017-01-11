@@ -70,38 +70,26 @@ public class AuthTests {
         });
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     @RunTestInLooperThread
     public void loginAsync_throwExceptionInErrorHandler() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        try {
-            SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
-                @Override
-                public void onSuccess(SyncUser user) {
-                    fail();
-                }
+        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                fail();
+            }
 
-                @Override
-                public void onError(ObjectServerError error) {
-                    latch.countDown();
-                    throw new IllegalArgumentException("Boom");
-                }
-            });
+            @Override
+            public void onError(ObjectServerError error) {
+                latch.countDown();
+                throw new IllegalArgumentException("Boom");
+            }
+        });
 
-            Thread.sleep(1000); // let the exception propagate
-            TestHelper.awaitOrFail(latch);
-            fail();
-        }
-        catch (IllegalArgumentException e) {
-            assertEquals("Boom", e.getMessage());
-        }
-        catch (Exception ignored) {
-            fail();
-        }
-        finally {
-            looperThread.testComplete();
-        }
+        TestHelper.awaitOrFail(latch);
+        looperThread.testComplete();
     }
 }
