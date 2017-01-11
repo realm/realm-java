@@ -16,6 +16,7 @@ import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
+import io.realm.TestHelper;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
@@ -78,8 +79,8 @@ public class AuthTests {
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
-                    fail();
-                }
+                fail();
+            }
 
             @Override
             public void onError(ObjectServerError error) {
@@ -89,8 +90,8 @@ public class AuthTests {
         });
 
         try {
-            latch.await();
-            Thread.sleep(1000);
+            TestHelper.awaitOrFail(latch);
+            Thread.sleep(1000); // let the exception propagate
             fail();
         }
         catch (IllegalArgumentException e) {
