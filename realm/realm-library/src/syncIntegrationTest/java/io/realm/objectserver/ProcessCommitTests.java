@@ -24,7 +24,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,20 +32,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
-import io.realm.SyncSession;
-import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.service.SendOneCommit;
 import io.realm.objectserver.service.SendsALot;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
-import io.realm.objectserver.utils.UserFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -55,7 +50,6 @@ import static org.junit.Assert.fail;
 public class ProcessCommitTests {
     @BeforeClass
     public static void setUp () throws Exception {
-        Realm.init(InstrumentationRegistry.getContext());
         HttpUtils.startSyncServer();
     }
 
@@ -64,10 +58,15 @@ public class ProcessCommitTests {
         HttpUtils.stopSyncServer();
     }
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
+    // FIXME: At least need one method in the test class
     @Test
-    @Ignore
+    public void dummy() {
+
+    }
+
+    // FIXME: Disable for now.
+    /*
+    @Test
     public void expectServerCommit() throws Throwable {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
@@ -77,23 +76,18 @@ public class ProcessCommitTests {
             public void run() {
                 try {
                     Looper.prepare();
-                    Context targetContext = InstrumentationRegistry.getTargetContext();
+                    Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
-                    String realmUrl = Constants.SYNC_SERVER_URL;
-                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder()
                             .name(SendOneCommit.class.getSimpleName())
-                            .errorHandler(new SyncSession.ErrorHandler() {
-                                @Override
-                                public void onError(SyncSession session, ObjectServerError error) {
-                                    fail("Sync failure: " + error);
-                                }
-                            })
+                            .serverUrl(Constants.SYNC_SERVER_URL )
+                            .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL, Constants.USER_TOKEN))
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
                     Intent intent = new Intent(targetContext, SendOneCommit.class);
                     targetContext.startService(intent);
+
                     final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
                     all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
                         @Override
@@ -119,15 +113,14 @@ public class ProcessCommitTests {
             fail("Test timed out ");
         }
     }
+    */
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
     //TODO send string from service and match
     //     replicate integration tests from Cocoa
     //     add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process
     //     check the requirement for the issue again
+    /*
     @Test
-    @Ignore
     public void expectALot() throws Throwable {
         final Throwable[] exception = new Throwable[1];
         final CountDownLatch testFinished = new CountDownLatch(1);
@@ -139,16 +132,10 @@ public class ProcessCommitTests {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
-                    String realmUrl = Constants.SYNC_SERVER_URL_2;
-                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(targetContext)
                             .name(SendsALot.class.getSimpleName())
-                            .errorHandler(new SyncSession.ErrorHandler() {
-                                @Override
-                                public void onError(SyncSession session, ObjectServerError error) {
-                                    fail("Sync failure: " + error);
-                                }
-                            })
+                            .serverUrl(Constants.SYNC_SERVER_URL_2)
+                            .user(UserFactory.createDefaultUser(Constants.SYNC_SERVER_URL_2, Constants.USER_TOKEN))
                             .build();
                     Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
                     final Realm realm = Realm.getInstance(syncConfig);
@@ -184,4 +171,5 @@ public class ProcessCommitTests {
             fail("Test timed out ");
         }
     }
+    */
 }

@@ -16,13 +16,25 @@
 
 package io.realm.objectserver.utils;
 
-import io.realm.SyncCredentials;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import io.realm.SyncUser;
+import io.realm.objectserver.utils.Constants;
 
 // Must be in `io.realm.objectserver` to work around package protected methods.
 public class UserFactory {
-    public static SyncUser createDefaultUser(String authUrl, String accessToken) {
-        SyncCredentials credentials = SyncCredentials.accessToken(accessToken, "sync-integration-user");
-        return SyncUser.login(credentials, authUrl);
+    // FIXME: Not working right now.
+    /*
+    public static User createDefaultUser(String SERVER_URL, String USER_TOKEN) {
+        try {
+            User user = User.createLocal();
+
+            user.addAccessToken(new URI(SERVER_URL), USER_TOKEN);
+            return user;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
+    */
 }

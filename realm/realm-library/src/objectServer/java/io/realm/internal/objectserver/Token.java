@@ -151,7 +151,5 @@ public class Token {
         DOWNLOAD,
         REFRESH,
         MANAGE;
-
-        public static final Permission[] ALL = { UPLOAD, DOWNLOAD, REFRESH, MANAGE };
     }
 }
