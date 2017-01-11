@@ -402,6 +402,7 @@ public class DynamicRealmTests {
         allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> object) {
+                assertTrue(allTypes.isLoaded());
                 assertEquals(5, allTypes.size());
                 for (int i = 0; i < 5; i++) {
                     int iteration = (4 - i);

@@ -724,10 +724,14 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     }
 
     /**
-     * @deprecated
+     * Returns {@code false} if the results are not yet loaded, {@code true} if they are loaded.
+     *
+     * @return {@code true} if the query has completed and the data is available, {@code false} if the query is still
+     * running in the background.
      */
     public boolean isLoaded() {
-        return true;
+        realm.checkIfValid();
+        return collection.getMode() == Collection.Mode.TABLEVIEW;
     }
 
     /**
