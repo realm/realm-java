@@ -31,6 +31,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -150,10 +151,20 @@ public class SyncUser {
             throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
         }
 
-        final AuthenticationServer server = SyncManager.getAuthServer();
         ObjectServerError error;
         try {
-            AuthenticateResponse result = server.loginUser(credentials, authUrl);
+            AuthenticateResponse result;
+            if (credentials.getIdentityProvider().equals(SyncCredentials.IdentityProvider.ACCESS_TOKEN)) {
+                // Credentials using ACCESS_TOKEN as IdentityProvider are optimistically assumed to be valid already
+                // So log them in directly without contacting the authentication server. This is done by mirroring
+                // the JSON response expected from the server.
+                String userIdentifier = credentials.getUserIdentifier();
+                String token = (String) credentials.getUserInfo().get("_token");
+                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token);
+            } else {
+                final AuthenticationServer server = SyncManager.getAuthServer();
+                result = server.loginUser(credentials, authUrl);
+            }
             if (result.isValid()) {
                 ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);

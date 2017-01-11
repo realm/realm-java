@@ -16,12 +16,17 @@
 
 package io.realm.objectserver.utils;
 
+import android.support.test.InstrumentationRegistry;
+
 import java.io.IOException;
 
+import io.realm.Realm;
 import io.realm.log.RealmLog;
 import okhttp3.Headers;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -29,7 +34,10 @@ import okhttp3.Response;
  * temp directory & start a sync server on it for each unit test.
  */
 public class HttpUtils {
-    private final static OkHttpClient client = new OkHttpClient();
+    private final static OkHttpClient client = new OkHttpClient.Builder()
+            .retryOnConnectionFailure(true)
+            .build();
+
     // adb reverse tcp:8888 tcp:8888
     // will forward this query to the host, running the integration test server on 8888
     private final static String START_SERVER = "http://127.0.0.1:8888/start";
@@ -60,20 +68,29 @@ public class HttpUtils {
     // Checking the server
     private static boolean waitAuthServerReady() throws InterruptedException {
         int retryTimes = 50;
+
+        // Dummy invalid request, which will trigger a 400 (BAD REQUEST), but indicate the auth
+        // server is responsive
         Request request = new Request.Builder()
-                .url(Constants.AUTH_SERVER_URL)
+                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), ""))
+                .url(Constants.AUTH_URL)
                 .build();
 
         while (retryTimes != 0) {
+            Response response = null;
             try {
-                Response response = client.newCall(request).execute();
-                if (response.isSuccessful()) {
+                response = client.newCall(request).execute();
+                if (response.code() == 400) {
                     return true;
                 }
                 RealmLog.error("Error response from auth server: %s", response.toString());
             } catch (IOException e) {
                 RealmLog.error(e);
                 Thread.sleep(100);
+            } finally {
+                if (response != null) {
+                    response.close();
+                }
             }
             retryTimes--;
         }

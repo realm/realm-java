@@ -1,6 +1,6 @@
 #!/usr/bin/env nodejs
 
-var winston = require('winston');//logging
+var winston = require('winston'); //logging
 const temp = require('temp');
 const spawn = require('child_process').spawn;
 var http = require('http');
@@ -23,7 +23,7 @@ function handleRequest(request, response) {
     try {
         //log the request on console
         winston.log(request.url);
-        //Disptach
+        //Dispatch
         dispatcher.dispatch(request, response);
     } catch(err) {
         console.log(err);

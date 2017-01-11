@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -31,6 +32,7 @@ import java.net.URL;
 import java.util.Collection;
 
 import io.realm.android.SharedPrefsUserStore;
+import io.realm.internal.network.AuthenticationServer;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
@@ -39,6 +41,8 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncUserTests {
@@ -151,4 +155,19 @@ public class SyncUserTests {
         assertTrue(str != null && !str.isEmpty());
     }
 
+    // Test that a login an access token logs the user in directly without touching the network
+    @Test
+    public void login_withAccessToken() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenThrow(new AssertionError("Server contacted."));
+        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        SyncManager.setAuthServerImpl(authServer);
+        try {
+            SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
+            SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
+            assertTrue(user.isValid());
+        } finally {
+            SyncManager.setAuthServerImpl(originalServer);
+        }
+    }
 }

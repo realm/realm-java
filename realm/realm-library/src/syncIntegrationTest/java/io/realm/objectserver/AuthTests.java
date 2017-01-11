@@ -9,6 +9,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.realm.RealmConfiguration;
+import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -63,6 +65,23 @@ public class AuthTests {
             public void onError(ObjectServerError error) {
                 assertEquals(ErrorCode.INVALID_CREDENTIALS, error.getErrorCode());
                 looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withAccessToken() {
+        SyncCredentials credentials = SyncCredentials.accessToken(Constants.USER_TOKEN, "access-token-user");
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL).build();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Error thrown:" + error);
             }
         });
     }
