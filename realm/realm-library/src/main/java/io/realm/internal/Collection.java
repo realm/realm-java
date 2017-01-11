@@ -45,6 +45,7 @@ public class Collection implements NativeObject {
     // TODO: Consider to replace RealmResultsIterator implementation by this since it could be shared by the RealmList.
     public static abstract class Iterator<T> implements java.util.Iterator<T> {
         private final WeakReference<Collection> collectionWeakReference;
+
         public Iterator(Collection collection) {
             collectionWeakReference = new WeakReference<Collection>(collection);
             collection.stableIterators.add(new WeakReference<Iterator>(this));
@@ -91,7 +92,7 @@ public class Collection implements NativeObject {
     @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
     @SuppressWarnings("WeakerAccess")
-    public static final byte AGGREGATE_FUNCTION_SUM     = 4;
+    public static final byte AGGREGATE_FUNCTION_SUM = 4;
 
     public enum Aggregate {
         MINIMUM(AGGREGATE_FUNCTION_MINIMUM),
@@ -109,6 +110,43 @@ public class Collection implements NativeObject {
             return value;
         }
     }
+
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_EMPTY = 0;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_TABLE = 1;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_QUERY = 2;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_LINKVIEW = 3;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_TABLEVIEW = 4;
+
+    public enum Mode {
+        EMPTY,          // Backed by nothing (for missing tables)
+        TABLE,          // Backed directly by a Table
+        QUERY,          // Backed by a query that has not yet been turned into a TableView
+        LINKVIEW,       // Backed directly by a LinkView
+        TABLEVIEW;      // Backed by a TableView created from a Query
+
+        static Mode getByValue(byte value) {
+            switch (value)  {
+                case MODE_EMPTY:
+                   return EMPTY;
+                case MODE_TABLE:
+                    return TABLE;
+                case MODE_QUERY:
+                    return QUERY;
+                case MODE_LINKVIEW:
+                    return LINKVIEW;
+                case MODE_TABLEVIEW:
+                    return TABLEVIEW;
+                default:
+                    throw new IllegalArgumentException("Invalid value: " + value);
+            }
+        }
+    }
+
 
     public Collection(SharedRealm sharedRealm, TableQuery query,
                       SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
@@ -257,6 +295,10 @@ public class Collection implements NativeObject {
         observerPairs.foreach(onChangeCallback);
     }
 
+    public Mode getMode() {
+        return Mode.getByValue(nativeGetMode(nativePtr));
+    }
+
     // Turns this collection to be backed by a snapshot results.
     // A snapshot results will never be auto-updated.
     void detach() {
@@ -302,4 +344,5 @@ public class Collection implements NativeObject {
     private static native void nativeReattach(long nativePtr);
     private static native boolean nativeIsDetached(long nativePtr);
     private static native boolean nativeIsValid(long nativePtr);
+    private static native byte nativeGetMode(long nativePtr);
 }

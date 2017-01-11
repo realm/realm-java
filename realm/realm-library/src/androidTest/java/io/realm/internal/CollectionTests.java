@@ -609,4 +609,12 @@ public class CollectionTests {
         row = collections[1].getUncheckedRow(4);
         assertFalse(row.isAttached());
     }
+
+    @Test
+    public void getMode() {
+        Collection collection = new Collection(sharedRealm, table.where());
+        assertTrue(Collection.Mode.QUERY == collection.getMode());
+        collection.firstUncheckedRow(); // Run the query
+        assertTrue(Collection.Mode.TABLEVIEW == collection.getMode());
+    }
 }

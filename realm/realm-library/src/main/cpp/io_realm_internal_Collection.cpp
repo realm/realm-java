@@ -469,3 +469,26 @@ Java_io_realm_internal_Collection_nativeIsValid(JNIEnv *env, jclass, jlong nativ
     } CATCH_STD()
     return JNI_FALSE;
 }
+
+JNIEXPORT jbyte JNICALL
+Java_io_realm_internal_Collection_nativeGetMode(JNIEnv *env, jclass, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        switch (wrapper->get_original_results().get_mode()) {
+            case Results::Mode::Empty:
+                return io_realm_internal_Collection_MODE_EMPTY;
+            case Results::Mode::Table:
+                return io_realm_internal_Collection_MODE_TABLE;
+            case Results::Mode::Query:
+                return io_realm_internal_Collection_MODE_QUERY;
+            case Results::Mode::LinkView:
+                return io_realm_internal_Collection_MODE_LINKVIEW;
+            case Results::Mode::TableView:
+                return io_realm_internal_Collection_MODE_TABLEVIEW;
+        }
+    } CATCH_STD()
+    return -1; // Invalid mode value
+}
+
