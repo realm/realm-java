@@ -356,6 +356,7 @@ public class DynamicRealmTests {
         final DynamicRealmObject allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
+        assertFalse(allTypes.isLoaded());
         looperThread.keepStrongReference.add(allTypes);
         allTypes.addChangeListener(new RealmChangeListener<DynamicRealmObject>() {
             @Override
@@ -396,6 +397,7 @@ public class DynamicRealmTests {
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 4)
                 .findAllSorted(AllTypes.FIELD_STRING, Sort.DESCENDING);
+        assertFalse(allTypes.isLoaded());
 
         allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
