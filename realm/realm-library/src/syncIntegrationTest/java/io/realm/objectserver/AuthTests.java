@@ -75,23 +75,23 @@ public class AuthTests {
     public void loginAsync_throwExceptionInErrorHandler() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
-            @Override
-            public void onSuccess(SyncUser user) {
-                fail();
-            }
-
-            @Override
-            public void onError(ObjectServerError error) {
-                latch.countDown();
-                throw new IllegalArgumentException("Boom");
-            }
-        });
-
         try {
-            TestHelper.awaitOrFail(latch);
+            SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+                @Override
+                public void onSuccess(SyncUser user) {
+                    fail();
+                }
+
+                @Override
+                public void onError(ObjectServerError error) {
+                    latch.countDown();
+                    throw new IllegalArgumentException("Boom");
+                }
+            });
+
             Thread.sleep(1000); // let the exception propagate
+            TestHelper.awaitOrFail(latch);
             fail();
         }
         catch (IllegalArgumentException e) {
