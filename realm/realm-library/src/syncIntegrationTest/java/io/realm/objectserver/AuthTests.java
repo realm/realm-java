@@ -2,6 +2,7 @@ package io.realm.objectserver;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -79,17 +80,23 @@ public class AuthTests {
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
+                Log.d("REALM", "onSuccess");
                 fail();
             }
 
             @Override
             public void onError(ObjectServerError error) {
+                Log.d("REALM", "onError 1");
                 latch.countDown();
+                Log.d("REALM", "onError 2");
                 throw new IllegalArgumentException("Boom");
             }
         });
 
+        Log.d("REALM", "main 1");
         TestHelper.awaitOrFail(latch);
+        Log.d("REALM", "main 2");
         looperThread.testComplete();
+        Log.d("REALM", "main 3");
     }
 }
