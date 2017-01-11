@@ -27,7 +27,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
 @RunWith(AndroidJUnit4.class)
 public class CredentialsTests {
 
@@ -105,21 +104,6 @@ public class CredentialsTests {
         assertUsernamePassword(creds, "foo", "bar", false);
     }
 
-    private void assertUsernamePassword(SyncCredentials creds, String username, String password, boolean register) {
-        assertEquals(username, creds.getUserIdentifier());
-
-        Map<String, Object> userInfo = creds.getUserInfo();
-        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, creds.getIdentityProvider());
-
-        assertEquals(password, userInfo.get("password"));
-
-        Boolean registerActual = (Boolean) userInfo.get("register");
-        if (registerActual == null) {
-            registerActual = Boolean.FALSE;
-        }
-        assertEquals(register, registerActual);
-    }
-
     // Only validate username. All passwords are allowed
     @Test
     public void usernamePassword_invalidUserName() {
@@ -137,8 +121,7 @@ public class CredentialsTests {
     @Test
     public void usernamePassword_nullPassword() {
         SyncCredentials creds = SyncCredentials.usernamePassword("foo", null, true);
-        Map<String, Object> userInfo = creds.getUserInfo();
-        assertEquals(null, userInfo.get("password"));
+        assertUsernamePassword(creds, "foo", null, true);
     }
 
     @Test
@@ -176,5 +159,20 @@ public class CredentialsTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    private void assertUsernamePassword(SyncCredentials creds, String username, String password, boolean register) {
+        assertEquals(username, creds.getUserIdentifier());
+
+        Map<String, Object> userInfo = creds.getUserInfo();
+        assertEquals(SyncCredentials.IdentityProvider.USERNAME_PASSWORD, creds.getIdentityProvider());
+
+        assertEquals(password, userInfo.get("password"));
+
+        Boolean registerActual = (Boolean) userInfo.get("register");
+        if (registerActual == null) {
+            registerActual = Boolean.FALSE;
+        }
+        assertEquals(register, registerActual);
     }
 }

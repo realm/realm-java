@@ -77,7 +77,7 @@ public class SyncCredentials {
      *
      * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials facebook(String facebookToken) {
@@ -90,7 +90,7 @@ public class SyncCredentials {
      *
      * @param googleToken a google userIdentifier acquired by logging into Google.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials google(String googleToken) {

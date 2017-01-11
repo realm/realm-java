@@ -3,6 +3,7 @@
 ### Object Server API Changes (In Beta)
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+* Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
 
 ## 2.2.3
 
