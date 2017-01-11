@@ -1,8 +1,8 @@
 ## 2.2.3
 
-### Enhancements
+### Object Server API Changes (In Beta)
 
-* Exceptions thrown in error handler are not swallowed (#3559).
+* Exceptions thrown in `SyncSession.ErrorHandler` are no longer swallowed by JNI (#3559).
 
 ### Bug fixes
 

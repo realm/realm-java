@@ -23,6 +23,9 @@
 namespace realm {
 namespace jni_util {
 
+// JniPendingException is typically used in in wrappers of callbacks. If the callback has thrown a Java exception,
+// it is not to safe most call JNI methods. Instead of clearing the Java exception and continue, the wrapper can throw
+// this C++ exception and get quickly back to the JNI border (and back to Java) with the Java exception intact.
 class JniPendingException : public std::runtime_error {
 public:
     JniPendingException(std::string message) : runtime_error(std::move(message)) {}
