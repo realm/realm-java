@@ -885,28 +885,22 @@ public class RealmQueryTests {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(realm, TEST_OBJECTS_COUNT);
 
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
-                .like("columnString", "*DaTa*").findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).like("columnString", "*DaTa*").findAll();
         assertEquals(0, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*DaTa*", Case.INSENSITIVE).findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*DaTa*", Case.INSENSITIVE).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*DaTa 2?").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*DaTa 2?").findAll();
         assertEquals(0, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*DaTa 2?", Case.INSENSITIVE).findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*DaTa 2?", Case.INSENSITIVE).findAll();
         assertEquals(10, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "TEST*0").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "TEST*0").findAll();
         assertEquals(0, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "TEST*0", Case.INSENSITIVE).findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "TEST*0", Case.INSENSITIVE).findAll();
         assertEquals(20, resultList.size());
     }
 
@@ -929,56 +923,44 @@ public class RealmQueryTests {
         at4.setColumnString(emojis);
         realm.commitTransaction();
 
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
-                .like("columnString", "*Α*").findAll();
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).like("columnString", "*Α*").findAll();
          assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*λ*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*λ*").findAll();
         assertEquals(2, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*Δ*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*Δ*").findAll();
         assertEquals(0, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*Α*", Case.INSENSITIVE).findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*Α*", Case.INSENSITIVE).findAll();
         //without ASCII-only limitation A matches α
         //assertEquals(3, resultList.size());
         assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*λ*", Case.INSENSITIVE).findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*λ*", Case.INSENSITIVE).findAll();
         assertEquals(2, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*Δ*", Case.INSENSITIVE).findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*Δ*", Case.INSENSITIVE).findAll();
         //without ASCII-only limitation Δ matches δ
         //assertEquals(1, resultList.size());
         assertEquals(0, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "?λ*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "?λ*").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "??λ*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "??λ*").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "?λ*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "?λ*").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "??λ*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "??λ*").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "ABC?DEF*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "ABC?DEF*").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = realm.where(AllTypes.class)
-                .like("columnString", "*" + flagEmoji + "*").findAll();
+        resultList = realm.where(AllTypes.class).like("columnString", "*" + flagEmoji + "*").findAll();
         assertEquals(1, resultList.size());
     }
 
@@ -1365,7 +1347,10 @@ public class RealmQueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        assertEquals(
+                SECONDARY_FIELD_NUMBER,
+                realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null)
+                        .findAll().first().getId());
     }
 
     @Test
@@ -1634,12 +1619,11 @@ public class RealmQueryTests {
     @Test
     public void like_nullForNullableStrings() {
         TestHelper.populateTestRealmForNullTests(realm);
-        RealmResults<NullTypes> resultList = realm.where(NullTypes.class)
-                .like(NullTypes.FIELD_STRING_NULL, "*").findAll();
+        RealmResults<NullTypes> resultList = realm.where(NullTypes.class).like(NullTypes.FIELD_STRING_NULL, "*")
+                .findAll();
         assertEquals(2, resultList.size());
 
-        resultList = realm.where(NullTypes.class)
-                .like(NullTypes.FIELD_STRING_NULL, "?").findAll();
+        resultList = realm.where(NullTypes.class).like(NullTypes.FIELD_STRING_NULL, "?").findAll();
         assertEquals(0, resultList.size());
     }
 

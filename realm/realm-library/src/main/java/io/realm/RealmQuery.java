@@ -45,7 +45,7 @@ import io.realm.log.RealmLog;
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
  * pattern. The query is executed using either {@link #findAll()} or {@link #findFirst()}.
  * <p>
- * The input to many of the query functions take a field name as String. Note that this is not type safe. If a 
+ * The input to many of the query functions take a field name as String. Note that this is not type safe. If a
  * RealmObject class is refactored care has to be taken to not break any queries.
  * <p>
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a Realm will return the
@@ -1252,8 +1252,10 @@ public class RealmQuery<E extends RealmModel> {
 
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
-     * '*' matches [0, n] unicode chars
-     * '?' matches a single unicode chars.
+     * <ul>
+     *   <li> '*' matches [0, n] unicode chars
+     *   <li>'?' matches a single unicode char.
+     * </ul>
      *
      * @param fieldName the field to compare.
      * @param value the wildcard string.
@@ -1266,8 +1268,10 @@ public class RealmQuery<E extends RealmModel> {
 
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
-     * '*' matches [0, n] unicode chars
-     * '?' matches a single unicode chars.
+     * <ul>
+     *   <li> '*' matches [0, n] unicode chars
+     *   <li>'?' matches a single unicode char.
+     * </ul>
      *
      * @param fieldName the field to compare.
      * @param value the wildcard string.
@@ -1924,7 +1928,7 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero 
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      *         objects is returned.
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.

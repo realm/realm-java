@@ -3,7 +3,7 @@
 ### Object Server API Changes (In Beta)
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
-* Add 'like' predecate for String fields (3752)
+* Add 'like' predicate for String fields (#3752)
 
 ## 2.2.3
 
