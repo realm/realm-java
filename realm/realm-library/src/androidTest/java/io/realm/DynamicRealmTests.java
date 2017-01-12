@@ -40,7 +40,6 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.PendingRow;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -370,11 +369,14 @@ public class DynamicRealmTests {
 
     @Test
     @RunTestInLooperThread
-    public void findAll_async() {
+    public void findAllAsync() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
-                .findAll();
+                .findAllAsync();
+
+        assertFalse(allTypes.isLoaded());
+        assertEquals(0, allTypes.size());
 
         allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
@@ -392,17 +394,17 @@ public class DynamicRealmTests {
 
     @Test
     @RunTestInLooperThread
-    public void findAllSorted_async() {
+    public void findAllSortedAsync() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 4)
-                .findAllSorted(AllTypes.FIELD_STRING, Sort.DESCENDING);
+                .findAllSortedAsync(AllTypes.FIELD_STRING, Sort.DESCENDING);
         assertFalse(allTypes.isLoaded());
+        assertEquals(0, allTypes.size());
 
         allTypes.addChangeListener(new RealmChangeListener<RealmResults<DynamicRealmObject>>() {
             @Override
             public void onChange(RealmResults<DynamicRealmObject> object) {
-                assertTrue(allTypes.isLoaded());
                 assertEquals(5, allTypes.size());
                 for (int i = 0; i < 5; i++) {
                     int iteration = (4 - i);
@@ -531,6 +533,26 @@ public class DynamicRealmTests {
         });
         looperThread.keepStrongReference.add(realmResults1);
         looperThread.keepStrongReference.add(realmResults2);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void accessingDynamicRealmObjectBeforeAsyncQueryCompleted() {
+        final DynamicRealm dynamicRealm = initializeDynamicRealm();
+        final DynamicRealmObject dynamicRealmObject = dynamicRealm.where(AllTypes.CLASS_NAME)
+                .between(AllTypes.FIELD_LONG, 4, 9)
+                .findFirstAsync();
+        assertFalse(dynamicRealmObject.isLoaded());
+        assertFalse(dynamicRealmObject.isValid());
+        try {
+            dynamicRealmObject.getObject(AllTypes.FIELD_BINARY);
+            fail("trying to access a DynamicRealmObject property should throw");
+        } catch (IllegalStateException ignored) {
+
+        } finally {
+            dynamicRealm.close();
+            looperThread.testComplete();
+        }
     }
 
     @Test
