@@ -25,20 +25,9 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class AuthTests {
+public class AuthTests extends RealmIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
-
-    @BeforeClass
-    public static void setUp () throws Exception {
-        Realm.init(InstrumentationRegistry.getContext());
-        HttpUtils.startSyncServer();
-    }
-
-    @AfterClass
-    public static void tearDown () throws Exception {
-        HttpUtils.stopSyncServer();
-    }
 
     @Test
     public void login_userNotExist() {

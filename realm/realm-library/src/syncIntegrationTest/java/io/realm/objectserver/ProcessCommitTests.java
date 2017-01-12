@@ -52,17 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ProcessCommitTests {
-    @BeforeClass
-    public static void setUp () throws Exception {
-        Realm.init(InstrumentationRegistry.getContext());
-        HttpUtils.startSyncServer();
-    }
-
-    @AfterClass
-    public static void tearDown () throws Exception {
-        HttpUtils.stopSyncServer();
-    }
+public class ProcessCommitTests extends RealmIntegrationTest {
 
     // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
     // a Sync Client, but it needs to be investigated.
