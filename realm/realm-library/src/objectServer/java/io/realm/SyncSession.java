@@ -107,7 +107,7 @@ public class SyncSession {
      */
     public interface ErrorHandler {
         /**
-         * Callback for errors on a session object.
+         * Callback for errors on a session object. Any exception thrown in an error handler will be logged but ignored.
          *
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.

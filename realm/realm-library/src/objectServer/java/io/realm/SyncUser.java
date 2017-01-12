@@ -44,7 +44,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionChange;
 import io.realm.permissions.PermissionModule;
 
 /**
@@ -203,7 +202,12 @@ public class SyncUser {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(error);
+                            try {
+                                callback.onError(error);
+                            } catch (Exception e) {
+                                RealmLog.info("onError has thrown an exception but ignoring it: %s", e.getMessage());
+                                e.printStackTrace();
+                            }
                         }
                     });
                 }

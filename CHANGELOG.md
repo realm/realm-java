@@ -4,6 +4,10 @@
 
 * Fixed native memory leak setting the value of a primary key (#3993).
 
+### Object Server API Changes (In Beta)
+
+* Exceptions thrown error handlers are ignored but logged (#3559).
+
 ### Internal
 
 * Updated Realm Sync to 1.0.0-BETA-7.0.
