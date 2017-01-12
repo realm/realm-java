@@ -66,6 +66,8 @@ class Realm implements Plugin<Project> {
         } else if (isKotlinProject && !preferAptOnKotlinProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("kaptAndroidTest", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("kaptAndroidTest", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
             assert hasAnnotationProcessorConfiguration
             project.dependencies.add("annotationProcessor", "io.realm:realm-annotations:${Version.VERSION}")
