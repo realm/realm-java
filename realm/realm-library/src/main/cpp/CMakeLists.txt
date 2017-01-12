@@ -169,7 +169,9 @@ file(GLOB objectstore_SRC
     "object-store/src/util/android/*.cpp")
 # Sync needed Object Store files
 if (build_SYNC)
-    file(GLOB objectstore_sync_SRC "object-store/src/sync/*")
+    file(GLOB objectstore_sync_SRC
+        "object-store/src/sync/*"
+        "object-store/src/sync/impl/*")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
