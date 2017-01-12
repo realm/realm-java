@@ -379,7 +379,7 @@ public class RxJavaTests {
     @Test
     @UiThreadTest
     public void unsubscribe_sameThread() {
-/*        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         subscription = realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
             public void call(Realm rxRealm) {
@@ -387,15 +387,15 @@ public class RxJavaTests {
                 subscribedNotified.set(true);
             }
         });
-        assertEquals(1, realm.handlerController.changeListeners.size());
+        assertEquals(1, realm.sharedRealm.realmNotifier.getListnersListSize());
         subscription.unsubscribe();
-        assertEquals(0, realm.handlerController.changeListeners.size());*/
+        assertEquals(0, realm.sharedRealm.realmNotifier.getListnersListSize());
     }
 
     @Test
     @UiThreadTest
     public void unsubscribe_fromOtherThread() {
-/*        final CountDownLatch unsubscribeCompleted = new CountDownLatch(1);
+        final CountDownLatch unsubscribeCompleted = new CountDownLatch(1);
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
@@ -405,7 +405,7 @@ public class RxJavaTests {
             }
         });
         assertTrue(subscribedNotified.get());
-        assertEquals(1, realm.handlerController.changeListeners.size());
+        assertEquals(1, realm.sharedRealm.realmNotifier.getListnersListSize());
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -419,10 +419,10 @@ public class RxJavaTests {
             }
         }).start();
         TestHelper.awaitOrFail(unsubscribeCompleted);
-        assertEquals(1, realm.handlerController.changeListeners.size());
+        assertEquals(1, realm.sharedRealm.realmNotifier.getListnersListSize());
         // We cannot call subscription.unsubscribe() again, so manually close the extra Realm instance opened by
         // the Observable.
-        realm.close();*/
+        realm.close();
     }
 
     @Test

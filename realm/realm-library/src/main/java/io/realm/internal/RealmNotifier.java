@@ -139,4 +139,8 @@ public abstract class RealmNotifier implements Closeable {
      * @param runnable to be executed in the following event loop.
      */
     public abstract void post(Runnable runnable);
+
+    public int getListnersListSize() {
+        return realmObserverPairs.size();
+    }
 }
