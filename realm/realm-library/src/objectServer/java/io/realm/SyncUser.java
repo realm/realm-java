@@ -205,8 +205,8 @@ public class SyncUser {
                             try {
                                 callback.onError(error);
                             } catch (Exception e) {
-                                RealmLog.info("onError has thrown an exception but ignoring it: %s", e.getMessage());
-                                e.printStackTrace();
+                                RealmLog.info("onError has thrown an exception but is ignoring it: %s",
+                                        Util.getStackTrace(e));
                             }
                         }
                     });

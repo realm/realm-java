@@ -6,7 +6,7 @@
 
 ### Object Server API Changes (In Beta)
 
-* Exceptions thrown error handlers are ignored but logged (#3559).
+* Exceptions thrown in error handlers are ignored but logged (#3559).
 
 ### Internal
 
