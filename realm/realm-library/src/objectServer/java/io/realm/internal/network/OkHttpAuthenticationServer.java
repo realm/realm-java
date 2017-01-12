@@ -25,6 +25,7 @@ import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.log.RealmLog;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -85,11 +86,12 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .url(authenticationUrl)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json")
-                .addHeader("Connection", "close") //  See https://github.com/square/okhttp/issues/2363
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
         Call call = client.newCall(request);
+        RealmLog.debug("Sending request: " + requestBody.toString());
         Response response = call.execute();
+        RealmLog.debug("Authenticate response: " + response.toString());
         return AuthenticateResponse.from(response);
     }
 }
