@@ -320,8 +320,13 @@ abstract class BaseRealm implements Closeable {
     public void commitTransaction() {
         checkIfValid();
         sharedRealm.commitTransaction();
-        ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
-                .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
+        if (!isClosed()) {
+            // The checking is because of the global listener is being called in commitTransaction from object store.
+            // The Realm could be closed inside the listener. In this case, we have no way to handle it. Moving
+            // SyncManger to Object Store will solve this.
+            ObjectServerFacade.getFacade(configuration.isSyncConfiguration())
+                    .notifyCommit(configuration, sharedRealm.getLastSnapshotVersion());
+        }
     }
 
     /**
