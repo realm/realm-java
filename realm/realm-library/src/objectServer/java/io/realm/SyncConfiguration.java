@@ -241,6 +241,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String fileName;
         private boolean overrideDefaultLocalFileName = false;
         private byte[] key;
+        private long schemaVersion = 0;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
@@ -423,6 +424,21 @@ public class SyncConfiguration extends RealmConfiguration {
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
+            return this;
+        }
+
+        /**
+         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
+         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
+         *
+         * @param schemaVersion the schema version.
+         * @throws IllegalArgumentException if schema version is invalid.
+         */
+        public Builder schemaVersion(long schemaVersion) {
+            if (schemaVersion < 0) {
+                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
+            }
+            this.schemaVersion = schemaVersion;
             return this;
         }
 
@@ -619,7 +635,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     getCanonicalPath(new File(realmFileDirectory, realmFileName)),
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
-                    0,
+                    schemaVersion,
                     null, // Custom migrations not supported
                     false, // MigrationNeededException is never thrown
                     durability,

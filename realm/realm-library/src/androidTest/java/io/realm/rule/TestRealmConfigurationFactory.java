@@ -16,26 +16,10 @@
 
 package io.realm.rule;
 
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.support.test.InstrumentationRegistry;
-
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.TestHelper;
 
 import static org.junit.Assert.assertTrue;
 
@@ -45,62 +29,14 @@ import static org.junit.Assert.assertTrue;
  * {@link Realm#deleteRealm(RealmConfiguration)} will throw an exception in the {@link #after()} method.
  * The temp directory will be deleted regardless if the {@link Realm#deleteRealm(RealmConfiguration)} fails or not.
  */
-public class TestRealmConfigurationFactory extends TemporaryFolder {
-    private Map<RealmConfiguration, Boolean> map = new ConcurrentHashMap<RealmConfiguration, Boolean>();
-    private Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
-    protected boolean unitTestFailed = false;
-
-    @Override
-    public Statement apply(final Statement base, Description description) {
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                before();
-                try {
-                    base.evaluate();
-                } catch (Throwable throwable) {
-                    unitTestFailed = true;
-                    throw throwable;
-                } finally {
-                    after();
-                }
-            }
-        };
-    }
-
-    @Override
-    protected void before() throws Throwable {
-        super.before();
-        Realm.init(InstrumentationRegistry.getTargetContext());
-    }
-
-    @Override
-    protected void after() {
-        // Wait all async tasks done to ensure successful deleteRealm call.
-        // This will throw when timeout. And the reason of timeout needs to be solved properly.
-        TestHelper.waitRealmThreadExecutorFinish();
-
-        try {
-            for (RealmConfiguration configuration : configurations) {
-                Realm.deleteRealm(configuration);
-            }
-        } catch (IllegalStateException e) {
-            // Only throw the exception caused by deleting the opened Realm if the test case itself doesn't throw.
-            if (!unitTestFailed) {
-                throw e;
-            }
-        } finally {
-            // This will delete the temp directory.
-            super.after();
-        }
-    }
+public class TestRealmConfigurationFactory extends BaseConfigurationFactory {
 
     public RealmConfiguration createConfiguration() {
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .directory(getRoot())
                 .build();
 
-        configurations.add(configuration);
+        registerConfig(configuration);
         return configuration;
     }
 
@@ -112,7 +48,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 .name(name)
                 .build();
 
-        configurations.add(configuration);
+        registerConfig(configuration);
         return configuration;
     }
 
@@ -122,7 +58,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 .name(name)
                 .build();
 
-        configurations.add(configuration);
+        registerConfig(configuration);
         return configuration;
     }
 
@@ -133,34 +69,11 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 .encryptionKey(key)
                 .build();
 
-        configurations.add(configuration);
+        registerConfig(configuration);
         return configuration;
     }
 
     public RealmConfiguration.Builder createConfigurationBuilder() {
         return new RealmConfiguration.Builder().directory(getRoot());
-    }
-
-    // Copies a Realm file from assets to temp dir
-    public void copyRealmFromAssets(Context context, String realmPath, String newName)
-            throws IOException {
-        // Delete the existing file before copy
-        RealmConfiguration configToDelete = new RealmConfiguration.Builder()
-                .directory(getRoot())
-                .name(newName)
-                .build();
-        Realm.deleteRealm(configToDelete);
-
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(realmPath);
-        File file = new File(getRoot(), newName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buf = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = is.read(buf)) > -1) {
-            outputStream.write(buf, 0, bytesRead);
-        }
-        outputStream.close();
-        is.close();
     }
 }
