@@ -18,7 +18,6 @@ package io.realm;
 
 import java.util.Collection;
 
-import io.realm.android.SharedPrefsUserStore;
 import io.realm.annotations.Beta;
 
 /**
@@ -29,37 +28,37 @@ import io.realm.annotations.Beta;
  * be called on the Main Thread. All implementations of this interface should be thread safe.
  *
  * @see SyncManager#setUserStore(UserStore)
- * @see SharedPrefsUserStore
+ * @see RealmFileUserStore
  */
 @Beta
 public interface UserStore {
 
-    String CURRENT_USER_KEY = "realm$currentUser";
-
     /**
-     * Saves a {@link SyncUser} object under the given key. If another user already exists, it will be replaced.
+     * Saves a {@link SyncUser} object. If another user already exists, it will be replaced.
+     *  {@link SyncUser#getIdentity()} is used as a unique identifier of a given {@link SyncUser}.
      *
-     * @param key key used to store the User.
      * @param user {@link SyncUser} object to store.
-     * @return The previous user saved with this key or {@code null} if no user was replaced.
-     *
      */
-    SyncUser put(String key, SyncUser user);
+    void put(SyncUser user);
 
     /**
-     * Retrieves the {@link SyncUser} with the given key.
+     * Retrieves the current {@link SyncUser}.
      *
-     * @param key {@link SyncUser} saved under the given key or {@code null} if no user exists for that key.
+     * For now, current User cannot be called if more that one valid, logged in user
+     * exists, it will throw an exception.
      */
-    SyncUser get(String key);
+    //TODO when ObjectStore integration of SyncManager is completed & multiple
+    //     users are allowed, consider passing the User identity to lookup apply
+    //     the operation to a particular user.
+    SyncUser get();
 
     /**
-     * Removes the user with the given key from the store.
-     *
-     * @param key key for the user to remove.
-     * @return {@link SyncUser} that was removed or {@code null} if no user matched the key.
+     * Removes the current user from the store.
      */
-    SyncUser remove(String key);
+    //TODO when ObjectStore integration of SyncManager is completed & multiple
+    //     users are allowed, consider passing the User identity to lookup apply
+    //     the operation to a particular user.
+    void remove();
 
     /**
      * Returns a collection of all users saved in the User store.
@@ -67,10 +66,4 @@ public interface UserStore {
      * @return Collection of all users. If no users exist, an empty collection is returned.
      */
     Collection<SyncUser> allUsers();
-
-
-    /**
-     * Removes all saved users.
-     */
-    void clear();
 }

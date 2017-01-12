@@ -54,9 +54,23 @@ public class RealmObjectWriteBenchmarks {
     }
 
     @Benchmark
-    public void writeString(long reps) {
+    public void writeShortString(long reps) {
         for (long i = 0; i < reps; i++) {
             writeObject.setColumnString("Foo");
+        }
+    }
+
+    @Benchmark
+    public void writeMediumString(long reps) {
+        for (long i = 0; i < reps; i++) {
+            writeObject.setColumnString("ABCDEFHIJKLMNOPQ");
+        }
+    }
+
+    @Benchmark
+    public void writeLongString(long reps) {
+        for (long i = 0; i < reps; i++) {
+            writeObject.setColumnString("ABCDEFHIJKLMNOPQABCDEFHIJKLMNOPQABCDEFHIJKLMNOPQABCDEFHIJKLMNOPQ");
         }
     }
 

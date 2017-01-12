@@ -70,14 +70,15 @@ public class SyncUser {
     }
 
     /**
-     * Returns the last user that has logged in and who is still valid.
-     * A user is invalidated when he/she logs out or the user's access token expire.
+     * Returns the current user that is logged in and still valid.
+     * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return last {@link SyncUser} that has logged in and who is still valid. {@code null} if no current user or user has
-     *         been invalidated.
+     * @return current {@link SyncUser} that has logged in and is still valid. {@code null} if no user is logged in or the user has
+     *         expired.
+     * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser currentUser() {
-        SyncUser user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
+        SyncUser user = SyncManager.getUserStore().get();
         if (user != null && user.isValid()) {
             return user;
         }
@@ -114,7 +115,7 @@ public class SyncUser {
         try {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
-            Token userToken = Token.from(obj.getJSONObject("userToken"));
+            Token userToken = Token.from(obj.getJSONObject("userToken"));//TODO rename to refresh_token
             ObjectServerUser syncUser = new ObjectServerUser(userToken, authUrl);
             JSONArray realmTokens = obj.getJSONArray("realms");
             for (int i = 0; i < realmTokens.length(); i++) {
@@ -158,7 +159,7 @@ public class SyncUser {
                 ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
-                SyncManager.getUserStore().put(UserStore.CURRENT_USER_KEY, user);
+                SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
                 return user;
             } else {
@@ -265,9 +266,7 @@ public class SyncUser {
             // FIXME We still need to cache the user token so it can be revoked.
             syncUser.clearTokens();
 
-            if (SyncUser.this.equals(SyncUser.currentUser())) {
-                SyncManager.getUserStore().remove(UserStore.CURRENT_USER_KEY);
-            }
+            SyncManager.getUserStore().remove();
 
             // Delete all Realms if needed.
             for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {

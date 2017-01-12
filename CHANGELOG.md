@@ -1,3 +1,9 @@
+## 2.3.0
+
+### Object Server API Changes (In Beta)
+
+* Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+
 ## 2.2.3
 
 ### Bug fixes
