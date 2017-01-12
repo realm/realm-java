@@ -29,9 +29,6 @@ public class Context {
     private final static ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
     private final static Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
 
-    // Context instance for native objects which are always thread-safe to be created and freed.
-    public final static Context sharedContext = new Context();
-
     static {
         finalizingThread.setName("RealmFinalizingDaemon");
         finalizingThread.start();
