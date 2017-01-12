@@ -4,6 +4,10 @@
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 
+### Object Server API Changes (In Beta)
+
+* Upgraded Realm Sync v1.0.0 BETA 7.0.
+
 ## 2.2.3
 
 ### Bug fixes
