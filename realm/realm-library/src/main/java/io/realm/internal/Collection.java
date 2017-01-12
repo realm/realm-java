@@ -148,8 +148,11 @@ public class Collection implements NativeObject {
     }
 
 
+    // neverDetach means the collection won't be detached when local transaction starts. This is useful for the
+    // PendingRow implementation.
     public Collection(SharedRealm sharedRealm, TableQuery query,
-                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor,
+                      boolean neverDetach) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -160,7 +163,14 @@ public class Collection implements NativeObject {
         this.context = sharedRealm.context;
         this.table = query.getTable();
         this.context.addReference(this);
-        sharedRealm.addCollection(this);
+        if (!neverDetach) {
+            sharedRealm.addCollection(this);
+        }
+    }
+
+    public Collection(SharedRealm sharedRealm, TableQuery query,
+                      SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor) {
+        this(sharedRealm, query, sortDescriptor, distinctDescriptor, false);
     }
 
     public Collection(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor) {

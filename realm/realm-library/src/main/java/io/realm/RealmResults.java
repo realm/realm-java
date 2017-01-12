@@ -73,6 +73,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     String className;     // Class name used by DynamicRealmObjects
 
     private final Collection collection;
+    private boolean loadedManually = false;
 
     RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         this.realm = realm;
@@ -130,7 +131,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (object instanceof RealmObjectProxy) {
+        if (isLoaded() && object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             // TODO: Maybe we should just let OS throw?
             if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
@@ -360,8 +361,11 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     @Override
     public int size() {
-        long size = collection.size();
-        return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
+        if (isLoaded()) {
+            long size = collection.size();
+            return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
+        }
+        return 0;
     }
 
     /**
@@ -449,10 +453,19 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     }
 
     /**
-     * @deprecated use {@link #distinct(String)} instead.
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
+     *
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
-        return distinct(fieldName);
+        return where().distinctAsync(fieldName);
     }
 
     /**
@@ -731,13 +744,21 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     public boolean isLoaded() {
         realm.checkIfValid();
-        return collection.getMode() == Collection.Mode.TABLEVIEW;
+        return loadedManually || collection.getMode() == Collection.Mode.TABLEVIEW;
     }
 
     /**
-     * @deprecated
+     * Makes an asynchronous query blocking. This will also trigger any registered {@link RealmChangeListener} when
+     * the query completes.
+     *
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
+        // The Collection doesn't have to be loaded before accessing it if the query has not returned.
+        // Instead, accessing the Collection will just trigger the execution of query if needed. We add this flag is
+        // only to keep the original behavior of those APIs. eg.: For a async RealmResults, before query returns, the
+        // size() call should return 0 instead of running the query get the real size.
+        loadedManually = true;
         return true;
     }
 

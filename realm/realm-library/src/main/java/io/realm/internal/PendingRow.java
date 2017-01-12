@@ -35,7 +35,7 @@ public class PendingRow implements Row {
 
     public PendingRow(SharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor,
                       final boolean returnCheckedRow) {
-        pendingCollection = new Collection(sharedRealm, query, sortDescriptor);
+        pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null, true);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override
@@ -212,7 +212,7 @@ public class PendingRow implements Row {
 
     @Override
     public boolean isAttached() {
-        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+        return false;
     }
 
     @Override

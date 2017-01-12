@@ -286,8 +286,11 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * @return {@code true} if this is a managed object.
-     * @deprecated see <a href=RealmQuery.html#async-query>Async Queries</a> for more information.
+     * Makes an asynchronous query blocking. This will also trigger any registered listeners.
+     * <p>
+     * Note: This will return {@code true} if called for an unmanaged object (created outside of Realm).
+     *
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public final boolean load() {
         //noinspection deprecation
@@ -295,11 +298,21 @@ public abstract class RealmObject implements RealmModel {
     }
 
     /**
-     * @return {@code true} if this is a managed object.
-     * @deprecated see <a href=RealmQuery.html#async-query>Async Queries</a> for more information.
+     * Makes an asynchronous query blocking. This will also trigger any registered listeners.
+     * <p>
+     * Note: This will return {@code true} if called for an unmanaged object (created outside of Realm).
+     *
+     * @param object RealmObject to force load.
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public static <E extends RealmModel> boolean load(E object) {
-        return object instanceof RealmObjectProxy;
+        if (RealmObject.isLoaded(object)) {
+            return true;
+        } else if (object instanceof RealmObjectProxy) {
+            ((RealmObjectProxy) object).realmGet$proxyState().load();
+            return true;
+        }
+        return false;
     }
 
     /**

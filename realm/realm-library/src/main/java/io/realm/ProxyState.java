@@ -19,6 +19,7 @@ package io.realm;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.realm.internal.InvalidRow;
 import io.realm.internal.PendingRow;
 import io.realm.internal.Row;
 import io.realm.internal.UncheckedRow;
@@ -56,10 +57,6 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     public Row getRow$realm() {
-        if (row instanceof PendingRow) {
-            row = ((PendingRow) row).executeQuery();
-            registerToRealmNotifier();
-        }
         return row;
     }
 
@@ -160,6 +157,16 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
 
     public boolean isLoaded() {
         return !(row instanceof PendingRow);
+    }
+
+    public void load() {
+        if (row instanceof PendingRow) {
+            row = ((PendingRow) row).executeQuery();
+            if (!(row instanceof InvalidRow)) {
+                registerToRealmNotifier();
+            }
+            notifyChangeListeners();
+        }
     }
 
     @Override

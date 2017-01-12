@@ -1318,15 +1318,24 @@ public class RealmQuery<E extends RealmModel> {
      */
     public RealmResults<E> distinct(String fieldName) {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
-        Collection collection = new Collection(realm.sharedRealm, query, null, distinctDescriptor);
-        return createRealmResults(collection);
+        return createRealmResults(query, null, distinctDescriptor, true);
     }
 
     /**
-     * @deprecated use {@link #distinct(String)} instead.
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
+     *
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
-        return distinct(fieldName);
+        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(query.getTable(), fieldName);
+        return createRealmResults(query, null, distinctDescriptor, false);
     }
 
     /**
@@ -1347,8 +1356,7 @@ public class RealmQuery<E extends RealmModel> {
         fieldNames[0] = firstFieldName;
         System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table.getTable(), fieldNames);
-        Collection collection = new Collection(realm.sharedRealm, query, null, distinctDescriptor);
-        return createRealmResults(collection);
+        return createRealmResults(query, null, distinctDescriptor, true);
     }
 
     // Aggregates
@@ -1502,15 +1510,19 @@ public class RealmQuery<E extends RealmModel> {
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
-        Collection collection = new Collection(realm.sharedRealm, query);
-        return createRealmResults(collection);
+        return createRealmResults(query, null, null, true);
     }
 
     /**
-     * @deprecated use {@link #findAll()} instead.
+     * Finds all objects that fulfill the query conditions and sorted by specific field name.
+     * This method is only available from a Looper thread.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllAsync() {
-        return findAll();
+        return createRealmResults(query, null, null, false);
     }
 
     /**
@@ -1529,16 +1541,21 @@ public class RealmQuery<E extends RealmModel> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
-
-        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
-        return createRealmResults(collection);
+        return createRealmResults(query, sortDescriptor, null, true);
     }
 
     /**
-     * @deprecated use {@link #findAllSorted(String, Sort) instead.}
+     * Similar to {@link #findAllSorted(String, Sort)} but runs asynchronously on a worker thread
+     * (Need a Realm opened from a looper thread to work).
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
-        return findAllSorted(fieldName, sortOrder);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
+        return createRealmResults(query, sortDescriptor, null, false);
     }
 
 
@@ -1559,7 +1576,13 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * @deprecated use {@link #findAllSorted(String)} instead.
+     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread
+     * This method is only available from a Looper thread.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName) {
         return findAllSortedAsync(fieldName, Sort.ASCENDING);
@@ -1573,16 +1596,14 @@ public class RealmQuery<E extends RealmModel> {
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero 
      *         objects is returned.
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
-
-        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor);
-        return createRealmResults(collection);
+        return createRealmResults(query, sortDescriptor, null, true);
     }
 
     private boolean isDynamicQuery() {
@@ -1590,10 +1611,19 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * @deprecated use {@link #findAllSorted(String[], Sort[])} instead.
+     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously
+     * from a worker thread.
+     * This method is only available from a Looper thread.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
-        return findAllSorted(fieldNames, sortOrders);
+        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
+        return createRealmResults(query, sortDescriptor, null, false);
     }
 
     /**
@@ -1617,7 +1647,13 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * @deprecated use {@link #findAllSorted(String, Sort, String, Sort)} instead.
+     * Similar to {@link #findAllSorted(String, Sort, String, Sort)} but runs asynchronously on a worker thread
+     * This method is only available from a Looper thread.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
                                               String fieldName2, Sort sortOrder2) {
@@ -1684,26 +1720,21 @@ public class RealmQuery<E extends RealmModel> {
         return result;
     }
 
-    private void checkSortParameters(String fieldNames[], final Sort[] sortOrders) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames cannot be 'null'.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrders cannot be 'null'.");
-        } else if (fieldNames.length == 0) {
-            throw new IllegalArgumentException("At least one field name must be specified.");
-        } else if (fieldNames.length != sortOrders.length) {
-            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
-                    "Number of field names (%d) and sort orders (%d) does not match.",
-                    fieldNames.length, sortOrders.length));
-        }
-    }
-
-    private RealmResults<E> createRealmResults(Collection collection) {
+    private RealmResults<E> createRealmResults(TableQuery query,
+                                               SortDescriptor sortDescriptor,
+                                               SortDescriptor distinctDescriptor,
+                                               boolean loadResults) {
+        RealmResults<E> results;
+        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
-            return new RealmResults<E>(realm, collection, className);
+            results = new RealmResults<E>(realm, collection, className);
         } else {
-            return new RealmResults<E>(realm, collection, clazz);
+            results = new RealmResults<E>(realm, collection, clazz);
         }
+        if (loadResults) {
+            results.load();
+        }
+        return results;
     }
 
     private long getSourceRowIndexForFirstObject() {
