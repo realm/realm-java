@@ -140,7 +140,7 @@ public abstract class RealmNotifier implements Closeable {
      */
     public abstract void post(Runnable runnable);
 
-    public int getListnersListSize() {
+    public int getListenersListSize() {
         return realmObserverPairs.size();
     }
 }
