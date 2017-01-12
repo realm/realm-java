@@ -7,10 +7,6 @@
 
 ### Internal
 
-* Updated Realm Sync to 1.0.0-BETA-7.0.
-
-### Internal
-
 * Updated Realm Sync to 1.0.0-BETA-7.1.
 
 ## 2.2.2
