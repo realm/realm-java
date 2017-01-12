@@ -17,8 +17,6 @@ package io.realm;
 
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
@@ -35,24 +33,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
-import io.realm.entities.Cat;
 import io.realm.entities.Dog;
-import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
-import io.realm.util.RealmBackgroundTask;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -534,7 +527,6 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
 
         final Dog dog = realm.where(Dog.class).findFirstAsync();
-        assertTrue(dog.load());
 
         looperThread.keepStrongReference.add(dog);
         dog.addChangeListener(new RealmChangeListener<Dog>() {
@@ -590,7 +582,7 @@ public class TypeBasedNotificationsTests {
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
         // Execute the query.
-        assertEquals(1, dogs.size());
+        dogs.first();
         looperThread.keepStrongReference.add(dogs);
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override

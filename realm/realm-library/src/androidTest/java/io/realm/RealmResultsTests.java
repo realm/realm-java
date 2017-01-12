@@ -539,6 +539,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -551,9 +552,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_doesNotExist() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -563,9 +566,11 @@ public class RealmResultsTests extends CollectionTests {
             realm.where(AnnotationIndexTypes.class).findAll().distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
@@ -575,9 +580,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10;
@@ -590,9 +597,11 @@ public class RealmResultsTests extends CollectionTests {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
@@ -600,6 +609,7 @@ public class RealmResultsTests extends CollectionTests {
             realm.where(AllJavaTypes.class).findAll().distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
