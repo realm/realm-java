@@ -25,6 +25,7 @@
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_SharedRealm.h"
 #include "shared_realm.hpp"
+#include "jni_util/jni_exceptions.hpp"
 
 using namespace std;
 using namespace realm;
@@ -48,6 +49,18 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     ostringstream ss;
     try {
         throw;
+    }
+    catch (JniPendingException& e) {
+        // We have a pending Java exception - probably from a sync error handler - and we really just want to get
+        // back to Java.
+        if (env->ExceptionCheck() == JNI_TRUE) {
+            return;
+        }
+
+        // If we don't have a pending exception, so something went wrong. But at least we can throw a Java
+        // exception.
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, FatalError, ss.str());
     }
     catch (bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;

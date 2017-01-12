@@ -33,6 +33,7 @@
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
+#include "jni_util/jni_exceptions.hpp"
 
 
 // Wrapper class for realm::Session. This allows us to manage the C++ session and callback lifecycle correctly.
@@ -81,6 +82,9 @@ public:
                             local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
                     local_env->CallVoidMethod(
                             obj, notify_error_handler, error_code.value(), local_env->NewStringUTF(message.c_str()));
+                    if (local_env->ExceptionCheck() == JNI_TRUE) {
+                        throw realm::jni_util::JniPendingException("Exception in error handler");
+                    }
                 });
             }
         };

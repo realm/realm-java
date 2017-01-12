@@ -2,6 +2,7 @@ package io.realm.objectserver;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -9,11 +10,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.SyncCredentials;
+import java.util.concurrent.CountDownLatch;
+
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
+import io.realm.SyncCredentials;
 import io.realm.SyncUser;
+import io.realm.TestHelper;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
@@ -65,5 +69,34 @@ public class AuthTests {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @RunTestInLooperThread
+    public void loginAsync_throwExceptionInErrorHandler() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                Log.d("REALM", "onSuccess");
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                Log.d("REALM", "onError 1");
+                latch.countDown();
+                Log.d("REALM", "onError 2");
+                throw new IllegalArgumentException("Boom");
+            }
+        });
+
+        Log.d("REALM", "main 1");
+        TestHelper.awaitOrFail(latch);
+        Log.d("REALM", "main 2");
+        looperThread.testComplete();
+        Log.d("REALM", "main 3");
     }
 }

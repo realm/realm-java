@@ -1,5 +1,9 @@
 ## 2.2.3
 
+### Object Server API Changes (In Beta)
+
+* Exceptions thrown in `SyncSession.ErrorHandler` are no longer swallowed by JNI (#3559).
+
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
