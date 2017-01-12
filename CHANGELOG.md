@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
+* Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
 
 ## 2.2.2
 
