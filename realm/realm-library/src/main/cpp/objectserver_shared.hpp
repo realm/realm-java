@@ -95,10 +95,10 @@ public:
                         realm::util::create_timestamped_template("recovered_realm"));
                 auto original_path = local_realm_path;
 
-                realm::SyncManager::shared().perform_metadata_update([original_path = std::move(
-                        original_path),
-                        recovery_path = std::move(recovery_path)](
-                const auto &manager) {
+                realm::jni_util::Log::d("Scheduling a client reset for %1, in %2.", original_path, recovery_path);
+
+                realm::SyncManager::shared().perform_metadata_update([original_path = std::move(original_path),
+                        recovery_path = std::move(recovery_path)](const auto &manager) {
                     realm::SyncFileActionMetadata(manager,
                                                   realm::SyncFileActionMetadata::Action::HandleRealmForClientReset,
                                                   original_path,
