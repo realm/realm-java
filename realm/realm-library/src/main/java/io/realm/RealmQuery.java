@@ -1253,8 +1253,8 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
      * <ul>
-     *   <li> '*' matches [0, n] unicode chars
-     *   <li>'?' matches a single unicode char.
+     *   <li>'*' matches [0, n] unicode chars</li>
+     *   <li>'?' matches a single unicode char.</li>
      * </ul>
      *
      * @param fieldName the field to compare.
@@ -1269,8 +1269,8 @@ public class RealmQuery<E extends RealmModel> {
     /**
      * Condition that the value of field matches with the specified substring, with wildcards:
      * <ul>
-     *   <li> '*' matches [0, n] unicode chars
-     *   <li>'?' matches a single unicode char.
+     *   <li>'*' matches [0, n] unicode chars</li>
+     *   <li>'?' matches a single unicode char.</li>
      * </ul>
      *
      * @param fieldName the field to compare.
