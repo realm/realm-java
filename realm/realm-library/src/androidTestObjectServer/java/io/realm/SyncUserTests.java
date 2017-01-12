@@ -197,4 +197,19 @@ public class SyncUserTests {
         assertTrue(str != null && !str.isEmpty());
     }
 
+    // Test that a login an access token logs the user in directly without touching the network
+    @Test
+    public void login_withAccessToken() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenThrow(new AssertionError("Server contacted."));
+        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        SyncManager.setAuthServerImpl(authServer);
+        try {
+            SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
+            SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
+            assertTrue(user.isValid());
+        } finally {
+            SyncManager.setAuthServerImpl(originalServer);
+        }
+    }
 }
