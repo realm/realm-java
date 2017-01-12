@@ -305,11 +305,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
                 SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, Sort.ASCENDING);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
-        if (className != null) {
-            return new RealmResults<E>(realm, sortedCollection, className);
-        } else {
-            return new RealmResults<E>(realm, sortedCollection, classSpec);
-        }
+        return createLoadedResults(sortedCollection);
     }
 
     /**
@@ -321,11 +317,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
                 SortDescriptor.getInstanceForSort(collection.getTable(), fieldName, sortOrder);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
-        if (className != null) {
-            return new RealmResults<E>(realm, sortedCollection, className);
-        } else {
-            return new RealmResults<E>(realm, sortedCollection, classSpec);
-        }
+        return createLoadedResults(sortedCollection);
     }
 
     /**
@@ -337,11 +329,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
                 SortDescriptor.getInstanceForSort(collection.getTable(), fieldNames, sortOrders);
 
         Collection sortedCollection = collection.sort(sortDescriptor);
-        if (className != null) {
-            return new RealmResults<E>(realm, sortedCollection, className);
-        } else {
-            return new RealmResults<E>(realm, sortedCollection, classSpec);
-        }
+        return createLoadedResults(sortedCollection);
     }
 
     /**
@@ -445,11 +433,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     public RealmResults<E> distinct(String fieldName) {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(collection.getTable(), fieldName);
         Collection distinctCollection = collection.distinct(distinctDescriptor);
-        if (className != null) {
-            return new RealmResults<E>(realm, distinctCollection, className);
-        } else {
-            return new RealmResults<E>(realm, distinctCollection, classSpec);
-        }
+        return createLoadedResults(distinctCollection);
     }
 
     /**
@@ -843,5 +827,16 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
         }
+    }
+
+    private RealmResults<E> createLoadedResults(Collection newCollection) {
+        RealmResults<E> results;
+        if (className != null) {
+            results = new RealmResults<E>(realm, newCollection, className);
+        } else {
+            results = new RealmResults<E>(realm, newCollection, classSpec);
+        }
+        results.load();
+        return results;
     }
 }
