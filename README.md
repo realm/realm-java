@@ -230,6 +230,11 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://realm
 By participating, you are expected to uphold this code. Please report
 unacceptable behavior to [info@realm.io](mailto:info@realm.io).
 
+The directory `realm/config/studio` contains lint and style files recommended for project code.
+Import them from Android Studio with Android Studio > Preferences... > Code Style > Manage... > Import,
+or Android Studio > Preferences... > Inspections > Manage... > Import.  Once imported select the
+style/lint in the drop-down to the left of the Manage... button.
+
 ## License
 
 Realm Java is published under the Apache 2.0 license.
