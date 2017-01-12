@@ -460,6 +460,7 @@ public class RealmAsyncQueryTests {
         Realm realm = Realm.getInstance(configFactory.createConfiguration());
         try {
             realm.where(AllTypes.class).findAllAsync();
+            fail();
         } catch (IllegalStateException ignored) {
         } finally {
             realm.close();

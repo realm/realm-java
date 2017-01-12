@@ -60,6 +60,7 @@ public class RealmQuery<E extends RealmModel> {
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
+    static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
 
     /**
      * Creates a query for objects of a given class from a {@link Realm}.
@@ -1522,6 +1523,7 @@ public class RealmQuery<E extends RealmModel> {
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllAsync() {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         return createRealmResults(query, null, null, false);
     }
 
@@ -1554,6 +1556,7 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, false);
     }
@@ -1622,6 +1625,7 @@ public class RealmQuery<E extends RealmModel> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(query.getTable(), fieldNames, sortOrders);
         return createRealmResults(query, sortDescriptor, null, false);
     }
@@ -1688,6 +1692,7 @@ public class RealmQuery<E extends RealmModel> {
      * {@code false}.
      */
     public E findFirstAsync() {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         Row row;
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.

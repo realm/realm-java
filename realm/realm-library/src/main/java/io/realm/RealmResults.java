@@ -449,6 +449,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinctAsync(String fieldName) {
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(RealmQuery.ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         return where().distinctAsync(fieldName);
     }
 
