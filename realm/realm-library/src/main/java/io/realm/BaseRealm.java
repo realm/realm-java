@@ -29,17 +29,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.InvalidRow;
-import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.InvalidRow;
+import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import io.realm.internal.ObjectServerFacade;
 import rx.Observable;
 
 /**
@@ -60,7 +60,7 @@ abstract class BaseRealm implements Closeable {
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
 
-    
+
     volatile static Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
@@ -434,7 +434,11 @@ abstract class BaseRealm implements Closeable {
      * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        return sharedRealm.getSchemaVersion();
+        long version = sharedRealm.getSchemaVersion();
+        if ((version >= 0) && (configuration.isSyncConfiguration())) {
+            version = Math.max(version, configuration.getSchemaVersion());
+        }
+        return version;
     }
 
     /**
