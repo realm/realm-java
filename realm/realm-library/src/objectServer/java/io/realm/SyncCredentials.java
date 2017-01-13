@@ -66,11 +66,37 @@ import io.realm.annotations.Beta;
 @Beta
 public class SyncCredentials {
 
-    private String identityProvider;
-    private String userIdentifier;
-    private Map<String, Object> userInfo;
+    private final String userIdentifier;
+    private final String identityProvider;
+    private final Map<String, Object> userInfo;
 
     // Factory constructors
+
+    /**
+     * Creates credentials based on a Facebook login.
+     *
+     * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
+     */
+    public static SyncCredentials facebook(String facebookToken) {
+        assertStringNotEmpty(facebookToken, "facebookToken");
+        return new SyncCredentials(facebookToken, IdentityProvider.FACEBOOK, null);
+    }
+
+    /**
+     * Creates credentials based on a Google login.
+     *
+     * @param googleToken a google userIdentifier acquired by logging into Google.
+     * @return a set of credentials that can be used to log into the Object Server using
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * @throws IllegalArgumentException if user name is either {@code null} or empty.
+     */
+    public static SyncCredentials google(String googleToken) {
+        assertStringNotEmpty(googleToken, "googleToken");
+        return new SyncCredentials(googleToken, IdentityProvider.GOOGLE, null);
+    }
 
     /**
      * Creates credentials based on a login with username and password. These credentials will only be verified
@@ -86,51 +112,33 @@ public class SyncCredentials {
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials usernamePassword(String username, String password, boolean createUser) {
-        if (username == null || username.equals("")) {
-            throw new IllegalArgumentException("Non-null 'username' required.");
-        }
+        assertStringNotEmpty(username, "username");
         Map<String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("register", createUser);
         userInfo.put("password", password);
-        return new SyncCredentials(IdentityProvider.USERNAME_PASSWORD, username, userInfo);
+        return new SyncCredentials(username, IdentityProvider.USERNAME_PASSWORD, userInfo);
     }
 
     /**
-     * Creates credentials based on a Facebook login.
+     * Creates credentials based on a login with username and password. These credentials will only be verified
+     * by the Object Server.  The user is not created if she does not exist.
      *
-     * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
+     * @param username username of the user.
+     * @param password the users password.
      * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
-    public static SyncCredentials facebook(String facebookToken) {
-        if (facebookToken == null || facebookToken.equals("")) {
-            throw new IllegalArgumentException("Non-null 'facebookToken' required.");
-        }
-        return new SyncCredentials(IdentityProvider.FACEBOOK, facebookToken, null);
-    }
-
-    /**
-     * Creates credentials based on a Google login.
-     *
-     * @param googleToken a google userIdentifier acquired by logging into Google.
-     * @return a set of credentials that can be used to log into the Object Server using
-     *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
-     * @throws IllegalArgumentException if user name is either {@code null} or empty.
-     */
-    public static SyncCredentials google(String googleToken) {
-        if (googleToken == null || googleToken.equals("")) {
-            throw new IllegalArgumentException("Non-null 'googleToken' required.");
-        }
-        return new SyncCredentials(IdentityProvider.GOOGLE, googleToken, null);
+    public static SyncCredentials usernamePassword(String username, String password) {
+        return usernamePassword(username, password, false);
     }
 
     /**
      * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
      * {@code userInfo} used.
      *
-     * @param identityProvider provider used to verify the credentials.
      * @param userIdentifier String identifying the user. Usually a username of userIdentifier.
+     * @param identityProvider provider used to verify the credentials.
      * @param userInfo data describing the user further or {@code null} if the user does not have any extra data. The
      *              data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom
      *              classes will be converted using {@code toString()}.
@@ -138,20 +146,22 @@ public class SyncCredentials {
      *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if any parameter is either {@code null} or empty.
      */
-    public static SyncCredentials custom(String identityProvider, String userIdentifier, Map<String, Object> userInfo) {
-        if (identityProvider == null || identityProvider.equals("")) {
-            throw new IllegalArgumentException("Non-null 'identityProvider' required.");
-        }
-        if (userIdentifier == null || userIdentifier.equals("")) {
-            throw new IllegalArgumentException("Non-null 'userIdentifier' required.");
-        }
+    public static SyncCredentials custom(String userIdentifier, String identityProvider, Map<String, Object> userInfo) {
+        assertStringNotEmpty(userIdentifier, "userIdentifier");
+        assertStringNotEmpty(identityProvider, "identityProvider");
         if (userInfo == null) {
             userInfo = new HashMap<String, Object>();
         }
-        return new SyncCredentials(identityProvider, userIdentifier, userInfo);
+        return new SyncCredentials(userIdentifier, identityProvider, userInfo);
     }
 
-    private SyncCredentials(String identityProvider, String token, Map<String, Object> userInfo) {
+    private static void assertStringNotEmpty(String string, String message) {
+        if (string == null || "".equals(string)) {
+            throw new IllegalArgumentException("Non-null '" + message + "' required.");
+        }
+    }
+
+    private SyncCredentials(String token, String identityProvider, Map<String, Object> userInfo) {
         this.identityProvider = identityProvider;
         this.userIdentifier = token;
         this.userInfo = (userInfo == null) ? new HashMap<String, Object>() : userInfo;

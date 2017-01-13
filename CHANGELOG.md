@@ -7,6 +7,18 @@
 ### Object Server API Changes (In Beta)
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+* Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
+
+## 2.2.3
+
+### Bug fixes
+
+* Fixed native memory leak setting the value of a primary key (#3993).
+* Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
+
+### Internal
+
+* Updated Realm Sync to 1.0.0-BETA-7.1.
 
 ## 2.2.2
 
@@ -28,6 +40,7 @@
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
 * All Realm instances share a single notification daemon thread.
 * Fixed Java lint warnings with generated proxy classes (#2929).
+* Add 'like' predicate for String fields (#3752)
 
 ### Internal
 
