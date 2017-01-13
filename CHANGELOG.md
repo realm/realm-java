@@ -3,11 +3,12 @@
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
-* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039). 
+* Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
+* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
 
 ### Internal
 
-* Updated Realm Sync to 1.0.0-BETA-7.0.
+* Updated Realm Sync to 1.0.0-BETA-7.1.
 
 ## 2.2.2
 
