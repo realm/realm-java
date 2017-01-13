@@ -24,6 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -31,6 +33,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -114,27 +117,48 @@ public class RealmNotifierTests {
         sharedRealm.commitTransaction();
     }
 
-    @Test
-    @RunTestInLooperThread
-    public void addChangeListener_byRemoteChanges() {
-        SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
-        sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
-            @Override
-            public void onChange(SharedRealm sharedRealm) {
-                // FIXME: Enable this after https://github.com/realm/realm-object-store/pull/318 fixed
-                //sharedRealm.close();
-                looperThread.testComplete();
-            }
-        });
+    private void makeRemoteChanges(final RealmConfiguration config) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
+                SharedRealm sharedRealm = getSharedRealm(config);
                 sharedRealm.beginTransaction();
                 sharedRealm.commitTransaction();
                 sharedRealm.close();
             }
         }).start();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_byRemoteChanges() {
+        // To catch https://github.com/realm/realm-java/pull/4037 CI failure.
+        // In this case, object store should not send more than 100 notifications.
+        final int TIMES = 100;
+        final AtomicInteger commitCounter = new AtomicInteger(0);
+        final AtomicInteger listenerCounter = new AtomicInteger(0);
+
+        looperThread.realm.close();
+
+        SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
+        sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
+            @Override
+            public void onChange(SharedRealm sharedRealm) {
+                int commits = commitCounter.get();
+                int listenerCount = listenerCounter.addAndGet(1);
+                assertEquals(commits, listenerCount);
+                if (commits == TIMES) {
+                    // FIXME: Enable this after https://github.com/realm/realm-object-store/pull/318 fixed
+                    //sharedRealm.close();
+                    looperThread.testComplete();
+                } else {
+                    makeRemoteChanges(looperThread.realmConfiguration);
+                    commitCounter.getAndIncrement();
+                }
+            }
+        });
+        makeRemoteChanges(looperThread.realmConfiguration);
+        commitCounter.getAndIncrement();
     }
 
     @Test

@@ -4,9 +4,14 @@ import android.os.Handler;
 import android.os.Looper;
 
 import io.realm.internal.Capabilities;
+import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 
+/**
+ * {@link RealmNotifier} implementation for Android.
+ */
+@Keep
 public class AndroidRealmNotifier extends RealmNotifier {
     private Handler handler;
 

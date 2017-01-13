@@ -29,7 +29,22 @@ import io.realm.RealmChangeListener;
 @Keep
 public abstract class RealmNotifier implements Closeable {
 
-    private SharedRealm sharedRealm;
+// Calling sequences for a remote commit
+// |-------------------------------+--------------+-----------------------------------|
+// | Thread A                      | Thread B     | Daemon Thread                     |
+// |-------------------------------+--------------+-----------------------------------|
+// |                               | Make changes |                                   |
+// |-------------------------------+--------------+-----------------------------------|
+// |                               |              | epoll callback and notify ALooper |
+// |-------------------------------+--------------+-----------------------------------|
+// | ALooper callback              |              |                                   |
+// | BindingContext::before_notify |              |                                   |
+// | RealmNotifier.beforeNotify    |              |                                   |
+// | BindingContext::did_change    |              |                                   |
+// | RealmNotifier.didChange       |              |                                   |
+// | process_available_async       |              |                                   |
+// | Collection listeners          |              |                                   |
+// |-------------------------------+--------------+-----------------------------------|
 
     private static class RealmObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
         public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
@@ -57,6 +72,7 @@ public abstract class RealmNotifier implements Closeable {
         this.sharedRealm = sharedRealm;
     }
 
+    private SharedRealm sharedRealm;
     // TODO: The only reason we have this is that async transactions is not supported by OS yet. And OS is using ALopper
     // which will be using a different message queue from which java is using to deliver remote Realm changes message.
     // We need a way to deliver the async transaction onSuccess callback to the caller thread after the caller Realm
@@ -66,22 +82,13 @@ public abstract class RealmNotifier implements Closeable {
     // This list is NOT supposed to be thread safe!
     private List<Runnable> transactionCallbacks = new ArrayList<Runnable>();
 
-    // This is called by OS when other thread/process changes the Realm.
-    // This is getting called on the same thread which created the Realm.
-    // |---------------------------------------------------------------+--------------+------------------------------------------------|
-    // | Thread A                                                      | Thread B     | Daemon Thread                                  |
-    // |---------------------------------------------------------------+--------------+------------------------------------------------|
-    // |                                                               | Make changes |                                                |
-    // |                                                               |              | Detect and notify thread A through JNI ALooper |
-    // | Call OS's Realm::notify() from OS's ALooper callback          |              |                                                |
-    // | Realm::notify() calls JavaBindingContext:change_available()   |              |                                                |
-    // | change_available calls into this method to send REALM_CHANGED |              |                                                |
-    // |---------------------------------------------------------------+--------------+------------------------------------------------|
-    /**
-     * This is called in Realm Object Store's JavaBindingContext::changes_available.
-     * This is getting called on the same thread which created this Realm when the same Realm file has been changed by
-     * other thread. The changes on the same thread should not trigger this call.
-     */
+
+    // Called from JavaBindingContext::did_change.
+    // This will be called in the caller thread when:
+    // - A committed remote transaction, called from changed event handler.
+    // - A committed remote transaction, called directly from refresh call.
+    // - A committed local transaction, called directly from commitTransaction instead of next event.
+    //   loop.
     // Package protected to avoid finding class by name in JNI.
     @SuppressWarnings("unused") // called from java_binding_context.cpp
     void didChange() {
@@ -92,9 +99,14 @@ public abstract class RealmNotifier implements Closeable {
         transactionCallbacks.clear();
     }
 
-    @SuppressWarnings("unused") // called from java_binding_context.cpp
+    // Called from JavaBindingContext::before_notify.
+    // This will be called in the caller thread when:
+    // 1. Get changed notification by this/other Realm instances.
+    // 2. SharedRealm::refresh called.
+    // In both cases, this will be called before the any other callbacks (changed callbacks, async query callbacks.).
     // Package protected to avoid finding class by name in JNI.
-    void changesAvailable() {
+    @SuppressWarnings("unused")
+    void beforeNotify() {
         // For the stable iteration.
         sharedRealm.reattachCollections();
     }
@@ -131,6 +143,11 @@ public abstract class RealmNotifier implements Closeable {
         transactionCallbacks.add(runnable);
     }
 
+    /**
+     * Post a runnable to be executed at the very next event loop. Used by current stable Collection iterator.
+     *
+     * @param runnable to be executed at the next event loop.
+     */
     public abstract void postAtFrontOfQueue(Runnable runnable);
 
     /**
