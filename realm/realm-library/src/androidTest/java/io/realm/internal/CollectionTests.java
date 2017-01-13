@@ -124,13 +124,6 @@ public class CollectionTests {
         sharedRealm.commitTransaction();
     }
 
-    private void removeRow(SharedRealm sharedRealm) {
-        sharedRealm.beginTransaction();
-        table = sharedRealm.getTable("test_table");
-        table.remove(0);
-        sharedRealm.commitTransaction();
-    }
-
     @Test
     public void constructor_withDistinct() {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(table, "firstName");

@@ -26,9 +26,9 @@ import io.realm.RealmChangeListener;
 
 /**
  * Java wrapper of OS Results class.
- * It is supposed to be the backend of binding's query results, link list and back links.
+ * It is the backend of binding's query results, link list and back links.
  */
-@KeepMember
+@Keep
 public class Collection implements NativeObject {
 
     private class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
@@ -93,7 +93,6 @@ public class Collection implements NativeObject {
     public static final byte AGGREGATE_FUNCTION_AVERAGE = 3;
     @SuppressWarnings("WeakerAccess")
     public static final byte AGGREGATE_FUNCTION_SUM = 4;
-
     public enum Aggregate {
         MINIMUM(AGGREGATE_FUNCTION_MINIMUM),
         MAXIMUM(AGGREGATE_FUNCTION_MAXIMUM),
@@ -121,7 +120,6 @@ public class Collection implements NativeObject {
     public static final byte MODE_LINKVIEW = 3;
     @SuppressWarnings("WeakerAccess")
     public static final byte MODE_TABLEVIEW = 4;
-
     public enum Mode {
         EMPTY,          // Backed by nothing (for missing tables)
         TABLE,          // Backed directly by a Table
@@ -298,7 +296,6 @@ public class Collection implements NativeObject {
     }
 
     // Called by JNI
-    @KeepMember
     @SuppressWarnings("unused")
     private void notifyChangeListeners(boolean emptyChanges) {
         if (isDetached()) return;
@@ -309,8 +306,7 @@ public class Collection implements NativeObject {
         return Mode.getByValue(nativeGetMode(nativePtr));
     }
 
-    // Turns this collection to be backed by a snapshot results.
-    // A snapshot results will never be auto-updated.
+    // Turns this collection to be backed by a snapshot results. A snapshot results will never be auto-updated.
     void detach() {
         nativeDetach(nativePtr);
     }
@@ -330,8 +326,6 @@ public class Collection implements NativeObject {
     private static native long nativeGetFinalizerPtr();
     private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
                                                    SortDescriptor sortDesc, SortDescriptor distinctDesc);
-    @SuppressWarnings("unused") // Not used for now
-    private static native long nativeCreateSnapshot(long nativePtr);
     private static native long nativeGetRow(long nativePtr, int index);
     private static native long nativeFirstRow(long nativePtr);
     private static native long nativeLastRow(long nativePtr);

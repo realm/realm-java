@@ -17,15 +17,16 @@
 #include <jni.h>
 #include "io_realm_internal_Collection.h"
 
-#include <vector>
+#include <realm/util/assert.hpp>
 
 #include <shared_realm.hpp>
 #include <results.hpp>
 
-#include "util.hpp"
 #include "java_sort_descriptor.hpp"
-#include "jni_util/java_method.hpp"
+#include "util.hpp"
+
 #include "jni_util/java_global_weak_ref.hpp"
+#include "jni_util/java_method.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -122,18 +123,6 @@ Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass, jlong
         }
 
         return reinterpret_cast<jlong>(wrapper);
-    } CATCH_STD()
-    return reinterpret_cast<jlong>(nullptr);
-}
-
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_Collection_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
-{
-    TR_ENTER_PTR(native_ptr)
-    try {
-        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto snapshot = wrapper->get_original_results();
-        return reinterpret_cast<jlong>(new Results(snapshot));
     } CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
@@ -308,11 +297,12 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
             // OS will call all notifiers' callback in one run, so check the Java exception first!!
             if (env->ExceptionCheck()) return;
 
-            //if (!wrapper->is_detached()) {
+            // It should have been reattached before the callback.
+            REALM_ASSERT_DEBUG(!wrapper->is_detached());
+
             wrapper->m_collection_weak_ref.call_with_local_ref(env, [&] (JNIEnv* local_env, jobject collection_obj) {
                 local_env->CallVoidMethod(collection_obj, notify_change_listeners, changes.empty());
             });
-            //}
         };
 
         wrapper->m_notification_token =  wrapper->get_original_results().add_notification_callback(cb);
@@ -419,7 +409,6 @@ Java_io_realm_internal_Collection_nativeDeleteLast(JNIEnv *env, jclass, jlong na
             return JNI_TRUE;
         }
     } CATCH_STD()
-
     return JNI_FALSE;
 }
 
@@ -437,7 +426,6 @@ Java_io_realm_internal_Collection_nativeDeleteFirst(JNIEnv *env, jclass, jlong n
             return JNI_TRUE;
         }
     } CATCH_STD()
-
     return JNI_FALSE;
 }
 
