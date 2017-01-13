@@ -79,7 +79,7 @@ public class ProcessCommitTests {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getTargetContext();
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
+                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
                     String realmUrl = Constants.SYNC_SERVER_URL;
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                             .name(SendOneCommit.class.getSimpleName())
@@ -139,7 +139,7 @@ public class ProcessCommitTests {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
+                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
                     String realmUrl = Constants.SYNC_SERVER_URL_2;
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                             .name(SendsALot.class.getSimpleName())

@@ -89,9 +89,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
         Call call = client.newCall(request);
-        RealmLog.debug("Sending request: " + requestBody.toString());
+        RealmLog.debug("Authenticating: " + requestBody);
         Response response = call.execute();
-        RealmLog.debug("Authenticate response: " + response.toString());
         return AuthenticateResponse.from(response);
     }
 }

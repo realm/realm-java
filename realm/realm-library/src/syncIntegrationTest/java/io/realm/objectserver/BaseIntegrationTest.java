@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.utils;
+package io.realm.objectserver;
 
-public class Constants {
+import android.support.test.InstrumentationRegistry;
 
-    public static String SYNC_SERVER_URL = "realm://127.0.0.1:7800/tests";
-    public static String SYNC_SERVER_URL_2 = "realm://127.0.0.1:7800/tests2";
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
-    public static String AUTH_SERVER_URL = "http://127.0.0.1:9080/";
-    public static String AUTH_URL = AUTH_SERVER_URL + "auth";
+import io.realm.Realm;
+import io.realm.objectserver.utils.HttpUtils;
+
+public class BaseIntegrationTest {
+
+    @BeforeClass
+    public static void setUp () throws Exception {
+        Realm.init(InstrumentationRegistry.getContext());
+        HttpUtils.startSyncServer();
+    }
+
+    @AfterClass
+    public static void tearDown () throws Exception {
+        HttpUtils.stopSyncServer();
+    }
+
 }

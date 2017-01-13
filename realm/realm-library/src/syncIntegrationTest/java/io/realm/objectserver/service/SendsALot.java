@@ -36,7 +36,7 @@ public class SendsALot extends Service {
     public void onCreate() {
         super.onCreate();
         Realm.init(getApplicationContext());
-        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
+        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL_2;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                 .name(SendsALot.class.getSimpleName())

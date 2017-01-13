@@ -46,6 +46,9 @@ auth:
     ## quickly. This value is represented in seconds. Default: 1 minute.
     # access_token: 60
 
+  providers:
+    debug: {}
+
 ## ----------------------------------------------------------------------------
 
 proxy:

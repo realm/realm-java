@@ -49,9 +49,9 @@ import static org.junit.Assert.fail;
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
 
-    // Default Realm created by this Rule. It is guarenteed to be closed when the test finishes.
+    // Default Realm created by this Rule. It is guaranteed to be closed when the test finishes.
     public Realm realm;
-    // Custom Realm used by the test. Saving the reference here will guarentee the instance is closed when exiting the test.
+    // Custom Realm used by the test. Saving the reference here will guarantee the instance is closed when exiting the test.
     public Realm testRealm; // Custom test realm defined by the test case. This rule will gua
     public RealmConfiguration realmConfiguration;
     private CountDownLatch signalTestCompleted;
