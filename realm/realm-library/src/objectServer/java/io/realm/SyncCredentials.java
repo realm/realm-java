@@ -169,7 +169,7 @@ public class SyncCredentials {
     public static SyncCredentials accessToken(String accessToken, String identifier) {
         HashMap<String, Object> userInfo = new HashMap<String, Object>();
         userInfo.put("_token", accessToken);
-        return new SyncCredentials(IdentityProvider.ACCESS_TOKEN, identifier, userInfo);
+        return new SyncCredentials(identifier, IdentityProvider.ACCESS_TOKEN, userInfo);
     }
 
     private static void assertStringNotEmpty(String string, String message) {

@@ -29,7 +29,7 @@ public class UserFactory {
 
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
-        SyncCredentials credentials = SyncCredentials.custom("debug", "admin", null);
+        SyncCredentials credentials = SyncCredentials.custom("admin", "debug", null);
         return SyncUser.login(credentials, authUrl);
     }
 }
