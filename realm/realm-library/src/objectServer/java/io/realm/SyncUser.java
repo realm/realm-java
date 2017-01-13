@@ -44,7 +44,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionChange;
 import io.realm.permissions.PermissionModule;
 
 /**
@@ -390,10 +389,6 @@ public class SyncUser {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not create URL to the management Realm", e);
         }
-    }
-
-    public void removeAccessToken (URI serverURL) {
-        syncUser.removeAccessToken(serverURL);
     }
 
     @Override
