@@ -449,7 +449,7 @@ Java_io_realm_internal_SharedRealm_nativeSetAutoRefresh(JNIEnv *env, jclass, jlo
     TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        shared_realm->set_auto_refresh(enabled);
+        shared_realm->set_auto_refresh(to_bool(enabled));
     } CATCH_STD()
 }
 
@@ -459,7 +459,7 @@ Java_io_realm_internal_SharedRealm_nativeIsAutoRefresh(JNIEnv *env, jclass, jlon
     TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        return static_cast<jboolean>(shared_realm->auto_refresh());
+        return to_jbool(shared_realm->auto_refresh());
     } CATCH_STD()
     return JNI_FALSE;
 }

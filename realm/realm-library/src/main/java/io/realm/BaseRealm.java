@@ -59,7 +59,7 @@ abstract class BaseRealm implements Closeable {
             "This Realm instance has already been closed, making it unusable.";
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
-    private static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
+    static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
     
     volatile static Context applicationContext;

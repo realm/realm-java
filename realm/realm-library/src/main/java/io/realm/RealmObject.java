@@ -66,7 +66,6 @@ import rx.Observable;
 
 @RealmClass
 public abstract class RealmObject implements RealmModel {
-    private static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
     /**
      * Deletes the object from the Realm it is currently associated to.
@@ -159,7 +158,7 @@ public abstract class RealmObject implements RealmModel {
      * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
+     * "Null" objects represent {@code null}.  An exception is thrown if any accessor is called, so it is important to also
      * check {@link #isValid()} before calling any methods. A common pattern is:
      *
      * <pre>
@@ -348,7 +347,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
             //noinspection unchecked
             proxy.realmGet$proxyState().addChangeListener(listener);
         } else {
@@ -388,7 +387,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
             //noinspection unchecked
             proxy.realmGet$proxyState().removeChangeListener(listener);
         } else {
@@ -414,7 +413,7 @@ public abstract class RealmObject implements RealmModel {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
             proxy.realmGet$proxyState().removeAllChangeListeners();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");

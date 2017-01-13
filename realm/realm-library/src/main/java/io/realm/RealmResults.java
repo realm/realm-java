@@ -66,7 +66,6 @@ import rx.Observable;
 public class RealmResults<E extends RealmModel> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
-    private static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
 
     final BaseRealm realm;
     Class<E> classSpec;   // Return type
@@ -759,7 +758,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
         collection.addListener(this, listener);
     }
 
@@ -775,7 +774,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
         collection.removeListener(this, listener);
     }
 
@@ -784,7 +783,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     public void removeChangeListeners() {
         realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
         collection.removeAllListeners();
     }
 

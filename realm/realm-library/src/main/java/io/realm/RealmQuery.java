@@ -1548,7 +1548,7 @@ public class RealmQuery<E extends RealmModel> {
 
     /**
      * Similar to {@link #findAllSorted(String, Sort)} but runs asynchronously on a worker thread
-     * (Need a Realm opened from a looper thread to work).
+     * (need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1579,7 +1579,7 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread
+     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread.
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
@@ -1614,7 +1614,7 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
-     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously
+     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously.
      * from a worker thread.
      * This method is only available from a Looper thread.
      *

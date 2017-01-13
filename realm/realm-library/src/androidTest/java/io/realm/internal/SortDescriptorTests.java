@@ -126,7 +126,7 @@ public class SortDescriptorTests {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!SortDescriptor.validFieldTypesForDistinct.contains(type) &&
                     type != RealmFieldType.UNSUPPORTED_DATE &&
-                    type != RealmFieldType.UNSUPPORTED_TABLE&&
+                    type != RealmFieldType.UNSUPPORTED_TABLE &&
                     type != RealmFieldType.UNSUPPORTED_MIXED) {
                 if (type == RealmFieldType.LIST || type == RealmFieldType.OBJECT) {
                     table.addColumnLink(type, type.name(), table);
@@ -228,8 +228,8 @@ public class SortDescriptorTests {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Number of fields and sort orders do not match.");
-        SortDescriptor.getInstanceForSort(table, new String[] {
-                stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
+        SortDescriptor.getInstanceForSort(table,
+                new String[] { stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
 
     }
 
