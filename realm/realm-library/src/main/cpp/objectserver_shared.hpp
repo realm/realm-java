@@ -71,7 +71,7 @@ public:
                 // will trigger "called with pending exception" later since the thread is created by java, and the
                 // endless loop is in native code. The java exception will never be thrown because of the endless loop
                 // will never quit to java land.
-                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal:", error_code.value(), error_code.message(), is_fatal);
+                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.", error_code.value(), error_code.message(), is_fatal);
                 return;
             }
 
@@ -94,6 +94,7 @@ public:
                         realm::util::create_timestamped_template("recovered_realm"));
                 auto original_path = local_realm_path;
 
+                realm::jni_util::Log::d("A client reset is scheduled for the next app start");
                 realm::SyncManager::shared().perform_metadata_update([original_path = std::move(original_path),
                         recovery_path = std::move(recovery_path)](const auto &manager) {
                     realm::SyncFileActionMetadata(manager,
@@ -104,10 +105,10 @@ public:
                                                   realm::util::Optional<std::string>(
                                                           std::move(recovery_path)));
                 });
+
             } else {
                 auto session_ref = weak_session_ref.lock();
                 if (session_ref) {
-
                         session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
                             static realm::jni_util::JavaMethod notify_error_handler(
                                     local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
