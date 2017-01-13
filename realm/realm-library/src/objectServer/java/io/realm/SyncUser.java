@@ -392,6 +392,10 @@ public class SyncUser {
         }
     }
 
+    public void removeAccessToken (URI serverURL) {
+        syncUser.removeAccessToken(serverURL);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

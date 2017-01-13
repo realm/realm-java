@@ -97,6 +97,13 @@ public class ObjectServerUser {
         return (accessDescription != null) ? accessDescription.accessToken : null;
     }
 
+    public void removeAccessToken(URI serverUrl) {
+        AccessDescription accessDescription = realms.get(serverUrl);
+        if (accessDescription != null) {
+            accessDescription.accessToken = null;
+        }
+    }
+
     public void addRealm(URI uri, AccessDescription description) {
         realms.put(uri, description);
     }

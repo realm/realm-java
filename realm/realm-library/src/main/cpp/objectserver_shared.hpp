@@ -61,8 +61,8 @@ public:
                 coordinator->wake_up_notifier_worker();
             }
         };
-        auto error_handler = [weak_session_ref](std::error_code error_code, bool is_fatal, const std::string message) {
-            if (error_code.category() != realm::sync::protocol_error_category() ||
+        auto error_handler = [weak_session_ref, local_realm_path](std::error_code error_code, bool is_fatal, const std::string message) {
+            if (error_code.category() != realm::sync::protocol_error_category() &&
                     error_code.category() != realm::sync::client_error_category()) {
                 // FIXME: Consider below when moving to the OS sync manager.
                 // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception there
