@@ -197,7 +197,7 @@ public class SyncUserTests {
         assertTrue(str != null && !str.isEmpty());
     }
 
-    // Test that a login an access token logs the user in directly without touching the network
+    // Test that a login with an access token logs the user in directly without touching the network
     @Test
     public void login_withAccessToken() {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
