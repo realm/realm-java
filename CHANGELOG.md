@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
+* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039). 
 
 ### Internal
 
