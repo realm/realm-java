@@ -64,15 +64,14 @@ public:
             }
         };
         auto error_handler = [weak_session_ref, local_realm_path](std::error_code error_code, bool is_fatal, const std::string message) {
-            if (error_code.category() != realm::sync::protocol_error_category() ||
+            if (error_code.category() != realm::sync::protocol_error_category() &&
                     error_code.category() != realm::sync::client_error_category()) {
                 // FIXME: Consider below when moving to the OS sync manager.
                 // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception there
                 // will trigger "called with pending exception" later since the thread is created by java, and the
                 // endless loop is in native code. The java exception will never be thrown because of the endless loop
                 // will never quit to java land.
-                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.",
-                                        error_code.value(), error_code.message(), is_fatal);
+                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal:", error_code.value(), error_code.message(), is_fatal);
                 return;
             }
 
@@ -94,8 +93,6 @@ public:
                         realm::SyncManager::shared().recovery_directory_path(),
                         realm::util::create_timestamped_template("recovered_realm"));
                 auto original_path = local_realm_path;
-
-                realm::jni_util::Log::d("Scheduling a client reset for %1, in %2.", original_path, recovery_path);
 
                 realm::SyncManager::shared().perform_metadata_update([original_path = std::move(original_path),
                         recovery_path = std::move(recovery_path)](const auto &manager) {
