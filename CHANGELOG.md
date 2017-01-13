@@ -5,6 +5,10 @@
 * Fixed native memory leak setting the value of a primary key (#3993).
 * Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
 
+### Object Server API Changes (In Beta)
+
+* Exceptions thrown in error handlers are ignored but logged (#3559).
+
 ### Internal
 
 * Updated Realm Sync to 1.0.0-BETA-7.1.
