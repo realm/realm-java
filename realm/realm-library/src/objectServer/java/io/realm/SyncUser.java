@@ -221,7 +221,12 @@ public class SyncUser {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(error);
+                            try {
+                                callback.onError(error);
+                            } catch (Exception e) {
+                                RealmLog.info("onError has thrown an exception but is ignoring it: %s",
+                                        Util.getStackTrace(e));
+                            }
                         }
                     });
                 }
