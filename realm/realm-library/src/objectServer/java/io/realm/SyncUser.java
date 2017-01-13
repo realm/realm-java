@@ -28,9 +28,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -106,18 +107,18 @@ public class SyncUser {
      * Returns all valid users known by this device.
      * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return a list of all known valid users.
+     * @return a map of all known valid users.
      */
-    public static Collection<SyncUser> all() {
+    public static Map<String, SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
         Collection<SyncUser> storedUsers = userStore.allUsers();
-        List<SyncUser> result = new ArrayList<SyncUser>(storedUsers.size());
+        Map<String, SyncUser> map = new HashMap<String, SyncUser>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
-                result.add(user);
+                map.put(user.getIdentity(), user);
             }
         }
-        return result;
+        return Collections.unmodifiableMap(map);
     }
 
     /**

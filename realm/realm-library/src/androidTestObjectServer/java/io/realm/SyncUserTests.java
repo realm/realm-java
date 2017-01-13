@@ -31,7 +31,7 @@ import org.mockito.stubbing.Answer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import io.realm.internal.network.AuthenticateResponse;
@@ -136,7 +136,7 @@ public class SyncUserTests {
     // `all()` returns an empty list if no users are logged in
     @Test
     public void all_empty() {
-        Collection<SyncUser> users = SyncUser.all();
+        Map<String, SyncUser> users = SyncUser.all();
         assertTrue(users.isEmpty());
     }
 
@@ -148,9 +148,9 @@ public class SyncUserTests {
         userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
         userStore.put(SyncTestUtils.createTestUser(Long.MAX_VALUE));
 
-        Collection<SyncUser> users = SyncUser.all();
+        Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
-        assertTrue(users.iterator().next().isValid());
+        assertTrue(users.get(users.keySet().iterator().next()).isValid());
     }
 
     // Tests that the user store returns the last user to login
