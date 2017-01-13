@@ -126,6 +126,7 @@ repositories {
 dependencies {
     objectServerAnnotationProcessor project(':realm-annotations-processor')
     provided 'io.reactivex:rxjava:1.1.0'
+    provided 'com.google.code.findbugs:findbugs-annotations:3.0.1'
     compile "io.realm:realm-annotations:${version}"
     compile 'com.getkeepsafe.relinker:relinker:1.2.2'
     objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
