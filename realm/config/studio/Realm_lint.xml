@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inspections version="1.0">
+  <option name="myName" value="Realm-lint" />
+  <inspection_tool class="AccessToNonThreadSafeStaticFieldFromInstance" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="nonThreadSafeClasses">
+      <value />
+    </option>
+    <option name="nonThreadSafeTypes" value="" />
+  </inspection_tool>
+  <inspection_tool class="Anonymous2MethodRef" enabled="false" level="WARNING" enabled_by_default="false" />
+  <inspection_tool class="AnonymousClassComplexity" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_limit" value="3" />
+  </inspection_tool>
+  <inspection_tool class="AnonymousClassMethodCount" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_limit" value="5" />
+  </inspection_tool>
+  <inspection_tool class="ArrayEquality" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ArrayLengthInLoopCondition" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="AssignmentToSuperclassField" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="BadExceptionCaught" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="exceptionsString" value="" />
+    <option name="exceptions">
+      <value />
+    </option>
+  </inspection_tool>
+  <inspection_tool class="CStyleArrayDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ClassComplexity" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_limit" value="80" />
+  </inspection_tool>
+  <inspection_tool class="ClassCoupling" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_includeJavaClasses" value="false" />
+    <option name="m_includeLibraryClasses" value="false" />
+    <option name="m_limit" value="15" />
+  </inspection_tool>
+  <inspection_tool class="ClassInitializer" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ClassNestingDepth" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_limit" value="2" />
+  </inspection_tool>
+  <inspection_tool class="ClassWithOnlyPrivateConstructors" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ComparableImplementedButEqualsNotOverridden" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="CompareToUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="Convert2Lambda" enabled="false" level="WARNING" enabled_by_default="false" />
+  <inspection_tool class="CovariantCompareTo" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="CovariantEquals" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="DanglingJavadoc" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="DoubleCheckedLocking" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="ignoreOnVolatileVariables" value="false" />
+  </inspection_tool>
+  <inspection_tool class="EmptyInitializer" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="EmptySynchronizedStatement" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="EnumerationCanBeIteration" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="EqualsAndHashcode" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="EqualsCalledOnEnumConstant" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="EqualsUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="FieldAccessedSynchronizedAndUnsynchronized" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="countGettersAndSetters" value="false" />
+  </inspection_tool>
+  <inspection_tool class="FieldMayBeFinal" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="FinalMethodInFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="HashCodeUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="InnerClassMayBeStatic" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="InstanceGuardedByStatic" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="InstanceofCatchParameter" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="InstanceofIncompatibleInterface" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="IteratorHasNextCallsIteratorNext" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="IteratorNextDoesNotThrowNoSuchElementException" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ListIndexOfReplaceableByContains" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="LiteralAsArgToStringEquals" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="LoggerInitializedWithForeignClass" enabled="false" level="WARNING" enabled_by_default="false">
+    <option name="loggerClassName" value="org.apache.log4j.Logger,org.slf4j.LoggerFactory,org.apache.commons.logging.LogFactory,java.util.logging.Logger" />
+    <option name="loggerFactoryMethodName" value="getLogger,getLogger,getLog,getLogger" />
+  </inspection_tool>
+  <inspection_tool class="MethodCallInLoopCondition" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="MethodCount" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_limit" value="20" />
+    <option name="ignoreGettersAndSetters" value="true" />
+    <option name="ignoreOverridingMethods" value="true" />
+  </inspection_tool>
+  <inspection_tool class="MethodMayBeSynchronized" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="MissingDeprecatedAnnotation" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="ignoreObjectMethods" value="true" />
+    <option name="ignoreAnonymousClassMethods" value="false" />
+  </inspection_tool>
+  <inspection_tool class="MisspelledCompareTo" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="MisspelledEquals" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="NonAtomicOperationOnVolatileField" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="NonFinalFieldInEnum" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="NonProtectedConstructorInAbstractClass" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_ignoreNonPublicClasses" value="false" />
+  </inspection_tool>
+  <inspection_tool class="NonShortCircuitBoolean" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="NonSynchronizedMethodOverridesSynchronizedMethod" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="NullThrown" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ObjectEquality" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="m_ignoreEnums" value="true" />
+    <option name="m_ignoreClassObjects" value="false" />
+    <option name="m_ignorePrivateConstructors" value="false" />
+  </inspection_tool>
+  <inspection_tool class="ObjectNotify" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ObsoleteCollection" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="ignoreRequiredObsoleteCollectionTypes" value="false" />
+  </inspection_tool>
+  <inspection_tool class="OnDemandImport" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ParameterTypePreventsOverriding" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="PrivateMemberAccessBetweenOuterAndInnerClass" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ProblematicVarargsMethodOverride" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ProtectedMemberInFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="RedundantThrowsDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ResultOfObjectAllocationIgnored" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ReturnOfInnerClass" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="SafeLock" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="SamePackageImport" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="SimplifiableIfStatement" enabled="false" level="WARNING" enabled_by_default="false" />
+  <inspection_tool class="SizeReplaceableByIsEmpty" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="SleepWhileHoldingLock" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="StaticCallOnSubclass" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="StaticFieldReferenceOnSubclass" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="StaticGuardedByInstance" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="StringBufferField" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="SystemOutErr" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ThreadDumpStack" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="ThrowablePrintStackTrace" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="TooBroadCatch" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="TooBroadThrows" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="UnclearBinaryExpression" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="UnnecessaryInheritDoc" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="UnnecessaryJavaDocLink" enabled="true" level="WARNING" enabled_by_default="true">
+    <option name="ignoreInlineLinkToSuper" value="false" />
+  </inspection_tool>
+  <inspection_tool class="VolatileArrayField" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="VolatileLongOrDoubleField" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="WaitNotInLoop" enabled="true" level="WARNING" enabled_by_default="true" />
+  <inspection_tool class="WaitWhileHoldingTwoLocks" enabled="true" level="WARNING" enabled_by_default="true" />
+</inspections>
+

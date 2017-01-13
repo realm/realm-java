@@ -45,7 +45,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionChange;
 import io.realm.permissions.PermissionModule;
 
 /**
@@ -63,7 +62,25 @@ import io.realm.permissions.PermissionModule;
 @Beta
 public class SyncUser {
 
-    private SyncConfiguration managementRealmConfig;
+    private static class ManagementConfig {
+        private SyncConfiguration managementRealmConfig;
+
+        synchronized SyncConfiguration initAndGetManagementRealmConfig(
+                ObjectServerUser syncUser, SyncUser user) {
+            if (managementRealmConfig == null) {
+                managementRealmConfig = new SyncConfiguration.Builder(
+                        user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
+                        .modules(new PermissionModule())
+                        .build();
+            }
+
+            return managementRealmConfig;
+        }
+    }
+
+
+    private final ManagementConfig managementConfig = new ManagementConfig();
+
     private final ObjectServerUser syncUser;
 
     private SyncUser(ObjectServerUser user) {
@@ -376,16 +393,7 @@ public class SyncUser {
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public Realm getManagementRealm() {
-        synchronized (this) {
-            if (managementRealmConfig == null) {
-                String managementUrl = getManagementRealmUrl(syncUser.getAuthenticationUrl());
-                managementRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
-                        .modules(new PermissionModule())
-                        .build();
-            }
-        }
-
-        return Realm.getInstance(managementRealmConfig);
+        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
     }
 
     // Creates the URL to the permission Realm based on the authentication URL.

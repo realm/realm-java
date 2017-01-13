@@ -21,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
@@ -43,6 +44,7 @@ import io.realm.log.RealmLog;
  */
 @Keep
 @Beta
+@SuppressFBWarnings("MS_CANNOT_BE_FINAL")
 public class SyncManager {
 
     /**
