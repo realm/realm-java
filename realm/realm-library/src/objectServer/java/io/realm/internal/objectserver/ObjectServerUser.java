@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.realm.SyncSession;
 import io.realm.SyncConfiguration;
+import io.realm.SyncSession;
 
 /**
  * Internal representation of a user on the Realm Object Server.
@@ -54,7 +54,7 @@ public class ObjectServerUser {
         this.loggedIn = true;
     }
 
-    public void setRefreshToken(final Token refreshToken) {
+    private void setRefreshToken(final Token refreshToken) {
         this.refreshToken = refreshToken; // Replace any existing token. TODO re-save the user with latest token.
     }
 
@@ -64,7 +64,7 @@ public class ObjectServerUser {
      *
      * Authenticating will happen automatically as part of opening a Realm.
      */
-    public boolean isAuthenticated(SyncConfiguration configuration) {
+    boolean isAuthenticated(SyncConfiguration configuration) {
         Token token = getAccessToken(configuration.getServerUrl());
         return token != null && token.expiresMs() > System.currentTimeMillis();
     }
@@ -92,9 +92,13 @@ public class ObjectServerUser {
         return identity;
     }
 
-    public Token getAccessToken(URI serverUrl) {
+    Token getAccessToken(URI serverUrl) {
         AccessDescription accessDescription = realms.get(serverUrl);
         return (accessDescription != null) ? accessDescription.accessToken : null;
+    }
+
+    void removeAccessToken(URI serverUrl) {
+        realms.remove(serverUrl);
     }
 
     public void addRealm(URI uri, AccessDescription description) {
