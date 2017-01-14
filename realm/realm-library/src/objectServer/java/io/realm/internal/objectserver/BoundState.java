@@ -67,7 +67,7 @@ class BoundState extends FsmState {
             // Create a new session & bind it
             session.createNativeSession();
             gotoNextState(SessionState.BINDING);
-            
+
         } else {
             switch (error.getCategory()) {
                 case FATAL: gotoNextState(SessionState.STOPPED); break;
