@@ -71,7 +71,8 @@ public:
                 // will trigger "called with pending exception" later since the thread is created by java, and the
                 // endless loop is in native code. The java exception will never be thrown because of the endless loop
                 // will never quit to java land.
-                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.", error_code.value(), error_code.message(), is_fatal);
+                realm::jni_util::Log::e("Unhandled sync client error code %1, %2. is_fatal: %3.",
+                                        error_code.value(), error_code.message(), is_fatal);
                 return;
             }
 

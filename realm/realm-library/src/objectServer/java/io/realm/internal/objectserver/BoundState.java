@@ -58,16 +58,16 @@ class BoundState extends FsmState {
             //  this may cause the server to send a fatal error (203 bad refresh) if we try to bind
             //  the session with this token. To be safe we remove the token that has been considered by the
             //  the server to be invalid.
-            session.getUser().removeAccessToken(session.getServerUrl());
 
             // stop the session to avoid sending a bind to the server which will cause it to return
             // a fatal 203 (bad refresh)
             session.stopNativeSession();
+            session.removeAccessToken();
 
             // Create a new session & bind it
             session.createNativeSession();
             gotoNextState(SessionState.BINDING);
-            
+
         } else {
             switch (error.getCategory()) {
                 case FATAL: gotoNextState(SessionState.STOPPED); break;
