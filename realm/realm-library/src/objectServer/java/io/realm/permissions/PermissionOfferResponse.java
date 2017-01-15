@@ -23,18 +23,25 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 /**
- * TODO
+ * This model is used to apply permission changes defined in the permission offer
+ * object represented by the specified token, which was created by another user's
+ * {@link PermissionOffer} object.
+ *
+ * It should be used in conjunction with an {@link io.realm.SyncUser}'s management Realm.
+ *
+ * @see <a http="See https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+ * documentation.
  */
-public class PermissionRequest extends RealmObject {
+public class PermissionOfferResponse extends RealmObject {
 
     // Base fields
     @PrimaryKey
     @Required
     private String id = UUID.randomUUID().toString();
     @Required
-    private Date createdAt;
+    private Date createdAt = new Date();
     @Required
-    private Date updatedAt;
+    private Date updatedAt = new Date();
     private Integer statusCode; // nil=not processed, 0=success, >0=error
     private String statusMessage;
 
@@ -43,14 +50,19 @@ public class PermissionRequest extends RealmObject {
     private String token;
     private String realmUrl;
 
-    public PermissionRequest() {
+    public PermissionOfferResponse() {
         // Default constructor required by Realm
     }
 
     /**
-     * TODO
+     * Construct a permission offer response object used to apply permission changes
+     * defined in the permission offer object represented by the specified token,
+     * which was created by another user's {@link PermissionOffer} object.
+     *
+     * @param token The received token which uniquely identifies another user's
+     *              {@link PermissionOffer}.
      */
-    public PermissionRequest(String token) {
+    public PermissionOfferResponse(String token) {
         this.token = token;
     }
 

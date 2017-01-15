@@ -107,7 +107,10 @@ public class SyncSession {
      */
     public interface ErrorHandler {
         /**
-         * Callback for errors on a session object.
+         * Callback for errors on a session object. It is not allowed to throw an exception inside an error handler.
+         * If the operations in an error handler can throw, it is safer to catch any exception in the error handler.
+         * When an exception is thrown in the error handler, the occurrence will be logged and the exception
+         * will be ignored.
          *
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.

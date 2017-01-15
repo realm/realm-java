@@ -31,7 +31,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -45,7 +44,6 @@ import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.permissions.PermissionChange;
 import io.realm.permissions.PermissionModule;
 
 /**
@@ -63,7 +61,32 @@ import io.realm.permissions.PermissionModule;
 @Beta
 public class SyncUser {
 
-    private SyncConfiguration managementRealmConfig;
+    private static class ManagementConfig {
+        private SyncConfiguration managementRealmConfig;
+
+        synchronized SyncConfiguration initAndGetManagementRealmConfig(
+                ObjectServerUser syncUser, final SyncUser user) {
+            if (managementRealmConfig == null) {
+                managementRealmConfig = new SyncConfiguration.Builder(
+                        user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
+                        .errorHandler(new SyncSession.ErrorHandler() {
+                            @Override
+                            public void onError(SyncSession session, ObjectServerError error) {
+                                RealmLog.error(String.format("Unexpected error with %s's management Realm: " + error.toString() + ")",
+                                        user.getIdentity()));
+                            }
+                        })
+                        .modules(new PermissionModule())
+                        .build();
+            }
+
+            return managementRealmConfig;
+        }
+    }
+
+
+    private final ManagementConfig managementConfig = new ManagementConfig();
+
     private final ObjectServerUser syncUser;
 
     private SyncUser(ObjectServerUser user) {
@@ -215,7 +238,12 @@ public class SyncUser {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(error);
+                            try {
+                                callback.onError(error);
+                            } catch (Exception e) {
+                                RealmLog.info("onError has thrown an exception but is ignoring it: %s",
+                                        Util.getStackTrace(e));
+                            }
                         }
                     });
                 }
@@ -376,16 +404,7 @@ public class SyncUser {
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public Realm getManagementRealm() {
-        synchronized (this) {
-            if (managementRealmConfig == null) {
-                String managementUrl = getManagementRealmUrl(syncUser.getAuthenticationUrl());
-                managementRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
-                        .modules(new PermissionModule())
-                        .build();
-            }
-        }
-
-        return Realm.getInstance(managementRealmConfig);
+        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
     }
 
     // Creates the URL to the permission Realm based on the authentication URL.

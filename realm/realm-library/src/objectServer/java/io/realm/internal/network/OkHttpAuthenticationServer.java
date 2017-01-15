@@ -25,6 +25,7 @@ import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.log.RealmLog;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -37,8 +38,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private final OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
@@ -85,9 +86,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .url(authenticationUrl)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json")
-                .addHeader("Connection", "close") //  See https://github.com/square/okhttp/issues/2363
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
+        RealmLog.debug("Authenticate: " + requestBody);
         Call call = client.newCall(request);
         Response response = call.execute();
         return AuthenticateResponse.from(response);

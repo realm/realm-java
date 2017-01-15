@@ -72,19 +72,21 @@ public class HttpUtils {
         // Dummy invalid request, which will trigger a 400 (BAD REQUEST), but indicate the auth
         // server is responsive
         Request request = new Request.Builder()
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), ""))
-                .url(Constants.AUTH_URL)
+                .url(Constants.AUTH_SERVER_URL)
                 .build();
 
         while (retryTimes != 0) {
             Response response = null;
             try {
                 response = client.newCall(request).execute();
-                if (response.code() == 400) {
+                if (response.isSuccessful()) {
                     return true;
                 }
                 RealmLog.error("Error response from auth server: %s", response.toString());
             } catch (IOException e) {
+                // TODO As long as the auth server hasn't started yet, OKHttp cannot parse the response
+                // correctly. At this point it is unknown weather is a bug in OKHttp or how an
+                // unknown host is reported. This can cause a lot of "false" errors in the log.
                 RealmLog.error(e);
                 Thread.sleep(100);
             } finally {

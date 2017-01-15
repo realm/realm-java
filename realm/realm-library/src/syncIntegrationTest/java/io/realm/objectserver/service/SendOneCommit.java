@@ -36,7 +36,7 @@ public class SendOneCommit extends Service {
     public void onCreate() {
         super.onCreate();
         Realm.init(getApplicationContext());
-        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
+        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                 .name(SendOneCommit.class.getSimpleName())

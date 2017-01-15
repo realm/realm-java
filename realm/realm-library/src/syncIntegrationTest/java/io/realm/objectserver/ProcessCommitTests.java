@@ -52,7 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ProcessCommitTests extends RealmIntegrationTest {
+public class ProcessCommitTests extends BaseIntegrationTest {
 
     // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
     // a Sync Client, but it needs to be investigated.
@@ -69,7 +69,7 @@ public class ProcessCommitTests extends RealmIntegrationTest {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getTargetContext();
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
+                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
                     String realmUrl = Constants.SYNC_SERVER_URL;
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                             .name(SendOneCommit.class.getSimpleName())
@@ -129,7 +129,7 @@ public class ProcessCommitTests extends RealmIntegrationTest {
                     Looper.prepare();
                     Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL, Constants.USER_TOKEN);
+                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
                     String realmUrl = Constants.SYNC_SERVER_URL_2;
                     final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                             .name(SendsALot.class.getSimpleName())

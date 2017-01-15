@@ -19,11 +19,16 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 /**
- * TODO
+ * This model is used for offering permission changes to other users.
+ * It should be used in conjunction with an {@link io.realm.SyncUser}'s management Realm.
+ *
+ * @see <a http="See https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+ * documentation.
  */
 public class PermissionOffer extends RealmObject {
 
@@ -32,14 +37,15 @@ public class PermissionOffer extends RealmObject {
     @Required
     private String id = UUID.randomUUID().toString();
     @Required
-    private Date createdAt;
+    private Date createdAt = new Date();
     @Required
-    private Date updatedAt;
+    private Date updatedAt = new Date();
     private Integer statusCode; // nil=not processed, 0=success, >0=error
     private String statusMessage;
 
     // Offer fields
     @Required
+    @Index
     private String token = "";
     @Required
     private String realmUrl;
@@ -53,7 +59,13 @@ public class PermissionOffer extends RealmObject {
     }
 
     /**
-     * TODO
+     * Construct a permission offer object used to offer permission changes to other users.
+     *
+     * @param url The URL to the Realm on which to apply these permission changes to, once the offer is accepted.
+     * @param mayRead Grant or revoke read access.
+     * @param mayWrite Grant or revoked read-write access.
+     * @param mayManage Grant or revoke administrative access.
+     * @param expiresAt When this token will expire and become invalid. Pass {@code null} if this offer should not expire.
      */
     public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
         if (url == null) {

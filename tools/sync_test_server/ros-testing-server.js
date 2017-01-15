@@ -37,9 +37,13 @@ function startRealmObjectServer() {
     temp.mkdir('ros', function(err, path) {
         if (!err) {
             winston.info("Starting sync server in ", path);
+            var env = Object.create( process.env );
+            winston.info(env.NODE_ENV);
+            env.NODE_ENV = 'development';
             syncServerChildProcess = spawn('realm-object-server',
                     ['--root', path,
-                    '--configuration', '/configuration.yml']);
+                    '--configuration', '/configuration.yml'],
+                    { env: env });
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
                 winston.info(`stdout: ${data}`);
