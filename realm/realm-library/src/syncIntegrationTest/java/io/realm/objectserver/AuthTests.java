@@ -85,7 +85,7 @@ public class AuthTests extends BaseIntegrationTest {
                         assertEquals(SessionState.BOUND, SyncManager.getSession(config).getState());
                         looperThread.testComplete();
                     }
-                }, 1000);
+                }, 2000);
             }
 
             @Override
