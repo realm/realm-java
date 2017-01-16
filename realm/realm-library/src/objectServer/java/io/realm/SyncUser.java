@@ -107,7 +107,7 @@ public class SyncUser {
      * Returns all valid users known by this device.
      * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return a map of all known valid users.
+     * @return a map from user identifier to user. It includes all known valid users.
      */
     public static Map<String, SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
