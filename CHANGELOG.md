@@ -1,5 +1,9 @@
 ## 2.3.0
 
+### Breaking changes
+
+* Removed deprecated classes `Logger` and `AndroidLogger`.
+
 ### Object Server API Changes (In Beta)
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
