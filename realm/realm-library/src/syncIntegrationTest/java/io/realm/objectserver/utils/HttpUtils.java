@@ -67,7 +67,7 @@ public class HttpUtils {
 
     // Checking the server
     private static boolean waitAuthServerReady() throws InterruptedException {
-        int retryTimes = 50;
+        int retryTimes = 20;
 
         // Dummy invalid request, which will trigger a 400 (BAD REQUEST), but indicate the auth
         // server is responsive
@@ -88,7 +88,7 @@ public class HttpUtils {
                 // correctly. At this point it is unknown weather is a bug in OKHttp or how an
                 // unknown host is reported. This can cause a lot of "false" errors in the log.
                 RealmLog.error(e);
-                Thread.sleep(100);
+                Thread.sleep(500);
             } finally {
                 if (response != null) {
                     response.close();
