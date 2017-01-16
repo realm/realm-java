@@ -20,14 +20,13 @@ import android.support.test.InstrumentationRegistry;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.mockito.internal.exceptions.ExceptionIncludingMockitoWarnings;
 
 import io.realm.Realm;
 import io.realm.SyncManager;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
 
-public class BaseIntegrationTest {
+class BaseIntegrationTest {
 
     @BeforeClass
     public static void setUp () throws Exception {

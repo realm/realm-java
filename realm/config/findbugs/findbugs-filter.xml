@@ -15,9 +15,4 @@
     <Match>
         <Class name="io.realm.PermissionChangeRealmProxy"/>
     </Match>
-    <Match>
-        <Class name="io.realm.internal.objectserver.Token$Permission" />
-        <Field name="ALL" />
-        <Bug pattern="MS_MUTABLE_ARRAY" />
-    </Match>
 </FindBugsFilter>
