@@ -50,11 +50,13 @@ public class SyncManager {
     /**
      * Debugging related options.
      */
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     public static class Debug {
         /**
          * Set this to true to bypass the device online checking.
          */
         public static boolean skipOnlineChecking = false;
+
     }
 
     /**
