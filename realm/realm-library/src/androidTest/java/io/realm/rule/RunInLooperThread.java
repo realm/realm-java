@@ -53,7 +53,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // Default Realm created by this Rule. It is guaranteed to be closed when the test finishes.
     public Realm realm;
     // Custom Realm used by the test. Saving the reference here will guarantee the instance is closed when exiting the test.
-    public List<Realm> testRealms = new ArrayList<Realm>(); // Custom test realm defined by the test case. This rule will gua
+    public List<Realm> testRealms = new ArrayList<Realm>();
     public RealmConfiguration realmConfiguration;
     private CountDownLatch signalTestCompleted;
     private Handler backgroundHandler;

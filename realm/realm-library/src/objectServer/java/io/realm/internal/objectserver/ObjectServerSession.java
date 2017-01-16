@@ -23,10 +23,10 @@ import java.util.concurrent.Future;
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.RealmAsyncTask;
-import io.realm.SyncSession;
 import io.realm.SessionState;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.internal.KeepMember;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -238,6 +238,10 @@ public final class ObjectServerSession {
             nativeUnbind(nativeSessionPointer);
             nativeSessionPointer = 0;
         }
+    }
+
+    void removeAccessToken() {
+        user.removeAccessToken(configuration.getServerUrl());
     }
 
     // Bind with proper access tokens
