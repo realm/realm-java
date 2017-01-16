@@ -26,7 +26,6 @@ import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -34,7 +33,6 @@ import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
-import io.realm.TestHelper;
 import io.realm.entities.Dog;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -57,7 +55,7 @@ public class PermissionRealmTests {
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
-        RealmLog.setLevel(LogLevel.ALL);
+        RealmLog.setLevel(LogLevel.DEBUG);
         SyncUser user1 = UserFactory.createUser(Constants.AUTH_URL, "user1");
         final SyncUser user2 = UserFactory.createUser(Constants.AUTH_URL, "user2");
 
@@ -71,9 +69,9 @@ public class PermissionRealmTests {
                     }
                 })
                 .build();
-        Realm realm1 = Realm.getInstance(config1);
+        final Realm realm1 = Realm.getInstance(config1);
         looperThread.testRealms.add(realm1);
-        realm1.executeTransaction(new Realm.Transaction() {
+        realm1.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(Dog.class);
@@ -102,9 +100,9 @@ public class PermissionRealmTests {
 
         // 3. Create PermissionOffer
         final AtomicReference<String> offerId = new AtomicReference<String>(null);
-        Realm user1ManagementRealm = user1.getManagementRealm();
+        final Realm user1ManagementRealm = user1.getManagementRealm();
         looperThread.testRealms.add(user1ManagementRealm);
-        user1ManagementRealm.executeTransaction(new Realm.Transaction() {
+        user1ManagementRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 boolean readPermission = true;
@@ -112,45 +110,63 @@ public class PermissionRealmTests {
                 boolean managePermission = false;
                 Date expiresAt = null;
                 PermissionOffer offer = new PermissionOffer(user1RealmUrl, readPermission, readWritePermission, managePermission, expiresAt);
-                realm.copyToRealm(offer);
                 offerId.set(offer.getId());
+                realm.copyToRealm(offer);
             }
-        });
-
-        // 4. Wait for offer to get an token
-        RealmResults<PermissionOffer> offers = user1ManagementRealm.where(PermissionOffer.class).findAllAsync();
-        offers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
+        }, new Realm.Transaction.OnSuccess() {
             @Override
-            public void onChange(RealmResults<PermissionOffer> offers) {
-                final PermissionOffer offer = offers.first(null);
-                if (offer != null && offer.getToken() != null && !offer.getToken().equals("")) {
-
-                    // 5. User 2 uses the token to accept the offer
-                    Realm user2ManagementRealm = user2.getManagementRealm();
-                    looperThread.testRealms.add(user2ManagementRealm);
-                    user2ManagementRealm.executeTransaction(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            realm.copyToRealm(new PermissionOfferResponse(offer.getToken()));
-                        }
-                    });
-
-                    // 6. Wait for the offer response to be accepted
-                    RealmResults<PermissionOfferResponse> responses = user2ManagementRealm.where(PermissionOfferResponse.class).findAllAsync();
-                    responses.addChangeListener(new RealmChangeListener<RealmResults<PermissionOfferResponse>>() {
-                        @Override
-                        public void onChange(RealmResults<PermissionOfferResponse> responses) {
-                            PermissionOfferResponse response = responses.first(null);
-                            if (response != null && response.getStatusCode() == 0 && response.getToken().equals(offer.getToken())) {
-                                // 7. Response accepted. It should now be possible for user2 to access user1's Realm
-                                Realm realm = Realm.getInstance(config2);
-                                looperThread.testRealms.add(realm);
-                                assertEquals(1, realm.where(Dog.class).count());
-                                looperThread.testComplete();
-                            }
-                        }
-                    });
-                }
+            public void onSuccess() {
+                // 4. Wait for offer to get an token
+                RealmLog.error("OfferID: " + offerId.get());
+                RealmResults<PermissionOffer> offers = user1ManagementRealm.where(PermissionOffer.class)
+                        .equalTo("id", offerId.get())
+                        .findAllAsync();
+                looperThread.keepStrongReference.add(offers);
+                offers.addChangeListener(new RealmChangeListener<RealmResults<PermissionOffer>>() {
+                    @Override
+                    public void onChange(RealmResults<PermissionOffer> offers) {
+                        final PermissionOffer offer = offers.first(null);
+                        if (offer != null && offer.getToken() != null) {
+                            // 5. User2 uses the token to accept the offer
+                            final String offerToken = offer.getToken();
+                            final AtomicReference<String> offerResponseId = new AtomicReference<String>();
+                            final Realm user2ManagementRealm = user2.getManagementRealm();
+                            looperThread.testRealms.add(user2ManagementRealm);
+                            user2ManagementRealm.executeTransactionAsync(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    PermissionOfferResponse offerResponse = new PermissionOfferResponse(offerToken);
+                                    offerResponseId.set(offerResponse.getId());
+                                    realm.copyToRealm(offerResponse);
+                                }
+                            }, new Realm.Transaction.OnSuccess() {
+                                @Override
+                                public void onSuccess() {
+                                    // 6. Wait for the offer response to be accepted
+                                    RealmResults<PermissionOfferResponse> responses = user2ManagementRealm.where(PermissionOfferResponse.class)
+                                            .equalTo("id", offerResponseId.get())
+                                            .findAllAsync();
+                                    looperThread.keepStrongReference.add(responses);
+                                    responses.addChangeListener(new RealmChangeListener<RealmResults<PermissionOfferResponse>>() {
+                                        @Override
+                                        public void onChange(RealmResults<PermissionOfferResponse> responses) {
+                                            PermissionOfferResponse response = responses.first(null);
+                                            if (response != null && response.isSuccessful() && response.getToken().equals(offerToken)) {
+                                                // 7. Response accepted. It should now be possible for user2 to access user1's Realm
+                                                RealmLog.error("Realm 2 ready to be opened");
+                                                Realm realm = Realm.getInstance(config2);
+                                                RealmLog.error("Realm 2 opened");
+                                                looperThread.testRealms.add(realm);
+                                                assertEquals(1, realm.where(Dog.class).count());
+                                                looperThread.testComplete();
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                       }
+                    }
+                });
             }
         });
     }

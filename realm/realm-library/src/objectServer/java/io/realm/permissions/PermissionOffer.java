@@ -44,9 +44,8 @@ public class PermissionOffer extends RealmObject {
     private String statusMessage;
 
     // Offer fields
-    @Required
     @Index
-    private String token = "";
+    private String token;
     @Required
     private String realmUrl;
     private boolean mayRead;
@@ -97,6 +96,16 @@ public class PermissionOffer extends RealmObject {
      */
     public Integer getStatusCode() {
         return statusCode;
+    }
+
+    /**
+     * Check if the request was successfully handled by the Realm Object Server.
+     *
+     * @return {@code true} if request was handled successfully. {@code false} if not. See {@link #getStatusMessage()}
+     *         for the full error message.
+     */
+    public boolean isSuccessful() {
+        return statusCode != null && statusCode == 0;
     }
 
     public String getStatusMessage() {

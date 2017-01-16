@@ -27,7 +27,7 @@ public class UserFactory {
     }
 
     public static SyncUser createUser(String authUrl, String userIdentifier) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userIdentifier, "myPassw0rd", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(userIdentifier, "myPassw0rd", true);
         return SyncUser.login(credentials, authUrl);
     }
 
