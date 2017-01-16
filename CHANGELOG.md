@@ -18,6 +18,7 @@
 ### Object Server API Changes (In Beta)
 
 * Exceptions thrown in error handlers are ignored but logged (#3559).
+* Removed unused public constants in `SyncConfiguration` (#4047).
 
 ### Internal
 
