@@ -276,9 +276,9 @@ final class RealmCache {
                         "migration class: " + newConfiguration.getMigration().getClass().getCanonicalName());
             }
 
-//            throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
-//                    "\nCached configuration: \n" + configuration +
-//                    "\n\nNew configuration: \n" + newConfiguration);
+            throw new IllegalArgumentException("Configurations cannot be different if used to open the same file. " +
+                    "\nCached configuration: \n" + configuration +
+                    "\n\nNew configuration: \n" + newConfiguration);
         }
     }
 

@@ -72,8 +72,9 @@ public class SyncUser {
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
-                                RealmLog.error(String.format("Unexpected error with %s's management Realm: " + error.toString() + ")",
-                                        user.getIdentity()));
+                                RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
+                                        user.getIdentity(),
+                                        error.toString()));
                             }
                         })
                         .modules(new PermissionModule())

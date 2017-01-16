@@ -38,8 +38,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private final OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build();
 

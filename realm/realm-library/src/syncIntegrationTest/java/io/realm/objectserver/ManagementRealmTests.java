@@ -47,7 +47,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionRealmTests {
+public class ManagementRealmTests {
 
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
@@ -60,7 +60,7 @@ public class PermissionRealmTests {
         final SyncUser user2 = UserFactory.createUser(Constants.AUTH_URL, "user2");
 
         // 1. User1 creates Realm that user2 does not have access
-        final String user1RealmUrl = "realm://" + Constants.IP + ":9080/~/permission-offer-test";
+        final String user1RealmUrl = "realm://127.0.0.1:9080/~/permission-offer-test";
         SyncConfiguration config1 = new SyncConfiguration.Builder(user1, user1RealmUrl).
                 errorHandler(new SyncSession.ErrorHandler() {
                     @Override
@@ -78,25 +78,8 @@ public class PermissionRealmTests {
             }
         });
 
-        // 2. Verify user2 does not have access
-        final CountDownLatch expectedSessionError = new CountDownLatch(1);
-        final SyncConfiguration config2 = new SyncConfiguration.Builder(user2, user1RealmUrl)
-                .errorHandler(new SyncSession.ErrorHandler() {
-                    @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
-// TODO: Why is there no ACCESS_DENIED being reported?
-//                        if (error.getErrorCode() == ErrorCode.ACCESS_DENIED) {
-//                            expectedSessionError.countDown();
-//                        } else {
-//                            fail("Realm 2 unexpected error: " + error);
-//                        }
-                    }
-                })
-                .build();
-
-        Realm realm2 = Realm.getInstance(config2);
-        looperThread.testRealms.add(realm2);
-//        TestHelper.awaitOrFail(expectedSessionError);
+        // 2. Create configuration for User2's Realm.
+        final SyncConfiguration config2 = new SyncConfiguration.Builder(user2, user1RealmUrl).build();
 
         // 3. Create PermissionOffer
         final AtomicReference<String> offerId = new AtomicReference<String>(null);
@@ -164,7 +147,7 @@ public class PermissionRealmTests {
                                     });
                                 }
                             });
-                       }
+                        }
                     }
                 });
             }
