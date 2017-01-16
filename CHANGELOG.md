@@ -6,6 +6,7 @@
 * Breaking change: Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
 * Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
   This is done in order to support shared Realms among users, while each user retaining their own local copy.
+* Added support for `PermissionOffer` and `PermissionOfferResponse` to `SyncUser.getManagementRealm()`.
 
 ## 2.2.3
 
