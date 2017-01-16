@@ -4,6 +4,7 @@
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 * Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
+* `SyncUser.all()` now returns Map instead of List.
 
 ## 2.2.3
 
