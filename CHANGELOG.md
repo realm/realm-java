@@ -21,7 +21,7 @@
 
 ### Internal
 
-* Updated Realm Sync to 1.0.0-BETA-7.1.
+* Updated Realm Sync to 1.0.0-BETA-7.2.
 * Add a Realm backup when receiving a Sync client reset message from the server.
 
 ## 2.2.2
