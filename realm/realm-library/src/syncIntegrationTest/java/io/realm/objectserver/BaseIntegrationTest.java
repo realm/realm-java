@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.mockito.internal.exceptions.ExceptionIncludingMockitoWarnings;
 
 import io.realm.Realm;
+import io.realm.SyncManager;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
 
@@ -30,6 +31,7 @@ public class BaseIntegrationTest {
 
     @BeforeClass
     public static void setUp () throws Exception {
+        SyncManager.Debug.skipOnlineChecking = true;
         try {
             Realm.init(InstrumentationRegistry.getContext());
             HttpUtils.startSyncServer();
