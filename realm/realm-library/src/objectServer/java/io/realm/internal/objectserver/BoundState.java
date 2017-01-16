@@ -52,7 +52,22 @@ class BoundState extends FsmState {
         // If a Realms access token has expired, trigger a rebind. If the user is still valid it will automatically
         // refresh it.
         if (error.getErrorCode() == ErrorCode.TOKEN_EXPIRED) {
+            //  the server can send a 202 (expired access token) even if the client
+            //  still consider this token to be valid (based on timestamps for example)
+            //
+            //  this may cause the server to send a fatal error (203 bad refresh) if we try to bind
+            //  the session with this token. To be safe we remove the token that has been considered by the
+            //  the server to be invalid.
+
+            // stop the session to avoid sending a bind to the server which will cause it to return
+            // a fatal 203 (bad refresh)
+            session.stopNativeSession();
+            session.removeAccessToken();
+
+            // Create a new session & bind it
+            session.createNativeSession();
             gotoNextState(SessionState.BINDING);
+
         } else {
             switch (error.getCategory()) {
                 case FATAL: gotoNextState(SessionState.STOPPED); break;
