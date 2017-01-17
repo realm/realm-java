@@ -175,4 +175,14 @@ public class SyncManagerTests {
         SyncSession session = SyncManager.getSession(config);
         assertEquals(user, session.getUser()); // see also SessionTests
     }
+
+    @Test
+    public void test() {
+        RealmConfiguration config = configFactory.createConfiguration("xxx.realm");
+        Realm realm = Realm.getInstance(config);
+        realm.close();
+        SyncManager.nativeTest(config.getPath(), "recovered_realm-20170114-131609-cfPgcKjY");
+
+        realm = null;
+    }
 }
