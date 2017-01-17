@@ -25,7 +25,7 @@ import io.realm.annotations.Beta;
 @Beta
 public enum ErrorCode {
 
-    // See https://github.com/realm/realm-sync/blob/master/doc/protocol.md
+    // See https://github.com/realm/realm-sync/blob/master/doc/protocol_16.md
 
     // Realm Java errors (0-49)
     UNKNOWN(-1),                                // Catch-all
@@ -63,6 +63,7 @@ public enum ErrorCode {
     BAD_CLIENT_VERSION(210),                        // Bad client version (IDENT, UPLOAD)
     DIVERGING_HISTORIES(211),                       // Diverging histories (IDENT)
     BAD_CHANGESET(212),                             // Bad changeset (UPLOAD)
+    DISABLED_SESSION(213),                          // Disabled session
 
     // 300 - 599 Reserved for Standard HTTP error codes
 
