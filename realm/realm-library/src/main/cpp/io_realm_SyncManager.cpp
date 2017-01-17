@@ -34,6 +34,7 @@
 #include "sync/sync_manager.hpp"
 #include "sync/sync_user.hpp"
 #include "util.hpp"
+#include "object-store/src/sync/impl/sync_file.hpp"
 
 using namespace realm;
 using namespace realm::sync;
@@ -63,6 +64,13 @@ Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
     } CATCH_STD()
 }
 
+
+#include <sync/impl/sync_file.hpp>
+
+using namespace realm::util;
+
+static SyncFileManager* s_file_manager;
+
 JNIEXPORT void JNICALL
 Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv *env, jclass,
                                                         jstring baseFile) {
@@ -70,5 +78,14 @@ Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv *env, jclass,
     try {
         JStringAccessor base_file_path(env, baseFile); // throws
         SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
+        s_file_manager = new SyncFileManager(base_file_path);
     } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_SyncManager_nativeTest(JNIEnv *env, jclass,
+jstring path, jstring new_name) {
+    JStringAccessor path_str(env, path); // throws
+    JStringAccessor name(env,new_name ); // throws
+    s_file_manager->copy_realm_file_to_recovery_directory(path_str, name);
 }
