@@ -78,8 +78,8 @@ public class AuthenticateResponse extends AuthServerResponse {
      * Helper method for creating a valid user login response. The user returned will be assumed to have all permissions
      * and doesn't expire.
      *
-     * @param identifier User identifier.
-     * @param refreshToken Users refresh token.
+     * @param identifier user identifier.
+     * @param refreshToken user's refresh token.
      */
     public static AuthenticateResponse createValidResponseWithUser(String identifier, String refreshToken) {
         try {

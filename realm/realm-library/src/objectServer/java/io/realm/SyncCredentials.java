@@ -137,7 +137,7 @@ public class SyncCredentials {
      * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
      * {@code userInfo} used.
      *
-     * @param userIdentifier String identifying the user. Usually a username of userIdentifier.
+     * @param userIdentifier string identifying the user. Usually a username of userIdentifier.
      * @param identityProvider provider used to verify the credentials.
      * @param userInfo data describing the user further or {@code null} if the user does not have any extra data. The
      *              data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom
@@ -161,8 +161,8 @@ public class SyncCredentials {
      * This means that providing this credential to {@link SyncUser#login(SyncCredentials, String)} will always
      * succeed, but accessing any Realm after might fail if the token is no longer valid.
      *
-     * @param accessToken Users access token.
-     * @param identifier User identifier.
+     * @param accessToken user's access token.
+     * @param identifier user identifier.
      * @return a set of credentials that can be used to log into the Object Server using
      *         {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
      */

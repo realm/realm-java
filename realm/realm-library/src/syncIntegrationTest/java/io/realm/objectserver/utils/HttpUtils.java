@@ -16,17 +16,13 @@
 
 package io.realm.objectserver.utils;
 
-import android.support.test.InstrumentationRegistry;
 
 import java.io.IOException;
 
-import io.realm.Realm;
 import io.realm.log.RealmLog;
 import okhttp3.Headers;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -85,7 +81,7 @@ public class HttpUtils {
                 RealmLog.error("Error response from auth server: %s", response.toString());
             } catch (IOException e) {
                 // TODO As long as the auth server hasn't started yet, OKHttp cannot parse the response
-                // correctly. At this point it is unknown weather is a bug in OKHttp or how an
+                // correctly. At this point it is unknown weather is a bug in OKHttp or an
                 // unknown host is reported. This can cause a lot of "false" errors in the log.
                 RealmLog.error(e);
                 Thread.sleep(500);
