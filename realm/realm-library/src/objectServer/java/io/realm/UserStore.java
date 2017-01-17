@@ -60,7 +60,7 @@ public interface UserStore {
     /**
      * Removes the user from the store.
      * <p>
-     * If valid user is not found, this method simply ignore it.
+     * If the user is not found, this method does nothing.
      *
      * @param identity identity of the user.
      */
