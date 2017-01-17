@@ -2,12 +2,22 @@
 
 ### Breaking changes
 
-* `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object.
+* `RealmResults.distinct()` returns a new `RealmResults` object instead of filtering on the original object (#2947).
+
+### Enhancements
+
+* Add support for sorting by link's field (#672).
 
 ### Object Server API Changes (In Beta)
 
 * Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 * Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
+
+### Internal
+
+* Use Object Store's `Results` as the backend for `RealmResults` (#3372).
+  - Use Object Store's notification mechanism to trigger listeners.
+  - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
 ## 2.2.3
 
