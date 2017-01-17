@@ -25,17 +25,23 @@ using namespace realm;
 
 static const char* ERR_COULD_NOT_ALLOCATE_MEMORY = "Could not allocate memory to return all users.";
 
+static jstring
+to_user_string_or_null (JNIEnv *env, const std::shared_ptr<SyncUser>& user)
+{
+    if (user) {
+        return to_jstring(env, user->refresh_token().data());
+    } else {
+        return nullptr;
+    }
+}
+
 JNIEXPORT jstring JNICALL
 Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
 {
     TR_ENTER()
     try {
         const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_current_user();
-        if (user) {
-            return to_jstring(env, user->refresh_token().data());
-        } else {
-            return nullptr;
-        }
+        return to_user_string_or_null(env, user);
     } CATCH_STD()
     return nullptr;
 }
@@ -47,11 +53,7 @@ Java_io_realm_RealmFileUserStore_nativeGetUser (JNIEnv *env, jclass, jstring ide
     try {
         JStringAccessor id(env, identity); // throws
         const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_existing_logged_in_user(id);
-        if (user) {
-            return to_jstring(env, user->refresh_token().data());
-        } else {
-            return nullptr;
-        }
+        return to_user_string_or_null(env, user);
     } CATCH_STD()
     return nullptr;
 }
