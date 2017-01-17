@@ -23,15 +23,15 @@
 
 using namespace realm;
 
-static const char* ERR_NO_LOGGED_IN_USER = "No user logged in yet.";
 static const char* ERR_COULD_NOT_ALLOCATE_MEMORY = "Could not allocate memory to return all users.";
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_RealmFileUserStore_nativeGetCurrentUser (JNIEnv *env, jclass)
+Java_io_realm_RealmFileUserStore_nativeGetUser (JNIEnv *env, jclass, jstring identity)
 {
     TR_ENTER()
     try {
-        const std::shared_ptr<SyncUser> &user = SyncManager::shared().get_current_user();
+        JStringAccessor id(env, identity); // throws
+        const std::shared_ptr<SyncUser> &user = SyncManager::shared().get_existing_logged_in_user(id);
         if (user) {
             return to_jstring(env, user->refresh_token().data());
         } else {
@@ -55,15 +55,14 @@ Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser (JNIEnv *env, jclass, 
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_RealmFileUserStore_nativeLogoutCurrentUser (JNIEnv *env, jclass)
+Java_io_realm_RealmFileUserStore_nativeLogoutUser (JNIEnv *env, jclass, jstring identity)
 {
     TR_ENTER()
     try {
-        const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_current_user();
+        JStringAccessor id(env, identity); // throws
+        const std::shared_ptr<SyncUser>& user = SyncManager::shared().get_existing_logged_in_user(id);
         if (user) {
             user->log_out();
-        } else {
-            throw std::runtime_error(ERR_NO_LOGGED_IN_USER);
         }
     } CATCH_STD()
 }

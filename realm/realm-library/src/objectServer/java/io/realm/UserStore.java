@@ -42,25 +42,12 @@ public interface UserStore {
     void put(SyncUser user);
 
     /**
-     * Retrieves the current {@link SyncUser}.
-     *
-     * For now, current User cannot be called if more that one valid, logged in user
-     * exists, it will throw an exception.
-     */
-    SyncUser get();
-
-    /**
      * Retrieves specified {@link SyncUser}.
      *
      * @param identity identity of the user.
      * @return {@link SyncUser} object or {@code null} if not found.
      */
     SyncUser get(String identity);
-
-    /**
-     * Removes the current user from the store.
-     */
-    void remove();
 
     /**
      * Removes the user from the store.

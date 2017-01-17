@@ -42,17 +42,11 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public SyncUser get() {
-        String userJson = nativeGetCurrentUser();
+    public SyncUser get(String identity) {
+        String userJson = nativeGetUser(identity);
         if (userJson != null) {
             return SyncUser.fromJson(userJson);
         }
-        return null;
-    }
-
-    @Override
-    public SyncUser get(String identity) {
-        // TODO implement this
         return null;
     }
 
@@ -60,13 +54,8 @@ public class RealmFileUserStore implements UserStore {
      * {@inheritDoc}
      */
     @Override
-    public void remove() {
-        nativeLogoutCurrentUser();
-    }
-
-    @Override
     public void remove(String identity) {
-        // TODO implement this
+        nativeLogoutUser(identity);
     }
 
     /**
@@ -89,13 +78,13 @@ public class RealmFileUserStore implements UserStore {
     protected static native void nativeConfigureMetaDataSystem(String baseFile);
 
     // return json data (token) of the current logged in user
-    protected static native String nativeGetCurrentUser();
+    protected static native String nativeGetUser(String identity);
 
     protected static native String[] nativeGetAllUsers();
 
     protected static native void nativeUpdateOrCreateUser(String identity, String jsonToken, String url);
 
-    protected static native void nativeLogoutCurrentUser();
+    protected static native void nativeLogoutUser(String identity);
 
     // Should only be called for tests
     static native void nativeResetForTesting();
