@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.ObjectServerError;
@@ -109,7 +108,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                     @Override
                     public void onChange(RealmResults<PermissionOffer> offers) {
                         final PermissionOffer offer = offers.first(null);
-                        if (offer != null && offer.getToken() != null) {
+                        if (offer != null && offer.isSuccessful() && offer.getToken() != null) {
                             // 5. User2 uses the token to accept the offer
                             final String offerToken = offer.getToken();
                             final AtomicReference<String> offerResponseId = new AtomicReference<String>();
@@ -136,9 +135,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                                             PermissionOfferResponse response = responses.first(null);
                                             if (response != null && response.isSuccessful() && response.getToken().equals(offerToken)) {
                                                 // 7. Response accepted. It should now be possible for user2 to access user1's Realm
-                                                RealmLog.error("Realm 2 ready to be opened");
                                                 Realm realm = Realm.getInstance(config2);
-                                                RealmLog.error("Realm 2 opened");
                                                 looperThread.testRealms.add(realm);
                                                 assertEquals(1, realm.where(Dog.class).count());
                                                 looperThread.testComplete();
