@@ -50,12 +50,23 @@ public class RealmFileUserStore implements UserStore {
         return null;
     }
 
+    @Override
+    public SyncUser get(String identity) {
+        // TODO implement this
+        return null;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void remove() {
         nativeLogoutCurrentUser();
+    }
+
+    @Override
+    public void remove(String identity) {
+        // TODO implement this
     }
 
     /**
