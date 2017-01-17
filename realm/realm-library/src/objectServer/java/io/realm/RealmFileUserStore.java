@@ -38,6 +38,15 @@ public class RealmFileUserStore implements UserStore {
         nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
     }
 
+    @Override
+    public SyncUser getCurrent() {
+        String userJson = nativeGetCurrentUser();
+        if (userJson != null) {
+            return SyncUser.fromJson(userJson);
+        }
+        return null;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -77,7 +86,10 @@ public class RealmFileUserStore implements UserStore {
     // init and load the Metadata Realm containing SyncUsers
     protected static native void nativeConfigureMetaDataSystem(String baseFile);
 
-    // return json data (token) of the current logged in user
+    // returns json data (token) of the current logged in user
+    protected static native String nativeGetCurrentUser();
+
+    // returns json data (token) of the specified user
     protected static native String nativeGetUser(String identity);
 
     protected static native String[] nativeGetAllUsers();

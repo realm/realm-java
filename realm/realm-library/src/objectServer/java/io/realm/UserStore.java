@@ -42,6 +42,14 @@ public interface UserStore {
     void put(SyncUser user);
 
     /**
+     * Retrieves the current {@link SyncUser}.
+     * <p>
+     * This method will throw an exception if more than one valid, logged in users exist.
+     * @return {@link SyncUser} object or {@code null} if not found.
+     */
+    SyncUser getCurrent();
+
+    /**
      * Retrieves specified {@link SyncUser}.
      *
      * @param identity identity of the user.
