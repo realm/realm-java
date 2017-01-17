@@ -85,7 +85,7 @@ public class HttpUtils {
                 RealmLog.error("Error response from auth server: %s", response.toString());
             } catch (IOException e) {
                 // TODO As long as the auth server hasn't started yet, OKHttp cannot parse the response
-                // correctly. At this point it is unknown weather is a bug in OKHttp or how an
+                // correctly. At this point it is unknown weather is a bug in OKHttp or an
                 // unknown host is reported. This can cause a lot of "false" errors in the log.
                 RealmLog.error(e);
                 Thread.sleep(500);

@@ -53,7 +53,7 @@ public class SyncManager {
     @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     public static class Debug {
         /**
-         * Set this to true to bypass the device online checking.
+         * Set this to true to bypass checking if the device is offline before making HTTP requests.
          */
         public static boolean skipOnlineChecking = false;
 

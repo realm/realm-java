@@ -28,9 +28,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -114,18 +115,18 @@ public class SyncUser {
      * Returns all valid users known by this device.
      * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return a list of all known valid users.
+     * @return a map from user identifier to user. It includes all known valid users.
      */
-    public static Collection<SyncUser> all() {
+    public static Map<String, SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
         Collection<SyncUser> storedUsers = userStore.allUsers();
-        List<SyncUser> result = new ArrayList<SyncUser>(storedUsers.size());
+        Map<String, SyncUser> map = new HashMap<String, SyncUser>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
-                result.add(user);
+                map.put(user.getIdentity(), user);
             }
         }
-        return result;
+        return Collections.unmodifiableMap(map);
     }
 
     /**
@@ -180,7 +181,7 @@ public class SyncUser {
         try {
             AuthenticateResponse result;
             if (credentials.getIdentityProvider().equals(SyncCredentials.IdentityProvider.ACCESS_TOKEN)) {
-                // Credentials using ACCESS_TOKEN as IdentityProvider are optimistically assumed to be valid already
+                // Credentials using ACCESS_TOKEN as IdentityProvider are optimistically assumed to be valid already.
                 // So log them in directly without contacting the authentication server. This is done by mirroring
                 // the JSON response expected from the server.
                 String userIdentifier = credentials.getUserIdentifier();
