@@ -101,9 +101,6 @@ Java_io_realm_internal_SharedRealm_nativeGetSharedRealm(JNIEnv *env, jclass, jlo
     try {
         auto shared_realm = Realm::get_shared_realm(*config);
         shared_realm->m_binding_context = JavaBindingContext::create(env, realm_notifier);
-        // FIXME: Disabled for the collection notifications. There might be some places still need it.
-        // advance_read needs to be handled by Java because of async query.
-        //shared_realm->set_auto_refresh(false);
         return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm)));
     } CATCH_STD()
     return static_cast<jlong>(NULL);
