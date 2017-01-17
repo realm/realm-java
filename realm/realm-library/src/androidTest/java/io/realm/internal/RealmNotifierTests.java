@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmChangeListener;
@@ -34,6 +35,7 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -99,22 +101,24 @@ public class RealmNotifierTests {
         });
     }
 
+    // Callback is immediately called when commitTransaction for local changes.
     @Test
     @RunTestInLooperThread
     public void addChangeListener_byLocalChanges() {
+        final AtomicBoolean commitReturns = new AtomicBoolean(false);
         SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
             public void onChange(SharedRealm sharedRealm) {
                 // Transaction has been committed in core, but commitTransaction hasn't returned in java.
-                // Need a flag in java.
-                //assertTrue(sharedRealm.isInTransaction());
+                assertFalse(commitReturns.get());
                 looperThread.testComplete();
                 sharedRealm.close();
             }
         });
         sharedRealm.beginTransaction();
         sharedRealm.commitTransaction();
+        commitReturns.set(true);
     }
 
     private void makeRemoteChanges(final RealmConfiguration config) {
