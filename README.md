@@ -220,6 +220,9 @@ To run a testing server locally:
 	./gradlew connectedObjectServerDebugAndroidTest
 	```
 
+Note that if using VirtualBox (Genymotion), the network needs to be bridged for the tests to work.
+This is done in `VirtualBox > Network`. Set "Adapter 2" to "Bridged Adapter".
+
 These tests may take as much as half an hour to complete.
 
 ## Contributing

@@ -138,8 +138,7 @@ try {
 }
 
 def forwardAdbPorts() {
-  sh ''' adb reverse tcp:7800 tcp:7800 &&
-      adb reverse tcp:8080 tcp:8080 &&
+  sh ''' adb reverse tcp:9080 tcp:9080 &&
       adb reverse tcp:8888 tcp:8888
   '''
 }
