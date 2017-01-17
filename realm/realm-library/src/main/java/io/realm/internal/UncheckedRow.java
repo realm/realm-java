@@ -87,14 +87,6 @@ public class UncheckedRow implements NativeObject, Row {
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 
-    // FIXME: Testing code
-    public static UncheckedRow getByRowPointer(Table table, long nativeRowPointer) {
-        if (nativeRowPointer != 0) {
-            return new UncheckedRow(table.context, table, nativeRowPointer);
-        }
-        return null;
-    }
-
     /**
      * Gets the row object associated to an index in a LinkView.
      *

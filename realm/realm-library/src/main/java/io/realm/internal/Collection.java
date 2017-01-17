@@ -200,15 +200,15 @@ public class Collection implements NativeObject {
     }
 
     public UncheckedRow getUncheckedRow(int index) {
-        return UncheckedRow.getByRowPointer(table, nativeGetRow(nativePtr, index));
+        return table.getUncheckedRowByPointer(nativeGetRow(nativePtr, index));
     }
 
     public UncheckedRow firstUncheckedRow() {
-        return UncheckedRow.getByRowPointer(table, nativeFirstRow(nativePtr));
+        return table.getUncheckedRowByPointer(nativeFirstRow(nativePtr));
     }
 
     public UncheckedRow lastUncheckedRow() {
-        return UncheckedRow.getByRowPointer(table, nativeLastRow(nativePtr));
+        return table.getUncheckedRowByPointer(nativeLastRow(nativePtr));
     }
 
     public Table getTable() {
