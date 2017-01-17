@@ -18,6 +18,7 @@ package io.realm.permissions;
 import java.util.Date;
 import java.util.UUID;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
@@ -29,7 +30,7 @@ import io.realm.annotations.Required;
  *
  * It should be used in conjunction with an {@link io.realm.SyncUser}'s management Realm.
  *
- * @see <a http="See https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+ * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
 public class PermissionOfferResponse extends RealmObject {
@@ -74,10 +75,12 @@ public class PermissionOfferResponse extends RealmObject {
         return id;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
     }

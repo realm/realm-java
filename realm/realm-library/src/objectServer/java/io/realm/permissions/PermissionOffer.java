@@ -18,6 +18,7 @@ package io.realm.permissions;
 import java.util.Date;
 import java.util.UUID;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
@@ -27,7 +28,7 @@ import io.realm.annotations.Required;
  * This model is used for offering permission changes to other users.
  * It should be used in conjunction with an {@link io.realm.SyncUser}'s management Realm.
  *
- * @see <a http="See https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+ * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
 public class PermissionOffer extends RealmObject {
@@ -66,6 +67,7 @@ public class PermissionOffer extends RealmObject {
      * @param mayManage Grant or revoke administrative access.
      * @param expiresAt When this token will expire and become invalid. Pass {@code null} if this offer should not expire.
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PermissionOffer(String url, boolean mayRead, boolean mayWrite, boolean mayManage, Date expiresAt) {
         if (url == null) {
             throw new IllegalArgumentException("Non-null 'url' required.");
@@ -81,10 +83,12 @@ public class PermissionOffer extends RealmObject {
         return id;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getUpdatedAt() {
         return updatedAt;
     }
@@ -132,6 +136,7 @@ public class PermissionOffer extends RealmObject {
         return mayManage;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getExpiresAt() {
         return expiresAt;
     }
