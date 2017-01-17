@@ -38,6 +38,9 @@ public class RealmFileUserStore implements UserStore {
         nativeUpdateOrCreateUser(user.getIdentity(), userJson, user.getSyncUser().getAuthenticationUrl().toString());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SyncUser getCurrent() {
         String userJson = nativeGetCurrentUser();
