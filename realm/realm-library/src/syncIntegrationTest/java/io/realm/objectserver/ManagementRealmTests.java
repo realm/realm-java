@@ -47,7 +47,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class ManagementRealmTests {
+public class ManagementRealmTests extends BaseIntegrationTest {
 
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
