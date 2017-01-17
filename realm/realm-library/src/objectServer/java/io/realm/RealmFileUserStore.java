@@ -44,10 +44,7 @@ public class RealmFileUserStore implements UserStore {
     @Override
     public SyncUser getCurrent() {
         String userJson = nativeGetCurrentUser();
-        if (userJson != null) {
-            return SyncUser.fromJson(userJson);
-        }
-        return null;
+        return toSyncUserOrNull(userJson);
     }
 
     /**
@@ -56,10 +53,7 @@ public class RealmFileUserStore implements UserStore {
     @Override
     public SyncUser get(String identity) {
         String userJson = nativeGetUser(identity);
-        if (userJson != null) {
-            return SyncUser.fromJson(userJson);
-        }
-        return null;
+        return toSyncUserOrNull(userJson);
     }
 
     /**
@@ -84,6 +78,13 @@ public class RealmFileUserStore implements UserStore {
             return users;
         }
         return Collections.emptyList();
+    }
+
+    private static SyncUser toSyncUserOrNull(String userJson) {
+        if (userJson == null) {
+            return null;
+        }
+        return SyncUser.fromJson(userJson);
     }
 
     // init and load the Metadata Realm containing SyncUsers
