@@ -25,7 +25,7 @@ import java.util.List;
 import io.realm.RealmChangeListener;
 
 /**
- * Java wrapper of OS Results class.
+ * Java wrapper of Object Store Results class.
  * It is the backend of binding's query results, link list and back links.
  */
 @Keep

@@ -245,8 +245,6 @@ abstract class BaseRealm implements Closeable {
         if (hasChanged) {
             // Since this Realm instance has been waiting for change, advance realm & refresh realm.
             sharedRealm.refresh();
-            // FIXME: CHECK THIS!!! Maybe call OS SharedRealm.refresh()?
-            //handlerController.refreshSynchronousTableViews();
         }
         return hasChanged;
     }

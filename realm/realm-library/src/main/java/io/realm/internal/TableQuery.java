@@ -56,7 +56,6 @@ public class TableQuery implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    // FIXME: Hide this?
     public Table getTable() {
         return table;
     }

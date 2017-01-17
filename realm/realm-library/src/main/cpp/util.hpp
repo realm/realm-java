@@ -556,9 +556,9 @@ public:
     JniArrayOfArrays(JNIEnv* env, jobjectArray javaArray)
             : m_env(env)
             , m_javaArray(javaArray)
-            , m_arrayLength(javaArray == NULL ? 0 : env->GetArrayLength(javaArray))
+            , m_arrayLength(javaArray == nullptr ? 0 : env->GetArrayLength(javaArray))
     {
-        for (int i = 0; i < m_arrayLength; i++) {
+        for (int i = 0; i < m_arrayLength; ++i) {
             // No type checking. Internal use only.
             J j_array = static_cast<J>(env->GetObjectArrayElement(m_javaArray, i));
             m_array.push_back(T(env, j_array));

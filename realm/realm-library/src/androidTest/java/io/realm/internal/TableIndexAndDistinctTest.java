@@ -39,22 +39,6 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(7, table.size());
     }
 
-    // FIXME: Check or delete this.
-// TODO: parametric test
-/*    *//**
-     * Should throw exception if trying to get distinct on columns where index has not been set
-     * @param index
-     *//*
-
-    @Test(expectedExceptions = UnsupportedOperationException.class, dataProvider = "columnIndex")
-    public void shouldTestDistinctErrorWhenNoIndex(Long index) {
-
-        //Get a table with all available column types
-        Table t = TestHelper.getTableWithAllColumnTypes();
-
-        TableView view = table.getDistinctView(1);
-    }*/
-
     /**
      * Check that Index can be set on multiple columns, with the String
      * @param
