@@ -8,7 +8,7 @@
 
 ### Enhancements
 
-* Add 'like' predicate for String fields (#3752)
+* Add `like` predicate for String fields (#3752).
 
 ## 2.2.3
 
