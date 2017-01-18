@@ -442,4 +442,18 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
     CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeRequiresMigration(JNIEnv *env, jclass, jlong nativePtr,
+                                                           jlong nativeSchemaPtr) {
+
+    TR_ENTER()
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
+        auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
+        return static_cast<jboolean>(schema->compare(shared_realm->schema()).empty());
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
 

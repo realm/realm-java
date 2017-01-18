@@ -30,18 +30,12 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.AllTypes;
-import io.realm.entities.Cat;
-import io.realm.entities.Dog;
-import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.log.RealmLog;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -488,22 +482,19 @@ public class SyncConfigurationTests {
         // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
         configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
 
+        // construct the schema as it should be
+        RealmSchema dummy = new RealmSchema();
+        ArrayList<RealmObjectSchema> array = new ArrayList<>();
+        array.add(StringOnlyRealmProxy.createRealmObjectSchema(dummy));
+        array.add(AllJavaTypesRealmProxy.createRealmObjectSchema(dummy));
+        RealmSchema schema = new RealmSchema(array);
+
         // Opening the Realm should throw an exception since the schema changed, but the provided schema version is
         // the same.
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(config);
-            assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
-            // FIXME: This should really fail, but currently we have no way of detecting if the OS did a migration
-            // when opening the Realm file
-            // fail();
-        } catch(RealmMigrationNeededException ignore) {
-            fail(); // FIXME: See above
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
+        Realm realm = Realm.getInstance(config);
+        assertTrue(realm.requiresMigration(schema));
+        assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
+        realm.close();
     }
 
 }
