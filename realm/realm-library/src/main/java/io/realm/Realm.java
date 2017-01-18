@@ -319,12 +319,10 @@ public class Realm extends BaseRealm {
         boolean syncAvailable = realm.configuration.isSyncConfiguration();
 
         try {
-            if (!syncAvailable) {
-                realm.beginTransaction();
-                if (version == UNVERSIONED) {
-                    commitNeeded = true;
-                    realm.setVersion(realm.configuration.getSchemaVersion());
-                }
+            realm.beginTransaction();
+            if (version == UNVERSIONED) {
+                commitNeeded = true;
+                realm.setVersion(realm.configuration.getSchemaVersion());
             }
 
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
@@ -349,13 +347,9 @@ public class Realm extends BaseRealm {
                 RealmSchema schema = new RealmSchema(realmObjectSchemas);
                 // Assumption: when SyncConfiguration then additive schema update mode
                 realm.sharedRealm.updateSchema(schema, version);
-                // FIXME - Begin: OS currently grabs its own write transaction which prevents us from doing it in Java
-                // This means that this potentially introduces a race condition where the version number is no longer
-                // correct, but given the volatile nature of version codes anyway (for the moment). This is acceptable.
-                realm.beginTransaction();
+                // The OS currently does not handle setting the schema version. We have to do it manually.
                 realm.setVersion(realm.configuration.getSchemaVersion());
-                realm.commitTransaction();
-                // FIXME: End
+                commitNeeded = true;
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
                     columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
                 }
@@ -367,19 +361,9 @@ public class Realm extends BaseRealm {
             if (version == UNVERSIONED) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
                 if (transaction != null) {
-                    if (syncAvailable) {
-                        realm.executeTransaction(transaction);
-                        realm.executeTransaction(new Transaction() {
-                            @Override
-                            public void execute(Realm realm) {
-                                realm.setVersion(realm.configuration.getSchemaVersion());
-                            }
-                        });
-                    } else {
                         transaction.execute(realm);
-                    }
+                        commitNeeded = true;
                 }
-
             }
         } finally {
             if (!syncAvailable) {

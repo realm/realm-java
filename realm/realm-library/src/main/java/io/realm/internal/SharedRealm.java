@@ -327,6 +327,10 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
+    /**
+     * Update the underlying schema based on the schema description.
+     * Calling this method must be done from inside a write transaction.
+     */
     public void updateSchema(RealmSchema schema, long version) {
         nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
     }
