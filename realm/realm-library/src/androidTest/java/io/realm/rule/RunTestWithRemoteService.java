@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,21 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.model;
+package io.realm.rule;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-public class TestObject extends RealmObject {
-    @PrimaryKey
-    private int intProp;
+import io.realm.services.RemoteTestService;
 
-    private String stringProp;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    public int getIntProp() {
-        return intProp;
-    }
-
-    public void setIntProp(int intProp) {
-        this.intProp = intProp;
-    }
-
-    public String getStringProp() {
-        return stringProp;
-    }
-
-    public void setStringProp(String stringProp) {
-        this.stringProp = stringProp;
-    }
+/**
+ * This should used along with {@link RunWithRemoteService}. See comments there for usage.
+ */
+@Target(METHOD)
+@Retention(RUNTIME)
+public @interface RunTestWithRemoteService {
+    Class<? extends RemoteTestService> value();
 }

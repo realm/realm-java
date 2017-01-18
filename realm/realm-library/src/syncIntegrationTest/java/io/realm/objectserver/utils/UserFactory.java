@@ -21,9 +21,16 @@ import io.realm.SyncUser;
 
 // Must be in `io.realm.objectserver` to work around package protected methods.
 public class UserFactory {
+    private static final String USER_NAME = "test-user";
+    private static final String PASSWORD = "myPassw0rd";
+
+    public static SyncUser loginWithDefaultUser(String authUrl) {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(USER_NAME, PASSWORD, false);
+        return SyncUser.login(credentials, authUrl);
+    }
 
     public static SyncUser createDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword("test-user", "myPassw0rd", true);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(USER_NAME, PASSWORD, true);
         return SyncUser.login(credentials, authUrl);
     }
 

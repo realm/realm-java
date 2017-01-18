@@ -16,22 +16,14 @@
 
 package io.realm.objectserver;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Looper;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -42,136 +34,168 @@ import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
-import io.realm.objectserver.service.SendOneCommit;
-import io.realm.objectserver.service.SendsALot;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.RunTestWithRemoteService;
+import io.realm.rule.RunWithRemoteService;
+import io.realm.services.RemoteTestService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests extends BaseIntegrationTest {
+    @Rule
+    public RunWithRemoteService remoteService = new RunWithRemoteService();
+    @Rule
+    public RunInLooperThread looperThread = new RunInLooperThread();
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
-    @Test
-    @Ignore
-    public void expectServerCommit() throws Throwable {
-        final Throwable[] exception = new Throwable[1];
-        final CountDownLatch testFinished = new CountDownLatch(1);
-        ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+    public static class SimpleCommitRemoteService extends RemoteTestService {
+
+        public static final Step stepA = new Step() {
+
             @Override
-            public void run() {
-                try {
-                    Looper.prepare();
-                    Context targetContext = InstrumentationRegistry.getTargetContext();
+            protected void run() {
+                Realm.init(RemoteTestService.thiz.getApplicationContext());
+                SyncUser user = UserFactory.loginWithDefaultUser(Constants.AUTH_URL);
+                String realmUrl = Constants.SYNC_SERVER_URL;
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
-                    String realmUrl = Constants.SYNC_SERVER_URL;
-                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
-                            .name(SendOneCommit.class.getSimpleName())
-                            .errorHandler(new SyncSession.ErrorHandler() {
-                                @Override
-                                public void onError(SyncSession session, ObjectServerError error) {
-                                    fail("Sync failure: " + error);
-                                }
-                            })
-                            .build();
-                    Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
-                    final Realm realm = Realm.getInstance(syncConfig);
-                    Intent intent = new Intent(targetContext, SendOneCommit.class);
-                    targetContext.startService(intent);
-                    final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
-                    all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
-                        @Override
-                        public void onChange(RealmResults<ProcessInfo> element) {
-                            assertEquals(1, all.size());
-                            assertEquals("Background_Process1", all.get(0).getName());
-                            testFinished.countDown();
-                        }
-                    });
+                final SyncConfiguration syncConfig = getService().getSyncConfigurationBuilder(user, realmUrl).build();
+                Realm realm = Realm.getInstance(syncConfig);
 
-                    Looper.loop();
+                realm.beginTransaction();
+                ProcessInfo processInfo = realm.createObject(ProcessInfo.class);
+                processInfo.setName("Background_Process1");
+                processInfo.setPid(android.os.Process.myPid());
+                processInfo.setThreadId(Thread.currentThread().getId());
+                realm.commitTransaction();
 
-                } catch (Throwable e) {
-                    exception[0] = e;
-                    testFinished.countDown();
-                }
+                realm.close();
             }
-        });
-        boolean testTimedOut = testFinished.await(300, TimeUnit.SECONDS);
-        if (exception[0] != null) {
-            throw exception[0];
-        } else if (!testTimedOut) {
-            fail("Test timed out ");
-        }
+        };
     }
 
-    // FIXME: Ignore for now. They do still not work. It might be caused by two processes each creating
-    // a Sync Client, but it needs to be investigated.
-    //TODO send string from service and match
-    //     replicate integration tests from Cocoa
-    //     add gradle task to start the sh script automatically (create pid file, ==> run or kill existing process
-    //     check the requirement for the issue again
+    // 1. Open a sync Realm and listen to changes.
+    // A. Open the same sync Realm and add on object.
+    // 2. Get the notification, check if the change in A is received.
     @Test
-    @Ignore
-    public void expectALot() throws Throwable {
-        final Throwable[] exception = new Throwable[1];
-        final CountDownLatch testFinished = new CountDownLatch(1);
-        ExecutorService service = Executors.newSingleThreadExecutor();
-        service.submit(new Runnable() {
+    @RunTestWithRemoteService(SimpleCommitRemoteService.class)
+    @RunTestInLooperThread
+    public void expectSimpleCommit() {
+        remoteService.createHandler(Looper.myLooper());
+
+        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
+        String realmUrl = Constants.SYNC_SERVER_URL;
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                .directory(looperThread.getRoot())
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        fail("Sync failure: " + error);
+                    }
+                })
+                .build();
+        final Realm realm = Realm.getInstance(syncConfig);
+        final RealmResults<ProcessInfo> all = realm.where(ProcessInfo.class).findAll();
+        all.addChangeListener(new RealmChangeListener<RealmResults<ProcessInfo>>() {
             @Override
-            public void run() {
-                try {
-                    Looper.prepare();
-                    Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+            public void onChange(RealmResults<ProcessInfo> element) {
+                assertEquals(1, all.size());
+                assertEquals("Background_Process1", all.get(0).getName());
+                looperThread.testComplete();
+            }
+        });
 
-                    SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
-                    String realmUrl = Constants.SYNC_SERVER_URL_2;
-                    final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
-                            .name(SendsALot.class.getSimpleName())
-                            .errorHandler(new SyncSession.ErrorHandler() {
-                                @Override
-                                public void onError(SyncSession session, ObjectServerError error) {
-                                    fail("Sync failure: " + error);
-                                }
-                            })
-                            .build();
-                    Realm.deleteRealm(syncConfig);//TODO do this in Rule as async tests
-                    final Realm realm = Realm.getInstance(syncConfig);
-                    Intent intent = new Intent(targetContext, SendsALot.class);
-                    targetContext.startService(intent);
+        remoteService.triggerServiceStep(SimpleCommitRemoteService.stepA);
+    }
 
-                    final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
-                    all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {
-                        @Override
-                        public void onChange(RealmResults<TestObject> element) {
-                            assertEquals(100, element.size());
-                            for (int i = 0; i < 100; i++) {
-                                assertEquals(i, element.get(i).getIntProp());
-                                assertEquals("property " + i, element.get(i).getStringProp());
-                            }
+    public static class ALotCommitsRemoteService extends RemoteTestService {
 
-                            testFinished.countDown();
-                        }
-                    });
+        public static final Step stepA_openRealm = new Step() {
 
-                    Looper.loop();
+            @Override
+            protected void run() {
+                Realm.init(RemoteTestService.thiz.getApplicationContext());
+                SyncUser user = UserFactory.loginWithDefaultUser(Constants.AUTH_URL);
+                String realmUrl = Constants.SYNC_SERVER_URL;
 
-                } catch (Throwable e) {
-                    exception[0] = e;
-                    testFinished.countDown();
+                final SyncConfiguration syncConfig = getService().getSyncConfigurationBuilder(user, realmUrl).build();
+                getService().realm = Realm.getInstance(syncConfig);
+            }
+        };
+
+        public static final Step stepB_createObjects = new Step() {
+            @Override
+            protected void run() {
+                Realm realm = getService().realm;
+                realm.beginTransaction();
+                for (int i = 0; i < 100; i++) {
+                    Number max = realm.where(TestObject.class).findAll().max("intProp");
+                    int pk = max == null ? 0 : max.intValue() + 1;
+                    TestObject testObject = realm.createObject(TestObject.class, pk);
+                    testObject.setStringProp("Str" + pk);
+                }
+                realm.commitTransaction();
+            }
+        };
+
+        public static final Step stepC_closeRealm = new Step() {
+            @Override
+            protected void run() {
+                getService().realm.close();
+            }
+        };
+    }
+
+    // 1. Open a sync Realm and listen to changes.
+    // A. Open the same sync Realm.
+    // B. Create 100 objects.
+    // 2. Check if the 100 objects are received.
+    // #. Repeat B/2 10 times.
+    @Test
+    @RunTestWithRemoteService(ALotCommitsRemoteService.class)
+    @RunTestInLooperThread
+    public void expectALot() throws Throwable {
+        remoteService.createHandler(Looper.myLooper());
+
+        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
+        String realmUrl = Constants.SYNC_SERVER_URL;
+        final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                .directory(looperThread.getRoot())
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        fail("Sync failure: " + error);
+                    }
+                })
+                .build();
+        final Realm realm = Realm.getInstance(syncConfig);
+        final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
+        final AtomicInteger listenerCalledCounter = new AtomicInteger(0);
+        all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {
+            @Override
+            public void onChange(RealmResults<TestObject> element) {
+                int counter = listenerCalledCounter.incrementAndGet();
+                int size = all.size();
+                if (size == 0) {
+                    listenerCalledCounter.decrementAndGet();
+                    return;
+                }
+                assertEquals(0, size % 100); // Added 100 objects every time.
+                assertEquals(counter * 100 -1, all.last().getIntProp());
+                assertEquals("Str" + (counter * 100 -1), all.last().getStringProp());
+                if (counter == 10) {
+                    remoteService.triggerServiceStep(ALotCommitsRemoteService.stepC_closeRealm);
+                    looperThread.testComplete();
+                } else {
+                    remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
                 }
             }
         });
-        boolean testTimedOut = testFinished.await(30, TimeUnit.SECONDS);
-        if (exception[0] != null) {
-            throw exception[0];
-        } else if (!testTimedOut) {
-            fail("Test timed out ");
-        }
+
+        remoteService.triggerServiceStep(ALotCommitsRemoteService.stepA_openRealm);
+        remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
     }
 }
