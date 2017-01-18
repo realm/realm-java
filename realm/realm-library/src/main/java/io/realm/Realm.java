@@ -373,7 +373,17 @@ public class Realm extends BaseRealm {
             final RealmSchema schema = new RealmSchema(realmObjectSchemas);
 
             // Assumption: when SyncConfiguration then additive schema update mode
-            realm.sharedRealm.updateSchema(schema, version);
+            if (realm.sharedRealm.requiresMigration(schema)) {
+                long currentVersion = realm.getVersion();
+                long newVersion = realm.getConfiguration().getSchemaVersion();
+                if (currentVersion <= newVersion) {
+                    throw new IllegalArgumentException(String.format("The schema was changed, but the schema version " +
+                            "was not updated. The provided schema version must be higher than the one in the Realm " +
+                            "file in order to update the schema. Provided schema version: %d. Realm file schema " +
+                            "version: %d", currentVersion, newVersion));
+                }
+                realm.sharedRealm.updateSchema(schema, version);
+            }
             // The OS currently does not handle setting the schema version. We have to do it manually.
             realm.setVersion(realm.configuration.getSchemaVersion());
             commitChanges = true;
@@ -1590,16 +1600,6 @@ public class Realm extends BaseRealm {
 
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
-    }
-
-    /**
-     * Checks if the schema of a Realm is different from the provided schema.
-     *
-     * @param realmSchema the provided {@link RealmSchema}.
-     * @return {@code true} if there is a difference, {@false} if the two schemas are identical.
-     */
-    public boolean requiresMigration(RealmSchema realmSchema) {
-        return this.sharedRealm.requiresMigration(realmSchema);
     }
 
     /**

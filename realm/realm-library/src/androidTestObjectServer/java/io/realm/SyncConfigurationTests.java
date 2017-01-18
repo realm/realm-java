@@ -36,6 +36,7 @@ import java.util.Map;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -482,19 +483,18 @@ public class SyncConfigurationTests {
         // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
         configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
 
-        // construct the schema as it should be
-        RealmSchema dummy = new RealmSchema();
-        ArrayList<RealmObjectSchema> array = new ArrayList<>();
-        array.add(StringOnlyRealmProxy.createRealmObjectSchema(dummy));
-        array.add(AllJavaTypesRealmProxy.createRealmObjectSchema(dummy));
-        RealmSchema schema = new RealmSchema(array);
-
         // Opening the Realm should throw an exception since the schema changed, but the provided schema version is
         // the same.
-        Realm realm = Realm.getInstance(config);
-        assertTrue(realm.requiresMigration(schema));
-        assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
-        realm.close();
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch(IllegalArgumentException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 
 }
