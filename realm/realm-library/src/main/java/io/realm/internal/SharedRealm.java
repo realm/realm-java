@@ -331,6 +331,10 @@ public final class SharedRealm implements Closeable {
         nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
     }
 
+    public boolean requiresMigration(RealmSchema schema) {
+        return nativeRequiresMigration(nativePtr, schema.getNativePtr());
+    }
+
     @Override
     public void close() {
         if (realmNotifier != null) {
@@ -403,4 +407,5 @@ public final class SharedRealm implements Closeable {
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
     private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+    private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
 }

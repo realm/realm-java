@@ -1581,6 +1581,16 @@ public class Realm extends BaseRealm {
     }
 
     /**
+     * Checks if the schema of a Realm is different from the provided schema.
+     *
+     * @param realmSchema the provided {@link RealmSchema}.
+     * @return {@code true} if there is a difference, {@false} if the two schemas are identical.
+     */
+    public boolean requiresMigration(RealmSchema realmSchema) {
+        return this.sharedRealm.requiresMigration(schema);
+    }
+
+    /**
      * Updates own schema cache.
      *
      * @param globalCacheArray global cache of column indices. If it contains an entry for current
