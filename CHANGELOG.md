@@ -2,9 +2,10 @@
 
 ### Object Server API Changes (In Beta)
 
-* Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
-* Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
-* `SyncUser.all()` now returns Map instead of List.
+* Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+* Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
+* Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
+* `SyncUser.all()` now returns `Map` instead of `List`.
 
 ### Enhancements
 
@@ -27,7 +28,7 @@
 ### Internal
 
 * Updated Realm Sync to 1.0.0-BETA-7.2.
-* Add a Realm backup when receiving a Sync client reset message from the server.
+* Added a Realm backup when receiving a Sync client reset message from the server.
 
 ## 2.2.2
 
