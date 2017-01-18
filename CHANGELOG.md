@@ -4,7 +4,7 @@
 
 * Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 * Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
-* Changed the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
+* Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
 * `SyncUser.all()` now returns `Map` instead of `List`.
 
 ## 2.2.3
