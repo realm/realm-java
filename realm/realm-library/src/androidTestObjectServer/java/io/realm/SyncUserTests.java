@@ -19,18 +19,23 @@ package io.realm;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
+import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
 
-import io.realm.android.SharedPrefsUserStore;
+import io.realm.internal.network.AuthenticateResponse;
+import io.realm.internal.network.AuthenticationServer;
 import io.realm.rule.RunInLooperThread;
 import io.realm.util.SyncTestUtils;
 
@@ -39,6 +44,9 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncUserTests {
@@ -46,10 +54,16 @@ public class SyncUserTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Before
-    public void setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext());
-        SyncManager.getUserStore().clear();
+    @BeforeClass
+    public static void initUserStore() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
+        UserStore userStore = new RealmFileUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
+        SyncManager.setUserStore(userStore);
+    }
+
+    @After
+    public void tearDown() {
+        RealmFileUserStore.nativeResetForTesting();
     }
 
     @Test
@@ -63,25 +77,58 @@ public class SyncUserTests {
     @Test
     public void currentUser_returnsNullIfUserExpired() {
         // Add an expired user to the user store
-        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
-        SyncManager.setUserStore(userStore);
-        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        UserStore userStore = SyncManager.getUserStore();
+        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
         assertNull(SyncUser.currentUser());
     }
 
+    @Test
+    public void currentUser_throwsIfMultipleUsersLoggedIn() {
+        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        SyncManager.setAuthServerImpl(authServer);
+        try {
+            // 1. Login two random users
+            when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenAnswer(new Answer<AuthenticateResponse>() {
+                @Override
+                public AuthenticateResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
+                    return getNewRandomUser();
+                }
+            });
+            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+
+            // 2. Verify currentUser() now throws
+            try {
+                SyncUser.currentUser();
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            SyncManager.setAuthServerImpl(originalAuthServer);
+        }
+
+    }
+
+    private AuthenticateResponse getNewRandomUser() {
+        String identity = UUID.randomUUID().toString();
+        String userTokenValue = UUID.randomUUID().toString();
+        return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE);
+    }
+
     // Test that current user is cleared if it is logged out
     @Test
     public void currentUser_clearedOnLogout() {
-        // Add an expired user to the user store
+        // Add 1 valid user to the user store
         SyncUser user = SyncTestUtils.createTestUser(Long.MAX_VALUE);
-        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
-        SyncManager.setUserStore(userStore);
-        userStore.put(UserStore.CURRENT_USER_KEY, user);
+        UserStore userStore = SyncManager.getUserStore();
+        userStore.put(user);
 
         SyncUser savedUser = SyncUser.currentUser();
         assertEquals(user, savedUser);
+        assertNotNull(savedUser);
         savedUser.logout();
         assertNull(SyncUser.currentUser());
     }
@@ -89,7 +136,7 @@ public class SyncUserTests {
     // `all()` returns an empty list if no users are logged in
     @Test
     public void all_empty() {
-        Collection<SyncUser> users = SyncUser.all();
+        Map<String, SyncUser> users = SyncUser.all();
         assertTrue(users.isEmpty());
     }
 
@@ -97,14 +144,13 @@ public class SyncUserTests {
     @Test
     public void all_validUsers() {
         // Add 1 expired user and 1 valid user to the user store
-        UserStore userStore = new SharedPrefsUserStore(InstrumentationRegistry.getContext());
-        SyncManager.setUserStore(userStore);
-        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MIN_VALUE));
-        userStore.put(UserStore.CURRENT_USER_KEY, SyncTestUtils.createTestUser(Long.MAX_VALUE));
+        UserStore userStore = SyncManager.getUserStore();
+        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        userStore.put(SyncTestUtils.createTestUser(Long.MAX_VALUE));
 
-        Collection<SyncUser> users = SyncUser.all();
+        Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
-        assertTrue(users.iterator().next().isValid());
+        assertTrue(users.get(users.keySet().iterator().next()).isValid());
     }
 
     // Tests that the user store returns the last user to login
@@ -151,4 +197,19 @@ public class SyncUserTests {
         assertTrue(str != null && !str.isEmpty());
     }
 
+    // Test that a login with an access token logs the user in directly without touching the network
+    @Test
+    public void login_withAccessToken() {
+        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenThrow(new AssertionError("Server contacted."));
+        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        SyncManager.setAuthServerImpl(authServer);
+        try {
+            SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
+            SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
+            assertTrue(user.isValid());
+        } finally {
+            SyncManager.setAuthServerImpl(originalServer);
+        }
+    }
 }

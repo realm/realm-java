@@ -23,6 +23,8 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.Locale;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * This class represents a value from the Realm Authentication Server.
  */
@@ -97,6 +99,7 @@ public class Token {
         }
     }
 
+    @SuppressFBWarnings("MS_MUTABLE_ARRAY")
     public Permission[] permissions() {
         return Arrays.copyOf(permissions, permissions.length);
     }
@@ -151,5 +154,7 @@ public class Token {
         DOWNLOAD,
         REFRESH,
         MANAGE;
+
+        public static final Permission[] ALL = { UPLOAD, DOWNLOAD, REFRESH, MANAGE };
     }
 }

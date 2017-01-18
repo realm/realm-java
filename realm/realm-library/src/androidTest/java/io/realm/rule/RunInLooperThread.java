@@ -48,7 +48,11 @@ import static org.junit.Assert.fail;
  * and this class does not agree in which order to delete all open Realms.
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
+
+    // Default Realm created by this Rule. It is guaranteed to be closed when the test finishes.
     public Realm realm;
+    // Custom Realm used by the test. Saving the reference here will guarantee the instance is closed when exiting the test.
+    public Realm testRealm;
     public RealmConfiguration realmConfiguration;
     private CountDownLatch signalTestCompleted;
     private Handler backgroundHandler;
@@ -72,6 +76,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         super.after();
         realmConfiguration = null;
         realm = null;
+        testRealm = null;
         keepStrongReference = null;
     }
 
@@ -127,6 +132,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                 signalTestCompleted.countDown();
                                 if (realm != null) {
                                     realm.close();
+                                }
+                                if (testRealm != null) {
+                                    testRealm.close();
                                 }
                                 signalClosedRealm.countDown();
                             }

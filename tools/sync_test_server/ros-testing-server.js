@@ -1,6 +1,6 @@
 #!/usr/bin/env nodejs
 
-var winston = require('winston');//logging
+var winston = require('winston'); //logging
 const temp = require('temp');
 const spawn = require('child_process').spawn;
 var http = require('http');
@@ -23,7 +23,7 @@ function handleRequest(request, response) {
     try {
         //log the request on console
         winston.log(request.url);
-        //Disptach
+        //Dispatch
         dispatcher.dispatch(request, response);
     } catch(err) {
         console.log(err);
@@ -37,9 +37,13 @@ function startRealmObjectServer() {
     temp.mkdir('ros', function(err, path) {
         if (!err) {
             winston.info("Starting sync server in ", path);
+            var env = Object.create( process.env );
+            winston.info(env.NODE_ENV);
+            env.NODE_ENV = 'development';
             syncServerChildProcess = spawn('realm-object-server',
                     ['--root', path,
-                    '--configuration', '/configuration.yml']);
+                    '--configuration', '/configuration.yml'],
+                    { env: env });
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
                 winston.info(`stdout: ${data}`);

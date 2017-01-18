@@ -28,9 +28,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -61,7 +62,25 @@ import io.realm.permissions.PermissionModule;
 @Beta
 public class SyncUser {
 
-    private SyncConfiguration managementRealmConfig;
+    private static class ManagementConfig {
+        private SyncConfiguration managementRealmConfig;
+
+        synchronized SyncConfiguration initAndGetManagementRealmConfig(
+                ObjectServerUser syncUser, SyncUser user) {
+            if (managementRealmConfig == null) {
+                managementRealmConfig = new SyncConfiguration.Builder(
+                        user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
+                        .modules(new PermissionModule())
+                        .build();
+            }
+
+            return managementRealmConfig;
+        }
+    }
+
+
+    private final ManagementConfig managementConfig = new ManagementConfig();
+
     private final ObjectServerUser syncUser;
 
     private SyncUser(ObjectServerUser user) {
@@ -69,14 +88,15 @@ public class SyncUser {
     }
 
     /**
-     * Returns the last user that has logged in and who is still valid.
-     * A user is invalidated when he/she logs out or the user's access token expire.
+     * Returns the current user that is logged in and still valid.
+     * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return last {@link SyncUser} that has logged in and who is still valid. {@code null} if no current user or user has
-     *         been invalidated.
+     * @return current {@link SyncUser} that has logged in and is still valid. {@code null} if no user is logged in or the user has
+     *         expired.
+     * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser currentUser() {
-        SyncUser user = SyncManager.getUserStore().get(UserStore.CURRENT_USER_KEY);
+        SyncUser user = SyncManager.getUserStore().get();
         if (user != null && user.isValid()) {
             return user;
         }
@@ -87,18 +107,18 @@ public class SyncUser {
      * Returns all valid users known by this device.
      * A user is invalidated when he/she logs out or the user's access token expires.
      *
-     * @return a list of all known valid users.
+     * @return a map from user identifier to user. It includes all known valid users.
      */
-    public static Collection<SyncUser> all() {
+    public static Map<String, SyncUser> all() {
         UserStore userStore = SyncManager.getUserStore();
         Collection<SyncUser> storedUsers = userStore.allUsers();
-        List<SyncUser> result = new ArrayList<SyncUser>(storedUsers.size());
+        Map<String, SyncUser> map = new HashMap<String, SyncUser>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
-                result.add(user);
+                map.put(user.getIdentity(), user);
             }
         }
-        return result;
+        return Collections.unmodifiableMap(map);
     }
 
     /**
@@ -113,7 +133,7 @@ public class SyncUser {
         try {
             JSONObject obj = new JSONObject(user);
             URL authUrl = new URL(obj.getString("authUrl"));
-            Token userToken = Token.from(obj.getJSONObject("userToken"));
+            Token userToken = Token.from(obj.getJSONObject("userToken"));//TODO rename to refresh_token
             ObjectServerUser syncUser = new ObjectServerUser(userToken, authUrl);
             JSONArray realmTokens = obj.getJSONArray("realms");
             for (int i = 0; i < realmTokens.length(); i++) {
@@ -149,15 +169,25 @@ public class SyncUser {
             throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
         }
 
-        final AuthenticationServer server = SyncManager.getAuthServer();
         ObjectServerError error;
         try {
-            AuthenticateResponse result = server.loginUser(credentials, authUrl);
+            AuthenticateResponse result;
+            if (credentials.getIdentityProvider().equals(SyncCredentials.IdentityProvider.ACCESS_TOKEN)) {
+                // Credentials using ACCESS_TOKEN as IdentityProvider are optimistically assumed to be valid already.
+                // So log them in directly without contacting the authentication server. This is done by mirroring
+                // the JSON response expected from the server.
+                String userIdentifier = credentials.getUserIdentifier();
+                String token = (String) credentials.getUserInfo().get("_token");
+                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token);
+            } else {
+                final AuthenticationServer server = SyncManager.getAuthServer();
+                result = server.loginUser(credentials, authUrl);
+            }
             if (result.isValid()) {
                 ObjectServerUser syncUser = new ObjectServerUser(result.getRefreshToken(), authUrl);
                 SyncUser user = new SyncUser(syncUser);
                 RealmLog.info("Succeeded authenticating user.\n%s", user);
-                SyncManager.getUserStore().put(UserStore.CURRENT_USER_KEY, user);
+                SyncManager.getUserStore().put(user);
                 SyncManager.notifyUserLoggedIn(user);
                 return user;
             } else {
@@ -269,9 +299,7 @@ public class SyncUser {
             // FIXME We still need to cache the user token so it can be revoked.
             syncUser.clearTokens();
 
-            if (SyncUser.this.equals(SyncUser.currentUser())) {
-                SyncManager.getUserStore().remove(UserStore.CURRENT_USER_KEY);
-            }
+            SyncManager.getUserStore().remove();
 
             // Delete all Realms if needed.
             for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
@@ -370,16 +398,7 @@ public class SyncUser {
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
      */
     public Realm getManagementRealm() {
-        synchronized (this) {
-            if (managementRealmConfig == null) {
-                String managementUrl = getManagementRealmUrl(syncUser.getAuthenticationUrl());
-                managementRealmConfig = new SyncConfiguration.Builder(this, managementUrl)
-                        .modules(new PermissionModule())
-                        .build();
-            }
-        }
-
-        return Realm.getInstance(managementRealmConfig);
+        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
     }
 
     // Creates the URL to the permission Realm based on the authentication URL.
