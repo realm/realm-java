@@ -46,5 +46,10 @@ class ObjectServer {
         UserStore userStore = new SharedPrefsUserStore(context);
 
         SyncManager.init(appId, userStore);
+
+        // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
+        // to schedule a client reset. in realm-java#master this is already done, when initialising
+        // the RealmFileUserStore (not available now on releases)
+        SyncManager.nativeConfigureMetaDataSystem(context.getFilesDir().getPath());
     }
 }
