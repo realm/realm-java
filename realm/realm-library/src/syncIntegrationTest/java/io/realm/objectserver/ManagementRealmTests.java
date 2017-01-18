@@ -59,7 +59,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
         final SyncUser user2 = UserFactory.createUser(Constants.AUTH_URL, "user2");
 
         // 1. User1 creates Realm that user2 does not have access
-        final String user1RealmUrl = "realm://127.0.0.1:9080/~/permission-offer-test";
+        final String user1RealmUrl = "realm://127.0.0.1:9080/" + user1.getIdentity() + "/permission-offer-test";
         SyncConfiguration config1 = new SyncConfiguration.Builder(user1, user1RealmUrl).
                 errorHandler(new SyncSession.ErrorHandler() {
                     @Override
@@ -137,8 +137,14 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                                                 // 7. Response accepted. It should now be possible for user2 to access user1's Realm
                                                 Realm realm = Realm.getInstance(config2);
                                                 looperThread.testRealms.add(realm);
-                                                assertEquals(1, realm.where(Dog.class).count());
-                                                looperThread.testComplete();
+                                                RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+                                                dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
+                                                    @Override
+                                                    public void onChange(RealmResults<Dog> element) {
+                                                        assertEquals(1, element.size());
+                                                        looperThread.testComplete();
+                                                    }
+                                                });
                                             }
                                         }
                                     });
