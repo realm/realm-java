@@ -54,7 +54,6 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
-        RealmLog.setLevel(LogLevel.DEBUG);
         SyncUser user1 = UserFactory.createUser(Constants.AUTH_URL, "user1");
         final SyncUser user2 = UserFactory.createUser(Constants.AUTH_URL, "user2");
 
