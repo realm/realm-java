@@ -42,7 +42,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
-        jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
+        jbyte schema_mode, jboolean in_memory, jboolean cache, jlong schema_version, jboolean disable_format_upgrade,
         jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
 {
     TR_ENTER()
@@ -52,6 +52,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         JniByteArray key_array(env, key);
         Realm::Config *config = new Realm::Config();
         config->path = path;
+        config->schema_version = schema_version;
         config->encryption_key = key_array;
         config->schema_mode = static_cast<SchemaMode>(schema_mode);
         config->in_memory = in_memory;

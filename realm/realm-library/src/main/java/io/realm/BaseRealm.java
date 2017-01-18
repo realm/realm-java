@@ -435,9 +435,6 @@ abstract class BaseRealm implements Closeable {
      */
     public long getVersion() {
         long version = sharedRealm.getSchemaVersion();
-        if ((version >= 0) && (configuration.isSyncConfiguration())) {
-            version = Math.max(version, configuration.getSchemaVersion());
-        }
         return version;
     }
 
@@ -595,7 +592,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration configuration for the Realm that should be migrated.
+     * @param configuration configuration for the Realm that should be migrated. If this is a SyncConfiguration this
+     *                      method does nothing.
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}.
      * @param callback callback for specific Realm type behaviors.
      * @param cause which triggers this migration.
@@ -604,8 +602,12 @@ abstract class BaseRealm implements Closeable {
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
                                        final MigrationCallback callback, final RealmMigrationNeededException cause)
             throws FileNotFoundException {
+
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
+        }
+        if (configuration.isSyncConfiguration()) {
+            return;
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided", cause);

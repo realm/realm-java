@@ -33,7 +33,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.log.RealmLog;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -411,4 +419,91 @@ public class SyncConfigurationTests {
 
         Realm.compactRealm(config);
     }
+
+    @Test
+    public void schemaVersion_throwsIfLessThanCurrentVersion() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(0)
+                .build();
+
+        // Add v1 of the Realm to the filsystem
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should throw an exception since the schema version is less than the one in the file.
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch(IllegalArgumentException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void schemaVersion_bumpWhenUpgradingSchema() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(2)
+                .build();
+
+        // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should automatically upgrade the schema and version
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            assertEquals(2, realm.getVersion());
+            assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void schemaVersion_throwsIfNotUpdatedForSchemaUpgrade() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(1)
+                .build();
+
+        // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should throw an exception since the schema changed, but the provided schema version is
+        // the same.
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
+            // FIXME: This should really fail, but currently we have no way of detecting if the OS did a migration
+            // when opening the Realm file
+            // fail();
+        } catch(RealmMigrationNeededException ignore) {
+            fail(); // FIXME: See above
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
 }

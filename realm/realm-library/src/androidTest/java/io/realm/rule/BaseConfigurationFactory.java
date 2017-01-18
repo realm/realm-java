@@ -104,7 +104,7 @@ public class BaseConfigurationFactory extends TemporaryFolder {
         // Delete the existing file before copy
         Realm.deleteRealm(config);
 
-        File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());
+        File outFile = new File(config.getPath());
 
         InputStream is = null;
         FileOutputStream os = null;

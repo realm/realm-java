@@ -284,13 +284,16 @@ public class Realm extends BaseRealm {
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
-        if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
-            realm.doClose();
-            throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
-        }
-        if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && columnIndices == null) {
-            realm.doClose();
-            throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+
+        if (!configuration.isSyncConfiguration()) {
+            if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
+                realm.doClose();
+                throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
+            }
+            if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && columnIndices == null) {
+                realm.doClose();
+                throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+            }
         }
 
         // Initialize Realm schema if needed
@@ -346,6 +349,13 @@ public class Realm extends BaseRealm {
                 RealmSchema schema = new RealmSchema(realmObjectSchemas);
                 // Assumption: when SyncConfiguration then additive schema update mode
                 realm.sharedRealm.updateSchema(schema, version);
+                // FIXME - Begin: OS currently grabs its own write transaction which prevents us from doing it in Java
+                // This means that this potentially introduces a race condition where the version number is no longer
+                // correct, but given the volatile nature of version codes anyway (for the moment). This is acceptable.
+                realm.beginTransaction();
+                realm.setVersion(realm.configuration.getSchemaVersion());
+                realm.commitTransaction();
+                // FIXME: End
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
                     columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
                 }

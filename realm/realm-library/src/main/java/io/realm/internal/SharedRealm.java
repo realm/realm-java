@@ -199,6 +199,7 @@ public final class SharedRealm implements Closeable {
                 rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
                 enable_caching,
+                config.getSchemaVersion(),
                 disableFormatUpgrade,
                 autoChangeNotifications,
                 rosServerUrl,
@@ -372,7 +373,7 @@ public final class SharedRealm implements Closeable {
 
     private static native void nativeInit(String temporaryDirectoryPath);
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
-                                                  boolean cache, boolean disableFormatUpgrade,
+                                                  boolean cache, long schemaVersion, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
