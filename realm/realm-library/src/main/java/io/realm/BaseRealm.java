@@ -434,8 +434,7 @@ abstract class BaseRealm implements Closeable {
      * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        long version = sharedRealm.getSchemaVersion();
-        return version;
+        return sharedRealm.getSchemaVersion();
     }
 
     /**

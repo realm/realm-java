@@ -281,25 +281,35 @@ public class Realm extends BaseRealm {
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
-        long currentVersion = realm.getVersion();
-        long requiredVersion = configuration.getSchemaVersion();
+
+        final long currentVersion = realm.getVersion();
+        final long requiredVersion = configuration.getSchemaVersion();
+
         final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
 
-        if (!configuration.isSyncConfiguration()) {
-            if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
-                realm.doClose();
-                throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
-            }
-            if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && columnIndices == null) {
-                realm.doClose();
-                throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-            }
-        }
+        if (columnIndices != null) {
+            // copy global cache as a Realm local indices cache
+            realm.schema.columnIndices = columnIndices.clone();
+        } else {
+            final boolean syncingConfig = configuration.isSyncConfiguration();
 
-        // Initialize Realm schema if needed
-        if (columnIndices == null) {
+            if (!syncingConfig && (currentVersion != UNVERSIONED)) {
+                if (currentVersion < requiredVersion) {
+                    realm.doClose();
+                    throw new RealmMigrationNeededException(
+                            configuration.getPath(),
+                            String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
+                }
+                if (requiredVersion < currentVersion) {
+                    realm.doClose();
+                    throw new IllegalArgumentException(
+                            String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+                }
+            }
+
+            // Initialize Realm schema if needed
             try {
-                if (!realm.configuration.isSyncConfiguration()) {
+                if (!syncingConfig) {
                     initializeRealm(realm, currentVersion);
                 } else {
                     initializeSyncedRealm(realm, currentVersion);
@@ -308,9 +318,6 @@ public class Realm extends BaseRealm {
                 realm.doClose();
                 throw e;
             }
-        } else {
-            // copy global cache as a Realm local indices cache
-            realm.schema.columnIndices = columnIndices.clone();
         }
 
         return realm;
@@ -358,11 +365,13 @@ public class Realm extends BaseRealm {
     private static void initializeSyncedRealm(Realm realm, long version) {
         final boolean unversioned = version == UNVERSIONED;
         boolean commitChanges = false;
+
         try {
             realm.beginTransaction();
+
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
-            final Map<Class<? extends RealmModel>, ColumnInfo>  columnInfoMap = new HashMap<>(modelClasses.size());
+
             final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
             final RealmSchema realmSchemaCache = new RealmSchema();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
@@ -373,21 +382,21 @@ public class Realm extends BaseRealm {
             final RealmSchema schema = new RealmSchema(realmObjectSchemas);
 
             // Assumption: when SyncConfiguration then additive schema update mode
-            if (realm.sharedRealm.requiresMigration(schema)) {
-                long currentVersion = realm.getVersion();
+            if (!unversioned && realm.sharedRealm.requiresMigration(schema)) {
                 long newVersion = realm.getConfiguration().getSchemaVersion();
-                if (currentVersion <= newVersion) {
-                    throw new IllegalArgumentException(String.format("The schema was changed, but the schema version " +
-                            "was not updated. The provided schema version must be higher than the one in the Realm " +
-                            "file in order to update the schema. Provided schema version: %d. Realm file schema " +
-                            "version: %d", currentVersion, newVersion));
+                if (version <= newVersion) {
+                    throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
+                            "was not updated. The provided schema version (%d) must be higher than the one in the Realm " +
+                            "file (%d) in order to update the schema.", version, newVersion));
                 }
                 realm.sharedRealm.updateSchema(schema, version);
             }
+
             // The OS currently does not handle setting the schema version. We have to do it manually.
             realm.setVersion(realm.configuration.getSchemaVersion());
             commitChanges = true;
 
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
