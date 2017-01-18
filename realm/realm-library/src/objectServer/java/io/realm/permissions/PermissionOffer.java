@@ -55,7 +55,7 @@ public class PermissionOffer extends RealmObject {
     private Date expiresAt;
 
     public PermissionOffer() {
-        // Default constructor required by Realm
+        // No args constructor required by Realm
     }
 
     /**

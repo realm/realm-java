@@ -52,7 +52,7 @@ public class PermissionOfferResponse extends RealmObject {
     private String realmUrl;
 
     public PermissionOfferResponse() {
-        // Default constructor required by Realm
+        // No args constructor required by Realm
     }
 
     /**
@@ -64,6 +64,9 @@ public class PermissionOfferResponse extends RealmObject {
      *              {@link PermissionOffer}.
      */
     public PermissionOfferResponse(String token) {
+        if (token == null) {
+            throw new IllegalArgumentException("Non-null 'token' required.");
+        }
         this.token = token;
     }
 
