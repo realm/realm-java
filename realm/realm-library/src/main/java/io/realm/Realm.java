@@ -1587,7 +1587,7 @@ public class Realm extends BaseRealm {
      * @return {@code true} if there is a difference, {@false} if the two schemas are identical.
      */
     public boolean requiresMigration(RealmSchema realmSchema) {
-        return this.sharedRealm.requiresMigration(schema);
+        return this.sharedRealm.requiresMigration(realmSchema);
     }
 
     /**
