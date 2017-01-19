@@ -137,6 +137,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
                                                 Realm realm = Realm.getInstance(config2);
                                                 looperThread.testRealms.add(realm);
                                                 RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+                                                looperThread.keepStrongReference.add(dogs);
                                                 dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
                                                     @Override
                                                     public void onChange(RealmResults<Dog> element) {
