@@ -164,6 +164,8 @@ file(GLOB objectstore_SRC
 # Sync needed Object Store files
 if (build_SYNC)
     file(GLOB objectstore_sync_SRC
+        "object-store/src/results.cpp"
+        "object-store/src/impl/results_notifier.cpp"
         "object-store/src/sync/*.cpp"
         "object-store/src/sync/impl/*.cpp")
 endif()

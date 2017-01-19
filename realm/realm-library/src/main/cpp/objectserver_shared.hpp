@@ -101,8 +101,8 @@ public:
                     realm::SyncFileActionMetadata(manager,
                                                   realm::SyncFileActionMetadata::Action::HandleRealmForClientReset,
                                                   original_path,
-                                                  nullptr,
-                                                  nullptr,
+                                                  "",
+                                                  "",
                                                   realm::util::Optional<std::string>(
                                                           std::move(recovery_path)));
                 });

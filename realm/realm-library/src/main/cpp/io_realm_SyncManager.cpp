@@ -31,6 +31,9 @@
 
 #include "jni_util/log.hpp"
 #include "jni_util/jni_utils.hpp"
+#include "sync/sync_manager.hpp"
+#include "sync/sync_user.hpp"
+#include "util.hpp"
 
 using namespace realm;
 using namespace realm::sync;
@@ -57,5 +60,15 @@ Java_io_realm_SyncManager_nativeRunClient(JNIEnv *env, jclass)
 {
     try {
         sync_client->run();
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_SyncManager_nativeConfigureMetaDataSystem(JNIEnv *env, jclass,
+                                                        jstring baseFile) {
+    TR_ENTER()
+    try {
+        JStringAccessor base_file_path(env, baseFile); // throws
+        SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
     } CATCH_STD()
 }
