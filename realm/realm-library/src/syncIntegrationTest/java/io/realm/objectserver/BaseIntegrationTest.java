@@ -16,6 +16,7 @@
 
 package io.realm.objectserver;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.AfterClass;
@@ -23,30 +24,21 @@ import org.junit.BeforeClass;
 
 import io.realm.Realm;
 import io.realm.SyncManager;
-import io.realm.log.RealmLog;
-import io.realm.objectserver.utils.HttpUtils;
 
 class BaseIntegrationTest {
+    protected Context context;
+
+    BaseIntegrationTest() {
+        context = InstrumentationRegistry.getContext();
+    }
 
     @BeforeClass
     public static void setUp () throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
-        try {
-            Realm.init(InstrumentationRegistry.getContext());
-            HttpUtils.startSyncServer();
-        } catch (Exception e) {
-            // Throwing an exception from this method will crash JUnit. Instead just log it.
-            // If this setup method fails, all unit tests in the class extending it will most likely fail as well.
-            RealmLog.error("Could not start Sync Server", e);
-        }
+        Realm.init(InstrumentationRegistry.getContext());
     }
 
     @AfterClass
     public static void tearDown () throws Exception {
-        try {
-            HttpUtils.stopSyncServer();
-        } catch (Exception e) {
-            RealmLog.error("Failed to stop Sync Server", e);
-        }
     }
 }

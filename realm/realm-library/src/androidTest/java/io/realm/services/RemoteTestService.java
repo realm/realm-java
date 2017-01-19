@@ -28,6 +28,8 @@ import android.os.StrictMode;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +69,7 @@ public abstract class RemoteTestService extends Service {
                 }
                 thiz.client.send(msg);
             } catch (RemoteException e) {
-                e.printStackTrace();
+                RealmLog.error(e);
             }
         }
     }
@@ -115,7 +117,8 @@ public abstract class RemoteTestService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         stopSelf();
-        recursiveDelete(rootFolder);
+        // FIXME: This is causing sync client crash because of we cannot peacefully logout now.
+        //recursiveDelete(rootFolder);
         return super.onUnbind(intent);
     }
 
@@ -140,7 +143,10 @@ public abstract class RemoteTestService extends Service {
                     throwable = t;
                 } finally {
                     if (throwable != null) {
-                        step.response(throwable.getMessage());
+                        StringWriter sw = new StringWriter();
+                        throwable.printStackTrace(new PrintWriter(sw));
+                        String exceptionAsString = sw.toString();
+                        step.response(throwable.getMessage() + "\n" + exceptionAsString);
                     } else {
                         step.response(null);
                     }

@@ -2,6 +2,8 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +29,15 @@ import static junit.framework.Assert.fail;
 public class AuthTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
+
+    @Before
+    public void before() throws Exception {
+        UserFactory.resetInstance();
+    }
+
+    @After
+    public void after() throws Exception {
+    }
 
     @Test
     public void login_userNotExist() {
@@ -74,8 +85,7 @@ public class AuthTests extends BaseIntegrationTest {
                         })
                         .build();
 
-                final Realm realm = Realm.getInstance(config);
-                looperThread.testRealm = realm;
+                looperThread.testRealm = Realm.getInstance(config);
 
                 // FIXME: Right now we have no Java API for detecting when a session is established
                 // So we optimistically assume it has been connected after 1 second.

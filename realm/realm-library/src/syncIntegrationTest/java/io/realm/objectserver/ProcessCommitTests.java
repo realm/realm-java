@@ -19,6 +19,8 @@ package io.realm.objectserver;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +37,7 @@ import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -52,14 +55,24 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Before
+    public void before() throws Exception {
+        HttpUtils.init();
+        UserFactory.resetInstance();
+    }
+
+    @After
+    public void after() throws Exception {
+    }
+
     public static class SimpleCommitRemoteService extends RemoteTestService {
 
-        public static final Step stepA = new Step() {
+        public static final Step stepA_openRealmAndCreateOneObject = new Step() {
 
             @Override
             protected void run() {
                 Realm.init(RemoteTestService.thiz.getApplicationContext());
-                SyncUser user = UserFactory.loginWithDefaultUser(Constants.AUTH_URL);
+                SyncUser user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = getService().getSyncConfigurationBuilder(user, realmUrl).build();
@@ -73,6 +86,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 realm.commitTransaction();
 
                 realm.close();
+                // FIXME: Doesn't work
+                //user.logout();
             }
         };
     }
@@ -86,7 +101,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     public void expectSimpleCommit() {
         remoteService.createHandler(Looper.myLooper());
 
-        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
+        final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                 .directory(looperThread.getRoot())
@@ -104,21 +119,23 @@ public class ProcessCommitTests extends BaseIntegrationTest {
             public void onChange(RealmResults<ProcessInfo> element) {
                 assertEquals(1, all.size());
                 assertEquals("Background_Process1", all.get(0).getName());
+                // FIXME: Doesn't work
+                //user.logout();
                 looperThread.testComplete();
             }
         });
 
-        remoteService.triggerServiceStep(SimpleCommitRemoteService.stepA);
+        remoteService.triggerServiceStep(SimpleCommitRemoteService.stepA_openRealmAndCreateOneObject);
     }
 
     public static class ALotCommitsRemoteService extends RemoteTestService {
-
+        private static SyncUser user;
         public static final Step stepA_openRealm = new Step() {
 
             @Override
             protected void run() {
                 Realm.init(RemoteTestService.thiz.getApplicationContext());
-                SyncUser user = UserFactory.loginWithDefaultUser(Constants.AUTH_URL);
+                user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = getService().getSyncConfigurationBuilder(user, realmUrl).build();
@@ -144,6 +161,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         public static final Step stepC_closeRealm = new Step() {
             @Override
             protected void run() {
+                // FIXME: Doesn't work
+                //user.logout();
                 getService().realm.close();
             }
         };
@@ -160,7 +179,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     public void expectALot() throws Throwable {
         remoteService.createHandler(Looper.myLooper());
 
-        SyncUser user = UserFactory.createDefaultUser(Constants.AUTH_URL);
+        final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                 .directory(looperThread.getRoot())
@@ -188,6 +207,8 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 assertEquals("Str" + (counter * 100 -1), all.last().getStringProp());
                 if (counter == 10) {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepC_closeRealm);
+                    // FIXME: Doesn't work
+                    //user.logout();
                     looperThread.testComplete();
                 } else {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
