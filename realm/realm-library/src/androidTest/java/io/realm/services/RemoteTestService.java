@@ -16,6 +16,7 @@
 
 package io.realm.services;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
@@ -30,8 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.SyncConfiguration;
@@ -42,13 +43,18 @@ import io.realm.log.RealmLog;
  * Helper value for multi-processes support testing.
  */
 public abstract class RemoteTestService extends Service {
+    // There is no easy way to dynamically ensure step IDs have same value for different processes. So, use the stupid
+    // way.
+    private static int BASE_MSG_ID = 0;
+    protected static int BASE_SIMPLE_COMMIT = BASE_MSG_ID;
+    protected static int BASE_A_LOT_COMMITS  = BASE_SIMPLE_COMMIT + 100;
 
     public static abstract class Step {
         public final int message;
 
-        protected Step() {
-            this.message = stepList.size();
-            stepList.add(this);
+        protected Step(int base, int id) {
+            this.message = base + id;
+            stepMap.put(this.message, this);
         }
 
         protected abstract void run();
@@ -75,7 +81,8 @@ public abstract class RemoteTestService extends Service {
     }
 
     public static final String BUNDLE_KEY_ERROR = "error";
-    private static List<Step> stepList = new ArrayList<Step>();
+    @SuppressLint("UseSparseArrays")
+    private static Map<Integer, Step> stepMap = new HashMap<Integer, Step>();
     public static RemoteTestService thiz;
     private final Messenger messenger = new Messenger(new IncomingHandler());
     private Messenger client;
@@ -117,8 +124,7 @@ public abstract class RemoteTestService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         stopSelf();
-        // FIXME: This is causing sync client crash because of we cannot peacefully logout now.
-        //recursiveDelete(rootFolder);
+        recursiveDelete(rootFolder);
         return super.onUnbind(intent);
     }
 
@@ -134,7 +140,7 @@ public abstract class RemoteTestService extends Service {
             if (thiz.client == null) {
                 throw new RuntimeException("Message with an empty client.");
             }
-            Step step = stepList.get(msg.what);
+            Step step = stepMap.get(msg.what);
             Throwable throwable = null;
             if (step != null) {
                 try {

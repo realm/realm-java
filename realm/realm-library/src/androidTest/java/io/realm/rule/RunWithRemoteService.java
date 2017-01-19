@@ -48,12 +48,13 @@ import static junit.framework.Assert.fail;
  * To use this:
  * 1. Define a subclass of {@link RemoteTestService} and create steps as static member of it. Those steps should be
  * named as "stepA_doXXX", "stepB_doYYY", etc. to indicate the order of them.
- * 2. Add the service into the AndroidManifest.xml. And the android:process property must be ":remote".
- * 3. Annotated your test case by {@link RunTestWithRemoteService} with your remote service class.
- * 4. You also need a looper in your test thread. Normally you can just use {@link RunTestInLooperThread}.
- * 5. When your looper thread starts, register the service messenger by calling
+ * 2. Add a base message id in {@link RemoteTestService}.
+ * 3. Add the service into the AndroidManifest.xml. And the android:process property must be ":remote".
+ * 4. Annotated your test case by {@link RunTestWithRemoteService} with your remote service class.
+ * 5. You also need a looper in your test thread. Normally you can just use {@link RunTestInLooperThread}.
+ * 6. When your looper thread starts, register the service messenger by calling
  * {@link RunWithRemoteService#createHandler(Looper)}.
- * 6. Trigger your first step in the remote service process by calling
+ * 7. Trigger your first step in the remote service process by calling
  * {@link RunWithRemoteService#triggerServiceStep(RemoteTestService.Step)}.
  *
  * See the existing test cases for examples.
@@ -75,21 +76,12 @@ public class RunWithRemoteService implements TestRule {
                 // Assert and show error from value process
                 fail(error);
             }
-            if (pendingStep != null && msg.what == pendingStep.message) {
-                if (runnableAfterResponse != null) {
-                    runnableAfterResponse.run();
-                }
-                runnableAfterResponse = null;
-                pendingStep = null;
-            }
         }
     }
 
     private Messenger remoteMessenger;
     private Messenger localMessenger;
     private CountDownLatch serviceStartLatch;
-    private RemoteTestService.Step pendingStep;
-    private Runnable runnableAfterResponse;
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -115,7 +107,7 @@ public class RunWithRemoteService implements TestRule {
         TestHelper.awaitOrFail(serviceStartLatch);
     }
 
-    private void after() {
+    public void after() {
         getContext().unbindService(serviceConnection);
         remoteMessenger = null;
 
@@ -163,11 +155,6 @@ public class RunWithRemoteService implements TestRule {
 
     // Call this to trigger the next step of value process
     public void triggerServiceStep(RemoteTestService.Step step) {
-        triggerServiceStep(step, null);
-    }
-
-    // Private for now. It might be useful for the future.
-    private void triggerServiceStep(RemoteTestService.Step step, Runnable runnableAfterResponse) {
         Message msg = Message.obtain(null, step.message);
         msg.replyTo = localMessenger;
         try {
@@ -175,8 +162,6 @@ public class RunWithRemoteService implements TestRule {
         } catch (RemoteException e) {
             fail(e.getMessage());
         }
-        pendingStep = step;
-        this.runnableAfterResponse = runnableAfterResponse;
     }
 
     // Get the remote process info if it is alive.

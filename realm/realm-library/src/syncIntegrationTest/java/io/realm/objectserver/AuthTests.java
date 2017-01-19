@@ -76,7 +76,8 @@ public class AuthTests extends BaseIntegrationTest {
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                // FIXME: Is the URL correct? By using realm://127.0.0.1:9080/~/tests, crash will happen in sync client.
+                final SyncConfiguration config = new SyncConfiguration.Builder(user, "realm://127.0.0.1:9080/tests")
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {

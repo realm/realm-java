@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,9 +52,9 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests extends BaseIntegrationTest {
     @Rule
-    public RunWithRemoteService remoteService = new RunWithRemoteService();
-    @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public RunWithRemoteService remoteService = new RunWithRemoteService();
 
     @Before
     public void before() throws Exception {
@@ -67,7 +68,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
     public static class SimpleCommitRemoteService extends RemoteTestService {
 
-        public static final Step stepA_openRealmAndCreateOneObject = new Step() {
+        public static final Step stepA_openRealmAndCreateOneObject = new Step(RemoteTestService.BASE_SIMPLE_COMMIT, 1) {
 
             @Override
             protected void run() {
@@ -104,7 +105,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
-                .directory(looperThread.getRoot())
+                .directory(getRoot())
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -130,10 +131,11 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
     public static class ALotCommitsRemoteService extends RemoteTestService {
         private static SyncUser user;
-        public static final Step stepA_openRealm = new Step() {
+        public static final Step stepA_openRealm = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 1) {
 
             @Override
             protected void run() {
+                Log.e("TTT", "STEP A");
                 Realm.init(RemoteTestService.thiz.getApplicationContext());
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
@@ -143,9 +145,10 @@ public class ProcessCommitTests extends BaseIntegrationTest {
             }
         };
 
-        public static final Step stepB_createObjects = new Step() {
+        public static final Step stepB_createObjects = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 2) {
             @Override
             protected void run() {
+                Log.e("TTT", "STEP B");
                 Realm realm = getService().realm;
                 realm.beginTransaction();
                 for (int i = 0; i < 100; i++) {
@@ -158,7 +161,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
             }
         };
 
-        public static final Step stepC_closeRealm = new Step() {
+        public static final Step stepC_closeRealm = new Step(RemoteTestService.BASE_A_LOT_COMMITS, 3) {
             @Override
             protected void run() {
                 // FIXME: Doesn't work
@@ -182,7 +185,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
-                .directory(looperThread.getRoot())
+                .directory(getRoot())
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
