@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
@@ -48,7 +47,6 @@ import io.realm.log.RealmLog;
 import io.realm.permissions.PermissionModule;
 
 /**
- * @Beta
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
  * providers (Facebook, Google, etc.).
  * <p>
@@ -59,7 +57,6 @@ import io.realm.permissions.PermissionModule;
  * Persisting a user between sessions, the user's credentials are stored locally on the device, and should be treated
  * as sensitive data.
  */
-@Beta
 public class SyncUser {
 
     private static class ManagementConfig {
