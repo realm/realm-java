@@ -42,7 +42,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
-        jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
+        jbyte schema_mode, jboolean in_memory, jboolean cache, jlong /* schema_version */, jboolean disable_format_upgrade,
         jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
 {
     TR_ENTER()
@@ -52,6 +52,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         JniByteArray key_array(env, key);
         Realm::Config *config = new Realm::Config();
         config->path = path;
+        // config->schema_version = schema_version; TODO: Disabled until we remove version handling from Java
         config->encryption_key = key_array;
         config->schema_mode = static_cast<SchemaMode>(schema_mode);
         config->in_memory = in_memory;
@@ -436,9 +437,24 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
         auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
-        shared_realm->update_schema(*schema, static_cast<uint64_t>(version));
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), nullptr, true);
     }
     CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeRequiresMigration(JNIEnv *env, jclass, jlong nativePtr,
+                                                           jlong nativeSchemaPtr) {
+
+    TR_ENTER()
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
+        auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
+        const std::vector<SchemaChange> &change_list = shared_realm->schema().compare(*schema);
+        return static_cast<jboolean>(!change_list.empty());
+    }
+    CATCH_STD()
+    return JNI_FALSE;
 }
 
 

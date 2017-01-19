@@ -33,13 +33,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rule.TestSyncConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -49,7 +50,7 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncConfigurationTests {
     @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -360,7 +361,8 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(StringOnly.class)
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
@@ -412,6 +414,88 @@ public class SyncConfigurationTests {
         SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
 
         Realm.compactRealm(config);
+    }
+
+    @Test
+    public void schemaVersion_throwsIfLessThanCurrentVersion() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(0)
+                .build();
+
+        // Add v1 of the Realm to the filsystem
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should throw an exception since the schema version is less than the one in the file.
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch(IllegalArgumentException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void schemaVersion_bumpWhenUpgradingSchema() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(2)
+                .build();
+
+        // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should automatically upgrade the schema and version
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            assertEquals(2, realm.getVersion());
+            assertTrue(realm.getSchema().contains(StringOnly.class.getSimpleName()));
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
+    @Test
+    public void schemaVersion_throwsIfNotUpdatedForSchemaUpgrade() throws IOException {
+        SyncUser user = createTestUser();
+        String url = "realm://ros.realm.io/~/default";
+        @SuppressWarnings("unchecked")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(AllJavaTypes.class, StringOnly.class)
+                .name("schemaversion_v1.realm")
+                .schemaVersion(1)
+                .build();
+
+        // Add v1 of the Realm to the file system. v1 is missing the class `StringOnly`
+        configFactory.copyRealmFromAssets(context, "schemaversion_v1.realm", config);
+
+        // Opening the Realm should throw an exception since the schema changed, but the provided schema version is
+        // the same.
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch(IllegalArgumentException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 
     // Check that it is possible for multiple users to reference the same Realm URL while each user still use their
