@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+#include <realm/util/file.hpp>
 #include <realm/unicode.hpp>
 #include "utf8.hpp"
 
@@ -69,6 +70,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     catch (RealmFileException& e) {
         ss << e.what() << " (" <<  e.underlying() <<  ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind());
+    }
+    catch (File::AccessError& e) {
+        ss << e.what() << " (" <<  e.get_path() <<  ") in " << file << " line " << line;
+        ThrowException(env, FatalError, ss.str());
     }
     catch (InvalidTransactionException& e) {
         ss << e.what() << " in " << file << " line " << line;
