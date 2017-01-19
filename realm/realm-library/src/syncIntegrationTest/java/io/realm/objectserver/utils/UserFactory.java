@@ -16,8 +16,7 @@
 
 package io.realm.objectserver.utils;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
+import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -26,6 +25,7 @@ import io.realm.SyncUser;
 import io.realm.log.RealmLog;
 
 // Must be in `io.realm.objectserver` to work around package protected methods.
+// This require Realm.init() to be called before using this class.
 public class UserFactory {
     private static final String PASSWORD = "myPassw0rd";
     // Since the integration tests need use the same user for different processes, we create a new user name when the
@@ -57,17 +57,17 @@ public class UserFactory {
         return SyncUser.login(credentials, authUrl);
     }
 
-    // Since we don't have a reliable way to reset the sync server and client, just use a new user for every test case.
+    // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
+    // test case.
     public static void resetInstance() {
         instance = null;
-        SecureRandom random = new SecureRandom();
         Realm realm = Realm.getInstance(configuration);
         UserFactoryStore store = realm.where(UserFactoryStore.class).findFirst();
         realm.beginTransaction();
         if (store == null) {
             store = realm.createObject(UserFactoryStore.class);
         }
-        store.setUserName(new BigInteger(130, random).toString(32));
+        store.setUserName(UUID.randomUUID().toString());
         realm.commitTransaction();
         realm.close();
     }
@@ -81,7 +81,7 @@ public class UserFactory {
         realm.close();
     }
 
-    public static UserFactory getInstance() {
+    public static synchronized UserFactory getInstance() {
         if (instance == null)  {
             Realm realm = Realm.getInstance(configuration);
             RealmLog.error("TTT " + realm.getPath());
