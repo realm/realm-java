@@ -199,6 +199,7 @@ public final class SharedRealm implements Closeable {
                 rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
                 enable_caching,
+                config.getSchemaVersion(),
                 disableFormatUpgrade,
                 autoChangeNotifications,
                 rosServerUrl,
@@ -326,8 +327,16 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
+    /**
+     * Update the underlying schema based on the schema description.
+     * Calling this method must be done from inside a write transaction.
+     */
     public void updateSchema(RealmSchema schema, long version) {
         nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
+    }
+
+    public boolean requiresMigration(RealmSchema schema) {
+        return nativeRequiresMigration(nativePtr, schema.getNativePtr());
     }
 
     @Override
@@ -372,7 +381,7 @@ public final class SharedRealm implements Closeable {
 
     private static native void nativeInit(String temporaryDirectoryPath);
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
-                                                  boolean cache, boolean disableFormatUpgrade,
+                                                  boolean cache, long schemaVersion, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
@@ -402,4 +411,5 @@ public final class SharedRealm implements Closeable {
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
     private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+    private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
 }

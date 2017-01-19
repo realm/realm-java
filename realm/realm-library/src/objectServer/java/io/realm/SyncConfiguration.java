@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -238,6 +239,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String fileName;
         private boolean overrideDefaultLocalFileName = false;
         private byte[] key;
+        private long schemaVersion = 0;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
@@ -424,6 +426,40 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
+         * create a module. These classes must be available in the default module. Calling this will remove any
+         * previously configured modules.
+         */
+        SyncConfiguration.Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+            if (firstClass == null) {
+                throw new IllegalArgumentException("A non-null class must be provided");
+            }
+            modules.clear();
+            modules.add(DEFAULT_MODULE_MEDIATOR);
+            debugSchema.add(firstClass);
+            if (additionalClasses != null) {
+                Collections.addAll(debugSchema, additionalClasses);
+            }
+
+            return this;
+        }
+
+        /**
+         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
+         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
+         *
+         * @param schemaVersion the schema version.
+         * @throws IllegalArgumentException if schema version is invalid.
+         */
+        public Builder schemaVersion(long schemaVersion) {
+            if (schemaVersion < 0) {
+                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
+            }
+            this.schemaVersion = schemaVersion;
+            return this;
+        }
+
+        /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
          * <p>
@@ -570,10 +606,10 @@ public class SyncConfiguration extends RealmConfiguration {
 
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
-            // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
+            // <rootDir>/<userIdentifier>/<serverPath>/<serverFileNameOrOverriddenFileName>
             URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentity());
             File rootDir = overrideDefaultFolder ? directory : defaultFolder;
-            String realmPathFromRootDir = getServerPath(resolvedServerUrl);
+            String realmPathFromRootDir = user.getIdentity() + "/" + getServerPath(resolvedServerUrl);
             File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
 
             String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
@@ -616,7 +652,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     getCanonicalPath(new File(realmFileDirectory, realmFileName)),
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
-                    0,
+                    schemaVersion,
                     null, // Custom migrations not supported
                     false, // MigrationNeededException is never thrown
                     durability,

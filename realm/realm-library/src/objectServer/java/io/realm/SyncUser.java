@@ -63,10 +63,18 @@ public class SyncUser {
         private SyncConfiguration managementRealmConfig;
 
         synchronized SyncConfiguration initAndGetManagementRealmConfig(
-                ObjectServerUser syncUser, SyncUser user) {
+                ObjectServerUser syncUser, final SyncUser user) {
             if (managementRealmConfig == null) {
                 managementRealmConfig = new SyncConfiguration.Builder(
                         user, getManagementRealmUrl(syncUser.getAuthenticationUrl()))
+                        .errorHandler(new SyncSession.ErrorHandler() {
+                            @Override
+                            public void onError(SyncSession session, ObjectServerError error) {
+                                RealmLog.error(String.format("Unexpected error with %s's management Realm: %s",
+                                        user.getIdentity(),
+                                        error.toString()));
+                            }
+                        })
                         .modules(new PermissionModule())
                         .build();
             }

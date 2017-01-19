@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.permissions;
+package io.realm.rule;
 
-import io.realm.annotations.RealmModule;
+import io.realm.SyncConfiguration;
+import io.realm.SyncUser;
 
-@RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
-public class PermissionModule {
+/**
+ * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the
+ * test ends.
+ */
+public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
+
+    public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
+        return new SyncConfiguration.Builder(user, url).directory(getRoot());
+    }
 }

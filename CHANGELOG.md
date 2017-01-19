@@ -1,23 +1,26 @@
 ## 2.3.0
 
+### Object Server API Changes 
+
+* Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
+* Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
+  This is done in order to support shared Realms among users, while each user retaining their own local copy.
+* Breaking change: `SyncUser.all()` now returns Map instead of List.
+* Breaking change: Added a default `UserStore` saving users in a Realm file (`RealmFileUserStore`).
+* Breaking change: Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
+* Breaking change: Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
+* Added support for `PermissionOffer` and `PermissionOfferResponse` to `SyncUser.getManagementRealm()`.
+* Exceptions thrown in error handlers are ignored but logged (#3559).
+* Removed unused public constants in `SyncConfiguration` (#4047).
+* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
+* Now `SyncUser.logout()` properly revoke tokens (#3639).
+
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
 * Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
-* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
 * Fixed "too many open files" issue (#4002).
 * Added temporary work-around for bug crashing Samsung Tab 3 devices on startup (#3651).
-
-### Object Server API Changes 
-
-* Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
-* Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
-* Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
-* Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
-* `SyncUser.all()` now returns `Map` instead of `List`.
-* Exceptions thrown in error handlers are ignored but logged (#3559).
-* Removed unused public constants in `SyncConfiguration` (#4047).
-* Now `SyncUser.logout()` properly revoke tokens (#3639).
 
 ### Enhancements
 

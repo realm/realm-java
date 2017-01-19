@@ -31,29 +31,38 @@ import io.realm.internal.objectserver.Token;
 
 public class SyncTestUtils {
 
-    public static String USER_TOKEN = UUID.randomUUID().toString();
-    public static String REALM_TOKEN = UUID.randomUUID().toString();
-    public static String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
+    public static final String USER_TOKEN = UUID.randomUUID().toString();
+    public static final String REALM_TOKEN = UUID.randomUUID().toString();
+    public static final String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
+    public static final String DEFAULT_USER_IDENTIFIER = "JohnDoe";
 
     public static SyncUser createRandomTestUser() {
-        return createTestUser(UUID.randomUUID().toString(), UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE);
+        return createTestUser(UUID.randomUUID().toString(),
+                UUID.randomUUID().toString(),
+                UUID.randomUUID().toString(),
+                DEFAULT_AUTH_URL,
+                Long.MAX_VALUE);
     }
 
     public static SyncUser createTestUser() {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_AUTH_URL, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE);
     }
 
     public static SyncUser createTestUser(long expires) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_AUTH_URL, expires);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  DEFAULT_AUTH_URL, expires);
     }
 
     public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, authUrl, Long.MAX_VALUE);
+        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  authUrl, Long.MAX_VALUE);
     }
 
-    public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String authUrl, long expires) {
-        Token userToken = new Token(userTokenValue, "JohnDoe", null, expires, null);
-        Token accessToken = new Token(realmTokenValue, "JohnDoe", "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
+    public static SyncUser createNamedTestUser(String userIdentifier) {
+        return createTestUser(USER_TOKEN, REALM_TOKEN, userIdentifier, DEFAULT_AUTH_URL, Long.MAX_VALUE);
+    }
+
+    public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String userIdentifier, String authUrl, long expires) {
+        Token userToken = new Token(userTokenValue, userIdentifier, null, expires, null);
+        Token accessToken = new Token(realmTokenValue, userIdentifier, "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
         ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
         JSONObject obj = new JSONObject();
