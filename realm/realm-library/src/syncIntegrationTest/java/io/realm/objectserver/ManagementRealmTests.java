@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +52,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
+    @Ignore("TODO Test is currently flaky. See https://github.com/realm/realm-java/pull/4066")
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
