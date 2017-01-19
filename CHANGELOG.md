@@ -19,6 +19,7 @@
 * Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
 * Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
 * Fixed "too many open files" issue (#4002).
+* Added temporary work-around for bug crashing Samsung Tab 3 devices on startup (#3651).
 
 ### Object Server API Changes (In Beta)
 
