@@ -1,34 +1,31 @@
 ## 2.3.0
 
-### Object Server API Changes (In Beta)
-
-* Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
-* Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
-* Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
-* `SyncUser.all()` now returns `Map` instead of `List`.
-* Now `SyncUser.logout()` properly revoke tokens (#3639).
-
-### Enhancements
-
-* Add `like` predicate for String fields (#3752).
-
-## 2.2.3
-
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
 * Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
 * Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
 * Fixed "too many open files" issue (#4002).
+* Added temporary work-around for bug crashing Samsung Tab 3 devices on startup (#3651).
 
-### Object Server API Changes (In Beta)
+### Object Server API Changes 
 
+* Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
+* Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+* Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
+* Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
+* `SyncUser.all()` now returns `Map` instead of `List`.
 * Exceptions thrown in error handlers are ignored but logged (#3559).
 * Removed unused public constants in `SyncConfiguration` (#4047).
+* Now `SyncUser.logout()` properly revoke tokens (#3639).
+
+### Enhancements
+
+* Add `like` predicate for String fields (#3752).
 
 ### Internal
 
-* Updated Realm Sync to 1.0.0-BETA-7.2.
+* Updated to Realm Sync v1.0.0.
 * Added a Realm backup when receiving a Sync client reset message from the server.
 
 ## 2.2.2
