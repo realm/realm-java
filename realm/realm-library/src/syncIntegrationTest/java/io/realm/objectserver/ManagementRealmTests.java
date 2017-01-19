@@ -52,7 +52,7 @@ public class ManagementRealmTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Ignore("TODO Test is currently flaky. See https://github.com/realm/realm-java/pull/4066")
+    @Ignore("TODO: Test is currently flaky. See https://github.com/realm/realm-java/pull/4066")
     @Test
     @RunTestInLooperThread
     public void create_acceptOffer() {
