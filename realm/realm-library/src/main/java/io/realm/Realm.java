@@ -422,6 +422,8 @@ public class Realm extends BaseRealm {
         } finally {
             if (commitChanges) {
                 realm.commitTransaction(false);
+            } else {
+                realm.cancelTransaction();
             }
         }
     }
