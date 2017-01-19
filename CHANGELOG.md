@@ -6,6 +6,7 @@
 * Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
 * Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
 * `SyncUser.all()` now returns `Map` instead of `List`.
+* Now `SyncUser.logout()` properly revoke tokens (#3639).
 
 ### Enhancements
 
