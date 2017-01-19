@@ -16,13 +16,9 @@
 
 package io.realm;
 
-import io.realm.annotations.Beta;
-
 /**
- * @Beta
  * Enum describing the various states the Session Finite-State-Machine can be in.
  */
-@Beta
 public enum SessionState {
     INITIAL,          // Initial starting state
     UNBOUND,          // Start done, Realm is unbound.

@@ -22,7 +22,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.OkHttpAuthenticationServer;
@@ -31,7 +30,6 @@ import io.realm.internal.objectserver.ObjectServerSession;
 import io.realm.log.RealmLog;
 
 /**
- * @Beta
  * The SyncManager is the central controller for interacting with the Realm Object Server.
  * It handles the creation of {@link SyncSession}s and it is possible to configure session defaults and the underlying
  * network client using this class.
@@ -43,7 +41,6 @@ import io.realm.log.RealmLog;
  *
  */
 @Keep
-@Beta
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
 public class SyncManager {
 
