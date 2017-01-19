@@ -2,14 +2,12 @@
 
 ### Object Server API Changes (In Beta)
 
-* Breaking change: Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
 * Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
   This is done in order to support shared Realms among users, while each user retaining their own local copy.
 * Breaking change: `SyncUser.all()` now returns Map instead of List.
-* Breaking change: Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
+* Breaking change: Added a default `UserStore` saving users in a Realm file (`RealmFileUserStore`).
 * Breaking change: Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
 * Breaking change: Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
-* Breaking change:`SyncUser.all()` now returns `Map` instead of `List`.
 * Added support for `PermissionOffer` and `PermissionOfferResponse` to `SyncUser.getManagementRealm()`.
 
 ### Enhancements
