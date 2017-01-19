@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.ObjectServerError;
@@ -75,7 +76,10 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 SyncUser user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
-                final SyncConfiguration syncConfig = getService().getSyncConfigurationBuilder(user, realmUrl).build();
+                final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                        .directory(getService().getRoot())
+                        .name(UUID.randomUUID().toString() + ".realm")
+                        .build();
                 Realm realm = Realm.getInstance(syncConfig);
 
                 realm.beginTransaction();
@@ -139,7 +143,10 @@ public class ProcessCommitTests extends BaseIntegrationTest {
                 user = UserFactory.getInstance().loginWithDefaultUser(Constants.AUTH_URL);
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
-                final SyncConfiguration syncConfig = getService().getSyncConfigurationBuilder(user, realmUrl).build();
+                final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                        .directory(getService().getRoot())
+                        .name(UUID.randomUUID().toString() + ".realm")
+                        .build();
                 getService().realm = Realm.getInstance(syncConfig);
             }
         };

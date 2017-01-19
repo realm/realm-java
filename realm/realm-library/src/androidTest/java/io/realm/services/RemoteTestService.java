@@ -35,8 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.Realm;
-import io.realm.SyncConfiguration;
-import io.realm.SyncUser;
 import io.realm.log.RealmLog;
 
 /**
@@ -112,8 +110,8 @@ public abstract class RemoteTestService extends Service {
         rootFolder.mkdir();
     }
 
-    public SyncConfiguration.Builder getSyncConfigurationBuilder(SyncUser syncUser, String uri) {
-        return new SyncConfiguration.Builder(syncUser, uri).directory(rootFolder);
+    public File getRoot() {
+        return rootFolder;
     }
 
     @Override
