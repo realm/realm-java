@@ -16,13 +16,9 @@
 
 package io.realm;
 
-import io.realm.annotations.Beta;
-
 /**
- * @Beta
  * Interface describing events related to Users and their authentication
  */
-@Beta
 public interface AuthenticationListener {
     /**
      * A user was logged into the Object Server
