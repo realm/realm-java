@@ -13,7 +13,7 @@
 * Exceptions thrown in error handlers are ignored but logged (#3559).
 * Removed unused public constants in `SyncConfiguration` (#4047).
 * Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
-* Now `SyncUser.logout()` properly revoke tokens (#3639).
+* Now `SyncUser.logout()` properly revokes tokens (#3639).
 
 ### Bug fixes
 
@@ -24,7 +24,7 @@
 
 ### Enhancements
 
-* Add `like` predicate for String fields (#3752).
+* Added `like` predicate for String fields (#3752).
 
 ### Internal
 
