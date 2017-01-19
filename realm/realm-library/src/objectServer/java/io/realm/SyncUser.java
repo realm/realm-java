@@ -96,7 +96,7 @@ public class SyncUser {
      * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser currentUser() {
-        SyncUser user = SyncManager.getUserStore().get();
+        SyncUser user = SyncManager.getUserStore().getCurrent();
         if (user != null && user.isValid()) {
             return user;
         }
@@ -295,7 +295,7 @@ public class SyncUser {
                 session.getOsSession().stop();
             }
 
-            SyncManager.getUserStore().remove();
+            SyncManager.getUserStore().remove(syncUser.getIdentity());
 
             // Delete all Realms if needed.
             for (ObjectServerUser.AccessDescription desc : syncUser.getRealms()) {
