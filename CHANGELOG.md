@@ -1,7 +1,8 @@
 ## 2.3.0
 
-### Object Server API Changes (In Beta)
+### Object Server API Changes 
 
+* Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
 * Added a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
 * Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
 * Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
@@ -10,6 +11,10 @@
 ### Enhancements
 
 * Add `like` predicate for String fields (#3752).
+
+### Internal
+
+* Updated to Realm Sync v1.0.0.
 
 ## 2.2.3
 

@@ -18,10 +18,7 @@ package io.realm;
 
 import java.util.Collection;
 
-import io.realm.annotations.Beta;
-
 /**
- * @Beta
  * Interface for classes responsible for saving and retrieving Object Server users again.
  * <p>
  * Any implementation of a User Store is expected to not perform lengthy blocking operations as it might
@@ -30,7 +27,6 @@ import io.realm.annotations.Beta;
  * @see SyncManager#setUserStore(UserStore)
  * @see RealmFileUserStore
  */
-@Beta
 public interface UserStore {
 
     /**

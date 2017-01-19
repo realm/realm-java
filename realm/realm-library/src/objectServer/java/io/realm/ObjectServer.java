@@ -19,17 +19,14 @@ package io.realm;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 
 /**
- * @Beta
  * Internal initializer class for the Object Server.
  * Use to keep the `SyncManager` free from Android dependencies
  */
 @SuppressWarnings("unused")
 @Keep
-@Beta
 class ObjectServer {
 
     public static void init(Context context) {
