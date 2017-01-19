@@ -36,7 +36,7 @@ public class LogoutResponse extends AuthServerResponse {
      * @return the log out response.
      */
     static LogoutResponse from(Response response) {
-        if (response.code() == 204 /* No Content */) {
+        if (response.isSuccessful()) {
             // success
             return new LogoutResponse();
         }

@@ -1,4 +1,3 @@
-package io.realm.internal.objectserver;
 /*
  * Copyright 2017 Realm Inc.
  *
@@ -14,6 +13,7 @@ package io.realm.internal.objectserver;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.internal.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
