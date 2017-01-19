@@ -30,15 +30,13 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rule.TestSyncConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
@@ -51,7 +49,7 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncConfigurationTests {
     @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
@@ -361,7 +359,8 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(StringOnly.class)
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
@@ -420,7 +419,7 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://ros.realm.io/~/default";
         @SuppressWarnings("unchecked")
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .schema(AllJavaTypes.class, StringOnly.class)
                 .name("schemaversion_v1.realm")
                 .schemaVersion(0)
@@ -447,7 +446,7 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://ros.realm.io/~/default";
         @SuppressWarnings("unchecked")
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .schema(AllJavaTypes.class, StringOnly.class)
                 .name("schemaversion_v1.realm")
                 .schemaVersion(2)
@@ -474,7 +473,7 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://ros.realm.io/~/default";
         @SuppressWarnings("unchecked")
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .schema(AllJavaTypes.class, StringOnly.class)
                 .name("schemaversion_v1.realm")
                 .schemaVersion(1)

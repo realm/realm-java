@@ -323,8 +323,8 @@ public class Realm extends BaseRealm {
         return realm;
     }
 
-    private static void initializeRealm(Realm realm, long version) {
-        final boolean unversioned = version == UNVERSIONED;
+    private static void initializeRealm(Realm realm, long currentVersion) {
+        final boolean unversioned = currentVersion == UNVERSIONED;
 
         try {
             realm.beginTransaction();
@@ -345,7 +345,7 @@ public class Realm extends BaseRealm {
             }
 
             realm.schema.columnIndices = new ColumnIndices(
-                    (unversioned) ? realm.configuration.getSchemaVersion() : version, columnInfoMap);
+                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion, columnInfoMap);
 
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
@@ -362,8 +362,8 @@ public class Realm extends BaseRealm {
         }
     }
 
-    private static void initializeSyncedRealm(Realm realm, long version) {
-        final boolean unversioned = version == UNVERSIONED;
+    private static void initializeSyncedRealm(Realm realm, long currentVersion) {
+        final boolean unversioned = currentVersion == UNVERSIONED;
         boolean commitChanges = false;
 
         try {
@@ -379,30 +379,28 @@ public class Realm extends BaseRealm {
                 realmObjectSchemas.add(realmObjectSchema);
             }
 
-            final RealmSchema schema = new RealmSchema(realmObjectSchemas);
-
-            long newVersion = realm.configuration.getSchemaVersion();
-
             // Assumption: when SyncConfiguration then additive schema update mode
+            final RealmSchema schema = new RealmSchema(realmObjectSchemas);
+            long newVersion = realm.configuration.getSchemaVersion();
+            RealmLog.error("currentVersion: " + currentVersion + ", newVersion: " +  newVersion);
             if (realm.sharedRealm.requiresMigration(schema)) {
-                if (version >= newVersion) {
+                if (currentVersion >= newVersion) {
                     throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
                             "was not updated. The configured schema version (%d) must be higher than the one in the Realm " +
-                            "file (%d) in order to update the schema.", newVersion, version));
+                            "file (%d) in order to update the schema.", newVersion, currentVersion));
                 }
                 realm.sharedRealm.updateSchema(schema, newVersion);
+                // The OS currently does not handle setting the schema version. We have to do it manually.
+                realm.setVersion(newVersion);
+                commitChanges = true;
             }
-
-            // The OS currently does not handle setting the schema version. We have to do it manually.
-            realm.setVersion(newVersion);
-            commitChanges = true;
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
 
-            realm.schema.columnIndices = new ColumnIndices((unversioned) ? newVersion : version, columnInfoMap);
+            realm.schema.columnIndices = new ColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
 
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
@@ -411,6 +409,7 @@ public class Realm extends BaseRealm {
                         transaction.execute(realm);
                     } catch (Exception e) {
                         commitChanges = false;
+                        throw e;
                     }
                 }
             }
