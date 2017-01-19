@@ -146,6 +146,7 @@ public class ObjectServerUser {
         return sessions;
     }
 
+    // TODO merge this method into localLogout(). See https://github.com/realm/realm-java/pull/3642#discussion_r96818800
     public void clearTokens() {
         realms.clear();
         refreshToken = null;

@@ -63,7 +63,7 @@ public class LogoutResponse extends AuthServerResponse {
      * @param error an authentication response error.
      */
     private LogoutResponse(ObjectServerError error) {
-        RealmLog.debug("Logout response: " + error.getErrorMessage());
+        RealmLog.debug("Logout response - Error: " + error.getErrorMessage());
         setError(error);
     }
 
@@ -71,7 +71,7 @@ public class LogoutResponse extends AuthServerResponse {
      * Parses a valid (204) server response.
      */
     private LogoutResponse() {
-        RealmLog.debug("Logout response: ");
+        RealmLog.debug("Logout response - Success");
         setError(null);
     }
 
