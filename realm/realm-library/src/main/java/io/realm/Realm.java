@@ -323,15 +323,19 @@ public class Realm extends BaseRealm {
         return realm;
     }
 
-    private static void initializeRealm(Realm realm, long currentVersion) {
-        final boolean unversioned = currentVersion == UNVERSIONED;
-
+    private static void initializeRealm(Realm realm) {
+        // Everything in this method needs to be behind a transaction lock to prevent multi-process interaction while
+        // the Realm is initialized.
+        boolean commitChanges = false;
         try {
             realm.beginTransaction();
+            long currentVersion = realm.getVersion();
+            boolean unversioned = currentVersion == UNVERSIONED;
+            commitChanges = unversioned;
+
             if (unversioned) {
                 realm.setVersion(realm.configuration.getSchemaVersion());
             }
-
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
 
@@ -354,7 +358,7 @@ public class Realm extends BaseRealm {
                 }
             }
         } finally {
-            if (unversioned) {
+            if (commitChanges) {
                 realm.commitTransaction(false);
             } else {
                 realm.cancelTransaction();
@@ -362,12 +366,14 @@ public class Realm extends BaseRealm {
         }
     }
 
-    private static void initializeSyncedRealm(Realm realm, long currentVersion) {
-        final boolean unversioned = currentVersion == UNVERSIONED;
+    private static void initializeSyncedRealm(Realm realm) {
+        // Everything in this method needs to be behind a transaction lock to prevent multi-process interaction while
+        // the Realm is initialized.
         boolean commitChanges = false;
-
         try {
             realm.beginTransaction();
+            long currentVersion = realm.getVersion();
+            final boolean unversioned = (currentVersion == UNVERSIONED);
 
             final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
@@ -382,7 +388,6 @@ public class Realm extends BaseRealm {
             // Assumption: when SyncConfiguration then additive schema update mode
             final RealmSchema schema = new RealmSchema(realmObjectSchemas);
             long newVersion = realm.configuration.getSchemaVersion();
-            RealmLog.error("currentVersion: " + currentVersion + ", newVersion: " +  newVersion);
             if (realm.sharedRealm.requiresMigration(schema)) {
                 if (currentVersion >= newVersion) {
                     throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
