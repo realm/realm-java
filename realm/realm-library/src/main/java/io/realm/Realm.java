@@ -310,9 +310,9 @@ public class Realm extends BaseRealm {
             // Initialize Realm schema if needed
             try {
                 if (!syncingConfig) {
-                    initializeRealm(realm, currentVersion);
+                    initializeRealm(realm);
                 } else {
-                    initializeSyncedRealm(realm, currentVersion);
+                    initializeSyncedRealm(realm);
                 }
             } catch (RuntimeException e) {
                 realm.doClose();
