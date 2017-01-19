@@ -235,5 +235,6 @@ public class SyncManager {
 
     private static native void nativeInitializeSyncClient();
     private static native void nativeRunClient();
-
+    // init and load the Metadata Realm containing SyncUsers
+    protected static native void nativeConfigureMetaDataSystem(String baseFile);
 }

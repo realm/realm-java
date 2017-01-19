@@ -51,12 +51,17 @@ public class SyncManagerTests {
             public void put(SyncUser user) {}
 
             @Override
-            public SyncUser get() {
+            public SyncUser getCurrent() {
                 return null;
             }
 
             @Override
-            public void remove() {}
+            public SyncUser get(String identity) {
+                return null;
+            }
+
+            @Override
+            public void remove(String identity) {}
 
             @Override
             public Collection<SyncUser> allUsers() {
