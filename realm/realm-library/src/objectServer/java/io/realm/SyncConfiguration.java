@@ -570,10 +570,10 @@ public class SyncConfiguration extends RealmConfiguration {
 
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
-            // <rootDir>/<serverPath>/<serverFileNameOrOverriddenFileName>
+            // <rootDir>/<userIdentifier>/<serverPath>/<serverFileNameOrOverriddenFileName>
             URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentity());
             File rootDir = overrideDefaultFolder ? directory : defaultFolder;
-            String realmPathFromRootDir = getServerPath(resolvedServerUrl);
+            String realmPathFromRootDir = user.getIdentity() + "/" + getServerPath(resolvedServerUrl);
             File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
 
             String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;

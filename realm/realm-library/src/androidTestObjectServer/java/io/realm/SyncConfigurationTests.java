@@ -37,8 +37,9 @@ import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -94,10 +95,11 @@ public class SyncConfigurationTests {
     @Test
     public void serverUrl_setsFolderAndFileName() {
         SyncUser user = createTestUser();
+        String identity = user.getIdentity();
         String[][] validUrls = {
                 // <URL>, <Folder>, <FileName>
-                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + user.getIdentity(), "default" },
-                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + user.getIdentity() + "/sub", "default" }
+                { "realm://objectserver.realm.io/~/default", "realm-object-server/" + identity + "/" + identity, "default" },
+                { "realm://objectserver.realm.io/~/sub/default", "realm-object-server/" + identity + "/" + identity + "/sub", "default" }
         };
 
         for (String[] validUrl : validUrls) {
@@ -411,4 +413,31 @@ public class SyncConfigurationTests {
 
         Realm.compactRealm(config);
     }
+
+    // Check that it is possible for multiple users to reference the same Realm URL while each user still use their
+    // own copy on the filesystem. This is e.g. what happens if a Realm is shared using a PermissionOffer.
+    @Test
+    public void multipleUsersReferenceSameRealm() {
+        SyncUser user1 = createNamedTestUser("user1");
+        SyncUser user2 = createNamedTestUser("user2");
+        String sharedUrl = "realm://ros.realm.io/42/default";
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).build();
+        Realm realm1 = Realm.getInstance(config1);
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).build();
+        Realm realm2 = null;
+
+        // Verify that two different configurations can be used for the same URL
+        try {
+            realm2 = Realm.getInstance(config1);
+        } finally {
+            realm1.close();
+            if (realm2 != null) {
+                realm2.close();
+            }
+        }
+
+        // Verify that we actually save two different files
+        assertNotEquals(config1.getPath(), config2.getPath());
+    }
+
 }
