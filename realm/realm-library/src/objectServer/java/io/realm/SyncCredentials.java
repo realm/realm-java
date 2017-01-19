@@ -133,7 +133,7 @@ public class SyncCredentials {
      * Creates a custom set of credentials. The behaviour will depend on the type of {@code identityProvider} and
      * {@code userInfo} used.
      *
-     * @param userIdentifier string identifying the user. Usually a username of userIdentifier.
+     * @param userIdentifier String identifying the user. Usually a username or user token.
      * @param identityProvider provider used to verify the credentials.
      * @param userInfo data describing the user further or {@code null} if the user does not have any extra data. The
      *              data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom

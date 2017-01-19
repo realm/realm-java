@@ -23,7 +23,11 @@ import io.realm.SyncUser;
 public class UserFactory {
 
     public static SyncUser createDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword("test-user", "myPassw0rd", true);
+        return createUser(authUrl, "test-user");
+    }
+
+    public static SyncUser createUser(String authUrl, String userIdentifier) {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(userIdentifier, "myPassw0rd", true);
         return SyncUser.login(credentials, authUrl);
     }
 
