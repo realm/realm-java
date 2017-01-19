@@ -357,6 +357,9 @@ public class Realm extends BaseRealm {
                     transaction.execute(realm);
                 }
             }
+        } catch (Exception e) {
+            commitChanges = false;
+            throw e;
         } finally {
             if (commitChanges) {
                 realm.commitTransaction(false);
@@ -410,14 +413,12 @@ public class Realm extends BaseRealm {
             if (unversioned) {
                 final Transaction transaction = realm.configuration.getInitialDataTransaction();
                 if (transaction != null) {
-                    try {
-                        transaction.execute(realm);
-                    } catch (Exception e) {
-                        commitChanges = false;
-                        throw e;
-                    }
+                    transaction.execute(realm);
                 }
             }
+        } catch (Exception e) {
+            commitChanges = false;
+            throw e;
         } finally {
             if (commitChanges) {
                 realm.commitTransaction(false);
