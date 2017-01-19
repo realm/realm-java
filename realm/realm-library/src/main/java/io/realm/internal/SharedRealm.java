@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.File;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
 import io.realm.RealmSchema;
 import io.realm.internal.async.BadVersionException;
 
@@ -326,8 +327,9 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
-    public void updateSchema(RealmSchema schema, long version) {
-        nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
+    // inTransaction: true is write transaction is already started and commit will be done by caller
+    public void updateSchema(RealmSchema schema, long version, RealmMigration migration, boolean inTransaction) {
+        nativeUpdateSchema(nativePtr, schema.getNativePtr(), version, migration, inTransaction);
     }
 
     @Override
@@ -401,5 +403,6 @@ public final class SharedRealm implements Closeable {
     private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
     private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
-    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
+    private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version, Object migration,
+                                                  boolean inTransaction);
 }

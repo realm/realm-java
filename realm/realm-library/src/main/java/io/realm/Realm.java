@@ -316,12 +316,10 @@ public class Realm extends BaseRealm {
         boolean syncAvailable = realm.configuration.isSyncConfiguration();
 
         try {
-            if (!syncAvailable) {
-                realm.beginTransaction();
-                if (version == UNVERSIONED) {
-                    commitNeeded = true;
-                    realm.setVersion(realm.configuration.getSchemaVersion());
-                }
+            realm.beginTransaction();
+            if (version == UNVERSIONED) {
+                commitNeeded = true;
+                realm.setVersion(realm.configuration.getSchemaVersion());
             }
 
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
@@ -334,6 +332,7 @@ public class Realm extends BaseRealm {
                 // Create and validate table
                 if (version == UNVERSIONED && !syncAvailable) {
                     mediator.createTable(modelClass, realm.sharedRealm);
+                    commitNeeded = true;
                 }
                 if (syncAvailable) {
                     RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
@@ -345,7 +344,8 @@ public class Realm extends BaseRealm {
             if (syncAvailable) {
                 RealmSchema schema = new RealmSchema(realmObjectSchemas);
                 // Assumption: when SyncConfiguration then additive schema update mode
-                realm.sharedRealm.updateSchema(schema, version);
+                realm.sharedRealm.updateSchema(schema, version, null, true);
+                commitNeeded = true;
                 for (Class<? extends RealmModel> modelClass : modelClasses) {
                     columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
                 }
@@ -357,27 +357,15 @@ public class Realm extends BaseRealm {
             if (version == UNVERSIONED) {
                 final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
                 if (transaction != null) {
-                    if (syncAvailable) {
-                        realm.executeTransaction(transaction);
-                        realm.executeTransaction(new Transaction() {
-                            @Override
-                            public void execute(Realm realm) {
-                                realm.setVersion(realm.configuration.getSchemaVersion());
-                            }
-                        });
-                    } else {
-                        transaction.execute(realm);
-                    }
+                    transaction.execute(realm);
+                    commitNeeded = true;
                 }
-
             }
         } finally {
-            if (!syncAvailable) {
-                if (commitNeeded) {
-                    realm.commitTransaction(false);
-                } else {
-                    realm.cancelTransaction();
-                }
+            if (commitNeeded) {
+                realm.commitTransaction(false);
+            } else {
+                realm.cancelTransaction();
             }
         }
     }
