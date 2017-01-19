@@ -38,16 +38,6 @@ public class HttpUtils {
     // will forward this query to the host, running the integration test server on 8888
     private final static String START_SERVER = "http://127.0.0.1:8888/start";
     private final static String STOP_SERVER = "http://127.0.0.1:8888/stop";
-    private static boolean inited = false;
-
-    // Start the ROS service only once since there are problems with reseting it. Also it makes testing faster.
-    public static void init() throws Exception {
-        if (!inited) {
-            stopSyncServer();
-            startSyncServer();
-            inited = true;
-        }
-    }
 
     public static void startSyncServer() throws Exception {
         Request request = new Request.Builder()

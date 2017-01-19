@@ -26,6 +26,7 @@ import java.io.File;
 
 import io.realm.Realm;
 import io.realm.SyncManager;
+import io.realm.objectserver.utils.HttpUtils;
 
 class BaseIntegrationTest {
     protected Context context;
@@ -47,10 +48,12 @@ class BaseIntegrationTest {
         rootFolder.delete();
         //noinspection ResultOfMethodCallIgnored
         rootFolder.mkdir();
+        HttpUtils.startSyncServer();
     }
 
     @AfterClass
     public static void tearDown () throws Exception {
+        HttpUtils.stopSyncServer();
     }
 
     static File getRoot() {

@@ -58,7 +58,6 @@ public class ProcessCommitTests extends BaseIntegrationTest {
 
     @Before
     public void before() throws Exception {
-        HttpUtils.init();
         UserFactory.resetInstance();
     }
 

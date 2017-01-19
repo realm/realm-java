@@ -50,7 +50,7 @@ import static junit.framework.Assert.fail;
  * named as "stepA_doXXX", "stepB_doYYY", etc. to indicate the order of them.
  * 2. Add a base message id in {@link RemoteTestService}.
  * 3. Add the service into the AndroidManifest.xml. And the android:process property must be ":remote".
- * 4. Annotated your test case by {@link RunTestWithRemoteService} with your remote service class.
+ * 4. Annotate your test case by {@link RunTestWithRemoteService} with your remote service class.
  * 5. You also need a looper in your test thread. Normally you can just use {@link RunTestInLooperThread}.
  * 6. When your looper thread starts, register the service messenger by calling
  * {@link RunWithRemoteService#createHandler(Looper)}.
