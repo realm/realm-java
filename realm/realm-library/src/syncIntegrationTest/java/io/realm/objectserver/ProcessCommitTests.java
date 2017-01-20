@@ -36,6 +36,8 @@ import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
@@ -185,6 +187,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
     @RunTestWithRemoteService(ALotCommitsRemoteService.class)
     @RunTestInLooperThread
     public void expectALot() throws Throwable {
+        RealmLog.setLevel(LogLevel.DEBUG);
         remoteService.createHandler(Looper.myLooper());
 
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
@@ -224,7 +227,12 @@ public class ProcessCommitTests extends BaseIntegrationTest {
             }
         });
 
-        remoteService.triggerServiceStep(ALotCommitsRemoteService.stepA_openRealm);
-        remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
+        looperThread.postRunnableDelayed(new Runnable() {
+            @Override
+            public void run() {
+                remoteService.triggerServiceStep(ALotCommitsRemoteService.stepA_openRealm);
+                remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
+            }
+        }, 2000);
     }
 }
