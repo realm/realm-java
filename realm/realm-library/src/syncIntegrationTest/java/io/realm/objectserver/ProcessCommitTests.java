@@ -39,7 +39,6 @@ import io.realm.SyncUser;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -108,7 +107,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
-                .directory(getRoot())
+                .directory(looperThread.getRoot())
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -191,7 +190,7 @@ public class ProcessCommitTests extends BaseIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
-                .directory(getRoot())
+                .directory(looperThread.getRoot())
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {

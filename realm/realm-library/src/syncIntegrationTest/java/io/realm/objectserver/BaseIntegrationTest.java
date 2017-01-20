@@ -22,17 +22,12 @@ import android.support.test.InstrumentationRegistry;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import java.io.File;
-
 import io.realm.Realm;
 import io.realm.SyncManager;
 import io.realm.objectserver.utils.HttpUtils;
 
 class BaseIntegrationTest {
     protected Context context;
-    // We cannot use test looper's temp directory since deletion of the temp folder will cause sync client crash in
-    // the next test. (make_dir failed.)
-    private static File rootFolder;
 
     BaseIntegrationTest() {
         context = InstrumentationRegistry.getContext();
@@ -43,20 +38,11 @@ class BaseIntegrationTest {
     public static void setUp () throws Exception {
         SyncManager.Debug.skipOnlineChecking = true;
         Realm.init(InstrumentationRegistry.getContext());
-        rootFolder = File.createTempFile("SyncIntegrationTests", "");
-        //noinspection ResultOfMethodCallIgnored
-        rootFolder.delete();
-        //noinspection ResultOfMethodCallIgnored
-        rootFolder.mkdir();
         HttpUtils.startSyncServer();
     }
 
     @AfterClass
     public static void tearDown () throws Exception {
         HttpUtils.stopSyncServer();
-    }
-
-    static File getRoot() {
-        return rootFolder;
     }
 }
