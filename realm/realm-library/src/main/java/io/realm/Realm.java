@@ -149,7 +149,7 @@ public class Realm extends BaseRealm {
     /**
      * Initializes the Realm library and creates a default configuration that is ready to use. It is required to call
      * this method before interacting with any other of the Realm API's.
-     *
+     * <p>
      * A good place is in an {@link android.app.Application} subclass:
      * <pre>
      * {@code
@@ -162,7 +162,7 @@ public class Realm extends BaseRealm {
      * }
      * }
      * </pre>
-     *
+     * <p>
      * Remember to register it in the {@code AndroidManifest.xml} file:
      * <pre>
      * {@code
@@ -281,103 +281,149 @@ public class Realm extends BaseRealm {
 
     static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices[] globalCacheArray) {
         Realm realm = new Realm(configuration);
-        long currentVersion = realm.getVersion();
-        long requiredVersion = configuration.getSchemaVersion();
-        final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
-        if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
-            realm.doClose();
-            throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
-        }
-        if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && columnIndices == null) {
-            realm.doClose();
-            throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-        }
 
-        // Initialize Realm schema if needed
-        if (columnIndices == null) {
+        final long currentVersion = realm.getVersion();
+        final long requiredVersion = configuration.getSchemaVersion();
+
+        final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
+
+        if (columnIndices != null) {
+            // copy global cache as a Realm local indices cache
+            realm.schema.columnIndices = columnIndices.clone();
+        } else {
+            final boolean syncingConfig = configuration.isSyncConfiguration();
+
+            if (!syncingConfig && (currentVersion != UNVERSIONED)) {
+                if (currentVersion < requiredVersion) {
+                    realm.doClose();
+                    throw new RealmMigrationNeededException(
+                            configuration.getPath(),
+                            String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
+                }
+                if (requiredVersion < currentVersion) {
+                    realm.doClose();
+                    throw new IllegalArgumentException(
+                            String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+                }
+            }
+
+            // Initialize Realm schema if needed
             try {
-                initializeRealm(realm);
+                if (!syncingConfig) {
+                    initializeRealm(realm);
+                } else {
+                    initializeSyncedRealm(realm);
+                }
             } catch (RuntimeException e) {
                 realm.doClose();
                 throw e;
             }
-        } else {
-            // copy global cache as a Realm local indices cache
-            realm.schema.columnIndices = columnIndices.clone();
         }
 
         return realm;
     }
 
-    @SuppressWarnings("unchecked")
     private static void initializeRealm(Realm realm) {
-        long version = realm.getVersion();
-        boolean commitNeeded = false;
-        boolean syncAvailable = realm.configuration.isSyncConfiguration();
-
+        // Everything in this method needs to be behind a transaction lock to prevent multi-process interaction while
+        // the Realm is initialized.
+        boolean commitChanges = false;
         try {
-            if (!syncAvailable) {
-                realm.beginTransaction();
-                if (version == UNVERSIONED) {
-                    commitNeeded = true;
-                    realm.setVersion(realm.configuration.getSchemaVersion());
-                }
-            }
+            realm.beginTransaction();
+            long currentVersion = realm.getVersion();
+            boolean unversioned = currentVersion == UNVERSIONED;
+            commitChanges = unversioned;
 
-            RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+            if (unversioned) {
+                realm.setVersion(realm.configuration.getSchemaVersion());
+            }
+            final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
-            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap;
-            columnInfoMap = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());
-            ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
-            RealmSchema realmSchemaCache = new RealmSchema();
+
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
                 // Create and validate table
-                if (version == UNVERSIONED && !syncAvailable) {
+                if (unversioned) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
-                if (syncAvailable) {
-                    RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
-                    realmObjectSchemas.add(realmObjectSchema);
-                } else {
-                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
-                }
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
             }
-            if (syncAvailable) {
-                RealmSchema schema = new RealmSchema(realmObjectSchemas);
-                // Assumption: when SyncConfiguration then additive schema update mode
-                realm.sharedRealm.updateSchema(schema, version);
-                for (Class<? extends RealmModel> modelClass : modelClasses) {
-                    columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
-                }
-            }
+
             realm.schema.columnIndices = new ColumnIndices(
-                    (version == UNVERSIONED) ? realm.configuration.getSchemaVersion() : version,
-                    columnInfoMap);
+                    (unversioned) ? realm.configuration.getSchemaVersion() : currentVersion, columnInfoMap);
 
-            if (version == UNVERSIONED) {
-                final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
+            if (unversioned) {
+                final Transaction transaction = realm.configuration.getInitialDataTransaction();
                 if (transaction != null) {
-                    if (syncAvailable) {
-                        realm.executeTransaction(transaction);
-                        realm.executeTransaction(new Transaction() {
-                            @Override
-                            public void execute(Realm realm) {
-                                realm.setVersion(realm.configuration.getSchemaVersion());
-                            }
-                        });
-                    } else {
-                        transaction.execute(realm);
-                    }
+                    transaction.execute(realm);
                 }
-
             }
+        } catch (Exception e) {
+            commitChanges = false;
+            throw e;
         } finally {
-            if (!syncAvailable) {
-                if (commitNeeded) {
-                    realm.commitTransaction(false);
-                } else {
-                    realm.cancelTransaction();
+            if (commitChanges) {
+                realm.commitTransaction(false);
+            } else {
+                realm.cancelTransaction();
+            }
+        }
+    }
+
+    private static void initializeSyncedRealm(Realm realm) {
+        // Everything in this method needs to be behind a transaction lock to prevent multi-process interaction while
+        // the Realm is initialized.
+        boolean commitChanges = false;
+        try {
+            realm.beginTransaction();
+            long currentVersion = realm.getVersion();
+            final boolean unversioned = (currentVersion == UNVERSIONED);
+
+            final RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+            final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
+
+            final ArrayList<RealmObjectSchema> realmObjectSchemas = new ArrayList<>();
+            final RealmSchema realmSchemaCache = new RealmSchema();
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
+                RealmObjectSchema realmObjectSchema = mediator.createRealmObjectSchema(modelClass, realmSchemaCache);
+                realmObjectSchemas.add(realmObjectSchema);
+            }
+
+            // Assumption: when SyncConfiguration then additive schema update mode
+            final RealmSchema schema = new RealmSchema(realmObjectSchemas);
+            long newVersion = realm.configuration.getSchemaVersion();
+            if (realm.sharedRealm.requiresMigration(schema)) {
+                if (currentVersion >= newVersion) {
+                    throw new IllegalArgumentException(String.format("The schema was changed but the schema version " +
+                            "was not updated. The configured schema version (%d) must be higher than the one in the Realm " +
+                            "file (%d) in order to update the schema.", newVersion, currentVersion));
                 }
+                realm.sharedRealm.updateSchema(schema, newVersion);
+                // The OS currently does not handle setting the schema version. We have to do it manually.
+                realm.setVersion(newVersion);
+                commitChanges = true;
+            }
+
+            final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
+            for (Class<? extends RealmModel> modelClass : modelClasses) {
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedRealm, false));
+            }
+
+            realm.schema.columnIndices = new ColumnIndices((unversioned) ? newVersion : currentVersion, columnInfoMap);
+
+            if (unversioned) {
+                final Transaction transaction = realm.configuration.getInitialDataTransaction();
+                if (transaction != null) {
+                    transaction.execute(realm);
+                }
+            }
+        } catch (Exception e) {
+            commitChanges = false;
+            throw e;
+        } finally {
+            if (commitChanges) {
+                realm.commitTransaction(false);
+            } else {
+                realm.cancelTransaction();
             }
         }
     }
@@ -798,7 +844,7 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
-        return createObjectInternal(clazz, true, Collections.<String> emptyList());
+        return createObjectInternal(clazz, true, Collections.<String>emptyList());
     }
 
     /**
@@ -811,9 +857,10 @@ public class Realm extends BaseRealm {
      * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
      */
     // called from proxy classes
-    <E extends RealmModel> E createObjectInternal(Class<E> clazz,
-                                                            boolean acceptDefaultValue,
-                                                            List<String> excludeFields) {
+    <E extends RealmModel> E createObjectInternal(
+            Class<E> clazz,
+            boolean acceptDefaultValue,
+            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         // Check and throw the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
@@ -841,7 +888,7 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         checkIfValid();
-        return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String> emptyList());
+        return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String>emptyList());
     }
 
     /**
@@ -857,9 +904,11 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      */
     // called from proxy classes
-    <E extends RealmModel> E createObjectInternal(Class<E> clazz, Object primaryKeyValue,
-                                                            boolean acceptDefaultValue,
-                                                            List<String> excludeFields) {
+    <E extends RealmModel> E createObjectInternal(
+            Class<E> clazz,
+            Object primaryKeyValue,
+            boolean acceptDefaultValue,
+            List<String> excludeFields) {
         Table table = schema.getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return get(clazz, rowIndex, acceptDefaultValue, excludeFields);
@@ -894,7 +943,7 @@ public class Realm extends BaseRealm {
      * @param object {@link io.realm.RealmObject} to copy or update.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
      * @throws java.lang.IllegalArgumentException if the object is {@code null} or doesn't have a Primary key defined
-     *  or it belongs to a Realm instance in a different thread.
+     *                                            or it belongs to a Realm instance in a different thread.
      * @see #copyToRealm(RealmModel)
      */
     public <E extends RealmModel> E copyToRealmOrUpdate(E object) {
@@ -984,9 +1033,9 @@ public class Realm extends BaseRealm {
      *
      * @param object RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
-     * transaction.
+     *                                transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
-     * inserted or if a primary key value already exists in the Realm.
+     *                                                                inserted or if a primary key value already exists in the Realm.
      * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
@@ -1021,7 +1070,6 @@ public class Realm extends BaseRealm {
      * transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
      * inserted or if a primary key value already exists in the Realm.
-     *
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
@@ -1134,7 +1182,7 @@ public class Realm extends BaseRealm {
      * @param <E> type of object.
      * @return an in-memory detached copy of the RealmObjects.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
-     *         {@link DynamicRealmObject}.
+     *                                  {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
@@ -1192,7 +1240,7 @@ public class Realm extends BaseRealm {
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
-     *         {@link DynamicRealmObject}.
+     *                                  {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(RealmModel)
      */
     public <E extends RealmModel> E copyFromRealm(E realmObject, int maxDepth) {
@@ -1327,7 +1375,7 @@ public class Realm extends BaseRealm {
 
         // If the user provided a Callback then we make sure, the current Realm has a Handler
         // we can use to deliver the result
-        if ((onSuccess != null || onError != null)  && !hasValidNotifier()) {
+        if ((onSuccess != null || onError != null) && !hasValidNotifier()) {
             throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
                     " and you provided a callback, we need a Handler to invoke your callback");
         }
@@ -1576,7 +1624,7 @@ public class Realm extends BaseRealm {
      * @param globalCacheArray global cache of column indices. If it contains an entry for current
      *                         schema version, this method only copies the indices information in the entry.
      * @return newly created indices information for current schema version. Or {@code null} if
-     *          {@code globalCacheArray} already contains the entry for current schema version.
+     *         {@code globalCacheArray} already contains the entry for current schema version.
      */
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
         final long currentSchemaVersion = sharedRealm.getSchemaVersion();
@@ -1681,6 +1729,7 @@ public class Realm extends BaseRealm {
          */
         class Callback {
             public void onSuccess() {}
+
             public void onError(Exception e) {}
         }
 

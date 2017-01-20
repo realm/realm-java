@@ -45,9 +45,14 @@ public class UserFactory {
         return SyncUser.login(credentials, authUrl);
     }
 
+    public static SyncUser createUniqueUser(String authUrl) {
+        String uniqueName = UUID.randomUUID().toString();
+        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, PASSWORD, true);
+        return SyncUser.login(credentials, authUrl);
+    }
+
     public SyncUser createDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
-        RealmLog.error("TTT userName " + userName);
         return SyncUser.login(credentials, authUrl);
     }
 

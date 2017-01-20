@@ -50,8 +50,6 @@ public class AuthServerResponse {
         this.error = error;
     }
 
-
-
     /**
      * Parse an HTTP error from a Realm Authentication Server. The server returns errors following
      * https://tools.ietf.org/html/rfc7807 with an extra "code" field for Realm specific error codes.

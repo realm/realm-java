@@ -53,7 +53,7 @@ public class AuthenticateResponse extends AuthServerResponse {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
             return new AuthenticateResponse(error);
         }
-        if (response.code() != 200) {
+        if (!response.isSuccessful()) {
             return new AuthenticateResponse(AuthServerResponse.createError(serverResponse, response.code()));
         } else {
             return new AuthenticateResponse(serverResponse);

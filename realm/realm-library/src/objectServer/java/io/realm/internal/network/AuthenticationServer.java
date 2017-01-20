@@ -55,5 +55,5 @@ public interface AuthenticationServer {
      * own refresh token, but if the refresh token for some reason was shared or stolen all these devices will be
      * logged out as well.
      */
-    LogoutResponse logout(SyncUser user, URL authenticationUrl);
+    LogoutResponse logout(Token userToken, URL authenticationUrl);
 }

@@ -150,7 +150,7 @@ public class SyncUserTests {
 
         Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
-        assertTrue(users.get(users.keySet().iterator().next()).isValid());
+        assertTrue(users.entrySet().iterator().next().getValue().isValid());
     }
 
     // Tests that the user store returns the last user to login
