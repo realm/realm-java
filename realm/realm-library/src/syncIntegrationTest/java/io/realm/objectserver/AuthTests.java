@@ -21,6 +21,7 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestSyncConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -29,6 +30,8 @@ import static junit.framework.Assert.fail;
 public class AuthTests extends BaseIntegrationTest {
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Before
     public void before() throws Exception {
@@ -76,18 +79,16 @@ public class AuthTests extends BaseIntegrationTest {
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback() {
             @Override
             public void onSuccess(SyncUser user) {
-                // FIXME: Is the URL correct? By using realm://127.0.0.1:9080/~/tests, crash will happen in sync client.
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, "realm://127.0.0.1/tests")
+                final SyncConfiguration config =
+                        configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
                                 fail("Session failed: " + error);
                             }
-                        })
-                        .build();
+                        }).build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.testRealms.add(realm);
 
                 // FIXME: Right now we have no Java API for detecting when a session is established
                 // So we optimistically assume it has been connected after 1 second.
@@ -95,6 +96,7 @@ public class AuthTests extends BaseIntegrationTest {
                     @Override
                     public void run() {
                         assertEquals(SessionState.BOUND, SyncManager.getSession(config).getState());
+                        realm.close();
                         looperThread.testComplete();
                     }
                 }, 1000);
