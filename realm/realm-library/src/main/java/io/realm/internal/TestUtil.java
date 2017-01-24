@@ -21,4 +21,5 @@ class TestUtil {
     public native static long getMaxExceptionNumber();
     public native static String getExpectedMessage(long exceptionKind);
     public native static void testThrowExceptions(long exceptionKind);
+    public native static boolean testNativeString();
 }
