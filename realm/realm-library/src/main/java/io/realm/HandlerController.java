@@ -628,7 +628,7 @@ final class HandlerController implements Handler.Callback {
                 } else if (compare > 0) {
                     // the caller has advanced we need to
                     // retry against the current version of the caller if it's still empty
-                    if (RealmObject.isValid(proxy)) { // already completed & has a valid pointer no need to re-run
+                    if (RealmObject.isLoaded(proxy)) { // already completed & has a valid pointer no need to re-run
                         RealmLog.trace("[COMPLETED_ASYNC_REALM_OBJECT %s], realm: %s. " +
                                 "RealmObject is already loaded, just notify it",
                                 realm, HandlerController.this);
@@ -645,11 +645,6 @@ final class HandlerController implements Handler.Callback {
 
                         } else {
                             realmQuery = (RealmQuery<? extends RealmModel>) value;
-                        }
-
-                        // The RealmObject has been GCed.
-                        if (realmQuery == null) {
-                            return;
                         }
 
                         QueryUpdateTask queryUpdateTask = QueryUpdateTask.newBuilder()
