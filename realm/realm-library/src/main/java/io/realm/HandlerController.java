@@ -647,6 +647,11 @@ final class HandlerController implements Handler.Callback {
                             realmQuery = (RealmQuery<? extends RealmModel>) value;
                         }
 
+                        // The RealmObject has been GCed.
+                        if (realmQuery == null) {
+                            return;
+                        }
+
                         QueryUpdateTask queryUpdateTask = QueryUpdateTask.newBuilder()
                                 .realmConfiguration(realm.getConfiguration())
                                 .addObject(realmObjectWeakReference,
