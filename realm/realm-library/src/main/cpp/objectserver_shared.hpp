@@ -28,6 +28,8 @@
 
 #include <impl/realm_coordinator.hpp>
 #include <sync/sync_manager.hpp>
+#include <object-store/src/sync/impl/sync_metadata.hpp>
+#include <object-store/src/sync/impl/sync_file.hpp>
 
 #include "util.hpp"
 #include "jni_util/jni_utils.hpp"
@@ -61,8 +63,8 @@ public:
                 coordinator->wake_up_notifier_worker();
             }
         };
-        auto error_handler = [weak_session_ref](std::error_code error_code, bool is_fatal, const std::string message) {
-            if (error_code.category() != realm::sync::protocol_error_category() ||
+        auto error_handler = [weak_session_ref, local_realm_path](std::error_code error_code, bool is_fatal, const std::string message) {
+            if (error_code.category() != realm::sync::protocol_error_category() &&
                     error_code.category() != realm::sync::client_error_category()) {
                 // FIXME: Consider below when moving to the OS sync manager.
                 // Ignore this error since it may cause exceptions in java ErrorCode.fromInt(). Throwing exception there
@@ -74,14 +76,47 @@ public:
                 return;
             }
 
-            auto session_ref = weak_session_ref.lock();
-            if (session_ref) {
-                session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
-                    static realm::jni_util::JavaMethod notify_error_handler(
-                            local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
-                    local_env->CallVoidMethod(
-                            obj, notify_error_handler, error_code.value(), local_env->NewStringUTF(message.c_str()));
+            // Handle client reset, without returning to Java
+
+            // we don't have the original SyncError so we can't call SyncError#is_client_reset_requested
+            // we need to transform the error code to an enum, then do the check manually
+            using ProtocolError = realm::sync::ProtocolError;
+            auto protocol_error = static_cast<ProtocolError>(error_code.value());
+
+            // Documented here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup
+            if (protocol_error == ProtocolError::bad_server_file_ident
+                || protocol_error == ProtocolError::bad_client_file_ident
+                || protocol_error == ProtocolError::bad_server_version
+                || protocol_error == ProtocolError::diverging_histories) {
+
+                // Add a SyncFileActionMetadata marking the Realm as needing to be deleted.
+                auto recovery_path = realm::util::reserve_unique_file_name(
+                        realm::SyncManager::shared().recovery_directory_path(),
+                        realm::util::create_timestamped_template("recovered_realm"));
+                auto original_path = local_realm_path;
+
+                realm::jni_util::Log::d("A client reset is scheduled for the next app start");
+                realm::SyncManager::shared().perform_metadata_update([original_path = std::move(original_path),
+                        recovery_path = std::move(recovery_path)](const auto &manager) {
+                    realm::SyncFileActionMetadata(manager,
+                                                  realm::SyncFileActionMetadata::Action::HandleRealmForClientReset,
+                                                  original_path,
+                                                  "",
+                                                  "",
+                                                  realm::util::Optional<std::string>(
+                                                          std::move(recovery_path)));
                 });
+
+            } else {
+                auto session_ref = weak_session_ref.lock();
+                if (session_ref) {
+                        session_ref.get()->call_with_local_ref([&](JNIEnv* local_env, jobject obj) {
+                            static realm::jni_util::JavaMethod notify_error_handler(
+                                    local_env, obj, "notifySessionError", "(ILjava/lang/String;)V");
+                            local_env->CallVoidMethod(
+                                    obj, notify_error_handler, error_code.value(), local_env->NewStringUTF(message.c_str()));
+                        });
+                }
             }
         };
         m_sync_session->set_sync_transact_callback(sync_transact_callback);

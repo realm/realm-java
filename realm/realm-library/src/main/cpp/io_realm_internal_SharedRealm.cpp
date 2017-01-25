@@ -45,6 +45,8 @@ static_assert(SchemaMode::Additive ==
 static_assert(SchemaMode::Manual ==
               static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL), "");
 
+static void finalize_shared_realm(jlong ptr);
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring temporary_directory_path)
 {
@@ -58,7 +60,7 @@ Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring tempo
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstring realm_path, jbyteArray key,
-        jbyte schema_mode, jboolean in_memory, jboolean cache, jboolean disable_format_upgrade,
+        jbyte schema_mode, jboolean in_memory, jboolean cache, jlong /* schema_version */, jboolean disable_format_upgrade,
         jboolean auto_change_notification, REALM_UNUSED jstring sync_server_url, jstring /*sync_user_token*/)
 {
     TR_ENTER()
@@ -68,6 +70,7 @@ Java_io_realm_internal_SharedRealm_nativeCreateConfig(JNIEnv *env, jclass, jstri
         JniByteArray key_array(env, key);
         Realm::Config *config = new Realm::Config();
         config->path = path;
+        // config->schema_version = schema_version; TODO: Disabled until we remove version handling from Java
         config->encryption_key = key_array;
         config->schema_mode = static_cast<SchemaMode>(schema_mode);
         config->in_memory = in_memory;
@@ -111,9 +114,9 @@ Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv*, jclass, jlong
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    auto ptr = reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-    (*ptr)->close();
-    delete ptr;
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    // Close the SharedRealm only. Let the finalizer daemon thread free the SharedRealm
+    shared_realm->close();
 }
 
 JNIEXPORT void JNICALL
@@ -435,10 +438,38 @@ Java_io_realm_internal_SharedRealm_nativeUpdateSchema(JNIEnv *env, jclass, jlong
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto *schema = reinterpret_cast<Schema*>(schema_ptr);
-        shared_realm->update_schema(*schema, static_cast<uint64_t>(version));
-    } CATCH_STD()
+        shared_realm->update_schema(*schema, static_cast<uint64_t>(version), nullptr, true);
+    }
+    CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_SharedRealm_nativeRequiresMigration(JNIEnv *env, jclass, jlong nativePtr,
+                                                           jlong nativeSchemaPtr) {
+
+    TR_ENTER()
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(nativePtr));
+        auto *schema = reinterpret_cast<Schema*>(nativeSchemaPtr);
+        const std::vector<SchemaChange> &change_list = shared_realm->schema().compare(*schema);
+        return static_cast<jboolean>(!change_list.empty());
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
+static void finalize_shared_realm(jlong ptr)
+{
+    TR_ENTER_PTR(ptr)
+    delete reinterpret_cast<SharedRealm*>(ptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeGetFinalizerPtr(JNIEnv*, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_shared_realm);
+}
 
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeSetAutoRefresh(JNIEnv *env, jclass, jlong shared_realm_ptr, jboolean enabled)

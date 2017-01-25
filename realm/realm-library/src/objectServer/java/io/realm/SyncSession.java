@@ -18,13 +18,11 @@ package io.realm;
 
 import java.net.URI;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.log.RealmLog;
 import io.realm.internal.objectserver.ObjectServerSession;
 
 /**
- * @Beta
  * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
  * <p>
  * A Session is created by either calling {@link SyncManager#getSession(SyncConfiguration)} or by opening
@@ -39,7 +37,6 @@ import io.realm.internal.objectserver.ObjectServerSession;
  * @see SessionState
  */
 @Keep
-@Beta
 public class SyncSession {
 
     private final ObjectServerSession osSession;
@@ -107,7 +104,10 @@ public class SyncSession {
      */
     public interface ErrorHandler {
         /**
-         * Callback for errors on a session object.
+         * Callback for errors on a session object. It is not allowed to throw an exception inside an error handler.
+         * If the operations in an error handler can throw, it is safer to catch any exception in the error handler.
+         * When an exception is thrown in the error handler, the occurrence will be logged and the exception
+         * will be ignored.
          *
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.

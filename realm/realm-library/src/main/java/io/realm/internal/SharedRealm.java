@@ -27,7 +27,7 @@ import io.realm.RealmSchema;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
-public final class SharedRealm implements Closeable {
+public final class SharedRealm implements Closeable, NativeObject {
 
     // Const value for RealmFileException conversion
     public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
@@ -37,6 +37,7 @@ public final class SharedRealm implements Closeable {
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
@@ -180,8 +181,6 @@ public final class SharedRealm implements Closeable {
     private SharedRealm(long nativeConfigPtr,
                         RealmConfiguration configuration,
                         SchemaVersionListener schemaVersionListener) {
-        context = new Context();
-
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -191,6 +190,8 @@ public final class SharedRealm implements Closeable {
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
         this.schemaChangeListener = schemaVersionListener;
+        context = new Context();
+        context.addReference(this);
         this.lastSchemaVersion = schemaVersionListener == null ? -1L : getSchemaVersion();
         objectServerFacade = null;
         nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
@@ -218,6 +219,7 @@ public final class SharedRealm implements Closeable {
                 rosServerUrl != null ? SchemaMode.SCHEMA_MODE_ADDITIVE.getNativeValue() : SchemaMode.SCHEMA_MODE_MANUAL.getNativeValue(),
                 config.getDurability() == Durability.MEM_ONLY,
                 enable_caching,
+                config.getSchemaVersion(),
                 disableFormatUpgrade,
                 autoChangeNotifications,
                 rosServerUrl,
@@ -228,10 +230,6 @@ public final class SharedRealm implements Closeable {
         } finally {
             nativeCloseConfig(nativeConfigPtr);
         }
-    }
-
-    long getNativePtr() {
-        return nativePtr;
     }
 
     public void beginTransaction() {
@@ -336,6 +334,10 @@ public final class SharedRealm implements Closeable {
         return nativeCompact(nativePtr);
     }
 
+    /**
+     * Update the underlying schema based on the schema description.
+     * Calling this method must be done from inside a write transaction.
+     */
     public void updateSchema(RealmSchema schema, long version) {
         nativeUpdateSchema(nativePtr, schema.getNativePtr(), version);
     }
@@ -349,6 +351,10 @@ public final class SharedRealm implements Closeable {
         return nativeIsAutoRefresh(nativePtr);
     }
 
+    public boolean requiresMigration(RealmSchema schema) {
+        return nativeRequiresMigration(nativePtr, schema.getNativePtr());
+    }
+
     @Override
     public void close() {
         if (realmNotifier != null) {
@@ -357,23 +363,21 @@ public final class SharedRealm implements Closeable {
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeCloseSharedRealm(nativePtr);
+                // It is OK to clear the nativePtr. It has been saved to the NativeObjectReference when adding to the
+                // context.
                 nativePtr = 0;
             }
         }
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        synchronized (context) {
-            close();
-            // FIXME: Below is the original implementation of SharedGroup.finalize().
-            // And actually Context.asyncDisposeSharedGroup will simply call nativeClose which is not asyc at all.
-            // IMO since this implemented Closeable already, it makes no sense to implement finalize.
-            // Just keep the logic the same for now and make nativeClose private. Rethink about this when cleaning
-            // up finalizers.
-            //context.asyncDisposeSharedRealm(nativePtr);
-        }
-        super.finalize();
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
     }
 
     public void invokeSchemaChangeListenerIfSchemaChanged() {
@@ -449,7 +453,7 @@ public final class SharedRealm implements Closeable {
 
     private static native void nativeInit(String temporaryDirectoryPath);
     private static native long nativeCreateConfig(String realmPath, byte[] key, byte schemaMode, boolean inMemory,
-                                                  boolean cache, boolean disableFormatUpgrade,
+                                                  boolean cache, long schemaVersion, boolean disableFormatUpgrade,
                                                   boolean autoChangeNotification,
                                                   String syncServerURL, String syncUserToken);
     private static native void nativeCloseConfig(long nativeConfigPtr);
@@ -480,4 +484,6 @@ public final class SharedRealm implements Closeable {
     private static native void nativeUpdateSchema(long nativePtr, long nativeSchemaPtr, long version);
     private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
     private static native boolean nativeIsAutoRefresh(long nativePtr);
+    private static native boolean nativeRequiresMigration(long nativePtr, long nativeSchemaPtr);
+    private static native long nativeGetFinalizerPtr();
 }

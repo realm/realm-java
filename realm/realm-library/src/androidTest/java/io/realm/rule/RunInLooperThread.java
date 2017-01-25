@@ -24,8 +24,9 @@ import org.junit.runners.model.Statement;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +49,11 @@ import static org.junit.Assert.fail;
  * and this class does not agree in which order to delete all open Realms.
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
+
+    // Default Realm created by this Rule. It is guaranteed to be closed when the test finishes.
     public Realm realm;
+    // Custom Realm used by the test. Saving the reference here will guarantee the instance is closed when exiting the test.
+    public List<Realm> testRealms = new ArrayList<Realm>();
     public RealmConfiguration realmConfiguration;
     private CountDownLatch signalTestCompleted;
     private Handler backgroundHandler;
@@ -72,6 +77,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         super.after();
         realmConfiguration = null;
         realm = null;
+        testRealms.clear();
         keepStrongReference = null;
     }
 
@@ -127,6 +133,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                 signalTestCompleted.countDown();
                                 if (realm != null) {
                                     realm.close();
+                                }
+                                if (!testRealms.isEmpty()) {
+                                    for (Realm testRealm : testRealms) {
+                                        testRealm.close();
+                                    }
                                 }
                                 signalClosedRealm.countDown();
                             }

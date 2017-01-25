@@ -66,7 +66,7 @@ public class RealmConfiguration {
     public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
-    private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+    protected static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
     private static Boolean rxJavaAvailable;
 
     static {
@@ -453,7 +453,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Sets the 64 bit key used to encrypt and decrypt the Realm file.
+         * Sets the 64 byte key used to encrypt and decrypt the Realm file.
          * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {

@@ -1,4 +1,4 @@
-## 2.3.0
+## 2.4.0
 
 ### Breaking changes
 
@@ -8,27 +8,50 @@
 
 * Add support for sorting by link's field (#672).
 
-### Object Server API Changes (In Beta)
-
-* Add a default `UserStore` based on the Realm Object Store (`ObjectStoreUserStore`).
-* Change the order of arguments to SyncCredentials.custom to match iOS: token, provider, userInfo
-
 ### Internal
 
 * Use Object Store's `Results` as the backend for `RealmResults` (#3372).
   - Use Object Store's notification mechanism to trigger listeners.
   - Local commit triggers Realm global listener and `RealmObject` listener on current thread immediately instead of in the next event loop.
 
-## 2.2.3
+## 2.3.1
+
+### Bug fixes
+
+* Fixed NPE problem happened in SharedRealm.finalize() (#3730).
+
+## 2.3.0
+
+### Object Server API Changes 
+
+* Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
+* Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
+  This is done in order to support shared Realms among users, while each user retaining their own local copy.
+* Breaking change: `SyncUser.all()` now returns Map instead of List.
+* Breaking change: Added a default `UserStore` saving users in a Realm file (`RealmFileUserStore`).
+* Breaking change: Added multi-user support to `UserStore`. Added `get(String)` and `remove(String)`, removed `remove()` and renamed `get()` to `getCurrent()`.
+* Breaking change: Changed the order of arguments to `SyncCredentials.custom()` to match iOS: token, provider, userInfo.
+* Added support for `PermissionOffer` and `PermissionOfferResponse` to `SyncUser.getManagementRealm()`.
+* Exceptions thrown in error handlers are ignored but logged (#3559).
+* Removed unused public constants in `SyncConfiguration` (#4047).
+* Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
+* Now `SyncUser.logout()` properly revokes tokens (#3639).
 
 ### Bug fixes
 
 * Fixed native memory leak setting the value of a primary key (#3993).
 * Activated Realm's annotation processor on connectedTest when the project is using kapt (#4008).
+* Fixed "too many open files" issue (#4002).
+* Added temporary work-around for bug crashing Samsung Tab 3 devices on startup (#3651).
+
+### Enhancements
+
+* Added `like` predicate for String fields (#3752).
 
 ### Internal
 
-* Updated Realm Sync to 1.0.0-BETA-7.1.
+* Updated to Realm Sync v1.0.0.
+* Added a Realm backup when receiving a Sync client reset message from the server.
 
 ## 2.2.2
 
@@ -50,7 +73,6 @@
 * All major public classes are now non-final. This is mostly a compromise to support Mockito. All protected fields/methods are still not considered part of the public API and can change without notice (#3869).
 * All Realm instances share a single notification daemon thread.
 * Fixed Java lint warnings with generated proxy classes (#2929).
-* Add 'like' predicate for String fields (#3752)
 
 ### Internal
 

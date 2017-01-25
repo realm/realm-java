@@ -24,9 +24,6 @@ try {
       def buildEnv
       def rosEnv
       stage('Docker build') {
-        // Clean any potential old containers
-        sh 'docker rm ros || true' 
-
         // Docker image for build
         buildEnv = docker.build 'realm-java:snapshot'
         // Docker image for testing Realm Object Server
@@ -35,8 +32,7 @@ try {
         rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
       }
 
-      rosContainer = rosEnv.run("-v /tmp=/tmp/.ros " +
-              "--name ros")
+      rosContainer = rosEnv.run('-v /tmp=/tmp/.ros')
 
       try {
           buildEnv.inside("-e HOME=/tmp " +
@@ -47,7 +43,7 @@ try {
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-v ${env.HOME}/lcache:/tmp/.lcache " +
-                  "--network container:ros") {
+                  "--network container:${rosContainer.id}") {
             stage('JVM tests') {
               try {
                 withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
@@ -107,7 +103,7 @@ try {
             }
           }
       } finally {
-          sh "docker logs ros"
+          sh "docker logs ${rosContainer.id}"
           rosContainer.stop()
       }
     }
@@ -138,8 +134,7 @@ try {
 }
 
 def forwardAdbPorts() {
-  sh ''' adb reverse tcp:7800 tcp:7800 &&
-      adb reverse tcp:8080 tcp:8080 &&
+  sh ''' adb reverse tcp:9080 tcp:9080 &&
       adb reverse tcp:8888 tcp:8888
   '''
 }
