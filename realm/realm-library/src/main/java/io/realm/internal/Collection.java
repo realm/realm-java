@@ -204,11 +204,19 @@ public class Collection implements NativeObject {
     }
 
     public UncheckedRow firstUncheckedRow() {
-        return table.getUncheckedRowByPointer(nativeFirstRow(nativePtr));
+        long rowPtr = nativeFirstRow(nativePtr);
+        if (rowPtr != 0) {
+            return table.getUncheckedRowByPointer(rowPtr);
+        }
+        return null;
     }
 
     public UncheckedRow lastUncheckedRow() {
-        return table.getUncheckedRowByPointer(nativeLastRow(nativePtr));
+        long rowPtr = nativeLastRow(nativePtr);
+        if (rowPtr != 0) {
+            return table.getUncheckedRowByPointer(rowPtr);
+        }
+        return null;
     }
 
     public Table getTable() {
