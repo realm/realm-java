@@ -61,6 +61,8 @@ class Realm implements Plugin<Project> {
         if (usesAptPlugin) {
             project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("testApt", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("testApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else if (isKotlinProject && !preferAptOnKotlinProject) {
