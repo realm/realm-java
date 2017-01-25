@@ -1,5 +1,11 @@
 ## 2.4.0
 
+## 2.3.1
+
+### Bug fixes
+
+* Fixed NPE problem happened in SharedRealm.finalize() (#3730).
+
 ## 2.3.0
 
 ### Object Server API Changes 
