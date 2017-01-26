@@ -59,20 +59,14 @@ class Realm implements Plugin<Project> {
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (usesAptPlugin) {
-            project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
-            project.dependencies.add("androidTestApt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else if (isKotlinProject && !preferAptOnKotlinProject) {
-            project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
-            project.dependencies.add("kaptAndroidTest", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("kaptAndroidTest", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
             assert hasAnnotationProcessorConfiguration
-            project.dependencies.add("annotationProcessor", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("annotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
-            project.dependencies.add("androidTestAnnotationProcessor", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("androidTestAnnotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
     }
