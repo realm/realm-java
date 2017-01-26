@@ -3802,4 +3802,55 @@ public class RealmTests {
         realmOnExternalStorage = Realm.getInstance(config);
         realmOnExternalStorage.close();
     }
+
+    // Stress testing multiple readers/writers on threads
+    // Related to https://github.com/realm/realm-core/issues/2383 and https://github.com/realm/realm-java/issues/2567
+    @Test
+    public void multipleReadersAndWriters() {
+        final int Nreaders = 10;
+        final int NWriters = 10;
+        final int Niterations = 1000;
+        final CountDownLatch countDownLatch = new CountDownLatch(Nreaders + NWriters);
+
+        final RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
+
+        for(int i = 0; i < Nreaders; i++) {
+            Runnable reader = new Runnable() {
+                @Override
+                public void run() {
+                    Realm r = Realm.getInstance(realmConfig);
+                    for(int j = 0; j < Niterations; j++) {
+                        RealmResults<StringOnly> stringOnlies = r.where(StringOnly.class).findAll();
+                    }
+                    r.close();
+                    countDownLatch.countDown();
+                }
+            };
+            Thread thread = new Thread(reader);
+            thread.start();
+        }
+
+        for(int i = 0; i < NWriters; i++) {
+            Runnable writer = new Runnable() {
+                @Override
+                public void run() {
+                    Realm r = Realm.getInstance(realmConfig);
+                    for(int j = 0; j < Niterations; j++) {
+                        r.beginTransaction();
+                        StringOnly stringOnly = r.createObject(StringOnly.class);
+                        stringOnly.setChars("Smølf");
+                        r.commitTransaction();
+                    }
+                    r.close();
+                    countDownLatch.countDown();
+                }
+            };
+            Thread thread = new Thread(writer);
+            thread.start();
+        }
+
+        TestHelper.awaitOrFail(countDownLatch);
+    }
+
+
 }
