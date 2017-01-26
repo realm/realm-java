@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * An ObserverPairList holds a list of ObserverPairs. An {@link ObserverPair} is pair contains an observer and a
- * listener. The observer is the object to react to the changes through the listener. The observer is saved as an weak
+ * An ObserverPairList holds a list of ObserverPairs. An {@link ObserverPair} is pair containing an observer and a
+ * listener. The observer is the object to react to the changes through the listener. The observer is saved as a weak
  * reference in the pair to control the life cycle of the listener. When the observer gets GCed, the corresponding pair
  * will be removed from the list. So DO NOT keep a strong reference to the observer in the subclass of listener since it
  * will cause leaks!
@@ -98,13 +98,15 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
      */
     public void foreach(Callback<T> callback) {
         for (T pair : pairs) {
-            Object observer = pair.observerRef.get();
-            if (observer == null) {
-                pairs.remove(pair);
-            } else if (cleared) {
+            if (cleared) {
                 break;
-            } else if (!pair.removed) {
-                callback.onCalled(pair, observer);
+            } else {
+                Object observer = pair.observerRef.get();
+                if (observer == null) {
+                    pairs.remove(pair);
+                } else if (!pair.removed) {
+                    callback.onCalled(pair, observer);
+                }
             }
         }
     }
