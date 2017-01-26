@@ -29,6 +29,8 @@ static_assert(SchemaMode::Additive ==
 static_assert(SchemaMode::Manual ==
               static_cast<SchemaMode>(io_realm_internal_SharedRealm_SCHEMA_MODE_VALUE_MANUAL), "");
 
+static void finalize_shared_realm(jlong ptr);
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv *env, jclass, jstring temporary_directory_path)
 {
@@ -98,8 +100,9 @@ Java_io_realm_internal_SharedRealm_nativeCloseSharedRealm(JNIEnv*, jclass, jlong
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    auto ptr = reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-    delete ptr;
+    auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    // Close the SharedRealm only. Let the finalizer daemon thread free the SharedRealm
+    shared_realm->close();
 }
 
 JNIEXPORT void JNICALL
@@ -457,4 +460,16 @@ Java_io_realm_internal_SharedRealm_nativeRequiresMigration(JNIEnv *env, jclass, 
     return JNI_FALSE;
 }
 
+static void finalize_shared_realm(jlong ptr)
+{
+    TR_ENTER_PTR(ptr)
+    delete reinterpret_cast<SharedRealm*>(ptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_SharedRealm_nativeGetFinalizerPtr(JNIEnv*, jclass)
+{
+    TR_ENTER()
+    return reinterpret_cast<jlong>(&finalize_shared_realm);
+}
 
