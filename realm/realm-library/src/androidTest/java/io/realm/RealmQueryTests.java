@@ -2712,7 +2712,7 @@ public class RealmQueryTests {
         Realm realm = looperThread.realm;
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+                .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
         looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -2755,7 +2755,7 @@ public class RealmQueryTests {
 
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSorted(fieldNames, sorts);
+                .findAllSortedAsync(fieldNames, sorts);
         looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override

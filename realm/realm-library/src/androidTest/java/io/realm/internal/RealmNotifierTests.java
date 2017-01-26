@@ -189,14 +189,6 @@ public class RealmNotifierTests {
         // This should only remove the listeners related with dummyObserver
         sharedRealm.realmNotifier.removeChangeListeners(dummyObserver);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
-                sharedRealm.beginTransaction();
-                sharedRealm.commitTransaction();
-                sharedRealm.close();
-            }
-        }).start();
+        makeRemoteChanges(looperThread.realmConfiguration);
     }
 }

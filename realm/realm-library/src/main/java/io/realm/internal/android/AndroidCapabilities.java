@@ -45,7 +45,7 @@ public class AndroidCapabilities implements Capabilities {
         }
         if (isIntentServiceThread) {
             throw new IllegalStateException( exceptionMessage == null ? "" : (exceptionMessage + " ") +
-                    "Realm cannot be automatically updated on a IntentService thread.");
+                    "Realm cannot be automatically updated on an IntentService thread.");
         }
     }
 

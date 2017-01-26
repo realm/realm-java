@@ -491,7 +491,7 @@ public class TypeBasedNotificationsTests {
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
-                // Step 4: Respond to relevant change
+                // Step 3: Respond to relevant change
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals("Akamaru", dog.getName());
                 assertEquals(17, dog.getAge());

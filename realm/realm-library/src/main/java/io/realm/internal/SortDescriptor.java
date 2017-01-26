@@ -107,14 +107,11 @@ public class SortDescriptor {
     }
 
     private static void checkFieldTypeForSort(FieldDescriptor descriptor, String fieldDescriptions) {
-        for (RealmFieldType aValidFieldTypesForSort : validFieldTypesForSort) {
-            if (aValidFieldTypesForSort == descriptor.getFieldType()) {
-                return;
-            }
+        if (!validFieldTypesForSort.contains(descriptor.getFieldType())) {
+            throw new IllegalArgumentException(String.format(
+                    "Sort is not supported on '%s' field '%s' in '%s'.", descriptor.toString(), descriptor.getFieldName(),
+                    fieldDescriptions));
         }
-        throw new IllegalArgumentException(String.format(
-                "Sort is not supported on '%s' field '%s' in '%s'.", descriptor.toString(), descriptor.getFieldName(),
-                fieldDescriptions));
     }
 
     private static void checkFieldTypeForDistinct(FieldDescriptor descriptor, String fieldDescriptions) {
