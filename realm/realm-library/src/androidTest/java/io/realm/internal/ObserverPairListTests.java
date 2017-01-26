@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static junit.framework.Assert.assertEquals;
@@ -98,6 +99,28 @@ public class ObserverPairListTests {
         pair = new TestObserverPair(ONE, testListener);
         observerPairs.add(pair);
         assertEquals(1, observerPairs.size());
+    }
+
+    // 1. add 2. clear 3. add 4. Check if the last listener can still be called.
+    @Test
+    public void add_worksAfterClears() {
+        final AtomicBoolean foreachCalled = new AtomicBoolean(false);
+        TestObserverPair pair = new TestObserverPair(ONE, testListener);
+        observerPairs.add(pair);
+        assertEquals(1, observerPairs.size());
+
+        observerPairs.clear();
+
+        observerPairs.add(pair);
+        assertEquals(1, observerPairs.size());
+        observerPairs.foreach(new ObserverPairList.Callback<TestObserverPair>() {
+            @Override
+            public void onCalled(TestObserverPair pair, Object observer) {
+                assertEquals(ONE, observer);
+                foreachCalled.set(true);
+            }
+        });
+        assertTrue(foreachCalled.get());
     }
 
     @SuppressLint("UseValueOf")

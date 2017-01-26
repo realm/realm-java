@@ -124,7 +124,7 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
         if (!pairs.contains(pair)) {
             pairs.add(pair);
         }
-        if (!cleared) {
+        if (cleared) {
             cleared = false;
         }
     }
