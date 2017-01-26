@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import io.realm.RealmChangeListener;
 
 /**
  * Java wrapper of Object Store Results class.
- * It is the backend of binding's query results, link list and back links.
+ * It is the backend of binding's query results, link lists and back links.
  */
 @Keep
 public class Collection implements NativeObject {
@@ -81,7 +81,7 @@ public class Collection implements NativeObject {
                     pair.onChange(observer);
                 }
             };
-    // Maintain a list of stable iterators. Iterator becomes invalid when the reattaching happens.
+    // Maintains a list of stable iterators. Iterator becomes invalid when the reattaching happens.
     private final List<WeakReference<Iterator>> stableIterators = new ArrayList<WeakReference<Iterator>>();
 
     // Public for static checking in JNI

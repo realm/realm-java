@@ -34,7 +34,7 @@ public class FieldDescriptor {
             throw new IllegalArgumentException("Illegal field name. It cannot start or end with a '.': " + fieldDescription);
         }
         if (fieldDescription.contains(".")) {
-            // Resolve field description down to last field name
+            // Resolves field description down to last field name
             String[] names = fieldDescription.split("\\.");
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length - 1; i++) {

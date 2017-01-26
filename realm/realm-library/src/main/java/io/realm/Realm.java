@@ -1272,10 +1272,10 @@ public class Realm extends BaseRealm {
      *
      * @param listener the change listener.
      * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException if you try to register a listener from a non-Looper or {@link IntentService} thread.
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
-     * @see #waitForChange()
      */
     public void addChangeListener(RealmChangeListener<Realm> listener) {
         super.addListener(listener);
@@ -1379,9 +1379,8 @@ public class Realm extends BaseRealm {
 
         // If the user provided a Callback then we have to make sure the current Realm has an events looper to deliver
         // the results.
-        if ((onSuccess != null || onError != null)  && !canDeliverNotification) {
-            throw new IllegalStateException("Your Realm is opened from a thread without an event looper." +
-                    " The callback cannot be invoked.");
+        if ((onSuccess != null || onError != null)) {
+            sharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
         }
 
         // We need to use the same configuration to open a background SharedRealm (i.e Realm)

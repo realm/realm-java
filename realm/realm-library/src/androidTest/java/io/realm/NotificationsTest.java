@@ -814,6 +814,7 @@ public class NotificationsTest {
         });
     }
 
+    // TODO: Fix or delete this test after integration of object notification from Object Store
     @Test
     @RunTestInLooperThread
     @Ignore
@@ -1026,7 +1027,7 @@ public class NotificationsTest {
 
         final RealmResults<AllTypes> syncResults = realm.where(AllTypes.class).findAll();
 
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         looperThread.keepStrongReference.add(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override

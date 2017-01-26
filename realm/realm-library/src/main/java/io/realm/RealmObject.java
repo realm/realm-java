@@ -292,7 +292,6 @@ public abstract class RealmObject implements RealmModel {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public final boolean load() {
-        //noinspection deprecation
         return RealmObject.load(this);
     }
 

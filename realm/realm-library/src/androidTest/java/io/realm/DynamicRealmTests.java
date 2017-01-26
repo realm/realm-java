@@ -548,7 +548,6 @@ public class DynamicRealmTests {
             dynamicRealmObject.getObject(AllTypes.FIELD_BINARY);
             fail("trying to access a DynamicRealmObject property should throw");
         } catch (IllegalStateException ignored) {
-
         } finally {
             dynamicRealm.close();
             looperThread.testComplete();

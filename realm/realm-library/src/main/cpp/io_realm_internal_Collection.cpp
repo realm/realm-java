@@ -223,7 +223,6 @@ Java_io_realm_internal_Collection_nativeAggregate(JNIEnv *env, jclass, jlong nat
                 break;
             case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE:
                 value = wrapper->get_results().average(index);
-                // TODO: Align the behavior with ObjectStore.
                 if (!value) {
                     value = Optional<Mixed>(0.0);
                 }

@@ -25,8 +25,8 @@ namespace _impl {
 
 // For converting a Java SortDescriptor object to realm::SortDescriptor.
 // This class is not designed to be used across JNI calls. So it doesn't acquire a reference to the given Java object.
-// We don't holding a pointer to the SortDescriptor in the Java object like normally we do is because of the ObjectStore
-// always consume the SortDescriptor by calling the move constructor. Holding a empty SortDescriptor in Java level
+// We don't hold a pointer to the SortDescriptor in the Java object like normally we do, because the ObjectStore
+// always consumes the SortDescriptor by calling the move constructor. Holding an empty SortDescriptor in Java level
 // doesn't make too much sense and causes troubles with memory management.
 class JavaSortDescriptor {
 public:

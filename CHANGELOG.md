@@ -6,7 +6,7 @@
 
 ### Enhancements
 
-* Add support for sorting by link's field (#672).
+* Added support for sorting by link's field (#672).
 
 ### Internal
 

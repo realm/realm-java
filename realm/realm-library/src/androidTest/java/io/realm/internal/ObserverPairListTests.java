@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import android.annotation.SuppressLint;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -30,6 +31,10 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
+/**
+ * We are testing characteristic of the {@link ObserverPairList} here, such as:
+ * Ownership of the listeners, equality of the pair and all public APIs for the class.
+ */
 @RunWith(AndroidJUnit4.class)
 public class ObserverPairListTests {
 
@@ -39,13 +44,13 @@ public class ObserverPairListTests {
     }
 
     private static class TestObserverPair extends ObserverPairList.ObserverPair<Integer, TestListener>  {
-        public TestObserverPair(Integer observer, TestListener listener) {
+        TestObserverPair(Integer observer, TestListener listener) {
             super(observer, listener);
         }
     }
 
     private ObserverPairList<TestObserverPair> observerPairs;
-    TestListener testListener = new TestListener<Integer>();
+    private TestListener testListener = new TestListener<Integer>();
 
     private static final Integer ONE = 1;
     private static final Integer TWO = 2;
@@ -95,6 +100,7 @@ public class ObserverPairListTests {
         assertEquals(1, observerPairs.size());
     }
 
+    @SuppressLint("UseValueOf")
     @Test
     public void remove() {
         TestObserverPair pair = new TestObserverPair(ONE, testListener);
