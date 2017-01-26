@@ -181,25 +181,6 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     }
 
     /**
-     * Searches this {@link RealmResults} for the specified object.
-     *
-     * @param object the object to search for.
-     * @return {@code true} if {@code object} is an element of this {@code RealmResults},
-     *         {@code false} otherwise
-     */
-    @Override
-    public boolean contains(Object object) {
-        boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) object;
-            if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
-            }
-        }
-        return contains;
-    }
-
-    /**
      * Returns the element at the specified location in this list.
      *
      * @param location the index of the element to return.

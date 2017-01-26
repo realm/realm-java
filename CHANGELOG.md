@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Fixed NPE problem happened in SharedRealm.finalize() (#3730).
+* `RealmList.contains()` and `RealmResults.contains()` now correctly uses custom `equals()` methods on Realm model classes.
 
 ## 2.3.0
 

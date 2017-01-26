@@ -709,33 +709,6 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
     }
 
     /**
-     * Returns {@code true} if the list contains the specified element when attached to a Realm. This
-     * method will query the native Realm underlying storage engine to quickly find the specified element.
-     * <p>
-     * If the list is not attached to a Realm, the default {@link List#contains(Object)}
-     * implementation will occur.
-     *
-     * @param object the element whose presence in this list is to be tested.
-     * @return {@code true} if this list contains the specified element otherwise {@code false}.
-     */
-    @Override
-    public boolean contains(Object object) {
-        boolean contains = false;
-        if (managedMode) {
-            realm.checkIfValid();
-            if (object instanceof RealmObjectProxy) {
-                RealmObjectProxy proxy = (RealmObjectProxy) object;
-                if (proxy.realmGet$proxyState().getRow$realm() != null && realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                    contains = view.contains(proxy.realmGet$proxyState().getRow$realm().getIndex());
-                }
-            }
-        } else {
-            contains = unmanagedList.contains(object);
-        }
-        return contains;
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override

@@ -16,6 +16,7 @@
 
 package io.realm.entities;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 
@@ -24,6 +25,14 @@ public class CustomMethods extends RealmObject {
     public static final int HASHCODE = 1;
 
     private String name;
+    private RealmList<CustomMethods> methods;
+
+    public CustomMethods() {
+    }
+
+    public CustomMethods(String name) {
+        this.name = name;
+    }
 
     public String getName() {
         return name;
@@ -33,20 +42,20 @@ public class CustomMethods extends RealmObject {
         this.name = name;
     }
 
-    @Ignore
-    public boolean reverseEquals;
+    public RealmList<CustomMethods> getMethods() {
+        return methods;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof CustomMethods)) {
-            return reverseEquals;
+            return false;
         }
         CustomMethods other = (CustomMethods) o;
-        if (isManaged() == other.isManaged() && other.name.equals(name)) {
-            return !reverseEquals;
-        } else {
-            return reverseEquals;
-        }
+
+        // Only compare name. Managed and unmanaged objects will be equal as long as they have the
+        // same value
+        return other.name.equals(name);
     }
 
     @Override
