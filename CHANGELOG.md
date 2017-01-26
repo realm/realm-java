@@ -1,3 +1,9 @@
+## 2.3.1
+
+### Bug fixes
+
+* Fixed a build error when the project is using Kotlin (#4087).
+
 ## 2.3.0
 
 ### Object Server API Changes 
