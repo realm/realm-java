@@ -3,6 +3,7 @@
 ### Bug fixes
 
 * Fixed NPE problem happened in SharedRealm.finalize() (#3730).
+* Fixed a build error when the project is using Kotlin (#4087).
 
 ## 2.3.0
 
