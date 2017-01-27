@@ -3809,8 +3809,7 @@ public class RealmTests {
     public void multipleReadersAndWriters() {
         final int Nreaders = 10;
         final int NWriters = 10;
-        final int Niterations = 1000;
-        final CountDownLatch countDownLatch = new CountDownLatch(Nreaders + NWriters);
+        final int Ndeleters = 2;
 
         final RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
 
@@ -3819,11 +3818,14 @@ public class RealmTests {
                 @Override
                 public void run() {
                     Realm r = Realm.getInstance(realmConfig);
-                    for(int j = 0; j < Niterations; j++) {
+                    while (true) {
                         RealmResults<StringOnly> stringOnlies = r.where(StringOnly.class).findAll();
+                        try {
+                            Thread.sleep((int)(Math.random()*200.0));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    r.close();
-                    countDownLatch.countDown();
                 }
             };
             Thread thread = new Thread(reader);
@@ -3835,21 +3837,44 @@ public class RealmTests {
                 @Override
                 public void run() {
                     Realm r = Realm.getInstance(realmConfig);
-                    for(int j = 0; j < Niterations; j++) {
+                    while (true) {
                         r.beginTransaction();
                         StringOnly stringOnly = r.createObject(StringOnly.class);
                         stringOnly.setChars("Smølf");
                         r.commitTransaction();
+                        try {
+                            Thread.sleep((int)(Math.random()*200.0));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    r.close();
-                    countDownLatch.countDown();
                 }
             };
             Thread thread = new Thread(writer);
             thread.start();
         }
 
-        TestHelper.awaitOrFail(countDownLatch);
+        for(int i = 0; i < Ndeleters; i++) {
+            Runnable deleter = new Runnable() {
+                @Override
+                public void run() {
+                    Realm r = Realm.getInstance(realmConfig);
+                    while (true) {
+                        r.beginTransaction();
+                        r.delete(StringOnly.class);
+                        r.commitTransaction();
+                        try {
+                            Thread.sleep((int)(Math.random()*200.0));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
+            Thread thread = new Thread(deleter);
+            thread.start();
+        }
+
     }
 
 
