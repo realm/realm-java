@@ -57,7 +57,7 @@ public class SyncUserTests {
     @BeforeClass
     public static void initUserStore() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        UserStore userStore = new RealmFileUserStore(InstrumentationRegistry.getTargetContext().getFilesDir().getPath());
+        UserStore userStore = new RealmFileUserStore();
         SyncManager.setUserStore(userStore);
     }
 
