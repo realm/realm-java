@@ -3811,7 +3811,13 @@ public class RealmTests {
         final int NWriters = 10;
         final int Ndeleters = 2;
 
-        final RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
+        final RealmConfiguration realmConfig = new RealmConfiguration.Builder()
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
+                .deleteRealmIfMigrationNeeded()
+                .schema(StringOnly.class)
+                .build();
+        Realm r = Realm.getInstance(realmConfig);
 
         for(int i = 0; i < Nreaders; i++) {
             Runnable reader = new Runnable() {
@@ -3861,10 +3867,10 @@ public class RealmTests {
                     Realm r = Realm.getInstance(realmConfig);
                     while (true) {
                         r.beginTransaction();
-                        r.delete(StringOnly.class);
+                        r.where(StringOnly.class).findAll().deleteAllFromRealm();
                         r.commitTransaction();
                         try {
-                            Thread.sleep((int)(Math.random()*200.0));
+                            Thread.sleep((int) (Math.random() * 200.0));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -3875,7 +3881,12 @@ public class RealmTests {
             thread.start();
         }
 
+        while (true) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
-
-
 }
