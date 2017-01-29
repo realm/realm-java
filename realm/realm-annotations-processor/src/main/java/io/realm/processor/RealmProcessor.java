@@ -52,6 +52,7 @@ import io.realm.annotations.RealmClass;
  *
  * <ol>
  *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
+ *  <li>Create a fields class for each class marked with @RealmClass. They are named &lt;className&gt;Fields.java</li>
  *  <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
  *  <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
  * </ol>
@@ -185,6 +186,13 @@ public class RealmProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 Utils.error(e.getMessage(), classElement);
             } catch (UnsupportedOperationException e) {
+                Utils.error(e.getMessage(), classElement);
+            }
+
+            RealmObjectFieldsGenerator fieldsClassGenerator = new RealmObjectFieldsGenerator(processingEnv, metadata);
+            try {
+                fieldsClassGenerator.generate();
+            } catch (IOException e) {
                 Utils.error(e.getMessage(), classElement);
             }
         }
