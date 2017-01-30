@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
