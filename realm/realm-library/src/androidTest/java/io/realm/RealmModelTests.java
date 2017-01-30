@@ -183,7 +183,7 @@ public class RealmModelTests {
         assertEquals("Dog5", obj.columnRealmList.get(0).getName());
     }
 
-    // Where with filed selection.
+    // 'where' with filed selection.
     @Test
     public void query() {
         populateTestRealm(realm, TEST_DATA_SIZE);
