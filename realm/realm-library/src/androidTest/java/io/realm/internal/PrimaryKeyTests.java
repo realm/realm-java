@@ -84,7 +84,7 @@ public class PrimaryKeyTests {
         return t;
     }
 
-    // Test that primary key constraints are actually removed
+    // Tests that primary key constraints are actually removed.
     @Test
     public void removingPrimaryKeyRemovesConstraint_typeSetters() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
@@ -96,14 +96,14 @@ public class PrimaryKeyTests {
         tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
-        // Create first entry with name "Foo"
+        // Creates first entry with name "Foo".
         tbl.setString(0, tbl.addEmptyRow(), "Foo", false);
 
         long rowIndex = tbl.addEmptyRow();
         try {
-            tbl.setString(0, rowIndex, "Foo", false); // Try to create 2nd entry with name Foo
+            tbl.setString(0, rowIndex, "Foo", false); // Tries to create 2nd entry with name Foo.
         } catch (RealmPrimaryKeyConstraintException e1) {
-            tbl.setPrimaryKey(""); // Primary key check worked, now remove it and try again.
+            tbl.setPrimaryKey(""); // Primary key check worked, now removes it and tries again.
             try {
                 tbl.setString(0, rowIndex, "Foo", false);
                 return;
@@ -190,7 +190,7 @@ public class PrimaryKeyTests {
         assertEquals("AnnotationTypes", sharedRealm.getTable("pk").getString(0, 0));
     }
 
-    // See https://github.com/realm/realm-java/issues/1775 .
+    // See https://github.com/realm/realm-java/issues/1775
     // Before 0.84.2, pk table added prefix "class_" to every class's name.
     // After 0.84.2, the pk table should be migrated automatically to remove the "class_".
     // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
@@ -236,14 +236,14 @@ public class PrimaryKeyTests {
         long classColumn = pkTable.getColumnIndex("pk_table");
         pkTable.removeSearchIndex(classColumn);
 
-        // Try to add a pk for another table
+        // Tries to add a pk for another table.
         Table table2 = sharedRealm.getTable("TestTable2");
         long column2 = table2.addColumn(RealmFieldType.INTEGER, "PKColumn");
         table2.addSearchIndex(column2);
         try {
             table2.setPrimaryKey(column2);
         } catch (RealmError ignored) {
-            // Column has no search index
+            // Column has no search index.
         }
 
         assertFalse(pkTable.hasSearchIndex(classColumn));

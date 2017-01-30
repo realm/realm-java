@@ -214,6 +214,7 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
      * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
+     *
      * @param location the index at which to put the specified object.
      * @param object the object to add.
      * @return the previous element at the index.
@@ -819,14 +820,14 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
 
         /**
          * Index of element returned by most recent call to next or
-         * previous.  Reset to -1 if this element is deleted by a call
+         * previous. Resets to -1 if this element is deleted by a call
          * to remove.
          */
         int lastRet = -1;
 
         /**
          * The modCount value that the iterator believes that the backing
-         * List should have.  If this expectation is violated, the iterator
+         * List should have. If this expectation is violated, the iterator
          * has detected concurrent modification.
          */
         int expectedModCount = modCount;

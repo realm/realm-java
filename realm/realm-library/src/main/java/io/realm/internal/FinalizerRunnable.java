@@ -36,7 +36,7 @@ class FinalizerRunnable implements Runnable {
                 NativeObjectReference reference = (NativeObjectReference) referenceQueue.remove();
                 reference.cleanup();
             } catch (InterruptedException e) {
-                // Restore the interrupted status
+                // Restores the interrupted status.
                 Thread.currentThread().interrupt();
 
                 RealmLog.fatal("The FinalizerRunnable thread has been interrupted." +

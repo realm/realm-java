@@ -31,7 +31,7 @@ import dk.ilios.spanner.output.ResultProcessor;
  * Converts the result of a benchmark to CSV for easier processing by other data/graph programs.
  *
  * Output is the following.
- * methodname, trialNumber, params, measurements, min, max, average, 25pct, 50pct, 75pct
+ * methodname, trialNumber, params, measurements, min, max, average, 25pct, 50pct, 75pct.
  */
 public class CSVResultProcessor implements ResultProcessor {
 

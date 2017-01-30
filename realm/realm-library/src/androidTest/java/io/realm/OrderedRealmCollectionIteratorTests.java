@@ -258,7 +258,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         try {
             it.remove();
         } catch (UnsupportedOperationException e) {
-            // RealmResults doesn't support remove
+            // RealmResults doesn't support remove.
             assertEquals(CollectionClass.REALMRESULTS, collectionClass);
             return;
         }
@@ -301,7 +301,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     public void iterator_removeCalledTwice() {
         if (skipTest(CollectionClass.REALMRESULTS)) {
-            return; // remove() not supported by RealmResults
+            return; // remove() not supported by RealmResults.
         }
 
         Iterator<AllJavaTypes> it = collection.iterator();
@@ -341,13 +341,13 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         collection = createCollection(realm, collectionClass, 1);
         ListIterator<AllJavaTypes> it = collection.listIterator();
 
-        // Test beginning of the list
+        // Tests beginning of the list.
         assertFalse(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(-1, it.previousIndex());
         assertEquals(0, it.nextIndex());
 
-        // Test end of the list
+        // Tests end of the list.
         AllJavaTypes firstObject = it.next();
         assertEquals(0, firstObject.getFieldLong());
         assertTrue(it.hasPrevious());
@@ -360,19 +360,19 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     public void listIterator_manyElements() {
         ListIterator<AllJavaTypes> it = collection.listIterator();
 
-        // Test beginning of the list
+        // Tests beginning of the list.
         assertFalse(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(-1, it.previousIndex());
         assertEquals(0, it.nextIndex());
 
-        // Test 1st element in the list
+        // Tests 1st element in the list.
         AllJavaTypes firstObject = it.next();
         assertEquals(0, firstObject.getFieldLong());
         assertTrue(it.hasPrevious());
         assertEquals(0, it.previousIndex());
 
-        // Move to second last element
+        // Moves to second last element.
         for (int i = 1; i < TEST_SIZE - 1; i++) {
             it.next();
         }
@@ -380,7 +380,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         assertTrue(it.hasNext());
         assertEquals(TEST_SIZE - 1, it.nextIndex());
 
-        // Test end of the list
+        // Tests end of the list.
         AllJavaTypes lastObject = it.next();
         assertEquals(TEST_SIZE - 1, lastObject.getFieldLong());
         assertTrue(it.hasPrevious());
@@ -439,7 +439,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 break;
             case REALMRESULTS:
                 try {
-                    it.remove(); // Method not supported
+                    it.remove(); // Method not supported.
                     fail();
                 } catch (UnsupportedOperationException ignored) {
                 }
@@ -458,7 +458,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             assertEquals("Failed at index: " + i, i, item.getFieldLong());
             i++;
 
-            // Committing transactions while iterating should not effect the current iterator if on a looper thread
+            // Committing transactions while iterating should not effect the current iterator if on a looper thread.
             createNewObject();
         }
     }
@@ -531,7 +531,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         it = collection.listIterator();
         it.next();
-        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
+        AllJavaTypes types = it.next(); // Iterator can still access the deleted object.
 
         //noinspection SimplifiableConditionalExpression
         assertTrue(collectionClass == CollectionClass.MANAGED_REALMLIST ? types.isValid() : !types.isValid());
@@ -563,7 +563,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         realm.beginTransaction();
         ListIterator<AllJavaTypes> it = collection.listIterator();
 
-        // Calling set() before next() should throw
+        // Calling set() before next() should throw.
         try {
             it.set(new AllJavaTypes());
             fail();
@@ -588,7 +588,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         realm.beginTransaction();
         ListIterator<AllJavaTypes> it = collection.listIterator();
 
-        // Calling set() before next() should throw
+        // Calling set() before next() should throw.
         try {
             it.add(new AllJavaTypes());
             fail();
@@ -639,7 +639,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        // Test all standard collection methods
+        // Tests all standard collection methods.
         for (CollectionMethod method : CollectionMethod.values()) {
             collection = createCollection(realm, collectionClass, TEST_SIZE);
             realm.beginTransaction();
@@ -652,7 +652,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case REMOVE_ALL: collection.removeAll(Collections.singletonList(collection.get(0))); break;
                 case RETAIN_ALL: collection.retainAll(Collections.singletonList(collection.get(0))); break;
 
-                // Does not impact size, so does not trigger ConcurrentModificationException
+                // Does not impact size, so does not trigger ConcurrentModificationException.
                 case CONTAINS:
                 case CONTAINS_ALL:
                 case EQUALS:
@@ -679,7 +679,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case ADD_ALL_INDEX: collection.addAll(0, Collections.singleton(new AllJavaTypes(TEST_SIZE))); break;
                 case REMOVE_INDEX: collection.remove(0); break;
 
-                // Does not impact size, so does not trigger ConcurrentModificationException
+                // Does not impact size, so does not trigger ConcurrentModificationException.
                 case FIRST:
                 case LAST:
                 case GET_INDEX:
@@ -705,17 +705,17 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        // Test all RealmCollection methods
+        // Tests all RealmCollection methods.
         for (RealmCollectionMethod method : RealmCollectionMethod.values()) {
             collection = createCollection(realm, collectionClass, TEST_SIZE);
             realm.beginTransaction();
-            collection.remove(0); // Remove object creating circular dependency which will crash deleteAll.
+            collection.remove(0); // Removes object creating circular dependency which will crash deleteAll.
             Iterator<AllJavaTypes> it = collection.iterator();
             switch (method) {
                 case DELETE_ALL_FROM_REALM:
                     collection.deleteAllFromRealm(); break;
 
-                // Does not impact size, so does not trigger ConcurrentModificationException
+                // Does not impact size, so does not trigger ConcurrentModificationException.
                 case WHERE:
                 case MIN:
                 case MAX:
@@ -733,7 +733,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             checkIteratorThrowsConcurrentModification(realm, method.toString(), it);
         }
 
-        // Test all OrderedRealmCollection methods
+        // Tests all OrderedRealmCollection methods.
         for (OrderedRealmCollectionMethod method : OrderedRealmCollectionMethod.values()) {
             collection = createCollection(realm, collectionClass, TEST_SIZE);
             realm.beginTransaction();
@@ -743,7 +743,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case DELETE_FIRST: collection.deleteFirstFromRealm(); break;
                 case DELETE_LAST: collection.deleteLastFromRealm(); break;
 
-                // Does not impact size, so does not trigger ConcurrentModificationException
+                // Does not impact size, so does not trigger ConcurrentModificationException.
                 case SORT:
                 case SORT_FIELD:
                 case SORT_2FIELDS:
@@ -777,7 +777,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             return;
         }
 
-        // Verify that ConcurrentModification is correctly detected on non-looper threads
+        // Verifies that ConcurrentModification is correctly detected on non-looper threads.
         Iterator<AllJavaTypes> it = collection.iterator();
         final CountDownLatch bgDone = new CountDownLatch(1);
         new Thread(new Runnable() {
@@ -815,7 +815,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -834,7 +834,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -852,7 +852,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -870,7 +870,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -890,7 +890,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -910,7 +910,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -929,7 +929,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             realm.commitTransaction();
         }
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 
@@ -948,7 +948,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
         realm.commitTransaction();
 
-        // Verify that all elements were modified
+        // Verifies that all elements were modified.
         assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
     }
 }
