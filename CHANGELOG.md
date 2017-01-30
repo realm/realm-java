@@ -151,6 +151,10 @@
 
 * Thanks to Max Furman (@maxfurman) for adding support for `first()` and `last()` default values.
 
+### Enhancements
+
+* Reduce transformer logger verbosity (#3608).
+
 ## 2.0.2
 
 This release is not protocol-compatible with previous versions of the Realm Mobile Platform. The base library is still fully compatible.
