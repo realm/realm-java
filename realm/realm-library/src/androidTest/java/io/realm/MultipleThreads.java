@@ -54,6 +54,7 @@ public class MultipleThreads {
                 .deleteRealmIfMigrationNeeded()
                 .schema(StringOnly.class)
                 .build();
+        Realm.deleteRealm(realmConfig);
         Realm r = Realm.getInstance(realmConfig);
 
         for(int i = 0; i < nReaders; i++) {
@@ -61,9 +62,10 @@ public class MultipleThreads {
             Runnable reader = new Runnable() {
                 @Override
                 public void run() {
-                    Realm r = Realm.getInstance(realmConfig);
                     while (true) {
+                        Realm r = Realm.getInstance(realmConfig);
                         RealmResults<StringOnly> stringOnlies = r.where(StringOnly.class).findAll();
+                        r.close();
                         try {
                             Thread.sleep((int)(Math.random()*200.0));
                         } catch (InterruptedException e) {
@@ -81,12 +83,13 @@ public class MultipleThreads {
             Runnable writer = new Runnable() {
                 @Override
                 public void run() {
-                    Realm r = Realm.getInstance(realmConfig);
                     while (true) {
+                        Realm r = Realm.getInstance(realmConfig);
                         r.beginTransaction();
                         StringOnly stringOnly = r.createObject(StringOnly.class);
                         stringOnly.setChars("Smølf");
                         r.commitTransaction();
+                        r.close();
                         try {
                             Thread.sleep((int)(Math.random()*200.0));
                         } catch (InterruptedException e) {
@@ -104,11 +107,12 @@ public class MultipleThreads {
             Runnable deleter = new Runnable() {
                 @Override
                 public void run() {
-                    Realm r = Realm.getInstance(realmConfig);
                     while (true) {
+                        Realm r = Realm.getInstance(realmConfig);
                         r.beginTransaction();
                         r.where(StringOnly.class).findAll().deleteAllFromRealm();
                         r.commitTransaction();
+                        r.close();
                         try {
                             Thread.sleep((int) (Math.random() * 200.0));
                         } catch (InterruptedException e) {
