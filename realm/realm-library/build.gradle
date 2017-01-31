@@ -53,7 +53,7 @@ android {
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
-                if (project.hasProperty('buildTargetABIs')) {
+                if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // armeabi is not supported anymore.
@@ -523,6 +523,9 @@ if (project.hasProperty('dontCleanJniFiles')) {
 project.afterEvaluate {
     android.libraryVariants.all { variant ->
         variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
+        if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
+            variant.externalNativeBuildTasks[0].enabled = false
+        }
     }
 }
 
