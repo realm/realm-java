@@ -17,7 +17,6 @@
 package io.realm.rule;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.rules.TemporaryFolder;
