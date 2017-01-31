@@ -195,7 +195,6 @@ class RealmTransformer extends Transform {
         // will use a cached object and all the classes will be frozen.
         ClassPool classPool = new ClassPool(null)
         classPool.appendSystemPath()
-        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()))
 
         inputs.each {
             it.directoryInputs.each {
