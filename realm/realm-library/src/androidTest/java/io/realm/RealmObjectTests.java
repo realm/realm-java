@@ -447,8 +447,8 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         CustomMethods cm3 = realm.where(CustomMethods.class).findFirst();
-        assertFalse(cm3.equals(cm2));
-        assertTrue(cm3.getName().equals(cm2.getName()));
+        assertTrue(cm3.equals(cm2));
+        assertTrue(cm2.equals(cm3));
     }
 
     @Test

@@ -181,6 +181,33 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     }
 
     /**
+     * Searches this {@link RealmResults} for the specified object.
+     *
+     * @param object the object to search for.
+     * @return {@code true} if {@code object} is an element of this {@code RealmResults},
+     *         {@code false} otherwise
+     */
+    @Override
+    public boolean contains(Object object) {
+        if (isLoaded()) {
+            // Deleted objects can never be part of a RealmResults
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy.realmGet$proxyState().getRow$realm() == InvalidRow.INSTANCE) {
+                    return false;
+                }
+            }
+
+            for (E e : this) {
+                if (e.equals(object)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns the element at the specified location in this list.
      *
      * @param location the index of the element to return.
