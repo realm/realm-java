@@ -222,8 +222,9 @@ public class RealmCollectionTests extends CollectionTests {
         // This custom equals method will only consider the field `name` when comparing objects.
         // So this unmanaged version should be equal to any object with the same value, managed
         // or not.
-        CustomMethods unmanaged = new CustomMethods("Child0");
-        assertTrue(collection.contains(unmanaged));
+        assertTrue(collection.contains(new CustomMethods("Child0")));
+        assertTrue(collection.contains(new CustomMethods("Child" + (TEST_SIZE - 1))));
+        assertFalse(collection.contains(new CustomMethods("Child" + TEST_SIZE)));
     }
 
     @Test
