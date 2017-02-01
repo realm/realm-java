@@ -26,8 +26,6 @@ import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
-import javassist.LoaderClassPath
-import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -44,10 +42,42 @@ import static com.android.build.api.transform.QualifiedContent.*
 class RealmTransformer extends Transform {
 
     private Logger logger = LoggerFactory.getLogger('realm-logger')
-    private Project project
+    TransformerConfigProvider provider
 
-    public RealmTransformer(Project project) {
-        this.project = project
+    public RealmTransformer(TransformerConfigProvider provider) {
+        this.provider = provider
+    }
+
+    // constructor for OkBuck
+    public RealmTransformer(File configFile) {
+        if (!configFile.exists()) {
+            throw new FileNotFoundException(configFile.absolutePath)
+        }
+
+        Properties properties = new Properties()
+        configFile.withInputStream {
+            properties.load(it)
+        }
+        boolean syncEnabled = Boolean.valueOf(properties.getProperty("realm.syncEnabled", "false"))
+
+        def bootClassPath = properties.getProperty("realm.bootClassPath")
+        List<String> bootClassPathList = []
+        if (!(bootClassPath == null || bootClassPath.empty)) {
+            bootClassPath.split(',').each {
+                bootClassPathList.add(it.trim())
+            }
+        }
+        provider = new TransformerConfigProvider() {
+            @Override
+            boolean getSyncEnabled() {
+                return syncEnabled
+            }
+
+            @Override
+            List<String> getBootClassPathList() {
+                return bootClassPathList
+            }
+        }
     }
 
     @Override
@@ -177,8 +207,7 @@ class RealmTransformer extends Transform {
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
         if (disableAnalytics == null || disableAnalytics != "true") {
-            boolean sync = project?.realm?.syncEnabled != null && project.realm.syncEnabled
-            def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync)
+            def analytics = new RealmAnalytics(packages as Set, containsKotlin, provider.syncEnabled)
             analytics.execute()
         }
     }
@@ -222,10 +251,10 @@ class RealmTransformer extends Transform {
     private static Set<String> getClassNames(Collection<TransformInput> inputs) {
         Set<String> classNames = new HashSet<String>()
 
-        inputs.each {
-            it.directoryInputs.each {
-                def dirPath = it.file.absolutePath
-                it.file.eachFileRecurse(FileType.FILES) {
+        for (TransformInput input : inputs) {
+            for (DirectoryInput directoryInput : input.directoryInputs) {
+                def dirPath = directoryInput.file.absolutePath
+                directoryInput.file.eachFileRecurse(FileType.FILES) {
                     if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
                         def className =
                                 it.absolutePath.substring(
@@ -237,8 +266,8 @@ class RealmTransformer extends Transform {
                 }
             }
 
-            it.jarInputs.each {
-                def jarFile = new JarFile(it.file)
+            for (JarInput jarInput : input.jarInputs) {
+                def jarFile = new JarFile(jarInput.file)
                 jarFile.entries().findAll {
                     !it.directory && it.name.endsWith(SdkConstants.DOT_CLASS)
                 }.each {
@@ -291,8 +320,8 @@ class RealmTransformer extends Transform {
     // See https://code.google.com/p/android/issues/detail?id=209426
     private void addBootClassesToClassPool(ClassPool classPool) {
         try {
-            project.android.bootClasspath.each {
-                String path = it.absolutePath
+            provider.bootClassPathList.each {
+                String path = it
                 logger.debug "Add boot class " + path + " to class pool."
                 classPool.appendClassPath(path)
             }

@@ -116,8 +116,23 @@ android {
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 import io.realm.transformer.RealmTransformer
+import io.realm.transformer.TransformerConfigProvider
 
-android.registerTransform(new RealmTransformer())
+android.registerTransform(new RealmTransformer(new TransformerConfigProvider() {
+    @Override
+    boolean getSyncEnabled() {
+        return false
+    }
+
+    @Override
+    List<String> getBootClassPathList() {
+        List<String> bootClassPathList = []
+        project.android.bootClasspath.each {
+            bootClassPathList.add(it.absolutePath)
+        }
+        return bootClassPathList
+    }
+}))
 
 repositories {
     maven { url "https://jitpack.io" }
