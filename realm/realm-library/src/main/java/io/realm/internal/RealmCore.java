@@ -21,9 +21,7 @@ import android.content.Context;
 import com.getkeepsafe.relinker.ReLinker;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
 
 import io.realm.BuildConfig;

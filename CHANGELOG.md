@@ -6,6 +6,7 @@
 * `RealmList.contains()` and `RealmResults.contains()` now correctly uses custom `equals()` methods on Realm model classes.
 * Build error when the project is using Kotlin (#4087).
 * Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
+* NullPointerException when notifying a single object that it changed (#4086).
 
 ## 2.3.0
 
