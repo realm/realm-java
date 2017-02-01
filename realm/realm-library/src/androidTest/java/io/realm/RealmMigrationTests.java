@@ -1234,6 +1234,31 @@ public class RealmMigrationTests {
         realm.close();
     }
 
+
+    @Test
+    public void renameAndAddIndexedField() {
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                realm.schema.get("MigrationFieldRenameAndAdd")
+                        .renameField("string1", "string2")
+                        .addField("string1", String.class);
+            }
+        };
+
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .schema(MigrationFieldRenameAndAdd.class)
+                .schemaVersion(2)
+                .migration(migration)
+                .assetFile("rename-add-add.realm")
+                .build();
+
+        Realm realm = Realm.getInstance(config);
+        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
+        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
+        realm.close();
+    }
+
     // TODO Add unit tests for default nullability
     // TODO Add unit tests for default Indexing for Primary keys
 }
