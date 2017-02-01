@@ -96,6 +96,10 @@ class AndroidNotifier implements RealmNotifier {
 
     @Override
     public void post(Runnable runnable) {
+        if (handler == null) {
+            return;
+        }
+        
         Looper looper = handler.getLooper();
         if (looper.getThread().isAlive()) {     // The receiving thread is alive
             handler.post(runnable);
@@ -117,6 +121,10 @@ class AndroidNotifier implements RealmNotifier {
 
     @Override
     public void completeAsyncResults(QueryUpdateTask.Result result) {
+        if (handler == null) {
+            return;
+        }
+        
         Looper looper = handler.getLooper();
         if (looper.getThread().isAlive()) {     // The receiving thread is alive
             handler.obtainMessage(HandlerControllerConstants.COMPLETED_ASYNC_REALM_RESULTS, result).sendToTarget();
@@ -125,6 +133,10 @@ class AndroidNotifier implements RealmNotifier {
 
     @Override
     public void completeAsyncObject(QueryUpdateTask.Result result) {
+        if (handler == null) {
+            return;
+        }
+        
         Looper looper = handler.getLooper();
         if (looper.getThread().isAlive()) {     // The receiving thread is alive
             handler.obtainMessage(HandlerControllerConstants.COMPLETED_ASYNC_REALM_OBJECT, result).sendToTarget();
@@ -133,6 +145,10 @@ class AndroidNotifier implements RealmNotifier {
 
     @Override
     public void throwBackgroundException(Throwable throwable) {
+        if (handler == null) {
+            return;
+        }
+        
         Looper looper = handler.getLooper();
         if (looper.getThread().isAlive()) {     // The receiving thread is alive
             handler.obtainMessage(
@@ -142,6 +158,10 @@ class AndroidNotifier implements RealmNotifier {
 
     @Override
     public void completeUpdateAsyncQueries(QueryUpdateTask.Result result) {
+        if (handler == null) {
+            return;
+        }
+        
         Looper looper = handler.getLooper();
         if (looper.getThread().isAlive()) {     // The receiving thread is alive
             handler.obtainMessage(HandlerControllerConstants.COMPLETED_UPDATE_ASYNC_QUERIES, result).sendToTarget();
