@@ -20,9 +20,10 @@ import io.realm.RealmObject;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-public class MigrationIndexedFieldRenamed1 extends RealmObject {
+public class MigrationIndexedFieldRenamed extends RealmObject {
     @PrimaryKey
-    private long id;
+    public long id;
     @Index
-    private int testField;
+    public int oldTestField;
+    public Long testField;
 }
