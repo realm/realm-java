@@ -53,6 +53,8 @@ import io.realm.entities.migration.MigrationFieldRenameAndAdd;
 import io.realm.entities.migration.MigrationFieldRenamed;
 import io.realm.entities.migration.MigrationFieldTypeToInt;
 import io.realm.entities.migration.MigrationFieldTypeToInteger;
+import io.realm.entities.migration.MigrationIndexedFieldRenamed1;
+import io.realm.entities.migration.MigrationIndexedFieldRenamed2;
 import io.realm.entities.migration.MigrationPosteriorIndexOnly;
 import io.realm.entities.migration.MigrationPriorIndexOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -1237,25 +1239,33 @@ public class RealmMigrationTests {
 
     @Test
     public void renameAndAddIndexedField() {
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .name("RenameAndAddIndexedField")
+                .schema(MigrationIndexedFieldRenamed1.class)
+                .schemaVersion(1)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        realm.close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.schema.get("MigrationFieldRenameAndAdd")
-                        .renameField("string1", "string2")
-                        .addField("string1", String.class);
+                realm.schema.get("RenameAndAddIndexedField")
+                        .renameField("testField", "oldTestField")
+                        .addField("testField", Long.class);
             }
         };
 
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .schema(MigrationFieldRenameAndAdd.class)
+        config = new RealmConfiguration.Builder()
+                .name("RenameAndAddIndexedField")
+                .schema(MigrationIndexedFieldRenamed2.class)
                 .schemaVersion(2)
                 .migration(migration)
-                .assetFile("rename-add-add.realm")
                 .build();
+        realm = Realm.getInstance(config);
 
-        Realm realm = Realm.getInstance(config);
-        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
-        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
+        assertTrue(realm.getSchema().get("RenameAndAddIndexedField").hasField("string1"));
+
         realm.close();
     }
 
