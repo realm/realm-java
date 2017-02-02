@@ -48,14 +48,13 @@ public class CustomMethods extends RealmObject {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof CustomMethods)) {
-            return false;
-        }
-        CustomMethods other = (CustomMethods) o;
+        if (this == o) return true;
+        if (o == null || !(o instanceof CustomMethods)) return false;
 
-        // Only compare name. Managed and unmanaged objects will be equal as long as they have the
-        // same value
-        return other.name.equals(name);
+        CustomMethods that = (CustomMethods) o;
+
+        // Only compare name. Managed and unmanaged objects will be equal as long as they have the same value
+        return name != null ? name.equals(that.name) : that.name == null;
     }
 
     @Override
