@@ -80,15 +80,25 @@ public class SortDescriptorTests {
     }
 
     @Test
-    public void getInstanceForDistinct_shouldThrowOnLinkField() {
+    public void getInstanceForDistinct_shouldThrowOnLinkAndListListField() {
         RealmFieldType type = RealmFieldType.STRING;
         RealmFieldType objectType = RealmFieldType.OBJECT;
+        RealmFieldType listType = RealmFieldType.LIST;
         table.addColumn(type, type.name());
         table.addColumnLink(objectType, objectType.name(), table);
+        table.addColumnLink(listType, listType.name(), table);
 
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("is not a supported link field");
-        SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", objectType.name(), type.name()));
+        try {
+            SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", listType.name(), type.name()));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", objectType.name(), type.name()));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     @Test
@@ -145,18 +155,6 @@ public class SortDescriptorTests {
                 assertTrue(ignored.getMessage().contains("Distinct is not supported"));
             }
         }
-    }
-
-    @Test
-    public void getInstanceForDistinct_shouldThrowOnLinkListField() {
-        RealmFieldType type = RealmFieldType.STRING;
-        RealmFieldType listType = RealmFieldType.LIST;
-        table.addColumn(type, type.name());
-        table.addColumnLink(listType, listType.name(), table);
-
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("is not a supported link field");
-        SortDescriptor.getInstanceForDistinct(table, String.format("%s.%s", listType.name(), type.name()));
     }
 
     @Test

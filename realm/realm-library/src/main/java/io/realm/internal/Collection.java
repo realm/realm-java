@@ -145,7 +145,6 @@ public class Collection implements NativeObject {
         }
     }
 
-
     // neverDetach means the collection won't be detached when local transaction starts. This is useful for the
     // PendingRow implementation.
     public Collection(SharedRealm sharedRealm, TableQuery query,

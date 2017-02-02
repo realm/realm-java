@@ -25,17 +25,13 @@ public class AndroidRealmNotifier extends RealmNotifier {
     }
 
     @Override
-    public void postAtFrontOfQueue(Runnable runnable) {
-        if (handler != null) {
-            handler.postAtFrontOfQueue(runnable);
-        }
+    public boolean postAtFrontOfQueue(Runnable runnable) {
+        return handler != null && handler.postAtFrontOfQueue(runnable);
     }
 
     @Override
-    public void post(Runnable runnable) {
-        if (handler != null) {
-            handler.post(runnable);
-        }
+    public boolean post(Runnable runnable) {
+        return handler != null && handler.post(runnable);
     }
 
     @Override

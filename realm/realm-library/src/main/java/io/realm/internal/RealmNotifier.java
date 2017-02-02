@@ -148,14 +148,14 @@ public abstract class RealmNotifier implements Closeable {
      *
      * @param runnable to be executed at the next event loop.
      */
-    public abstract void postAtFrontOfQueue(Runnable runnable);
+    public abstract boolean postAtFrontOfQueue(Runnable runnable);
 
     /**
      * For current implementation of async transaction only. See comments for {@link #transactionCallbacks}.
      *
      * @param runnable to be executed in the following event loop.
      */
-    public abstract void post(Runnable runnable);
+    public abstract boolean post(Runnable runnable);
 
     public int getListenersListSize() {
         return realmObserverPairs.size();

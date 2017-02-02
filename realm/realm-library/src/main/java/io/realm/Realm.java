@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.annotation.TargetApi;
+import android.app.IntentService;
 import android.content.Context;
 import android.os.Build;
 import android.util.JsonReader;

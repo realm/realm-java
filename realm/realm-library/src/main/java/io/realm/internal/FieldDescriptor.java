@@ -19,6 +19,10 @@ import java.util.Arrays;
 
 import io.realm.RealmFieldType;
 
+
+/**
+ * Class describing a single field possible several links away.
+ */
 public class FieldDescriptor {
 
     private long[] columnIndices;
@@ -39,7 +43,7 @@ public class FieldDescriptor {
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length - 1; i++) {
                 long index = table.getColumnIndex(names[i]);
-                if (index < 0) {
+                if (index == Table.NO_MATCH) {
                     throw new IllegalArgumentException(
                             String.format("Invalid field name: '%s' does not refer to a class.", names[i]));
                 }
@@ -51,7 +55,7 @@ public class FieldDescriptor {
                     throw new IllegalArgumentException(
                             String.format("'RealmList' field '%s' is not a supported link field here.", names[i]));
                 } else if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
-                    table = table.getLinkTarget(index);
+                     table = table.getLinkTarget(index);
                     columnIndices[i] = index;
                 } else {
                     throw new IllegalArgumentException(
@@ -63,7 +67,7 @@ public class FieldDescriptor {
             String columnName = names[names.length - 1];
             long columnIndex = table.getColumnIndex(columnName);
             columnIndices[names.length - 1] = columnIndex;
-            if (columnIndex < 0) {
+            if (columnIndex == Table.NO_MATCH) {
                 throw new IllegalArgumentException(
                         String.format("'%s' is not a field name in class '%s'.", columnName, table.getName()));
             }

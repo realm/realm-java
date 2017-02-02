@@ -30,7 +30,7 @@ public interface Capabilities {
     boolean canDeliverNotification();
 
     /**
-     * Throw if this Realm cannot receive notifications.
+     * Check if a Realm is able to receive a notification. If not, an {@link IllegalStateException} should be be thrown.
      *
      * @param exceptionMessage message which is contained in the exception.
      */

@@ -162,7 +162,7 @@ public class CollectionTests {
     @Test
     public void where() {
         Collection collection = new Collection(sharedRealm, table.where());
-        Collection collection2 =new Collection(sharedRealm, collection.where().equalTo(new long[]{0}, "John"));
+        Collection collection2 = new Collection(sharedRealm, collection.where().equalTo(new long[]{0}, "John"));
         Collection collection3 =new Collection(sharedRealm, collection2.where().equalTo(new long[]{1}, "Anderson"));
 
         // A new native Results should be created.
@@ -179,7 +179,7 @@ public class CollectionTests {
         Collection collection = new Collection(sharedRealm, table.where().greaterThan(new long[]{2}, 1));
         SortDescriptor sortDescriptor = new SortDescriptor(table, new long[] {2});
 
-        Collection collection2 =collection.sort(sortDescriptor);
+        Collection collection2 = collection.sort(sortDescriptor);
 
         // A new native Results should be created.
         assertTrue(collection.getNativePtr() != collection2.getNativePtr());
@@ -229,7 +229,7 @@ public class CollectionTests {
         Collection collection = new Collection(sharedRealm, table.where().lessThan(new long[]{2}, 4));
 
         SortDescriptor distinctDescriptor = new SortDescriptor(table, new long[] {2});
-        Collection collection2 =collection.distinct(distinctDescriptor);
+        Collection collection2 = collection.distinct(distinctDescriptor);
 
         // A new native Results should be created.
         assertTrue(collection.getNativePtr() != collection2.getNativePtr());
@@ -287,7 +287,7 @@ public class CollectionTests {
     public void addListener_shouldBeCalledWhenRefreshAfterLocalCommit() {
         final CountDownLatch latch = new CountDownLatch(1);
         Collection collection = new Collection(sharedRealm, table.where());
-        collection.size();
+        assertEquals(4, collection.size()); // See `populateData()`
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
             public void onChange(Collection element) {
@@ -496,9 +496,9 @@ public class CollectionTests {
         assertEquals(collection.size(), 4);
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override
-            public void onChange(Collection element) {
-                assertFalse(collection.isDetached());
-                assertEquals(collection.size(), 5);
+            public void onChange(Collection col) {
+                assertFalse(col.isDetached());
+                assertEquals(col.size(), 5);
                 sharedRealm.close();
                 looperThread.testComplete();
             }
