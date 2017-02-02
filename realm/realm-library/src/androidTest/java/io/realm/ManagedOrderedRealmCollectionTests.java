@@ -279,7 +279,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         assertEquals(2, sortedList.first().getId());
         assertEquals(1, sortedList.last().getId());
 
-        // Descending.
+        // Descending
         sortedList = sortedList.sort(fieldName, Sort.DESCENDING);
         assertEquals("Should have same size", original.size(), sortedList.size());
         assertEquals(1, sortedList.first().getId());

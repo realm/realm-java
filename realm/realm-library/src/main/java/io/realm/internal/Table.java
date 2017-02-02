@@ -162,7 +162,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
         // a PK exists or not.
         final long oldPkColumnIndex = getPrimaryKey();
 
-        // Firstly removes a column. If there is no error, we can proceed. Otherwise, it will stop here.
+        // First removes a column. If there is no error, we can proceed. Otherwise, it will stop here.
         nativeRemoveColumn(nativePtr, columnIndex);
 
         // Checks if a PK exists and takes actions if there is. This is same as hasPrimaryKey(), but
