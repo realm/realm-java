@@ -426,23 +426,6 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void equals_reverseCustomMethod() {
-        realm.beginTransaction();
-        CustomMethods cm = realm.createObject(CustomMethods.class);
-        cm.setName("Foo");
-        realm.commitTransaction();
-
-        CustomMethods cm1 = realm.where(CustomMethods.class).findFirst();
-        CustomMethods cm2 = realm.where(CustomMethods.class).findFirst();
-
-        realm.beginTransaction();
-        cm1.reverseEquals = true;
-        realm.commitTransaction();
-
-        assertFalse(cm1.equals(cm2));
-    }
-
-    @Test
     public void equals_unmanagedCustomMethod() {
         CustomMethods cm1 = new CustomMethods();
         cm1.setName("Bar");
@@ -464,8 +447,8 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         CustomMethods cm3 = realm.where(CustomMethods.class).findFirst();
-        assertFalse(cm3.equals(cm2));
-        assertTrue(cm3.getName().equals(cm2.getName()));
+        assertTrue(cm3.equals(cm2));
+        assertTrue(cm2.equals(cm3));
     }
 
     @Test

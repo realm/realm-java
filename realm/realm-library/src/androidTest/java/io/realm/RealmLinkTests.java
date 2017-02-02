@@ -296,7 +296,7 @@ public class RealmLinkTests {
         assertEquals(0, none1.size());
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).notEqualTo("cat.name", "Max").findAll();
-        assertEquals(1, owners1.size());
+        assertEquals(1, owners2.size());
 
         RealmResults<Owner> none2 = testRealm.where(Owner.class).notEqualTo("cat.name", "Blackie").findAll();
         assertEquals(0, none2.size());
@@ -465,7 +465,7 @@ public class RealmLinkTests {
         assertEquals(0, none1.size());
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).notEqualTo("dogs.name", "King").findAll();
-        assertEquals(1, owners1.size());
+        assertEquals(1, owners2.size());
 
         RealmResults<Owner> none2 = testRealm.where(Owner.class).notEqualTo("dogs.name", "Pluto").findAll();
         assertEquals(0, none1.size());

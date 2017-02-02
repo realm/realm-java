@@ -189,14 +189,22 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     @Override
     public boolean contains(Object object) {
-        boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) object;
-            if (realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                contains = (table.sourceRowIndex(proxy.realmGet$proxyState().getRow$realm().getIndex()) != TableOrView.NO_MATCH);
+        if (isLoaded()) {
+            // Deleted objects can never be part of a RealmResults
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy.realmGet$proxyState().getRow$realm() == InvalidRow.INSTANCE) {
+                    return false;
+                }
+            }
+
+            for (E e : this) {
+                if (e.equals(object)) {
+                    return true;
+                }
             }
         }
-        return contains;
+        return false;
     }
 
     /**

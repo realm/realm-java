@@ -1,3 +1,13 @@
+## 2.3.1
+
+### Bug fixes
+
+* NPE problem in SharedRealm.finalize() (#3730).
+* `RealmList.contains()` and `RealmResults.contains()` now correctly use custom `equals()` method on Realm model classes.
+* Build error when the project is using Kotlin (#4087).
+* Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
+* NullPointerException when notifying a single object that it changed (#4086).
+
 ## 2.3.0
 
 ### Object Server API Changes 
@@ -13,7 +23,7 @@
 * Exceptions thrown in error handlers are ignored but logged (#3559).
 * Removed unused public constants in `SyncConfiguration` (#4047).
 * Fixed bug, preventing Sync client to renew the access token (#4038) (#4039).
-* Now `SyncUser.logout()` properly revoke tokens (#3639).
+* Now `SyncUser.logout()` properly revokes tokens (#3639).
 
 ### Bug fixes
 
@@ -24,7 +34,7 @@
 
 ### Enhancements
 
-* Add `like` predicate for String fields (#3752).
+* Added `like` predicate for String fields (#3752).
 
 ### Internal
 

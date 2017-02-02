@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.CustomMethods;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -133,6 +134,38 @@ public class RealmCollectionTests extends CollectionTests {
         }
     }
 
+    private RealmCollection<CustomMethods> createCustomMethodsCollection(Realm realm, CollectionClass collectionClass) {
+        switch (collectionClass) {
+            case MANAGED_REALMLIST:
+                realm.beginTransaction();
+                CustomMethods top = realm.createObject(CustomMethods.class);
+                top.setName("Top");
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    top.getMethods().add(new CustomMethods("Child" + i));
+                }
+                realm.commitTransaction();
+                return top.getMethods();
+
+            case UNMANAGED_REALMLIST:
+                RealmList<CustomMethods> list = new RealmList<CustomMethods>();
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    list.add(new CustomMethods("Child" + i));
+                }
+                return list;
+
+            case REALMRESULTS:
+                realm.beginTransaction();
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    realm.copyToRealm(new CustomMethods("Child" + i));
+                }
+                realm.commitTransaction();
+                return realm.where(CustomMethods.class).findAll();
+
+            default:
+                throw new AssertionError("Unsupported class: " + collectionClass);
+        }
+    }
+
     private OrderedRealmCollection<NullTypes> createEmptyCollection(Realm realm, CollectionClass collectionClass) {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -179,6 +212,19 @@ public class RealmCollectionTests extends CollectionTests {
     @Test
     public void contains_null() {
         assertFalse(collection.contains(null));
+    }
+
+    // Test that the custom equal methods is being used when testing if an object is part of the
+    // collection
+    @Test
+    public void contains_customEqualMethod() {
+        RealmCollection<CustomMethods> collection = createCustomMethodsCollection(realm, collectionClass);
+        // This custom equals method will only consider the field `name` when comparing objects.
+        // So this unmanaged version should be equal to any object with the same value, managed
+        // or not.
+        assertTrue(collection.contains(new CustomMethods("Child0")));
+        assertTrue(collection.contains(new CustomMethods("Child" + (TEST_SIZE - 1))));
+        assertFalse(collection.contains(new CustomMethods("Child" + TEST_SIZE)));
     }
 
     @Test

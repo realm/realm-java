@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import android.test.MoreAsserts;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -31,7 +29,6 @@ import java.util.List;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 

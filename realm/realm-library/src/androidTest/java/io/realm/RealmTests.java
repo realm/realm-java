@@ -833,7 +833,6 @@ public class RealmTests {
 
         String test_char = "";
         String test_char_old = "";
-        String get_data = "";
 
         for (int i = 0; i < 1000; i++) {
             random_value = random.nextInt(25);

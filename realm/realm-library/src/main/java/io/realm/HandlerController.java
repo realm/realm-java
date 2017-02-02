@@ -629,11 +629,12 @@ final class HandlerController implements Handler.Callback {
                     // The caller has advanced we need to
                     // retry against the current version of the caller if it's still empty.
                     if (RealmObject.isValid(proxy)) { // Already completed & has a valid pointer no need to re-run.
-                        RealmLog.trace("[COMPLETED_ASYNC_REALM_OBJECT %s], realm: %s. " +
-                                "RealmObject is already loaded, just notify it",
-                                realm, HandlerController.this);
-                        proxy.realmGet$proxyState().notifyChangeListeners$realm();
-
+                        if (RealmObject.isValid(proxy)) {
+                            RealmLog.trace("[COMPLETED_ASYNC_REALM_OBJECT %s], realm: %s. " +
+                                            "RealmObject is already loaded, just notify it",
+                                    realm, HandlerController.this);
+                            proxy.realmGet$proxyState().notifyChangeListeners$realm();
+                        }
                     } else {
                         RealmLog.trace("[COMPLETED_ASYNC_REALM_OBJECT %s, realm: %s. " +
                                 "RealmObject is not loaded yet. Rerun the query.",
