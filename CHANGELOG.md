@@ -1,5 +1,9 @@
 ## 2.3.1
 
+### Enhancements
+
+* The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#).
+
 ### Bug fixes
 
 * NPE problem in SharedRealm.finalize() (#3730).
