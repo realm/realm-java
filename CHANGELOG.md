@@ -1,5 +1,9 @@
 ## 2.3.1
 
+### Object Server API Changes
+
+* Add a timer to refresh periodically the access_token.
+
 ### Bug fixes
 
 * NPE problem in SharedRealm.finalize() (#3730).
@@ -10,7 +14,7 @@
 
 ## 2.3.0
 
-### Object Server API Changes 
+### Object Server API Changes
 
 * Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
 * Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.
