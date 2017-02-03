@@ -361,7 +361,7 @@ public class SyncUser {
      * Returns {@code true} if the user is logged into the Realm Object Server. If this method returns {@code true} it
      * implies that the user has valid credentials that have not expired.
      * <p>
-     * The user might still be have been logged out by the Realm Object Server which will not be detected before the
+     * The user might still have been logged out by the Realm Object Server which will not be detected before the
      * user tries to actively synchronize a Realm. If a logged out user tries to synchronize a Realm, an error will be
      * reported to the {@link SyncSession.ErrorHandler} defined by
      * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)}.

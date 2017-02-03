@@ -67,9 +67,9 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     }
 
     @Override
-    public AuthenticateResponse refreshUser(Token userToken, URL authenticationUrl) {
+    public AuthenticateResponse refreshUser(Token userToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.userRefresh(userToken).toJson();
+            String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(new ObjectServerError(ErrorCode.UNKNOWN, e));
