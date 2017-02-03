@@ -1,5 +1,5 @@
-project.ext.sdkVersion = 24
-project.ext.buildTools = '24.0.0'
+project.ext.sdkVersion = 25
+project.ext.buildTools = '25.0.2'
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -22,6 +22,9 @@ allprojects {
             classpath 'com.novoda:gradle-android-command-plugin:1.5.0'
             classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
+
+            // Required by okBuckExample
+            classpath 'com.uber:okbuck:0.17.0'
         }
     }
 

@@ -39,11 +39,6 @@ android {
         events 2000
     }
 
-    // Incremental builds currently doesn't work with Kotlin
-    dexOptions {
-        incremental false
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }

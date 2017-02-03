@@ -1,0 +1,30 @@
+apply plugin: 'com.uber.okbuck'
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+apply plugin: 'realm-android'
+
+android {
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
+    defaultConfig {
+        applicationId 'io.realm.examples.intro'
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion 15
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    productFlavors {
+    }
+
+    command {
+        events 2000
+    }
+}

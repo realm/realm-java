@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Disable the given check in this project -->
+    <issue id="AllowBackup" severity="ignore" />
+    <issue id="IconLauncherShape" severity="ignore" />
+    <issue id="IconMissingDensityFolder" severity="ignore" />
+    <issue id="GoogleAppIndexingWarning" severity="ignore" />
+    <issue id="LogNotTimber" severity="ignore" />
+    <issue id="InvalidPackage" severity="ignore" />
+</lint>
