@@ -24,9 +24,6 @@ import java.util.Collections;
  * A User Store backed by a Realm file to store user.
  */
 public class RealmFileUserStore implements UserStore {
-    protected RealmFileUserStore(String path) {
-        nativeConfigureMetaDataSystem(path);
-    }
 
     /**
      * {@inheritDoc}
@@ -86,9 +83,6 @@ public class RealmFileUserStore implements UserStore {
         }
         return SyncUser.fromJson(userJson);
     }
-
-    // init and load the Metadata Realm containing SyncUsers
-    protected static native void nativeConfigureMetaDataSystem(String baseFile);
 
     // returns json data (token) of the current logged in user
     protected static native String nativeGetCurrentUser();
