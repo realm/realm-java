@@ -27,7 +27,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,8 +38,6 @@ import io.realm.internal.syncpolicy.AutomaticSyncPolicy;
 import io.realm.internal.syncpolicy.SyncPolicy;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-
-import static android.R.attr.scheme;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
