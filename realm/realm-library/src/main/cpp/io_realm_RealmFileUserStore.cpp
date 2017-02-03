@@ -85,16 +85,6 @@ Java_io_realm_RealmFileUserStore_nativeLogoutUser (JNIEnv *env, jclass, jstring 
 }
 
 
-JNIEXPORT void JNICALL
-Java_io_realm_RealmFileUserStore_nativeConfigureMetaDataSystem (JNIEnv *env, jclass, jstring baseFile)
-{
-    TR_ENTER()
-    try {
-        JStringAccessor base_file_path(env, baseFile); // throws
-        SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
-    } CATCH_STD()
-}
-
 JNIEXPORT jobjectArray JNICALL
 Java_io_realm_RealmFileUserStore_nativeGetAllUsers (JNIEnv *env, jclass)
 {
