@@ -129,16 +129,22 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
      */
     @Override
     public boolean contains(Object object) {
-        boolean contains = false;
-        if (isLoaded() && object instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) object;
-            // TODO: Maybe we should just let OS throw?
-            if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
-                Row row = proxy.realmGet$proxyState().getRow$realm();
-                contains = !(row instanceof InvalidRow) && collection.contains((UncheckedRow) row);
+        if (isLoaded()) {
+            // Deleted objects can never be part of a RealmResults
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy.realmGet$proxyState().getRow$realm() == InvalidRow.INSTANCE) {
+                    return false;
+                }
+            }
+
+            for (E e : this) {
+                if (e.equals(object)) {
+                    return true;
+                }
             }
         }
-        return contains;
+        return false;
     }
 
     /**

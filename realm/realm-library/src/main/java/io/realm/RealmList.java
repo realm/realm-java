@@ -720,19 +720,26 @@ public class RealmList<E extends RealmModel> extends AbstractList<E> implements 
      */
     @Override
     public boolean contains(Object object) {
-        boolean contains = false;
         if (managedMode) {
             realm.checkIfValid();
+
+            // Deleted objects can never be part of a RealmList
             if (object instanceof RealmObjectProxy) {
                 RealmObjectProxy proxy = (RealmObjectProxy) object;
-                if (proxy.realmGet$proxyState().getRow$realm() != null && realm.getPath().equals(proxy.realmGet$proxyState().getRealm$realm().getPath()) && proxy.realmGet$proxyState().getRow$realm() != InvalidRow.INSTANCE) {
-                    contains = view.contains(proxy.realmGet$proxyState().getRow$realm().getIndex());
+                if (proxy.realmGet$proxyState().getRow$realm() == InvalidRow.INSTANCE) {
+                    return false;
                 }
             }
+
+            for (E e : this) {
+                if (e.equals(object)) {
+                    return true;
+                }
+            }
+            return false;
         } else {
-            contains = unmanagedList.contains(object);
+            return unmanagedList.contains(object);
         }
-        return contains;
     }
 
     /**

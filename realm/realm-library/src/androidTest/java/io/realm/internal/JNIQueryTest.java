@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmFieldType;
-import io.realm.Sort;
 import io.realm.TestHelper;
 
 public class JNIQueryTest extends TestCase {
