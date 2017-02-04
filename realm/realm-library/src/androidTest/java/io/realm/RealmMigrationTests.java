@@ -1213,10 +1213,12 @@ public class RealmMigrationTests {
 
     @Test
     public void renameAndAddField() {
+        final String CLASS_NAME = "MigrationFieldRenameAndAdd";
+
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.schema.get("MigrationFieldRenameAndAdd")
+                realm.getSchema().get(CLASS_NAME)
                         .renameField("string1", "string2")
                         .addField("string1", String.class);
             }
@@ -1230,8 +1232,8 @@ public class RealmMigrationTests {
                 .build();
 
         Realm realm = Realm.getInstance(config);
-        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string1"));
-        assertTrue(realm.getSchema().get("MigrationFieldRenameAndAdd").hasField("string2"));
+        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("string1"));
+        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("string2"));
         realm.close();
     }
 
@@ -1239,11 +1241,12 @@ public class RealmMigrationTests {
     public void renameAndAddIndexedField() {
         final int oldTestVal = 7;
         final Long testVal = Long.valueOf(293);
+        final String CLASS_NAME = "MigrationIndexedFieldRenamed";
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.schema.get("MigrationIndexedFieldRenamed") // WTF??  NO SUCH SCHEMA?
+                realm.getSchema().get(CLASS_NAME)
                         .renameField("testField", "oldTestField")
                         .addField("testField", Long.class);
             }
@@ -1263,8 +1266,9 @@ public class RealmMigrationTests {
         obj.testField = testVal;
         realm.commitTransaction();
 
-        assertTrue(realm.getSchema().get("MigrationIndexedFieldRenamed").hasField("testField"));
-        assertTrue(realm.getSchema().get("MigrationIndexedFieldRenamed").hasField("oldTestField"));
+        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("testField"));
+        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("oldTestField"));
+        assertTrue(realm.getSchema().get(CLASS_NAME).hasIndex("oldTestField"));
 
         RealmResults<MigrationIndexedFieldRenamed> result
                 = realm.where(MigrationIndexedFieldRenamed.class).equalTo("id", 2).findAll();
