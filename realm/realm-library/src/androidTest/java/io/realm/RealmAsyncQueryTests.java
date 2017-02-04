@@ -243,7 +243,7 @@ public class RealmAsyncQueryTests {
             public void onError(Throwable error) {
                 // Ensure we are giving developers quality messages in the logs.
                 assertTrue(testLogger.message.contains(
-                        "Exception has been throw: Can't commit a non-existing write transaction"));
+                        "Exception has been thrown: Can't commit a non-existing write transaction"));
                 assertTrue(error instanceof IllegalStateException);
                 RealmLog.remove(testLogger);
                 looperThread.testComplete();
