@@ -832,8 +832,7 @@ public class RealmResultsTests extends CollectionTests {
                 assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
                 assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
 
-                // FIXME: Enable this when https://github.com/realm/realm-core/issues/2378 fixed.
-                //assertEquals(0, dogs.where().findAll().size());
+                assertEquals(0, dogs.where().findAll().size());
 
                 looperThread.testComplete();
             }
@@ -899,8 +898,7 @@ public class RealmResultsTests extends CollectionTests {
                 assertEquals(null, dogs.minDate(Dog.FIELD_BIRTHDAY));
                 assertEquals(null, dogs.maxDate(Dog.FIELD_BIRTHDAY));
 
-                // FIXME: Enable this when https://github.com/realm/realm-core/issues/2378 fixed.
-                // assertEquals(0, dogs.where().findAll().size());
+                assertEquals(0, dogs.where().findAll().size());
 
                 looperThread.testComplete();
             }

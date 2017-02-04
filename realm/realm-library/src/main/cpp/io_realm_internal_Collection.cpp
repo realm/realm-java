@@ -333,7 +333,9 @@ Java_io_realm_internal_Collection_nativeWhere(JNIEnv *env, jclass, jlong native_
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
-        Query *query = new Query(wrapper->get_original_results().get_query());
+        auto table_view = wrapper->get_original_results().get_tableview();
+        Query *query = new Query(table_view.get_parent(),
+                                 std::unique_ptr<TableViewBase>(new TableView(std::move(table_view))));
         return reinterpret_cast<jlong>(query);
     } CATCH_STD()
     return 0;
