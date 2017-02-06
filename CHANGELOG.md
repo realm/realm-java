@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#).
+* [ObjectServer] The `serverUrl` given to `SyncConfiguration.Builder()` is now more lenient and will also accept only paths as argument (#4144).
 
 ### Bug fixes
 

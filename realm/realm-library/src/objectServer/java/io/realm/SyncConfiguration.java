@@ -279,8 +279,6 @@ public class SyncConfiguration extends RealmConfiguration {
          *             by a Realm Object Server.
          * @param uri URI identifying the Realm. If only a path like {@code /~/default} is given, the configuration will
          *            assume the file is located on the same server returned by {@link SyncUser#getAuthenticationUrl()}.
-         *            the user server used
-         *            to authenticate the user will be used.
          *
          * @see SyncUser#isValid()
          */
@@ -317,7 +315,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             try {
-                serverUrl = new URI(uri.toLowerCase());
+                serverUrl = new URI(uri);
             } catch (URISyntaxException e) {
                 throw new IllegalArgumentException("Invalid URI: " + uri, e);
             }

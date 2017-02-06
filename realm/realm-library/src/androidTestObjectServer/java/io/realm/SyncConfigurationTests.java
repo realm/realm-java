@@ -112,11 +112,19 @@ public class SyncConfigurationTests {
     public void serverUrl_flexibleInput() {
         // Check that the serverUrl accept a wide range of input
         Object[][] fuzzyInput = {
-                // Only path -> Use auth server as basis for server url
-                { createTestUser("http://ros.realm.io/auth"), "/~/default", "realm://ros.realm.io/~/default" },
-                { createTestUser("http://ros.realm.io/auth"), "~/default", "realm://ros.realm.io/~/default" },
-                { createTestUser("https://ros.realm.io/auth"), "/~/default", "realms://ros.realm.io/~/default" },
-                { createTestUser("https://ros.realm.io/auth"), "~/default", "realms://ros.realm.io/~/default" },
+                // Only path -> Use auth server as basis for server url, but ignore port if set
+                { createTestUser("http://ros.realm.io/auth"),      "/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io:7777/auth"), "/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"),     "/~/default", "realms://ros.realm.io/~/default" },
+                { createTestUser("https://127.0.0.1/auth"),        "/~/default", "realms://127.0.0.1/~/default" },
+
+                { createTestUser("http://ros.realm.io/auth"),      "~/default",  "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io:7777/auth"), "~/default",  "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"),     "~/default",  "realms://ros.realm.io/~/default" },
+                { createTestUser("https://127.0.0.1/auth"),        "~/default",  "realms://127.0.0.1/~/default" },
+
+                // Check that the same name used for server and name doesn't crash
+                { createTestUser("http://ros.realm.io/auth"),      "~/ros.realm.io",  "realm://ros.realm.io/~/ros.realm.io" },
 
                 // Forgot schema -> Use the one from the auth url
                 { createTestUser("http://ros.realm.io/auth"), "ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
