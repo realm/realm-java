@@ -1239,21 +1239,21 @@ public class RealmMigrationTests {
 
     @Test
     public void renameAndAddIndexedField() {
+        final Class<MigrationIndexedFieldRenamed> SCHEMA = MigrationIndexedFieldRenamed.class;
         final int oldTestVal = 7;
         final Long testVal = Long.valueOf(293);
-        final String CLASS_NAME = "MigrationIndexedFieldRenamed";
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().get(CLASS_NAME)
+                realm.getSchema().get(SCHEMA.getSimpleName())
                         .renameField("testField", "oldTestField")
                         .addField("testField", Long.class);
             }
         };
 
         RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(MigrationIndexedFieldRenamed.class)
+                .schema(SCHEMA)
                 .schemaVersion(2)
                 .migration(migration)
                 .assetFile("rename-and-add-indexed.realm")
@@ -1261,17 +1261,17 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(config);
 
         realm.beginTransaction();
-        MigrationIndexedFieldRenamed obj = realm.createObject(MigrationIndexedFieldRenamed.class, 2);
+        MigrationIndexedFieldRenamed obj = realm.createObject(SCHEMA, 2);
         obj.oldTestField = oldTestVal;
         obj.testField = testVal;
         realm.commitTransaction();
 
-        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("testField"));
-        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("oldTestField"));
-        assertTrue(realm.getSchema().get(CLASS_NAME).hasIndex("oldTestField"));
+        RealmObjectSchema schema = realm.getSchema().get(SCHEMA.getSimpleName());
+        assertTrue(schema.hasField("testField"));
+        assertTrue(schema.hasField("oldTestField"));
+        assertTrue(schema.hasIndex("oldTestField"));
 
-        RealmResults<MigrationIndexedFieldRenamed> result
-                = realm.where(MigrationIndexedFieldRenamed.class).equalTo("id", 2).findAll();
+        RealmResults<MigrationIndexedFieldRenamed> result = realm.where(SCHEMA).equalTo("id", 2).findAll();
         assertEquals("There should be an object with PK=2", 1, result.size());
         assertEquals("Unexpected oldTestField value", oldTestVal, result.first().oldTestField);
         assertEquals("Unexpected testField value", testVal, result.first().testField);
