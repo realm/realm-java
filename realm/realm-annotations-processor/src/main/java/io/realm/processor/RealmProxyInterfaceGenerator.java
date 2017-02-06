@@ -51,7 +51,7 @@ public class RealmProxyInterfaceGenerator {
                 .emitPackage(Constants.REALM_PACKAGE_NAME)
                 .emitEmptyLine()
                 .beginType(qualifiedGeneratedInterfaceName, "interface", EnumSet.of(Modifier.PUBLIC));
-        for (VariableElement field : metaData.getPersistedFields()) {
+        for (VariableElement field : metaData.getFields()) {
             // The field is neither static nor ignored
             if (!field.getModifiers().contains(Modifier.STATIC) && field.getAnnotation(Ignore.class) == null) {
                 String fieldName = field.getSimpleName().toString();

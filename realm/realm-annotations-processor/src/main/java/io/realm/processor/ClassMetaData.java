@@ -53,7 +53,7 @@ public class ClassMetaData {
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all user persisted fields in the class.
+    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
     private List<Backlink> backlinkFields = new ArrayList<Backlink>(); // List of all fields maintained by Realm (RealmResults)
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
@@ -324,7 +324,8 @@ public class ClassMetaData {
                         return false;
                     }
 
-                    backlinkFields.add(new Backlink(variableElement, Utils.getGenericType(variableElement), backlinkField));
+                    backlinkFields.add(
+                        new Backlink(variableElement, Utils.getGenericTypeQualifiedName(variableElement), backlinkField));
                     continue;
                 }
 
@@ -369,7 +370,7 @@ public class ClassMetaData {
         return packageName + "." + className;
     }
 
-    public List<VariableElement> getPersistedFields() {
+    public List<VariableElement> getFields() {
         return fields;
     }
 

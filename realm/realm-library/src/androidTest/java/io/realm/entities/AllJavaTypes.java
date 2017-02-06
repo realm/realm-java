@@ -35,6 +35,7 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_SHORT = "fieldShort";
     public static final String FIELD_INT = "fieldInt";
     public static final String FIELD_LONG = "fieldLong";
+    public static final String FIELD_ID = "fieldId";
     public static final String FIELD_BYTE = "fieldByte";
     public static final String FIELD_FLOAT = "fieldFloat";
     public static final String FIELD_DOUBLE = "fieldDouble";

@@ -189,12 +189,11 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public TableView getBacklinkView(Table srcTable, long srcColumnIndex) {
-        context.executeDelayedDisposal();
-        long backlinkViewPtr = nativeGetBacklinkView(nativePointer, srcTable.nativePtr, srcColumnIndex);
+        long backlinkViewPtr = nativeGetBacklinkView(nativePtr, srcTable.nativePtr, srcColumnIndex);
         try {
             return new TableView(context, getTable(), backlinkViewPtr);
         } catch (RuntimeException e) {
-            TableView.nativeClose(backlinkViewPtr);
+            // !!!FIXME TableView.nativeClose(backlinkViewPtr);
             throw e;
         }
     }

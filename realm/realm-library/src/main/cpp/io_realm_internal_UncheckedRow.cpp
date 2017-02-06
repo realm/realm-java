@@ -369,7 +369,8 @@ static void finalize_unchecked_row(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPtr
-  (JNIEnv *, jclass) {
+  (JNIEnv *, jclass)
+{
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_unchecked_row);
 }

@@ -115,6 +115,7 @@ public class ModuleMetaData {
 
     // Detour needed to access the class elements in the array
     // See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
+    @SuppressWarnings("unchecked")
     private Set<String> getClassMetaDataFromModule(Element classElement) {
         AnnotationMirror annotationMirror = getAnnotationMirror(classElement);
         AnnotationValue annotationValue = getAnnotationValue(annotationMirror);
@@ -129,6 +130,7 @@ public class ModuleMetaData {
 
     // Work-around for asking for a Class primitive array which would otherwise throw a TypeMirrorException
     // https://community.oracle.com/thread/1184190
+    @SuppressWarnings("unchecked")
     private boolean hasCustomClassList(Element classElement) {
         AnnotationMirror annotationMirror = getAnnotationMirror(classElement);
         AnnotationValue annotationValue = getAnnotationValue(annotationMirror);
