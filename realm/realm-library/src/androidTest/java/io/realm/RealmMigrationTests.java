@@ -1213,47 +1213,48 @@ public class RealmMigrationTests {
 
     @Test
     public void renameAndAddField() {
-        final String CLASS_NAME = "MigrationFieldRenameAndAdd";
+        final Class<MigrationFieldRenameAndAdd> schemaClass = MigrationFieldRenameAndAdd.class;
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().get(CLASS_NAME)
+                realm.getSchema().get(schemaClass.getSimpleName())
                         .renameField("string1", "string2")
                         .addField("string1", String.class);
             }
         };
 
         RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(MigrationFieldRenameAndAdd.class)
+                .schema(schemaClass)
                 .schemaVersion(2)
                 .migration(migration)
                 .assetFile("rename-and-add.realm")
                 .build();
-
         Realm realm = Realm.getInstance(config);
-        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("string1"));
-        assertTrue(realm.getSchema().get(CLASS_NAME).hasField("string2"));
+
+        RealmObjectSchema schema = realm.getSchema().get(schemaClass.getSimpleName());
+        assertTrue(schema.hasField("string1"));
+        assertTrue(schema.hasField("string2"));
         realm.close();
     }
 
     @Test
     public void renameAndAddIndexedField() {
-        final Class<MigrationIndexedFieldRenamed> SCHEMA = MigrationIndexedFieldRenamed.class;
+        final Class<MigrationIndexedFieldRenamed> schemaClass = MigrationIndexedFieldRenamed.class;
         final int oldTestVal = 7;
         final Long testVal = Long.valueOf(293);
 
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                realm.getSchema().get(SCHEMA.getSimpleName())
+                realm.getSchema().get(schemaClass.getSimpleName())
                         .renameField("testField", "oldTestField")
                         .addField("testField", Long.class);
             }
         };
 
         RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(SCHEMA)
+                .schema(schemaClass)
                 .schemaVersion(2)
                 .migration(migration)
                 .assetFile("rename-and-add-indexed.realm")
@@ -1261,17 +1262,17 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(config);
 
         realm.beginTransaction();
-        MigrationIndexedFieldRenamed obj = realm.createObject(SCHEMA, 2);
+        MigrationIndexedFieldRenamed obj = realm.createObject(schemaClass, 2);
         obj.oldTestField = oldTestVal;
         obj.testField = testVal;
         realm.commitTransaction();
 
-        RealmObjectSchema schema = realm.getSchema().get(SCHEMA.getSimpleName());
+        RealmObjectSchema schema = realm.getSchema().get(schemaClass.getSimpleName());
         assertTrue(schema.hasField("testField"));
         assertTrue(schema.hasField("oldTestField"));
         assertTrue(schema.hasIndex("oldTestField"));
 
-        RealmResults<MigrationIndexedFieldRenamed> result = realm.where(SCHEMA).equalTo("id", 2).findAll();
+        RealmResults<MigrationIndexedFieldRenamed> result = realm.where(schemaClass).equalTo("id", 2).findAll();
         assertEquals("There should be an object with PK=2", 1, result.size());
         assertEquals("Unexpected oldTestField value", oldTestVal, result.first().oldTestField);
         assertEquals("Unexpected testField value", testVal, result.first().testField);
