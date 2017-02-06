@@ -39,6 +39,7 @@ public class AndroidRealmNotifier extends RealmNotifier {
         super.close();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
+            handler = null;
         }
     }
 }
