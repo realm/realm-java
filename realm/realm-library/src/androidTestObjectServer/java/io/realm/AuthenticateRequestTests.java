@@ -40,10 +40,10 @@ public class AuthenticateRequestTests {
     @Test
     public void realmLogin() throws URISyntaxException, JSONException {
         Token t = SyncTestUtils.createTestUser().getSyncUser().getUserToken();
-        AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.value() + "/default"));
+        AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.identity() + "/default"));
 
         JSONObject obj = new JSONObject(request.toJson());
-        assertEquals("/" + t.value() + "/default", obj.get("path"));
+        assertEquals("/" + t.identity() + "/default", obj.get("path"));
         assertEquals(t.value(), obj.get("data"));
         assertEquals("realm", obj.get("provider"));
     }
@@ -61,7 +61,7 @@ public class AuthenticateRequestTests {
     @Test
     public void userRefresh() throws URISyntaxException, JSONException {
         Token t = SyncTestUtils.createTestUser().getSyncUser().getUserToken();
-        AuthenticateRequest request = AuthenticateRequest.userRefresh(t, new URI("realm://objectserver/" + t.value() + "/default"));
+        AuthenticateRequest request = AuthenticateRequest.userRefresh(t, new URI("realm://objectserver/" + t.identity() + "/default"));
 
         JSONObject obj = new JSONObject(request.toJson());
         assertTrue(obj.has("path"));

@@ -1,9 +1,5 @@
 ## 2.3.1
 
-### Object Server API Changes
-
-* Add a timer to refresh periodically the access_token.
-
 ### Bug fixes
 
 * NPE problem in SharedRealm.finalize() (#3730).
@@ -11,6 +7,10 @@
 * Build error when the project is using Kotlin (#4087).
 * Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
 * NullPointerException when notifying a single object that it changed (#4086).
+
+### Enhancements
+
+* [ObjectServer] Add a timer to refresh periodically the access_token.
 
 ## 2.3.0
 

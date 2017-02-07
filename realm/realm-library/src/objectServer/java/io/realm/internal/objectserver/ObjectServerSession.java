@@ -114,6 +114,7 @@ public final class ObjectServerSession {
     private SyncSession publicSession;
 
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
+    private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
 
     /**
      * Creates a new Object Server Session.
@@ -328,7 +329,7 @@ public final class ObjectServerSession {
         // calculate the delay time before which we should refresh the access_token,
         // we adjust to 10 second to proactively refresh the access_token before the session
         // hit the expire date on the token
-        long refreshAfter =  expireDateInMs - System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(10);
+        long refreshAfter =  expireDateInMs - System.currentTimeMillis() - REFRESH_MARGIN_DELAY;
         if (refreshAfter < 0) {
             // Token already expired
             RealmLog.debug("Expires time already reached for the access token, refreshing now");
@@ -388,7 +389,7 @@ public final class ObjectServerSession {
 
             @Override
             protected void onError(AuthenticateResponse response) {
-                // unrecoverable error, reschedule will not happen
+                RealmLog.error("Unrecoverable error, while refreshing the access Token (" + response.getError().toString() + ") reschedule will not happen");
             }
         });
         refreshTokenNetworkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
