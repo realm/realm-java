@@ -73,13 +73,6 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void user() {
-//        new SyncConfiguration.Builder(context);
-        // Check that user can be added
-        // That the default local path is correct
-    }
-
-    @Test
     public void user_invalidUserThrows() {
         try {
             new SyncConfiguration.Builder(null, "realm://ros.realm.io/default");
@@ -116,6 +109,47 @@ public class SyncConfigurationTests {
     }
 
     @Test
+    public void serverUrl_flexibleInput() {
+        // Check that the serverUrl accept a wide range of input
+        Object[][] fuzzyInput = {
+                // Only path -> Use auth server as basis for server url, but ignore port if set
+                { createTestUser("http://ros.realm.io/auth"),      "/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io:7777/auth"), "/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"),     "/~/default", "realms://ros.realm.io/~/default" },
+                { createTestUser("https://127.0.0.1/auth"),        "/~/default", "realms://127.0.0.1/~/default" },
+
+                { createTestUser("http://ros.realm.io/auth"),      "~/default",  "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io:7777/auth"), "~/default",  "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"),     "~/default",  "realms://ros.realm.io/~/default" },
+                { createTestUser("https://127.0.0.1/auth"),        "~/default",  "realms://127.0.0.1/~/default" },
+
+                // Check that the same name used for server and name doesn't crash
+                { createTestUser("http://ros.realm.io/auth"),      "~/ros.realm.io",  "realm://ros.realm.io/~/ros.realm.io" },
+
+                // Forgot schema -> Use the one from the auth url
+                { createTestUser("http://ros.realm.io/auth"), "ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("http://ros.realm.io/auth"), "//ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"), "ros.realm.io/~/default", "realms://ros.realm.io/~/default" },
+                { createTestUser("https://ros.realm.io/auth"), "//ros.realm.io/~/default", "realms://ros.realm.io/~/default" },
+
+                // Automatically replace http|https with realm|realms
+                { createTestUser(), "http://ros.realm.io/~/default", "realm://ros.realm.io/~/default" },
+                { createTestUser(), "https://ros.realm.io/~/default", "realms://ros.realm.io/~/default" }
+        };
+
+        for (Object[] test : fuzzyInput) {
+            SyncUser user = (SyncUser) test[0];
+            String serverUrlInput = (String) test[1];
+            String resolvedServerUrl = ((String) test[2]).replace("~", user.getIdentity());
+
+            SyncConfiguration config = new SyncConfiguration.Builder(user, serverUrlInput).build();
+
+            assertEquals(String.format("Input '%s' did not resolve correctly.", serverUrlInput),
+                    resolvedServerUrl, config.getServerUrl().toString());
+        }
+    }
+
+    @Test
     public void serverUrl_invalidUrlThrows() {
         String[] invalidUrls = {
             null,
@@ -130,7 +164,6 @@ public class SyncConfigurationTests {
             "realm://objectserver.realm.io/~/Αθήνα", // Non-ascii
             "realm://objectserver.realm.io/~/foo/../bar", // .. is not allowed
             "realm://objectserver.realm.io/~/foo/./bar", // . is not allowed
-            "http://objectserver.realm.io/~/default", // wrong scheme
         };
 
         for (String invalidUrl : invalidUrls) {
