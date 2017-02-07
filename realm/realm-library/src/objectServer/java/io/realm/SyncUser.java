@@ -407,6 +407,15 @@ public class SyncUser {
         return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(syncUser, this));
     }
 
+    /**
+     * Returns the {@link URL} where this user was authenticated.
+     *
+     * @return {@link URL} where the user was authenticated.
+     */
+    public URL getAuthenticationUrl() {
+        return syncUser.getAuthenticationUrl();
+    }
+
     // Creates the URL to the permission Realm based on the authentication URL.
     private static String getManagementRealmUrl(URL authUrl) {
         String scheme = "realm";

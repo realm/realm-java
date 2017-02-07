@@ -67,12 +67,12 @@ public final class ProxyState<E extends RealmModel> {
     public void setPendingQuery$realm(Future<Long> pendingQuery) {
         this.pendingQuery = pendingQuery;
         if (isLoaded()) {
-            // the query completed before RealmQuery
+            // The query completed before RealmQuery
             // had a chance to call setPendingQuery to register the pendingQuery (used btw
-            // to determine isLoaded behaviour)
+            // to determine isLoaded behaviour).
             onCompleted$realm();
 
-        } // else, it will be handled by the Realm#handler
+        } // Else, it will be handled by the Realm#handler.
     }
 
     public BaseRealm getRealm$realm() {
@@ -124,10 +124,10 @@ public final class ProxyState<E extends RealmModel> {
         try {
             Long handoverResult = pendingQuery.get();// make the query blocking
             if (handoverResult != 0) {
-                // this may fail with BadVersionException if the caller and/or the worker thread
+                // This may fail with BadVersionException if the caller and/or the worker thread
                 // are not in sync (same shared_group version).
-                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
-                // this should handle more complex use cases like retry, ignore etc
+                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread.
+                // This should handle more complex use cases like retry, ignore etc.
                 onCompleted$realm(handoverResult);
                 notifyChangeListeners$realm();
             } else {
@@ -146,8 +146,8 @@ public final class ProxyState<E extends RealmModel> {
 
     public void onCompleted$realm(long handoverRowPointer) {
         if (handoverRowPointer == 0) {
-            // we'll retry later to update the row pointer, but we consider
-            // the query done
+            // We'll retry later to update the row pointer, but we consider
+            // the query done.
             isCompleted = true;
 
         } else if (!isCompleted || row == Row.EMPTY_ROW) {
@@ -155,7 +155,7 @@ public final class ProxyState<E extends RealmModel> {
             long nativeRowPointer = TableQuery.importHandoverRow(handoverRowPointer, realm.sharedRealm);
             Table table = getTable();
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
-        }// else: already loaded query no need to import again the pointer
+        } // else: Already loaded query no need to import again the pointer.
     }
 
     /**
@@ -204,7 +204,7 @@ public final class ProxyState<E extends RealmModel> {
 
     public void setConstructionFinished() {
         underConstruction = false;
-        // only used while construction.
+        // Only used while construction.
         excludeFields = null;
     }
 

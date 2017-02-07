@@ -44,7 +44,7 @@ class AndroidNotifier implements RealmNotifier {
             return;
         }
 
-        // Force any updates on the current thread to the front the queue. Doing this is mostly
+        // Forces any updates on the current thread to the front the queue. Doing this is mostly
         // relevant on the UI thread where it could otherwise process a motion event before the
         // REALM_CHANGED event. This could in turn cause a UI component like ListView to crash. See
         // https://github.com/realm/realm-android-adapters/issues/11 for such a case.

@@ -146,7 +146,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Removes a column in the table dynamically. if {@code columnIndex} is smaller than the primary
+     * Removes a column in the table dynamically. If {@code columnIndex} is smaller than the primary
      * key column index, {@link #invalidateCachedPrimaryKeyIndex()} will be called to recalculate the
      * primary key column index.
      *
@@ -157,15 +157,15 @@ public class Table implements TableOrView, TableSchema, NativeObject {
      */
     @Override
     public void removeColumn(long columnIndex) {
-        // Check the PK column index before removing a column. We don't know if we're hitting a PK col,
+        // Checks the PK column index before removing a column. We don't know if we're hitting a PK col,
         // but it should be noted that once a column is removed, there is no way we can find whether
         // a PK exists or not.
         final long oldPkColumnIndex = getPrimaryKey();
 
-        // firstly remove a column. If there is no error, we can proceed. Otherwise, it will stop here.
+        // First removes a column. If there is no error, we can proceed. Otherwise, it will stop here.
         nativeRemoveColumn(nativePtr, columnIndex);
 
-        // Check if a PK exists and take actions if there is. This is same as hasPrimaryKey(), but
+        // Checks if a PK exists and takes actions if there is. This is same as hasPrimaryKey(), but
         // this relies on the local cache.
         if (oldPkColumnIndex >= 0) {
 
@@ -195,16 +195,16 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     @Override
     public void renameColumn(long columnIndex, String newName) {
         verifyColumnName(newName);
-        // get the old column name. We'll assume that the old column name is *NOT* an empty string.
+        // Gets the old column name. We'll assume that the old column name is *NOT* an empty string.
         final String oldName = nativeGetColumnName(nativePtr, columnIndex);
-        // also old pk index. Once a column name changes, there is no way you can find the column name
+        // Also old pk index. Once a column name changes, there is no way you can find the column name
         // by old name.
         final long oldPkColumnIndex = getPrimaryKey();
 
-        // then let's try to rename a column. If an error occurs for some reasons, we'll throw.
+        // Then let's try to rename a column. If an error occurs for some reasons, we'll throw.
         nativeRenameColumn(nativePtr, columnIndex, newName);
 
-        // Rename a primary key. At this point, renaming the column name should have been fine.
+        // Renames a primary key. At this point, renaming the column name should have been fine.
         if (oldPkColumnIndex == columnIndex) {
             try {
                 String className = tableNameToClassName(getName());
@@ -220,7 +220,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
                     throw new IllegalStateException("Non-existent PrimaryKey column cannot be renamed");
                 }
             } catch (Exception e) {
-                // we failed to rename the pk meta table. roll back the column name, not pk meta table
+                // We failed to rename the pk meta table. roll back the column name, not pk meta table
                 // then rethrow.
                 nativeRenameColumn(nativePtr, columnIndex, oldName);
                 throw e;
@@ -365,7 +365,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Add an empty row to the table which doesn't have a primary key defined.
+     * Adds an empty row to the table which doesn't have a primary key defined.
      * <p>
      * NOTE: To add a table with a primary key defined, use {@link #addEmptyRowWithPrimaryKey(Object)} instead. This
      * won't check if this table has a primary key.
@@ -378,7 +378,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Add an empty row to the table and set the primary key with the given value. Equivalent to call
+     * Adds an empty row to the table and set the primary key with the given value. Equivalent to call
      * {@link #addEmptyRowWithPrimaryKey(Object, boolean)} with {@code validation = true}.
      *
      * @param primaryKeyValue the primary key value
@@ -389,7 +389,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Add an empty row to the table and set the primary key with the given value.
+     * Adds an empty row to the table and set the primary key with the given value.
      *
      * @param primaryKeyValue the primary key value.
      * @param validation set to {@code false} to skip all validations. This is currently used by bulk insert which
@@ -406,7 +406,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
         RealmFieldType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
 
-        // Add with primary key initially set
+        // Adds with primary key initially set.
         if (primaryKeyValue == null) {
             switch (type) {
                 case STRING:
@@ -481,7 +481,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
      * @param values values.
      * @return the row index of the appended row.
      * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
-     * withprimary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
      * added.
      */
     protected long add(Object... values) {
@@ -489,7 +489,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
         checkImmutable();
 
-        // Check values types
+        // Checks values types.
         int columns = (int)getColumnCount();
         if (columns != values.length) {
             throw new IllegalArgumentException("The number of value parameters (" +
@@ -503,7 +503,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
             RealmFieldType colType = getColumnType(columnIndex);
             colTypes[columnIndex] = colType;
             if (!colType.isValid(value)) {
-                //String representation of the provided value type
+                // String representation of the provided value type.
                 String providedType;
                 if (value == null) {
                     providedType = "null";
@@ -516,7 +516,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
             }
         }
 
-        // Insert values
+        // Inserts values.
         for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
             Object value = values[(int)columnIndex];
             switch (colTypes[(int)columnIndex]) {
@@ -583,7 +583,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
         } else {
             Table pkTable = getPrimaryKeyTable();
             if (pkTable == null) {
-                return NO_PRIMARY_KEY; // Free table = No primary key
+                return NO_PRIMARY_KEY; // Free table = No primary key.
             }
 
             String className = tableNameToClassName(getName());
@@ -636,7 +636,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
         }
     }
 
-    // check if it is ok to use null value for given row and column.
+    // Checks if it is ok to use null value for given row and column.
     void checkDuplicatedNullForPrimaryKeyValue(long columnIndex, long rowToUpdate) {
         if (isPrimaryKeyColumn(columnIndex)) {
             RealmFieldType type = getColumnType(columnIndex);
@@ -695,7 +695,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Gets the value of a (string )cell.
+     * Gets the value of a (string) cell.
      *
      * @param columnIndex 0 based index value of the column
      * @param rowIndex 0 based index of the row.
@@ -718,7 +718,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
 
     public Table getLinkTarget(long columnIndex) {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
-        // Copy context reference from parent
+        // Copies context reference from parent.
         Table table = new Table(this.sharedRealm, nativeTablePointer);
         return table;
     }
@@ -801,7 +801,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Set a String value to a cell of Table, pointed by column and row index.
+     * Sets a String value to a cell of Table, pointed by column and row index.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param rowIndex 0 based index value of the cell row.
@@ -883,7 +883,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     }
 
     /**
-     * Invalidating a cached primary key column index for the table.
+     * Invalidates a cached primary key column index for the table.
      */
     private void invalidateCachedPrimaryKeyIndex() {
         cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -935,7 +935,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
         return sharedRealm != null && !sharedRealm.isInTransaction();
     }
 
-    // This checking should be moved to SharedRealm level
+    // This checking should be moved to SharedRealm level.
     void checkImmutable() {
         if (isImmutable()) {
             throwImmutable();
@@ -1055,7 +1055,7 @@ public class Table implements TableOrView, TableSchema, NativeObject {
     @Override
     public TableQuery where() {
         long nativeQueryPtr = nativeWhere(nativePtr);
-        // Copy context reference from parent
+        // Copies context reference from parent.
         return new TableQuery(this.context, this, nativeQueryPtr);
     }
 

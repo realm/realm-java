@@ -75,7 +75,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void after() {
-        // Wait all async tasks done to ensure successful deleteRealm call.
+        // Waits all async tasks done to ensure successful deleteRealm call.
         // This will throw when timeout. And the reason of timeout needs to be solved properly.
         TestHelper.waitRealmThreadExecutorFinish();
 
@@ -84,7 +84,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                 Realm.deleteRealm(configuration);
             }
         } catch (IllegalStateException e) {
-            // Only throw the exception caused by deleting the opened Realm if the test case itself doesn't throw.
+            // Only throws the exception caused by deleting the opened Realm if the test case itself doesn't throw.
             if (!unitTestFailed) {
                 throw e;
             }
@@ -151,7 +151,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public void copyRealmFromAssets(Context context, String realmPath, RealmConfiguration config) throws IOException {
-        // Delete the existing file before copy
+        // Deletes the existing file before copy
         Realm.deleteRealm(config);
 
         File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());

@@ -95,7 +95,7 @@ public class RealmProxyMediatorTests {
         final Set<Long> indexSet = new HashSet<>();
         int indexCount = 0;
 
-        // get index for each field and then put into set
+        // Gets index for each field and then put into set.
         for (Field field : Cat.class.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;

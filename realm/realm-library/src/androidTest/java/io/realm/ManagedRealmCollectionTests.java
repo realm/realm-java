@@ -241,7 +241,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     /**
-     * Test to see if a particular item that does exist in the same Realm does not
+     * Tests to see if a particular item that does exist in the same Realm does not
      * exist in the result set of another query.
      */
     @Test
@@ -267,15 +267,15 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class).findAll();
         assertEquals(TEST_SIZE, results.size());
 
-        // querying a RealmResults should find objects that fulfill the condition
+        // Querying a RealmResults should find objects that fulfill the condition.
         RealmResults<AllJavaTypes> onedigits = results.where().lessThan(AllJavaTypes.FIELD_LONG, 10).findAll();
         assertEquals(Math.min(10, TEST_SIZE), onedigits.size());
 
-        // if no objects fulfill conditions, the result has zero objects
+        // If no objects fulfill conditions, the result has zero objects.
         RealmResults<AllJavaTypes> none = results.where().greaterThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(0, none.size());
 
-        // querying a result with zero objects must give zero objects
+        // Querying a result with zero objects must give zero objects.
         RealmResults<AllJavaTypes> stillNone = none.where().greaterThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
         assertEquals(0, stillNone.size());
     }
@@ -330,7 +330,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(0, minimum.intValue());
     }
 
-    // Test min on empty columns
+    // Tests min on empty columns.
     @Test
     public void min_emptyNonNullFields() {
         OrderedRealmCollection<NullTypes> results = createEmptyCollection(realm, collectionClass);
@@ -340,7 +340,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertNull(results.minDate(NullTypes.FIELD_DATE_NOT_NULL));
     }
 
-    // Test min on nullable rows with all null values
+    // Tests min on nullable rows with all null values.
     @Test
     public void min_emptyNullFields() {
         OrderedRealmCollection<NullTypes> results = createAllNullRowsForNumericTesting(realm, collectionClass);
@@ -350,7 +350,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertNull(results.maxDate(NullTypes.FIELD_DATE_NULL));
     }
 
-    // Test min on nullable rows with partial null values
+    // Tests min on nullable rows with partial null values.
     @Test
     public void min_partialNullRows() {
         OrderedRealmCollection<NullTypes> results = createPartialNullRowsForNumericTesting(realm, collectionClass);
@@ -365,7 +365,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(TEST_SIZE - 1, maximum.intValue());
     }
 
-    // Test max on empty columns
+    // Tests max on empty columns.
     @Test
     public void max_emptyNonNullFields() {
         OrderedRealmCollection<NullTypes> results = createEmptyCollection(realm, collectionClass);
@@ -375,7 +375,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertNull(results.maxDate(NullTypes.FIELD_DATE_NOT_NULL));
     }
 
-    // Test max on nullable rows with all null values
+    // Tests max on nullable rows with all null values.
     @Test
     public void max_emptyNullFields() {
         OrderedRealmCollection<NullTypes> results = createAllNullRowsForNumericTesting(realm, collectionClass);
@@ -385,7 +385,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertNull(results.maxDate(NullTypes.FIELD_DATE_NULL));
     }
 
-    // Test max on nullable rows with partial null values
+    // Tests max on nullable rows with partial null values.
     @Test
     public void max_partialNullRows() {
         OrderedRealmCollection<NullTypes> results = createPartialNullRowsForNumericTesting(realm, collectionClass);
@@ -401,7 +401,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals((TEST_SIZE - 1) * TEST_SIZE / 2, sum.intValue());
     }
 
-    // Test sum on nullable rows with all null values
+    // Tests sum on nullable rows with all null values.
     @Test
     public void sum_nullRows() {
         OrderedRealmCollection<NullTypes> resultList = createAllNullRowsForNumericTesting(realm, collectionClass);
@@ -410,7 +410,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
-    // Test sum on nullable rows with partial null values
+    // Tests sum on nullable rows with partial null values.
     @Test
     public void sum_partialNullRows() {
         OrderedRealmCollection<NullTypes> resultList = createPartialNullRowsForNumericTesting(realm, collectionClass);
@@ -438,7 +438,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         double N = (double) TEST_SIZE;
 
         // Sum of numbers 1 to M: M*(M+1)/2
-        // See setUp() for values of fields
+        // See setUp() for values of fields.
         // N = TEST_DATA_SIZE
 
         // Type: double; a = 3.1415
@@ -461,7 +461,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(1.234567 + 0.5 * (N - 1.0), collection.average(AllJavaTypes.FIELD_FLOAT), 0.0001);
     }
 
-    // Test average on empty columns
+    // Tests average on empty columns.
     @Test
     public void avg_emptyNonNullFields() {
         OrderedRealmCollection<NullTypes> resultList = createEmptyCollection(realm, collectionClass);
@@ -470,7 +470,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NOT_NULL), 0d);
     }
 
-    // Test average on nullable rows with all null values
+    // Tests average on nullable rows with all null values.
     @Test
     public void avg_emptyNullFields() {
         OrderedRealmCollection<NullTypes> resultList = createEmptyCollection(realm, collectionClass);
@@ -479,7 +479,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 
-    // Test average on nullable rows with partial null values
+    // Tests average on nullable rows with partial null values.
     @Test
     public void avg_partialNullRows() {
         OrderedRealmCollection<NullTypes> resultList = createPartialNullRowsForNumericTesting(realm, collectionClass);
@@ -576,7 +576,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         if (collectionClass == ManagedCollection.MANAGED_REALMLIST) {
             RealmList list = (RealmList) collection;
             realm.beginTransaction();
-            list.remove(0); // Break the cycle
+            list.remove(0); // Breaks the cycle.
             realm.commitTransaction();
             size = TEST_SIZE - 1;
         }
@@ -658,13 +658,13 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertTrue(collection.equals(createCollection(collectionClass)));
     }
 
-    // Test all methods that mutate data throw correctly if not inside an transaction.
-    // Due to implementation details both UnsupportedOperation and IllegalState is accepted at this level
+    // Tests all methods that mutate data throw correctly if not inside an transaction.
+    // Due to implementation details both UnsupportedOperation and IllegalState is accepted at this level.
     @Test
     public void mutableMethodsOutsideTransactions() {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
 
-            // Define expected exception
+            // Defines expected exception.
             Class<? extends Throwable> expected = IllegalStateException.class;
             if (collectionClass == ManagedCollection.REALMRESULTS) {
                 switch (method) {
@@ -744,7 +744,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
             @Override
             public Boolean call() throws Exception {
 
-                // Define expected exception
+                // Defines expected exception.
                 Class<? extends Throwable> expected = IllegalStateException.class;
                 if (collectionClass == ManagedCollection.REALMRESULTS) {
                     switch (method) {

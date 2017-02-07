@@ -270,7 +270,7 @@ public class Realm extends BaseRealm {
                 try {
                     migrateRealm(configuration, e);
                 } catch (FileNotFoundException fileNotFoundException) {
-                    // Should never happen
+                    // Should never happen.
                     throw new RealmFileException(RealmFileException.Kind.NOT_FOUND, fileNotFoundException);
                 }
             }
@@ -288,7 +288,7 @@ public class Realm extends BaseRealm {
         final ColumnIndices columnIndices = RealmCache.findColumnIndices(globalCacheArray, requiredVersion);
 
         if (columnIndices != null) {
-            // copy global cache as a Realm local indices cache
+            // Copies global cache as a Realm local indices cache.
             realm.schema.columnIndices = columnIndices.clone();
         } else {
             final boolean syncingConfig = configuration.isSyncConfiguration();
@@ -307,7 +307,7 @@ public class Realm extends BaseRealm {
                 }
             }
 
-            // Initialize Realm schema if needed
+            // Initializes Realm schema if needed.
             try {
                 if (!syncingConfig) {
                     initializeRealm(realm);
@@ -341,7 +341,7 @@ public class Realm extends BaseRealm {
 
             final Map<Class<? extends RealmModel>, ColumnInfo> columnInfoMap = new HashMap<>(modelClasses.size());
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                // Create and validate table
+                // Creates and validates table.
                 if (unversioned) {
                     mediator.createTable(modelClass, realm.sharedRealm);
                 }
@@ -388,7 +388,7 @@ public class Realm extends BaseRealm {
                 realmObjectSchemas.add(realmObjectSchema);
             }
 
-            // Assumption: when SyncConfiguration then additive schema update mode
+            // Assumption: When SyncConfiguration then additive schema update mode.
             final RealmSchema schema = new RealmSchema(realmObjectSchemas);
             long newVersion = realm.configuration.getSchemaVersion();
             if (realm.sharedRealm.requiresMigration(schema)) {
@@ -602,7 +602,7 @@ public class Realm extends BaseRealm {
         checkHasPrimaryKey(clazz);
 
         // As we need the primary key value we have to first parse the entire input stream as in the general
-        // case that value might be the last property :(
+        // case that value might be the last property. :(
         Scanner scanner = null;
         try {
             scanner = getFullStringScanner(in);
@@ -759,7 +759,7 @@ public class Realm extends BaseRealm {
         Table table = schema.getTable(clazz);
         if (table.hasPrimaryKey()) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
-            // case that value might be the last property :(
+            // case that value might be the last property. :(
             Scanner scanner = null;
             try {
                 scanner = getFullStringScanner(inputStream);
@@ -811,7 +811,7 @@ public class Realm extends BaseRealm {
         checkHasPrimaryKey(clazz);
 
         // As we need the primary key value we have to first parse the entire input stream as in the general
-        // case that value might be the last property :(
+        // case that value might be the last property. :(
         Scanner scanner = null;
         try {
             scanner = getFullStringScanner(in);
@@ -856,13 +856,13 @@ public class Realm extends BaseRealm {
      * @return the new object.
      * @throws RealmException if the primary key is defined in the model class or an object cannot be created.
      */
-    // called from proxy classes
+    // Called from proxy classes.
     <E extends RealmModel> E createObjectInternal(
             Class<E> clazz,
             boolean acceptDefaultValue,
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
-        // Check and throw the exception earlier for a better exception message.
+        // Checks and throws the exception earlier for a better exception message.
         if (table.hasPrimaryKey()) {
             throw new RealmException(String.format("'%s' has a primary key, use" +
                     " 'createObject(Class<E>, Object)' instead.", Table.tableNameToClassName(table.getName())));
@@ -884,7 +884,7 @@ public class Realm extends BaseRealm {
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException if the model class does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
-     *                                  expected value.
+     * expected value.
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, Object primaryKeyValue) {
         checkIfValid();
@@ -902,8 +902,9 @@ public class Realm extends BaseRealm {
      * @throws RealmException if object could not be created due to the primary key being invalid.
      * @throws IllegalStateException if the model class does not have an primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
+     * expected value.
      */
-    // called from proxy classes
+    // Called from proxy classes.
     <E extends RealmModel> E createObjectInternal(
             Class<E> clazz,
             Object primaryKeyValue,
@@ -943,7 +944,7 @@ public class Realm extends BaseRealm {
      * @param object {@link io.realm.RealmObject} to copy or update.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
      * @throws java.lang.IllegalArgumentException if the object is {@code null} or doesn't have a Primary key defined
-     *                                            or it belongs to a Realm instance in a different thread.
+     * or it belongs to a Realm instance in a different thread.
      * @see #copyToRealm(RealmModel)
      */
     public <E extends RealmModel> E copyToRealmOrUpdate(E object) {
@@ -980,7 +981,7 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Insert a list of an unmanaged RealmObjects. This is generally faster than {@link #copyToRealm(Iterable)} since it
+     * Inserts a list of an unmanaged RealmObjects. This is generally faster than {@link #copyToRealm(Iterable)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      * <p>
@@ -1014,7 +1015,7 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Insert an unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel)} since it
+     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      * <p>
@@ -1035,7 +1036,7 @@ public class Realm extends BaseRealm {
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      *                                transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
-     *                                                                inserted or if a primary key value already exists in the Realm.
+     * inserted or if a primary key value already exists in the Realm.
      * @see #copyToRealm(RealmModel)
      */
     public void insert(RealmModel object) {
@@ -1048,8 +1049,9 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Insert or update a list of unmanaged RealmObjects. This is generally faster than {@link #copyToRealmOrUpdate(Iterable)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * Inserts or updates a list of unmanaged RealmObjects. This is generally faster than
+     * {@link #copyToRealmOrUpdate(Iterable)} since it doesn't return the inserted elements, and performs minimum
+     * allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      * <p>
      * Please note:
@@ -1084,8 +1086,9 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Insert or update an unmanaged RealmObject. This is generally faster than {@link #copyToRealmOrUpdate(RealmModel)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * Inserts or updates an unmanaged RealmObject. This is generally faster than
+     * {@link #copyToRealmOrUpdate(RealmModel)} since it doesn't return the inserted elements, and performs minimum
+     * allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      * <p>
      * Please note:
@@ -1117,8 +1120,8 @@ public class Realm extends BaseRealm {
 
     /**
      * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or
-     * creates a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced objects
-     * will be either copied or updated.
+     * creates a new copy if no existing object could be found. This is a deep copy or update i.e., all referenced
+     * objects will be either copied or updated.
      * <p>
      * Please note, copying an object will copy all field values. Any unset field in the objects and child objects will be
      * set to their default value if not provided.
@@ -1150,9 +1153,9 @@ public class Realm extends BaseRealm {
      * The copied objects are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmModel)},
-     * but all fields will be overridden, not just those that were changed. This includes references to other objects,
-     * and can potentially override changes made by other threads.
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(RealmModel)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects, and can potentially override changes made by other threads.
      *
      * @param realmObjects RealmObjects to copy.
      * @param <E> type of object.
@@ -1171,10 +1174,10 @@ public class Realm extends BaseRealm {
      * The copied objects are all detached from Realm and they will no longer be automatically updated. This means
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
-     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(Iterable)},
-     * but all fields will be overridden, not just those that were changed. This includes references to other objects
-     * even though they might be {@code null} due to {@code maxDepth} being reached. This can also potentially override
-     * changes made by other threads.
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using
+     * {@link #copyToRealmOrUpdate(Iterable)}, but all fields will be overridden, not just those that were changed.
+     * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
+     * reached. This can also potentially override changes made by other threads.
      *
      * @param realmObjects RealmObjects to copy.
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is
@@ -1182,7 +1185,7 @@ public class Realm extends BaseRealm {
      * @param <E> type of object.
      * @return an in-memory detached copy of the RealmObjects.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
-     *                                  {@link DynamicRealmObject}.
+     * {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
@@ -1240,7 +1243,7 @@ public class Realm extends BaseRealm {
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
      * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
-     *                                  {@link DynamicRealmObject}.
+     * {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(RealmModel)
      */
     public <E extends RealmModel> E copyFromRealm(E realmObject, int maxDepth) {
@@ -1419,7 +1422,7 @@ public class Realm extends BaseRealm {
                     }
 
                     final Throwable backgroundException = exception[0];
-                    // Send response as the final step to ensure the bg thread quit before others get the response!
+                    // Sends response as the final step to ensure the bg thread quit before others get the response!
                     if (hasValidNotifier() && !Thread.currentThread().isInterrupted()) {
 
                         if (transactionCommitted) {
@@ -1437,7 +1440,7 @@ public class Realm extends BaseRealm {
                             });
                         }
 
-                        // Send errors directly to the looper, so they don't get intercepted by the HandlerController.
+                        // Sends errors directly to the looper, so they don't get intercepted by the HandlerController.
                         if (backgroundException != null) {
                             if (onError != null) {
                                 sharedRealm.realmNotifier.post(new Runnable() {
@@ -1463,7 +1466,7 @@ public class Realm extends BaseRealm {
                         }
 
                     } else {
-                        // Throw exception in the worker thread if the caller thread terminated
+                        // Throws exception in the worker thread if the caller thread terminated.
                         if (backgroundException != null) {
                             if (backgroundException instanceof RuntimeException) {
                                 //noinspection ThrowFromFinallyBlock
@@ -1623,8 +1626,8 @@ public class Realm extends BaseRealm {
      *
      * @param globalCacheArray global cache of column indices. If it contains an entry for current
      *                         schema version, this method only copies the indices information in the entry.
-     * @return newly created indices information for current schema version. Or {@code null} if
-     *         {@code globalCacheArray} already contains the entry for current schema version.
+     * @return newly created indices information for current schema version. Or {@code null} if {@code globalCacheArray}
+     * already contains the entry for current schema version.
      */
     ColumnIndices updateSchemaCache(ColumnIndices[] globalCacheArray) {
         final long currentSchemaVersion = sharedRealm.getSchemaVersion();
@@ -1638,7 +1641,7 @@ public class Realm extends BaseRealm {
         ColumnIndices cacheForCurrentVersion = RealmCache.findColumnIndices(globalCacheArray,
                 currentSchemaVersion);
         if (cacheForCurrentVersion == null) {
-            // not found in global cache. create it.
+            // Not found in global cache. create it.
             final Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             final Map<Class<? extends RealmModel>, ColumnInfo> map;
             map = new HashMap<Class<? extends RealmModel>, ColumnInfo>(modelClasses.size());

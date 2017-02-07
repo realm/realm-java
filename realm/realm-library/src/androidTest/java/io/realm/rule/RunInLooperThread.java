@@ -148,7 +148,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                     // These exceptions should only come from TestHelper.awaitOrFail()
                     testException = error;
                 } finally {
-                    // Try as hard as possible to close down gracefully, while still keeping all exceptions intact.
+                    // Tries as hard as possible to close down gracefully, while still keeping all exceptions intact.
                     try {
                         after();
                     } catch (Throwable e) {
@@ -220,7 +220,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     }
 
     /**
-     * Tear down logic which is guaranteed to run after the looper test has either completed or failed.
+     * Tears down logic which is guaranteed to run after the looper test has either completed or failed.
      * This will run on the same thread as the looper test.
      */
     public void looperTearDown() {

@@ -84,14 +84,14 @@ public class JNITableInsertTest {
 
                 Table t = new Table();
 
-                //If the objects matches no exception will be thrown
+                // If the objects matches no exception will be thrown.
                 if (value.get(i).getClass().equals(value.get(j).getClass())) {
                     assertTrue(true);
 
                 } else {
-                    //Add column
+                    // Adds column.
                     t.addColumn(TestHelper.getColumnType(value.get(j)), value.get(j).getClass().getSimpleName());
-                    //Add value
+                    // Adds value.
                     try {
                         t.add(value.get(i));
                         fail("No matching type");

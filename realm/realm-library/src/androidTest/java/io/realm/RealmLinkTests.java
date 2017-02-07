@@ -552,7 +552,7 @@ public class RealmLinkTests {
     @Test
     public void isNullWrongType() {
         try {
-            // AllTypes.columnFloat is not nullable
+            // AllTypes.columnFloat is not nullable.
             testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
             fail();
         } catch (IllegalArgumentException ignored) {

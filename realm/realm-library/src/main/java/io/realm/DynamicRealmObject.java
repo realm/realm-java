@@ -402,7 +402,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
 
-        // Do implicit conversion if needed
+        // Does implicit conversion if needed.
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnIndex);
         if (isString && type != RealmFieldType.STRING) {
@@ -426,7 +426,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
-    // Automatically finds the appropriate setter based on the objects type
+    // Automatically finds the appropriate setter based on the objects type.
     private void setValue(String fieldName, Object value) {
         Class<?> valueClass = value.getClass();
         if (valueClass == Boolean.class) {
