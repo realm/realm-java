@@ -49,8 +49,8 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
             this.observerRef = new WeakReference<T>(observer);
         }
 
-        // The two pairs will be treated as the same only when the observers are the same and the listeners are the same
-        // as well.
+        // The two pairs will be treated as the same only when the observers are the same and the listeners equal to
+        // each other.
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
@@ -129,17 +129,21 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
         }
     }
 
-    public void remove(T pair) {
-        pair.removed = true;
-        pairs.remove(pair);
+    public <S, U> void remove(S observer, U listener) {
+        for (T it : pairs) {
+            if (observer == it.observerRef.get() && listener == it.listener) {
+                it.removed = true;
+                pairs.remove(it);
+                break;
+            }
+        }
     }
 
     public void removeByObserver(Object observer) {
         for (T pair : pairs) {
             Object object = pair.observerRef.get();
-            if (object == null) {
-                pairs.remove(pair);
-            } else if (object == observer) {
+            if (object == null || object == observer) {
+                pair.removed = true;
                 pairs.remove(pair);
             }
         }

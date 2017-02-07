@@ -263,7 +263,7 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
 {
     TR_ENTER_PTR(native_ptr)
 
-    static JavaMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(Z)V");
+    static JavaMethod notify_change_listeners(env, instance, "notifyChangeListeners", "(J)V");
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
@@ -271,13 +271,22 @@ Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject inst
             wrapper->m_collection_weak_ref = JavaGlobalWeakRef(env, instance);
         }
 
-        auto cb = [=](realm::CollectionChangeSet const& changes,
-                                   std::exception_ptr /*err*/) {
+        auto cb = [=](CollectionChangeSet const& changes, std::exception_ptr err) {
             // OS will call all notifiers' callback in one run, so check the Java exception first!!
             if (env->ExceptionCheck()) return;
 
+            if (err) {
+                try {
+                    std::rethrow_exception(err);
+                } catch(const std::exception& e) {
+                    realm::jni_util::Log::e("Caught exception in collection change callback %1", e.what());
+                    return;
+                }
+            }
+
             wrapper->m_collection_weak_ref.call_with_local_ref(env, [&] (JNIEnv* local_env, jobject collection_obj) {
-                local_env->CallVoidMethod(collection_obj, notify_change_listeners, changes.empty());
+                local_env->CallVoidMethod(collection_obj, notify_change_listeners,
+                                          reinterpret_cast<jlong>(changes.empty() ? 0 : new CollectionChangeSet(changes)));
             });
         };
 

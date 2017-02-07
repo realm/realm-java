@@ -38,7 +38,7 @@ set(classes_LIST
     io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.Property io.realm.RealmSchema
     io.realm.RealmObjectSchema io.realm.internal.Collection
-    io.realm.internal.NativeObjectReference
+    io.realm.internal.NativeObjectReference io.realm.internal.CollectionChangeSet
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319

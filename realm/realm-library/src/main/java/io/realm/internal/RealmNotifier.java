@@ -127,8 +127,7 @@ public abstract class RealmNotifier implements Closeable {
     }
 
     public <E> void removeChangeListener(E observer, RealmChangeListener<E> realmChangeListener) {
-        RealmObserverPair observerPair = new RealmObserverPair<E>(observer, realmChangeListener);
-        realmObserverPairs.remove(observerPair);
+        realmObserverPairs.remove(observer, realmChangeListener);
     }
 
     public <E> void removeChangeListeners(E observer) {

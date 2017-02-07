@@ -28,6 +28,8 @@ import java.lang.ref.ReferenceQueue;
 public class Context {
     private final static ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
     private final static Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
+    // Dummy context which will be used by native objects which's destructors are always thread safe.
+    final static Context dummyContext = new Context();
 
     static {
         finalizingThread.setName("RealmFinalizingDaemon");
