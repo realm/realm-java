@@ -104,9 +104,9 @@ public class RealmListTests extends CollectionTests {
         return dogs;
     }
 
-            //noinspection TryWithIdenticalCatches
+    //noinspection TryWithIdenticalCatches
     /*********************************************************
-     * Unmanaged mode tests                                *
+     * Unmanaged mode tests                                  *
      *********************************************************/
 
     @Test(expected = IllegalArgumentException.class)
@@ -252,7 +252,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(object1, object2);
     }
 
-    // Test move where oldPosition > newPosition
+    // Tests move where oldPosition > newPosition.
     @Test
     public void move_down() {
         Owner owner = realm.where(Owner.class).findFirst();
@@ -264,7 +264,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(0, owner.getDogs().indexOf(dog1));
     }
 
-    // Test move where oldPosition < newPosition
+    // Tests move where oldPosition < newPosition.
     @Test
     public void move_up() {
         Owner owner = realm.where(Owner.class).findFirst();
@@ -279,7 +279,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(newIndex, owner.getDogs().indexOf(dog));
     }
 
-    // Test move where oldPosition > newPosition
+    // Tests move where oldPosition > newPosition.
     @Test
     public void move_downInUnmanagedMode() {
         RealmList<Dog> dogs = createUnmanagedDogList();
@@ -289,7 +289,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(0, dogs.indexOf(dog1));
     }
 
-    // Test move where oldPosition < newPosition
+    // Tests move where oldPosition < newPosition.
     @Test
     public void move_upInUnmanagedMode() {
         RealmList<Dog> dogs = createUnmanagedDogList();
@@ -371,7 +371,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(1, realm.where(Owner.class).findFirst().getDogs().size());
     }
 
-    // Test that add correctly uses Realm.copyToRealm() on unmanaged objects.
+    // Tests that add correctly uses Realm.copyToRealm() on unmanaged objects.
     @Test
     public void add_unmanagedObjectToManagedList() {
         realm.beginTransaction();
@@ -382,7 +382,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(1, realm.where(CyclicType.class).findFirst().getObjects().size());
     }
 
-    // Make sure that unmanaged objects with a primary key are added using copyToRealmOrUpdate
+    // Makes sure that unmanaged objects with a primary key are added using copyToRealmOrUpdate.
     @Test
     public void add_unmanagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
@@ -395,7 +395,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals("new", realm.where(CyclicTypePrimaryKey.class).equalTo("id", 2).findFirst().getName());
     }
 
-    // Test that set correctly uses Realm.copyToRealm() on unmanaged objects.
+    // Tests that set correctly uses Realm.copyToRealm() on unmanaged objects.
     @Test
     public void set_unmanagedObjectToManagedList() {
         realm.beginTransaction();
@@ -413,7 +413,7 @@ public class RealmListTests extends CollectionTests {
         assertEquals(5, realm.where(CyclicType.class).count());
     }
 
-    // Test that set correctly uses Realm.copyToRealmOrUpdate() on unmanaged objects with a primary key.
+    // Tests that set correctly uses Realm.copyToRealmOrUpdate() on unmanaged objects with a primary key.
     @Test
     public void set_unmanagedPrimaryKeyObjectToManagedList() {
         realm.beginTransaction();
@@ -723,8 +723,8 @@ public class RealmListTests extends CollectionTests {
                     case MIN_DATE: results.minDate(CyclicType.FIELD_DATE); break;
                     case MAX_DATE: results.maxDate(CyclicType.FIELD_DATE); break;
                     case DELETE_ALL_FROM_REALM: results.deleteAllFromRealm(); break;
-                    case IS_VALID: continue; // Does not throw
-                    case IS_MANAGED: continue; // Does not throw
+                    case IS_VALID: continue; // Does not throw.
+                    case IS_MANAGED: continue; // Does not throw.
                 }
                 fail(method + " should have thrown an Exception.");
             } catch (IllegalStateException ignored) {

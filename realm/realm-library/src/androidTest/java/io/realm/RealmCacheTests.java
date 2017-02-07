@@ -56,7 +56,7 @@ public class RealmCacheTests {
         context = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
-    // Test that the closed Realm isn't kept in the Realm instance cache
+    // Tests that the closed Realm isn't kept in the Realm instance cache.
     @Test
     public void typedRealmCacheIsCleared() {
         Realm typedRealm = Realm.getInstance(defaultConfig);
@@ -67,7 +67,7 @@ public class RealmCacheTests {
 
         Realm typedRealm1 = Realm.getInstance(defaultConfig);
         try {
-            assertFalse(typedRealm == typedRealm1); // Must be different instance
+            assertFalse(typedRealm == typedRealm1); // Must be different instance.
             // If cache isn't cleared this would crash because of a closed shared group.
             assertEquals(0, typedRealm1.where(AllTypes.class).count());
         } finally {
@@ -75,7 +75,7 @@ public class RealmCacheTests {
         }
     }
 
-    // Test that the closed DynamicRealms isn't kept in the DynamicRealm instance cache
+    // Tests that the closed DynamicRealms isn't kept in the DynamicRealm instance cache.
     @Test
     public void dynamicRealmCacheIsCleared() {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
@@ -102,13 +102,13 @@ public class RealmCacheTests {
         RealmConfiguration configB = configFactory.createConfiguration(REALM_NAME,
                 TestHelper.getRandomKey(43));
 
-        Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
+        Realm realm = Realm.getInstance(configA); // Creates starting Realm with key 1.
         realm.close();
         try {
-            Realm.getInstance(configB); // Try to open with key 2
+            Realm.getInstance(configB); // Tries to open with key 2.
         } catch (RealmFileException expected) {
             assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
-            // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
+            // Deletes Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
             realm = Realm.getInstance(configB);
@@ -128,7 +128,7 @@ public class RealmCacheTests {
         }
     }
 
-    // We should not cache wrong configurations
+    // We should not cache wrong configurations.
     @Test
     public void dontCacheWrongConfigurations() throws IOException {
         Realm testRealm;
@@ -150,7 +150,7 @@ public class RealmCacheTests {
                 .schema(StringOnly.class)
                 .build();
 
-        // Open Realm with wrong key
+        // Opens Realm with wrong key.
         try {
             Realm.getInstance(wrongConfig);
             fail();
@@ -158,7 +158,7 @@ public class RealmCacheTests {
             assertEquals(expected.getKind(), RealmFileException.Kind.ACCESS_ERROR);
         }
 
-        // Try again with proper key
+        // Tries again with proper key.
         testRealm = Realm.getInstance(rightConfig);
         assertNotNull(testRealm);
         testRealm.close();
@@ -180,7 +180,7 @@ public class RealmCacheTests {
                 .schema(StringOnly.class)
                 .build();
 
-        // 1. Write a copy of the encrypted Realm to a new file
+        // 1. Writes a copy of the encrypted Realm to a new file.
         Realm testRealm = Realm.getInstance(config);
         File copiedRealm = new File(config.getRealmDirectory(), "encrypted-copy.realm");
         if (copiedRealm.exists()) {
@@ -189,13 +189,13 @@ public class RealmCacheTests {
         testRealm.writeEncryptedCopyTo(copiedRealm, newPassword);
         testRealm.close();
 
-        // 2. Delete the old Realm.
+        // 2. Deletes the old Realm.
         Realm.deleteRealm(config);
 
-        // 3. Rename the new file to the old file name.
+        // 3. Renames the new file to the old file name.
         assertTrue(copiedRealm.renameTo(new File(config.getRealmDirectory(), REALM_NAME)));
 
-        // 4. Try to open the file again with the new password
+        // 4. Tries to open the file again with the new password.
         // If the configuration cache wasn't cleared this would fail as we would detect two
         // configurations with 2 different passwords pointing to the same file.
         RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
@@ -262,17 +262,17 @@ public class RealmCacheTests {
 
     @Test
     public void releaseCacheInOneThread() {
-        // Test release typed Realm instance
+        // Tests release typed Realm instance.
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         RealmCache.release(realmA);
         assertNotNull(realmA.sharedRealm);
         RealmCache.release(realmB);
         assertNull(realmB.sharedRealm);
-        // No crash but warning in the log
+        // No crash but warning in the log.
         RealmCache.release(realmB);
 
-        // Test release dynamic Realm instance
+        // Tests release dynamic Realm instance.
         DynamicRealm dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig,
                 DynamicRealm.class);
         DynamicRealm dynamicRealmB = RealmCache.createRealmOrGetFromCache(defaultConfig,
@@ -281,10 +281,10 @@ public class RealmCacheTests {
         assertNotNull(dynamicRealmA.sharedRealm);
         RealmCache.release(dynamicRealmB);
         assertNull(dynamicRealmB.sharedRealm);
-        // No crash but warning in the log
+        // No crash but warning in the log.
         RealmCache.release(dynamicRealmB);
 
-        // Test both typed Realm and dynamic Realm in same thread
+        // Tests both typed Realm and dynamic Realm in same thread.
         realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         dynamicRealmA = RealmCache.createRealmOrGetFromCache(defaultConfig, DynamicRealm.class);
         RealmCache.release(realmA);

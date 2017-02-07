@@ -101,7 +101,7 @@ public class TestHelper {
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     * Creates an empty table with 1 column of all our supported column types, currently 9 columns.
      *
      * @return
      */
@@ -141,7 +141,7 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
-    // Creates a simple migration step in order to support null
+    // Creates a simple migration step in order to support null.
     // FIXME: generate a new encrypted.realm will null support
     public static RealmMigration prepareMigrationToNullSupportStep() {
         RealmMigration realmMigration = new RealmMigration() {
@@ -231,7 +231,7 @@ public class TestHelper {
         }
     }
 
-    // Alloc as much garbage as we can. Pass maxSize = 0 to use it.
+    // Allocs as much garbage as we can. Pass maxSize = 0 to use it.
     public static byte[] allocGarbage(int garbageSize) {
         if (garbageSize == 0) {
             long maxMemory = Runtime.getRuntime().maxMemory();
@@ -479,7 +479,7 @@ public class TestHelper {
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
 
-        // Create 3 NullTypes objects. The objects are self-referenced (link) in
+        // Creates 3 NullTypes objects. The objects are self-referenced (link) in
         // order to test link queries.
         //
         // +-+--------+------+---------+--------+--------------------+
@@ -784,7 +784,7 @@ public class TestHelper {
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
             if (android.os.Debug.isDebuggerConnected()) {
-                // If we are debugging the tests, just wait without a timeout. In case we are stopping at a break point
+                // If we are debugging the tests, just waits without a timeout. In case we are stopping at a break point
                 // and timeout happens.
                 latch.await();
             } else if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
@@ -795,14 +795,14 @@ public class TestHelper {
         }
     }
 
-    // clean resource, shutdown the executor service & throw any background exception
+    // Cleans resource, shutdowns the executor service and throws any background exception.
     public static void exitOrThrow(final ExecutorService executorService,
                                    final CountDownLatch signalTestFinished,
                                    final CountDownLatch signalClosedRealm,
                                    final Looper[] looper,
                                    final Throwable[] throwable) throws Throwable {
 
-        // wait for the signal indicating the test's use case is done
+        // Waits for the signal indicating the test's use case is done.
         try {
             // Even if this fails we want to try as hard as possible to cleanup. If we fail to close all resources
             // properly, the `after()` method will most likely throw as well because it tries do delete any Realms
@@ -810,19 +810,19 @@ public class TestHelper {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             if (looper[0] != null) {
-                // failing to quit the looper will not execute the finally block responsible
-                // of closing the Realm
+                // Failing to quit the looper will not execute the finally block responsible
+                // of closing the Realm.
                 looper[0].quit();
             }
 
-            // wait for the finally block to execute & close the Realm
+            // Waits for the finally block to execute and closes the Realm.
             TestHelper.awaitOrFail(signalClosedRealm);
-            // Close the executor.
+            // Closes the executor.
             // This needs to be called after waiting since it might interrupt waitRealmThreadExecutorFinish().
             executorService.shutdownNow();
 
             if (throwable[0] != null) {
-                // throw any assertion errors happened in the background thread
+                // Throws any assertion errors happened in the background thread.
                 throw throwable[0];
             }
         }
@@ -958,7 +958,7 @@ public class TestHelper {
     }
 
     /**
-     * Wait and check if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fail the test.
+     * Waits and checks if all tasks in BaseRealm.asyncTaskExecutor can be finished in 5 seconds, otherwise fails the test.
      */
     public static void waitRealmThreadExecutorFinish() {
         int counter = 50;

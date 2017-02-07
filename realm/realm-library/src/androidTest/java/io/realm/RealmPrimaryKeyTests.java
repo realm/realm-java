@@ -90,7 +90,7 @@ public class RealmPrimaryKeyTests {
         this.secondaryFieldValue = secondaryFieldValue;
     }
 
-    // @PrimaryKey + @Required annotation accept not-null value properly as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey + @Required annotation accept not-null value properly as a primary key value for Realm version 0.89.1+.
     @Test
     public void copyToRealmOrUpdate_requiredPrimaryKey() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         RealmObject obj = (RealmObject)testClazz.getConstructor(primaryKeyFieldType, secondaryFieldType).newInstance(primaryKeyFieldValue, secondaryFieldValue);
@@ -104,7 +104,7 @@ public class RealmPrimaryKeyTests {
         assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
     }
 
-    // @PrimaryKey + @Required annotation does accept null as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey + @Required annotation does accept null as a primary key value for Realm version 0.89.1+.
     @Test
     public void copyToRealmOrUpdate_requiredPrimaryKeyThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         RealmObject obj = (RealmObject)testClazz.getConstructor(primaryKeyFieldType, secondaryFieldType).newInstance(null, null);
@@ -125,7 +125,7 @@ public class RealmPrimaryKeyTests {
         }
     }
 
-    // @PrimaryKey + @Required annotation does not accept null as a primary key value for Realm version 0.89.1+
+    // @PrimaryKey + @Required annotation does not accept null as a primary key value for Realm version 0.89.1+.
     @Test
     public void createObject_nullPrimaryKeyValueThrows() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         realm.beginTransaction();

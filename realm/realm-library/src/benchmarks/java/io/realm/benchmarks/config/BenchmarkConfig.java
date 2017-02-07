@@ -48,7 +48,7 @@ public class BenchmarkConfig {
         ResultProcessor csvResultProcessor = new CSVResultProcessor(csvFile);
 
         // General configuration for running benchmarks.
-        // Always save result files. CI will determine if it wants to store them.
+        // Always saves result files. CI will determine if it wants to store them.
         SpannerConfig.Builder builder = new SpannerConfig.Builder()
                 .saveResults(resultsDir, className + ".json")
                 .trialsPrExperiment(1)
@@ -62,10 +62,10 @@ public class BenchmarkConfig {
                 )
                 .addResultProcessor(csvResultProcessor);
 
-        // Only use baseline file if it exists
+        // Only uses baseline file if it exists.
         if (baselineFile.exists()) {
             builder.useBaseline(baselineFile);
-            // Test that 25. , 50. and 75. percentile don't change by more than 15%
+            // Tests that 25. , 50. and 75. percentile doesn't change by more than 15%.
             builder.percentileFailureLimit(25f, 0.15f);
             builder.percentileFailureLimit(50f, 0.15f);
             builder.percentileFailureLimit(75f, 0.15f);

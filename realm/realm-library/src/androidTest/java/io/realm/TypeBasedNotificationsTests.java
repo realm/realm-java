@@ -78,11 +78,11 @@ public class TypeBasedNotificationsTests {
 
     // ****************************************************************************************** //
     // UC 0.
-    // Callback should be notified if we create a RealmObject without the async mechanism
+    // Callback should be notified if we create a RealmObject without the async mechanism.
     // ex: using (createObject, copyOrUpdate, createObjectFromJson etc.)
     // ***************************************************************************************** //
 
-    //UC 0 using Realm.createObject
+    //UC 0 Uses Realm.createObject.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObject() {
@@ -159,7 +159,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
     }
 
-    //UC 0 using Realm.copyToRealm
+    //UC 0 Uses Realm.copyToRealm.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_copyToRealm() {
@@ -199,7 +199,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
     }
 
-    //UC 0 using Realm.copyToRealmOrUpdate
+    //UC 0 Uses Realm.copyToRealmOrUpdate.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_copyToRealmOrUpdate() {
@@ -248,7 +248,7 @@ public class TypeBasedNotificationsTests {
         assertEquals(primaryKeyAsLong, primaryKeyAsLong2);
     }
 
-    //UC 0 using Realm.copyToRealmOrUpdate
+    //UC 0 Uses Realm.copyToRealmOrUpdate.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObjectFromJson() {
@@ -300,7 +300,7 @@ public class TypeBasedNotificationsTests {
         }
     }
 
-    //UC 0 using Realm.copyToRealmOrUpdate
+    //UC 0 Uses Realm.copyToRealmOrUpdate.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createObjectFromJson_from_JSONObject() {
@@ -356,7 +356,7 @@ public class TypeBasedNotificationsTests {
         }
     }
 
-    //UC 0 using Realm.createOrUpdateObjectFromJson
+    //UC 0 Uses Realm.createOrUpdateObjectFromJson.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createOrUpdateObjectFromJson() {
@@ -424,7 +424,7 @@ public class TypeBasedNotificationsTests {
         }
     }
 
-    //UC 0 using Realm.copyToRealmOrUpdate
+    //UC 0 Uses Realm.copyToRealmOrUpdate.
     @Test
     @RunTestInLooperThread
     public void callback_should_trigger_for_createOrUpdateObjectFromJson_from_JSONObject() throws JSONException {
@@ -477,8 +477,8 @@ public class TypeBasedNotificationsTests {
 
     // ********************************************************************************* //
     // UC 1.
-    // Callback should be invoked after a relevant commit (one that should impact the
-    // query from which we obtained our RealmObject or RealmResults)
+    // Callback should be invoked after a relevant commit. (one that should impact the
+    // query from which we obtained our RealmObject or RealmResults.)
     // ********************************************************************************* //
     // UC 1 for Sync RealmObject
     @Test
@@ -486,7 +486,7 @@ public class TypeBasedNotificationsTests {
     public void callback_with_relevant_commit_realmobject_sync() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Triggers global Realm change listener.
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -497,7 +497,7 @@ public class TypeBasedNotificationsTests {
         dog.addChangeListener(new RealmChangeListener<Dog>() {
             @Override
             public void onChange(Dog object) {
-                // Step 4: Respond to relevant change
+                // Step 4: Responds to relevant change.
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals("Akamaru", dog.getName());
                 assertEquals(17, dog.getAge());
@@ -510,20 +510,20 @@ public class TypeBasedNotificationsTests {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
-                        // Step 2: Trigger non-related commit
+                        // Step 2: Triggers non-related commit.
                         realm.beginTransaction();
                         realm.commitTransaction();
                         break;
 
                     case 2:
-                        // Step 3: Trigger related commit
+                        // Step 3: Triggers related commit.
                         realm.beginTransaction();
                         akamaru.setAge(17);
                         realm.commitTransaction();
                         break;
 
                     case 3:
-                        // Step 5: Complete test
+                        // Step 5: Completes test.
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
@@ -537,13 +537,13 @@ public class TypeBasedNotificationsTests {
         });
     }
 
-    // UC 1 Async RealmObject
+    // UC 1 Async RealmObject.
     @Test
     @RunTestInLooperThread
     public void callback_with_relevant_commit_realmobject_async() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Triggers global Realm change listener.
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -563,7 +563,7 @@ public class TypeBasedNotificationsTests {
                         break;
 
                     case 2:
-                        // Step 4: Respond to relevant change
+                        // Step 4: Responds to relevant change.
                         assertEquals(17, dog.getAge());
                         break;
                 }
@@ -576,20 +576,20 @@ public class TypeBasedNotificationsTests {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
-                        // Step 2: Trigger non-related commit
+                        // Step 2: Triggers non-related commit.
                         realm.beginTransaction();
                         realm.commitTransaction();
                         break;
 
                     case 2:
-                        // Step 3: Trigger related commit
+                        // Step 3: Triggers related commit.
                         realm.beginTransaction();
                         akamaru.setAge(17);
                         realm.commitTransaction();
                         break;
 
                     case 3:
-                        // Step 5: Complete test
+                        // Step 5: Completes test.
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
@@ -604,7 +604,7 @@ public class TypeBasedNotificationsTests {
         });
     }
 
-    // UC 1 Async RealmObject
+    // UC 1 Async RealmObject.
     @Test
     @RunTestInLooperThread
     public void callback_with_relevant_commit_from_different_looper_realmobject_async() {
@@ -635,7 +635,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Dog object) {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1: // triggered by COMPLETED_ASYNC_REALM_OBJECT from calling dog.load()
+                    case 1: // Triggered by COMPLETED_ASYNC_REALM_OBJECT from calling dog.load().
                         assertTrue(dog.isLoaded());
                         assertFalse(dog.isValid());
 
@@ -650,7 +650,7 @@ public class TypeBasedNotificationsTests {
                             }
                         });
                         break;
-                    case 2: // triggered by the irrelevant commit (not affecting Dog table) from LooperThread1
+                    case 2: // Triggered by the irrelevant commit (not affecting Dog table) from LooperThread1.
                         assertTrue(dog.isLoaded());
                         assertFalse(dog.isValid());
 
@@ -658,7 +658,7 @@ public class TypeBasedNotificationsTests {
                             @Override
                             public void run() {
                                 Realm realmLooperThread2 = Realm.getInstance(realm.getConfiguration());
-                                // trigger first callback invocation
+                                // Triggers first callback invocation.
                                 realmLooperThread2.beginTransaction();
                                 Dog dog = realmLooperThread2.createObject(Dog.class);
                                 dog.setName("Akamaru");
@@ -669,12 +669,12 @@ public class TypeBasedNotificationsTests {
                         });
                         break;
 
-                    case 3: // triggered by relevant commit from LooperThread2
+                    case 3: // Triggered by relevant commit from LooperThread2.
                         assertEquals("Akamaru", dog.getName());
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
-                                // trigger second callback invocation
+                                // Triggers second callback invocation.
                                 looperHandler3.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -692,9 +692,9 @@ public class TypeBasedNotificationsTests {
                     case 4:
                         assertEquals("Akamaru", dog.getName());
                         assertEquals(17, dog.getAge());
-                        // posting as an event will give the handler a chance
-                        // to deliver the notification for globalCommitInvocations
-                        // otherwise, test will exit before the callback get a chance to be invoked
+                        // Posting as an event will give the handler a chance
+                        // to deliver the notification for globalCommitInvocations.
+                        // Otherwise, test will exit before the callback get a chance to be invoked.
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
@@ -716,7 +716,7 @@ public class TypeBasedNotificationsTests {
 
     }
 
-    // UC 1 Async RealmObject
+    // UC 1 Async RealmObject.
     @Test
     @RunTestInLooperThread
     public void callback_with_relevant_commit_from_different_non_looper_realmobject_async() throws Throwable {
@@ -736,7 +736,7 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange(Dog object) {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1:  // triggered by COMPLETED_ASYNC_REALM_OBJECT
+                    case 1:  // Triggered by COMPLETED_ASYNC_REALM_OBJECT.
                         new RealmBackgroundTask(realm.configuration) {
                             @Override
                             protected void doInBackground(Realm realm) {
@@ -746,7 +746,7 @@ public class TypeBasedNotificationsTests {
                         }.awaitOrFail();
                         break;
 
-                    case 2: {// triggered by the irrelevant commit (not affecting Dog table)
+                    case 2: {// Triggered by the irrelevant commit (not affecting Dog table).
                         assertTrue(dog.isLoaded());
                         assertFalse(dog.isValid());
                         new RealmBackgroundTask(realm.configuration) {
@@ -765,7 +765,7 @@ public class TypeBasedNotificationsTests {
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
-                                // trigger second callback invocation
+                                // Triggers second callback invocation.
                                 new Thread() {
                                     @Override
                                     public void run() {
@@ -784,9 +784,9 @@ public class TypeBasedNotificationsTests {
                     case 4: {
                         assertEquals("Akamaru", dog.getName());
                         assertEquals(17, dog.getAge());
-                        // posting as an event will give the handler a chance
-                        // to deliver the notification for globalCommitInvocations
-                        // otherwise, test will exit before the callback get a chance to be invoked
+                        // Posting as an event will give the handler a chance
+                        // to deliver the notification for globalCommitInvocations.
+                        // Otherwise, test will exit before the callback get a chance to be invoked.
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
@@ -803,13 +803,13 @@ public class TypeBasedNotificationsTests {
         });
     }
 
-    // UC 1 Sync RealmResults
+    // UC 1 Sync RealmResults.
     @Test
     @RunTestInLooperThread
     public void callback_with_relevant_commit_realmresults_sync() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Triggers global Realm change listener.
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -820,7 +820,7 @@ public class TypeBasedNotificationsTests {
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
-                // Step 4: Respond to relevant change
+                // Step 4: Responds to relevant change.
                 typebasedCommitInvocations.incrementAndGet();
                 assertEquals(1, dogs.size());
                 assertEquals("Akamaru", dogs.get(0).getName());
@@ -834,20 +834,20 @@ public class TypeBasedNotificationsTests {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
-                        // Step 2: Trigger non-related commit
+                        // Step 2: Triggers non-related commit.
                         realm.beginTransaction();
                         realm.commitTransaction();
                         break;
 
                     case 2:
-                        // Step 3: Trigger related commit
+                        // Step 3: Triggers related commit.
                         realm.beginTransaction();
                         akamaru.setAge(17);
                         realm.commitTransaction();
                         break;
 
                     case 3:
-                        // Step 5: Complete test
+                        // Step 5: Completes test.
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
@@ -860,13 +860,13 @@ public class TypeBasedNotificationsTests {
         });
     }
 
-    // UC 1 Async RealmResults
+    // UC 1 Async RealmResults.
     @Test
     @RunTestInLooperThread
     public void callback_with_relevant_commit_realmresults_async() {
         final Realm realm = looperThread.realm;
 
-        // Step 1: Trigger global Realm change listener
+        // Step 1: Triggers global Realm change listener.
         realm.beginTransaction();
         final Dog akamaru = realm.createObject(Dog.class);
         akamaru.setName("Akamaru");
@@ -878,7 +878,7 @@ public class TypeBasedNotificationsTests {
         dogs.addChangeListener(new RealmChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> object) {
-                // Step 4: Respond to relevant change
+                // Step 4: Responds to relevant change.
                 int commits = typebasedCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 2:
@@ -897,20 +897,20 @@ public class TypeBasedNotificationsTests {
                 int commits = globalCommitInvocations.incrementAndGet();
                 switch (commits) {
                     case 1:
-                        // Step 2: Trigger non-related commit
+                        // Step 2: Triggers non-related commit.
                         realm.beginTransaction();
                         realm.commitTransaction();
                         break;
 
                     case 2:
-                        // Step 3: Trigger related commit
+                        // Step 3: Triggers related commit.
                         realm.beginTransaction();
                         akamaru.setAge(17);
                         realm.commitTransaction();
                         break;
 
                     case 3:
-                        // Step 5: Complete test
+                        // Step 5: Completes test.
                         looperThread.postRunnable(new Runnable() {
                             @Override
                             public void run() {
@@ -925,9 +925,9 @@ public class TypeBasedNotificationsTests {
 
     // ********************************************************************************* //
     // UC 2.
-    // Multiple callbacks should be invoked after a relevant commit
+    // Multiple callbacks should be invoked after a relevant commit.
     // ********************************************************************************* //
-    // UC 2 for Sync RealmObject
+    // UC 2 for Sync RealmObject.
     @Test
     @RunTestInLooperThread
     public void multiple_callbacks_should_be_invoked_realmobject_sync() {
@@ -966,7 +966,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
     }
 
-    // UC 2 Async RealmObject
+    // UC 2 Async RealmObject.
     @Test
     @RunTestInLooperThread
     public void multiple_callbacks_should_be_invoked_realmobject_async() {
@@ -1008,7 +1008,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
     }
 
-    // UC 2 Sync RealmResults
+    // UC 2 Sync RealmResults.
     @Test
     @RunTestInLooperThread
     public void multiple_callbacks_should_be_invoked_realmresults_sync() {
@@ -1047,7 +1047,7 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
     }
 
-    // UC 2 Async RealmResults
+    // UC 2 Async RealmResults.
     @Test
     @RunTestInLooperThread
     public void multiple_callbacks_should_be_invoked_realmresults_async() {
@@ -1090,12 +1090,12 @@ public class TypeBasedNotificationsTests {
 
     // ********************************************************************************* //
     // UC 3.
-    // Callback should be invoked when a non Looper thread commits
+    // Callback should be invoked when a non Looper thread commits.
     // ********************************************************************************* //
 
-    // UC 3 for Sync RealmObject
-    // 1. Add listener to RealmObject which is queried synchronized.
-    // 2. Commit transaction in another non-looper thread
+    // UC 3 for Sync RealmObject.
+    // 1. Adds listener to RealmObject which is queried synchronized.
+    // 2. Commits transaction in another non-looper thread.
     // 3. Listener on the RealmObject gets triggered.
     @Test
     @RunTestInLooperThread
@@ -1147,9 +1147,9 @@ public class TypeBasedNotificationsTests {
         }
     }
 
-    // UC 3 Async RealmObject
-    // 1. Create RealmObject async query
-    // 2. Wait COMPLETED_ASYNC_REALM_OBJECT then commit transaction in another non-looper thread
+    // UC 3 Async RealmObject.
+    // 1. Creates RealmObject async query.
+    // 2. Waits COMPLETED_ASYNC_REALM_OBJECT then commits transaction in another non-looper thread.
     // 3. Listener on the RealmObject gets triggered again.
     @Test
     @RunTestInLooperThread
@@ -1158,7 +1158,7 @@ public class TypeBasedNotificationsTests {
         realm.addChangeListener(new RealmChangeListener<Realm>() {
             @Override
             public void onChange(Realm object) {
-                // Check if the 2nd transaction is committed.
+                // Checks if the 2nd transaction is committed.
                 if (realm.where(Dog.class).count() == 2) {
                     looperThread.postRunnable(new Runnable() {
                         @Override
@@ -1213,9 +1213,9 @@ public class TypeBasedNotificationsTests {
         thread.start();
     }
 
-    // UC 3 Sync RealmResults
-    // 1. Add listener to RealmResults which is queried synchronized.
-    // 2. Commit transaction in another non-looper thread
+    // UC 3 Sync RealmResults.
+    // 1. Adds listener to RealmResults which is queried synchronized.
+    // 2. Commits transaction in another non-looper thread.
     // 3. Listener on the RealmResults gets triggered.
     @Test
     @RunTestInLooperThread
@@ -1268,9 +1268,9 @@ public class TypeBasedNotificationsTests {
         }
     }
 
-    // UC 3 Async RealmResults
-    // 1. Create RealmResults async query
-    // 2. Wait COMPLETED_ASYNC_REALM_RESULTS then commit transaction in another non-looper thread
+    // UC 3 Async RealmResults.
+    // 1. Creates RealmResults async query.
+    // 2. Waits COMPLETED_ASYNC_REALM_RESULTS then commits transaction in another non-looper thread.
     // 3. Listener on the RealmResults gets triggered again.
     @Test
     @RunTestInLooperThread
@@ -1313,7 +1313,7 @@ public class TypeBasedNotificationsTests {
             public void onChange(RealmResults<Dog> object) {
                 typebasedCommitInvocations.incrementAndGet();
                 if (typebasedCommitInvocations.get() == 1) {
-                    // COMPLETED_ASYNC_REALM_RESULTS arrived
+                    // COMPLETED_ASYNC_REALM_RESULTS arrived.
                     thread.start();
                     try {
                         thread.join();
@@ -1328,7 +1328,7 @@ public class TypeBasedNotificationsTests {
     // ****************************************************************************************** //
     // UC 4.
     // Callback should throw if registered on a non Looper thread.
-    // no tests for async RealmObject & RealmResults, since those already require a Looper thread
+    // No tests for async RealmObject & RealmResults, since those already require a Looper thread.
     // ***************************************************************************************** //
 
     // UC 4 for Realm
@@ -1362,7 +1362,7 @@ public class TypeBasedNotificationsTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // UC 4 for RealmObject
+    // UC 4 for RealmObject.
     @Test
     public void should_throw_on_non_looper_thread_realmobject() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
@@ -1394,7 +1394,7 @@ public class TypeBasedNotificationsTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // UC 4 RealmObject
+    // UC 4 RealmObject.
     @Test
     public void should_throw_on_non_looper_thread_realmresults() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
@@ -1426,14 +1426,14 @@ public class TypeBasedNotificationsTests {
         TestHelper.awaitOrFail(signalTestFinished);
     }
 
-    // Test modifying syncRealmResults in RealmResults's change listener
+    // Tests modifying syncRealmResults in RealmResults's change listener.
     @Test
     @RunTestInLooperThread
     public void change_realm_results_map_in_listener() throws InterruptedException {
         final CountDownLatch finishedLatch = new CountDownLatch(2);
 
         final Realm realm = looperThread.realm;
-        // Two results needed to make sure list modification happen while iterating
+        // Two results needed to make sure list modification happen while iterating.
         RealmResults<Owner> results1 = realm.where(Owner.class).findAll();
         RealmResults<Cat> results2 = realm.where(Cat.class).findAll();
         RealmChangeListener listener = new RealmChangeListener() {
@@ -1441,8 +1441,8 @@ public class TypeBasedNotificationsTests {
             public void onChange(Object object) {
                 RealmResults<Owner> results = realm.where(Owner.class).findAll();
                 boolean foundKey = false;
-                // Check if the results has been added to the syncRealmResults in case of the behaviour of
-                // allObjects changes
+                // Checks if the results has been added to the syncRealmResults in case of the behaviour of
+                // allObjects changes.
                 for (WeakReference<RealmResults<? extends RealmModel>> weakReference :
                         realm.handlerController.syncRealmResults.keySet()) {
                     if (weakReference.get() == results) {
@@ -1465,8 +1465,8 @@ public class TypeBasedNotificationsTests {
         realm.commitTransaction();
     }
 
-    // Build a RealmResults from a RealmList, and delete the RealmList. Test the behavior of ChangeListener on the
-// "invalid" RealmResults.
+    // Builds a RealmResults from a RealmList, and deletes the RealmList. Tests the behavior of ChangeListener on the
+    // "invalid" RealmResults.
     @Test
     @RunTestInLooperThread
     public void changeListener_onResultsBuiltOnDeletedLinkView() {
@@ -1495,16 +1495,16 @@ public class TypeBasedNotificationsTests {
             }
         });
 
-        // Trigger the listener at the first time.
+        // Triggers the listener at the first time.
         realm.beginTransaction();
         allTypes.deleteFromRealm();
         realm.commitTransaction();
 
-        // Try to trigger the listener second time.
+        // Tries to trigger the listener second time.
         realm.beginTransaction();
         realm.commitTransaction();
 
-        // Close the realm and finish the test. This needs to follow the REALM_CHANGED in the queue.
+        // Closes the realm and finishes the test. This needs to follow the REALM_CHANGED in the queue.
         looperThread.postRunnable(new Runnable() {
             @Override
             public void run() {

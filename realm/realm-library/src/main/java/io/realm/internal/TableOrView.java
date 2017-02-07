@@ -131,8 +131,6 @@ public interface TableOrView {
      * @param rowIndex
      * @return
      */
-    //ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
-
     byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
     /**
@@ -196,9 +194,8 @@ public interface TableOrView {
      * @param columnIndex
      * @param rowIndex
      * @param data
+     * @param isDefault
      */
-    //void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
-
     void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data, boolean isDefault);
 
     void setDate(long columnIndex, long rowIndex, Date date, boolean isDefault);

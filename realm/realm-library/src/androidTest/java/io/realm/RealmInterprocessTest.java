@@ -134,9 +134,9 @@ public class RealmInterprocessTest extends AndroidTestCase {
         public InterprocessHandler(Runnable startRunnable) {
             super(Looper.myLooper());
             localMessenger = new Messenger(this);
-            // To have the first step from main process run
+            // To have the first step from main process run.
             post(startRunnable);
-            // Start watchdog
+            // Starts watchdog.
             postDelayed(timeoutRunnable, timeout);
         }
 
@@ -145,7 +145,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
             Bundle bundle = msg.getData();
             String error = bundle.getString(RemoteProcessService.BUNDLE_KEY_ERROR);
             if (error != null) {
-                // Assert and show error from service process
+                // Asserts and shows error from service process.
                 assertTrue(error, false);
             }
         }
@@ -157,7 +157,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
 
         Realm.deleteRealm(new RealmConfiguration.Builder(getContext()).build());
 
-        // Start the testing service
+        // Starts the testing service.
         serviceStartLatch = new CountDownLatch(1);
         Intent intent = new Intent(getContext(), RemoteProcessService.class);
         getContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -174,7 +174,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
         getContext().unbindService(serviceConnection);
         remoteMessenger = null;
 
-        // Kill the remote process.
+        // Kills the remote process.
         ActivityManager.RunningAppProcessInfo info = getRemoteProcessInfo();
         if (info != null) {
             android.os.Process.killProcess(info.pid);
@@ -189,7 +189,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
         super.tearDown();
     }
 
-    // Call this to trigger the next step of service process
+    // Calls this to trigger the next step of service process.
     private void triggerServiceStep(RemoteProcessService.Step step) {
         Message msg = Message.obtain(null, step.message);
         msg.replyTo = localMessenger;
@@ -200,8 +200,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
         }
     }
 
-    // Return the service info if it is alive.
-    // When this method return null, it doesn't mean the remote process is not existed. An 'empty' process could
+    // Returns the service info if it is alive.
+    // When this method returns null, it doesn't mean the remote process is not existed. An 'empty' process could
     // be retained by the system to be used next time.
     // Use getRemoteProcessInfo if you want to check the existence of remote process.
     private ActivityManager.RunningServiceInfo getServiceInfo() {
@@ -215,7 +215,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
         return null;
     }
 
-    // Get the remote process info if it is alive.
+    // Gets the remote process info if it is alive.
     private ActivityManager.RunningAppProcessInfo getRemoteProcessInfo() {
         ActivityManager manager = (ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> processInfoList = manager.getRunningAppProcesses();
@@ -228,8 +228,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
         return null;
     }
 
-    // A. Open a realm, close it, then call Runtime.getRuntime().exit(0).
-    // 1. Wait 3 seconds to see if the service process existed.
+    // A. Opens a realm, closes it, then calls Runtime.getRuntime().exit(0).
+    // 1. Waits 3 seconds to see if the service process existed.
     public void testExitProcess() {
         new InterprocessHandler(new Runnable() {
             @Override
@@ -257,7 +257,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
                                 // The process is still alive.
                                 assertTrue(false);
                             } else if (processInfo == null || processInfo.pid != servicePid) {
-                                // The process is gone
+                                // The process is gone.
                                 break;
                             }
                             Thread.sleep(500, 0);
@@ -273,8 +273,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
         Looper.loop();
     }
 
-    // 1. Main process create Realm, write one object.
-    // A. Service process open Realm, check if there is one and only one object.
+    // 1. Main process creates Realm, write one object.
+    // A. Service process opens Realm, check if there is one and only one object.
     public void testCreateInitialRealm() throws InterruptedException {
         new InterprocessHandler(new Runnable() {
             @Override

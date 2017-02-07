@@ -44,14 +44,14 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Initialize the Object Server library
+     * Initializes the Object Server library
      * @param context
      */
     public void init(Context context) {
     }
 
     /**
-     * Notify the session for this configuration that a local commit was made.
+     * Notifies the session for this configuration that a local commit was made.
      */
     public void notifyCommit(RealmConfiguration configuration, long lastSnapshotVersion) {
     }

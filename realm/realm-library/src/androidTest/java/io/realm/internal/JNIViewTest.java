@@ -36,14 +36,14 @@ public class JNIViewTest extends TestCase {
 
     @Override
     public void setUp() {
-        //Specify table
+        // Specifies table.
         t = new Table();
         t.addColumn(RealmFieldType.STRING, "Name");
         t.addColumn(RealmFieldType.BOOLEAN,   "Study");
         t.addColumn(RealmFieldType.INTEGER,    "Age");
         t.addColumn(RealmFieldType.DATE,   "Birthday");
 
-        //Add data
+        // Adds data.
         t.add("cc", true,  24, date1);
         t.add("dd", false, 35, date2);
         t.add("bb", true,  22, date3);
@@ -56,7 +56,7 @@ public class JNIViewTest extends TestCase {
     }
 
     public void testUnimplementedMethodsShouldFail() {
-        //Get a view containing all rows in table since you can only sort views currently.
+        // Gets a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
         try { view.upperBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
@@ -67,10 +67,10 @@ public class JNIViewTest extends TestCase {
 
 
     public void testShouldSortViewDate() {
-        //Get a view containing all rows in table since you can only sort views currently.
+        // Gets a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
-        //Sort without specifying the order, should default to ascending.
+        // Sorts without specifying the order, should default to ascending.
         view.sort(3);
         assertEquals(date3, view.getDate(3, 0));
         assertEquals(date2, view.getDate(3, 1));
@@ -81,10 +81,10 @@ public class JNIViewTest extends TestCase {
 
 
     public void testShouldSortViewIntegers() {
-        //Get a view containing all rows in table since you can only sort views currently.
+        // Gets a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
-        //Sort without specifying the order, should default to ascending.
+        // Sorts without specifying the order, should default to ascending.
         view.sort(2);
         assertEquals(22, view.getLong(2, 0));
         assertEquals(22, view.getLong(2, 1));
@@ -92,7 +92,7 @@ public class JNIViewTest extends TestCase {
         assertEquals(35, view.getLong(2, 3));
         assertEquals("dd", view.getString(0, 3));
 
-        //Sort descending - creating a new view
+        // Sorts descending - creating a new view.
         view.sort(2, Sort.DESCENDING);
         assertEquals(35, view.getLong(2, 0));
         assertEquals(24, view.getLong(2, 1));
@@ -100,7 +100,7 @@ public class JNIViewTest extends TestCase {
         assertEquals(22, view.getLong(2, 3));
         assertEquals("dd", view.getString(0, 0));
 
-        //Sort ascending.
+        // Sorts ascending.
         TableView view2 = t.where().findAll();
         view2.sort(2, Sort.ASCENDING);
         assertEquals(22, view2.getLong(2, 0));
@@ -109,7 +109,7 @@ public class JNIViewTest extends TestCase {
         assertEquals(35, view2.getLong(2, 3));
         assertEquals("dd", view2.getString(0, 3));
 
-        // Check that old view is still the same
+        // Checks that old view is still the same.
         assertEquals(35, view.getLong(2, 0));
         assertEquals(24, view.getLong(2, 1));
         assertEquals(22, view.getLong(2, 2));
@@ -221,10 +221,10 @@ public class JNIViewTest extends TestCase {
         t.addColumn(RealmFieldType.STRING, "");
         t.addColumn(RealmFieldType.INTEGER, "");
         t.addColumn(RealmFieldType.BOOLEAN, "");
-        // No data is added
+        // No data is added.
         TableView v = t.where().findAll();
 
-        // Out of bound
+        // Out of bound.
         try { assertEquals(0, v.getSourceRowIndex(0));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
         try { assertEquals(0, v.getSourceRowIndex(1));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
     }
@@ -232,20 +232,20 @@ public class JNIViewTest extends TestCase {
 
     public void testGetSourceRowEmptyTable() {
         Table t = new Table();
-        // No columns
+        // No columns.
         TableView v = t.where().findAll();
 
-        // Out of bound
+        // Out of bound.
         try { assertEquals(0, v.getSourceRowIndex(0));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
         try { assertEquals(0, v.getSourceRowIndex(1));      fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
     }
 
 
     public void testShouldSortViewBool() {
-        //Get a view containing all rows in table since you can only sort views currently.
+        // Gets a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
-        //Sort without specifying the order, should default to ascending.
+        // Sorts without specifying the order, should default to ascending.
         view.sort(1);
         assertEquals(false, view.getBoolean(1, 0));
         assertEquals(false, view.getBoolean(1, 1));
@@ -368,22 +368,22 @@ public class JNIViewTest extends TestCase {
         t.add(3);
 
         TableView view = t.where().equalTo(new long[]{0}, 2).findAll();
-        // access view is ok.
+        // Access view is ok.
         assertEquals(1, view.size());
 
-        // access view after change in value is ok
+        // Access view after change in value is ok.
         t.setLong(0, 0, 3, false);
         accessingViewOk(view);
 
-        // access view after additions to table must fail
+        // Access view after additions to table must fail.
         t.add(4);
         accessingViewMustThrow(view);
 
-        // recreate view to access again
+        // Recreates view to access again.
         view = t.where().equalTo(new long[]{0}, 2).findAll();
         accessingViewOk(view);
 
-        // Removing any row in Table should invalidate view
+        // Removing any row in Table should invalidate view.
         t.remove(3);
         accessingViewMustThrow(view);
     }

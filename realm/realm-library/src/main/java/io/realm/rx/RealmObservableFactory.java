@@ -67,7 +67,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Observable.create(new Observable.OnSubscribe<Realm>() {
             @Override
             public void call(final Subscriber<? super Realm> subscriber) {
-                // Get instance to make sure that the Realm is open for as long as the
+                // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
                 final RealmChangeListener<Realm> listener = new RealmChangeListener<Realm>() {
@@ -97,7 +97,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Observable.create(new Observable.OnSubscribe<DynamicRealm>() {
             @Override
             public void call(final Subscriber<? super DynamicRealm> subscriber) {
-                // Get instance to make sure that the Realm is open for as long as the
+                // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 final RealmChangeListener<DynamicRealm> listener = new RealmChangeListener<DynamicRealm>() {
@@ -117,7 +117,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                    // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(observableRealm);
             }
@@ -131,7 +131,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
-                // Get instance to make sure that the Realm is open for as long as the
+                // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
                 resultsRefs.get().acquireReference(results);
@@ -154,7 +154,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(results);
             }
@@ -167,7 +167,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Observable.create(new Observable.OnSubscribe<RealmResults<DynamicRealmObject>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<DynamicRealmObject>> subscriber) {
-                // Get instance to make sure that the Realm is open for as long as the
+                // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 resultsRefs.get().acquireReference(results);
@@ -190,7 +190,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(results);
             }
@@ -217,7 +217,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Observable.create(new Observable.OnSubscribe<E>() {
             @Override
             public void call(final Subscriber<? super E> subscriber) {
-                // Get instance to make sure that the Realm is open for as long as the
+                // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
                 objectRefs.get().acquireReference(object);
@@ -240,7 +240,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(object);
             }
@@ -253,7 +253,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Observable.create(new Observable.OnSubscribe<DynamicRealmObject>() {
             @Override
             public void call(final Subscriber<? super DynamicRealmObject> subscriber) {
-                // Get instance to make sure that the Realm is open for as long as the
+                // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
                 objectRefs.get().acquireReference(object);
@@ -276,7 +276,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value, as due to Realm's auto-update, it will be the latest
+                // Immediately calls onNext with the current value, as due to Realm's auto-update, it will be the latest
                 // value.
                 subscriber.onNext(object);
             }

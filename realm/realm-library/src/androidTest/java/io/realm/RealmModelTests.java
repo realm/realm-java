@@ -51,7 +51,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
 
-// tests API methods when using a model class implementing RealmModel instead
+// Tests API methods when using a model class implementing RealmModel instead
 // of extending RealmObject.
 @RunWith(AndroidJUnit4.class)
 public class RealmModelTests {
@@ -102,8 +102,8 @@ public class RealmModelTests {
 
     @Test
     public void createObject() {
-        for (int i = 1; i < 43; i++) { // using i = 0 as PK will crash subsequent createObject
-                                       // since createObject uses default values
+        for (int i = 1; i < 43; i++) { // Using i = 0 as PK will crash subsequent createObject
+                                       // since createObject uses default values.
             realm.beginTransaction();
             realm.createObject(AllTypesRealmModel.class, i);
             realm.commitTransaction();
@@ -183,7 +183,7 @@ public class RealmModelTests {
         assertEquals("Dog5", obj.columnRealmList.get(0).getName());
     }
 
-    // where with filed selection
+    // 'where' with filed selection.
     @Test
     public void query() {
         populateTestRealm(realm, TEST_DATA_SIZE);
@@ -191,7 +191,7 @@ public class RealmModelTests {
         assertEquals(5, realm.where(AllTypesRealmModel.class).greaterThanOrEqualTo(AllTypesRealmModel.FIELD_DOUBLE, 8.1415).count());
     }
 
-    // async where with filed selection
+    // Async where with filed selection.
     @Test
     @RunTestInLooperThread
     public void async_query() {
@@ -258,9 +258,9 @@ public class RealmModelTests {
         looperThread.testComplete();
     }
 
-    // exception expected when using in schema model not annotated
-    // a valid model need to implement the interface RealmModel and annotate the class with @RealmClass
-    // we expect in this test a runtime exception 'InvalidRealmModel is not part of the schema for this Realm.'
+    // Exception expected when using in schema model not annotated.
+    // A valid model need to implement the interface RealmModel and annotate the class with @RealmClass.
+    // We expect in this test a runtime exception 'InvalidRealmModel is not part of the schema for this Realm.'.
     @Test(expected = RealmException.class)
     public void invalidModelDefinition() {
         realm.beginTransaction();
@@ -268,8 +268,8 @@ public class RealmModelTests {
         realm.commitTransaction();
     }
 
-    // Test the behaviour of a RealmModel, containing a RealmList
-    // of other RealmModel, in managed and unmanaged mode
+    // Tests the behaviour of a RealmModel, containing a RealmList
+    // of other RealmModel, in managed and unmanaged mode.
     @Test
     public void realmModelWithRealmListOfRealmModel() {
         RealmList<AllTypesRealmModel> allTypesRealmModels = new RealmList<AllTypesRealmModel>();
@@ -297,8 +297,8 @@ public class RealmModelTests {
         assertEquals(1, all.first().getColumnRealmList().first().columnLong);
     }
 
-    // Test the behaviour of a RealmModel, containing a RealmList
-    // of RealmObject, in managed and unmanaged mode
+    // Tests the behaviour of a RealmModel, containing a RealmList
+    // of RealmObject, in managed and unmanaged mode.
     @Test
     public void realmModelWithRealmListOfRealmObject() {
         RealmList<AllTypes> allTypes = new RealmList<AllTypes>();
@@ -326,8 +326,8 @@ public class RealmModelTests {
         assertEquals(1, all.first().getColumnRealmList().first().getColumnLong());
     }
 
-    // Test the behaviour of a RealmObject, containing a RealmList
-    // of RealmModel, in managed and unmanaged mode
+    // Tests the behaviour of a RealmObject, containing a RealmList
+    // of RealmModel, in managed and unmanaged mode.
     @Test
     public void realmObjectWithRealmListOfRealmModel() {
         RealmList<AllTypesRealmModel> allTypesRealmModel = new RealmList<AllTypesRealmModel>();
@@ -355,7 +355,7 @@ public class RealmModelTests {
         assertEquals(1, all.first().getColumnRealmList().first().columnLong);
     }
 
-    // Test the behaviour of a RealmModel, containing a RealmModel field
+    // Tests the behaviour of a RealmModel, containing a RealmModel field.
     @Test
     public void realmModelWithRealmModelField() {
         RealmModelWithRealmModelField realmModelWithRealmModelField = new RealmModelWithRealmModelField();
@@ -372,7 +372,7 @@ public class RealmModelTests {
         assertEquals(42, all.first().getAllTypesRealmModel().columnLong);
     }
 
-    // Test the behaviour of a RealmObject, containing a RealmModel field
+    // Tests the behaviour of a RealmObject, containing a RealmModel field.
     @Test
     public void realmObjectWithRealmModelField() {
         RealmObjectWithRealmModelField realmObjectWithRealmModelField = new RealmObjectWithRealmModelField();

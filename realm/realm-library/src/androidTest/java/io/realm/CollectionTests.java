@@ -32,50 +32,50 @@ public abstract class CollectionTests {
 
     protected final static long YEAR_MILLIS = TimeUnit.DAYS.toMillis(365);
 
-    // Enumerate all known collection classes from the Realm API.
+    // Enumerates all known collection classes from the Realm API.
     protected enum CollectionClass {
         MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS
     }
 
-    // Enumerate all current supported collections that can be in unmanaged mode.
+    // Enumerates all current supported collections that can be in unmanaged mode.
     protected enum UnManagedCollection {
         UNMANAGED_REALMLIST
     }
 
-    // Enumerate all current supported collections that can be managed by Realm.
+    // Enumerates all current supported collections that can be managed by Realm.
     protected enum ManagedCollection {
         MANAGED_REALMLIST, REALMRESULTS
     }
 
-    // Enumerate all methods from the RealmCollection interface that depend on Realm API's.
+    // Enumerates all methods from the RealmCollection interface that depend on Realm API's.
     protected enum RealmCollectionMethod {
         WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
     }
 
-    // Enumerate all methods from the Collection interface
+    // Enumerates all methods from the Collection interface
     protected enum CollectionMethod {
         ADD_OBJECT, ADD_ALL_OBJECTS, CLEAR, CONTAINS, CONTAINS_ALL, EQUALS, HASHCODE, IS_EMPTY, ITERATOR, REMOVE_OBJECT,
         REMOVE_ALL, RETAIN_ALL, SIZE, TO_ARRAY, TO_ARRAY_INPUT
     }
 
-    // Enumerate all methods on the List interface and OrderedRealmCollection interface that doesn't depend on Realm
+    // Enumerates all methods on the List interface and OrderedRealmCollection interface that doesn't depend on Realm
     // API's.
     protected enum ListMethod {
         FIRST, LAST, ADD_INDEX, ADD_ALL_INDEX, GET_INDEX, INDEX_OF, LAST_INDEX_OF, LIST_ITERATOR, LIST_ITERATOR_INDEX, REMOVE_INDEX,
         SET, SUBLIST
     }
 
-    // Enumerate all methods from the OrderedRealmCollection interface that depend on Realm API's.
+    // Enumerates all methods from the OrderedRealmCollection interface that depend on Realm API's.
     protected enum OrderedRealmCollectionMethod {
         DELETE_INDEX, DELETE_FIRST, DELETE_LAST, SORT, SORT_FIELD, SORT_2FIELDS, SORT_MULTI
     }
 
-    // Enumerate all methods that can mutate a RealmCollection
+    // Enumerates all methods that can mutate a RealmCollection.
     protected enum CollectionMutatorMethod {
         DELETE_ALL, ADD_OBJECT, ADD_ALL_OBJECTS, CLEAR, REMOVE_OBJECT, REMOVE_ALL, RETAIN_ALL
     }
 
-    // Enumerate all methods that can mutate a RealmOrderedCollection
+    // Enumerates all methods that can mutate a RealmOrderedCollection.
     protected enum OrderedCollectionMutatorMethod {
         DELETE_INDEX, DELETE_FIRST, DELETE_LAST, ADD_INDEX, ADD_ALL_INDEX, SET, REMOVE_INDEX
     }
@@ -93,7 +93,7 @@ public abstract class CollectionTests {
                 nonLatinFieldNames.setΔέλτα(i);
             }
 
-            // Add all items to the RealmList on the first object
+            // Adds all items to the RealmList on the first object.
             AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 0).findFirst();
             RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_ID, Sort.ASCENDING);
             RealmList<AllJavaTypes> list = firstObj.getFieldList();
@@ -155,7 +155,7 @@ public abstract class CollectionTests {
         return result;
     }
 
-    // Create a number of objects that mix null and real values for number type fields.
+    // Creates a number of objects that mix null and real values for number type fields.
     protected void populatePartialNullRowsForNumericTesting(Realm realm) {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
@@ -185,7 +185,7 @@ public abstract class CollectionTests {
         realm.commitTransaction();
     }
 
-    // Create a list of AllJavaTypes with its `fieldString` field set to a given value.
+    // Creates a list of AllJavaTypes with its `fieldString` field set to a given value.
     protected OrderedRealmCollection<AllJavaTypes> createStringCollection(Realm realm, ManagedCollection collectionClass, String... args) {
         realm.beginTransaction();
         realm.deleteAll();

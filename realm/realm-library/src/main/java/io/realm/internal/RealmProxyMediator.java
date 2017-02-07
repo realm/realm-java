@@ -34,7 +34,7 @@ import io.realm.RealmSchema;
 import io.realm.exceptions.RealmException;
 
 /**
- * Superclass for the RealmProxyMediator class'. This class contain all static methods introduced by the annotation
+ * Superclass for the RealmProxyMediator class. This class contains all static methods introduced by the annotation
  * processor as part of the RealmProxy classes.
  *
  * Classes extending this class act as binders between the static methods inside each RealmProxy and the code at
@@ -45,11 +45,11 @@ import io.realm.exceptions.RealmException;
 public abstract class RealmProxyMediator {
 
     /**
-     * Create a object schema for the given RealmObject class.
+     * Creates a object schema for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} model class to create object schema for.
      * @param realmSchema the {@link RealmSchema} to associate the object schema with.
-     * @return The object schema.
+     * @return the object schema.
      */
     public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema);
 
@@ -83,7 +83,7 @@ public abstract class RealmProxyMediator {
     public abstract List<String> getFieldNames(Class<? extends RealmModel> clazz);
 
     /**
-     * Returns the name that Realm should use for all it's internal tables. This is the un-obfuscated name of the
+     * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated name of the
      * class.
      *
      * @param clazz the {@link RealmObject} class reference.
@@ -98,9 +98,9 @@ public abstract class RealmProxyMediator {
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
      * @param acceptDefaultValue {@code true} to accept the values set in the constructor, {@code false} otherwise.
      * @param excludeFields the column names whose default value will be ignored if the {@code acceptDefaultValue}
-     *                       is {@code true}. Only {@link io.realm.RealmModel} and {@link io.realm.RealmList}
-     *                       column will respect this.
-     *                       No effects if the {@code acceptDefaultValue} is {@code false}.
+     *                      is {@code true}. Only {@link io.realm.RealmModel} and {@link io.realm.RealmList}
+     *                      column will respect this.
+     *                      No effects if the {@code acceptDefaultValue} is {@code false}.
      * @return created {@link RealmObjectProxy} object.
      */
     public abstract <E extends RealmModel> E newInstance(Class<E> clazz,
@@ -121,18 +121,18 @@ public abstract class RealmProxyMediator {
      * Copies an unmanaged {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
      * any changes to the original object will not be persisted.
      *
-     * @param realm reference to the {@link Realm} where the object will be copied.
+     * @param realm the reference to the {@link Realm} where the object will be copied.
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
-     * {@code false} otherwise.
+     *               {@code false} otherwise.
      * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
      * @return the managed Realm object.
      */
     public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
 
     /**
-     * Insert an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the object will be inserted.
@@ -142,8 +142,8 @@ public abstract class RealmProxyMediator {
     public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objecs will be inserted.
@@ -153,8 +153,8 @@ public abstract class RealmProxyMediator {
     public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Insert or update a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks.
+     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objects will be inserted.
@@ -163,8 +163,9 @@ public abstract class RealmProxyMediator {
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
-     * Insert a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since it
-     * doesn't return the inserted elements, and performs minimum allocations and checks. After being inserted any changes to the original objects will not be persisted.
+     * Inserts a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since
+     * it doesn't return the inserted elements, and performs minimum allocations and checks.
+     * After being inserted any changes to the original objects will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the objects will be inserted.
      * @param objects Collection of {@link RealmObject} to insert or update. This must not be empty.

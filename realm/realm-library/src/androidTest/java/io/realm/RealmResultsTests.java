@@ -135,7 +135,7 @@ public class RealmResultsTests extends CollectionTests {
                     case REMOVE_ALL: collection.removeAll(Collections.singletonList(new AllTypes())); break;
                     case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllTypes())); break;
 
-                    // Supported methods
+                    // Supported methods.
                     case DELETE_ALL:
                         continue;
                 }
@@ -152,7 +152,7 @@ public class RealmResultsTests extends CollectionTests {
                     case SET: collection.set(0, new AllTypes()); break;
                     case REMOVE_INDEX: collection.remove(0); break;
 
-                    // Supported methods
+                    // Supported methods.
                     case DELETE_INDEX:
                     case DELETE_FIRST:
                     case DELETE_LAST:
@@ -164,7 +164,7 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
-    // Triggered an ARM bug
+    // Triggers an ARM bug.
     @Test
     public void verifyArmComparisons() {
         realm.beginTransaction();
@@ -185,7 +185,7 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(10, realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 0).findAll().size());
     }
 
-    // RealmResults.distinct(): requires indexing, and type = boolean, integer, date, string
+    // RealmResults.distinct(): requires indexing, and type = boolean, integer, date, string.
     private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
         realm.beginTransaction();
         for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
@@ -217,7 +217,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll().distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
@@ -234,16 +234,16 @@ public class RealmResultsTests extends CollectionTests {
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        // all objects
+        // All objects
         RealmResults<AnnotationIndexTypes> allResults = realm.where(AnnotationIndexTypes.class).findAll();
         assertEquals("All Objects Count", numberOfBlocks * numberOfBlocks * numberOfObjects, allResults.size());
-        // distinctive dates
+        // Distinctive dates
         RealmResults<AnnotationIndexTypes> distinctDates = allResults.distinct(AnnotationIndexTypes.FIELD_INDEX_DATE);
         assertEquals("Distinctive Dates", numberOfBlocks, distinctDates.size());
-        // distinctive Booleans
+        // Distinctive Booleans
         RealmResults<AnnotationIndexTypes> distinctBooleans = distinctDates.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
         assertEquals("Distinctive Booleans", 2, distinctBooleans.size());
-        // all three results are the same object
+        // All three results are the same object
         assertTrue(allResults == distinctDates);
         assertTrue(allResults == distinctBooleans);
     }
@@ -251,7 +251,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_withNullValues() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
@@ -263,7 +263,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_notIndexedFields() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
@@ -278,7 +278,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_noneExistingField() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
@@ -304,7 +304,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_indexedLinkedFields() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
@@ -319,7 +319,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinct_notIndexedLinkedFields() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
@@ -351,7 +351,7 @@ public class RealmResultsTests extends CollectionTests {
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
         assertEquals(10, results.size());
 
-        // 1. Delete first object from another thread.
+        // 1. Deletes first object from another thread.
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -360,7 +360,7 @@ public class RealmResultsTests extends CollectionTests {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                // 2. RealmResults are refreshed before onSuccess is called
+                // 2. RealmResults are refreshed before onSuccess is called.
                 assertEquals(9, results.size());
                 realm.close();
                 looperThread.testComplete();
@@ -420,7 +420,7 @@ public class RealmResultsTests extends CollectionTests {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
         final Realm realm = looperThread.realm;
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
@@ -496,7 +496,7 @@ public class RealmResultsTests extends CollectionTests {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
         final Realm realm = looperThread.realm;
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).findAll().distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
@@ -605,7 +605,7 @@ public class RealmResultsTests extends CollectionTests {
     @Test
     public void distinctMultiArgs() {
         final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
+        final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
@@ -618,7 +618,7 @@ public class RealmResultsTests extends CollectionTests {
         final long numberOfBlocks = 25;
         TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
 
-        // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples
+        // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples.
         RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
         RealmResults<AnnotationIndexTypes> distinctStringLong = results.distinct(AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG);
         RealmResults<AnnotationIndexTypes> distinctLongString = results.distinct(AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING);
@@ -634,47 +634,47 @@ public class RealmResultsTests extends CollectionTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
-        // an empty string field in the middle
+        // An empty string field in the middle.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT);
         } catch (IllegalArgumentException ignored) {
         }
-        // an empty string field at the end
+        // An empty string field at the end.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "");
         } catch (IllegalArgumentException ignored) {
         }
-        // a null string field in the middle
+        // A null string field in the middle.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, null, AnnotationIndexTypes.FIELD_INDEX_INT);
         } catch (IllegalArgumentException ignored) {
         }
-        // a null string field at the end
+        // A null string field at the end.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, null);
         } catch (IllegalArgumentException ignored) {
         }
-        // (String)null makes varargs a null array.
+        // (String) Null makes varargs a null array.
         try {
             results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
         } catch (IllegalArgumentException ignored) {
         }
-        // Two (String)null for first and varargs fields
+        // Two (String) null for first and varargs fields.
         try {
             results.distinct(null, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
-        // "" & (String)null combination
+        // "" & (String)null combination.
         try {
             results.distinct("", (String) null);
         } catch (IllegalArgumentException ignored) {
         }
-        // "" & (String)null combination
+        // "" & (String)null combination.
         try {
             results.distinct(null, "");
         } catch (IllegalArgumentException ignored) {
         }
-        // Two empty fields tests
+        // Two empty fields tests.
         try {
             results.distinct("", "");
         } catch (IllegalArgumentException ignored) {
@@ -1029,12 +1029,12 @@ public class RealmResultsTests extends CollectionTests {
         RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).findAll();
 
         realm.beginTransaction();
-        // remove one object
+        // Removes one object.
         stringOnlies.get(0).deleteFromRealm();
         realm.commitTransaction();
 
         realm.beginTransaction();
-        // remove the rest
+        // Removes the rest.
         stringOnlies.deleteAllFromRealm();
         realm.commitTransaction();
 

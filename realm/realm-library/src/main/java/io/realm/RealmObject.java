@@ -153,15 +153,16 @@ public abstract class RealmObject implements RealmModel {
     /**
      * Checks if the query used to find this RealmObject has completed.
      *
-     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future result
-     * of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this regard.
+     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future
+     * result of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this
+     * regard.
      *
      * Once {@code isLoaded()} returns {@code true}, the object represents the query result even if the query
      * didn't find any object matching the query parameters. In this case the {@link RealmObject} will
      * become a "null" object.
      *
-     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to also
-     * check {@link #isValid()} before calling any methods. A common pattern is:
+     * "Null" objects represents {@code null}.  An exception is throw if any accessor is called, so it is important to
+     * also check {@link #isValid()} before calling any methods. A common pattern is:
      *
      * <pre>
      * {@code
@@ -223,7 +224,6 @@ public abstract class RealmObject implements RealmModel {
      *
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
      * This method will return {@code true} if called on an unmanaged object (created outside of Realm).
-     *
      *
      * @param object RealmObject to check.
      * @return {@code true} if the query has completed, {@code false} if the query is in
@@ -360,7 +360,7 @@ public abstract class RealmObject implements RealmModel {
                 listeners.add(listener);
             }
             if (isLoaded(proxy)) {
-                // Try to add this object to the realmObjects if it has already been loaded.
+                // Tries to add this object to the realmObjects if it has already been loaded.
                 // For newly created async objects, it will be handled in RealmQuery.findFirstAsync &
                 // HandlerController.completedAsyncRealmObject.
                 realm.handlerController.addToRealmObjects(proxy);

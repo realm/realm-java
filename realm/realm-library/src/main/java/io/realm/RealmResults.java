@@ -85,8 +85,8 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
     private final List<RealmChangeListener<RealmResults<E>>> listeners = new CopyOnWriteArrayList<RealmChangeListener<RealmResults<E>>>();
     private Future<Long> pendingQuery;
     private boolean asyncQueryCompleted = false;
-    // Keep track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners will
-    // clear it.
+    // Keeps track of changes to the RealmResult. Is updated after a call to `syncIfNeeded()`. Calling notifyListeners
+    // will clear it.
     private boolean viewUpdated = false;
 
 

@@ -53,7 +53,7 @@ public class RealmObjectSchemaTests {
     @Before
     public void setUp() {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
-        Realm.getInstance(realmConfig).close(); // Create Schema
+        Realm.getInstance(realmConfig).close(); // Creates Schema.
         realm = DynamicRealm.getInstance(realmConfig);
         realmSchema = realm.getSchema();
         DOG_SCHEMA = realmSchema.get("Dog");
@@ -200,7 +200,7 @@ public class RealmObjectSchemaTests {
         }
     }
 
-    // Check that field is actually added and that it can be removed again.
+    // Checks that field is actually added and that it can be removed again.
     private void checkAddedAndRemovable(String fieldName) {
         assertTrue(schema.hasField(fieldName));
         schema.removeField(fieldName);
@@ -276,8 +276,8 @@ public class RealmObjectSchemaTests {
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
-                case OBJECT: continue; // Not possible
-                case LIST: continue; // Not possible
+                case OBJECT: continue; // Not possible.
+                case LIST: continue; // Not possible.
                 default:
                     // All simple types
                     schema.addField(fieldName, fieldType.getType(), FieldAttribute.REQUIRED);
@@ -387,7 +387,7 @@ public class RealmObjectSchemaTests {
             final String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
 
-            // create multiple objects with same values.
+            // Creates multiple objects with same values.
             realm.createObject(schema.getClassName());
             realm.createObject(schema.getClassName());
 
@@ -395,7 +395,7 @@ public class RealmObjectSchemaTests {
                 schema.addPrimaryKey(fieldName);
                 fail();
             } catch (IllegalArgumentException e) {
-                // check if message reports correct field name.
+                // Checks if message reports correct field name.
                 assertTrue(e.getMessage().contains("\"" + fieldName + "\""));
             }
             schema.removeField(fieldName);
@@ -461,7 +461,7 @@ public class RealmObjectSchemaTests {
                     }
                     break;
                 default:
-                    // All simple types
+                    // All simple types.
                     schema.addField(fieldName, fieldType.getType());
                     assertEquals(fieldType.isNullable(), schema.isNullable(fieldName));
                     schema.setNullable(fieldName, !fieldType.isNullable());
@@ -497,7 +497,7 @@ public class RealmObjectSchemaTests {
                     }
                     break;
                 default:
-                    // All simple types
+                    // All simple types.
                     schema.addField(fieldName, fieldType.getType());
                     assertEquals(!fieldType.isNullable(), schema.isRequired(fieldName));
                     schema.setRequired(fieldName, fieldType.isNullable());

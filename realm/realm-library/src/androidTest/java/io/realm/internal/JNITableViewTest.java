@@ -98,7 +98,7 @@ public class JNITableViewTest {
         }
         sharedRealm.commitTransaction();
 
-        // check if TableView#setNull() worked as expected
+        // Checks if TableView#setNull() worked as expected
         for (int i = 0; i < table.size(); i++) {
             assertEquals("index: " + i, isOdd(i), table.isNull(STRING_COLUMN_INDEX, i));
         }

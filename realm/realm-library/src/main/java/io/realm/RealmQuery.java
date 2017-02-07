@@ -216,7 +216,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isNull(String fieldName) {
         long columnIndices[] = schema.getColumnIndices(fieldName);
 
-        // checking that fieldName has the correct type is done in C++
+        // Checks that fieldName has the correct type is done in C++.
         this.query.isNull(columnIndices);
         return this;
     }
@@ -232,7 +232,7 @@ public class RealmQuery<E extends RealmModel> {
     public RealmQuery<E> isNotNull(String fieldName) {
         long columnIndices[] = schema.getColumnIndices(fieldName);
 
-        // checking that fieldName has the correct type is done in C++
+        // Checks that fieldName has the correct type is done in C++.
         this.query.isNotNull(columnIndices);
         return this;
     }
@@ -431,7 +431,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, String[] values) {
         return in(fieldName, values, Case.SENSITIVE);
@@ -444,7 +445,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param values array of values to compare with and it cannot be null or empty.
      * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
         if (values == null || values.length == 0) {
@@ -463,7 +465,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Byte[] values) {
         if (values == null || values.length == 0) {
@@ -482,7 +485,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Short[] values) {
         if (values == null || values.length == 0) {
@@ -501,7 +505,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null}
+     * or empty.
      */
     public RealmQuery<E> in(String fieldName, Integer[] values) {
         if (values == null || values.length == 0) {
@@ -520,7 +525,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Long[] values) {
         if (values == null || values.length == 0) {
@@ -539,7 +545,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Double[] values) {
         if (values == null || values.length == 0) {
@@ -558,7 +565,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Float[] values) {
         if (values == null || values.length == 0) {
@@ -577,7 +585,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null}
+     * or empty.
      */
     public RealmQuery<E> in(String fieldName, Boolean[] values) {
         if (values == null || values.length == 0) {
@@ -596,7 +605,8 @@ public class RealmQuery<E extends RealmModel> {
      * @param fieldName the field to compare.
      * @param values array of values to compare with and it cannot be null or empty.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or
+     * empty.
      */
     public RealmQuery<E> in(String fieldName, Date[] values) {
         if (values == null || values.length == 0) {
@@ -1401,18 +1411,18 @@ public class RealmQuery<E extends RealmModel> {
         final long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
         final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
-        // handover the query (to be used by a worker thread)
+        // Handovers the query (to be used by a worker thread).
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
-        // save query arguments (for future update)
+        // Saves query arguments (for future update).
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
         argumentsHolder.columnIndex = columnIndex;
 
-        // we need to use the same configuration to open a background SharedRealm (i.e Realm)
-        // to perform the query
+        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
+        // to perform the query.
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
+        // Prepares an empty reference of the RealmResults, so we can return it immediately (promise)
         // then update it once the query completes in the background.
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
@@ -1466,22 +1476,22 @@ public class RealmQuery<E extends RealmModel> {
         return realmResults;
     }
 
-    // Find and validate the column index for the field name used to create a distinctive TableView.
+    // Finds and validates the column index for the field name used to create a distinctive TableView.
     static long getAndValidateDistinctColumnIndex(String fieldName, Table table) {
-        // Check empty field name
+        // Checks empty field name.
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name must be provided.");
         }
         long columnIndex = table.getColumnIndex(fieldName);
-        // Check if field exists
+        // Checks if field exists.
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
-        // Check linked fields
+        // Checks linked fields.
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Distinct operation on linked properties is not supported: " + fieldName);
         }
-        // check if the field is indexed
+        // Checks if the field is indexed.
         if (!table.hasSearchIndex(columnIndex)) {
             throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
         }
@@ -1516,13 +1526,13 @@ public class RealmQuery<E extends RealmModel> {
         return realmResults;
     }
 
-    // find and validate the column indices of fields for building a distinctive TableView with multi-args
+    // Finds and validates the column indices of fields for building a distinctive TableView with multi-args.
     static List<Long> getValidatedColumIndexes(Table table, String firstFieldName, String... remainingFieldNames) {
         List<Long> columnIndexes = new ArrayList<Long>();
-        // find the first index
+        // Finds the first index.
         long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
         columnIndexes.add(firstIndex);
-        // add remaining of indexes
+        // Adds remaining of indexes.
         if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
             for (String field : remainingFieldNames) {
                 long index = getAndValidateDistinctColumnIndex(field, table);
@@ -1705,17 +1715,17 @@ public class RealmQuery<E extends RealmModel> {
         checkQueryIsNotReused();
         final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
-        // handover the query (to be used by a worker thread)
+        // Handovers the query (to be used by a worker thread).
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
-        // save query arguments (for future update)
+        // Saves query arguments (for future update).
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL);
 
-        // we need to use the same configuration to open a background SharedRealm (i.e Realm)
-        // to perform the query
+        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
+        // to perform the query.
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
+        // Prepares an empty reference of the RealmResults, so we can return it immediately (promise)
         // then update it once the query completes in the background.
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
@@ -1736,7 +1746,7 @@ public class RealmQuery<E extends RealmModel> {
                     try {
                         sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                        // Run the query & handover the table view for the caller thread
+                        // Runs the query & handover the table view for the caller thread.
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
                         // to import it.
                         long handoverTableViewPointer = TableQuery.findAllWithHandover(sharedRealm,
@@ -1818,17 +1828,17 @@ public class RealmQuery<E extends RealmModel> {
         checkQueryIsNotReused();
         long columnIndex = getColumnIndexForSort(fieldName);
 
-        // capture the query arguments for future retries & update
+        // Captures the query arguments for future retries & updates.
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
         argumentsHolder.sortOrder = sortOrder;
         argumentsHolder.columnIndex = columnIndex;
 
         final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
-        // handover the query (to be used by a worker thread)
+        // Handovers the query (to be used by a worker thread).
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
-        // we need to use the same configuration to open a background SharedRealm to perform the query
+        // We need to use the same configuration to open a background SharedRealm to perform the query.
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
         RealmResults<E> realmResults;
@@ -1853,7 +1863,7 @@ public class RealmQuery<E extends RealmModel> {
 
                         long columnIndex = getColumnIndexForSort(fieldName);
 
-                        // run the query & handover the table view for the caller thread
+                        // Runs the query & handover the table view for the caller thread.
                         long handoverTableViewPointer = TableQuery.findAllSortedWithHandover(sharedRealm,
                                  handoverQueryPointer, columnIndex, sortOrder);
 
@@ -1985,10 +1995,10 @@ public class RealmQuery<E extends RealmModel> {
         } else {
             final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
-            // Handover the query (to be used by a worker thread)
+            // Handovers the query (to be used by a worker thread).
             final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
-            // We need to use the same configuration to open a background SharedRealm to perform the query
+            // We need to use the same configuration to open a background SharedRealm to perform the query.
             final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
             final long indices[] = new long[fieldNames.length];
@@ -1998,12 +2008,12 @@ public class RealmQuery<E extends RealmModel> {
                 indices[i] = columnIndex;
             }
 
-            // capture the query arguments for future retries & update
+            // Captures the query arguments for future retries & update.
             argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED);
             argumentsHolder.sortOrders = sortOrders;
             argumentsHolder.columnIndices = indices;
 
-            // prepare the promise result
+            // Prepares the promise result.
             RealmResults<E> realmResults;
             if (isDynamicQuery()) {
                 //noinspection unchecked
@@ -2023,7 +2033,7 @@ public class RealmQuery<E extends RealmModel> {
                         try {
                             sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
-                            // run the query & handover the table view for the caller thread
+                            // Runs the query & handover the table view for the caller thread.
                             long handoverTableViewPointer = TableQuery.findAllMultiSortedWithHandover(sharedRealm,
                                     handoverQueryPointer, indices, sortOrders);
 
@@ -2127,15 +2137,15 @@ public class RealmQuery<E extends RealmModel> {
         checkQueryIsNotReused();
         final WeakReference<RealmNotifier> weakNotifier = getWeakReferenceNotifier();
 
-        // handover the query (to be used by a worker thread)
+        // Handovers the query (to be used by a worker thread).
         final long handoverQueryPointer = query.handoverQuery(realm.sharedRealm);
 
-        // save query arguments (for future update)
+        // Saves query arguments (for future update).
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_FIRST);
 
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
+        // Prepares an empty reference of the RealmObject, so we can return it immediately (promise)
         // then update it once the query complete in the background.
         final E result;
         if (isDynamicQuery()) {
@@ -2160,7 +2170,7 @@ public class RealmQuery<E extends RealmModel> {
                         sharedRealm = SharedRealm.getInstance(realmConfiguration);
 
                         long handoverRowPointer = TableQuery.findWithHandover(sharedRealm, handoverQueryPointer);
-                        if (handoverRowPointer == 0) { // empty row
+                        if (handoverRowPointer == 0) { // Empty row.
                             realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
                             realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
                         }
@@ -2175,7 +2185,7 @@ public class RealmQuery<E extends RealmModel> {
 
                     } catch (Throwable e) {
                         RealmLog.error(e);
-                        // handler can't throw a checked exception need to wrap it into unchecked Exception
+                        // Handler can't throw a checked exception need to wrap it into unchecked Exception.
                         closeSharedRealmAndSendEventToNotifier(sharedRealm,
                                 weakNotifier, QueryUpdateTask.NotifyEvent.THROW_BACKGROUND_EXCEPTION, e);
                     } finally {
@@ -2214,7 +2224,7 @@ public class RealmQuery<E extends RealmModel> {
             throw new IllegalStateException("Your Realm is opened from a thread without a Looper." +
                     " Async queries need a Handler to send results of your query");
         }
-        return new WeakReference<RealmNotifier>(realm.sharedRealm.realmNotifier); // use caller Realm's Looper
+        return new WeakReference<RealmNotifier>(realm.sharedRealm.realmNotifier); // Uses caller Realm's Looper.
     }
 
     // The shared group needs to be closed before sending the message to other threads to avoid timing problems.
@@ -2245,8 +2255,8 @@ public class RealmQuery<E extends RealmModel> {
         }
     }
 
-    // We need to prevent the user from using the query again (mostly for async)
-    // Ex: if the first query fail with findFirstAsync, if the user reuse the same RealmQuery
+    // We need to prevent the user from using the query again (mostly for async).
+    // Ex: If the first query fail with findFirstAsync, if the user reuse the same RealmQuery
     //     with findAllSorted, argumentsHolder of the first query will be overridden,
     //     which cause any retry to use the findAllSorted argumentsHolder.
     private void checkQueryIsNotReused() {
@@ -2259,7 +2269,7 @@ public class RealmQuery<E extends RealmModel> {
         long tableRowIndex = this.query.find();
         return tableRowIndex;
     }
-    // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
+    // Gets the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
     // or it belongs to the child object.
     private long getColumnIndexForSort(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
