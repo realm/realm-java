@@ -111,7 +111,6 @@ public final class ObjectServerSession {
     private SessionState currentStateDescription;
     private FsmState currentState;
     private SyncSession userSession;
-    private SyncSession publicSession;
 
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
     private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
@@ -365,25 +364,27 @@ public final class ObjectServerSession {
 
             @Override
             protected void onSuccess(AuthenticateResponse response) {
-                RealmLog.debug("Access Token refreshed successfully");
-                if (updateSessionAccessToken(response.getAccessToken().value())) {
-                    RealmLog.debug("Token applied");
-                    // only schedule an update if the token was updated.
-                    // The callback might return will the session state is not BOUND
-                    // in this case we'll wait for the new session state to transition to
-                    // BOUND, which will schedule a refresh in the process
+                synchronized (ObjectServerSession.this) {
+                    RealmLog.debug("Access Token refreshed successfully");
+                    if (updateSessionAccessToken(response.getAccessToken().value())) {
+                        RealmLog.debug("Token applied");
+                        // only schedule an update if the token was updated.
+                        // The callback might return will the session state is not BOUND
+                        // in this case we'll wait for the new session state to transition to
+                        // BOUND, which will schedule a refresh in the process
 
-                    // this will also avoid updating a stopped session
+                        // this will also avoid updating a stopped session
 
-                    // replaced the user old access_token
-                    ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
-                            response.getAccessToken(),
-                            configuration.getPath(),
-                            configuration.shouldDeleteRealmOnLogout()
-                    );
-                    user.addRealm(configuration.getServerUrl(), desc);
-                    // schedule the next refresh
-                    scheduleRefreshAccessToken(response.getAccessToken().expiresMs());
+                        // replaced the user old access_token
+                        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(
+                                response.getAccessToken(),
+                                configuration.getPath(),
+                                configuration.shouldDeleteRealmOnLogout()
+                        );
+                        user.addRealm(configuration.getServerUrl(), desc);
+                        // schedule the next refresh
+                        scheduleRefreshAccessToken(response.getAccessToken().expiresMs());
+                    }
                 }
             }
 
