@@ -78,6 +78,9 @@ endif()
 
 add_library(lib_realm_core STATIC IMPORTED)
 set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH})
+# -latomic is not set by default for mips and armv5.
+# See https://code.google.com/p/android/issues/detail?id=182094
+target_link_libraries(lib_realm_core atomic)
 
 # Sync static library
 set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
@@ -95,6 +98,7 @@ if (NOT EXISTS ${sync_lib_PATH})
 endif()
 add_library(lib_realm_sync STATIC IMPORTED)
 set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH})
+target_link_libraries(lib_realm_sync lib_realm_core)
 
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
@@ -172,12 +176,10 @@ endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
 add_dependencies(realm-jni jni_headers)
-# -latomic is not set by default for mips. See https://code.google.com/p/android/issues/detail?id=182094
 if (build_SYNC)
-# FIXME: The order matters! lib_realm_sync needs to be in front of lib_realm_core!! Find out why!!
-target_link_libraries(realm-jni log android atomic lib_realm_sync lib_realm_core)
+target_link_libraries(realm-jni log android lib_realm_sync)
 else()
-target_link_libraries(realm-jni log android atomic lib_realm_core)
+target_link_libraries(realm-jni log android lib_realm_core)
 endif()
 
 # Strip the release so files and backup the unstripped versions
