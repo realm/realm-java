@@ -80,7 +80,7 @@ add_library(lib_realm_core STATIC IMPORTED)
 set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_PATH})
 # -latomic is not set by default for mips and armv5.
 # See https://code.google.com/p/android/issues/detail?id=182094
-target_link_libraries(lib_realm_core atomic)
+set_target_properties(lib_realm_core PROPERTIES IMPORTED_LINK_INTERFACE_LIBRARIES atomic)
 
 # Sync static library
 set(sync_lib_PATH ${REALM_CORE_DIST_DIR}/librealm-sync-android-${ANDROID_ABI}.a)
