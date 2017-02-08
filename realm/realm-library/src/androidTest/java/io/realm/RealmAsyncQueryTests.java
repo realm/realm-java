@@ -696,8 +696,9 @@ public class RealmAsyncQueryTests {
         final RealmResults<AllTypes> allTypesAsync = looperThread.realm.where(AllTypes.class).greaterThan("columnLong", 5).findAllAsync();
         final RealmResults<AllTypes> allTypesSync = allTypesAsync.where().greaterThan("columnLong", 3).findAll();
 
-        // Call where() on an async results will load the async query immediately.
-        assertEquals(4, allTypesAsync.size());
+        // Call where() on an async results will load query. But to maintain the original behaviour of
+        // RealmResults.load(), we still treat it as a not loaded results.
+        assertEquals(0, allTypesAsync.size());
         assertEquals(4, allTypesSync.size()); // columnLong > 5 && columnLong > 3
         allTypesAsync.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -1095,7 +1096,7 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void badVersion_syncTransaction() throws NoSuchFieldException, IllegalAccessException {
-        TestHelper.replaceRealmThreadExecutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        final AtomicInteger listenerCount = new AtomicInteger(0);
         Realm realm = looperThread.realm;
 
         // 1. Makes sure that async query is not started.
@@ -1104,23 +1105,36 @@ public class RealmAsyncQueryTests {
         result.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> object) {
-                // 4. The commit in #2, should result in a refresh being triggered, which means this callback will
-                // be notified once the updated async queries has run.
                 assertTrue(result.isValid());
                 assertTrue(result.isLoaded());
-                assertEquals(1, result.size());
-                looperThread.testComplete();
+                switch (listenerCount.getAndIncrement()) {
+                    case 0:
+                        // Triggered by beginTransaction
+                        assertEquals(0, result.size());
+                        break;
+                    case 1:
+                        // 4. The commit in #2, should result in a refresh being triggered, which means this callback will
+                        // be notified once the updated async queries has run.
+                        assertEquals(1, result.size());
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        fail();
+                        break;
+                }
             }
         });
 
         // 2. Advances the caller Realm, invalidating the version in the handover object.
         realm.beginTransaction();
+        assertTrue(result.isLoaded());
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
         // 3. The async query should now (hopefully) fail with a BadVersion.
+        // NOTE: Step 3 is from the original test. After integration of Object Store Results, it has been loaded already
+        //       when beginTransaction.
         result.load();
-        TestHelper.resetRealmThreadExecutor();
     }
 
     // This test reproduces the issue in https://secure.helpscout.net/conversation/244053233/6163/?folderId=366141

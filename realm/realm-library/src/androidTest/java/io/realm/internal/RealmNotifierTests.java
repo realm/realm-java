@@ -82,25 +82,6 @@ public class RealmNotifierTests {
         });
     }
 
-    @Test
-    @RunTestInLooperThread
-    public void postAtFrontOfQueue() {
-        final RealmNotifier notifier = new AndroidRealmNotifier(null, capabilitiesCanDeliver);
-        notifier.post(new Runnable() {
-            @Override
-            public void run() {
-                fail();
-            }
-        });
-        notifier.postAtFrontOfQueue(new Runnable() {
-            @Override
-            public void run() {
-                looperThread.testComplete();
-                notifier.close();
-            }
-        });
-    }
-
     // Callback is immediately called when commitTransaction for local changes.
     @Test
     @RunTestInLooperThread

@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -295,6 +296,7 @@ public class RealmObjectTests {
 
     // Tests calling deleteFromRealm on a RealmResults instead of RealmResults.remove().
     @Test
+    @Ignore("Enable this test when implementing RealmCollectionSnapshot")
     public void deleteFromRealm_atPosition() {
         removeOneByOne(REMOVE_FIRST);
         removeOneByOne(REMOVE_LAST);
