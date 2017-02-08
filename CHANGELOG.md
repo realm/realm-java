@@ -12,9 +12,13 @@
 * Bug causing classes to be replaced by classes already in Gradle's classpath (#3568).
 * NullPointerException when notifying a single object that it changed (#4086).
 
+### Enhancements
+
+* [ObjectServer] Add a timer to refresh periodically the access_token.
+
 ## 2.3.0
 
-### Object Server API Changes 
+### Object Server API Changes
 
 * Realm Sync v1.0.0 has been released, and Realm Mobile Platform is no longer considered in beta.
 * Breaking change: Location of Realm files are now placed in `getFilesDir()/<userIdentifier>` instead of `getFilesDir()/`.

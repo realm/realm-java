@@ -48,7 +48,7 @@ public interface AuthenticationServer {
      * Before it expires, the client should try to refresh the token, effectively keeping the user logged in on the
      * Object Server. Failing to do so will cause a "soft logout", where the User will have limited access rights.
      */
-    AuthenticateResponse refreshUser(Token userToken, URL authenticationUrl);
+    AuthenticateResponse refreshUser(Token userToken, URI serverUrl, URL authenticationUrl);
 
     /**
      * Logs out the user on the Object Server by invalidating the refresh token. Each device should be given their
