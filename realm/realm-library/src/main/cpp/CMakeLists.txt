@@ -100,8 +100,6 @@ add_library(lib_realm_sync STATIC IMPORTED)
 set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_PATH}
                                                 IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
 
-target_link_libraries(lib_realm_sync lib_realm_core)
-
 # build application's shared lib
 include_directories(${REALM_CORE_DIST_DIR}/include
     ${CMAKE_SOURCE_DIR}
