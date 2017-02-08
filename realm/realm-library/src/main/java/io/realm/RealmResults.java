@@ -789,7 +789,7 @@ public class RealmResults<E extends RealmModel> extends AbstractList<E> implemen
             throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
         }
 
-        protected void checkRealmIsStable() {
+        void checkRealmIsStable() {
             long version = table.getVersion();
             // Any change within a write transaction will immediately update the table version. This means that we
             // cannot depend on the tableVersion heuristic in that case.
