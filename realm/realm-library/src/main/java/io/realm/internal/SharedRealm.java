@@ -422,6 +422,9 @@ public final class SharedRealm implements Closeable, NativeObject {
     // 2) It happens before Object Store async callbacks since the Object Store event_loop_signal might use a different
     //    event queue. This is guaranteed by call this function in the binding_context::before_notify callback.
     void reattachCollections() {
+        if (isClosed()) {
+            return;
+        }
         if (isInTransaction()) {
             // This should never happen.
             throw new IllegalStateException( "Collection cannot be reattached if the Realm is in transaction." +

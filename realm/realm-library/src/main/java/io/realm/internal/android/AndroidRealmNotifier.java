@@ -33,13 +33,4 @@ public class AndroidRealmNotifier extends RealmNotifier {
     public boolean post(Runnable runnable) {
         return handler != null && handler.post(runnable);
     }
-
-    @Override
-    public void close() {
-        super.close();
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
-            handler = null;
-        }
-    }
 }

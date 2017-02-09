@@ -59,12 +59,14 @@ public abstract class RealmNotifier implements Closeable {
     }
 
     private ObserverPairList<RealmObserverPair> realmObserverPairs = new ObserverPairList<RealmObserverPair>();
-    private final static ObserverPairList.Callback<RealmObserverPair> onChangeCallBack =
+    private final ObserverPairList.Callback<RealmObserverPair> onChangeCallBack =
             new ObserverPairList.Callback<RealmObserverPair>() {
                 @Override
                 public void onCalled(RealmObserverPair pair, Object observer) {
                     //noinspection unchecked
-                    pair.onChange(observer);
+                    if (sharedRealm != null && !sharedRealm.isClosed()) {
+                        pair.onChange(observer);
+                    }
                 }
             };
 
