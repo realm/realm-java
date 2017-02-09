@@ -145,6 +145,7 @@ public class RealmNotifierTests {
         looperThread.realm.close();
 
         SharedRealm sharedRealm = getSharedRealm(looperThread.realmConfiguration);
+        looperThread.keepStrongReference.add(sharedRealm);
         sharedRealm.realmNotifier.addChangeListener(sharedRealm, new RealmChangeListener<SharedRealm>() {
             @Override
             public void onChange(SharedRealm sharedRealm) {
